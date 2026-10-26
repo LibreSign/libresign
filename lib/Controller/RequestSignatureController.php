@@ -238,12 +238,12 @@ class RequestSignatureController extends AEnvironmentAwareController {
 			$this->validateHelper->validateWorkflowIsNotClosedByFileId($fileId);
 			$this->validateHelper->validateIsSignerOfFile($signRequestId, $fileId);
 			$this->requestSignatureService->unassociateToUser($fileId, $signRequestId);
-		} catch (\Throwable $th) {
+		} catch (LibresignException $e) {
 			return new DataResponse(
-				[
-					'message' => $th->getMessage(),
-				],
-				Http::STATUS_UNAUTHORIZED
+				['message' => $e->getMessage()],
+				$e->getCode() === Http::STATUS_UNPROCESSABLE_ENTITY
+					? Http::STATUS_UNPROCESSABLE_ENTITY
+					: Http::STATUS_UNAUTHORIZED,
 			);
 		}
 		return new DataResponse(

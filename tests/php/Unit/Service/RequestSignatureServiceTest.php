@@ -33,11 +33,11 @@ use OCA\Libresign\Service\Policy\FilePolicyApplier;
 use OCA\Libresign\Service\RequestSignatureService;
 use OCA\Libresign\Service\SequentialSigningService;
 use OCA\Libresign\Service\SignerGeolocation\SignerGeolocationPolicyService;
+use OCA\Libresign\Service\SignerRemovalService;
 use OCA\Libresign\Service\SignRequest\SignRequestService;
 use OCA\Libresign\Service\SignRequest\StatusCacheService;
 use OCA\Libresign\Service\SignRequest\StatusService;
 use OCA\Libresign\Service\SignRequest\StatusUpdatePolicy;
-use OCP\EventDispatcher\IEventDispatcher;
 use OCP\Files\Folder;
 use OCP\Files\IMimeTypeDetector;
 use OCP\Http\Client\IClient;
@@ -71,8 +71,8 @@ final class RequestSignatureServiceTest extends \OCA\Libresign\Tests\Unit\TestCa
 	private LoggerInterface&MockObject $loggerInterface;
 	private SequentialSigningService&MockObject $sequentialSigningService;
 	private IAppConfig&MockObject $appConfig;
-	private IEventDispatcher&MockObject $eventDispatcher;
 	private FileStatusService&MockObject $fileStatusService;
+	private SignerRemovalService&MockObject $signerRemovalService;
 	private DocMdpConfigService&MockObject $docMdpConfigService;
 	private EnvelopeService&MockObject $envelopeService;
 	private EnvelopeFileRelocator&MockObject $envelopeFileRelocator;
@@ -107,8 +107,8 @@ final class RequestSignatureServiceTest extends \OCA\Libresign\Tests\Unit\TestCa
 		$this->loggerInterface = $this->createMock(LoggerInterface::class);
 		$this->sequentialSigningService = $this->createMock(SequentialSigningService::class);
 		$this->appConfig = $this->createMock(IAppConfig::class);
-		$this->eventDispatcher = $this->createMock(IEventDispatcher::class);
 		$this->fileStatusService = $this->createMock(FileStatusService::class);
+		$this->signerRemovalService = $this->createMock(SignerRemovalService::class);
 		$this->docMdpConfigService = $this->createMock(DocMdpConfigService::class);
 		$this->envelopeService = $this->createMock(EnvelopeService::class);
 		$this->envelopeFileRelocator = $this->createMock(EnvelopeFileRelocator::class);
@@ -140,7 +140,6 @@ final class RequestSignatureServiceTest extends \OCA\Libresign\Tests\Unit\TestCa
 					$this->loggerInterface,
 					$this->sequentialSigningService,
 					$this->appConfig,
-					$this->eventDispatcher,
 					$this->fileStatusService,
 					$this->docMdpConfigService,
 					$this->envelopeService,
@@ -149,6 +148,7 @@ final class RequestSignatureServiceTest extends \OCA\Libresign\Tests\Unit\TestCa
 					$this->signRequestService,
 					$this->filePolicyApplier,
 					$this->signerGeolocationPolicyService,
+					$this->signerRemovalService,
 				])
 				->onlyMethods($methods)
 				->getMock();
@@ -173,7 +173,6 @@ final class RequestSignatureServiceTest extends \OCA\Libresign\Tests\Unit\TestCa
 			$this->loggerInterface,
 			$this->sequentialSigningService,
 			$this->appConfig,
-			$this->eventDispatcher,
 			$this->fileStatusService,
 			$this->docMdpConfigService,
 			$this->envelopeService,
@@ -182,6 +181,7 @@ final class RequestSignatureServiceTest extends \OCA\Libresign\Tests\Unit\TestCa
 			$this->signRequestService,
 			$this->filePolicyApplier,
 			$this->signerGeolocationPolicyService,
+			$this->signerRemovalService,
 		);
 	}
 
@@ -755,7 +755,6 @@ final class RequestSignatureServiceTest extends \OCA\Libresign\Tests\Unit\TestCa
 				$this->loggerInterface,
 				$this->sequentialSigningService,
 				$this->appConfig,
-				$this->eventDispatcher,
 				$this->fileStatusService,
 				$this->docMdpConfigService,
 				$this->envelopeService,
@@ -764,6 +763,7 @@ final class RequestSignatureServiceTest extends \OCA\Libresign\Tests\Unit\TestCa
 				$this->signRequestService,
 				$this->filePolicyApplier,
 				$this->signerGeolocationPolicyService,
+				$this->signerRemovalService,
 			])
 			->onlyMethods(['unassociateToUser'])
 			->getMock();
@@ -829,7 +829,6 @@ final class RequestSignatureServiceTest extends \OCA\Libresign\Tests\Unit\TestCa
 				$this->loggerInterface,
 				$this->sequentialSigningService,
 				$this->appConfig,
-				$this->eventDispatcher,
 				$this->fileStatusService,
 				$this->docMdpConfigService,
 				$this->envelopeService,
@@ -838,6 +837,7 @@ final class RequestSignatureServiceTest extends \OCA\Libresign\Tests\Unit\TestCa
 				$this->signRequestService,
 				$this->filePolicyApplier,
 				$this->signerGeolocationPolicyService,
+				$this->signerRemovalService,
 			])
 			->onlyMethods(['unassociateToUser'])
 			->getMock();
