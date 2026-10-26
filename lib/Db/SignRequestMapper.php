@@ -202,6 +202,27 @@ class SignRequestMapper extends CachedQBMapper {
 	}
 
 	/**
+	 * Read and lock every signing request for a file until the current database
+	 * transaction ends. Do not use cached entities for integrity decisions.
+	 *
+	 * @return list<SignRequest>
+	 */
+	public function getByFileIdForUpdate(int $fileId): array {
+		$qb = $this->db->getQueryBuilder();
+		$qb->select('*')
+			->from($this->getTableName())
+			->where($qb->expr()->eq('file_id', $qb->createNamedParameter($fileId, IQueryBuilder::PARAM_INT)))
+			->orderBy('id', 'ASC');
+		// SQLite serializes writers and does not support SELECT FOR UPDATE.
+		if ($this->db->getDatabaseProvider() !== IDBConnection::PLATFORM_SQLITE) {
+			$qb->forUpdate();
+		}
+
+		/** @var list<SignRequest> */
+		return $this->findEntities($qb);
+	}
+
+	/**
 	 * Get all signers by fileId
 	 *
 	 * @return SignRequest[]
