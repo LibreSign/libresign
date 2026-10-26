@@ -28,9 +28,14 @@ final class RemovalChanges {
 	/** @var list<SignRequest> */
 	public array $activatedSigners = [];
 
-	public function track(File $file, SignRequest $signRequest): void {
+	/** @param list<SignRequest> $signers */
+	public function track(File $file, array $signers): void {
 		$this->files[$file->getId()] = $file;
-		$this->signRequests[$signRequest->getId()] = $signRequest;
+		// Activation can update some of these records before a later write fails.
+		// Invalidate them all even when that activation never returns its result.
+		foreach ($signers as $signer) {
+			$this->signRequests[$signer->getId()] = $signer;
+		}
 	}
 
 	public function activated(SignRequest $signRequest): void {
