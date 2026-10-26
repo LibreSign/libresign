@@ -41,7 +41,7 @@ final class SignerRemovalServiceTest extends TestCase {
 	private LoggerInterface&MockObject $logger;
 	private SignerRemovalService $service;
 
-	protected function setUp(): void {
+	public function setUp(): void {
 		parent::setUp();
 		$this->files = $this->createMock(FileMapper::class);
 		$this->requests = $this->createMock(SignRequestMapper::class);

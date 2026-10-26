@@ -55,7 +55,7 @@ final class SignerRemovalRulesTest extends TestCase {
 		return [
 			'draft' => [SignRequestStatus::DRAFT, false, false, false],
 			'ready' => [SignRequestStatus::ABLE_TO_SIGN, false, false, false],
-			'observer' => [SignRequestStatus::OBSERVING, false, false, false],
+			'rejected without a signature' => [SignRequestStatus::REJECTED, false, false, false],
 			'signed state' => [SignRequestStatus::SIGNED, false, false, true],
 			'completion time persisted' => [SignRequestStatus::ABLE_TO_SIGN, true, false, true],
 			'signed hash persisted' => [SignRequestStatus::ABLE_TO_SIGN, false, true, true],

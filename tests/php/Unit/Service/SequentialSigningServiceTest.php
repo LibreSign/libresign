@@ -241,6 +241,11 @@ final class SequentialSigningServiceTest extends TestCase {
 				0,
 				0,
 			],
+			'rejected lower order does not block the next signer' => [
+				[[1, SignRequestStatus::REJECTED, 1], [2, SignRequestStatus::DRAFT, 3]],
+				2,
+				1,
+			],
 			'first signer deleted activates next order' => [
 				[[2, SignRequestStatus::DRAFT, 2]],
 				1,
