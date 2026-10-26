@@ -38,7 +38,6 @@ use OCA\Libresign\Service\SignRequest\SignRequestService;
 use OCA\Libresign\Service\SignRequest\StatusCacheService;
 use OCA\Libresign\Service\SignRequest\StatusService;
 use OCA\Libresign\Service\SignRequest\StatusUpdatePolicy;
-use OCP\EventDispatcher\IEventDispatcher;
 use OCP\Files\Folder;
 use OCP\Files\IMimeTypeDetector;
 use OCP\Http\Client\IClient;
