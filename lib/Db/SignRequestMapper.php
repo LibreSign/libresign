@@ -297,6 +297,53 @@ class SignRequestMapper extends CachedQBMapper {
 	}
 
 	/**
+	 * Resolve only the envelope children with the same full identification as
+	 * the selected parent signer. A shared email alone does not identify the
+	 * same participant when their account or other factors differ.
+	 *
+	 * @return list<SignRequest>
+	 */
+	public function getEnvelopeChildrenForRemoval(int $parentFileId, int $signRequestId): array {
+		$candidates = $this->getByEnvelopeChildrenAndIdentifyMethod($parentFileId, $signRequestId);
+		if ($candidates === []) {
+			return [];
+		}
+
+		$ids = array_merge([$signRequestId], array_map(
+			static fn (SignRequest $signer): int => $signer->getId(),
+			$candidates,
+		));
+		$qb = $this->db->getQueryBuilder();
+		$qb->select('sign_request_id', 'identifier_key', 'identifier_value')
+			->from('libresign_identify_method')
+			->where($qb->expr()->in('sign_request_id', $qb->createNamedParameter($ids, IQueryBuilder::PARAM_INT_ARRAY)));
+
+		$identities = [];
+		$result = $qb->executeQuery();
+		try {
+			while ($method = $result->fetch()) {
+				$id = (int)$method['sign_request_id'];
+				$factor = $method['identifier_key'] . chr(0) . $method['identifier_value'];
+				$identities[$id][$factor] = true;
+			}
+		} finally {
+			$result->closeCursor();
+		}
+
+		$parentIdentity = $identities[$signRequestId] ?? [];
+		if ($parentIdentity === []) {
+			return [];
+		}
+
+		return array_values(array_filter($candidates,
+			static fn (SignRequest $child): bool => array_diff_key(
+				$parentIdentity,
+				$identities[$child->getId()] ?? [],
+			) === [],
+		));
+	}
+
+	/**
 	 * @return \Generator<IdentifyMethod>
 	 */
 	public function findRemindersCandidates(): \Generator {
