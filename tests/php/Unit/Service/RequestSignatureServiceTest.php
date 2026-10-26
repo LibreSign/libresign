@@ -32,18 +32,17 @@ use OCA\Libresign\Service\FolderService;
 use OCA\Libresign\Service\IdentifyMethodService;
 use OCA\Libresign\Service\RequestSignatureService;
 use OCA\Libresign\Service\SequentialSigningService;
+use OCA\Libresign\Service\SignerRemovalService;
 use OCA\Libresign\Service\SignRequest\SignRequestService;
 use OCA\Libresign\Service\SignRequest\StatusCacheService;
 use OCA\Libresign\Service\SignRequest\StatusService;
 use OCA\Libresign\Service\SignRequest\StatusUpdatePolicy;
-use OCP\EventDispatcher\IEventDispatcher;
 use OCP\Files\Folder;
 use OCP\Files\IMimeTypeDetector;
 use OCP\Http\Client\IClient;
 use OCP\Http\Client\IClientService;
 use OCP\Http\Client\IResponse;
 use OCP\IAppConfig;
-use OCP\IDBConnection;
 use OCP\IL10N;
 use OCP\IUser;
 use OCP\IUserManager;
@@ -71,14 +70,13 @@ final class RequestSignatureServiceTest extends \OCA\Libresign\Tests\Unit\TestCa
 	private LoggerInterface&MockObject $loggerInterface;
 	private SequentialSigningService&MockObject $sequentialSigningService;
 	private IAppConfig&MockObject $appConfig;
-	private IEventDispatcher&MockObject $eventDispatcher;
 	private FileStatusService&MockObject $fileStatusService;
-	private IDBConnection&MockObject $db;
 	private DocMdpConfigService&MockObject $docMdpConfigService;
 	private EnvelopeService&MockObject $envelopeService;
 	private EnvelopeFileRelocator&MockObject $envelopeFileRelocator;
 	private FileUploadHelper&MockObject $uploadHelper;
 	private SignRequestService&MockObject $signRequestService;
+	private SignerRemovalService&MockObject $signerRemovalService;
 
 	public function setUp(): void {
 		parent::setUp();
@@ -106,14 +104,13 @@ final class RequestSignatureServiceTest extends \OCA\Libresign\Tests\Unit\TestCa
 		$this->loggerInterface = $this->createMock(LoggerInterface::class);
 		$this->sequentialSigningService = $this->createMock(SequentialSigningService::class);
 		$this->appConfig = $this->createMock(IAppConfig::class);
-		$this->eventDispatcher = $this->createMock(IEventDispatcher::class);
 		$this->fileStatusService = $this->createMock(FileStatusService::class);
-		$this->db = $this->createMock(IDBConnection::class);
 		$this->docMdpConfigService = $this->createMock(DocMdpConfigService::class);
 		$this->envelopeService = $this->createMock(EnvelopeService::class);
 		$this->envelopeFileRelocator = $this->createMock(EnvelopeFileRelocator::class);
 		$this->uploadHelper = $this->createMock(FileUploadHelper::class);
 		$this->signRequestService = $this->createMock(SignRequestService::class);
+		$this->signerRemovalService = $this->createMock(SignerRemovalService::class);
 	}
 
 	private function getService(array $methods = []): RequestSignatureService|MockObject {
@@ -138,13 +135,13 @@ final class RequestSignatureServiceTest extends \OCA\Libresign\Tests\Unit\TestCa
 					$this->loggerInterface,
 					$this->sequentialSigningService,
 					$this->appConfig,
-					$this->eventDispatcher,
 					$this->fileStatusService,
 					$this->docMdpConfigService,
 					$this->envelopeService,
 					$this->envelopeFileRelocator,
 					$this->uploadHelper,
 					$this->signRequestService,
+					$this->signerRemovalService,
 				])
 				->onlyMethods($methods)
 				->getMock();
@@ -169,14 +166,23 @@ final class RequestSignatureServiceTest extends \OCA\Libresign\Tests\Unit\TestCa
 			$this->loggerInterface,
 			$this->sequentialSigningService,
 			$this->appConfig,
-			$this->eventDispatcher,
 			$this->fileStatusService,
 			$this->docMdpConfigService,
 			$this->envelopeService,
 			$this->envelopeFileRelocator,
 			$this->uploadHelper,
 			$this->signRequestService,
+			$this->signerRemovalService,
 		);
+	}
+
+	public function testUnassociateToUserPreservesRemovalFlags(): void {
+		$this->signerRemovalService
+			->expects($this->once())
+			->method('remove')
+			->with(42, 12, false);
+
+		$this->getService()->unassociateToUser(42, 12, false);
 	}
 
 	public function testSaveFileReusesAnExistingNodeWithoutInsertingAnotherRecord(): void {
@@ -589,13 +595,13 @@ final class RequestSignatureServiceTest extends \OCA\Libresign\Tests\Unit\TestCa
 				$this->loggerInterface,
 				$this->sequentialSigningService,
 				$this->appConfig,
-				$this->eventDispatcher,
 				$this->fileStatusService,
 				$this->docMdpConfigService,
 				$this->envelopeService,
 				$this->envelopeFileRelocator,
 				$this->uploadHelper,
 				$this->signRequestService,
+				$this->signerRemovalService,
 			])
 			->onlyMethods(['unassociateToUser'])
 			->getMock();
@@ -661,13 +667,13 @@ final class RequestSignatureServiceTest extends \OCA\Libresign\Tests\Unit\TestCa
 				$this->loggerInterface,
 				$this->sequentialSigningService,
 				$this->appConfig,
-				$this->eventDispatcher,
 				$this->fileStatusService,
 				$this->docMdpConfigService,
 				$this->envelopeService,
 				$this->envelopeFileRelocator,
 				$this->uploadHelper,
 				$this->signRequestService,
+				$this->signerRemovalService,
 			])
 			->onlyMethods(['unassociateToUser'])
 			->getMock();
