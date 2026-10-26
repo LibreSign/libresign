@@ -173,7 +173,6 @@ class SignerRemovalService {
 		if ($this->signRequestMapper->getByFileId($file->getId()) !== []) {
 			return;
 		}
-		$this->fileStatusService->markPolicySnapshotFrozen($file, FileStatus::DRAFT->value);
 		$file->setStatus(FileStatus::DRAFT->value);
 		$this->fileStatusService->update($file);
 	}
