@@ -10,6 +10,8 @@ namespace OCA\Libresign\Tests\Integration\Db;
 
 use OCA\Libresign\Db\File;
 use OCA\Libresign\Db\FileMapper;
+use OCA\Libresign\Db\IdentifyMethod;
+use OCA\Libresign\Db\IdentifyMethodMapper;
 use OCA\Libresign\Db\SignRequest;
 use OCA\Libresign\Db\SignRequestMapper;
 use OCA\Libresign\Enum\FileStatus;
@@ -30,12 +32,14 @@ use Sabre\DAV\UUIDUtil;
 final class SignRequestRemovalTest extends \OCA\Libresign\Tests\Integration\TestCase {
 	private SignRequestMapper $requests;
 	private FileMapper $files;
+	private IdentifyMethodMapper $identifications;
 	private IDBConnection $db;
 
 	public function setUp(): void {
 		parent::setUp();
 		$this->requests = Server::get(SignRequestMapper::class);
 		$this->files = Server::get(FileMapper::class);
+		$this->identifications = Server::get(IdentifyMethodMapper::class);
 		$this->db = Server::get(IDBConnection::class);
 	}
 
@@ -58,6 +62,77 @@ final class SignRequestRemovalTest extends \OCA\Libresign\Tests\Integration\Test
 		return $signer;
 	}
 
+	private function createEnvelopeWithChild(bool $childSigned): array {
+		$parentSigner = $this->createUnsignedSigner();
+		$parentFile = $this->files->getById($parentSigner->getFileId());
+		$parentFile->setNodeType('envelope');
+		$this->files->update($parentFile);
+
+		$childFile = new File();
+		$childFile->setUuid(UUIDUtil::getUUID());
+		$childFile->setName('envelope-child.pdf');
+		$childFile->setUserId('admin');
+		$childFile->setStatus(FileStatus::ABLE_TO_SIGN->value);
+		$childFile->setParentFileId($parentFile->getId());
+		$childFile->setCreatedAt(new \DateTime('2026-01-01T00:00:00Z'));
+		$this->files->insert($childFile);
+
+		$childSigner = new SignRequest();
+		$childSigner->setUuid(UUIDUtil::getUUID());
+		$childSigner->setFileId($childFile->getId());
+		$childSigner->setDisplayName('Envelope child signer');
+		$childSigner->setStatusEnum($childSigned ? SignRequestStatus::SIGNED : SignRequestStatus::ABLE_TO_SIGN);
+		if ($childSigned) {
+			$childSigner->setSignedHash('preserved-child-signature');
+		}
+		$childSigner->setCreatedAt(new \DateTime('2026-01-01T00:00:00Z'));
+		$this->requests->insert($childSigner);
+
+		foreach ([$parentSigner, $childSigner] as $signer) {
+			foreach (['account' => 'admin', 'email' => 'signer@example.test'] as $key => $value) {
+				$method = new IdentifyMethod();
+				$method->setSignRequestId($signer->getId());
+				$method->setIdentifierKey($key);
+				$method->setIdentifierValue($value);
+				$method->setMandatory(1);
+				$this->identifications->insert($method);
+			}
+		}
+
+		return [$parentSigner, $childSigner];
+	}
+
+	public function testEnvelopeRemovalDeduplicatesMatchingIdentificationMethods(): void {
+		[$parentSigner, $childSigner] = $this->createEnvelopeWithChild(false);
+		$matching = $this->requests->getByEnvelopeChildrenAndIdentifyMethod(
+			$parentSigner->getFileId(),
+			$parentSigner->getId(),
+		);
+		$this->assertGreaterThanOrEqual(2, count($matching));
+
+		Server::get(SignerRemovalService::class)->remove($parentSigner->getFileId(), $parentSigner->getId(), notify: false);
+
+		$this->assertSame([], $this->requests->getByFileId($parentSigner->getFileId()));
+		$this->assertSame([], $this->requests->getByFileId($childSigner->getFileId()));
+		$this->assertSame(FileStatus::DRAFT->value, $this->files->getById($parentSigner->getFileId())->getStatus());
+		$this->assertSame(FileStatus::DRAFT->value, $this->files->getById($childSigner->getFileId())->getStatus());
+	}
+
+	public function testEnvelopeRemovalLeavesBothRequestsUnchangedWhenChildSigned(): void {
+		[$parentSigner, $childSigner] = $this->createEnvelopeWithChild(true);
+
+		try {
+			Server::get(SignerRemovalService::class)->remove($parentSigner->getFileId(), $parentSigner->getId(), notify: false);
+			$this->fail('A signed child must prevent changes to the envelope');
+		} catch (LibresignException $e) {
+			$this->assertSame(422, $e->getCode());
+		}
+
+		$this->assertCount(1, $this->requests->getByFileId($parentSigner->getFileId()));
+		$this->assertCount(1, $this->requests->getByFileId($childSigner->getFileId()));
+		$this->assertSame('preserved-child-signature', $this->requests->getById($childSigner->getId())->getSignedHash());
+	}
+
 	public function testRemovingLastUnsignedSignerUpdatesPersistedFileState(): void {
 		$signer = $this->createUnsignedSigner();
 		Server::get(SignerRemovalService::class)->remove($signer->getFileId(), $signer->getId(), notify: false);
@@ -65,7 +140,29 @@ final class SignRequestRemovalTest extends \OCA\Libresign\Tests\Integration\Test
 		$this->assertSame([], $this->requests->getByFileId($signer->getFileId()));
 		$file = $this->files->getById($signer->getFileId());
 		$this->assertSame(FileStatus::DRAFT->value, $file->getStatus());
-		$this->assertSame(FileStatus::DRAFT->value, Server::get(StatusCacheService::class)->getStatus($file->getUuid()));
+		$this->assertContains(Server::get(StatusCacheService::class)->getStatus($file->getUuid()), [false, null]);
+	}
+
+	public function testRemovalRejectsACompletedSiblingEvenWhenFileStatusIsStale(): void {
+		$pending = $this->createUnsignedSigner();
+		$completed = new SignRequest();
+		$completed->setUuid(UUIDUtil::getUUID());
+		$completed->setFileId($pending->getFileId());
+		$completed->setStatusEnum(SignRequestStatus::SIGNED);
+		$completed->setSignedHash('completed-sibling');
+		$completed->setDisplayName('Completed signer');
+		$completed->setCreatedAt(new \DateTime('2026-01-01T00:00:00Z'));
+		$this->requests->insert($completed);
+
+		try {
+			Server::get(SignerRemovalService::class)->remove($pending->getFileId(), $pending->getId(), notify: false);
+			$this->fail('Signer removal must reject an already completed sibling');
+		} catch (LibresignException $e) {
+			$this->assertSame(422, $e->getCode());
+		}
+
+		$this->assertCount(2, $this->requests->getByFileId($pending->getFileId()));
+		$this->assertSame('completed-sibling', $this->requests->getById($completed->getId())->getSignedHash());
 	}
 
 	public function testRemovalCannotDiscardPersistedSigningEvidence(): void {

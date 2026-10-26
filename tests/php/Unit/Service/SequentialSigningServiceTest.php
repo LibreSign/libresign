@@ -203,9 +203,9 @@ final class SequentialSigningServiceTest extends TestCase {
 	}
 
 	public function testReorderAfterDeletionSkipsWhenNotOrdered(): void {
-		$file = $this->createMock(FileEntity::class);
-		$file->method('getSignatureFlowEnum')
-			->willReturn(SignatureFlow::PARALLEL);
+		$file = new FileEntity();
+		$file->setId(10);
+		$file->setSignatureFlowEnum(SignatureFlow::PARALLEL);
 
 		$this->service->setFile($file);
 
@@ -213,6 +213,25 @@ final class SequentialSigningServiceTest extends TestCase {
 			->method('getByFileId');
 
 		$this->service->reorderAfterDeletion(10, 1);
+	}
+
+	public function testActivateAfterDeletionDoesNotDependOnPreviouslySelectedFile(): void {
+		$file = new FileEntity();
+		$file->setId(55);
+		$file->setSignatureFlowEnum(SignatureFlow::ORDERED_NUMERIC);
+
+		$requests = $this->buildSignRequests([
+			[1, SignRequestStatus::SIGNED, 1],
+			[2, SignRequestStatus::DRAFT, 3],
+		]);
+		$this->signRequestMapper->method('getByFileId')->with(55)->willReturn($requests);
+		$this->signRequestMapper->expects($this->once())->method('update');
+		$this->identifyMethodService->expects($this->never())->method('getIdentifyMethodsFromSignRequestId');
+
+		$activated = $this->service->activateAfterDeletion($file, 2);
+
+		$this->assertCount(1, $activated);
+		$this->assertSame(SignRequestStatus::ABLE_TO_SIGN, $activated[0]->getStatusEnum());
 	}
 
 	public static function reorderAfterDeletionProvider(): array {
@@ -242,9 +261,9 @@ final class SequentialSigningServiceTest extends TestCase {
 
 	#[DataProvider('reorderAfterDeletionProvider')]
 	public function testReorderAfterDeletionOrderedFlow(array $requests, int $deletedOrder, int $expectedActivations): void {
-		$file = $this->createMock(FileEntity::class);
-		$file->method('getSignatureFlowEnum')
-			->willReturn(SignatureFlow::ORDERED_NUMERIC);
+		$file = new FileEntity();
+		$file->setId(55);
+		$file->setSignatureFlowEnum(SignatureFlow::ORDERED_NUMERIC);
 		$this->service->setFile($file);
 
 		$signRequests = $this->buildSignRequests($requests);
