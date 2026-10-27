@@ -9,6 +9,7 @@ declare(strict_types=1);
 namespace OCA\Libresign\Service;
 
 use OCA\Libresign\Db\File as FileEntity;
+use OCA\Libresign\Db\SignRequest as SignRequestEntity;
 use OCA\Libresign\Db\SignRequestMapper;
 use OCA\Libresign\Enum\SignatureFlow;
 use OCA\Libresign\Enum\SignRequestStatus;
@@ -84,7 +85,7 @@ class SequentialSigningService {
 			return;
 		}
 
-		$this->activateSignersForOrder($allSignRequests, $nextOrder);
+		$this->notifyActivatedSigners($this->activateSignersForOrder($allSignRequests, $nextOrder));
 	}
 
 	/**
@@ -95,26 +96,39 @@ class SequentialSigningService {
 	 * @param int $deletedOrder The order that was deleted
 	 */
 	public function reorderAfterDeletion(int $fileId, int $deletedOrder): void {
-		if (!$this->isOrderedNumericFlow()) {
-			return;
+		if ($this->file === null || $this->file->getId() !== $fileId) {
+			throw new \LogicException('File must be set before reordering signers');
+		}
+		$this->notifyActivatedSigners($this->activateAfterDeletion($this->file, $deletedOrder));
+	}
+
+	/**
+	 * Persist the next activation without external notifications while a
+	 * transaction is open. The caller sends notifications after commit.
+	 *
+	 * @return list<SignRequestEntity>
+	 */
+	public function activateAfterDeletion(FileEntity $file, int $deletedOrder): array {
+		if ($deletedOrder < 1 || $file->getSignatureFlowEnum() !== SignatureFlow::ORDERED_NUMERIC) {
+			return [];
 		}
 
-		$allSignRequests = $this->signRequestMapper->getByFileId($fileId);
+		$allSignRequests = $this->signRequestMapper->getByFileId($file->getId());
 
-		$hasSignersAtDeletedOrder = !empty(array_filter(
-			$allSignRequests,
-			fn ($sr) => $sr->getSigningOrder() === $deletedOrder
-		));
-
-		if (!$hasSignersAtDeletedOrder) {
-			$previousOrder = $deletedOrder - 1;
-			if ($previousOrder > 0 && $this->isOrderFullyCompleted($allSignRequests, $previousOrder)) {
-				$nextOrder = $this->findNextOrder($allSignRequests, $deletedOrder);
-				if ($nextOrder !== null) {
-					$this->activateSignersForOrder($allSignRequests, $nextOrder);
-				}
+		// Removing one participant must not skip others at the same order.
+		foreach ($allSignRequests as $signer) {
+			if ($signer->getSigningOrder() === $deletedOrder) {
+				return [];
 			}
 		}
+
+		$previousOrder = $deletedOrder - 1;
+		if ($previousOrder > 0 && !$this->isOrderFullyCompleted($allSignRequests, $previousOrder)) {
+			return [];
+		}
+
+		$nextOrder = $this->findNextOrder($allSignRequests, $deletedOrder);
+		return $nextOrder !== null ? $this->activateSignersForOrder($allSignRequests, $nextOrder) : [];
 	}
 
 	private function isOrderFullyCompleted(array $signRequests, int $order): bool {
@@ -140,23 +154,33 @@ class SequentialSigningService {
 		return null;
 	}
 
-	private function activateSignersForOrder(array $signRequests, int $order): void {
-		$signersToActivate = array_filter(
-			$signRequests,
-			fn ($sr) => $sr->getSigningOrder() === $order
-		);
+	/**
+	 * @param list<SignRequestEntity> $signRequests
+	 * @return list<SignRequestEntity>
+	 */
+	private function activateSignersForOrder(array $signRequests, int $order): array {
+		$activated = [];
+		foreach ($signRequests as $signer) {
+			if ($signer->getSigningOrder() !== $order
+				|| $signer->getStatusEnum() !== SignRequestStatus::DRAFT
+			) {
+				continue;
+			}
+			$signer->setStatusEnum(SignRequestStatus::ABLE_TO_SIGN);
+			$this->signRequestMapper->update($signer);
+			$activated[] = $signer;
+		}
+		return $activated;
+	}
 
-		foreach ($signersToActivate as $signer) {
-			if ($signer->getStatusEnum() === SignRequestStatus::DRAFT) {
-				$signer->setStatusEnum(SignRequestStatus::ABLE_TO_SIGN);
-				$this->signRequestMapper->update($signer);
-
-				$identifyMethods = $this->identifyMethodService->getIdentifyMethodsFromSignRequestId($signer->getId());
-				foreach ($identifyMethods as $methodGroup) {
-					foreach ($methodGroup as $identifyMethod) {
-						$identifyMethod->willNotifyUser(true);
-						$identifyMethod->notify();
-					}
+	/** @param list<SignRequestEntity> $signers */
+	public function notifyActivatedSigners(array $signers): void {
+		foreach ($signers as $signer) {
+			$identifyMethods = $this->identifyMethodService->getIdentifyMethodsFromSignRequestId($signer->getId());
+			foreach ($identifyMethods as $methodGroup) {
+				foreach ($methodGroup as $identifyMethod) {
+					$identifyMethod->willNotifyUser(true);
+					$identifyMethod->notify();
 				}
 			}
 		}

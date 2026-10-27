@@ -12,6 +12,7 @@ namespace OCA\Libresign\Tests\Unit\Controller;
 use OCA\Libresign\Controller\RequestSignatureController;
 use OCA\Libresign\Db\File as FileEntity;
 use OCA\Libresign\Db\FileMapper;
+use OCA\Libresign\Exception\LibresignException;
 use OCA\Libresign\Helper\ValidateHelper;
 use OCA\Libresign\Service\File\FileListService;
 use OCA\Libresign\Service\FileService;
@@ -144,6 +145,24 @@ final class RequestSignatureControllerTest extends TestCase {
 
 		$this->assertSame(Http::STATUS_UNPROCESSABLE_ENTITY, $response->getStatus());
 		$this->assertSame('File type: document to sign. Invalid fileID.', $response->getData()['message']);
+	}
+
+	public function testCompletedSignerRemovalReturnsUnprocessableEntity(): void {
+		$this->requestSignatureService->method('unassociateToUser')
+			->willThrowException(new LibresignException('A completed signer cannot be removed.', Http::STATUS_UNPROCESSABLE_ENTITY));
+
+		$response = $this->controller->deleteOneRequestSignatureUsingFileId(5, 9);
+
+		$this->assertSame(Http::STATUS_UNPROCESSABLE_ENTITY, $response->getStatus());
+		$this->assertSame(['message' => 'A completed signer cannot be removed.'], $response->getData());
+	}
+
+	public function testUnexpectedSignerRemovalFailurePropagates(): void {
+		$this->requestSignatureService->method('unassociateToUser')
+			->willThrowException(new \RuntimeException('Unexpected database failure'));
+
+		$this->expectException(\RuntimeException::class);
+		$this->controller->deleteOneRequestSignatureUsingFileId(5, 9);
 	}
 
 	#[DataProvider('statusPayloadScenarios')]

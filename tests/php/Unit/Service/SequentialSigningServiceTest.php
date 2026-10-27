@@ -205,9 +205,9 @@ final class SequentialSigningServiceTest extends TestCase {
 	}
 
 	public function testReorderAfterDeletionSkipsWhenNotOrdered(): void {
-		$file = $this->createMock(FileEntity::class);
-		$file->method('getSignatureFlowEnum')
-			->willReturn(SignatureFlow::PARALLEL);
+		$file = new FileEntity();
+		$file->setId(10);
+		$file->setSignatureFlowEnum(SignatureFlow::PARALLEL);
 
 		$this->service->setFile($file);
 
@@ -219,6 +219,16 @@ final class SequentialSigningServiceTest extends TestCase {
 
 	public static function reorderAfterDeletionProvider(): array {
 		return [
+			'first deleted signer releases next order' => [
+				[[2, SignRequestStatus::DRAFT, 2]],
+				1,
+				1,
+			],
+			'first deleted signer with remaining same-order participants' => [
+				[[2, SignRequestStatus::DRAFT, 1], [3, SignRequestStatus::DRAFT, 2]],
+				1,
+				0,
+			],
 			'deleted order still exists' => [
 				[[1, SignRequestStatus::SIGNED, 1], [2, SignRequestStatus::DRAFT, 2]],
 				2,
@@ -244,9 +254,9 @@ final class SequentialSigningServiceTest extends TestCase {
 
 	#[DataProvider('reorderAfterDeletionProvider')]
 	public function testReorderAfterDeletionOrderedFlow(array $requests, int $deletedOrder, int $expectedActivations): void {
-		$file = $this->createMock(FileEntity::class);
-		$file->method('getSignatureFlowEnum')
-			->willReturn(SignatureFlow::ORDERED_NUMERIC);
+		$file = new FileEntity();
+		$file->setId(55);
+		$file->setSignatureFlowEnum(SignatureFlow::ORDERED_NUMERIC);
 		$this->service->setFile($file);
 
 		$signRequests = $this->buildSignRequests($requests);
