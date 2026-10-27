@@ -2178,13 +2178,15 @@ defineExpose({
 
 	dl {
 		display: grid;
-		gap: 8px;
+		gap: 6px;
 		margin-block: 8px 0;
+		padding: 0;
 
 		> div {
-			display: flex;
-			flex-direction: column;
-			gap: 2px;
+			display: grid;
+			grid-template-columns: repeat(2, minmax(0, 1fr));
+			align-items: baseline;
+			gap: 8px;
 		}
 	}
 
@@ -2192,8 +2194,12 @@ defineExpose({
 	dd {
 		display: block;
 		float: none;
+		min-width: 0;
+		width: auto;
 		margin: 0;
+		padding: 0;
 		text-align: start;
+		overflow-wrap: anywhere;
 	}
 
 	dt {
