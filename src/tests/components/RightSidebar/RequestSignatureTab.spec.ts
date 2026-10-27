@@ -1197,6 +1197,53 @@ describe('RequestSignatureTab - Critical Business Rules', () => {
 		})
 	})
 
+	describe('RULE: resend notifications through the existing endpoint', () => {
+		it('blocks concurrent submissions for the same signer and resets after success', async () => {
+			await updateFile({
+				status: FILE_STATUS.ABLE_TO_SIGN,
+				signers: [{
+					email: 'synthetic@example.invalid',
+					signRequestId: 23,
+					status: SIGN_REQUEST_STATUS.ABLE_TO_SIGN,
+				}],
+			})
+			const signer = filesStore.getFile()?.signers?.[0]
+			expect(signer).toBeDefined()
+			let resolveRequest!: (value: unknown) => void
+			const pending = new Promise(resolve => { resolveRequest = resolve })
+			vi.mocked(axios.post).mockImplementation(async () => pending as Awaited<ReturnType<typeof axios.post>>)
+			const first = wrapper.vm.sendNotify(signer)
+			const second = wrapper.vm.sendNotify(signer)
+			expect(wrapper.vm.isSendingNotification(signer)).toBe(true)
+			expect(vi.mocked(axios.post)).toHaveBeenCalledTimes(1)
+			expect(vi.mocked(axios.post)).toHaveBeenCalledWith(
+				'/ocs/apps/libresign/api/v1/notify/signer',
+				{ fileId: 1, signRequestId: 23 },
+			)
+			await second
+			resolveRequest({ data: { ocs: { data: { message: 'Notification request processed. Delivery is not confirmed.' } } } })
+			await first
+			expect(wrapper.vm.isSendingNotification(signer)).toBe(false)
+			expect(showSuccess).toHaveBeenCalledWith('Notification request processed. Delivery is not confirmed.')
+		})
+
+		it('allows a new explicit attempt after the previous HTTP request failed', async () => {
+			await updateFile({
+				status: FILE_STATUS.ABLE_TO_SIGN,
+				signers: [{ email: 'synthetic@example.invalid', signRequestId: 23, status: SIGN_REQUEST_STATUS.ABLE_TO_SIGN }],
+			})
+			const signer = filesStore.getFile()?.signers?.[0]
+			vi.mocked(axios.post).mockRejectedValueOnce(new Error('Synthetic transport failure'))
+			await wrapper.vm.sendNotify(signer)
+			expect(wrapper.vm.isSendingNotification(signer)).toBe(false)
+			vi.mocked(axios.post).mockResolvedValueOnce({
+				data: { ocs: { data: { message: 'Notification request processed. Delivery is not confirmed.' } } },
+			} as Awaited<ReturnType<typeof axios.post>>)
+			await wrapper.vm.sendNotify(signer)
+			expect(vi.mocked(axios.post)).toHaveBeenCalledTimes(2)
+		})
+	})
+
 	describe('RULE: canSendObserverNotification for observers', () => {
 		it('allows sending a notification when the observer is watching the request', async () => {
 			filesStore.canRequestSign = true

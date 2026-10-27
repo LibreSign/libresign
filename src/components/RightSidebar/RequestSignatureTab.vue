@@ -140,6 +140,7 @@
 							{{ t('libresign', 'Request signature') }}
 						</NcActionButton>
 						<NcActionButton v-if="canSendReminder(signer)"
+							:disabled="isSendingNotification(signer)"
 							:close-after-click="true"
 							@click="sendNotify(signer)">
 							<template #icon>
@@ -178,6 +179,7 @@
 							{{ t('libresign', 'Delete') }}
 						</NcActionButton>
 						<NcActionButton v-if="canSendObserverNotification(signer)"
+							:disabled="isSendingNotification(signer)"
 							:close-after-click="true"
 							@click="sendNotify(signer)">
 							<template #icon>
@@ -575,7 +577,7 @@ type UpdateSignatureErrorData = operations['request_signature-update-signature-r
 type DeleteRequestSignatureErrorData =
 	| operations['request_signature-remove-signer']['responses'][401]['content']['application/json']['ocs']['data']
 	| operations['request_signature-remove-signer']['responses'][422]['content']['application/json']['ocs']['data']
-type NotifySignerErrorData = operations['notify-signer']['responses'][401]['content']['application/json']['ocs']['data']
+type NotifySignerErrorData = operations['notify-signer']['responses'][422 | 502 | 500]['content']['application/json']['ocs']['data']
 type NotifySignerSuccess = operations['notify-signer']['responses'][200]['content']['application/json']
 type OcsErrorData = RequestSignatureErrorData | UpdateSignatureErrorData | DeleteRequestSignatureErrorData | NotifySignerErrorData
 
@@ -602,6 +604,7 @@ const EMPTY_DOCUMENT_STATE: LoadedDocumentState = {}
 const EMPTY_IDENTIFY_METHODS: IdentifyMethodPolicyEntry[] = []
 
 const hasLoading = ref(false)
+const pendingNotificationIds = ref<number[]>([])
 const isLoadingFileDetail = ref(false)
 const signerToEdit = ref<IdentifySignerToEdit>({})
 const modalSrc = ref('')
@@ -1563,9 +1566,16 @@ function confirmSigningOrder(signer: EditableRequestSigner) {
 	debouncedSave()
 }
 
+function isSendingNotification(signer: Partial<EditableRequestSigner>): boolean {
+	return pendingNotificationIds.value.includes(signer.signRequestId ?? -1)
+}
+
 async function sendNotify(signer: EditableRequestSigner) {
 	if (!signer.signRequestId) {
 		showError(t('libresign', 'Signer request not found'))
+		return
+	}
+	if (isSendingNotification(signer)) {
 		return
 	}
 	const file = filesStore.getEditableFile()
@@ -1574,23 +1584,23 @@ async function sendNotify(signer: EditableRequestSigner) {
 		return
 	}
 
-	const body = {
-		fileId: file.id,
-		signRequestId: signer.signRequestId,
-	}
-
-	await axios.post(generateOcsUrl('/apps/libresign/api/v1/notify/signer'), body)
-		.then(({ data }: { data: NotifySignerSuccess }) => {
-			showSuccess(t('libresign', data.ocs.data.message))
-		})
-		.catch((error: unknown) => {
-			if (isObserverParticipant(signer)) {
-				// TRANSLATORS Error toast shown when resending an observer notification fails.
-				showRequestError(error, t('libresign', 'Failed to send notification'))
-				return
-			}
+	pendingNotificationIds.value = [...pendingNotificationIds.value, signer.signRequestId]
+	try {
+		const { data } = await axios.post<NotifySignerSuccess>(
+			generateOcsUrl('/apps/libresign/api/v1/notify/signer'),
+			{ fileId: file.id, signRequestId: signer.signRequestId },
+		)
+		showSuccess(t('libresign', data.ocs.data.message))
+	} catch (error: unknown) {
+		if (isObserverParticipant(signer)) {
+			// TRANSLATORS Error toast shown when resending an observer notification fails.
+			showRequestError(error, t('libresign', 'Failed to send notification'))
+		} else {
 			showRequestError(error, t('libresign', 'Failed to send reminder'))
-		})
+		}
+	} finally {
+		pendingNotificationIds.value = pendingNotificationIds.value.filter(id => id !== signer.signRequestId)
+	}
 }
 
 function closeConfirmRequestSignerDialog() {
@@ -2002,6 +2012,7 @@ defineExpose({
 	updateSigningOrder,
 	confirmSigningOrder,
 	sendNotify,
+	isSendingNotification,
 	requestSignatureForSigner,
 	confirmRequestSigner,
 	sign,
