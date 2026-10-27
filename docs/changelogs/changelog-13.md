@@ -19,6 +19,17 @@ Types of changes:
 <!-- changelog-linker -->
 <!-- changelog-linker -->
 
+## 13.4.7 - 2026-10-26
+
+### Changed
+- Update translations
+- Update dependencies
+- Internal maintenance
+
+### Fixed
+- preserve completed signer records (#9086)
+  [#9250](https://github.com/LibreSign/libresign/pull/9250)
+
 ## 13.4.6 - 2026-10-24
 
 ### Changed
