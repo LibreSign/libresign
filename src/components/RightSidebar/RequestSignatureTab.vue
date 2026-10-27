@@ -1650,7 +1650,7 @@ async function sendNotify(signer: EditableRequestSigner): Promise<void> {
 	const controller = new AbortController()
 	notificationControllers.set(signerId, controller)
 	pendingNotificationIds.value = [...pendingNotificationIds.value, signerId]
-	const query = { fileId: file.id, signRequestId: signerId, requestId: newNotificationRequestId() }
+	const query = { fileId: Number(file.id), signRequestId: signerId, requestId: newNotificationRequestId() }
 	notificationStatuses.value = {
 		...notificationStatuses.value,
 		[signerId]: { status: 'processing', complete: false, channels: [] },
