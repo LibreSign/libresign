@@ -638,7 +638,7 @@ class PageController extends AEnvironmentPageAwareController {
 				->toArray()
 		);
 
-		Util::addScript(Application::APP_ID, 'libresign-validation');
+		$this->registerValidationAssets();
 		if (class_exists(LoadViewer::class)) {
 			$this->eventDispatcher->dispatchTyped(new LoadViewer());
 		}
