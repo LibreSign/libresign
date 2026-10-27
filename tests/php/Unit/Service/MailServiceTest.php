@@ -334,7 +334,7 @@ final class MailServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$this->service->notifyUnsignedUser($this->mockSignRequest(), 'a@b.coop');
 	}
 
-	public function testRequesterStrategyFallsBackWhenProviderSendingFails(): void {
+	public function testRequesterTransportErrorNeverTriggersDuplicateFallback(): void {
 		$this->mockRequest();
 		$this->mockStrategy(MailSenderStrategyPolicy::STRATEGY_REQUESTER);
 		$this->mockEmailTemplate();
@@ -342,19 +342,26 @@ final class MailServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$service = $this->mockSendableService(new Address('requester@domain.coop'));
 		$this->mailProviderManager->method('has')->willReturn(true);
 		$this->mailProviderManager->method('findServiceByAddress')->willReturn($service);
-		$service->method('sendMessage')
-			->willThrowException(new \RuntimeException('SMTP unavailable'));
-		$this->logger->expects($this->once())
-			->method('warning');
-		$systemMessage = $this->mockSystemMessage();
-		$systemMessage->expects($this->once())
-			->method('setReplyTo')
-			->with(['requester@domain.coop' => 'Requester Name']);
-		$this->mailer->expects($this->once())
-			->method('send')
-			->with($systemMessage);
-
+		$service->method('sendMessage')->willThrowException(new \RuntimeException('Timeout after DATA'));
+		$this->mailer->expects($this->never())->method('send');
+		$this->expectException(LibresignException::class);
 		$this->service->notifyUnsignedUser($this->mockSignRequest(), 'a@b.coop');
+	}
+
+	public function testSystemMailerReportsFailedRecipientList(): void {
+		$this->mockRequest();
+		$this->mockStrategy(MailSenderStrategyPolicy::STRATEGY_SYSTEM);
+		$this->mailer->method('send')->willReturn(['a@b.coop']);
+		$this->expectException(LibresignException::class);
+		$this->service->notifyUnsignedUser($this->mockSignRequest(), 'a@b.coop');
+	}
+
+	public function testCanceledNotificationLogsRejectedRecipient(): void {
+		$this->mockRequest();
+		$this->mailer->method('send')->willReturn(['a@b.coop']);
+		$this->logger->expects($this->once())->method('error');
+		$this->expectException(LibresignException::class);
+		$this->service->notifyCanceledRequest($this->mockSignRequest(), 'a@b.coop', new File());
 	}
 
 	public function testRequesterStrategyFallbackSetsReplyToRequesterWhenNoProviderIsAvailable(): void {

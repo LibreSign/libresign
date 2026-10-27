@@ -140,10 +140,12 @@
 							{{ t('libresign', 'Request signature') }}
 						</NcActionButton>
 						<NcActionButton v-if="canSendReminder(signer)"
+							:disabled="isSendingNotification(signer)"
 							:close-after-click="true"
 							@click="sendNotify(signer)">
 							<template #icon>
-								<NcIconSvgWrapper :path="mdiBell" :size="20" />
+								<NcLoadingIcon v-if="isSendingNotification(signer)" :size="20" />
+								<NcIconSvgWrapper v-else :path="mdiBell" :size="20" />
 							</template>
 							{{ t('libresign', 'Send reminder') }}
 						</NcActionButton>
@@ -178,10 +180,12 @@
 							{{ t('libresign', 'Delete') }}
 						</NcActionButton>
 						<NcActionButton v-if="canSendObserverNotification(signer)"
+							:disabled="isSendingNotification(signer)"
 							:close-after-click="true"
 							@click="sendNotify(signer)">
 							<template #icon>
-								<NcIconSvgWrapper :path="mdiBell" :size="20" />
+								<NcLoadingIcon v-if="isSendingNotification(signer)" :size="20" />
+								<NcIconSvgWrapper v-else :path="mdiBell" :size="20" />
 							</template>
 							{{ t('libresign', 'Send notification') }}
 						</NcActionButton>
@@ -189,6 +193,24 @@
 				</template>
 			</Signers>
 		</div>
+		<NcNoteCard v-for="item in notificationIssueItems"
+			:key="item.id"
+			:heading="notificationIssueHeading(item.issue)"
+			:type="item.issue.type"
+			:show-alert="true"
+			class="notification-issue">
+			<p class="notification-issue__signer"><strong><bdi dir="auto">{{ item.name }}</bdi></strong></p>
+			<p>{{ item.issue.message }}</p>
+			<details v-if="item.issue.channels.length > 0" class="notification-issue__details">
+				<summary>{{ t('libresign', 'View sending details') }}</summary>
+				<dl>
+					<div v-for="channel in item.issue.channels" :key="channel.channel">
+						<dt><bdi dir="auto">{{ notificationChannelName(channel.channel) }}</bdi></dt>
+						<dd>{{ notificationChannelStateLabel(channel.state) }}</dd>
+					</div>
+				</dl>
+			</details>
+		</NcNoteCard>
 		<NcFormBox v-if="isEnvelope && !isReadOnlyObserver" class="action-form-box">
 			<NcButton
 				wide
@@ -466,7 +488,7 @@ import svgXmpp from '@mdi/svg/svg/xmpp.svg?raw'
 import axios from '@nextcloud/axios'
 import { getCurrentUser } from '@nextcloud/auth'
 import { getCapabilities } from '@nextcloud/capabilities'
-import { showError, showSuccess } from '@nextcloud/dialogs'
+import { showError, showSuccess, showWarning } from '@nextcloud/dialogs'
 import { emit, subscribe, unsubscribe } from '@nextcloud/event-bus'
 import type { Event as NextcloudEvent, EventHandler } from '@nextcloud/event-bus'
 import { loadState } from '@nextcloud/initial-state'
@@ -514,6 +536,7 @@ import { useSidebarStore } from '../../store/sidebar.js'
 import { useSignStore } from '../../store/sign.js'
 import { useUserConfigStore } from '../../store/userconfig.js'
 import { startLongPolling } from '../../services/longPolling'
+import { newNotificationRequestId, submitAndWatchNotification, type NotificationStatus } from '../../services/notificationDeliveryStatus'
 import {
 	getSignersWithoutVisibleSignatureElements,
 	getVisibleElementsFromDocument,
@@ -575,7 +598,7 @@ type UpdateSignatureErrorData = operations['request_signature-update-signature-r
 type DeleteRequestSignatureErrorData =
 	| operations['request_signature-remove-signer']['responses'][401]['content']['application/json']['ocs']['data']
 	| operations['request_signature-remove-signer']['responses'][422]['content']['application/json']['ocs']['data']
-type NotifySignerErrorData = operations['notify-signer']['responses'][401]['content']['application/json']['ocs']['data']
+type NotifySignerErrorData = operations['notify-signer']['responses'][422 | 502 | 500]['content']['application/json']['ocs']['data']
 type NotifySignerSuccess = operations['notify-signer']['responses'][200]['content']['application/json']
 type OcsErrorData = RequestSignatureErrorData | UpdateSignatureErrorData | DeleteRequestSignatureErrorData | NotifySignerErrorData
 
@@ -602,6 +625,14 @@ const EMPTY_DOCUMENT_STATE: LoadedDocumentState = {}
 const EMPTY_IDENTIFY_METHODS: IdentifyMethodPolicyEntry[] = []
 
 const hasLoading = ref(false)
+const pendingNotificationIds = ref<number[]>([])
+type NotificationIssue = {
+	type: 'warning' | 'error'
+	message: string
+	channels: NotificationStatus['channels']
+}
+const notificationIssues = ref<Record<number, NotificationIssue>>({})
+const notificationControllers = new Map<number, AbortController>()
 const isLoadingFileDetail = ref(false)
 const signerToEdit = ref<IdentifySignerToEdit>({})
 const modalSrc = ref('')
@@ -697,6 +728,76 @@ const showMissingVisibleSignatureWarningForSingleSigner = computed(() => {
 const isOriginalFileDeleted = computed(() => filesStore.isOriginalFileDeleted())
 const currentFile = computed<EditableRequestFile | null>(() => (filesStore.getFile() as EditableRequestFile | null) ?? null)
 const isCurrentFileDetailed = computed(() => currentFile.value?.detailsLoaded === true)
+const notificationIssueItems = computed(() => Object.entries(notificationIssues.value).map(([id, issue]) => ({
+	id: Number(id),
+	name: currentFile.value?.signers?.find(signer => signer.signRequestId === Number(id))?.displayName || t('libresign', 'Signer'),
+	issue,
+})))
+
+function notificationIssueHeading(issue: NotificationIssue): string {
+	return issue.type === 'error'
+		? t('libresign', 'Notification not sent')
+		: t('libresign', 'Check notification')
+}
+
+function notificationIssueFromStatus(status: NotificationStatus | null): NotificationIssue {
+	const channels = status?.channels ?? []
+	const allFailed = channels.length > 0 && channels.every(channel => channel.state === 'failed' || channel.state === 'canceled')
+	return {
+		type: allFailed ? 'error' : 'warning',
+		message: allFailed
+			// TRANSLATORS: Every delivery method failed or was canceled.
+			? t('libresign', 'Could not send the notification. Check the request before trying again.')
+			: status?.status === 'attention_required'
+				// TRANSLATORS: At least one delivery method has an uncertain or failed result. Retrying may cause duplicates.
+				? t('libresign', 'Some notifications may not have been sent. Check with the signer before trying again.')
+				// TRANSLATORS: The result of the sending request is unknown. Retrying may send a duplicate.
+				: t('libresign', 'Could not check whether the notification was sent. Ask the signer before trying again.'),
+		channels,
+	}
+}
+
+function notificationChannelName(channel: string): string {
+	switch (channel) {
+		case 'mail':
+			return t('libresign', 'Email')
+		case 'gateway':
+			return t('libresign', 'Messaging service')
+		case 'nextcloud':
+			return t('libresign', 'Nextcloud notification')
+		default:
+			return channel
+	}
+}
+
+function notificationChannelStateLabel(state: string): string {
+	switch (state) {
+		case 'accepted':
+			return t('libresign', 'Sent for delivery')
+		case 'sending':
+		case 'pending':
+			return t('libresign', 'Sending')
+		case 'unknown':
+			return t('libresign', 'Not confirmed')
+		case 'failed':
+			return t('libresign', 'Not sent')
+		case 'canceled':
+			return t('libresign', 'Canceled')
+		default:
+			return t('libresign', 'Status unavailable')
+	}
+}
+
+function resetNotificationTracking(): void {
+	for (const controller of notificationControllers.values()) {
+		controller.abort()
+	}
+	notificationControllers.clear()
+	pendingNotificationIds.value = []
+	notificationIssues.value = {}
+}
+
+watch(() => currentFile.value?.id, resetNotificationTracking)
 const shouldLoadDetail = computed(() => totalSigners.value > 0)
 const showSigningOrderOptions = computed(() => !isOriginalFileDeleted.value && isCurrentFileDetailed.value && hasSigners.value && filesStore.canSave() && canChooseSigningOrderAtRequestLevel.value)
 const showPreserveOrder = computed(() => !isOriginalFileDeleted.value && isCurrentFileDetailed.value && signingParticipantCount.value > 1 && filesStore.canSave() && canChooseSigningOrderAtRequestLevel.value && !isSignatureFlowFrozen.value)
@@ -1563,9 +1664,16 @@ function confirmSigningOrder(signer: EditableRequestSigner) {
 	debouncedSave()
 }
 
-async function sendNotify(signer: EditableRequestSigner) {
+function isSendingNotification(signer: Partial<EditableRequestSigner>): boolean {
+	return pendingNotificationIds.value.includes(signer.signRequestId ?? -1)
+}
+
+async function sendNotify(signer: EditableRequestSigner): Promise<void> {
 	if (!signer.signRequestId) {
 		showError(t('libresign', 'Signer request not found'))
+		return
+	}
+	if (isSendingNotification(signer)) {
 		return
 	}
 	const file = filesStore.getEditableFile()
@@ -1574,23 +1682,38 @@ async function sendNotify(signer: EditableRequestSigner) {
 		return
 	}
 
-	const body = {
-		fileId: file.id,
-		signRequestId: signer.signRequestId,
+	const signerId = signer.signRequestId
+	const controller = new AbortController()
+	notificationControllers.set(signerId, controller)
+	pendingNotificationIds.value = [...pendingNotificationIds.value, signerId]
+	const query = { fileId: Number(file.id), signRequestId: signerId, requestId: newNotificationRequestId() }
+	delete notificationIssues.value[signerId]
+	let latestStatus: NotificationStatus | null = null
+	try {
+		const result = await submitAndWatchNotification(query, {
+			signal: controller.signal,
+			onUpdate: status => {
+				latestStatus = status
+			},
+		})
+		if (controller.signal.aborted) {
+			return
+		}
+		if (result.kind === 'invalid_request') {
+			// Keep actionable validation errors from the server; no duplicate status card.
+			showRequestError(result.error, t('libresign', 'Could not send the notification'))
+		} else if (result.kind === 'accepted') {
+			// TRANSLATORS: A delivery service accepted the message, but the recipient's receipt is not known.
+			showSuccess(t('libresign', 'Notification sent for delivery'))
+		} else {
+			notificationIssues.value[signerId] = notificationIssueFromStatus(latestStatus)
+		}
+	} finally {
+		if (notificationControllers.get(signerId) === controller) {
+			notificationControllers.delete(signerId)
+			pendingNotificationIds.value = pendingNotificationIds.value.filter(id => id !== signerId)
+		}
 	}
-
-	await axios.post(generateOcsUrl('/apps/libresign/api/v1/notify/signer'), body)
-		.then(({ data }: { data: NotifySignerSuccess }) => {
-			showSuccess(t('libresign', data.ocs.data.message))
-		})
-		.catch((error: unknown) => {
-			if (isObserverParticipant(signer)) {
-				// TRANSLATORS Error toast shown when resending an observer notification fails.
-				showRequestError(error, t('libresign', 'Failed to send notification'))
-				return
-			}
-			showRequestError(error, t('libresign', 'Failed to send reminder'))
-		})
 }
 
 function closeConfirmRequestSignerDialog() {
@@ -1901,6 +2024,7 @@ onMounted(() => {
 })
 
 onBeforeUnmount(() => {
+	resetNotificationTracking()
 	unsubscribe('libresign:edit-signer', handleEditSigner)
 	debouncedSave.clear()
 	debouncedTabChange.clear()
@@ -2002,6 +2126,7 @@ defineExpose({
 	updateSigningOrder,
 	confirmSigningOrder,
 	sendNotify,
+	isSendingNotification,
 	requestSignatureForSigner,
 	confirmRequestSigner,
 	sign,
@@ -2040,6 +2165,50 @@ defineExpose({
 
 .action-form-box {
 	margin-top: 6px;
+}
+
+.notification-issue {
+	&__signer {
+		margin-block-end: 4px;
+	}
+
+	&__details {
+		margin-block-start: 8px;
+	}
+
+	dl {
+		display: grid;
+		gap: 6px;
+		margin-block: 8px 0;
+		padding: 0;
+
+		> div {
+			display: grid;
+			grid-template-columns: repeat(2, minmax(0, 1fr));
+			align-items: baseline;
+			gap: 8px;
+		}
+	}
+
+	dt,
+	dd {
+		display: block;
+		float: none;
+		min-width: 0;
+		width: auto;
+		margin: 0;
+		padding: 0;
+		text-align: start;
+		overflow-wrap: anywhere;
+	}
+
+	dt {
+		font-weight: 600;
+	}
+
+	dd {
+		color: var(--color-text-maxcontrast);
+	}
 }
 
 .participants-section {

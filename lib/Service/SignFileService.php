@@ -23,6 +23,7 @@ use OCA\Libresign\Db\FileMapper;
 use OCA\Libresign\Db\IdDocs;
 use OCA\Libresign\Db\IdDocsMapper;
 use OCA\Libresign\Db\IdentifyMethodMapper;
+use OCA\Libresign\Db\NotificationDeliveryMapper;
 use OCA\Libresign\Db\SignRequest as SignRequestEntity;
 use OCA\Libresign\Db\SignRequestMapper;
 use OCA\Libresign\Db\UserElementMapper;
@@ -137,6 +138,7 @@ class SignFileService {
 		private PolicyService $policyService,
 		private SignatureRejectionPolicyService $signatureRejectionPolicyService,
 		private TemporarySignatureImageService $temporarySignatureImageService,
+		private NotificationDeliveryMapper $notificationDeliveries,
 	) {
 	}
 
@@ -891,6 +893,11 @@ class SignFileService {
 		$this->storeCertificateInfoInMetadata($certificateInfo);
 
 		$this->signRequestMapper->update($this->signRequest);
+		// A queued invitation is no longer actionable once signing completed.
+		// Transient signing fixtures have no persisted request ID to invalidate.
+		if ($this->signRequest->getId() !== null) {
+			$this->notificationDeliveries->cancelPendingInvitations($this->signRequest->getId());
+		}
 
 		$this->sequentialSigningService
 			->setFile($this->libreSignFile)

@@ -16,6 +16,11 @@ use OCA\Libresign\Events\SendSignNotificationEvent;
 use OCA\Libresign\Events\SignedEvent;
 use OCA\Libresign\Listener\NotificationListener;
 use OCA\Libresign\Service\IdentifyMethod\IIdentifyMethod;
+use OCA\Libresign\Service\Notification\InAppChannel;
+use OCA\Libresign\Service\Notification\NotificationChannel;
+use OCA\Libresign\Service\Notification\NotificationHistoryService;
+use OCA\Libresign\Service\Notification\NotificationMessage;
+use OCA\Libresign\Service\NotificationDeliveryService;
 use OCA\Libresign\Service\NotificationPreferenceResolver;
 use OCP\AppFramework\Utility\ITimeFactory;
 use OCP\Files\File;
@@ -44,6 +49,7 @@ class NotificationListenerTest extends TestCase {
 		$this->urlGenerator = $this->createMock(IURLGenerator::class);
 		$this->userSession = $this->createMock(IUserSession::class);
 		$this->signRequestMapper = $this->createMock(SignRequestMapper::class);
+		$this->signRequestMapper->method('getByIdUncached')->willReturn(new SignRequest());
 		$this->notification->method('setApp')->willReturnSelf();
 		$this->notification->method('setObject')->willReturnSelf();
 		$this->notification->method('setDateTime')->willReturnSelf();
@@ -67,13 +73,22 @@ class NotificationListenerTest extends TestCase {
 				return 'https://example.test/fallback';
 			});
 
+		$delivery = $this->createMock(NotificationDeliveryService::class);
+		$delivery->method('dispatch')->willReturnCallback(
+			static function (NotificationMessage $message, NotificationChannel $channel): bool {
+				$channel->deliver($message);
+				return true;
+			},
+		);
 		$this->listener = new NotificationListener(
 			$this->notificationManager,
 			$this->userSession,
 			$timeFactory,
 			$this->urlGenerator,
-			$this->signRequestMapper,
 			$this->notificationPreferenceResolver,
+			$delivery,
+			new InAppChannel($this->notificationManager),
+			new NotificationHistoryService($this->signRequestMapper),
 		);
 	}
 
@@ -115,9 +130,8 @@ class NotificationListenerTest extends TestCase {
 			->with('observer1', SendSignNotificationEvent::FILE_TO_SIGN, true)
 			->willReturn(false);
 
-		$this->signRequestMapper->expects($this->once())
-			->method('incrementNotificationCounter')
-			->willReturn(true);
+		// This listener prepares content without writing legacy history.
+		$this->signRequestMapper->expects($this->never())->method('incrementNotificationCounter');
 
 		$capturedSubjectParams = null;
 		$this->notification->expects($this->once())

@@ -11,32 +11,46 @@ namespace OCA\Libresign\Listener;
 use OCA\Libresign\AppInfo\Application as AppInfoApplication;
 use OCA\Libresign\Db\File as FileEntity;
 use OCA\Libresign\Db\SignRequest;
-use OCA\Libresign\Db\SignRequestMapper;
 use OCA\Libresign\Events\SendSignNotificationEvent;
 use OCA\Libresign\Events\SignedEvent;
 use OCA\Libresign\Events\SignRequestCanceledEvent;
 use OCA\Libresign\Service\IdentifyMethod\IIdentifyMethod;
+use OCA\Libresign\Service\Notification\InAppChannel;
+use OCA\Libresign\Service\Notification\InAppPayload;
+use OCA\Libresign\Service\Notification\NotificationHistoryService;
+use OCA\Libresign\Service\Notification\NotificationMessage;
+use OCA\Libresign\Service\Notification\NotificationModule;
+use OCA\Libresign\Service\NotificationDeliveryService;
 use OCA\Libresign\Service\NotificationPreferenceResolver;
 use OCP\AppFramework\Utility\ITimeFactory;
 use OCP\EventDispatcher\Event;
-use OCP\EventDispatcher\IEventListener;
 use OCP\IURLGenerator;
 use OCP\IUser;
 use OCP\IUserSession;
 use OCP\Notification\IManager;
 
-/**
- * @template-implements IEventListener<Event>
- */
-class NotificationListener implements IEventListener {
+class NotificationListener implements NotificationModule {
 	public function __construct(
 		private IManager $notificationManager,
 		protected IUserSession $userSession,
 		private ITimeFactory $timeFactory,
 		protected IURLGenerator $url,
-		private SignRequestMapper $signRequestMapper,
 		private NotificationPreferenceResolver $notificationPreferenceResolver,
+		private NotificationDeliveryService $deliveryService,
+		private InAppChannel $channel,
+		private NotificationHistoryService $history,
 	) {
+	}
+
+	#[\Override]
+	public function transport(): \OCA\Libresign\Service\Notification\NotificationChannel {
+		return $this->channel;
+	}
+
+	/** @return list<class-string<Event>> */
+	#[\Override]
+	public static function supportedEvents(): array {
+		return [SendSignNotificationEvent::class, SignedEvent::class, SignRequestCanceledEvent::class];
 	}
 
 	#[\Override]
@@ -46,18 +60,21 @@ class NotificationListener implements IEventListener {
 				$event->getSignRequest(),
 				$event->getLibreSignFile(),
 				$event->getIdentifyMethod(),
+				$event->getDeliveryEventId(),
 			);
 		} elseif ($event instanceof SignedEvent) {
 			$this->sendSignedNotification(
 				$event->getSignRequest(),
 				$event->getLibreSignFile(),
 				$event->getIdentifyMethod(),
+				$event->getDeliveryEventId(),
 			);
 		} elseif ($event instanceof SignRequestCanceledEvent) {
 			$this->sendCanceledNotification(
 				$event->getSignRequest(),
 				$event->getLibreSignFile(),
 				$event->getIdentifyMethod(),
+				$event->getDeliveryEventId(),
 			);
 		}
 	}
@@ -66,6 +83,7 @@ class NotificationListener implements IEventListener {
 		SignRequest $signRequest,
 		FileEntity $libreSignFile,
 		IIdentifyMethod $identifyMethod,
+		string $eventId,
 	): void {
 		$actor = $this->userSession->getUser();
 		if (!$actor instanceof IUser) {
@@ -91,13 +109,7 @@ class NotificationListener implements IEventListener {
 			->setObject('signRequest', (string)$signRequest->getId())
 			->setDateTime((new \DateTime())->setTimestamp($this->timeFactory->now()->getTimestamp()))
 			->setUser($identifyMethod->getEntity()->getIdentifierValue());
-		$isFirstNotification = $this->signRequestMapper->incrementNotificationCounter($signRequest, 'notify');
-		if ($isFirstNotification) {
-			$subject = 'new_sign_request';
-		} else {
-			$subject = 'update_sign_request';
-		}
-		$notification->setSubject($subject, [
+		$subjectParameters = [
 			'from' => $this->getUserParameter(
 				$actor->getUID(),
 				$actor->getDisplayName(),
@@ -108,14 +120,21 @@ class NotificationListener implements IEventListener {
 				'id' => (string)$signRequest->getId(),
 				'name' => $actor->getDisplayName(),
 			],
-		]);
-		$this->notificationManager->notify($notification);
+		];
+		$subject = $this->history->isFirst($signRequest, 'notify') ? 'new_sign_request' : 'update_sign_request';
+		$notification->setSubject($subject, $subjectParameters);
+		$this->deliveryService->dispatch(new NotificationMessage(
+			$eventId, 'sign_request', 'nextcloud', $libreSignFile, $signRequest,
+			$identifyMethod->getEntity()->getIdentifierValue(), new InAppPayload($notification, $subjectParameters),
+			'notify',
+		), $this->channel);
 	}
 
 	private function sendSignedNotification(
 		SignRequest $signRequest,
 		FileEntity $libreSignFile,
 		IIdentifyMethod $identifyMethod,
+		string $eventId,
 	): void {
 
 		$actorId = $libreSignFile->getUserId();
@@ -161,13 +180,17 @@ class NotificationListener implements IEventListener {
 				],
 			]);
 
-		$this->notificationManager->notify($notification);
+		$this->deliveryService->dispatch(new NotificationMessage(
+			$eventId, 'file_signed', 'nextcloud', $libreSignFile, $signRequest,
+			$actorId, new InAppPayload($notification),
+		), $this->channel);
 	}
 
 	private function sendCanceledNotification(
 		SignRequest $signRequest,
 		FileEntity $libreSignFile,
 		IIdentifyMethod $identifyMethod,
+		string $eventId,
 	): void {
 		$actor = $this->userSession->getUser();
 		if (!$actor instanceof IUser) {
@@ -209,7 +232,10 @@ class NotificationListener implements IEventListener {
 				],
 			]);
 
-		$this->notificationManager->notify($notification);
+		$this->deliveryService->dispatch(new NotificationMessage(
+			$eventId, 'sign_request_canceled', 'nextcloud', $libreSignFile, $signRequest,
+			$identifyMethod->getEntity()->getIdentifierValue(), new InAppPayload($notification),
+		), $this->channel);
 	}
 
 	/**

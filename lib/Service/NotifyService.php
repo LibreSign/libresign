@@ -11,7 +11,8 @@ namespace OCA\Libresign\Service;
 use OCA\Libresign\AppInfo\Application;
 use OCA\Libresign\Db\SignRequest;
 use OCA\Libresign\Db\SignRequestMapper;
-use OCA\Libresign\Service\IdentifyMethod\IIdentifyMethod;
+use OCA\Libresign\Enum\SignRequestStatus;
+use OCA\Libresign\Exception\LibresignException;
 use OCA\Libresign\Service\Validation\FileInputValidator;
 use OCA\Libresign\Service\Validation\IdentityDocumentValidator;
 use OCA\Libresign\Service\Validation\SigningRequestValidator;
@@ -37,29 +38,34 @@ class NotifyService {
 	) {
 	}
 
-	public function signer(int $fileId, int $signRequestId): void {
+	public function signer(int $fileId, int $signRequestId, ?string $requestId = null): void {
 		$this->signingRequestValidator->canRequestSign($this->userSession->getUser());
 		$this->fileInputValidator->validateLibreSignFileId($fileId);
 		$this->signingRequestValidator->validateWorkflowIsNotClosedByFileId($fileId);
-		$signRequest = $this->signRequestMapper->getByFileIdAndSignRequestId($fileId, $signRequestId);
+		// Authorize access to the document before exposing signer information.
 		$this->signingRequestValidator->iRequestedSignThisFile($this->userSession->getUser(), $fileId);
-		$this->notify($signRequest);
+		$signRequest = $this->signRequestMapper->getByFileIdAndSignRequestId($fileId, $signRequestId);
+		$this->validatePendingNotification($signRequest);
+		if ($requestId !== null && !preg_match('/\A[a-f0-9]{32}\z/D', $requestId)) {
+			throw new LibresignException($this->l10n->t('Invalid notification request ID'));
+		}
+		$this->notify($signRequest, [], $requestId);
 	}
 
 	public function signers(int $fileId, array $signers): void {
+		if ($signers === []) {
+			throw new LibresignException($this->l10n->t('At least one signer is required'));
+		}
 		$this->signingRequestValidator->canRequestSign($this->userSession->getUser());
 		$this->fileInputValidator->validateLibreSignFileId($fileId);
 		$this->signingRequestValidator->validateWorkflowIsNotClosedByFileId($fileId);
+		$this->signingRequestValidator->iRequestedSignThisFile($this->userSession->getUser(), $fileId);
 		$signRequests = $this->signRequestMapper->getByFileId($fileId);
-		if (!empty($signRequests)) {
-			$this->signingRequestValidator->iRequestedSignThisFile($this->userSession->getUser(), $fileId);
-		}
 		$signRequestIndex = $this->signerIndexProvider->build($signRequests);
 		foreach ($signers as $signer) {
 			$this->identityDocumentValidator->haveValidMail($signer);
 			$this->validateSignerForNotification($signer, $signRequestIndex);
 		}
-		// @todo refactor this code
 		foreach ($signRequests as $signRequest) {
 			$this->notify($signRequest, $signers);
 		}
@@ -81,31 +87,37 @@ class NotifyService {
 		$this->notificationManager->markProcessed($notification);
 	}
 
-	private function notify(SignRequest $signRequest, array $signers = []): void {
+	private function notify(SignRequest $signRequest, array $signers = [], ?string $requestId = null): void {
 		$identifyMethods = $this->identifyMethodService->getIdentifyMethodsFromSignRequestId($signRequest->getId());
-		foreach ($identifyMethods as $methodName => $instances) {
-			$identifyMethod = array_reduce($instances, function (?IIdentifyMethod $carry, IIdentifyMethod $identifyMethod) use ($signers): ?IIdentifyMethod {
-				foreach ($signers as $signer) {
-					$key = key($signer);
-					$value = current($signer);
-					$entity = $identifyMethod->getEntity();
-					if ($entity->getIdentifierKey() === $key
-						&& $entity->getIdentifierValue() === $value
-					) {
-						return $identifyMethod;
-					}
+		$eventId = 'manual:' . ($requestId ?? bin2hex(random_bytes(16)));
+		foreach ($identifyMethods as $instances) {
+			foreach ($instances as $instance) {
+				$entity = $instance->getEntity();
+				if ($signers !== [] && !$this->isSelectedRecipient($signers, $entity->getIdentifierKey(), $entity->getIdentifierValue())) {
+					continue;
 				}
-				return $carry;
-			});
-			if ($identifyMethod instanceof IIdentifyMethod) {
-				$identifyMethod->willNotifyUser(true);
-				$identifyMethod->notify();
-			} else {
-				foreach ($instances as $instance) {
-					$instance->willNotifyUser(true);
-					$instance->notify();
-				}
+				$instance->willNotifyUser(true);
+				$instance->notify($eventId);
 			}
+		}
+	}
+
+	/** @param list<array<string, string>> $signers */
+	private function isSelectedRecipient(array $signers, string $key, string $value): bool {
+		foreach ($signers as $signer) {
+			if (($signer[$key] ?? null) === $value) {
+				return true;
+			}
+		}
+		return false;
+	}
+
+	private function validatePendingNotification(SignRequest $request): void {
+		if ($request->getSigned() !== null || !in_array($request->getStatusEnum(), [
+			SignRequestStatus::ABLE_TO_SIGN,
+			SignRequestStatus::OBSERVING,
+		], true)) {
+			throw new LibresignException($this->l10n->t('This participant is not waiting for a notification'));
 		}
 	}
 
