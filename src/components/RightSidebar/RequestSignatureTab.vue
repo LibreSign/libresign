@@ -199,10 +199,12 @@
 			:type="item.issue.type"
 			:show-alert="true"
 			class="notification-issue">
-			<strong>{{ item.name }}</strong>: {{ item.issue.message }}
-			<span v-for="channel in item.issue.channels" :key="channel.channel">
-				· {{ channel.channel }}: {{ notificationChannelStateLabel(channel.state) }}
-			</span>
+			<p><strong>{{ item.name }}</strong>: {{ item.issue.message }}</p>
+			<ul v-if="item.issue.channels.length > 0">
+				<li v-for="channel in item.issue.channels" :key="channel.channel">
+					<strong>{{ channel.channel }}</strong>: {{ notificationChannelStateLabel(channel.state) }}
+				</li>
+			</ul>
 		</NcNoteCard>
 		<NcFormBox v-if="isEnvelope && !isReadOnlyObserver" class="action-form-box">
 			<NcButton
