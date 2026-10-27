@@ -11,6 +11,7 @@ namespace OCA\Libresign\Service;
 use OCA\Libresign\Db\File as FileEntity;
 use OCA\Libresign\Db\FileElementMapper;
 use OCA\Libresign\Db\FileMapper;
+use OCA\Libresign\Db\NotificationDeliveryMapper;
 use OCA\Libresign\Db\SignRequest as SignRequestEntity;
 use OCA\Libresign\Db\SignRequestMapper;
 use OCA\Libresign\Enum\FileStatus;
@@ -45,6 +46,7 @@ class SignerRemovalService {
 		private IDBConnection $db,
 		private LoggerInterface $logger,
 		private NotificationDeliveryService $notificationDelivery,
+		private NotificationDeliveryMapper $notificationDeliveries,
 	) {
 	}
 
@@ -89,6 +91,9 @@ class SignerRemovalService {
 		}
 
 		foreach ($targets as [$file, $signRequest]) {
+			// Cancel unsent invitations before deleting the signer's rows.
+			// The cancellation notice is a separate event and remains queued.
+			$this->notificationDeliveries->cancelPendingInvitations($signRequest->getId());
 			if (!$this->signRequestMapper->deleteIfUnsigned($signRequest)) {
 				$this->rejectRemoval();
 			}

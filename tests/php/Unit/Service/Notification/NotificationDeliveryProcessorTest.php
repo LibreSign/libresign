@@ -12,7 +12,9 @@ use OCA\Libresign\Db\File;
 use OCA\Libresign\Db\NotificationDelivery;
 use OCA\Libresign\Db\NotificationDeliveryMapper;
 use OCA\Libresign\Db\SignRequest;
+use OCA\Libresign\Db\SignRequestMapper;
 use OCA\Libresign\Enum\NotificationDeliveryState;
+use OCA\Libresign\Enum\SignRequestStatus;
 use OCA\Libresign\Service\Notification\MailPayload;
 use OCA\Libresign\Service\Notification\NotificationChannel;
 use OCA\Libresign\Service\Notification\NotificationDeliveryProcessor;
@@ -22,6 +24,7 @@ use OCA\Libresign\Service\Notification\NotificationModule;
 use OCA\Libresign\Service\Notification\NotificationModuleCatalog;
 use OCA\Libresign\Service\Notification\NotificationSubmissionService;
 use OCA\Libresign\Service\Notification\NotificationTransportRegistry;
+use OCP\AppFramework\Db\DoesNotExistException;
 use OCP\Notification\IManager;
 use OCP\Security\ICrypto;
 use PHPUnit\Framework\TestCase;
@@ -66,7 +69,7 @@ final class NotificationDeliveryProcessorTest extends TestCase {
 		$signRequest->setFileId(12);
 		$signRequest->setUuid('request-uuid');
 		$delivery->setMessageEnc($codec->encode(new NotificationMessage(
-			'write:one', 'sign_request', 'mail', $file, $signRequest,
+			'write:one', $delivery->getEventType(), 'mail', $file, $signRequest,
 			'signer@example.invalid', new MailPayload(firstNotification: true),
 		)));
 	}
@@ -74,6 +77,7 @@ final class NotificationDeliveryProcessorTest extends TestCase {
 	public function testPendingHandoffCanBeProcessedWithoutOriginalRequest(): void {
 		$codec = $this->codec();
 		$delivery = $this->delivery();
+		$delivery->setEventType('sign_request_canceled');
 		$this->enqueueSnapshot($delivery, $codec);
 		$mapper = $this->createMock(NotificationDeliveryMapper::class);
 		$mapper->method('findById')->with(31)->willReturn($delivery);
@@ -83,7 +87,55 @@ final class NotificationDeliveryProcessorTest extends TestCase {
 				$this->isInstanceOf(NotificationChannel::class))
 			->willReturn(true);
 		(new NotificationDeliveryProcessor(
-			$mapper, $codec, $this->registry(), $submission, $this->createMock(LoggerInterface::class),
+			$mapper, $this->createMock(SignRequestMapper::class), $codec, $this->registry(), $submission, $this->createMock(LoggerInterface::class),
+		))->process(31);
+	}
+
+	public function testPendingInviteForRemovedSignerIsCanceledBeforeTransport(): void {
+		$delivery = $this->delivery();
+		$mapper = $this->createMock(NotificationDeliveryMapper::class);
+		$mapper->method('findById')->willReturn($delivery);
+		$mapper->expects($this->once())->method('cancelPendingInvitations')->with(23)->willReturn(1);
+		$requests = $this->createMock(SignRequestMapper::class);
+		$requests->method('getByIdUncached')->willThrowException(new DoesNotExistException('Removed signer'));
+		$submission = $this->createMock(NotificationSubmissionService::class);
+		$submission->expects($this->never())->method('submit');
+		(new NotificationDeliveryProcessor(
+			$mapper, $requests, $this->codec(), $this->registry(), $submission, $this->createMock(LoggerInterface::class),
+		))->process(31);
+	}
+
+	public function testPendingInviteForSignedSignerIsCanceledBeforeTransport(): void {
+		$delivery = $this->delivery();
+		$mapper = $this->createMock(NotificationDeliveryMapper::class);
+		$mapper->method('findById')->willReturn($delivery);
+		$mapper->expects($this->once())->method('cancelPendingInvitations')->with(23)->willReturn(1);
+		$signRequest = new SignRequest();
+		$signRequest->setStatusEnum(SignRequestStatus::SIGNED);
+		$requests = $this->createMock(SignRequestMapper::class);
+		$requests->method('getByIdUncached')->willReturn($signRequest);
+		$submission = $this->createMock(NotificationSubmissionService::class);
+		$submission->expects($this->never())->method('submit');
+		(new NotificationDeliveryProcessor(
+			$mapper, $requests, $this->codec(), $this->registry(), $submission, $this->createMock(LoggerInterface::class),
+		))->process(31);
+	}
+
+	public function testPendingInviteForActiveSignerCanSubmit(): void {
+		$codec = $this->codec();
+		$delivery = $this->delivery();
+		$this->enqueueSnapshot($delivery, $codec);
+		$mapper = $this->createMock(NotificationDeliveryMapper::class);
+		$mapper->method('findById')->willReturn($delivery);
+		$mapper->expects($this->never())->method('cancelPendingInvitations');
+		$signRequest = new SignRequest();
+		$signRequest->setStatusEnum(SignRequestStatus::ABLE_TO_SIGN);
+		$requests = $this->createMock(SignRequestMapper::class);
+		$requests->method('getByIdUncached')->willReturn($signRequest);
+		$submission = $this->createMock(NotificationSubmissionService::class);
+		$submission->expects($this->once())->method('submit')->willReturn(true);
+		(new NotificationDeliveryProcessor(
+			$mapper, $requests, $codec, $this->registry(), $submission, $this->createMock(LoggerInterface::class),
 		))->process(31);
 	}
 
@@ -95,7 +147,7 @@ final class NotificationDeliveryProcessorTest extends TestCase {
 		$submission = $this->createMock(NotificationSubmissionService::class);
 		$submission->expects($this->never())->method('submit');
 		(new NotificationDeliveryProcessor(
-			$mapper, $this->codec(), $this->registry(), $submission, $this->createMock(LoggerInterface::class),
+			$mapper, $this->createMock(SignRequestMapper::class), $this->codec(), $this->registry(), $submission, $this->createMock(LoggerInterface::class),
 		))->process(31);
 	}
 
@@ -104,10 +156,14 @@ final class NotificationDeliveryProcessorTest extends TestCase {
 		$mapper = $this->createMock(NotificationDeliveryMapper::class);
 		$mapper->method('findById')->willReturn($delivery);
 		$mapper->expects($this->once())->method('failPending')->with(31)->willReturn(true);
+		$requests = $this->createMock(SignRequestMapper::class);
+		$valid = new SignRequest();
+		$valid->setStatusEnum(SignRequestStatus::ABLE_TO_SIGN);
+		$requests->method('getByIdUncached')->willReturn($valid);
 		$submission = $this->createMock(NotificationSubmissionService::class);
 		$submission->expects($this->never())->method('submit');
 		(new NotificationDeliveryProcessor(
-			$mapper, $this->codec(), $this->registry(), $submission, $this->createMock(LoggerInterface::class),
+			$mapper, $requests, $this->codec(), $this->registry(), $submission, $this->createMock(LoggerInterface::class),
 		))->process(31);
 	}
 

@@ -11,6 +11,7 @@ namespace OCA\Libresign\Tests\Unit\Service;
 use OCA\Libresign\Db\File as FileEntity;
 use OCA\Libresign\Db\FileElementMapper;
 use OCA\Libresign\Db\FileMapper;
+use OCA\Libresign\Db\NotificationDeliveryMapper;
 use OCA\Libresign\Db\SignRequest;
 use OCA\Libresign\Db\SignRequestMapper;
 use OCA\Libresign\Enum\FileStatus;
@@ -40,6 +41,7 @@ final class SignerRemovalServiceTest extends TestCase {
 	private IDBConnection&MockObject $db;
 	private LoggerInterface&MockObject $logger;
 	private SignerRemovalService $service;
+	private NotificationDeliveryMapper&MockObject $notificationDeliveries;
 
 	protected function setUp(): void {
 		parent::setUp();
@@ -52,6 +54,7 @@ final class SignerRemovalServiceTest extends TestCase {
 		$this->events = $this->createMock(IEventDispatcher::class);
 		$this->db = $this->createMock(IDBConnection::class);
 		$this->logger = $this->createMock(LoggerInterface::class);
+		$this->notificationDeliveries = $this->createMock(NotificationDeliveryMapper::class);
 		$l10n = $this->createMock(IL10N::class);
 		$l10n->method('t')->willReturnArgument(0);
 		$this->service = new SignerRemovalService(
@@ -66,6 +69,7 @@ final class SignerRemovalServiceTest extends TestCase {
 			$this->db,
 			$this->logger,
 			$this->createMock(\OCA\Libresign\Service\NotificationDeliveryService::class),
+			$this->notificationDeliveries,
 		);
 	}
 
@@ -99,6 +103,26 @@ final class SignerRemovalServiceTest extends TestCase {
 		$this->requests->method('deleteIfUnsigned')->willReturn(true);
 		$this->elements->method('getByFileIdAndSignRequestId')->willReturn([]);
 		$this->sequential->method('activateAfterDeletion')->willReturn([]);
+	}
+
+	public function testSignerRemovalInvalidatesOnlyPendingInvitations(): void {
+		$this->givenSigner($this->file(), $this->signer());
+		$this->allowPendingRemoval();
+		$this->notificationDeliveries->expects($this->once())
+			->method('cancelPendingInvitations')
+			->with(9)
+			->willReturn(2);
+		$this->service->remove(5, 9, notify: false);
+	}
+
+	public function testFailedCancellationInvalidationRollsBackSignerRemoval(): void {
+		$this->givenSigner($this->file(), $this->signer());
+		$this->notificationDeliveries->method('cancelPendingInvitations')
+			->willThrowException(new \RuntimeException('Synthetic database failure'));
+		$this->requests->expects($this->never())->method('deleteIfUnsigned');
+		$this->db->expects($this->once())->method('rollBack');
+		$this->expectException(\RuntimeException::class);
+		$this->service->remove(5, 9, notify: false);
 	}
 
 	public function testPendingSignerMayBeRemovedWhileAnotherPendingSignerIsPreserved(): void {

@@ -9,7 +9,9 @@ declare(strict_types=1);
 namespace OCA\Libresign\Service\Notification;
 
 use OCA\Libresign\Db\NotificationDeliveryMapper;
+use OCA\Libresign\Db\SignRequestMapper;
 use OCA\Libresign\Enum\NotificationDeliveryState;
+use OCA\Libresign\Enum\SignRequestStatus;
 use OCP\AppFramework\Db\DoesNotExistException;
 use Psr\Log\LoggerInterface;
 
@@ -20,6 +22,7 @@ use Psr\Log\LoggerInterface;
 final class NotificationDeliveryProcessor {
 	public function __construct(
 		private NotificationDeliveryMapper $deliveries,
+		private SignRequestMapper $signRequests,
 		private NotificationEnvelopeCodec $codec,
 		private NotificationTransportRegistry $transports,
 		private NotificationSubmissionService $submission,
@@ -36,6 +39,24 @@ final class NotificationDeliveryProcessor {
 		}
 		if ($delivery->getState() !== NotificationDeliveryState::PENDING->value) {
 			return;
+		}
+		if ($delivery->getEventType() === 'sign_request') {
+			// Never resurrect invitations for removed, rejected or already-signed
+			// participants. Cancellation notices use their stored snapshot instead.
+			try {
+				$request = $this->signRequests->getByIdUncached($delivery->getSignRequestId());
+				$actionable = $request->getSigned() === null && in_array(
+					$request->getStatusEnum(),
+					[SignRequestStatus::ABLE_TO_SIGN, SignRequestStatus::OBSERVING],
+					true,
+				);
+			} catch (DoesNotExistException) {
+				$actionable = false;
+			}
+			if (!$actionable) {
+				$this->deliveries->cancelPendingInvitations($delivery->getSignRequestId());
+				return;
+			}
 		}
 		try {
 			$message = $this->codec->decode($delivery);

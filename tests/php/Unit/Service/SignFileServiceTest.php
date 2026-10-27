@@ -92,6 +92,7 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	private FooterHandler&MockObject $footerHandler;
 	private FileMapper&MockObject $fileMapper;
 	private SignRequestMapper&MockObject $signRequestMapper;
+	private \OCA\Libresign\Db\NotificationDeliveryMapper&MockObject $notificationDeliveries;
 	private IdDocsMapper&MockObject $idDocsMapper;
 	private IClientService&MockObject $clientService;
 	private FolderService&MockObject $folderService;
@@ -143,6 +144,7 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			->willReturnArgument(0);
 		$this->fileMapper = $this->createMock(FileMapper::class);
 		$this->signRequestMapper = $this->createMock(SignRequestMapper::class);
+		$this->notificationDeliveries = $this->createMock(\OCA\Libresign\Db\NotificationDeliveryMapper::class);
 		$this->idDocsMapper = $this->createMock(IdDocsMapper::class);
 		$this->footerHandler = $this->createMock(FooterHandler::class);
 		$this->clientService = $this->createMock(IClientService::class);
@@ -536,6 +538,7 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 					$this->policyService,
 					$this->signatureRejectionPolicyService,
 					new TemporarySignatureImageService($this->tempManager, $this->l10n),
+					$this->notificationDeliveries,
 				])
 				->onlyMethods($methods)
 				->getMock();
@@ -584,6 +587,7 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			$this->policyService,
 			$this->signatureRejectionPolicyService,
 			new TemporarySignatureImageService($this->tempManager, $this->l10n),
+			$this->notificationDeliveries,
 		);
 	}
 
@@ -738,6 +742,8 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			->method('update')
 			->willReturnArgument(0);
 		$this->signRequestMapper->expects($this->once())->method('update');
+		$this->notificationDeliveries->expects($this->once())
+			->method('cancelPendingInvitations')->with(44);
 
 		$pkcs12Handler = $this->createMock(Pkcs12Handler::class);
 		$pkcs12Handler->method('sign')->willReturn($nextcloudFile);
@@ -746,6 +752,7 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 
 		$signRequest = $this->createMock(SignRequest::class);
 		$signRequest->method('__call')->willReturnCallback(fn ($method, $args) => match ($method) {
+			'getId' => 44,
 			'getFileId' => 1,
 			'getSigningOrder' => 1,
 			default => null,
