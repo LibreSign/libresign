@@ -18,6 +18,7 @@ use OCA\Libresign\Service\IdentifyMethod\IdentifyService;
 use OCA\Libresign\Service\IdentifyMethod\IIdentifyMethod;
 use OCA\Libresign\Service\Notification\MailChannel;
 use OCA\Libresign\Service\Notification\MailPayload;
+use OCA\Libresign\Service\Notification\NotificationHistoryService;
 use OCA\Libresign\Service\Notification\NotificationMessage;
 use OCA\Libresign\Service\NotificationDeliveryService;
 use OCA\Libresign\Service\NotificationPreferenceResolver;
@@ -38,6 +39,7 @@ class MailNotifyListener implements IEventListener {
 		private LoggerInterface $logger,
 		private NotificationPreferenceResolver $notificationPreferenceResolver,
 		private NotificationDeliveryService $deliveryService,
+		private NotificationHistoryService $history,
 	) {
 	}
 
@@ -101,7 +103,11 @@ class MailNotifyListener implements IEventListener {
 			}
 
 			$this->deliveryService->dispatch(
-				new NotificationMessage($eventId, 'sign_request', 'mail', $file, $signRequest, $email, new MailPayload()),
+				new NotificationMessage(
+					$eventId, 'sign_request', 'mail', $file, $signRequest, $email,
+					new MailPayload(firstNotification: $this->history->isFirst($signRequest, 'mail')),
+					'mail',
+				),
 				$this->mailChannel,
 			);
 		} catch (\InvalidArgumentException $e) {

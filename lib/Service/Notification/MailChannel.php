@@ -8,15 +8,11 @@ declare(strict_types=1);
 
 namespace OCA\Libresign\Service\Notification;
 
-use OCA\Libresign\Db\SignRequestMapper;
-use OCA\Libresign\Exception\NotificationPreparationException;
 use OCA\Libresign\Service\MailService;
-use OCP\DB\Exception as DatabaseException;
 
 final class MailChannel implements NotificationChannel {
 	public function __construct(
 		private MailService $mail,
-		private SignRequestMapper $signRequestMapper,
 	) {
 	}
 
@@ -34,12 +30,7 @@ final class MailChannel implements NotificationChannel {
 		$email = $message->recipient;
 		switch ($message->eventType) {
 			case 'sign_request':
-				try {
-					$isFirst = $this->signRequestMapper->incrementNotificationCounter($signRequest, 'mail');
-				} catch (DatabaseException $e) {
-					throw new NotificationPreparationException('history_write_failed', $e);
-				}
-				if ($isFirst) {
+				if ($message->payload->firstNotification) {
 					$this->mail->notifyUnsignedUser($signRequest, $email, $signRequest->getDescription());
 				} else {
 					$this->mail->notifySignDataUpdated($signRequest, $email, $signRequest->getDescription());

@@ -12,6 +12,7 @@ namespace OCA\Libresign\Service\Notification;
 final readonly class MailPayload implements NotificationPayload {
 	public function __construct(
 		public ?string $displayName = null,
+		public bool $firstNotification = false,
 	) {
 	}
 }

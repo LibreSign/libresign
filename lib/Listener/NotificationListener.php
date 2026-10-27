@@ -17,6 +17,7 @@ use OCA\Libresign\Events\SignRequestCanceledEvent;
 use OCA\Libresign\Service\IdentifyMethod\IIdentifyMethod;
 use OCA\Libresign\Service\Notification\InAppChannel;
 use OCA\Libresign\Service\Notification\InAppPayload;
+use OCA\Libresign\Service\Notification\NotificationHistoryService;
 use OCA\Libresign\Service\Notification\NotificationMessage;
 use OCA\Libresign\Service\NotificationDeliveryService;
 use OCA\Libresign\Service\NotificationPreferenceResolver;
@@ -40,6 +41,7 @@ class NotificationListener implements IEventListener {
 		private NotificationPreferenceResolver $notificationPreferenceResolver,
 		private NotificationDeliveryService $deliveryService,
 		private InAppChannel $channel,
+		private NotificationHistoryService $history,
 	) {
 	}
 
@@ -111,9 +113,12 @@ class NotificationListener implements IEventListener {
 				'name' => $actor->getDisplayName(),
 			],
 		];
+		$subject = $this->history->isFirst($signRequest, 'notify') ? 'new_sign_request' : 'update_sign_request';
+		$notification->setSubject($subject, $subjectParameters);
 		$this->deliveryService->dispatch(new NotificationMessage(
 			$eventId, 'sign_request', 'nextcloud', $libreSignFile, $signRequest,
 			$identifyMethod->getEntity()->getIdentifierValue(), new InAppPayload($notification, $subjectParameters),
+			'notify',
 		), $this->channel);
 	}
 

@@ -11,7 +11,7 @@ namespace OCA\Libresign\Service\Notification;
 final readonly class GatewayPayload implements NotificationPayload {
 	public function __construct(
 		public string $gatewayName,
-		public string $identifierKey,
+		public string $body,
 	) {
 	}
 }

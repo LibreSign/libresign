@@ -10,11 +10,14 @@ namespace OCA\Libresign\Listener;
 
 use OCA\Libresign\Db\File as FileEntity;
 use OCA\Libresign\Db\SignRequest;
+use OCA\Libresign\Enum\NotificationDeliveryState;
 use OCA\Libresign\Events\SendSignNotificationEvent;
 use OCA\Libresign\Events\SignedEvent;
+use OCA\Libresign\Exception\NotificationTransportException;
 use OCA\Libresign\Service\IdentifyMethod\IIdentifyMethod;
 use OCA\Libresign\Service\IdentifyMethodService;
 use OCA\Libresign\Service\Notification\GatewayChannel;
+use OCA\Libresign\Service\Notification\GatewayNotificationComposer;
 use OCA\Libresign\Service\Notification\GatewayPayload;
 use OCA\Libresign\Service\Notification\NotificationMessage;
 use OCA\Libresign\Service\NotificationDeliveryService;
@@ -30,6 +33,7 @@ class TwofactorGatewayListener implements IEventListener {
 		private TwofactorGatewayService $twofactorGatewayService,
 		private NotificationDeliveryService $deliveryService,
 		private GatewayChannel $channel,
+		private GatewayNotificationComposer $composer,
 		private LoggerInterface $logger,
 	) {
 	}
@@ -69,9 +73,11 @@ class TwofactorGatewayListener implements IEventListener {
 		}
 		$gatewayName = IdentifyMethodService::resolveTwofactorGatewayName($entity->getIdentifierKey());
 		try {
+			$body = $this->composer->compose($eventType, $signRequest, $file, $entity->getIdentifierKey());
 			$this->deliveryService->dispatch(new NotificationMessage(
 				$eventId, $eventType, 'gateway:' . $gatewayName, $file, $signRequest,
-				$recipient, new GatewayPayload($gatewayName, $entity->getIdentifierKey()),
+				$recipient, new GatewayPayload($gatewayName, $body),
+				$eventType === 'sign_request' ? $entity->getIdentifierKey() : null,
 			), $this->channel);
 		} catch (\Exception $e) {
 			// Gateway failures must not prevent other event listeners from running.
@@ -79,6 +85,16 @@ class TwofactorGatewayListener implements IEventListener {
 				'gateway' => $gatewayName,
 				'exceptionType' => get_debug_type($e),
 			]);
+			// Manual resend callers must not receive false HTTP 200 success.
+			// Automatic event listeners remain isolated from gateway failure.
+			if (str_starts_with($eventId, 'manual:')) {
+				throw new NotificationTransportException(
+					'External gateway result is not confirmed',
+					NotificationDeliveryState::UNKNOWN,
+					'gateway_outcome_unknown',
+					$e,
+				);
+			}
 		}
 	}
 }
