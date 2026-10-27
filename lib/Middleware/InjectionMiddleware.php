@@ -520,6 +520,9 @@ class InjectionMiddleware extends Middleware {
 	}
 
 	private function getStatusCodeFromException(\Exception $exception): int {
+		if ($exception instanceof LibresignException) {
+			return $exception->getHttpStatus();
+		}
 		if ($exception->getCode() === 0) {
 			return Http::STATUS_UNPROCESSABLE_ENTITY;
 		}
