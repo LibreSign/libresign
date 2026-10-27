@@ -104,6 +104,20 @@ test('external validation page fills a small viewport', async ({ page }) => {
 })
 
 
+for (const [name, route] of [
+	['public UUID', 'p/validation'],
+	['short UUID', 'validation'],
+] as const) {
+	test(`${name} validation route loads and applies the LibreSign stylesheet`, async ({ page }) => {
+		const response = await page.goto(`./index.php/apps/libresign/${route}/00000000-0000-0000-0000-000000000000`)
+
+		expect(response?.status()).toBe(200)
+		await expect(page.locator('link[rel="stylesheet"][href*="libresign-validation.css"]')).toHaveCount(1)
+		await expect(page.locator('.container')).toBeVisible()
+		await expect(page.locator('.container')).toHaveCSS('display', 'flex')
+	})
+}
+
 test('external page styles do not affect authenticated LibreSign pages', async ({ page }) => {
 	const adminUser = process.env.NEXTCLOUD_ADMIN_USER ?? 'admin'
 	const adminPassword = process.env.NEXTCLOUD_ADMIN_PASSWORD ?? 'admin'
