@@ -20,6 +20,7 @@ use OCA\Libresign\Exception\NotificationPreparationException;
 use OCA\Libresign\Service\Notification\MailPayload;
 use OCA\Libresign\Service\Notification\NotificationChannel;
 use OCA\Libresign\Service\Notification\NotificationDeliveryKeyFactory;
+use OCA\Libresign\Service\Notification\NotificationDeliveryRegistrar;
 use OCA\Libresign\Service\Notification\NotificationFailureClassifier;
 use OCA\Libresign\Service\Notification\NotificationHistoryService;
 use OCA\Libresign\Service\Notification\NotificationMessage;
@@ -49,16 +50,16 @@ final class NotificationDeliveryServiceTest extends TestCase {
 		$config = $this->createMock(IConfig::class);
 		$config->method('getSystemValueString')->with('secret')->willReturn('a-synthetic-instance-secret');
 		$this->service = new NotificationDeliveryService(
-			$this->deliveries,
-			new NotificationDeliveryKeyFactory($config),
+			new NotificationDeliveryRegistrar(
+				$this->deliveries, new NotificationDeliveryKeyFactory($config),
+				$crypto, $this->db,
+			),
 			new NotificationSubmissionService(
 				$this->deliveries, $this->attempts, $this->db,
 				new NotificationFailureClassifier(),
 				new NotificationHistoryService($this->createMock(\OCA\Libresign\Db\SignRequestMapper::class)),
 				$this->createMock(LoggerInterface::class),
 			),
-			$crypto,
-			$this->db,
 		);
 		$this->file = new File();
 		$this->file->setId(12);
