@@ -317,11 +317,20 @@ class ValidateHelper {
 				throw new LibresignException($this->l10n->t('Field %s not found', ['profileNodeId']));
 			}
 			$this->validateSignerIsOwnerOfPdfVisibleElement($elements['documentElementId'], $signRequest, $childSignRequestIds);
-			if ($canCreateSignature && $user instanceof IUser) {
+			if ($canCreateSignature) {
+				if (!is_int($elements['profileNodeId'])) {
+					// TRANSLATORS Validation error when the signature profile node ID is not an integer. %s is the field name.
+					throw new LibresignException($this->l10n->t('Field %s must be an integer', ['profileNodeId']));
+				}
 				try {
-					$this->userElementMapper->findOne(['node_id' => $elements['profileNodeId'], 'user_id' => $user->getUID()]);
-				} catch (\Throwable) {
-					throw new LibresignException($this->l10n->t('Field %s does not belong to user', $elements['profileNodeId']));
+					if ($user instanceof IUser) {
+						$this->userElementMapper->findOne(['node_id' => $elements['profileNodeId'], 'user_id' => $user->getUID()]);
+					} else {
+						$this->signerElementsService->getElementFromSessionByNodeId($elements['profileNodeId']);
+					}
+				} catch (DoesNotExistException) {
+					// TRANSLATORS Validation error when a visible element profile file does not belong to the signer. %s is the profile node id.
+					throw new LibresignException($this->l10n->t('Field %s does not belong to user', [$elements['profileNodeId']]));
 				}
 			}
 		}
