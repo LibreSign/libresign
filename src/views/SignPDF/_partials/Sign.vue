@@ -873,6 +873,8 @@ function proceedWithSigning() {
 		actionHandler!.showModal('password')
 	} else if (signMethodsStore.needTokenCode()) {
 		actionHandler!.showModal('token')
+	} else if (Object.hasOwn(signMethodsStore.settings, 'emailToken')) {
+		actionHandler!.showModal('emailToken')
 	}
 }
 

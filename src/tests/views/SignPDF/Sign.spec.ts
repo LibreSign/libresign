@@ -532,6 +532,22 @@ describe('Sign.vue - signWithTokenCode', () => {
 			expect(signStore.pendingAction).toBe(null)
 		})
 
+		it('opens the email code modal after a requested code survives a reload', async () => {
+			setActivePinia(createPinia())
+			const { useSignStore } = await import('../../../store/sign.js')
+			const signStore = useSignStore()
+			const signMethodsStore = useSignMethodsStore()
+			signStore.document = createSignDocument({
+				status: FILE_STATUS.ABLE_TO_SIGN,
+				signers: [{ me: true, status: SIGN_REQUEST_STATUS.ABLE_TO_SIGN, signRequestId: 501, sign_request_uuid: 'email-token-uuid' }],
+			})
+			signStore.queueAction('sign')
+			signMethodsStore.settings = { emailToken: { needCode: false, hasConfirmCode: true, identifyMethod: 'email' } }
+			await mountRealSignComponent()
+			await flushPromises()
+			expect(signMethodsStore.modal.emailToken).toBe(true)
+		})
+
 		it('emits signing-started on mount when document is already signing in progress', async () => {
 			setActivePinia(createPinia())
 

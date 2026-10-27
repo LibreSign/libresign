@@ -365,28 +365,6 @@ class IdentifyMethodService {
 					}
 					$signatureMethod->setEntity($identifyMethod->getEntity());
 					$signatureMethodData = $signatureMethod->toArray();
-					if ($signatureMethod->getName() === 'emailToken') {
-						$entity = $identifyMethod->getEntity();
-						$email = match ($entity->getIdentifierKey()) {
-							'email', 'emailToken' => $entity->getIdentifierValue(),
-							'account' => $this->userManager->get($entity->getIdentifierValue())?->getEMailAddress() ?? '',
-							default => '',
-						};
-						$emailLowercase = strtolower($email);
-						$code = $entity->getCode();
-						$identifiedAt = $entity->getIdentifiedAtDate();
-						$signatureMethodData = [
-							'label' => $signatureMethodData['label'] ?? $signatureMethod->getFriendlyName(),
-							'identifyMethod' => match ($entity->getIdentifierKey()) {
-								'emailToken' => 'email',
-								default => $entity->getIdentifierKey(),
-							},
-							'needCode' => empty($code) || empty($identifiedAt),
-							'hasConfirmCode' => !empty($code),
-							'blurredEmail' => $emailLowercase ? (new Blur($emailLowercase))->make() : '',
-							'hashOfEmail' => $emailLowercase ? md5($emailLowercase) : '',
-						];
-					}
 					$return[$signatureMethod->getName()] = $signatureMethodData;
 				}
 			}
