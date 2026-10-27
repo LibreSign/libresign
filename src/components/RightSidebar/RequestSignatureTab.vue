@@ -144,7 +144,8 @@
 							:close-after-click="true"
 							@click="sendNotify(signer)">
 							<template #icon>
-								<NcIconSvgWrapper :path="mdiBell" :size="20" />
+								<NcLoadingIcon v-if="isSendingNotification(signer)" :size="20" />
+								<NcIconSvgWrapper v-else :path="mdiBell" :size="20" />
 							</template>
 							{{ t('libresign', 'Send reminder') }}
 						</NcActionButton>
@@ -183,7 +184,8 @@
 							:close-after-click="true"
 							@click="sendNotify(signer)">
 							<template #icon>
-								<NcIconSvgWrapper :path="mdiBell" :size="20" />
+								<NcLoadingIcon v-if="isSendingNotification(signer)" :size="20" />
+								<NcIconSvgWrapper v-else :path="mdiBell" :size="20" />
 							</template>
 							{{ t('libresign', 'Send notification') }}
 						</NcActionButton>
@@ -468,7 +470,7 @@ import svgXmpp from '@mdi/svg/svg/xmpp.svg?raw'
 import axios from '@nextcloud/axios'
 import { getCurrentUser } from '@nextcloud/auth'
 import { getCapabilities } from '@nextcloud/capabilities'
-import { showError, showSuccess } from '@nextcloud/dialogs'
+import { showError, showSuccess, showWarning } from '@nextcloud/dialogs'
 import { emit, subscribe, unsubscribe } from '@nextcloud/event-bus'
 import type { Event as NextcloudEvent, EventHandler } from '@nextcloud/event-bus'
 import { loadState } from '@nextcloud/initial-state'
@@ -1566,6 +1568,15 @@ function confirmSigningOrder(signer: EditableRequestSigner) {
 	debouncedSave()
 }
 
+function isUnconfirmedNotification(error: unknown): boolean {
+	if (typeof error !== 'object' || error === null || !('response' in error)) {
+		return false
+	}
+	const response = error.response
+	return typeof response === 'object' && response !== null
+		&& 'status' in response && response.status === 502
+}
+
 function isSendingNotification(signer: Partial<EditableRequestSigner>): boolean {
 	return pendingNotificationIds.value.includes(signer.signRequestId ?? -1)
 }
@@ -1592,7 +1603,10 @@ async function sendNotify(signer: EditableRequestSigner) {
 		)
 		showSuccess(t('libresign', data.ocs.data.message))
 	} catch (error: unknown) {
-		if (isObserverParticipant(signer)) {
+		if (isUnconfirmedNotification(error)) {
+			// TRANSLATORS A provider may have accepted a message although the HTTP request failed.
+			showWarning(t('libresign', 'Some notification channels may have accepted the message. Check with the recipient before trying again.'))
+		} else if (isObserverParticipant(signer)) {
 			// TRANSLATORS Error toast shown when resending an observer notification fails.
 			showRequestError(error, t('libresign', 'Failed to send notification'))
 		} else {

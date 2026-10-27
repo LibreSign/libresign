@@ -119,7 +119,7 @@ class NotifyController extends AEnvironmentAwareController {
 			'messages' => [[
 				'type' => 'danger',
 				// TRANSLATORS Submission could have reached the provider. A new manual attempt may duplicate the message.
-				'message' => $this->l10n->t('The notification could not be confirmed. Check with the recipient before trying again.'),
+				'message' => $this->l10n->t('Some notification channels could not be confirmed. Others may have accepted the message. Check with the recipient before trying again.'),
 			]],
 		], Http::STATUS_BAD_GATEWAY);
 	}

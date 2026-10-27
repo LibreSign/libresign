@@ -16,7 +16,7 @@ import RequestSignatureTab from '../../../components/RightSidebar/RequestSignatu
 import { useFilesStore } from '../../../store/files.js'
 import { useUserConfigStore } from '../../../store/userconfig.js'
 import { FILE_STATUS, SIGN_REQUEST_STATUS } from '../../../constants.js'
-import { showError, showSuccess } from '@nextcloud/dialogs'
+import { showError, showSuccess, showWarning } from '@nextcloud/dialogs'
 import { PARTICIPANT_ROLE } from '../../../utils/participantRole.ts'
 
 const { capabilitiesState, generateUrlMock } = vi.hoisted(() => ({
@@ -1225,6 +1225,23 @@ describe('RequestSignatureTab - Critical Business Rules', () => {
 			await first
 			expect(wrapper.vm.isSendingNotification(signer)).toBe(false)
 			expect(showSuccess).toHaveBeenCalledWith('Notification request processed. Delivery is not confirmed.')
+		})
+
+		it('warns about partial or unknown results instead of treating them as a safe retry', async () => {
+			await updateFile({
+				status: FILE_STATUS.ABLE_TO_SIGN,
+				signers: [{ email: 'synthetic@example.invalid', signRequestId: 23, status: SIGN_REQUEST_STATUS.ABLE_TO_SIGN }],
+			})
+			const signer = filesStore.getFile()?.signers?.[0]
+			vi.mocked(axios.post).mockRejectedValueOnce({
+				response: {
+					status: 502,
+					data: { ocs: { data: { messages: [{ type: 'danger', message: 'Unconfirmed submission' }] } } },
+				},
+			})
+			await wrapper.vm.sendNotify(signer)
+			expect(showWarning).toHaveBeenCalledWith('Some notification channels may have accepted the message. Check with the recipient before trying again.')
+			expect(showSuccess).not.toHaveBeenCalled()
 		})
 
 		it('allows a new explicit attempt after the previous HTTP request failed', async () => {
