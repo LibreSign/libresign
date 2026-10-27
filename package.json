@@ -92,7 +92,7 @@
     "@testing-library/dom": "^10.4.2",
     "@testing-library/vue": "^8.1.0",
     "@types/blueimp-md5": "^2.18.2",
-    "@types/node": "^24.19.2",
+    "@types/node": "^26.6.5",
     "@vitejs/plugin-vue": "^6.0.10",
     "@vitest/coverage-v8": "^5.0.5",
     "@vue/test-utils": "^2.5.1",
