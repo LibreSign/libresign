@@ -374,14 +374,13 @@ class IdentifyMethodService {
 						};
 						$emailLowercase = strtolower($email);
 						$code = $entity->getCode();
-						$identifiedAt = $entity->getIdentifiedAtDate();
 						$signatureMethodData = [
 							'label' => $signatureMethodData['label'] ?? $signatureMethod->getFriendlyName(),
 							'identifyMethod' => match ($entity->getIdentifierKey()) {
 								'emailToken' => 'email',
 								default => $entity->getIdentifierKey(),
 							},
-							'needCode' => empty($code) || empty($identifiedAt),
+							'needCode' => $signatureMethodData['needCode'] ?? true,
 							'hasConfirmCode' => !empty($code),
 							'blurredEmail' => $emailLowercase ? (new Blur($emailLowercase))->make() : '',
 							'hashOfEmail' => $emailLowercase ? md5($emailLowercase) : '',
