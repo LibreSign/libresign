@@ -912,6 +912,10 @@ function proceedWithSigning() {
 		actionHandler!.showModal('password')
 	} else if (signMethodsStore.needTokenCode()) {
 		actionHandler!.showModal('token')
+	} else if (Object.hasOwn(signMethodsStore.settings, 'emailToken')) {
+		// The sign endpoint always requires the email code, so ask for it
+		// even when the server reports that it is not needed.
+		actionHandler!.showModal('emailToken')
 	}
 }
 
