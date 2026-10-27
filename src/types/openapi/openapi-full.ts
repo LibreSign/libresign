@@ -4296,7 +4296,7 @@ export interface operations {
             };
         };
         responses: {
-            /** @description OK */
+            /** @description Request processed */
             200: {
                 headers: {
                     [name: string]: unknown;
@@ -4310,8 +4310,36 @@ export interface operations {
                     };
                 };
             };
-            /** @description Unauthorized */
-            401: {
+            /** @description Request cannot be processed */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        ocs: {
+                            meta: components["schemas"]["OCSMeta"];
+                            data: components["schemas"]["MessageResponse"] | components["schemas"]["ActionErrorResponse"];
+                        };
+                    };
+                };
+            };
+            /** @description Unexpected server error */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        ocs: {
+                            meta: components["schemas"]["OCSMeta"];
+                            data: components["schemas"]["DangerMessagesResponse"];
+                        };
+                    };
+                };
+            };
+            /** @description Transport did not confirm submission */
+            502: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -4355,7 +4383,7 @@ export interface operations {
             };
         };
         responses: {
-            /** @description OK */
+            /** @description Request processed */
             200: {
                 headers: {
                     [name: string]: unknown;
@@ -4369,8 +4397,36 @@ export interface operations {
                     };
                 };
             };
-            /** @description Unauthorized */
-            401: {
+            /** @description Request cannot be processed */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        ocs: {
+                            meta: components["schemas"]["OCSMeta"];
+                            data: components["schemas"]["MessageResponse"] | components["schemas"]["ActionErrorResponse"];
+                        };
+                    };
+                };
+            };
+            /** @description Unexpected server error */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        ocs: {
+                            meta: components["schemas"]["OCSMeta"];
+                            data: components["schemas"]["DangerMessagesResponse"];
+                        };
+                    };
+                };
+            };
+            /** @description Transport did not confirm submission */
+            502: {
                 headers: {
                     [name: string]: unknown;
                 };
