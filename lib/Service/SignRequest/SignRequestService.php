@@ -43,6 +43,7 @@ class SignRequestService {
 	 * @param int|null $signerStatus Signer status
 	 * @param ParticipantRole $participantRole Participant role (signer or observer)
 	 * @param callable(SignRequestEntity): void|null $afterPersist Callback invoked after the sign request is persisted and before identify methods are saved
+	 * @param string|null $deliveryEventId Shared identity for the explicit request operation, if supplied by its caller
 	 * @return SignRequestEntity
 	 */
 	public function createOrUpdateSignRequest(
@@ -56,6 +57,7 @@ class SignRequestService {
 		?int $signerStatus = null,
 		ParticipantRole $participantRole = ParticipantRole::SIGNER,
 		?callable $afterPersist = null,
+		?string $deliveryEventId = null,
 	): SignRequestEntity {
 		$identifyMethodsInstances = $this->identifyMethodService->getByUserData($identifyMethods);
 		if (empty($identifyMethodsInstances)) {
@@ -103,10 +105,16 @@ class SignRequestService {
 			$fileStatus
 		);
 
+		// A new explicit write is a new event even if its visible fields did
+		// not change. Repeated dispatch of this same event still deduplicates.
+		// All factors of one request share the same event identity.
+		$eventId = $shouldNotify
+			? ($deliveryEventId ?? 'sign-request-write:' . bin2hex(random_bytes(16)))
+			: null;
 		foreach ($identifyMethodsInstances as $identifyMethod) {
 			$identifyMethod->getEntity()->setSignRequestId($signRequest->getId());
 			$identifyMethod->willNotifyUser($shouldNotify);
-			$identifyMethod->save();
+			$identifyMethod->save($eventId);
 		}
 
 		return $signRequest;

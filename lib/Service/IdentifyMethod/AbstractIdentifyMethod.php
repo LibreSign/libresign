@@ -445,9 +445,9 @@ abstract class AbstractIdentifyMethod implements IIdentifyMethod {
 	}
 
 	#[\Override]
-	public function save(): void {
+	public function save(?string $deliveryEventId = null): void {
 		$this->identifyService->save($this->getEntity());
-		$this->notify();
+		$this->notify($deliveryEventId);
 	}
 
 	#[\Override]

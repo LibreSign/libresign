@@ -33,6 +33,6 @@ interface IIdentifyMethod {
 	public function validateToIdentify(): void;
 	public function validateToRenew(?IUser $user = null): void;
 	public function validateToSign(): void;
-	public function save(): void;
+	public function save(?string $deliveryEventId = null): void;
 	public function delete(): void;
 }

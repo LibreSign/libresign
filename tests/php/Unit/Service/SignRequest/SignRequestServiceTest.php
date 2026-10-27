@@ -345,6 +345,71 @@ final class SignRequestServiceTest extends TestCase {
 		);
 	}
 
+	public function testExplicitUpdatesWithUnchangedContentReceiveDistinctNotificationEventIds(): void {
+		$identifyMethod = $this->createIdentifyMethod('email', 'signer@example.invalid');
+		$this->identifyMethodService->method('getByUserData')->willReturn([$identifyMethod]);
+		$existing = new SignRequestEntity();
+		$existing->setId(77);
+		$existing->setUuid('unchanged-sign-request');
+		$existing->setStatusEnum(SignRequestStatus::ABLE_TO_SIGN);
+		$this->signRequestMapper->method('getByIdentifyMethodAndFileId')->willReturn($existing);
+		$this->statusService->method('determineInitialStatus')->willReturn(SignRequestStatus::ABLE_TO_SIGN);
+		$this->statusService->method('shouldNotifySignRequest')->willReturn(true);
+
+		$eventIds = [];
+		$identifyMethod->expects($this->exactly(2))->method('save')
+			->willReturnCallback(static function (?string $eventId = null) use (&$eventIds): void {
+				$eventIds[] = $eventId;
+			});
+
+		foreach ([1, 2] as $operation) {
+			$this->service->createOrUpdateSignRequest(
+				['email' => 'signer@example.invalid'],
+				'Unchanged signer',
+				'Unchanged description',
+				true,
+				42,
+			);
+		}
+
+		$this->assertCount(2, $eventIds);
+		$this->assertNotEmpty($eventIds[0]);
+		$this->assertNotEmpty($eventIds[1]);
+		$this->assertNotSame($eventIds[0], $eventIds[1]);
+	}
+
+	public function testAllIdentityMethodsInOneWriteShareTheSameNotificationEvent(): void {
+		$first = $this->createIdentifyMethod('email', 'signer@example.invalid');
+		$second = $this->createIdentifyMethod('account', 'signer1');
+		$this->identifyMethodService->method('getByUserData')->willReturn([$first, $second]);
+		$existing = new SignRequestEntity();
+		$existing->setId(88);
+		$existing->setStatusEnum(SignRequestStatus::ABLE_TO_SIGN);
+		$this->signRequestMapper->method('getByIdentifyMethodAndFileId')->willReturn($existing);
+		$this->statusService->method('determineInitialStatus')->willReturn(SignRequestStatus::ABLE_TO_SIGN);
+		$this->statusService->method('shouldNotifySignRequest')->willReturn(true);
+
+		$eventIds = [];
+		foreach ([$first, $second] as $method) {
+			$method->expects($this->once())->method('save')
+				->willReturnCallback(static function (?string $eventId = null) use (&$eventIds): void {
+					$eventIds[] = $eventId;
+				});
+		}
+
+		$this->service->createOrUpdateSignRequest(
+			['email' => 'signer@example.invalid', 'account' => 'signer1'],
+			'Unchanged signer',
+			null,
+			true,
+			42,
+		);
+
+		$this->assertCount(2, $eventIds);
+		$this->assertNotEmpty($eventIds[0]);
+		$this->assertSame($eventIds[0], $eventIds[1]);
+	}
+
 	private function createIdentifyMethod(string $name, string $identifier): IIdentifyMethod&MockObject {
 		$entity = new IdentifyMethodEntity();
 		$entity->setIdentifierValue($identifier);

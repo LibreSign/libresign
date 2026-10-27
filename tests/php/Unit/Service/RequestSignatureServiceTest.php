@@ -567,6 +567,55 @@ final class RequestSignatureServiceTest extends \OCA\Libresign\Tests\Unit\TestCa
 		$this->assertSame([], $expectedCalls);
 	}
 
+	public function testAssociateToSignersSharesOneEventPerExplicitWriteAcrossIdentifyMethods(): void {
+		$file = new \OCA\Libresign\Db\File();
+		$file->setId(77);
+		$data = [
+			'status' => 1,
+			'signers' => [[
+				'displayName' => 'Signer',
+				'identifyMethods' => [
+					['method' => 'email', 'value' => 'signer@example.invalid'],
+					['method' => 'account', 'value' => 'signer'],
+				],
+			]],
+		];
+
+		$this->signerValidator->method('normalizeRequestSigners')
+			->willReturnCallback(static fn (array $signers): array => $signers);
+		$this->signRequestMapper->method('getByFileId')->with(77)->willReturn([]);
+		$this->sequentialSigningService->method('determineSigningOrder')->willReturn(1);
+
+		$events = [];
+		$this->signRequestService->expects($this->exactly(4))
+			->method('createOrUpdateSignRequest')
+			->willReturnCallback(static function (
+				array $identifyMethods,
+				string $displayName,
+				?string $description,
+				bool $notify,
+				int $fileId,
+				int $signingOrder = 0,
+				?int $fileStatus = null,
+				?int $signerStatus = null,
+				ParticipantRole $participantRole = ParticipantRole::SIGNER,
+				?callable $afterPersist = null,
+				?string $deliveryEventId = null,
+			) use (&$events): SignRequest {
+				$events[] = $deliveryEventId;
+				return new SignRequest();
+			});
+
+		self::invokePrivate($this->getService(), 'associateToSigners', [$data, $file]);
+		self::invokePrivate($this->getService(), 'associateToSigners', [$data, $file]);
+
+		$this->assertCount(4, $events);
+		$this->assertNotEmpty($events[0]);
+		$this->assertSame($events[0], $events[1]);
+		$this->assertNotSame($events[0], $events[2]);
+		$this->assertSame($events[2], $events[3]);
+	}
+
 	public function testAssociateToSignersPersistsGeolocationRequirementForEachIdentifyMethod(): void {
 		$file = new \OCA\Libresign\Db\File();
 		$file->setId(77);

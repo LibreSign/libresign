@@ -509,6 +509,9 @@ class RequestSignatureService {
 					: 0;
 				$signerStatus = $signer['status'] ?? null;
 				$shouldNotify = !isset($signer['notify']) || $signer['notify'] !== 0;
+				// One logical signer write can contain multiple identify methods.
+				// Each explicit write gets a distinct event, shared by its methods.
+				$deliveryEventId = $shouldNotify ? 'sign-request-write:' . bin2hex(random_bytes(16)) : null;
 				$lastSignRequest = null;
 
 				// Absent key means "leave frozen requirement unchanged" on updates.
@@ -549,6 +552,7 @@ class RequestSignatureService {
 								$requiresGeolocation,
 							);
 						},
+						deliveryEventId: $deliveryEventId,
 					);
 					$return[] = $lastSignRequest;
 				}
