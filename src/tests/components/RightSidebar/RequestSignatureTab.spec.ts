@@ -273,7 +273,11 @@ describe('RequestSignatureTab - Critical Business Rules', () => {
 					emits: ['update:modelValue', 'change'],
 					template: '<label class="nc-checkbox-radio-switch"><input type="checkbox" :checked="modelValue" @change="$emit(\'update:modelValue\', $event.target.checked); $emit(\'change\', $event.target.checked)" /><slot /></label>',
 				},
-				NcNoteCard: true,
+				NcNoteCard: {
+					name: 'NcNoteCard',
+					props: ['type', 'heading', 'showAlert'],
+					template: '<div class="nc-note-card" :data-note-type="type" :data-note-heading="heading"><slot /></div>',
+				},
 				NcActionInput: true,
 				NcActionButton: true,
 				NcFormBox: true,
@@ -1212,6 +1216,9 @@ describe('RequestSignatureTab - Critical Business Rules', () => {
 			let resolveRequest!: (value: unknown) => void
 			const pending = new Promise(resolve => { resolveRequest = resolve })
 			vi.mocked(axios.post).mockImplementation(async () => pending as Awaited<ReturnType<typeof axios.post>>)
+			vi.mocked(axios.get).mockResolvedValueOnce({
+				data: { ocs: { data: { status: 'completed', complete: true, channels: [{ channel: 'mail', state: 'accepted' }] } } },
+			} as Awaited<ReturnType<typeof axios.get>>)
 			const first = wrapper.vm.sendNotify(signer)
 			const second = wrapper.vm.sendNotify(signer)
 			expect(wrapper.vm.isSendingNotification(signer)).toBe(true)
@@ -1231,7 +1238,7 @@ describe('RequestSignatureTab - Critical Business Rules', () => {
 			expect(showSuccess).toHaveBeenCalledWith('Notification request processed. Delivery is not confirmed.')
 		})
 
-		it('shows the channel result and makes no extra calls after completion', async () => {
+		it('shows only transient success feedback after provider acceptance', async () => {
 			await updateFile({
 				status: FILE_STATUS.ABLE_TO_SIGN,
 				signers: [{ displayName: 'Synthetic signer', email: 'synthetic@example.invalid', signRequestId: 23, status: SIGN_REQUEST_STATUS.ABLE_TO_SIGN }],
@@ -1252,7 +1259,8 @@ describe('RequestSignatureTab - Critical Business Rules', () => {
 					params: expect.objectContaining({ fileId: 1, signRequestId: 23, requestId: expect.stringMatching(/^[a-f0-9]{32}$/) }),
 				}),
 			)
-			expect(wrapper.find('[role="status"]').text()).toContain('mail: Accepted by provider')
+			expect(wrapper.find('.notification-issue').exists()).toBe(false)
+			expect(showSuccess).toHaveBeenCalledWith('Notification request processed. Delivery is not confirmed.')
 			expect(wrapper.vm.isSendingNotification(signer)).toBe(false)
 			expect(vi.mocked(axios.get)).toHaveBeenCalledTimes(1)
 		})
@@ -1270,8 +1278,97 @@ describe('RequestSignatureTab - Critical Business Rules', () => {
 				},
 			})
 			await wrapper.vm.sendNotify(signer)
+			await wrapper.vm.$nextTick()
 			expect(showWarning).toHaveBeenCalledWith('Some notification channels may have accepted the message. Check with the recipient before trying again.')
+			expect(wrapper.find('.notification-issue').attributes('data-note-type')).toBe('warning')
+			expect(wrapper.find('.notification-issue').text()).toContain('Notification status could not be confirmed')
 			expect(showSuccess).not.toHaveBeenCalled()
+		})
+
+		it('displays a warning with partial and ambiguous provider results', async () => {
+			await updateFile({
+				status: FILE_STATUS.ABLE_TO_SIGN,
+				signers: [{ displayName: 'Synthetic signer', email: 'synthetic@example.invalid', signRequestId: 23, status: SIGN_REQUEST_STATUS.ABLE_TO_SIGN }],
+			})
+			const signer = filesStore.getFile()?.signers?.[0]
+			vi.mocked(axios.post).mockResolvedValueOnce({
+				data: { ocs: { data: { message: 'Notification request processed. Delivery is not confirmed.' } } },
+			} as Awaited<ReturnType<typeof axios.post>>)
+			vi.mocked(axios.get).mockResolvedValueOnce({
+				data: { ocs: { data: { status: 'attention_required', complete: true, channels: [
+					{ channel: 'mail', state: 'accepted' },
+					{ channel: 'gateway', state: 'unknown' },
+				] } } },
+			} as Awaited<ReturnType<typeof axios.get>>)
+			await wrapper.vm.sendNotify(signer)
+			await wrapper.vm.$nextTick()
+			const card = wrapper.find('.notification-issue')
+			expect(card.attributes('data-note-type')).toBe('warning')
+			expect(card.text()).toContain('Synthetic signer')
+			expect(card.text()).toContain('gateway: Result unknown')
+			expect(card.text()).toContain('mail: Accepted by provider')
+			expect(showSuccess).not.toHaveBeenCalled()
+		})
+
+		it('displays an error only when no provider accepted the message', async () => {
+			await updateFile({
+				status: FILE_STATUS.ABLE_TO_SIGN,
+				signers: [{ email: 'synthetic@example.invalid', signRequestId: 23, status: SIGN_REQUEST_STATUS.ABLE_TO_SIGN }],
+			})
+			const signer = filesStore.getFile()?.signers?.[0]
+			vi.mocked(axios.post).mockResolvedValueOnce({
+				data: { ocs: { data: { message: 'Notification request processed.' } } },
+			} as Awaited<ReturnType<typeof axios.post>>)
+			vi.mocked(axios.get).mockResolvedValueOnce({
+				data: { ocs: { data: { status: 'attention_required', complete: true, channels: [{ channel: 'mail', state: 'failed' }] } } },
+			} as Awaited<ReturnType<typeof axios.get>>)
+			await wrapper.vm.sendNotify(signer)
+			await wrapper.vm.$nextTick()
+			expect(wrapper.find('.notification-issue').attributes('data-note-type')).toBe('error')
+			expect(wrapper.find('.notification-issue').text()).toContain('No notification provider accepted the message')
+			expect(showError).toHaveBeenCalledWith('No notification provider accepted the message')
+			expect(showWarning).not.toHaveBeenCalled()
+			expect(showSuccess).not.toHaveBeenCalled()
+		})
+
+		it('does not show a success toast when the request has no delivery status', async () => {
+			await updateFile({
+				status: FILE_STATUS.ABLE_TO_SIGN,
+				signers: [{ email: 'synthetic@example.invalid', signRequestId: 23, status: SIGN_REQUEST_STATUS.ABLE_TO_SIGN }],
+			})
+			const signer = filesStore.getFile()?.signers?.[0]
+			vi.mocked(axios.post).mockResolvedValueOnce({
+				data: { ocs: { data: { message: 'Notification request processed.' } } },
+			} as Awaited<ReturnType<typeof axios.post>>)
+			vi.mocked(axios.get).mockResolvedValueOnce({
+				data: { ocs: { data: { status: 'not_found', complete: true, channels: [] } } },
+			} as Awaited<ReturnType<typeof axios.get>>)
+			await wrapper.vm.sendNotify(signer)
+			await wrapper.vm.$nextTick()
+			expect(wrapper.find('.notification-issue').attributes('data-note-type')).toBe('warning')
+			expect(showWarning).toHaveBeenCalledWith('No notification status is available. Check the recipient before trying again.')
+			expect(showSuccess).not.toHaveBeenCalled()
+		})
+
+		it('clears a previous warning when a later submission is accepted', async () => {
+			await updateFile({
+				status: FILE_STATUS.ABLE_TO_SIGN,
+				signers: [{ email: 'synthetic@example.invalid', signRequestId: 23, status: SIGN_REQUEST_STATUS.ABLE_TO_SIGN }],
+			})
+			const signer = filesStore.getFile()?.signers?.[0]
+			vi.mocked(axios.post).mockRejectedValueOnce(new Error('Synthetic timeout'))
+			await wrapper.vm.sendNotify(signer)
+			await wrapper.vm.$nextTick()
+			expect(wrapper.find('.notification-issue').exists()).toBe(true)
+			vi.mocked(axios.post).mockResolvedValueOnce({
+				data: { ocs: { data: { message: 'Notification request processed. Delivery is not confirmed.' } } },
+			} as Awaited<ReturnType<typeof axios.post>>)
+			vi.mocked(axios.get).mockResolvedValueOnce({
+				data: { ocs: { data: { status: 'completed', complete: true, channels: [{ channel: 'mail', state: 'accepted' }] } } },
+			} as Awaited<ReturnType<typeof axios.get>>)
+			await wrapper.vm.sendNotify(signer)
+			await wrapper.vm.$nextTick()
+			expect(wrapper.find('.notification-issue').exists()).toBe(false)
 		})
 
 		it('allows a new explicit attempt after the previous HTTP request failed', async () => {

@@ -193,20 +193,17 @@
 				</template>
 			</Signers>
 		</div>
-		<div v-if="notificationStatusItems.length > 0"
-			class="participants-section"
-			role="status"
-			aria-live="polite">
-			<h3 class="participants-section__title">
-				{{ t('libresign', 'Notification status') }}
-			</h3>
-			<p v-for="item in notificationStatusItems" :key="item.id">
-				<strong>{{ item.name }}</strong>: {{ notificationStatusLabel(item.status.status) }}
-				<span v-for="channel in item.status.channels" :key="channel.channel">
-					· {{ channel.channel }}: {{ notificationChannelStateLabel(channel.state) }}
-				</span>
-			</p>
-		</div>
+		<NcNoteCard v-for="item in notificationIssueItems"
+			:key="item.id"
+			:heading="t('libresign', 'Notification status')"
+			:type="item.issue.type"
+			:show-alert="true"
+			class="notification-issue">
+			<strong>{{ item.name }}</strong>: {{ item.issue.message }}
+			<span v-for="channel in item.issue.channels" :key="channel.channel">
+				· {{ channel.channel }}: {{ notificationChannelStateLabel(channel.state) }}
+			</span>
+		</NcNoteCard>
 		<NcFormBox v-if="isEnvelope && !isReadOnlyObserver" class="action-form-box">
 			<NcButton
 				wide
@@ -622,7 +619,12 @@ const EMPTY_IDENTIFY_METHODS: IdentifyMethodPolicyEntry[] = []
 
 const hasLoading = ref(false)
 const pendingNotificationIds = ref<number[]>([])
-const notificationStatuses = ref<Record<number, NotificationStatus>>({})
+type NotificationIssue = {
+	type: 'warning' | 'error'
+	message: string
+	channels: NotificationStatus['channels']
+}
+const notificationIssues = ref<Record<number, NotificationIssue>>({})
 const notificationControllers = new Map<number, AbortController>()
 const isLoadingFileDetail = ref(false)
 const signerToEdit = ref<IdentifySignerToEdit>({})
@@ -719,22 +721,23 @@ const showMissingVisibleSignatureWarningForSingleSigner = computed(() => {
 const isOriginalFileDeleted = computed(() => filesStore.isOriginalFileDeleted())
 const currentFile = computed<EditableRequestFile | null>(() => (filesStore.getFile() as EditableRequestFile | null) ?? null)
 const isCurrentFileDetailed = computed(() => currentFile.value?.detailsLoaded === true)
-const notificationStatusItems = computed(() => Object.entries(notificationStatuses.value).map(([id, status]) => ({
+const notificationIssueItems = computed(() => Object.entries(notificationIssues.value).map(([id, issue]) => ({
 	id: Number(id),
 	name: currentFile.value?.signers?.find(signer => signer.signRequestId === Number(id))?.displayName || t('libresign', 'Signer'),
-	status,
+	issue,
 })))
 
-function notificationStatusLabel(status: string): string {
-	switch (status) {
-		case 'processing':
-			return t('libresign', 'Processing notification')
-		case 'completed':
-			return t('libresign', 'Submitted to providers, delivery not confirmed')
-		case 'attention_required':
-			return t('libresign', 'Some providers did not confirm submission')
-		default:
-			return t('libresign', 'No notification status available')
+function notificationIssueFromStatus(status: NotificationStatus | null): NotificationIssue {
+	const channels = status?.channels ?? []
+	const allFailed = channels.length > 0 && channels.every(channel => channel.state === 'failed' || channel.state === 'canceled')
+	return {
+		type: allFailed ? 'error' : 'warning',
+		message: allFailed
+			? t('libresign', 'No notification provider accepted the message')
+			: status?.status === 'attention_required'
+				? t('libresign', 'Some providers did not confirm submission. Check with the recipient before trying again.')
+				: t('libresign', 'Notification status could not be confirmed. Check with the recipient before trying again.'),
+		channels,
 	}
 }
 
@@ -758,7 +761,7 @@ function resetNotificationTracking(): void {
 	}
 	notificationControllers.clear()
 	pendingNotificationIds.value = []
-	notificationStatuses.value = {}
+	notificationIssues.value = {}
 }
 
 watch(() => currentFile.value?.id, resetNotificationTracking)
@@ -1651,30 +1654,37 @@ async function sendNotify(signer: EditableRequestSigner): Promise<void> {
 	notificationControllers.set(signerId, controller)
 	pendingNotificationIds.value = [...pendingNotificationIds.value, signerId]
 	const query = { fileId: Number(file.id), signRequestId: signerId, requestId: newNotificationRequestId() }
-	notificationStatuses.value = {
-		...notificationStatuses.value,
-		[signerId]: { status: 'processing', complete: false, channels: [] },
-	}
+	delete notificationIssues.value[signerId]
+	let latestStatus: NotificationStatus | null = null
 	try {
 		const result = await submitAndWatchNotification(query, {
 			signal: controller.signal,
 			onUpdate: status => {
-				notificationStatuses.value = { ...notificationStatuses.value, [signerId]: status }
+				latestStatus = status
 			},
 		})
 		if (controller.signal.aborted) {
 			return
 		}
 		if (result.kind === 'invalid_request') {
-			delete notificationStatuses.value[signerId]
-			showRequestError(result.error, t('libresign', 'Failed to send notification'))
-		} else if (result.kind === 'accepted' || result.kind === 'not_found' || result.kind === 'status_unavailable') {
-			if (result.kind === 'status_unavailable') {
-				delete notificationStatuses.value[signerId]
+			notificationIssues.value[signerId] = {
+				type: 'error',
+				message: t('libresign', 'Failed to send notification'),
+				channels: [],
 			}
+			showRequestError(result.error, t('libresign', 'Failed to send notification'))
+		} else if (result.kind === 'accepted') {
 			showSuccess(result.message ?? t('libresign', 'Notification accepted by the provider. Delivery is not confirmed.'))
 		} else {
-			showWarning(t('libresign', 'Some notification channels may have accepted the message. Check with the recipient before trying again.'))
+			const issue = notificationIssueFromStatus(latestStatus)
+			notificationIssues.value[signerId] = issue
+			if (issue.type === 'error') {
+				showError(issue.message)
+			} else {
+				showWarning(result.kind === 'not_found'
+					? t('libresign', 'No notification status is available. Check the recipient before trying again.')
+					: t('libresign', 'Some notification channels may have accepted the message. Check with the recipient before trying again.'))
+			}
 		}
 	} finally {
 		if (notificationControllers.get(signerId) === controller) {
