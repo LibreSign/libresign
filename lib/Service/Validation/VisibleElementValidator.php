@@ -139,7 +139,7 @@ class VisibleElementValidator {
 						$this->signerElementsService->getElementFromSessionByNodeId($elements['profileNodeId']);
 					}
 				} catch (DoesNotExistException) {
-					throw new LibresignException($this->l10n->t('Field %s does not belong to user', $elements['profileNodeId']));
+					throw new LibresignException($this->l10n->t('Field %s does not belong to user', [$elements['profileNodeId']]));
 				}
 			}
 		}
