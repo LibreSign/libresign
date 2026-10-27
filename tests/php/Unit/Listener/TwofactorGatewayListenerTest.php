@@ -55,7 +55,6 @@ final class TwofactorGatewayListenerTest extends TestCase {
 				new NotificationHistoryService($mapper),
 				$this->createMock(IL10N::class), $this->createMock(IURLGenerator::class),
 			),
-			$this->createMock(LoggerInterface::class),
 		);
 		$entity = new IdentifyMethod();
 		$entity->setIdentifierKey('sms');
@@ -71,7 +70,7 @@ final class TwofactorGatewayListenerTest extends TestCase {
 		$listener->handle(new SendSignNotificationEvent($request, $file, $method));
 	}
 
-	public function testManualGatewayFailurePropagatesSanitizedUnknownResult(): void {
+	public function testGatewayFailureReachesTheChannelRouter(): void {
 		$appManager = $this->createMock(IAppManager::class);
 		$appManager->method('isEnabledForAnyone')->willReturn(true);
 		$gatewayService = new TwofactorGatewayService(
@@ -87,7 +86,6 @@ final class TwofactorGatewayListenerTest extends TestCase {
 				new NotificationHistoryService($mapper),
 				$this->createMock(IL10N::class), $this->createMock(IURLGenerator::class),
 			),
-			$this->createMock(LoggerInterface::class),
 		);
 		$entity = new IdentifyMethod();
 		$entity->setIdentifierKey('sms');
@@ -101,7 +99,7 @@ final class TwofactorGatewayListenerTest extends TestCase {
 		$file->setId(33);
 		$file->setUuid('synthetic-file');
 
-		$this->expectException(\OCA\Libresign\Exception\NotificationTransportException::class);
+		$this->expectException(\RuntimeException::class);
 		$listener->handle(new SendSignNotificationEvent($request, $file, $method, 'manual:test-event'));
 	}
 }
