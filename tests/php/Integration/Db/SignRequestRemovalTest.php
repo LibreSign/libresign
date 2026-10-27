@@ -304,21 +304,19 @@ final class SignRequestRemovalTest extends \Test\TestCase {
 		// adapter even when another test has already cached the shared service.
 		$removal = \OC::$server->getAppContainerForService(SignerRemovalService::class)
 			->resolve(SignerRemovalService::class);
+		$failure = null;
 		try {
-			$this->asOwner(function () use ($signer, $removal): void {
-				try {
-					$removal->remove($signer->getFileId(), $signer->getId());
-					$this->fail('A failed removal must not succeed');
-				} catch (\RuntimeException $e) {
-					$this->assertSame('Database read failed', $e->getMessage());
-				}
-			});
+			$this->asOwner(fn () => $removal->remove($signer->getFileId(), $signer->getId()));
+		} catch (\RuntimeException $e) {
+			$failure = $e;
 		} finally {
 			$this->restoreService(FileElementMapper::class);
 		}
+		$this->assertSame('Database read failed', $failure?->getMessage());
 
 		$this->requests->invalidateCachedEntity($signer);
 		$this->requests->invalidateCachedEntity($sibling);
+		$this->files->invalidateCachedEntity($this->files->getById($signer->getFileId()));
 		$this->assertSame(SignRequestStatus::ABLE_TO_SIGN, $this->requests->getById($signer->getId())->getStatusEnum());
 		$this->assertSame(SignRequestStatus::ABLE_TO_SIGN, $this->requests->getById($sibling->getId())->getStatusEnum());
 		$this->assertSame(FileStatus::ABLE_TO_SIGN->value, $this->files->getById($signer->getFileId())->getStatus());
