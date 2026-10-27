@@ -299,7 +299,7 @@ class InjectionMiddleware extends Middleware {
 	 */
 	private function maintainSessionConsistencyWithUuid(?string $uuid): void {
 		if ($uuid && !($this->userSession->getUser() instanceof IUser)) {
-			if (!$this->session->get('libresign-uuid')) {
+			if ($this->session->get('libresign-uuid') !== $uuid) {
 				$this->session->set('libresign-uuid', $uuid);
 			}
 		}

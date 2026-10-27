@@ -16,6 +16,7 @@ use OCA\Libresign\Db\SignRequestMapper;
 use OCA\Libresign\Db\UserElementMapper;
 use OCA\Libresign\Exception\LibresignException;
 use OCA\Libresign\Service\SignerElementsService;
+use OCP\AppFramework\Db\DoesNotExistException;
 use OCP\IL10N;
 use OCP\IUser;
 
@@ -126,11 +127,19 @@ class VisibleElementValidator {
 				throw new LibresignException($this->l10n->t('Field %s not found', ['profileNodeId']));
 			}
 			$this->validateSignerIsOwnerOfPdfVisibleElement($elements['documentElementId'], $signRequest, $childSignRequestIds);
-			if ($canCreateSignature && $user instanceof IUser) {
+			if ($canCreateSignature) {
+				if (!is_int($elements['profileNodeId'])) {
+					// TRANSLATORS Validation error when the visible signature profile node ID is not an integer.
+					throw new LibresignException($this->l10n->t('Field %s must be an integer', ['profileNodeId']));
+				}
 				try {
-					$this->userElementMapper->findOne(['node_id' => $elements['profileNodeId'], 'user_id' => $user->getUID()]);
-				} catch (\Throwable) {
-					throw new LibresignException($this->l10n->t('Field %s does not belong to user', $elements['profileNodeId']));
+					if ($user instanceof IUser) {
+						$this->userElementMapper->findOne(['node_id' => $elements['profileNodeId'], 'user_id' => $user->getUID()]);
+					} else {
+						$this->signerElementsService->getElementFromSessionByNodeId($elements['profileNodeId']);
+					}
+				} catch (DoesNotExistException) {
+					throw new LibresignException($this->l10n->t('Field %s does not belong to user', [$elements['profileNodeId']]));
 				}
 			}
 		}
