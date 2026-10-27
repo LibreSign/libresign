@@ -40,7 +40,9 @@ const response = (status: NotificationStatus) => ({ data: { ocs: { data: status 
 
 describe('Notification delivery status', () => {
 	beforeEach(() => {
-		vi.resetAllMocks()
+		vi.clearAllMocks()
+		vi.mocked(axios.get).mockReset()
+		vi.mocked(axios.post).mockReset()
 	})
 
 	it('generates a cryptographically random 128-bit request key', () => {
