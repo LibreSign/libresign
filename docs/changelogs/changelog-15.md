@@ -19,6 +19,23 @@ Types of changes:
 <!-- changelog-linker -->
 <!-- changelog-linker -->
 
+## 15.0.10 - 2026-10-26
+
+### Changed
+- Update translations
+- Internal maintenance
+- Update dependencies
+
+### Fixed
+- avoid phantom system rules from child-only overrides
+  [#9237](https://github.com/LibreSign/libresign/pull/9237)
+- keep an explicitly saved default as an enforceable system rule
+  [#9239](https://github.com/LibreSign/libresign/pull/9239)
+- make signing workers safer and easier to recover
+  [#9240](https://github.com/LibreSign/libresign/pull/9240)
+- preserve completed signer records (#9086)
+  [#9252](https://github.com/LibreSign/libresign/pull/9252)
+
 ## 15.0.9 - 2026-10-24
 
 ### Changed
