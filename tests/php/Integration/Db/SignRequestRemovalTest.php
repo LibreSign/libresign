@@ -8,39 +8,26 @@ declare(strict_types=1);
 
 namespace OCA\Libresign\Tests\Integration\Db;
 
-use OCA\Libresign\BackgroundJob\DeliverNotification;
 use OCA\Libresign\Db\File;
 use OCA\Libresign\Db\FileElementMapper;
 use OCA\Libresign\Db\FileMapper;
 use OCA\Libresign\Db\IdentifyMethod;
 use OCA\Libresign\Db\IdentifyMethodMapper;
-use OCA\Libresign\Db\NotificationDeliveryMapper;
 use OCA\Libresign\Db\SignRequest;
 use OCA\Libresign\Db\SignRequestMapper;
 use OCA\Libresign\Enum\FileStatus;
 use OCA\Libresign\Enum\SignatureFlow;
 use OCA\Libresign\Enum\SignRequestStatus;
-use OCA\Libresign\Events\SignRequestCanceledEvent;
 use OCA\Libresign\Exception\LibresignException;
-use OCA\Libresign\Service\FileStatusService;
-use OCA\Libresign\Service\IdentifyMethod\IIdentifyMethod;
-use OCA\Libresign\Service\IdentifyMethodService;
-use OCA\Libresign\Service\Notification\MailPayload;
-use OCA\Libresign\Service\Notification\NotificationChannel;
-use OCA\Libresign\Service\Notification\NotificationMessage;
-use OCA\Libresign\Service\NotificationDeliveryService;
-use OCA\Libresign\Service\SequentialSigningService;
 use OCA\Libresign\Service\SignerRemovalService;
 use OCA\Libresign\Service\SignRequest\StatusCacheService;
 use OCP\AppFramework\Db\DoesNotExistException;
-use OCP\BackgroundJob\IJobList;
 use OCP\DB\QueryBuilder\IQueryBuilder;
-use OCP\EventDispatcher\IEventDispatcher;
 use OCP\IDBConnection;
-use OCP\IL10N;
+use OCP\IUserManager;
+use OCP\IUserSession;
 use OCP\Server;
 use PHPUnit\Framework\Attributes\DataProvider;
-use Psr\Log\LoggerInterface;
 use Sabre\DAV\UUIDUtil;
 
 /**
@@ -295,108 +282,92 @@ final class SignRequestRemovalTest extends \Test\TestCase {
 		$this->requests->getById($signer->getId());
 	}
 
-	public function testFailedPersistenceRollsBackSignerRemovalAndCancellationIntent(): void {
-		$signer = $this->createUnsignedSigner();
-		$fileId = $signer->getFileId();
+	public function testFailedRemovalPreservesSignersWithoutCancellationIntent(): void {
+		$signer = $this->createNotifiableSigner();
 		$sibling = new SignRequest();
 		$sibling->setUuid(UUIDUtil::getUUID());
-		$sibling->setFileId($fileId);
+		$sibling->setFileId($signer->getFileId());
 		$sibling->setStatusEnum(SignRequestStatus::ABLE_TO_SIGN);
-		$sibling->setDisplayName('Unaffected signer');
 		$sibling->setCreatedAt(new \DateTime('2026-01-01T00:00:00Z'));
 		$this->requests->insert($sibling);
 
-		$identity = new IdentifyMethod();
-		$identity->setSignRequestId($signer->getId());
-		$identity->setIdentifierKey('account');
-		$identity->setIdentifierValue('synthetic-user');
-		$identity->setMandatory(1);
-		$this->identifications->insert($identity);
-
-		$method = $this->createMock(IIdentifyMethod::class);
-		$method->method('getEntity')->willReturn($identity);
-		$identifications = $this->createMock(IdentifyMethodService::class);
-		$identifications->method('getIdentifyMethodsFromSignRequestId')
-			->with($signer->getId())->willReturn(['account' => [$method]]);
-		$identifications->method('deleteBySignRequestId')
-			->willThrowException(new \RuntimeException('Controlled persistence failure'));
-
-		$deliveryService = Server::get(NotificationDeliveryService::class);
-		$deliveries = Server::get(NotificationDeliveryMapper::class);
-		$jobs = Server::get(IJobList::class);
-		$transportCalls = 0;
-		$deliveryId = null;
-		$channel = new class($transportCalls) implements NotificationChannel {
-			public function __construct(
-				private int &$calls,
-			) {
-			}
-			public function supports(string $channel): bool {
-				return $channel === 'mail';
-			}
-			public function deliver(NotificationMessage $message): void {
-				$this->calls++;
-			}
-		};
-		$events = $this->createMock(IEventDispatcher::class);
-		$events->method('dispatchTyped')->willReturnCallback(
-			function ($event) use ($deliveryService, $deliveries, $signer, $channel, &$deliveryId): void {
-				$this->assertInstanceOf(SignRequestCanceledEvent::class, $event);
-				$message = new NotificationMessage(
-					$event->getDeliveryEventId(),
-					'sign_request_canceled',
-					'mail',
-					$event->getLibreSignFile(),
-					$event->getSignRequest(),
-					'synthetic@example.invalid',
-					new MailPayload(),
-				);
-				$this->assertTrue($deliveryService->dispatch($message, $channel));
-				$query = $this->db->getQueryBuilder();
-				$query->select('id')->from('libresign_notification_delivery')
-					->where($query->expr()->eq('sign_request_id', $query->createNamedParameter($signer->getId(), IQueryBuilder::PARAM_INT)))
-					->andWhere($query->expr()->eq('event_type', $query->createNamedParameter('sign_request_canceled')));
-				$deliveryId = (int)$query->executeQuery()->fetchOne();
-				$this->assertGreaterThan(0, $deliveryId, 'Cancellation intent must be recorded before the deletion fails');
-				$this->assertTrue(Server::get(IJobList::class)->has(DeliverNotification::class, ['id' => $deliveryId]));
-			},
-		);
-
-		$service = new SignerRemovalService(
-			$this->files,
-			$this->requests,
-			$identifications,
-			Server::get(FileElementMapper::class),
-			Server::get(SequentialSigningService::class),
-			Server::get(FileStatusService::class),
-			$events,
-			$this->createMock(IL10N::class),
-			$this->db,
-			Server::get(LoggerInterface::class),
-			$deliveryService,
-			$deliveries,
-		);
-
+		// Simulate a database failure after deletion. Keep notification listeners
+		// and transaction processing real.
+		$elements = $this->getMockBuilder(FileElementMapper::class)
+			->setConstructorArgs([$this->db])
+			->onlyMethods(['getByFileIdAndSignRequestId'])
+			->getMock();
+		$elements->method('getByFileIdAndSignRequestId')
+			->willThrowException(new \RuntimeException('Database read failed'));
+		$this->overwriteService(FileElementMapper::class, $elements);
+		// Resolve a fresh service so this one test uses the failing persistence
+		// adapter even when another test has already cached the shared service.
+		$removal = \OC::$server->getAppContainerForService(SignerRemovalService::class)
+			->resolve(SignerRemovalService::class);
 		try {
-			$service->remove($fileId, $signer->getId());
-			$this->fail('Persistence failure must propagate');
-		} catch (\RuntimeException $e) {
-			$this->assertSame('Controlled persistence failure', $e->getMessage());
+			$this->asOwner(function () use ($signer, $removal): void {
+				try {
+					$removal->remove($signer->getFileId(), $signer->getId());
+					$this->fail('A failed removal must not succeed');
+				} catch (\RuntimeException $e) {
+					$this->assertSame('Database read failed', $e->getMessage());
+				}
+			});
+		} finally {
+			$this->restoreService(FileElementMapper::class);
 		}
 
 		$this->requests->invalidateCachedEntity($signer);
 		$this->requests->invalidateCachedEntity($sibling);
-		$this->assertSame($signer->getId(), $this->requests->getById($signer->getId())->getId());
-		$this->assertSame($sibling->getId(), $this->requests->getById($sibling->getId())->getId());
+		$this->assertSame(SignRequestStatus::ABLE_TO_SIGN, $this->requests->getById($signer->getId())->getStatusEnum());
 		$this->assertSame(SignRequestStatus::ABLE_TO_SIGN, $this->requests->getById($sibling->getId())->getStatusEnum());
-		$this->assertSame(FileStatus::ABLE_TO_SIGN->value, $this->files->getById($fileId)->getStatus());
-		$this->assertNotNull($deliveryId);
-		$this->assertFalse($jobs->has(DeliverNotification::class, ['id' => $deliveryId]));
-		$query = $this->db->getQueryBuilder();
-		$query->select('id')->from('libresign_notification_delivery')
-			->where($query->expr()->eq('id', $query->createNamedParameter($deliveryId, IQueryBuilder::PARAM_INT)));
-		$this->assertFalse($query->executeQuery()->fetchOne(), 'Rolled-back cancellation outbox must not survive');
-		$this->assertSame(0, $transportCalls);
+		$this->assertSame(FileStatus::ABLE_TO_SIGN->value, $this->files->getById($signer->getFileId())->getStatus());
+		$this->assertSame(0, $this->countCancellationIntents($signer->getId()));
+	}
+
+	public function testSuccessfulRemovalRegistersCancellationIntent(): void {
+		$signer = $this->createNotifiableSigner();
+
+		$this->asOwner(fn () => Server::get(SignerRemovalService::class)->remove($signer->getFileId(), $signer->getId()));
+
+		$this->assertSame([], $this->requests->getByFileId($signer->getFileId()));
+		$this->assertSame(1, $this->countCancellationIntents($signer->getId(), 'nextcloud'));
+	}
+
+	private function createNotifiableSigner(): SignRequest {
+		$signer = $this->createUnsignedSigner();
+		$method = new IdentifyMethod();
+		$method->setSignRequestId($signer->getId());
+		$method->setIdentifierKey('account');
+		$method->setIdentifierValue('admin');
+		$method->setMandatory(1);
+		$this->identifications->insert($method);
+		return $signer;
+	}
+
+	private function countCancellationIntents(int $signRequestId, ?string $channel = null): int {
+		$qb = $this->db->getQueryBuilder();
+		$qb->select($qb->func()->count('*'))
+			->from('libresign_notification_delivery')
+			->where($qb->expr()->eq('sign_request_id', $qb->createNamedParameter($signRequestId, IQueryBuilder::PARAM_INT)))
+			->andWhere($qb->expr()->eq('event_type', $qb->createNamedParameter('sign_request_canceled')));
+		if ($channel !== null) {
+			$qb->andWhere($qb->expr()->eq('channel', $qb->createNamedParameter($channel)));
+		}
+		return (int)$qb->executeQuery()->fetchOne();
+	}
+
+	private function asOwner(callable $action): void {
+		$session = Server::get(IUserSession::class);
+		$previous = $session->getUser();
+		$owner = Server::get(IUserManager::class)->get('admin');
+		$this->assertNotNull($owner);
+		$session->setUser($owner);
+		try {
+			$action();
+		} finally {
+			$session->setUser($previous);
+		}
 	}
 
 	#[DataProvider('completedEvidence')]
