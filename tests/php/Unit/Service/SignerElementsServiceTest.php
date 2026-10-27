@@ -15,6 +15,10 @@ use OCA\Libresign\Service\SessionService;
 use OCA\Libresign\Service\SignatureBackgroundService;
 use OCA\Libresign\Service\SignatureTextService;
 use OCA\Libresign\Service\SignerElementsService;
+use OCP\AppFramework\Db\DoesNotExistException;
+use OCP\Files\File;
+use OCP\Files\Folder;
+use OCP\Files\NotFoundException;
 use OCP\IURLGenerator;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\MockObject\MockObject;
@@ -47,6 +51,32 @@ final class SignerElementsServiceTest extends \OCA\Libresign\Tests\Unit\TestCase
 			$this->signatureTextService,
 		);
 		return $this->service;
+	}
+
+	public function testGuestCanOnlyAccessFileFromCurrentSession(): void {
+		$root = $this->createMock(Folder::class);
+		$currentSession = $this->createMock(Folder::class);
+		$ownFile = $this->createMock(File::class);
+		$ownFile->method('getId')->willReturn(100);
+		$anotherFile = $this->createMock(File::class);
+		$anotherFile->method('getId')->willReturn(200);
+		$this->sessionService->method('getSessionId')->willReturn('request-one');
+		$this->folderService->method('getFolder')->willReturn($root);
+		$root->method('get')->with('request-one')->willReturn($currentSession);
+		$currentSession->method('getDirectoryListing')->willReturn([$ownFile]);
+		$this->assertSame($ownFile, $this->getClass()->getElementFromSessionByNodeId(100));
+		$this->expectException(DoesNotExistException::class);
+		$this->service->getElementFromSessionByNodeId(200);
+	}
+
+	public function testGuestCannotAccessElementWhenSessionFolderIsMissing(): void {
+		$root = $this->createMock(Folder::class);
+		$this->sessionService->method('getSessionId')->willReturn('missing-request');
+		$this->folderService->method('getFolder')->willReturn($root);
+		$root->method('get')->with('missing-request')->willThrowException(new NotFoundException());
+
+		$this->expectException(DoesNotExistException::class);
+		$this->getClass()->getElementFromSessionByNodeId(123);
 	}
 
 	#[DataProvider('providerIsSignElementsAvailable')]
