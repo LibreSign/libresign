@@ -206,27 +206,6 @@ class SignersLoader {
 							}
 							$signatureMethod->setEntity($identifyMethodInstance->getEntity());
 							$signatureMethodData = $signatureMethod->toArray();
-							if ($signatureMethod->getName() === 'emailToken') {
-								$entity = $identifyMethodInstance->getEntity();
-								$email = match ($entity->getIdentifierKey()) {
-									'email', 'emailToken' => $entity->getIdentifierValue(),
-									'account' => $this->userManager->get($entity->getIdentifierValue())?->getEMailAddress() ?? '',
-									default => '',
-								};
-								$emailLowercase = strtolower($email);
-								$code = $entity->getCode();
-								$signatureMethodData = [
-									'label' => $signatureMethodData['label'] ?? $signatureMethod->getFriendlyName(),
-									'identifyMethod' => match ($entity->getIdentifierKey()) {
-										'emailToken' => 'email',
-										default => $entity->getIdentifierKey(),
-									},
-									'needCode' => $signatureMethodData['needCode'] ?? true,
-									'hasConfirmCode' => !empty($code),
-									'blurredEmail' => $emailLowercase ? (new \OCA\Libresign\Vendor\Wobeto\EmailBlur\Blur($emailLowercase))->make() : '',
-									'hashOfEmail' => $emailLowercase ? md5($emailLowercase) : '',
-								];
-							}
 							$fileData->signers[$index]->signatureMethods[$signatureMethod->getName()] = $signatureMethodData;
 						}
 					}
