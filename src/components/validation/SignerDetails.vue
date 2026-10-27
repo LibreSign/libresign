@@ -20,12 +20,14 @@
 					<strong>{{ t('libresign', 'Status:') }}</strong>
 					<span data-test="signer-status">{{ statusLabel }}</span>
 				</template>
+				<template v-else-if="signer.signed">
+					<!-- TRANSLATORS: Date on which this signer signed the document, not the certificate expiry date. -->
+					<strong>{{ t('libresign', 'Signed on:') }}</strong>
+					<span class="signer-signed-at">{{ dateFromSqlAnsi(signer.signed) }}</span>
+				</template>
 				<template v-else>
-					<strong>{{ t('libresign', 'Expiration:') }}</strong>
-					<span v-if="signer.valid_to">
-						{{ dateFromSqlAnsi(signer.valid_to) }}
-					</span>
-					<span v-else>{{ t('libresign', 'No expiration date') }}</span>
+					<strong>{{ t('libresign', 'Status:') }}</strong>
+					<span>{{ t('libresign', 'Signed') }}</span>
 				</template>
 			</template>
 			<template #extra-actions>
@@ -67,20 +69,6 @@
 			</NcListItem>
 		</template>
 
-		<!-- Date Signed -->
-		<NcListItem v-if="isOpen && signer.signed"
-			class="extra"
-			compact
-			:name="t('libresign', 'Date signed:')">
-			<template #name>
-				<strong>{{ t('libresign', 'Date signed:') }}</strong>
-				<span v-if="signer.signed">
-					{{ dateFromSqlAnsi(signer.signed) }}
-				</span>
-				<span v-else>{{ t('libresign', 'No date') }}</span>
-			</template>
-		</NcListItem>
-
 		<NcListItem v-if="isOpen && isSigned(signer)"
 			class="extra"
 			compact
@@ -91,6 +79,22 @@
 				{{ Array.isArray(signer.visibleElements) && signer.visibleElements.length > 0 ? t('libresign', 'Yes') : t('libresign', 'No') }}
 			</template>
 		</NcListItem>
+
+		<!-- Certificate dates describe the signing credential, not the document lifetime. -->
+		<NcListItem v-if="isOpen && getCertificateExpirationLabel(signer)"
+			class="extra"
+			compact
+			data-test="signer-certificate-expiry"
+			:name="getCertificateExpirationLabel(signer)">
+			<template #name>
+				<strong>{{ getCertificateExpirationLabel(signer) }}</strong>
+				{{ dateFromSqlAnsi(signer.valid_to) }}
+			</template>
+		</NcListItem>
+		<p v-if="isOpen && getCertificateExpirationLabel(signer)" class="certificate-validity-explanation">
+			<!-- TRANSLATORS: Certificate expiry by itself does not set the document expiry or invalidate an already-made signature. -->
+			{{ t('libresign', 'The certificate expiry date is not the document expiry date. Expiration after signing does not, by itself, invalidate the signature.') }}
+		</p>
 
 		<!-- Timestamp Authority (TSA) -->
 		<SignerTimestamp v-if="isOpen" :timestamp="signer.timestamp" />
@@ -532,9 +536,27 @@ function getValidityStatus(signer: SignerModel) {
 	const validTo = new Date(signer.valid_to).getTime() / 1000
 	const thirtyDays = 30 * 24 * 60 * 60
 
-	if (validTo < now) { return 'expired' }
+	if (!Number.isFinite(validTo)) { return 'unknown' }
+	if (validTo <= now) { return 'expired' }
 	if (validTo - now < thirtyDays) { return 'expiring' }
 	return 'valid'
+}
+
+function getCertificateExpirationLabel(signer: SignerModel): string {
+	if (!isSigned(signer) || !signer.valid_to) {
+		return ''
+	}
+
+	const status = getValidityStatus(signer)
+	if (status === 'unknown') {
+		return ''
+	}
+	if (status === 'expired') {
+		// TRANSLATORS: Label for the date on which the signing certificate expired, not the document.
+		return t('libresign', 'Certificate expired on:')
+	}
+	// TRANSLATORS: Label for the future expiration date of the signing certificate, not the document.
+	return t('libresign', 'Certificate expires on:')
 }
 
 function hasValidationStatus(signer: SignerModel) {
@@ -718,6 +740,7 @@ defineExpose({
 	getIconValidityPath,
 	getSignerValidationClass,
 	getValidityStatus,
+	getCertificateExpirationLabel,
 	hasValidationStatus,
 	getSignatureValidationMessage,
 	hasDocumentModificationWarning,
@@ -737,6 +760,10 @@ defineExpose({
 </script>
 
 <style scoped lang="scss">
+.signer-signed-at {
+	margin-inline-start: 4px;
+}
+
 .extra,
 .extra-chain {
 	:deep(.list-item) {
@@ -765,13 +792,20 @@ defineExpose({
 	padding-left: 48px;
 }
 
+.certificate-validity-explanation {
+	padding: 4px 16px 8px 44px;
+	margin: 0;
+	color: var(--color-text-maxcontrast);
+	line-height: 1.5;
+}
+
 .validation-description {
 	padding: 8px 16px 8px 48px;
 	white-space: normal;
 	overflow-wrap: anywhere;
-	word-break: break-word;
 	line-height: 1.4;
 }
+
 .validation-icon--success {
 	color: var(--color-element-success, var(--color-success));
 	:deep(svg) {
