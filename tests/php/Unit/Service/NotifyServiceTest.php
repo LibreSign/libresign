@@ -124,6 +124,28 @@ final class NotifyServiceTest extends TestCase {
 		$this->service->signers(12, [['email' => 'selected@example.invalid']]);
 	}
 
+	public function testInvalidManualRequestIdDoesNotNotify(): void {
+		$this->requests->method('getByFileIdAndSignRequestId')
+			->willReturn($this->request(SignRequestStatus::ABLE_TO_SIGN->value));
+		$this->identifiers->expects($this->never())->method('getIdentifyMethodsFromSignRequestId');
+		$this->expectException(LibresignException::class);
+		$this->service->signer(12, 23, 'invalid');
+	}
+
+	public function testManualRequestIdIsReusedForTheSameAttempt(): void {
+		$this->requests->method('getByFileIdAndSignRequestId')
+			->willReturn($this->request(SignRequestStatus::ABLE_TO_SIGN->value));
+		$entity = new IdentifyMethod();
+		$entity->setIdentifierKey('email');
+		$entity->setIdentifierValue('synthetic@example.invalid');
+		$method = $this->createMock(IIdentifyMethod::class);
+		$method->method('getEntity')->willReturn($entity);
+		$method->expects($this->once())->method('notify')
+			->with('manual:' . str_repeat('a', 32))->willReturn(true);
+		$this->identifiers->method('getIdentifyMethodsFromSignRequestId')->willReturn(['email' => [$method]]);
+		$this->service->signer(12, 23, str_repeat('a', 32));
+	}
+
 	public function testEmptyBulkRequestCannotNotifyEveryone(): void {
 		$this->requests->expects($this->never())->method('getByFileId');
 		$this->expectException(LibresignException::class);

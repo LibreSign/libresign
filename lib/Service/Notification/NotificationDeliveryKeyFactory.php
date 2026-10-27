@@ -17,6 +17,19 @@ final class NotificationDeliveryKeyFactory {
 	) {
 	}
 
+	/** One opaque ID shared by all channels for this business event. */
+	public function correlationId(string $sourceEventId, string $eventType, int $fileId, ?int $signRequestId): string {
+		if ($sourceEventId === '') {
+			throw new \InvalidArgumentException('Notification event identity is required');
+		}
+		$secret = $this->config->getSystemValueString('secret');
+		if ($secret === '') {
+			throw new \LogicException('The Nextcloud instance secret is not available');
+		}
+		$event = implode("\0", [$sourceEventId, $eventType, (string)$fileId, (string)$signRequestId]);
+		return hash_hmac('sha256', $event, hash_hmac('sha256', 'libresign-notification-event-v1', $secret, true));
+	}
+
 	/** @return array{correlationId: string, eventKey: string} */
 	public function keys(NotificationMessage $message, NotificationChannel $transport): array {
 		if ($message->sourceEventId === '' || trim($message->recipient) === '' || !$transport->supports($message->channel)) {
@@ -26,12 +39,6 @@ final class NotificationDeliveryKeyFactory {
 		if ($secret === '') {
 			throw new \LogicException('The Nextcloud instance secret is not available');
 		}
-		$event = implode("\0", [
-			$message->sourceEventId,
-			$message->eventType,
-			(string)$message->file->getId(),
-			(string)$message->signRequest->getId(),
-		]);
 		$recipient = trim($message->recipient);
 		if ($message->channel === 'mail') {
 			$recipient = strtolower($recipient);
@@ -41,7 +48,9 @@ final class NotificationDeliveryKeyFactory {
 			hash_hmac('sha256', $context, $secret, true),
 		);
 		return [
-			'correlationId' => $keyed('libresign-notification-event-v1', $event),
+			'correlationId' => $this->correlationId(
+				$message->sourceEventId, $message->eventType, $message->file->getId(), $message->signRequest->getId(),
+			),
 			'eventKey' => $keyed('libresign-notification-v2', implode("\0", [
 				$message->sourceEventId,
 				$message->eventType,

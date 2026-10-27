@@ -38,7 +38,7 @@ class NotifyService {
 	) {
 	}
 
-	public function signer(int $fileId, int $signRequestId): void {
+	public function signer(int $fileId, int $signRequestId, ?string $requestId = null): void {
 		$this->signingRequestValidator->canRequestSign($this->userSession->getUser());
 		$this->fileInputValidator->validateLibreSignFileId($fileId);
 		$this->signingRequestValidator->validateWorkflowIsNotClosedByFileId($fileId);
@@ -46,7 +46,10 @@ class NotifyService {
 		$this->signingRequestValidator->iRequestedSignThisFile($this->userSession->getUser(), $fileId);
 		$signRequest = $this->signRequestMapper->getByFileIdAndSignRequestId($fileId, $signRequestId);
 		$this->validatePendingNotification($signRequest);
-		$this->notify($signRequest);
+		if ($requestId !== null && !preg_match('/\A[a-f0-9]{32}\z/D', $requestId)) {
+			throw new LibresignException($this->l10n->t('Invalid notification request ID'));
+		}
+		$this->notify($signRequest, [], $requestId);
 	}
 
 	public function signers(int $fileId, array $signers): void {
@@ -84,9 +87,9 @@ class NotifyService {
 		$this->notificationManager->markProcessed($notification);
 	}
 
-	private function notify(SignRequest $signRequest, array $signers = []): void {
+	private function notify(SignRequest $signRequest, array $signers = [], ?string $requestId = null): void {
 		$identifyMethods = $this->identifyMethodService->getIdentifyMethodsFromSignRequestId($signRequest->getId());
-		$eventId = 'manual:' . bin2hex(random_bytes(16));
+		$eventId = 'manual:' . ($requestId ?? bin2hex(random_bytes(16)));
 		foreach ($identifyMethods as $instances) {
 			foreach ($instances as $instance) {
 				$entity = $instance->getEntity();

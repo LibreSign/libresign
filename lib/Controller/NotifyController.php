@@ -13,6 +13,7 @@ use OCA\Libresign\Exception\LibresignException;
 use OCA\Libresign\Exception\NotificationTransportException;
 use OCA\Libresign\ResponseDefinitions;
 use OCA\Libresign\Service\NotifyService;
+use OCA\Libresign\Service\Notification\NotificationDeliveryStatusService;
 use OCP\AppFramework\Http;
 use OCP\AppFramework\Http\Attribute\ApiRoute;
 use OCP\AppFramework\Http\Attribute\NoAdminRequired;
@@ -27,6 +28,7 @@ use Psr\Log\LoggerInterface;
  * @psalm-import-type LibresignDangerMessagesResponse from ResponseDefinitions
  * @psalm-import-type LibresignMessageResponse from ResponseDefinitions
  * @psalm-import-type LibresignActionErrorResponse from ResponseDefinitions
+ * @psalm-import-type LibresignNotificationStatusResponse from ResponseDefinitions
  */
 
 class NotifyController extends AEnvironmentAwareController {
@@ -34,6 +36,7 @@ class NotifyController extends AEnvironmentAwareController {
 		IRequest $request,
 		private IL10N $l10n,
 		private NotifyService $notifyService,
+		private NotificationDeliveryStatusService $statusService,
 		private IUserSession $userSession,
 		private LoggerInterface $logger,
 	) {
@@ -64,6 +67,7 @@ class NotifyController extends AEnvironmentAwareController {
 	 *
 	 * @param integer $fileId The identifier value of LibreSign file
 	 * @param integer $signRequestId The sign request id
+	 * @param string|null $requestId Optional random idempotency key (32 lowercase hex characters)
 	 * @return DataResponse<Http::STATUS_OK, LibresignMessageResponse, array{}>|DataResponse<Http::STATUS_UNPROCESSABLE_ENTITY, LibresignMessageResponse|LibresignActionErrorResponse, array{}>|DataResponse<Http::STATUS_BAD_GATEWAY|Http::STATUS_INTERNAL_SERVER_ERROR, LibresignDangerMessagesResponse, array{}>
 	 *
 	 * 200: Request processed
@@ -74,8 +78,26 @@ class NotifyController extends AEnvironmentAwareController {
 	#[NoAdminRequired]
 	#[NoCSRFRequired]
 	#[ApiRoute(verb: 'POST', url: '/api/{apiVersion}/notify/signer', requirements: ['apiVersion' => '(v1)'])]
-	public function signer(int $fileId, int $signRequestId): DataResponse {
-		return $this->sendNotification(fn () => $this->notifyService->signer($fileId, $signRequestId));
+	public function signer(int $fileId, int $signRequestId, ?string $requestId = null): DataResponse {
+		return $this->sendNotification(fn () => $this->notifyService->signer($fileId, $signRequestId, $requestId));
+	}
+
+	/**
+	 * Read the status of one manual reminder, including each channel.
+	 *
+	 * @param integer $fileId The LibreSign file ID
+	 * @param integer $signRequestId The sign request ID
+	 * @param string $requestId The random idempotency key used in the POST request
+	 * @return DataResponse<Http::STATUS_OK, LibresignNotificationStatusResponse, array{}>
+	 *
+	 * 200: Current notification states
+	 */
+	#[NoAdminRequired]
+	#[ApiRoute(verb: 'GET', url: '/api/{apiVersion}/notify/status', requirements: ['apiVersion' => '(v1)'])]
+	public function status(int $fileId, int $signRequestId, string $requestId): DataResponse {
+		$response = new DataResponse($this->statusService->status($fileId, $signRequestId, $requestId));
+		$response->addHeader('Cache-Control', 'private, no-store');
+		return $response;
 	}
 
 	/**
