@@ -33,6 +33,16 @@ final class NotificationEventRouterTest extends TestCase {
 		$module = new class implements NotificationModule {
 			public int $invocations = 0;
 
+			public function transport(): \OCA\Libresign\Service\Notification\NotificationChannel {
+				return new class implements \OCA\Libresign\Service\Notification\NotificationChannel {
+					public function supports(string $channel): bool {
+						return $channel === 'synthetic';
+					}
+					public function deliver(\OCA\Libresign\Service\Notification\NotificationMessage $message): void {
+					}
+				};
+			}
+
 			public static function supportedEvents(): array {
 				return [SendSignNotificationEvent::class];
 			}
@@ -51,6 +61,16 @@ final class NotificationEventRouterTest extends TestCase {
 
 	public function testInvalidModuleEventIsRejectedDuringRegistration(): void {
 		$module = new class implements NotificationModule {
+			public function transport(): \OCA\Libresign\Service\Notification\NotificationChannel {
+				return new class implements \OCA\Libresign\Service\Notification\NotificationChannel {
+					public function supports(string $channel): bool {
+						return $channel === 'synthetic';
+					}
+					public function deliver(\OCA\Libresign\Service\Notification\NotificationMessage $message): void {
+					}
+				};
+			}
+
 			public static function supportedEvents(): array {
 				return ['not-an-event'];
 			}

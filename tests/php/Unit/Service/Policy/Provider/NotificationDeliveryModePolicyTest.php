@@ -23,11 +23,10 @@ final class NotificationDeliveryModePolicyTest extends TestCase {
 		$this->assertFalse($policy->supportsRequestOverride());
 	}
 
-	public function testAsyncCannotBeEnabledBeforeExecutorExists(): void {
+	public function testAsyncCanBeEnabledExplicitly(): void {
 		$policy = (new NotificationDeliveryModePolicy())->get(NotificationDeliveryModePolicy::KEY);
-		$this->expectException(\InvalidArgumentException::class);
-		$this->expectExceptionMessage('not available');
 		$policy->validateValueForPersistence('async', new PolicyContext());
+		$this->addToAssertionCount(1);
 	}
 
 	public function testSyncValueCanBePersisted(): void {

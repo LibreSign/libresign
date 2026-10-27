@@ -64,18 +64,18 @@ final class NotificationDeliveryRegistrarTest extends TestCase {
 			->with(
 				$this->callback(static fn (string $value): bool => strlen($value) === 64 && ctype_xdigit($value)),
 				$this->callback(static fn (string $value): bool => strlen($value) === 64 && ctype_xdigit($value)),
-				'sign_request', 'mail', 40, 25, 'synthetic-owner', 'encrypted-value',
+				'sign_request', 'mail', 40, 25, 'synthetic-owner', 'encrypted-value', null,
 			)->willReturn($delivery);
 
 		$this->assertSame($delivery, $this->registrar->register($this->message(), $this->channel));
 	}
 
-	public function testOpenTransactionStopsBeforeEncryptingOrPersisting(): void {
+	public function testRegistrationMayJoinTheOpenDomainTransaction(): void {
 		$this->db->method('inTransaction')->willReturn(true);
-		$this->crypto->expects($this->never())->method('encrypt');
-		$this->deliveries->expects($this->never())->method('register');
-		$this->expectException(\LogicException::class);
-		$this->registrar->register($this->message(), $this->channel);
+		$this->crypto->method('encrypt')->willReturn('encrypted');
+		$delivery = new NotificationDelivery();
+		$this->deliveries->expects($this->once())->method('register')->willReturn($delivery);
+		$this->assertSame($delivery, $this->registrar->register($this->message(), $this->channel, 'encrypted-handoff'));
 	}
 
 	public function testUnsupportedChannelIsRejectedBeforePersisting(): void {

@@ -46,6 +46,8 @@ final class SignRequestServiceTest extends TestCase {
 			$this->userManager,
 			$this->identifyMethodService,
 			$this->statusService,
+			$this->createMock(\OCP\IDBConnection::class),
+			$this->createMock(\OCA\Libresign\Service\NotificationDeliveryService::class),
 		);
 	}
 

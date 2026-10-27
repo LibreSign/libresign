@@ -8,6 +8,7 @@ declare(strict_types=1);
 
 namespace OCA\Libresign\Tests\Unit\Service;
 
+use OCA\Libresign\BackgroundJob\DeliverNotification;
 use OCA\Libresign\Db\File;
 use OCA\Libresign\Db\NotificationAttempt;
 use OCA\Libresign\Db\NotificationAttemptMapper;
@@ -20,14 +21,18 @@ use OCA\Libresign\Exception\NotificationPreparationException;
 use OCA\Libresign\Service\Notification\MailPayload;
 use OCA\Libresign\Service\Notification\NotificationChannel;
 use OCA\Libresign\Service\Notification\NotificationDeliveryKeyFactory;
+use OCA\Libresign\Service\Notification\NotificationDeliveryModeResolver;
 use OCA\Libresign\Service\Notification\NotificationDeliveryRegistrar;
+use OCA\Libresign\Service\Notification\NotificationEnvelopeCodec;
 use OCA\Libresign\Service\Notification\NotificationFailureClassifier;
 use OCA\Libresign\Service\Notification\NotificationHistoryService;
 use OCA\Libresign\Service\Notification\NotificationMessage;
 use OCA\Libresign\Service\Notification\NotificationSubmissionService;
 use OCA\Libresign\Service\NotificationDeliveryService;
+use OCP\BackgroundJob\IJobList;
 use OCP\IConfig;
 use OCP\IDBConnection;
+use OCP\Notification\IManager;
 use OCP\Security\ICrypto;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
@@ -37,18 +42,30 @@ final class NotificationDeliveryServiceTest extends TestCase {
 	private NotificationDeliveryMapper&MockObject $deliveries;
 	private NotificationAttemptMapper&MockObject $attempts;
 	private IDBConnection&MockObject $db;
+	private NotificationDeliveryModeResolver&MockObject $mode;
+	private IJobList&MockObject $jobs;
 	private NotificationDeliveryService $service;
+	private bool $insideTransaction = false;
+	private bool $asyncMode = false;
 	private File $file;
 	private SignRequest $request;
 
 	protected function setUp(): void {
 		$this->deliveries = $this->createMock(NotificationDeliveryMapper::class);
 		$this->attempts = $this->createMock(NotificationAttemptMapper::class);
+		$this->insideTransaction = false;
+		$this->asyncMode = false;
 		$this->db = $this->createMock(IDBConnection::class);
+		$this->db->method('inTransaction')->willReturnCallback(fn (): bool => $this->insideTransaction);
+		$this->mode = $this->createMock(NotificationDeliveryModeResolver::class);
+		$this->mode->method('isAsync')->willReturnCallback(fn (): bool => $this->asyncMode);
+		$this->jobs = $this->createMock(IJobList::class);
 		$crypto = $this->createMock(ICrypto::class);
 		$crypto->method('encrypt')->with('signer@example.invalid')->willReturn('encrypted-mail');
 		$config = $this->createMock(IConfig::class);
 		$config->method('getSystemValueString')->with('secret')->willReturn('a-synthetic-instance-secret');
+		$handoffCrypto = $this->createMock(ICrypto::class);
+		$handoffCrypto->method('encrypt')->willReturn('synthetic-sealed-message');
 		$this->service = new NotificationDeliveryService(
 			new NotificationDeliveryRegistrar(
 				$this->deliveries, new NotificationDeliveryKeyFactory($config),
@@ -60,6 +77,11 @@ final class NotificationDeliveryServiceTest extends TestCase {
 				new NotificationHistoryService($this->createMock(\OCA\Libresign\Db\SignRequestMapper::class)),
 				$this->createMock(LoggerInterface::class),
 			),
+			new NotificationEnvelopeCodec($handoffCrypto, $this->createMock(IManager::class)),
+			$this->mode,
+			$this->jobs,
+			$this->db,
+			$this->deliveries,
 		);
 		$this->file = new File();
 		$this->file->setId(12);
@@ -91,6 +113,54 @@ final class NotificationDeliveryServiceTest extends TestCase {
 		return $this->service->dispatch(new NotificationMessage(
 			$eventId, $eventType, 'mail', $file, $request, $recipient, new MailPayload(),
 		), $channel);
+	}
+
+	/** The outbox and signing state are owned by the same transaction. */
+	public function testDomainTransactionQueuesWithoutCallingAnyProvider(): void {
+		$this->insideTransaction = true;
+		$delivery = new NotificationDelivery();
+		$delivery->setId(31);
+		$this->deliveries->expects($this->once())->method('register')->willReturn($delivery);
+		$this->jobs->expects($this->once())->method('add')->with(DeliverNotification::class, ['id' => 31]);
+		$this->attempts->expects($this->never())->method('begin');
+
+		$this->assertTrue($this->send(
+			'write:synthetic', 'sign_request', $this->file, $this->request, 'signer@example.invalid',
+			static function (): void {
+				throw new \LogicException('The provider must not run before commit');
+			},
+		));
+	}
+
+	public function testExplicitAsyncPolicyQueuesWithoutCallingAnyProvider(): void {
+		$this->asyncMode = true;
+		$delivery = new NotificationDelivery();
+		$delivery->setId(35);
+		$this->deliveries->method('register')->willReturn($delivery);
+		$this->jobs->expects($this->once())->method('add')->with(DeliverNotification::class, ['id' => 35]);
+		$this->attempts->expects($this->never())->method('begin');
+		$this->assertTrue($this->send(
+			'manual:synthetic', 'sign_request', $this->file, $this->request, 'signer@example.invalid',
+			static function (): void {
+				throw new \LogicException('Transport ran in the HTTP request');
+			},
+		));
+	}
+
+	public function testQueueFailureWithinDomainTransactionIsNotReportedAsSuccess(): void {
+		$this->insideTransaction = true;
+		$delivery = new NotificationDelivery();
+		$delivery->setId(42);
+		$this->deliveries->method('register')->willReturn($delivery);
+		$this->jobs->method('add')->willThrowException(new \RuntimeException('synthetic queue failure'));
+		$this->attempts->expects($this->never())->method('begin');
+		$this->expectException(\LogicException::class);
+		$this->send(
+			'write:failure', 'sign_request', $this->file, $this->request, 'signer@example.invalid',
+			static function (): void {
+				throw new \LogicException('Transport must not run during rollback');
+			},
+		);
 	}
 
 	private function expectFreshDelivery(): void {

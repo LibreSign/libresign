@@ -32,10 +32,12 @@ use OCA\Libresign\Service\Validation\SignerValidator;
 use OCA\Libresign\Service\Validation\SigningRequestValidator;
 use OCP\AppFramework\Db\DoesNotExistException;
 use OCP\AppFramework\Db\MultipleObjectsReturnedException;
+use OCP\AppFramework\Db\TTransactional;
 use OCP\Files\IMimeTypeDetector;
 use OCP\Files\Node;
 use OCP\Http\Client\IClientService;
 use OCP\IAppConfig;
+use OCP\IDBConnection;
 use OCP\IL10N;
 use OCP\IUser;
 use OCP\IUserManager;
@@ -43,6 +45,7 @@ use Psr\Log\LoggerInterface;
 use Sabre\DAV\UUIDUtil;
 
 class RequestSignatureService {
+	use TTransactional;
 
 	public function __construct(
 		protected FileService $fileService,
@@ -74,6 +77,8 @@ class RequestSignatureService {
 		protected FilePolicyApplier $filePolicyApplier,
 		protected SignerGeolocationPolicyService $signerGeolocationPolicyService,
 		protected SignerRemovalService $signerRemovalService,
+		protected IDBConnection $db,
+		protected NotificationDeliveryService $notifications,
 	) {
 	}
 
@@ -138,10 +143,13 @@ class RequestSignatureService {
 		if (!isset($data['status'])) {
 			$data['status'] = $file->getStatus();
 		}
-		$this->sequentialSigningService->setFile($file);
-		$this->associateToSigners($data, $file);
-		$this->propagateSignersToChildren($file, $data);
-		$this->saveVisibleElements($data, $file);
+		$this->atomic(function () use ($file, $data): void {
+			$this->sequentialSigningService->setFile($file);
+			$this->associateToSigners($data, $file);
+			$this->propagateSignersToChildren($file, $data);
+			$this->saveVisibleElements($data, $file);
+		}, $this->db);
+		$this->notifications->flushCommitted();
 
 		return $file;
 	}
@@ -208,9 +216,12 @@ class RequestSignatureService {
 			}
 
 			if (!empty($data['signers'])) {
-				$this->sequentialSigningService->setFile($envelope);
-				$this->associateToSigners($data, $envelope);
-				$this->propagateSignersToChildren($envelope, $data);
+				$this->atomic(function () use ($envelope, $data): void {
+					$this->sequentialSigningService->setFile($envelope);
+					$this->associateToSigners($data, $envelope);
+					$this->propagateSignersToChildren($envelope, $data);
+				}, $this->db);
+				$this->notifications->flushCommitted();
 			}
 
 			return [

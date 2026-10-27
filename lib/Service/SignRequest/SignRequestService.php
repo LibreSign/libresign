@@ -15,18 +15,24 @@ use OCA\Libresign\Enum\SignRequestStatus;
 use OCA\Libresign\Exception\LibresignException;
 use OCA\Libresign\Service\IdentifyMethod\IIdentifyMethod;
 use OCA\Libresign\Service\IdentifyMethodService;
+use OCA\Libresign\Service\NotificationDeliveryService;
 use OCP\AppFramework\Db\DoesNotExistException;
+use OCP\AppFramework\Db\TTransactional;
+use OCP\IDBConnection;
 use OCP\IL10N;
 use OCP\IUserManager;
 use Sabre\DAV\UUIDUtil;
 
 class SignRequestService {
+	use TTransactional;
 	public function __construct(
 		protected IL10N $l10n,
 		protected SignRequestMapper $signRequestMapper,
 		protected IUserManager $userManager,
 		protected IdentifyMethodService $identifyMethodService,
 		protected StatusService $signRequestStatusService,
+		protected IDBConnection $db,
+		protected NotificationDeliveryService $notifications,
 	) {
 	}
 
@@ -94,29 +100,31 @@ class SignRequestService {
 			$this->signRequestStatusService->updateStatusIfAllowed($signRequest, $currentStatus, $desiredStatus, $isNewSignRequest);
 		}
 
-		$this->insertOrUpdateSignRequest($signRequest);
+		$this->atomic(function () use ($signRequest, $afterPersist, $notify, $fileStatus, $deliveryEventId, $identifyMethodsInstances): void {
+			$this->insertOrUpdateSignRequest($signRequest);
 
-		if ($afterPersist !== null) {
-			$afterPersist($signRequest);
-		}
+			if ($afterPersist !== null) {
+				$afterPersist($signRequest);
+			}
 
-		$shouldNotify = $notify && $this->signRequestStatusService->shouldNotifySignRequest(
-			$signRequest->getStatusEnum(),
-			$fileStatus
-		);
+			$shouldNotify = $notify && $this->signRequestStatusService->shouldNotifySignRequest(
+				$signRequest->getStatusEnum(),
+				$fileStatus
+			);
 
-		// A new explicit write is a new event even if its visible fields did
-		// not change. Repeated dispatch of this same event still deduplicates.
-		// All factors of one request share the same event identity.
-		$eventId = $shouldNotify
-			? ($deliveryEventId ?? 'sign-request-write:' . bin2hex(random_bytes(16)))
-			: null;
-		foreach ($identifyMethodsInstances as $identifyMethod) {
-			$identifyMethod->getEntity()->setSignRequestId($signRequest->getId());
-			$identifyMethod->willNotifyUser($shouldNotify);
-			$identifyMethod->save($eventId);
-		}
-
+			// A new explicit write is a new event even if its visible fields did
+			// not change. Repeated dispatch of this same event still deduplicates.
+			// All factors of one request share the same event identity.
+			$eventId = $shouldNotify
+				? ($deliveryEventId ?? 'sign-request-write:' . bin2hex(random_bytes(16)))
+				: null;
+			foreach ($identifyMethodsInstances as $identifyMethod) {
+				$identifyMethod->getEntity()->setSignRequestId($signRequest->getId());
+				$identifyMethod->willNotifyUser($shouldNotify);
+				$identifyMethod->save($eventId);
+			}
+		}, $this->db);
+		$this->notifications->flushCommitted();
 		return $signRequest;
 	}
 

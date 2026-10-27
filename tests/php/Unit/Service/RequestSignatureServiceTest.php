@@ -193,6 +193,8 @@ final class RequestSignatureServiceTest extends \OCA\Libresign\Tests\Unit\TestCa
 			$this->filePolicyApplier,
 			$this->signerGeolocationPolicyService,
 			$this->signerRemovalService,
+			$this->createMock(\OCP\IDBConnection::class),
+			$this->createMock(\OCA\Libresign\Service\NotificationDeliveryService::class),
 		);
 	}
 
