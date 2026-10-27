@@ -66,10 +66,12 @@ import svgDelete from '@mdi/svg/svg/delete.svg?raw'
 import svgFileDocument from '@mdi/svg/svg/file-document-outline.svg?raw'
 import svgPencil from '@mdi/svg/svg/pencil-outline.svg?raw'
 import svgSignature from '@mdi/svg/svg/signature.svg?raw'
+import svgAccountCheck from '@mdi/svg/svg/account-check.svg?raw'
 import svgInformation from '@mdi/svg/svg/information-outline.svg?raw'
 import svgTextBoxCheck from '@mdi/svg/svg/text-box-check.svg?raw'
 
 import { loadState } from '@nextcloud/initial-state'
+import { showError } from '@nextcloud/dialogs'
 import { generateUrl } from '@nextcloud/router'
 
 import { openDocument } from '../../../utils/viewer.js'
@@ -85,6 +87,8 @@ import NcLoadingIcon from '@nextcloud/vue/components/NcLoadingIcon'
 
 import { useActionsMenuStore } from '../../../store/actionsmenu.js'
 import { useFilesStore } from '../../../store/files.js'
+import { usePoliciesStore } from '../../../store/policies.ts'
+import { addCurrentAccountAsSigner, isAccountIdentificationEnabled } from '../../../services/selfSigning.ts'
 import { useSidebarStore } from '../../../store/sidebar.js'
 import { useSignStore } from '../../../store/sign.js'
 import type { FileEntrySource } from '../../../composables/useFileEntry.js'
@@ -125,6 +129,7 @@ type MenuAction = {
 const router = useRouter()
 const actionsMenuStore = useActionsMenuStore()
 const filesStore = useFilesStore()
+const policiesStore = usePoliciesStore()
 const sidebarStore = useSidebarStore()
 const signStore = useSignStore()
 
@@ -148,6 +153,8 @@ const okLabel = t('libresign', 'Ok')
 const cancelLabel = t('libresign', 'Cancel')
 // TRANSLATORS Context-menu action label for creating a new signature request from file.
 const actionRequestSignatureLabel = t('libresign', 'Request signature')
+// TRANSLATORS: Prepare a personal draft from an existing unsigned file.
+const actionSignMyselfLabel = t('libresign', 'Sign myself')
 // TRANSLATORS Context-menu action label opening request details.
 const actionDetailsLabel = t('libresign', 'Details')
 // TRANSLATORS Context-menu action label to rename entry.
@@ -186,9 +193,11 @@ function getSignRouteUuid(file: SourceFile | null | undefined) {
 
 function visibleIf(action: Pick<MenuAction, 'id'>) {
 	let visible = false
-	if (action.id === 'request-signature') {
+	if (action.id === 'request-signature' || action.id === 'sign-myself') {
 		visible = filesStore.canRequestSign
 			&& (props.source?.signersCount ?? props.source?.signers?.length ?? 0) === 0
+			&& (action.id !== 'sign-myself' || (props.source.nodeType !== 'envelope'
+				&& isAccountIdentificationEnabled(policiesStore.getEffectiveValue('identify_methods'))))
 	} else if (action.id === 'details') {
 		visible = (props.source?.signersCount ?? props.source?.signers?.length ?? 0) > 0
 	} else if (action.id === 'rename') {
@@ -208,7 +217,7 @@ function visibleIf(action: Pick<MenuAction, 'id'>) {
 
 async function onActionClick(action: Pick<MenuAction, 'id'>) {
 	openedMenu.value = false
-	if (action.id === 'details' || action.id === 'request-signature') {
+	if (action.id === 'details' || action.id === 'request-signature' || action.id === 'sign-myself') {
 		if (action.id === 'details') {
 			await openFilesListSidebarForFile(props.source.id, {
 				filesStore,
@@ -222,6 +231,17 @@ async function onActionClick(action: Pick<MenuAction, 'id'>) {
 		}
 		filesStore.selectFile(props.source.id)
 		sidebarStore.activeRequestSignatureTab()
+		if (action.id === 'sign-myself') {
+			await policiesStore.fetchEffectivePolicies()
+			try {
+				const response = await addCurrentAccountAsSigner(filesStore, policiesStore.getEffectiveValue('identify_methods'))
+				if (response && 'success' in response && response.success === false) {
+					showError(('message' in response && response.message) || t('libresign', 'Cannot add your account as signer'))
+				}
+			} catch {
+				showError(t('libresign', 'Failed to add signer'))
+			}
+		}
 	} else if (action.id === 'sign') {
 		const detailedFile = await filesStore.fetchFileDetail({ fileId: props.source.id, force: true }) as SourceFile | undefined
 		const signRequestUuid = getSignRouteUuid(detailedFile)
@@ -294,6 +314,11 @@ onMounted(() => {
 		id: 'request-signature',
 		title: actionRequestSignatureLabel,
 		iconSvgInline: svgSignature,
+	})
+	registerAction({
+		id: 'sign-myself',
+		title: actionSignMyselfLabel,
+		iconSvgInline: svgAccountCheck,
 	})
 	registerAction({
 		id: 'details',

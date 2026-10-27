@@ -18,8 +18,8 @@
 			:error="haveError"
 			:aria-label-combobox="selectPlaceholder"
 			:placeholder="selectPlaceholder"
-			:options="options"
-			@search="asyncFind"
+			:options="availableOptions"
+			@search="onSearch"
 			@update:modelValue="onSelectedSignerChange">
 			<template #option="slotProps">
 				<div class="account-or-email__option">
@@ -50,6 +50,7 @@
 
 <script setup lang="ts">
 import { t } from '@nextcloud/l10n'
+import { getCurrentUser } from '@nextcloud/auth'
 import { computed, nextTick, onMounted, ref, watch } from 'vue'
 import svgAccount from '@mdi/svg/svg/account.svg?raw'
 import svgEmail from '@mdi/svg/svg/email.svg?raw'
@@ -74,10 +75,12 @@ const props = withDefaults(defineProps<{
 	method?: string
 	placeholder?: string
 	participantRole?: ParticipantRole
+	allowSelf?: boolean
 }>(), {
 	method: 'all',
 	placeholder: t('libresign', 'Name'),
 	participantRole: PARTICIPANT_ROLE.SIGNER,
+	allowSelf: false,
 })
 
 const emit = defineEmits<{
@@ -104,6 +107,7 @@ type OptionPayload = IdentifyAccountRecord | OptionSlotProps | undefined
 const select = ref<{ $el?: HTMLElement } | null>(null)
 const loading = ref(false)
 const options = ref<IdentifyAccountRecord[]>([])
+const searchQuery = ref('')
 const selectedSigner = ref<IdentifyAccountRecord | null>(null)
 const haveError = ref(false)
 const activeRequestId = ref(0)
@@ -115,6 +119,31 @@ const searchLabel = computed(() => isObserver.value
 	// TRANSLATORS Label for the signer search field in the add-participant modal.
 	: t('libresign', 'Search signer'))
 const selectPlaceholder = computed(() => isObserver.value ? searchLabel.value : props.placeholder)
+
+// The signed-in account is a regular choice in the existing account picker,
+// not an extra prominent action in the signer dialog.
+const availableOptions = computed<IdentifyAccountRecord[]>(() => {
+	const user = getCurrentUser()
+	if (!props.allowSelf || props.method !== 'account' || isObserver.value || !user?.uid) {
+		return options.value
+	}
+
+	const ownAccount: IdentifyAccountRecord = {
+		identify: user.uid,
+		method: 'account',
+		displayName: user.displayName || user.uid,
+		subname: t('libresign', 'Your account'),
+		isNoUser: false,
+		shareType: 0,
+		iconName: 'account',
+	}
+	const query = searchQuery.value.trim().toLocaleLowerCase()
+	if (query && ![ownAccount.identify, ownAccount.displayName].some(value => value.toLocaleLowerCase().includes(query))) {
+		return options.value
+	}
+	return [ownAccount, ...options.value.filter(option => option.identify !== user.uid)]
+})
+
 const mandatoryErrorText = computed(() => isObserver.value
 	// TRANSLATORS Validation error when no observer was selected.
 	? t('libresign', 'Observer is mandatory')
@@ -135,6 +164,7 @@ const noResultText = computed(() => {
 
 function handleMethodChange() {
 	options.value = []
+	searchQuery.value = ''
 	selectedSigner.value = null
 	haveError.value = false
 	loading.value = false
@@ -243,8 +273,13 @@ async function _asyncFind(search: string) {
 }
 
 const asyncFind = debounce((search: string) => {
-	_asyncFind(search)
+	void _asyncFind(search)
 }, 500)
+
+function onSearch(search: string) {
+	searchQuery.value = search
+	asyncFind(search)
+}
 
 function focusInput() {
 	if (selectedSigner.value) {
@@ -263,6 +298,8 @@ onMounted(() => {
 defineExpose({
 	loading,
 	options,
+	searchQuery,
+	availableOptions,
 	selectedSigner,
 	haveError,
 	activeRequestId,
@@ -280,6 +317,7 @@ defineExpose({
 	getOptionIcon,
 	_asyncFind,
 	asyncFind,
+	onSearch,
 	focusInput,
 })
 </script>

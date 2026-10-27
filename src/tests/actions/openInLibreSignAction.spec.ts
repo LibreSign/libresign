@@ -99,7 +99,7 @@ describe('openInLibreSignAction rules', () => {
 		exec: (context: { nodes: unknown }) => Promise<unknown>
 		execBatch: (context: { nodes: unknown }) => Promise<unknown>
 	}
-	let loadState: { mockReturnValue: (value: unknown) => unknown }
+	let loadState: { mockReturnValue: (value: unknown) => unknown; mockImplementation: (implementation: (_app: string, key: string) => unknown) => unknown }
 	let getCapabilities: { mockReturnValue: (value: unknown) => unknown }
 	type PendingEnvelopeForTest = NonNullable<LibreSignGlobalNamespace['pendingEnvelope']> & {
 		id: number
@@ -127,7 +127,7 @@ describe('openInLibreSignAction rules', () => {
 		const { loadState: loadStateModule } = await import('@nextcloud/initial-state')
 		const { getCapabilities: getCapabilitiesModule } = await import('@nextcloud/capabilities')
 
-		loadState = loadStateModule as unknown as { mockReturnValue: (value: unknown) => unknown }
+		loadState = loadStateModule as unknown as typeof loadState
 		getCapabilities = getCapabilitiesModule as unknown as { mockReturnValue: (value: unknown) => unknown }
 
 		loadState.mockReturnValue(true)
@@ -139,6 +139,46 @@ describe('openInLibreSignAction rules', () => {
 
 	afterEach(() => {
 		vi.clearAllMocks()
+	})
+
+	describe('self-sign Files context action', () => {
+		let selfAction: typeof import('../../actions/openInLibreSignAction.js')['signMyselfAction']
+		beforeEach(async () => {
+			selfAction = (await import('../../actions/openInLibreSignAction.js')).signMyselfAction
+			window.OCA = { Libresign: {} }
+			loadState.mockImplementation((_app: string, key: string) => {
+				if (key === 'effective_policies') {
+					return { policies: { identify_methods: { effectiveValue: [{ name: 'account', enabled: true }] } } }
+				}
+				return true
+			})
+		})
+
+		it('exposes a contextual action only for an untouched single PDF with account identification', () => {
+			const pdf = { type: 'file', mime: 'application/pdf', fileid: 77, attributes: {} }
+			expect(selfAction.enabled({ nodes: [pdf] })).toBe(true)
+			expect(selfAction.enabled({ nodes: [pdf, pdf] })).toBe(false)
+			expect(selfAction.enabled({ nodes: [{ ...pdf, mime: 'image/png' }] })).toBe(false)
+			expect(selfAction.enabled({ nodes: [{ ...pdf, attributes: { 'libresign-signature-status': 0 } }] })).toBe(false)
+			loadState.mockImplementation((_app: string, key: string) => key === 'effective_policies'
+				? { policies: { identify_methods: { effectiveValue: [{ name: 'account', enabled: false }] } } }
+				: true)
+			expect(selfAction.enabled({ nodes: [pdf] })).toBe(false)
+		})
+
+		it('preserves intent for the sidebar and does not sign anything directly', async () => {
+			const pdf = { type: 'file', mime: 'application/pdf', fileid: 77 }
+			await selfAction.exec({ nodes: [pdf] })
+			expect(window.OCA.Libresign.pendingSelfSignNodeId).toBe(77)
+			expect(mockSidebar.open).toHaveBeenCalledWith(pdf, 'libresign')
+			expect(mockSidebar.setActiveTab).toHaveBeenCalledWith('libresign')
+		})
+
+		it('clears the pending intent when opening the sidebar fails', async () => {
+			mockSidebar.open.mockRejectedValueOnce(new Error('sidebar unavailable'))
+			await expect(selfAction.exec({ nodes: [{ fileid: 77 }] })).rejects.toThrow('sidebar unavailable')
+			expect(window.OCA.Libresign.pendingSelfSignNodeId).toBeUndefined()
+		})
 	})
 
 	describe('enabled rules - certificate validation', () => {

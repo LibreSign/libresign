@@ -21,11 +21,14 @@ import type { Event as NextcloudEvent, EventHandler } from '@nextcloud/event-bus
 import { getClient, getDefaultPropfind, getRootPath, resultToNode } from '@nextcloud/files/dav'
 import { getNavigation } from '@nextcloud/files'
 import { generateRemoteUrl } from '@nextcloud/router'
+import { showError } from '@nextcloud/dialogs'
 
 import RequestSignatureTab from '../RightSidebar/RequestSignatureTab.vue'
 
 import { useFilesStore } from '../../store/files.js'
 import { useSidebarStore } from '../../store/sidebar.js'
+import { usePoliciesStore } from '../../store/policies.ts'
+import { addCurrentAccountAsSigner } from '../../services/selfSigning.ts'
 import type {
 	EditableFileSettingsDraft,
 	FileListItemRecord,
@@ -75,6 +78,7 @@ type EnvelopeRenamedPayload = {
 
 const filesStore = useFilesStore()
 const sidebarStore = useSidebarStore()
+const policiesStore = usePoliciesStore()
 
 const sidebarTitleObserver = ref<MutationObserver | null>(null)
 
@@ -138,6 +142,28 @@ function disconnectTitleObserver() {
 	}
 }
 
+async function preparePendingSelfSign(nodeId: number | string): Promise<void> {
+	const pendingNodeId = window.OCA?.Libresign?.pendingSelfSignNodeId
+	if (pendingNodeId === undefined || String(pendingNodeId) !== String(nodeId)) {
+		return
+	}
+	// Consume the explicit user intent once: a retry or sidebar refresh must
+	// never create a second signer or silently resubmit the request.
+	delete window.OCA.Libresign.pendingSelfSignNodeId
+	try {
+		await policiesStore.fetchEffectivePolicies()
+		const response = await addCurrentAccountAsSigner(
+			filesStore,
+			policiesStore.getEffectiveValue('identify_methods'),
+		)
+		if (response && 'success' in response && response.success === false) {
+			showError(('message' in response && response.message) || t('libresign', 'Cannot add your account as signer'))
+		}
+	} catch {
+		showError(t('libresign', 'Failed to add signer'))
+	}
+}
+
 async function update(fileInfo: FileInfo) {
 	if (await checkAndLoadPendingEnvelope()) {
 		return
@@ -158,6 +184,7 @@ async function update(fileInfo: FileInfo) {
 	const fileId = await filesStore.selectFileByNodeId(fileInfo.id)
 	if (fileId) {
 		const displayName = filesStore.getSelectedFileView()?.name || fileInfo.name
+		await preparePendingSelfSign(fileInfo.id)
 
 		nextTick(() => {
 			const titleElement = document.querySelector('.app-sidebar-header__mainname')
@@ -181,6 +208,7 @@ async function update(fileInfo: FileInfo) {
 	})
 	filesStore.selectFile(-fileInfo.id)
 	sidebarStore.activeRequestSignatureTab()
+	await preparePendingSelfSign(fileInfo.id)
 
 	nextTick(() => {
 		const titleElement = document.querySelector('.app-sidebar-header__mainname')
@@ -291,6 +319,7 @@ defineExpose({
 	checkAndLoadPendingEnvelope,
 	updateSidebarTitle,
 	disconnectTitleObserver,
+	preparePendingSelfSign,
 	update,
 	handleLibreSignFileChangeWithPath,
 	handleLibreSignFileChangeAtCurretntFolder,

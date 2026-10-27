@@ -14,6 +14,7 @@ type FileDetailMock = Partial<FileEntrySource> & {
 }
 
 const getCurrentUserMock = vi.hoisted(() => vi.fn(() => ({ uid: 'admin' })))
+const addSelfMock = vi.hoisted(() => vi.fn(async () => ({ success: true })))
 
 const openDocumentMock = vi.fn()
 
@@ -52,6 +53,11 @@ const filesStoreMock = {
 	})),
 	delete: vi.fn(async () => undefined),
 	rename: vi.fn(async () => undefined),
+}
+
+const policiesStoreMock = {
+	getEffectiveValue: vi.fn(() => [{ name: 'account', enabled: true }]),
+	fetchEffectivePolicies: vi.fn(async () => undefined),
 }
 
 const sidebarStoreMock = {
@@ -100,6 +106,16 @@ vi.mock('../../../store/files.js', () => ({
 
 vi.mock('../../../store/sidebar.js', () => ({
 	useSidebarStore: vi.fn(() => sidebarStoreMock),
+}))
+
+vi.mock('../../../store/policies.ts', () => ({
+	usePoliciesStore: vi.fn(() => policiesStoreMock),
+}))
+
+vi.mock('../../../services/selfSigning.ts', () => ({
+	isAccountIdentificationEnabled: vi.fn((value: unknown) => Array.isArray(value)
+		&& value.some((entry) => entry.name === 'account' && entry.enabled)),
+	addCurrentAccountAsSigner: addSelfMock,
 }))
 
 vi.mock('../../../store/sign.js', () => ({
@@ -184,6 +200,9 @@ describe('FileEntryActions.vue', () => {
 		actionsMenuStoreMock.opened = null
 		filesStoreMock.files[1] = { ...source }
 		filesStoreMock.canRequestSign = true
+		policiesStoreMock.getEffectiveValue.mockReturnValue([{ name: 'account', enabled: true }])
+		policiesStoreMock.fetchEffectivePolicies.mockClear()
+		addSelfMock.mockClear()
 		filesStoreMock.canSign.mockReturnValue(true)
 		filesStoreMock.canValidate.mockReturnValue(true)
 		filesStoreMock.canDelete.mockReturnValue(true)
@@ -207,6 +226,7 @@ describe('FileEntryActions.vue', () => {
 
 		expect(wrapper.vm.enabledMenuActions.map((action: { id: string }) => action.id)).toEqual([
 			'request-signature',
+			'sign-myself',
 			'details',
 			'rename',
 			'validate',
@@ -214,6 +234,31 @@ describe('FileEntryActions.vue', () => {
 			'delete',
 			'open',
 		])
+	})
+
+	it('shows self signing only for unsigned requests with account identification enabled', async () => {
+		const wrapper = createWrapper()
+		expect(wrapper.vm.visibleIf({ id: 'sign-myself' })).toBe(false)
+		await wrapper.setProps({ source: { ...source, signers: [], signersCount: 0 } })
+		expect(wrapper.vm.visibleIf({ id: 'sign-myself' })).toBe(true)
+		await wrapper.setProps({ source: { ...source, nodeType: 'envelope', signers: [], signersCount: 0 } })
+		expect(wrapper.vm.visibleIf({ id: 'sign-myself' })).toBe(false)
+		await wrapper.setProps({ source: { ...source, signers: [], signersCount: 0 } })
+		policiesStoreMock.getEffectiveValue.mockReturnValue([{ name: 'account', enabled: false }])
+		expect(wrapper.vm.visibleIf({ id: 'sign-myself' })).toBe(false)
+		filesStoreMock.canRequestSign = false
+		expect(wrapper.vm.visibleIf({ id: 'sign-myself' })).toBe(false)
+	})
+
+	it('routes self signing into the normal draft request, never directly into signing', async () => {
+		const wrapper = createWrapper()
+		await wrapper.vm.onActionClick({ id: 'sign-myself' })
+		expect(filesStoreMock.selectFile).toHaveBeenCalledWith(1)
+		expect(sidebarStoreMock.activeRequestSignatureTab).toHaveBeenCalledOnce()
+		expect(policiesStoreMock.fetchEffectivePolicies).toHaveBeenCalledOnce()
+		expect(addSelfMock).toHaveBeenCalledOnce()
+		expect(signStoreMock.setFileToSign).not.toHaveBeenCalled()
+		expect(routerPushMock).not.toHaveBeenCalled()
 	})
 
 	it('shows request-signature instead of details when the file has no signers', async () => {
