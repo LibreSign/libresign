@@ -8,6 +8,7 @@ declare(strict_types=1);
 
 namespace OCA\Libresign\Tests\Integration\Service;
 
+use OCA\Libresign\BackgroundJob\DeliverNotification;
 use OCA\Libresign\Db\File;
 use OCA\Libresign\Db\NotificationAttemptMapper;
 use OCA\Libresign\Db\NotificationDeliveryMapper;
@@ -19,6 +20,9 @@ use OCA\Libresign\Service\Notification\MailPayload;
 use OCA\Libresign\Service\Notification\NotificationChannel;
 use OCA\Libresign\Service\Notification\NotificationMessage;
 use OCA\Libresign\Service\NotificationDeliveryService;
+use OCP\AppFramework\Db\DoesNotExistException;
+use OCP\BackgroundJob\IJobList;
+use OCP\IDBConnection;
 use OCP\Server;
 
 /** @group DB */
@@ -88,6 +92,73 @@ final class NotificationDeliveryServiceTest extends \OCA\Libresign\Tests\Integra
 		return $this->service->dispatch(new NotificationMessage(
 			$source, $eventType, 'mail', $file, $request, $recipient, new MailPayload(),
 		), $channel);
+	}
+
+	public function testRolledBackDomainIntentDoesNotSurviveOrReachTransport(): void {
+		$source = 'rollback-outbox-' . bin2hex(random_bytes(8));
+		$key = $this->recordKey(101, 201, $source);
+		$db = Server::get(IDBConnection::class);
+		$jobs = Server::get(IJobList::class);
+		$calls = 0;
+		$deliveryId = null;
+		$db->beginTransaction();
+		try {
+			$this->assertTrue($this->send($source, 'sign_request', $this->file(), $this->request(),
+				'synthetic@example.invalid', static function () use (&$calls): void {
+					$calls++;
+				},
+			));
+			$delivery = $this->deliveries->findByEventKey($key);
+			$deliveryId = $delivery->getId();
+			$this->assertSame(NotificationDeliveryState::PENDING->value, $delivery->getState());
+			$this->assertSame(0, $calls);
+			$this->assertTrue($jobs->has(DeliverNotification::class, ['id' => $deliveryId]));
+		} finally {
+			$db->rollBack();
+		}
+
+		$this->service->flushCommitted();
+		$this->assertSame(0, $calls);
+		if ($deliveryId !== null) {
+			$this->assertFalse($jobs->has(DeliverNotification::class, ['id' => $deliveryId]));
+		}
+		$this->expectException(DoesNotExistException::class);
+		$this->deliveries->findByEventKey($key);
+	}
+
+	public function testCommittedIntentSubmitsOnlyAfterDomainCommit(): void {
+		$source = 'commit-outbox-' . bin2hex(random_bytes(8));
+		$key = $this->recordKey(101, 201, $source);
+		$db = Server::get(IDBConnection::class);
+		$jobs = Server::get(IJobList::class);
+		$calls = 0;
+		$deliveryId = null;
+		$db->beginTransaction();
+		try {
+			$this->assertTrue($this->send($source, 'sign_request', $this->file(), $this->request(),
+				'synthetic@example.invalid', static function () use (&$calls): void {
+					$calls++;
+				},
+			));
+			$deliveryId = $this->deliveries->findByEventKey($key)->getId();
+			$this->assertSame(0, $calls);
+			$db->commit();
+		} finally {
+			if ($db->inTransaction()) {
+				$db->rollBack();
+			}
+		}
+		$this->keys[] = $key;
+		try {
+			$this->service->flushCommitted();
+			$this->assertSame(1, $calls);
+			$this->assertSame(NotificationDeliveryState::ACCEPTED->value,
+				$this->deliveries->findByEventKey($key)->getState());
+		} finally {
+			if ($deliveryId !== null) {
+				$jobs->remove(DeliverNotification::class, ['id' => $deliveryId]);
+			}
+		}
 	}
 
 	public function testRealDatabaseMakesOneSmtpSubmissionAndRecordsAcceptance(): void {
