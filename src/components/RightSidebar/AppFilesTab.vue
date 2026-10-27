@@ -155,6 +155,7 @@ async function preparePendingSelfSign(nodeId: number | string): Promise<void> {
 		const response = await addCurrentAccountAsSigner(
 			filesStore,
 			policiesStore.getEffectiveValue('identify_methods'),
+			{ readyToSign: true },
 		)
 		if (response && 'success' in response && response.success === false) {
 			showError(('message' in response && response.message) || t('libresign', 'Cannot add your account as signer'))

@@ -268,6 +268,35 @@ describe('files store - critical business rules', () => {
 		})
 	})
 
+	describe('RULE: validation refreshes authorization after a signing request activates', () => {
+		it.each([
+			{ listCanSign: false, detailCanSign: true },
+			{ listCanSign: true, detailCanSign: false },
+		])('overrides a stale list permission from $listCanSign to $detailCanSign', async ({ listCanSign, detailCanSign }) => {
+			const store = useFilesStore()
+			store.files[123] = {
+				id: 123,
+				uuid: 'file-uuid',
+				status: 1,
+				canSign: listCanSign,
+				signers: [{ me: true, sign_request_uuid: 'current-signer-uuid', status: 1 }],
+			}
+			store.selectedFileId = 123
+			axiosMock.get.mockResolvedValue(generateOCSResponse({
+				payload: {
+					id: 123,
+					uuid: 'file-uuid',
+					status: 1,
+					settings: { canSign: detailCanSign },
+					signers: [{ me: true, sign_request_uuid: 'current-signer-uuid', status: 1 }],
+				},
+			}))
+			const detailed = await store.fetchFileDetail({ fileId: 123, force: true })
+			expect(detailed?.canSign).toBe(detailCanSign)
+			expect(store.canSign()).toBe(detailCanSign)
+		})
+	})
+
 	describe('RULE: the detail reload is the source of the policy snapshot freeze', () => {
 		it('replaces the flag loaded with the list', async () => {
 			const store = useFilesStore()

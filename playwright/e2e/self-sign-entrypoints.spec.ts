@@ -55,7 +55,7 @@ test('select the current account without a prominent extra button', async ({ pag
 	await expect(page.getByRole('button', { name: 'Request signatures' })).toBeVisible()
 })
 
-test('prepare my draft from the Nextcloud Files PDF context menu', async ({ page }) => {
+test('prepare a ready-to-sign request from the Nextcloud Files PDF context menu', async ({ page }) => {
 	await configureSelfSigning(page)
 	await ensureFilesHomeInitialized(page.request)
 
@@ -80,5 +80,30 @@ test('prepare my draft from the Nextcloud Files PDF context menu', async ({ page
 
 	await expect(page.getByRole('tab', { name: 'LibreSign' })).toHaveAttribute('aria-selected', 'true', { timeout: 15000 })
 	await expect(page.getByRole('link', { name: 'Edit signer admin' })).toBeVisible({ timeout: 20000 })
-	await expect(page.getByRole('button', { name: 'Request signatures' })).toBeVisible()
+	const sign = page.getByRole('button', { name: 'Sign document' })
+	await expect(sign).toBeVisible({ timeout: 25000 })
+	await expect(page.getByRole('button', { name: 'Request signatures' })).toHaveCount(0)
+	await sign.click()
+	await expect(page.getByRole('dialog')).toBeVisible({ timeout: 20000 })
+})
+
+test('Sign myself in LibreSign Files opens a ready-to-sign sidebar', async ({ page }) => {
+	await configureSelfSigning(page)
+	await page.goto('./apps/libresign')
+	await page.getByRole('button', { name: 'Upload from URL' }).click()
+	await page.getByRole('textbox', { name: 'URL of a PDF file' })
+		.fill('https://raw.githubusercontent.com/LibreSign/libresign/main/tests/php/fixtures/pdfs/small_valid.pdf')
+	await page.getByRole('button', { name: 'Send' }).click()
+	await page.goto('./apps/libresign/f/filelist/sign')
+	const row = page.locator('[data-cy-files-list-tbody] tr.files-list__row')
+		.filter({ hasText: 'small_valid' }).first()
+	await expect(row).toBeVisible({ timeout: 25000 })
+	await row.click({ button: 'right' })
+	await page.getByText('Sign myself', { exact: true }).last().click()
+	await expect(page.getByRole('link', { name: 'Edit signer admin' })).toBeVisible({ timeout: 25000 })
+	const sign = page.getByRole('button', { name: 'Sign document' })
+	await expect(sign).toBeVisible({ timeout: 25000 })
+	await expect(page.getByRole('button', { name: 'Request signatures' })).toHaveCount(0)
+	await sign.click()
+	await expect(page).toHaveURL(/\/apps\/libresign\/f\/sign\/[^/]+\/pdf/, { timeout: 25000 })
 })

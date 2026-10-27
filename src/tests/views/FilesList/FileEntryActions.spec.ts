@@ -256,7 +256,11 @@ describe('FileEntryActions.vue', () => {
 		expect(filesStoreMock.selectFile).toHaveBeenCalledWith(1)
 		expect(sidebarStoreMock.activeRequestSignatureTab).toHaveBeenCalledOnce()
 		expect(policiesStoreMock.fetchEffectivePolicies).toHaveBeenCalledOnce()
-		expect(addSelfMock).toHaveBeenCalledOnce()
+		expect(addSelfMock).toHaveBeenCalledExactlyOnceWith(
+			expect.anything(),
+			expect.anything(),
+			{ readyToSign: true },
+		)
 		expect(signStoreMock.setFileToSign).not.toHaveBeenCalled()
 		expect(routerPushMock).not.toHaveBeenCalled()
 	})

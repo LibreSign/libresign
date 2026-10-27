@@ -601,9 +601,20 @@ const _filesStore = defineStore('files', () => {
 			clearRequestDraft(fileData.id)
 		}
 
+		// Validation is authoritative for the current viewer's signing permission.
+		// A stale canSign=false from the list must not hide Sign document after
+		// the request becomes active; likewise a revoked permission must not
+		// remain true merely because the list has not refreshed yet.
+		const validatedCanSign = typeof fileData.settings?.canSign === 'boolean'
+			? { canSign: fileData.settings.canSign }
+			: {}
 		// Only the requester gets policySnapshotFrozen: when the detail omits it,
 		// a value merged from the list must not outlive this reload.
-		await store.addFile({ ...fileData, policySnapshotFrozen: fileData.policySnapshotFrozen }, { detailsLoaded: true })
+		await store.addFile({
+			...fileData,
+			...validatedCanSign,
+			policySnapshotFrozen: fileData.policySnapshotFrozen,
+		}, { detailsLoaded: true })
 		return apiFiles.value[fileData.id] || files.value[fileData.id] || null
 	}
 
