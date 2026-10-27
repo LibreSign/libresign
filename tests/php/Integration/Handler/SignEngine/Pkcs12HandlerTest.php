@@ -10,6 +10,7 @@ namespace OCA\Libresign\Tests\Integration\Handler\SignEngine;
  */
 
 use OCA\Libresign\AppInfo\Application;
+use OCA\Libresign\Exception\PasswordToSignNotDefinedException;
 use OCA\Libresign\Handler\CertificateEngine\CertificateEngineFactory;
 use OCA\Libresign\Handler\CertificateEngine\IEngineHandler;
 use OCA\Libresign\Handler\DocMdpHandler;
@@ -146,11 +147,24 @@ final class Pkcs12HandlerTest extends \OCA\Libresign\Tests\Integration\TestCase 
 		$this->assertEquals('content', $actual);
 	}
 
-	public function testGetPfxOfCurrentSignerWithInvalidPfx(): void {
+	public function testGetPfxOfCurrentSignerWithoutPfxFile(): void {
 		$node = $this->createMock(\OCP\Files\Folder::class);
 		$node->method('get')->willThrowException(new NotFoundException());
 		$this->folderService->method('getFolder')->willReturn($node);
-		$this->expectExceptionMessage('Password to sign not defined. Create a password to sign');
+		$this->expectException(PasswordToSignNotDefinedException::class);
+		// SigningErrorHandler maps code 400 to the password creation action.
+		$this->expectExceptionCode(400);
+		$this->getHandler()->getPfxOfCurrentSigner('userId');
+	}
+
+	public function testGetPfxOfCurrentSignerWithEmptyPfxFile(): void {
+		$folder = $this->createMock(\OCP\Files\Folder::class);
+		$file = $this->createMock(\OCP\Files\File::class);
+		$file->method('getContent')->willReturn('');
+		$folder->method('get')->willReturn($file);
+		$this->folderService->method('getFolder')->willReturn($folder);
+		$this->expectException(PasswordToSignNotDefinedException::class);
+		// SigningErrorHandler maps code 400 to the password creation action.
 		$this->expectExceptionCode(400);
 		$this->getHandler()->getPfxOfCurrentSigner('userId');
 	}
@@ -373,8 +387,7 @@ final class Pkcs12HandlerTest extends \OCA\Libresign\Tests\Integration\TestCase 
 
 		$this->assertInstanceOf(Pkcs12Handler::class, $handler);
 
-		$this->expectException(\OCA\Libresign\Exception\LibresignException::class);
-		$this->expectExceptionMessage('Password to sign not defined');
+		$this->expectException(PasswordToSignNotDefinedException::class);
 		$handler->getPfxOfCurrentSigner('test_user');
 	}
 
