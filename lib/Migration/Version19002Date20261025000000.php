@@ -32,6 +32,7 @@ final class Version19002Date20261025000000 extends SimpleMigrationStep {
 			$delivery->addColumn('sign_request_id', Types::INTEGER, ['notnull' => false]);
 			$delivery->addColumn('owner_id', Types::STRING, ['length' => 64, 'notnull' => true]);
 			$delivery->addColumn('recipient_enc', Types::TEXT, ['notnull' => true]);
+			$delivery->addColumn('message_enc', Types::TEXT, ['notnull' => false]);
 			$delivery->addColumn('state', Types::STRING, ['length' => 32, 'notnull' => true]);
 			$delivery->addColumn('next_attempt_at', Types::DATETIME, ['notnull' => false]);
 			$delivery->addColumn('created_at', Types::DATETIME, ['notnull' => true]);

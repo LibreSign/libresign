@@ -28,6 +28,8 @@ use OCP\DB\Types;
  * @method string getOwnerId()
  * @method void setRecipientEnc(string $value)
  * @method string getRecipientEnc()
+ * @method void setMessageEnc(?string $value)
+ * @method ?string getMessageEnc()
  * @method void setState(string $value)
  * @method string getState()
  * @method void setNextAttemptAt(?\DateTime $value)
@@ -46,6 +48,7 @@ final class NotificationDelivery extends Entity {
 	protected ?int $signRequestId = null;
 	protected string $ownerId = '';
 	protected string $recipientEnc = '';
+	protected ?string $messageEnc = null;
 	protected string $state = '';
 	protected ?\DateTime $nextAttemptAt = null;
 	protected ?\DateTime $createdAt = null;

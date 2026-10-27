@@ -62,6 +62,7 @@ https://libresign.coop
 		<job>OCA\Libresign\BackgroundJob\UserDeleted</job>
 		<job>OCA\Libresign\BackgroundJob\CleanupStaleSigningStatus</job>
 		<job>OCA\Libresign\BackgroundJob\PruneNotificationHistory</job>
+		<job>OCA\Libresign\BackgroundJob\RecoverPendingNotifications</job>
 	</background-jobs>
 	<repair-steps>
 		<pre-migration>

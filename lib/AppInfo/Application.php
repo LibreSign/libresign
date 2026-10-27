@@ -30,6 +30,7 @@ use OCA\Libresign\Middleware\InjectionMiddleware;
 use OCA\Libresign\Notification\Notifier;
 use OCA\Libresign\Search\FileSearchProvider;
 use OCA\Libresign\Service\Notification\NotificationEventRouter;
+use OCA\Libresign\Service\Notification\NotificationModuleCatalog;
 use OCP\AppFramework\App;
 use OCP\AppFramework\Bootstrap\IBootContext;
 use OCP\AppFramework\Bootstrap\IBootstrap;
@@ -81,11 +82,15 @@ class Application extends App implements IBootstrap {
 		// register one handler here without changing existing channels.
 		// Each module declares the business events that it supports.
 		// Add one module here; do not edit existing channels or the router.
-		$context->registerService(NotificationEventRouter::class, static fn (ContainerInterface $container): NotificationEventRouter => NotificationEventRouter::fromModules([
+		$context->registerService(NotificationModuleCatalog::class, static fn (ContainerInterface $container): NotificationModuleCatalog => new NotificationModuleCatalog([
 			$container->get(NotificationListener::class),
 			$container->get(MailNotifyListener::class),
 			$container->get(TwofactorGatewayListener::class),
-		], $container->get(LoggerInterface::class)));
+		]));
+		$context->registerService(NotificationEventRouter::class, static fn (ContainerInterface $container): NotificationEventRouter => NotificationEventRouter::fromModules(
+			$container->get(NotificationModuleCatalog::class)->all(),
+			$container->get(LoggerInterface::class),
+		));
 		// Certificate revocation is part of the signing lifecycle. Do not
 		// postpone it until external transports have returned.
 		$context->registerEventListener(SignedEvent::class, RevokeClickToSignCertificateListener::class);

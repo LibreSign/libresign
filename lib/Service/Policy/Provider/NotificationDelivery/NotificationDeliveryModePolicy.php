@@ -13,7 +13,7 @@ use OCA\Libresign\Service\Policy\Contract\IPolicyDefinitionProvider;
 use OCA\Libresign\Service\Policy\Model\PolicySpec;
 use OCA\Libresign\Service\Policy\Provider\Helper\PolicyKeyNormalizer;
 
-/** Delivery stays synchronous until a supported async executor exists. */
+/** Delivery defaults to synchronous mode; async must be enabled explicitly. */
 final class NotificationDeliveryModePolicy implements IPolicyDefinitionProvider {
 	public const KEY = 'notification_delivery_mode';
 	public const MODE_SYNC = 'sync';
@@ -38,11 +38,6 @@ final class NotificationDeliveryModePolicy implements IPolicyDefinitionProvider 
 			validator: static function (mixed $value): void {
 				if (!in_array($value, [self::MODE_SYNC, self::MODE_ASYNC], true)) {
 					throw new \InvalidArgumentException('Invalid notification delivery mode');
-				}
-			},
-			persistenceValidator: static function (mixed $value): void {
-				if ($value === self::MODE_ASYNC) {
-					throw new \InvalidArgumentException('Async notification delivery is not available yet');
 				}
 			},
 			appConfigKey: self::KEY,

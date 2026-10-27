@@ -22,4 +22,7 @@ use OCP\EventDispatcher\IEventListener;
 interface NotificationModule extends IEventListener {
 	/** @return list<class-string<Event>> */
 	public static function supportedEvents(): array;
+
+	/** The transport used by this module for HTTP and background delivery. */
+	public function transport(): NotificationChannel;
 }

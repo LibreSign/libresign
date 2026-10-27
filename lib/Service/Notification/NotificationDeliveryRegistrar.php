@@ -28,20 +28,23 @@ final class NotificationDeliveryRegistrar {
 	) {
 	}
 
-	public function register(NotificationMessage $message, NotificationChannel $channel): NotificationDelivery {
-		if ($this->db->inTransaction()) {
-			throw new \LogicException('Notification dispatch during an open domain transaction is forbidden');
-		}
+	public function register(NotificationMessage $message, NotificationChannel $channel, ?string $encodedMessage = null): NotificationDelivery {
 		$keys = $this->keys->keys($message, $channel);
-		return $this->deliveries->register(
-			$keys['eventKey'],
-			$keys['correlationId'],
-			$message->eventType,
-			$message->channel,
-			$message->file->getId(),
-			$message->signRequest->getId(),
-			$message->file->getUserId(),
-			$this->crypto->encrypt($message->recipient),
-		);
+		try {
+			return $this->deliveries->register(
+				$keys['eventKey'],
+				$keys['correlationId'],
+				$message->eventType,
+				$message->channel,
+				$message->file->getId(),
+				$message->signRequest->getId(),
+				$message->file->getUserId(),
+				$this->crypto->encrypt($message->recipient),
+				$encodedMessage,
+			);
+		} catch (\OCP\DB\Exception $e) {
+			// The domain transaction must roll back when an intent cannot be stored.
+			throw new \LogicException('Notification intent could not be persisted', 0, $e);
+		}
 	}
 }

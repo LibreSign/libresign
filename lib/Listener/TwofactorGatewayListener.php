@@ -33,6 +33,11 @@ class TwofactorGatewayListener implements NotificationModule {
 	) {
 	}
 
+	#[\Override]
+	public function transport(): \OCA\Libresign\Service\Notification\NotificationChannel {
+		return $this->channel;
+	}
+
 	/** @return list<class-string<Event>> */
 	#[\Override]
 	public static function supportedEvents(): array {

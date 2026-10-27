@@ -38,6 +38,7 @@ class NotificationDeliveryMapper extends QBMapper {
 		?int $signRequestId,
 		string $ownerId,
 		string $encryptedRecipient,
+		?string $encryptedMessage = null,
 	): NotificationDelivery {
 		if (strlen($eventKey) !== 64 || !ctype_xdigit($eventKey)
 			|| strlen($correlationId) !== 64 || !ctype_xdigit($correlationId)) {
@@ -52,6 +53,7 @@ class NotificationDeliveryMapper extends QBMapper {
 		$delivery->setSignRequestId($signRequestId);
 		$delivery->setOwnerId($ownerId);
 		$delivery->setRecipientEnc($encryptedRecipient);
+		$delivery->setMessageEnc($encryptedMessage);
 		$delivery->setState(NotificationDeliveryState::PENDING->value);
 		$now = new \DateTime('now', new \DateTimeZone('UTC'));
 		$delivery->setCreatedAt($now);
@@ -116,12 +118,42 @@ class NotificationDeliveryMapper extends QBMapper {
 		$updated = $qb->update($this->getTableName())
 			->set('state', $qb->createNamedParameter($state->value))
 			->set('updated_at', $qb->createNamedParameter($now, IQueryBuilder::PARAM_DATETIME_MUTABLE))
+			->set('message_enc', $qb->createNamedParameter(null))
 			->where($qb->expr()->eq('id', $qb->createNamedParameter($deliveryId, IQueryBuilder::PARAM_INT)))
 			->andWhere($qb->expr()->eq('state', $qb->createNamedParameter(NotificationDeliveryState::SENDING->value)))
 			->executeStatement();
 		if ($updated !== 1) {
 			throw new \LogicException('Notification delivery state changed during dispatch');
 		}
+	}
+
+	public function findById(int $deliveryId): NotificationDelivery {
+		$qb = $this->db->getQueryBuilder();
+		$qb->select('*')->from($this->getTableName())
+			->where($qb->expr()->eq('id', $qb->createNamedParameter($deliveryId, IQueryBuilder::PARAM_INT)));
+		/** @var NotificationDelivery */
+		return $this->findEntity($qb);
+	}
+
+	/** @return list<NotificationDelivery> */
+	public function findPending(int $limit = 50): array {
+		$qb = $this->db->getQueryBuilder();
+		$qb->select('*')->from($this->getTableName())
+			->where($qb->expr()->eq('state', $qb->createNamedParameter(NotificationDeliveryState::PENDING->value)))
+			->orderBy('created_at', 'ASC')->setMaxResults($limit);
+		return $this->findEntities($qb);
+	}
+
+	/** A corrupt handoff cannot safely enter a transport attempt. */
+	public function failPending(int $deliveryId): bool {
+		$qb = $this->db->getQueryBuilder();
+		return $qb->update($this->getTableName())
+			->set('state', $qb->createNamedParameter(NotificationDeliveryState::FAILED->value))
+			->set('message_enc', $qb->createNamedParameter(null))
+			->set('updated_at', $qb->createNamedParameter(new \DateTime('now', new \DateTimeZone('UTC')), IQueryBuilder::PARAM_DATETIME_MUTABLE))
+			->where($qb->expr()->eq('id', $qb->createNamedParameter($deliveryId, IQueryBuilder::PARAM_INT)))
+			->andWhere($qb->expr()->eq('state', $qb->createNamedParameter(NotificationDeliveryState::PENDING->value)))
+			->executeStatement() === 1;
 	}
 
 	/** @return list<NotificationDelivery> */
@@ -142,6 +174,7 @@ class NotificationDeliveryMapper extends QBMapper {
 		$qb = $this->db->getQueryBuilder();
 		return $qb->update($this->getTableName())
 			->set('state', $qb->createNamedParameter(NotificationDeliveryState::UNKNOWN->value))
+			->set('message_enc', $qb->createNamedParameter(null))
 			->set('updated_at', $qb->createNamedParameter(new \DateTime('now', new \DateTimeZone('UTC')), IQueryBuilder::PARAM_DATETIME_MUTABLE))
 			->where($qb->expr()->eq('id', $qb->createNamedParameter($deliveryId, IQueryBuilder::PARAM_INT)))
 			->andWhere($qb->expr()->eq('state', $qb->createNamedParameter(NotificationDeliveryState::SENDING->value)))
@@ -177,6 +210,7 @@ class NotificationDeliveryMapper extends QBMapper {
 		return $update->update($this->getTableName())
 			->set('recipient_enc', $update->createNamedParameter(''))
 			->set('owner_id', $update->createNamedParameter(''))
+			->set('message_enc', $update->createNamedParameter(null))
 			->where($update->expr()->in('id', $update->createNamedParameter($ids, IQueryBuilder::PARAM_INT_ARRAY)))
 			->executeStatement();
 	}
