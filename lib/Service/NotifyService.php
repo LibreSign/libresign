@@ -83,6 +83,9 @@ class NotifyService {
 
 	private function notify(SignRequest $signRequest, array $signers = []): void {
 		$identifyMethods = $this->identifyMethodService->getIdentifyMethodsFromSignRequestId($signRequest->getId());
+		// The user requested a new notification, even if the document data
+		// is unchanged. The stable automatic event ID would suppress it.
+		$eventId = 'manual:' . bin2hex(random_bytes(16));
 		foreach ($identifyMethods as $methodName => $instances) {
 			$identifyMethod = array_reduce($instances, function (?IIdentifyMethod $carry, IIdentifyMethod $identifyMethod) use ($signers): ?IIdentifyMethod {
 				foreach ($signers as $signer) {
@@ -99,11 +102,11 @@ class NotifyService {
 			});
 			if ($identifyMethod instanceof IIdentifyMethod) {
 				$identifyMethod->willNotifyUser(true);
-				$identifyMethod->notify();
+				$identifyMethod->notify($eventId);
 			} else {
 				foreach ($instances as $instance) {
 					$instance->willNotifyUser(true);
-					$instance->notify();
+					$instance->notify($eventId);
 				}
 			}
 		}

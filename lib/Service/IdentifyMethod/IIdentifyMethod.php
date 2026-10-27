@@ -27,7 +27,7 @@ interface IIdentifyMethod {
 	public function getSettings(): array;
 	public function getDefaultSettings(): array;
 	public function willNotifyUser(bool $willNotify): void;
-	public function notify(): bool;
+	public function notify(?string $deliveryEventId = null): bool;
 	public function validateToRequest(): void;
 	public function validateToCreateAccount(string $value): void;
 	public function validateToIdentify(): void;

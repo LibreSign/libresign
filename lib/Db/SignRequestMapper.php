@@ -15,6 +15,7 @@ use OCA\Libresign\Service\IdentifyMethod\IIdentifyMethod;
 use OCA\Libresign\Service\IdentifyMethodService;
 use OCP\AppFramework\Db\DoesNotExistException;
 use OCP\AppFramework\Db\Entity;
+use OCP\AppFramework\Db\TTransactional;
 use OCP\DB\QueryBuilder\IQueryBuilder;
 use OCP\ICacheFactory;
 use OCP\IDBConnection;
@@ -29,6 +30,7 @@ use OCP\IUser;
  * @template-extends CachedQBMapper<SignRequest>
  */
 class SignRequestMapper extends CachedQBMapper {
+	use TTransactional;
 
 	public function __construct(
 		IDBConnection $db,
@@ -71,32 +73,31 @@ class SignRequestMapper extends CachedQBMapper {
 	 * @return boolean true when is the first notification
 	 */
 	public function incrementNotificationCounter(SignRequest $signRequest, string $method): bool {
-		$this->db->beginTransaction();
-		try {
-			$fromDatabase = $this->getById($signRequest->getId());
+		return $this->atomic(function () use ($signRequest, $method): bool {
+			// Bypass entity caches: mail, activity and in-app notification
+			// listeners share this JSON log. Lock the latest DB row so two
+			// writers cannot replace each other's entries.
+			$qb = $this->db->getQueryBuilder();
+			$qb->select('*')
+				->from($this->getTableName())
+				->where($qb->expr()->eq('id', $qb->createNamedParameter($signRequest->getId(), IQueryBuilder::PARAM_INT)));
+			if ($this->db->getDatabaseProvider() !== IDBConnection::PLATFORM_SQLITE) {
+				$qb->forUpdate();
+			}
+			/** @var SignRequest $fromDatabase */
+			$fromDatabase = $this->findEntity($qb);
 			$metadata = $fromDatabase->getMetadata() ?? [];
 			$isFirstNotification = empty($metadata['notify']);
 
-			$notificationEntry = [
-				'method' => $method,
-				'date' => time(),
-			];
-
-			if (!empty($fromDatabase->getDescription())) {
-				$notificationEntry['description'] = $fromDatabase->getDescription();
+			$entry = ['method' => $method, 'date' => time()];
+			if ($fromDatabase->getDescription() !== null && $fromDatabase->getDescription() !== '') {
+				$entry['description'] = $fromDatabase->getDescription();
 			}
-
-			$metadata['notify'][] = $notificationEntry;
+			$metadata['notify'][] = $entry;
 			$fromDatabase->setMetadata($metadata);
 			$this->update($fromDatabase);
-			$this->db->commit();
-		} catch (\Throwable $e) {
-			$this->db->rollBack();
-			// A failed history write must never be reported as a successful
-			// first notification. Callers must not continue to send mail.
-			throw $e;
-		}
-		return $isFirstNotification;
+			return $isFirstNotification;
+		}, $this->db);
 	}
 
 	/**
