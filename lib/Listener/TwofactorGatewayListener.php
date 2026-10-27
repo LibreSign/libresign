@@ -18,10 +18,10 @@ use OCA\Libresign\Service\Notification\GatewayChannel;
 use OCA\Libresign\Service\Notification\GatewayNotificationComposer;
 use OCA\Libresign\Service\Notification\GatewayPayload;
 use OCA\Libresign\Service\Notification\NotificationMessage;
+use OCA\Libresign\Service\Notification\NotificationModule;
 use OCA\Libresign\Service\NotificationDeliveryService;
 use OCA\Libresign\Service\TwofactorGatewayService;
 use OCP\EventDispatcher\Event;
-use OCA\Libresign\Service\Notification\NotificationModule;
 
 /** Plan gateway deliveries, not transport execution or message rendering. */
 /** @implements NotificationModule */

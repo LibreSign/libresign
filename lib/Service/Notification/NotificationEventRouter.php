@@ -26,7 +26,7 @@ use Psr\Log\LoggerInterface;
  * @template-implements IEventListener<Event>
  */
 final class NotificationEventRouter implements IEventListener {
-/**
+	/**
 	 * Convert a list of channel modules into supported-event routing.
 	 *
 	 * @param list<NotificationModule> $modules
