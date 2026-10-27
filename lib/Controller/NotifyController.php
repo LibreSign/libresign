@@ -10,6 +10,7 @@ namespace OCA\Libresign\Controller;
 
 use OCA\Libresign\AppInfo\Application;
 use OCA\Libresign\Exception\LibresignException;
+use OCA\Libresign\Exception\NotificationTransportException;
 use OCA\Libresign\ResponseDefinitions;
 use OCA\Libresign\Service\NotifyService;
 use OCP\AppFramework\Http;
@@ -20,10 +21,12 @@ use OCP\AppFramework\Http\DataResponse;
 use OCP\IL10N;
 use OCP\IRequest;
 use OCP\IUserSession;
+use Psr\Log\LoggerInterface;
 
 /**
  * @psalm-import-type LibresignDangerMessagesResponse from ResponseDefinitions
  * @psalm-import-type LibresignMessageResponse from ResponseDefinitions
+ * @psalm-import-type LibresignActionErrorResponse from ResponseDefinitions
  */
 
 class NotifyController extends AEnvironmentAwareController {
@@ -32,6 +35,7 @@ class NotifyController extends AEnvironmentAwareController {
 		private IL10N $l10n,
 		private NotifyService $notifyService,
 		private IUserSession $userSession,
+		private LoggerInterface $logger,
 	) {
 		parent::__construct(Application::APP_ID, $request);
 	}
@@ -41,34 +45,18 @@ class NotifyController extends AEnvironmentAwareController {
 	 *
 	 * @param integer $fileId The identifier value of LibreSign file
 	 * @param array{email: string}[] $signers Signers data
-	 * @return DataResponse<Http::STATUS_OK, LibresignMessageResponse, array{}>|DataResponse<Http::STATUS_UNAUTHORIZED, LibresignDangerMessagesResponse, array{}>
+	 * @return DataResponse<Http::STATUS_OK, LibresignMessageResponse, array{}>|DataResponse<Http::STATUS_UNPROCESSABLE_ENTITY, LibresignMessageResponse|LibresignActionErrorResponse, array{}>|DataResponse<Http::STATUS_BAD_GATEWAY|Http::STATUS_INTERNAL_SERVER_ERROR, LibresignDangerMessagesResponse, array{}>
 	 *
-	 * 200: OK
-	 * 401: Unauthorized
+	 * 200: Request processed
+	 * 422: Request cannot be processed
+	 * 500: Unexpected server error
+	 * 502: Transport did not confirm submission
 	 */
 	#[NoAdminRequired]
 	#[NoCSRFRequired]
 	#[ApiRoute(verb: 'POST', url: '/api/{apiVersion}/notify/signers', requirements: ['apiVersion' => '(v1)'])]
 	public function signers(int $fileId, array $signers): DataResponse {
-		try {
-			$this->notifyService->signers($fileId, $signers);
-		} catch (\Throwable $th) {
-			return new DataResponse(
-				[
-					'messages' => [
-						[
-							'type' => 'danger',
-							'message' => $th->getMessage()
-						]
-					]
-				],
-				Http::STATUS_UNAUTHORIZED
-			);
-		}
-		return new DataResponse([
-			// TRANSLATORS Success message shown after manually notifying a signer about a pending signature request.
-			'message' => $this->l10n->t('Notification sent with success.')
-		], Http::STATUS_OK);
+		return $this->sendNotification(fn () => $this->notifyService->signers($fileId, $signers));
 	}
 
 	/**
@@ -76,36 +64,64 @@ class NotifyController extends AEnvironmentAwareController {
 	 *
 	 * @param integer $fileId The identifier value of LibreSign file
 	 * @param integer $signRequestId The sign request id
-	 * @return DataResponse<Http::STATUS_OK, LibresignMessageResponse, array{}>|DataResponse<Http::STATUS_UNAUTHORIZED, LibresignDangerMessagesResponse, array{}>
+	 * @return DataResponse<Http::STATUS_OK, LibresignMessageResponse, array{}>|DataResponse<Http::STATUS_UNPROCESSABLE_ENTITY, LibresignMessageResponse|LibresignActionErrorResponse, array{}>|DataResponse<Http::STATUS_BAD_GATEWAY|Http::STATUS_INTERNAL_SERVER_ERROR, LibresignDangerMessagesResponse, array{}>
 	 *
-	 * 200: OK
-	 * 401: Unauthorized
+	 * 200: Request processed
+	 * 422: Request cannot be processed
+	 * 500: Unexpected server error
+	 * 502: Transport did not confirm submission
 	 */
 	#[NoAdminRequired]
 	#[NoCSRFRequired]
 	#[ApiRoute(verb: 'POST', url: '/api/{apiVersion}/notify/signer', requirements: ['apiVersion' => '(v1)'])]
 	public function signer(int $fileId, int $signRequestId): DataResponse {
+		return $this->sendNotification(fn () => $this->notifyService->signer($fileId, $signRequestId));
+	}
+
+	/**
+	 * An accepted request is not proof that a remote recipient received the notification.
+	 *
+	 * @return DataResponse<Http::STATUS_OK, LibresignMessageResponse, array{}>|DataResponse<Http::STATUS_BAD_GATEWAY|Http::STATUS_INTERNAL_SERVER_ERROR, LibresignDangerMessagesResponse, array{}>
+	 */
+	private function sendNotification(callable $send): DataResponse {
 		try {
-			$this->notifyService->signer($fileId, $signRequestId);
+			$send();
 		} catch (LibresignException $e) {
+			// MailService preserves the original classified transport exception
+			// in the exception chain. It is not a validation error.
+			for ($cause = $e->getPrevious(); $cause !== null; $cause = $cause->getPrevious()) {
+				if ($cause instanceof NotificationTransportException) {
+					return $this->unconfirmedResponse();
+				}
+			}
 			throw $e;
-		} catch (\Throwable $th) {
-			return new DataResponse(
-				[
-					'messages' => [
-						[
-							'type' => 'danger',
-							'message' => $th->getMessage()
-						]
-					]
-				],
-				Http::STATUS_UNAUTHORIZED
-			);
+		} catch (NotificationTransportException) {
+			return $this->unconfirmedResponse();
+		} catch (\Exception $e) {
+			$this->logger->error('Manual notification request failed', ['exceptionType' => get_debug_type($e)]);
+			return new DataResponse([
+				'messages' => [[
+					'type' => 'danger',
+					// TRANSLATORS Error shown when a notification request fails unexpectedly.
+					'message' => $this->l10n->t('The notification request failed. Please contact an administrator.'),
+				]],
+			], Http::STATUS_INTERNAL_SERVER_ERROR);
 		}
 		return new DataResponse([
-			// TRANSLATORS Success message shown after manually notifying signers about a pending signature request.
-			'message' => $this->l10n->t('Notification sent with success.')
+			// TRANSLATORS Request completed; remote delivery or reading is not guaranteed.
+			'message' => $this->l10n->t('Notification request processed. Delivery is not confirmed.'),
 		], Http::STATUS_OK);
+	}
+
+	/** @return DataResponse<Http::STATUS_BAD_GATEWAY, LibresignDangerMessagesResponse, array{}> */
+	private function unconfirmedResponse(): DataResponse {
+		return new DataResponse([
+			'messages' => [[
+				'type' => 'danger',
+				// TRANSLATORS Submission could have reached the provider. A new manual attempt may duplicate the message.
+				'message' => $this->l10n->t('The notification could not be confirmed. Check with the recipient before trying again.'),
+			]],
+		], Http::STATUS_BAD_GATEWAY);
 	}
 
 	/**
