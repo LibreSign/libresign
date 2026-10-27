@@ -18,6 +18,7 @@ use OCA\Libresign\Listener\MailNotifyListener;
 use OCA\Libresign\Service\IdentifyMethod\IdentifyService;
 use OCA\Libresign\Service\IdentifyMethod\IIdentifyMethod;
 use OCA\Libresign\Service\MailService;
+use OCA\Libresign\Service\NotificationDeliveryService;
 use OCA\Libresign\Service\NotificationPreferenceResolver;
 use OCP\Files\File;
 use OCP\IUser;
@@ -43,6 +44,13 @@ class MailNotifyListenerTest extends TestCase {
 		$identifyService = $this->createMock(IdentifyService::class);
 		$this->signRequestMapper = $this->createMock(SignRequestMapper::class);
 		$logger = $this->createMock(LoggerInterface::class);
+		$delivery = $this->createMock(NotificationDeliveryService::class);
+		$delivery->method('send')->willReturnCallback(
+			static function (string $sourceId, string $eventType, FileEntity $file, SignRequest $request, string $email, callable $send): bool {
+				$send();
+				return true;
+			},
+		);
 
 		$this->listener = new MailNotifyListener(
 			$userSession,
@@ -52,6 +60,7 @@ class MailNotifyListenerTest extends TestCase {
 			$this->signRequestMapper,
 			$logger,
 			$this->notificationPreferenceResolver,
+			$delivery,
 		);
 	}
 

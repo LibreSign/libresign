@@ -360,6 +360,7 @@ final class MailServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$this->mockRequest();
 		$this->mailer->method('send')->willReturn(['a@b.coop']);
 		$this->logger->expects($this->once())->method('error');
+		$this->expectException(LibresignException::class);
 		$this->service->notifyCanceledRequest($this->mockSignRequest(), 'a@b.coop', new File());
 	}
 
