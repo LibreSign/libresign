@@ -68,6 +68,7 @@ OC.L10N.register(
     "Send" : "Адправіць",
     "Create" : "Ствараць",
     "Previous" : "Папярэдняя",
+    "Next" : "Далей",
     "Searching …" : "Пошук …",
     "No recommendations. Start typing." : "Няма рэкамендацый. Пачніце друкаваць.",
     "Sign" : "Знак",
@@ -166,6 +167,7 @@ OC.L10N.register(
     "Configuration" : "Канфігурацыя",
     "Save changes" : "Захаваць змены",
     "Discard changes" : "Адхіліць змены",
+    "none" : "няма",
     "Default" : "Прадвызначаныя",
     "Everyone" : "Усе",
     "Group" : "Група",
@@ -212,6 +214,7 @@ OC.L10N.register(
     "User" : "Карыстальнік",
     "off" : "выкл.",
     "on" : "укл.",
+    "Not scheduled" : "Не запланавана",
     "Reminders" : "Напаміны",
     "The first message is not considered a notification" : "Першае паведамленне не лічыцца апавяшчэннем"
 },
