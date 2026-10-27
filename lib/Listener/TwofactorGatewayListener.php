@@ -21,17 +21,22 @@ use OCA\Libresign\Service\Notification\NotificationMessage;
 use OCA\Libresign\Service\NotificationDeliveryService;
 use OCA\Libresign\Service\TwofactorGatewayService;
 use OCP\EventDispatcher\Event;
-use OCP\EventDispatcher\IEventListener;
+use OCA\Libresign\Service\Notification\NotificationModule;
 
 /** Plan gateway deliveries, not transport execution or message rendering. */
-/** @template-implements IEventListener<Event> */
-class TwofactorGatewayListener implements IEventListener {
+/** @implements NotificationModule */
+class TwofactorGatewayListener implements NotificationModule {
 	public function __construct(
 		private TwofactorGatewayService $twofactorGatewayService,
 		private NotificationDeliveryService $deliveryService,
 		private GatewayChannel $channel,
 		private GatewayNotificationComposer $composer,
 	) {
+	}
+
+	/** @return list<class-string<Event>> */
+	public static function supportedEvents(): array {
+		return [SendSignNotificationEvent::class, SignedEvent::class];
 	}
 
 	#[\Override]

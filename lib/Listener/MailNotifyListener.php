@@ -23,14 +23,14 @@ use OCA\Libresign\Service\Notification\NotificationMessage;
 use OCA\Libresign\Service\NotificationDeliveryService;
 use OCA\Libresign\Service\NotificationPreferenceResolver;
 use OCP\EventDispatcher\Event;
-use OCP\EventDispatcher\IEventListener;
+use OCA\Libresign\Service\Notification\NotificationModule;
 use OCP\IUser;
 use OCP\IUserManager;
 use OCP\IUserSession;
 use Psr\Log\LoggerInterface;
 
-/** @template-implements IEventListener<Event> */
-class MailNotifyListener implements IEventListener {
+/** @implements NotificationModule */
+class MailNotifyListener implements NotificationModule {
 	public function __construct(
 		protected IUserSession $userSession,
 		protected IUserManager $userManager,
@@ -41,6 +41,11 @@ class MailNotifyListener implements IEventListener {
 		private NotificationDeliveryService $deliveryService,
 		private NotificationHistoryService $history,
 	) {
+	}
+
+	/** @return list<class-string<Event>> */
+	public static function supportedEvents(): array {
+		return [SendSignNotificationEvent::class, SignedEvent::class, SignRequestCanceledEvent::class];
 	}
 
 	#[\Override]

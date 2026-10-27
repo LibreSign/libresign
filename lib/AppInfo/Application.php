@@ -79,21 +79,12 @@ class Application extends App implements IBootstrap {
 
 		// One dispatcher isolates channel failures. New delivery channels
 		// register one handler here without changing existing channels.
-		$context->registerService(NotificationEventRouter::class, static fn (ContainerInterface $container): NotificationEventRouter => new NotificationEventRouter([
-			SendSignNotificationEvent::class => [
-				$container->get(NotificationListener::class),
-				$container->get(MailNotifyListener::class),
-				$container->get(TwofactorGatewayListener::class),
-			],
-			SignedEvent::class => [
-				$container->get(NotificationListener::class),
-				$container->get(MailNotifyListener::class),
-				$container->get(TwofactorGatewayListener::class),
-			],
-			SignRequestCanceledEvent::class => [
-				$container->get(NotificationListener::class),
-				$container->get(MailNotifyListener::class),
-			],
+		// Each module declares the business events that it supports.
+		// Add one module here; do not edit existing channels or the router.
+		$context->registerService(NotificationEventRouter::class, static fn (ContainerInterface $container): NotificationEventRouter => NotificationEventRouter::fromModules([
+			$container->get(NotificationListener::class),
+			$container->get(MailNotifyListener::class),
+			$container->get(TwofactorGatewayListener::class),
 		], $container->get(LoggerInterface::class)));
 		// Certificate revocation is part of the signing lifecycle. Do not
 		// postpone it until external transports have returned.

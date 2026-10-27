@@ -16,6 +16,8 @@ use OCA\Libresign\Exception\LibresignException;
 use OCA\Libresign\Exception\NotificationTransportException;
 use OCA\Libresign\Service\IdentifyMethod\IIdentifyMethod;
 use OCA\Libresign\Service\Notification\NotificationEventRouter;
+use OCA\Libresign\Service\Notification\NotificationModule;
+use OCP\EventDispatcher\Event;
 use OCP\EventDispatcher\IEventListener;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\LoggerInterface;
@@ -25,6 +27,39 @@ final class NotificationEventRouterTest extends TestCase {
 		return new SendSignNotificationEvent(
 			new SignRequest(), new File(), $this->createMock(IIdentifyMethod::class), $id,
 		);
+	}
+
+	public function testFactoryRoutesNewModuleOnlyToItsAdvertisedEvents(): void {
+		$module = new class implements NotificationModule {
+			public int $invocations = 0;
+
+			public static function supportedEvents(): array {
+				return [SendSignNotificationEvent::class];
+			}
+
+			public function handle(Event $event): void {
+				$this->invocations++;
+			}
+		};
+		$router = NotificationEventRouter::fromModules([$module], $this->createMock(LoggerInterface::class));
+		$router->handle($this->event('sign-request-write:synthetic'));
+		$router->handle(new SignRequestCanceledEvent(
+			new SignRequest(), new File(), $this->createMock(IIdentifyMethod::class),
+		));
+		$this->assertSame(1, $module->invocations);
+	}
+
+	public function testInvalidModuleEventIsRejectedDuringRegistration(): void {
+		$module = new class implements NotificationModule {
+			public static function supportedEvents(): array {
+				return ['not-an-event'];
+			}
+
+			public function handle(Event $event): void {
+			}
+		};
+		$this->expectException(\InvalidArgumentException::class);
+		NotificationEventRouter::fromModules([$module], $this->createMock(LoggerInterface::class));
 	}
 
 	public function testAutomaticMailFailureDoesNotPreventOtherChannels(): void {

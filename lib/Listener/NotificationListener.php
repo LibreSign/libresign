@@ -23,16 +23,16 @@ use OCA\Libresign\Service\NotificationDeliveryService;
 use OCA\Libresign\Service\NotificationPreferenceResolver;
 use OCP\AppFramework\Utility\ITimeFactory;
 use OCP\EventDispatcher\Event;
-use OCP\EventDispatcher\IEventListener;
+use OCA\Libresign\Service\Notification\NotificationModule;
 use OCP\IURLGenerator;
 use OCP\IUser;
 use OCP\IUserSession;
 use OCP\Notification\IManager;
 
 /**
- * @template-implements IEventListener<Event>
+ * @implements NotificationModule
  */
-class NotificationListener implements IEventListener {
+class NotificationListener implements NotificationModule {
 	public function __construct(
 		private IManager $notificationManager,
 		protected IUserSession $userSession,
@@ -43,6 +43,11 @@ class NotificationListener implements IEventListener {
 		private InAppChannel $channel,
 		private NotificationHistoryService $history,
 	) {
+	}
+
+	/** @return list<class-string<Event>> */
+	public static function supportedEvents(): array {
+		return [SendSignNotificationEvent::class, SignedEvent::class, SignRequestCanceledEvent::class];
 	}
 
 	#[\Override]

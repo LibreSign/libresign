@@ -26,6 +26,24 @@ use Psr\Log\LoggerInterface;
  * @template-implements IEventListener<Event>
  */
 final class NotificationEventRouter implements IEventListener {
+/**
+	 * Convert a list of channel modules into supported-event routing.
+	 *
+	 * @param list<NotificationModule> $modules
+	 */
+	public static function fromModules(array $modules, LoggerInterface $logger): self {
+		$handlers = [];
+		foreach ($modules as $module) {
+			foreach ($module::supportedEvents() as $eventClass) {
+				if (!is_a($eventClass, Event::class, true)) {
+					throw new \InvalidArgumentException('Invalid notification module event');
+				}
+				$handlers[$eventClass][] = $module;
+			}
+		}
+		return new self($handlers, $logger);
+	}
+
 	/** @param array<class-string<Event>, list<IEventListener<Event>>> $handlersByEvent */
 	public function __construct(
 		private array $handlersByEvent,
