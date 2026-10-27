@@ -1235,7 +1235,7 @@ describe('RequestSignatureTab - Critical Business Rules', () => {
 			resolveRequest({ data: { ocs: { data: { message: 'Notification request processed. Delivery is not confirmed.' } } } })
 			await first
 			expect(wrapper.vm.isSendingNotification(signer)).toBe(false)
-			expect(showSuccess).toHaveBeenCalledWith('Notification request processed. Delivery is not confirmed.')
+			expect(showSuccess).toHaveBeenCalledWith('Notification sent for delivery')
 		})
 
 		it('shows only transient success feedback after provider acceptance', async () => {
@@ -1260,9 +1260,28 @@ describe('RequestSignatureTab - Critical Business Rules', () => {
 				}),
 			)
 			expect(wrapper.find('.notification-issue').exists()).toBe(false)
-			expect(showSuccess).toHaveBeenCalledWith('Notification request processed. Delivery is not confirmed.')
+			expect(showSuccess).toHaveBeenCalledWith('Notification sent for delivery')
 			expect(wrapper.vm.isSendingNotification(signer)).toBe(false)
 			expect(vi.mocked(axios.get)).toHaveBeenCalledTimes(1)
+		})
+
+		it('preserves a specific validation error instead of replacing it with a generic warning', async () => {
+			await updateFile({
+				status: FILE_STATUS.ABLE_TO_SIGN,
+				signers: [{ email: 'synthetic@example.invalid', signRequestId: 23, status: SIGN_REQUEST_STATUS.ABLE_TO_SIGN }],
+			})
+			const signer = filesStore.getFile()?.signers?.[0]
+			vi.mocked(axios.post).mockRejectedValueOnce({
+				response: {
+					status: 422,
+					data: { ocs: { data: { messages: [{ type: 'danger', message: 'The signer has already signed' }] } } },
+				},
+			})
+			await wrapper.vm.sendNotify(signer)
+			await wrapper.vm.$nextTick()
+			expect(showError).toHaveBeenCalledWith('The signer has already signed')
+			expect(wrapper.find('.notification-issue').exists()).toBe(false)
+			expect(showSuccess).not.toHaveBeenCalled()
 		})
 
 		it('warns about partial or unknown results instead of treating them as a safe retry', async () => {
@@ -1279,9 +1298,9 @@ describe('RequestSignatureTab - Critical Business Rules', () => {
 			})
 			await wrapper.vm.sendNotify(signer)
 			await wrapper.vm.$nextTick()
-			expect(showWarning).toHaveBeenCalledWith('Some notification channels may have accepted the message. Check with the recipient before trying again.')
+			expect(showWarning).not.toHaveBeenCalled()
 			expect(wrapper.find('.notification-issue').attributes('data-note-type')).toBe('warning')
-			expect(wrapper.find('.notification-issue').text()).toContain('Notification status could not be confirmed')
+			expect(wrapper.find('.notification-issue').text()).toContain('Could not check whether the notification was sent')
 			expect(showSuccess).not.toHaveBeenCalled()
 		})
 
@@ -1305,8 +1324,37 @@ describe('RequestSignatureTab - Critical Business Rules', () => {
 			const card = wrapper.find('.notification-issue')
 			expect(card.attributes('data-note-type')).toBe('warning')
 			expect(card.text()).toContain('Synthetic signer')
-			expect(card.text()).toContain('gateway: Result unknown')
-			expect(card.text()).toContain('mail: Accepted by provider')
+			expect(card.text()).toContain('Some notifications may not have been sent')
+			expect(card.find('details').attributes('open')).toBeUndefined()
+			expect(card.find('summary').text()).toBe('View sending details')
+			expect(card.findAll('dt').map(element => element.text())).toEqual(['Email', 'Messaging service'])
+			expect(card.findAll('dd').map(element => element.text())).toEqual(['Sent for delivery', 'Not confirmed'])
+			expect(showWarning).not.toHaveBeenCalled()
+			expect(showSuccess).not.toHaveBeenCalled()
+		})
+
+		it('isolates mixed-direction signer names and unrecognized delivery methods', async () => {
+			await updateFile({
+				status: FILE_STATUS.ABLE_TO_SIGN,
+				signers: [{ displayName: 'ليلى <img src=x>', email: 'synthetic@example.invalid', signRequestId: 23, status: SIGN_REQUEST_STATUS.ABLE_TO_SIGN }],
+			})
+			const signer = filesStore.getFile()?.signers?.[0]
+			vi.mocked(axios.post).mockResolvedValueOnce({
+				data: { ocs: { data: { message: 'Request processed' } } },
+			} as Awaited<ReturnType<typeof axios.post>>)
+			vi.mocked(axios.get).mockResolvedValueOnce({
+				data: { ocs: { data: { status: 'attention_required', complete: true, channels: [{ channel: 'transport-עברית', state: 'unknown' }] } } },
+			} as Awaited<ReturnType<typeof axios.get>>)
+			await wrapper.vm.sendNotify(signer)
+			await wrapper.vm.$nextTick()
+			const card = wrapper.find('.notification-issue')
+			const name = card.find('.notification-issue__signer bdi')
+			expect(name.attributes('dir')).toBe('auto')
+			expect(name.text()).toBe('ليلى <img src=x>')
+			expect(card.find('img').exists()).toBe(false)
+			const method = card.find('dt bdi')
+			expect(method.attributes('dir')).toBe('auto')
+			expect(method.text()).toBe('transport-עברית')
 			expect(showSuccess).not.toHaveBeenCalled()
 		})
 
@@ -1325,8 +1373,8 @@ describe('RequestSignatureTab - Critical Business Rules', () => {
 			await wrapper.vm.sendNotify(signer)
 			await wrapper.vm.$nextTick()
 			expect(wrapper.find('.notification-issue').attributes('data-note-type')).toBe('error')
-			expect(wrapper.find('.notification-issue').text()).toContain('No notification provider accepted the message')
-			expect(showError).toHaveBeenCalledWith('No notification provider accepted the message')
+			expect(wrapper.find('.notification-issue').text()).toContain('Could not send the notification')
+			expect(showError).not.toHaveBeenCalled()
 			expect(showWarning).not.toHaveBeenCalled()
 			expect(showSuccess).not.toHaveBeenCalled()
 		})
@@ -1346,7 +1394,8 @@ describe('RequestSignatureTab - Critical Business Rules', () => {
 			await wrapper.vm.sendNotify(signer)
 			await wrapper.vm.$nextTick()
 			expect(wrapper.find('.notification-issue').attributes('data-note-type')).toBe('warning')
-			expect(showWarning).toHaveBeenCalledWith('No notification status is available. Check the recipient before trying again.')
+			expect(wrapper.find('.notification-issue').text()).toContain('Could not check whether the notification was sent')
+			expect(showWarning).not.toHaveBeenCalled()
 			expect(showSuccess).not.toHaveBeenCalled()
 		})
 

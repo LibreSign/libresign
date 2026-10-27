@@ -195,16 +195,21 @@
 		</div>
 		<NcNoteCard v-for="item in notificationIssueItems"
 			:key="item.id"
-			:heading="t('libresign', 'Notification status')"
+			:heading="notificationIssueHeading(item.issue)"
 			:type="item.issue.type"
 			:show-alert="true"
 			class="notification-issue">
-			<p><strong>{{ item.name }}</strong>: {{ item.issue.message }}</p>
-			<ul v-if="item.issue.channels.length > 0">
-				<li v-for="channel in item.issue.channels" :key="channel.channel">
-					<strong>{{ channel.channel }}</strong>: {{ notificationChannelStateLabel(channel.state) }}
-				</li>
-			</ul>
+			<p class="notification-issue__signer"><strong><bdi dir="auto">{{ item.name }}</bdi></strong></p>
+			<p>{{ item.issue.message }}</p>
+			<details v-if="item.issue.channels.length > 0" class="notification-issue__details">
+				<summary>{{ t('libresign', 'View sending details') }}</summary>
+				<dl>
+					<div v-for="channel in item.issue.channels" :key="channel.channel">
+						<dt><bdi dir="auto">{{ notificationChannelName(channel.channel) }}</bdi></dt>
+						<dd>{{ notificationChannelStateLabel(channel.state) }}</dd>
+					</div>
+				</dl>
+			</details>
 		</NcNoteCard>
 		<NcFormBox v-if="isEnvelope && !isReadOnlyObserver" class="action-form-box">
 			<NcButton
@@ -729,31 +734,57 @@ const notificationIssueItems = computed(() => Object.entries(notificationIssues.
 	issue,
 })))
 
+function notificationIssueHeading(issue: NotificationIssue): string {
+	return issue.type === 'error'
+		? t('libresign', 'Notification not sent')
+		: t('libresign', 'Check notification')
+}
+
 function notificationIssueFromStatus(status: NotificationStatus | null): NotificationIssue {
 	const channels = status?.channels ?? []
 	const allFailed = channels.length > 0 && channels.every(channel => channel.state === 'failed' || channel.state === 'canceled')
 	return {
 		type: allFailed ? 'error' : 'warning',
 		message: allFailed
-			? t('libresign', 'No notification provider accepted the message')
+			// TRANSLATORS: Every delivery method failed or was canceled.
+			? t('libresign', 'Could not send the notification. Check the request before trying again.')
 			: status?.status === 'attention_required'
-				? t('libresign', 'Some providers did not confirm submission. Check with the recipient before trying again.')
-				: t('libresign', 'Notification status could not be confirmed. Check with the recipient before trying again.'),
+				// TRANSLATORS: At least one delivery method has an uncertain or failed result. Retrying may cause duplicates.
+				? t('libresign', 'Some notifications may not have been sent. Check with the signer before trying again.')
+				// TRANSLATORS: The result of the sending request is unknown. Retrying may send a duplicate.
+				: t('libresign', 'Could not check whether the notification was sent. Ask the signer before trying again.'),
 		channels,
+	}
+}
+
+function notificationChannelName(channel: string): string {
+	switch (channel) {
+		case 'mail':
+			return t('libresign', 'Email')
+		case 'gateway':
+			return t('libresign', 'Messaging service')
+		case 'nextcloud':
+			return t('libresign', 'Nextcloud notification')
+		default:
+			return channel
 	}
 }
 
 function notificationChannelStateLabel(state: string): string {
 	switch (state) {
 		case 'accepted':
-			return t('libresign', 'Accepted by provider')
+			return t('libresign', 'Sent for delivery')
 		case 'sending':
 		case 'pending':
-			return t('libresign', 'Processing')
+			return t('libresign', 'Sending')
 		case 'unknown':
-			return t('libresign', 'Result unknown')
+			return t('libresign', 'Not confirmed')
+		case 'failed':
+			return t('libresign', 'Not sent')
+		case 'canceled':
+			return t('libresign', 'Canceled')
 		default:
-			return t('libresign', 'Not accepted')
+			return t('libresign', 'Status unavailable')
 	}
 }
 
@@ -1669,24 +1700,13 @@ async function sendNotify(signer: EditableRequestSigner): Promise<void> {
 			return
 		}
 		if (result.kind === 'invalid_request') {
-			notificationIssues.value[signerId] = {
-				type: 'error',
-				message: t('libresign', 'Failed to send notification'),
-				channels: [],
-			}
-			showRequestError(result.error, t('libresign', 'Failed to send notification'))
+			// Keep actionable validation errors from the server; no duplicate status card.
+			showRequestError(result.error, t('libresign', 'Could not send the notification'))
 		} else if (result.kind === 'accepted') {
-			showSuccess(result.message ?? t('libresign', 'Notification accepted by the provider. Delivery is not confirmed.'))
+			// TRANSLATORS: A delivery service accepted the message, but the recipient's receipt is not known.
+			showSuccess(t('libresign', 'Notification sent for delivery'))
 		} else {
-			const issue = notificationIssueFromStatus(latestStatus)
-			notificationIssues.value[signerId] = issue
-			if (issue.type === 'error') {
-				showError(issue.message)
-			} else {
-				showWarning(result.kind === 'not_found'
-					? t('libresign', 'No notification status is available. Check the recipient before trying again.')
-					: t('libresign', 'Some notification channels may have accepted the message. Check with the recipient before trying again.'))
-			}
+			notificationIssues.value[signerId] = notificationIssueFromStatus(latestStatus)
 		}
 	} finally {
 		if (notificationControllers.get(signerId) === controller) {
@@ -2145,6 +2165,44 @@ defineExpose({
 
 .action-form-box {
 	margin-top: 6px;
+}
+
+.notification-issue {
+	&__signer {
+		margin-block-end: 4px;
+	}
+
+	&__details {
+		margin-block-start: 8px;
+	}
+
+	dl {
+		display: grid;
+		gap: 8px;
+		margin-block: 8px 0;
+
+		> div {
+			display: flex;
+			flex-direction: column;
+			gap: 2px;
+		}
+	}
+
+	dt,
+	dd {
+		display: block;
+		float: none;
+		margin: 0;
+		text-align: start;
+	}
+
+	dt {
+		font-weight: 600;
+	}
+
+	dd {
+		color: var(--color-text-maxcontrast);
+	}
 }
 
 .participants-section {
