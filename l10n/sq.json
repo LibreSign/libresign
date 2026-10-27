@@ -87,6 +87,8 @@
     "Page not found" : "Faqja nuk u gjet ",
     "Ok" : "Në rregull",
     "Rename" : "Riemërtoje",
+    "File name" : "Emri i skedarit",
+    "Remove filter" : "Hiq filtrin",
     "Modified" : "Modifikuar ",
     "1 file" : "1 skedar",
     "Created at" : "U krijua në",
@@ -102,6 +104,7 @@
     "Message" : "Mesazh",
     "Resource" : "Burim",
     "Dependencies" : "Varësitë",
+    "none" : "asnjë",
     "Default" : "Paraprake",
     "Configure" : "Konfiguro",
     "Everyone" : "Kushdo",
@@ -136,6 +139,7 @@
     "Other" : "Tjetër",
     "Public" : "Publik",
     "User" : "Përdorues",
+    "Not scheduled" : "I paplanifikuar",
     "Reminders" : "Kujtesë",
     "Invalid URL" : "URL e pavlefshme"
 },"pluralForm" :"nplurals=2; plural=(n != 1);"

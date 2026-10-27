@@ -72,6 +72,8 @@ OC.L10N.register(
     "Page not found" : "Fann ikkje sida",
     "Ok" : "Greitt",
     "Rename" : "Endra namn",
+    "File name" : "Filnamn",
+    "Remove filter" : "Fjern filter",
     "Modified" : "Endra",
     "Created at" : "Skapt den",
     "Version" : "Utgåve",
@@ -90,6 +92,7 @@ OC.L10N.register(
     "Value" : "Verdi",
     "Edit" : "Rediger",
     "Change" : "ENdre",
+    "Enabled" : "Aktivert",
     "Disabled" : "Deaktivert",
     "Folder name" : "Mappenamn",
     "days" : "dagar",
@@ -109,6 +112,7 @@ OC.L10N.register(
     "Last 30 days" : "Siste 30 dagar",
     "Other" : "Anna",
     "User" : "Bruker",
+    "Not scheduled" : "Ikkje planlagd",
     "Reminders" : "Påminningar"
 },
 "nplurals=2; plural=(n != 1);");

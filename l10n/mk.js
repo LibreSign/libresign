@@ -158,6 +158,7 @@ OC.L10N.register(
     "Configuration" : "Конфигурација",
     "Save changes" : "Зачувај ги промените",
     "Discard changes" : "Орфрли промени",
+    "none" : "ништо",
     "Default" : "Предефиниран",
     "Configure" : "Конфигурирај",
     "Everyone" : "Сите",
@@ -211,6 +212,7 @@ OC.L10N.register(
     "User" : "Корисник",
     "Add new" : "Додади нов",
     "on" : "во",
+    "Not scheduled" : "Не е закажано",
     "Reminders" : "Потсетници",
     "Background image" : "Позадинска слика",
     "Invalid URL" : "Неправилна URL"

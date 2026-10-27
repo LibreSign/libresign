@@ -296,6 +296,7 @@ OC.L10N.register(
     "Modified" : "Endret",
     "Switch to list view" : "Bytt til listevisning",
     "Switch to grid view" : "Bytt til rutevisning",
+    "Reload content" : "Last inn innhold på nytt",
     "There are no documents" : "Det er ingen dokumenter",
     "1 file" : "1 fil",
     "{fileCount} files" : "{fileCount} filer",
