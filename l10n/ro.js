@@ -171,6 +171,7 @@ OC.L10N.register(
     "Edit rule" : "Editează regula",
     "Save changes" : "Salvează modificările",
     "Discard changes" : "Anulează modificările",
+    "none" : "niciuna",
     "Default" : "Implicită",
     "Go to {category}" : "Mergi la {category}",
     "Configure" : "Configurează",
@@ -236,6 +237,7 @@ OC.L10N.register(
     "User" : "Utilizator",
     "Add new" : "Adaugă nou",
     "on" : "pe",
+    "Not scheduled" : "Neprogramat",
     "Reminders" : "Mementouri",
     "Background image" : "Imagine de fundal",
     "Invalid URL" : "URL invalid"
