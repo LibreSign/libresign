@@ -18,7 +18,7 @@ use PHPUnit\Framework\Attributes\RunInSeparateProcess;
 final class SignRequestNotificationHistoryTest extends \OCA\Libresign\Tests\Integration\TestCase {
 	#[RunInSeparateProcess]
 	#[PreserveGlobalState(false)]
-	public function testEachChannelUpdatesHistoryWithoutReusingFirstNotificationFlag(): void {
+	public function testEachChannelHasIndependentFirstNotificationWhileHistoryRemainsShared(): void {
 		$mapper = Server::get(SignRequestMapper::class);
 		$request = new SignRequest();
 		$request->setUuid('notify-' . bin2hex(random_bytes(14)));
@@ -30,8 +30,8 @@ final class SignRequestNotificationHistoryTest extends \OCA\Libresign\Tests\Inte
 
 		try {
 			$this->assertTrue($mapper->incrementNotificationCounter($request, 'mail'));
-			$this->assertFalse($mapper->incrementNotificationCounter($request, 'notify'));
-			$this->assertFalse($mapper->incrementNotificationCounter($request, 'activity'));
+			$this->assertTrue($mapper->incrementNotificationCounter($request, 'notify'));
+			$this->assertTrue($mapper->incrementNotificationCounter($request, 'activity'));
 			$this->assertFalse($mapper->incrementNotificationCounter($request, 'mail'));
 
 			$persisted = $mapper->getByIdUncached($request->getId());

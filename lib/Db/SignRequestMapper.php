@@ -87,7 +87,15 @@ class SignRequestMapper extends CachedQBMapper {
 			/** @var SignRequest $fromDatabase */
 			$fromDatabase = $this->findEntity($qb);
 			$metadata = $fromDatabase->getMetadata() ?? [];
-			$isFirstNotification = empty($metadata['notify']);
+			// First in THIS channel, not first across unrelated channels.
+			// The shared legacy history and its reminder dates are preserved.
+			$isFirstNotification = true;
+			foreach ($metadata['notify'] ?? [] as $notification) {
+				if (($notification['method'] ?? null) === $method) {
+					$isFirstNotification = false;
+					break;
+				}
+			}
 
 			$entry = ['method' => $method, 'date' => time()];
 			if ($fromDatabase->getDescription() !== null && $fromDatabase->getDescription() !== '') {
