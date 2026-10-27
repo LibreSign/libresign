@@ -182,6 +182,28 @@ export type paths = {
         patch?: never;
         trace?: never;
     };
+    "/ocs/v2.php/apps/libresign/api/{apiVersion}/sign": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Create and sign a PDF as the authenticated account in a single call.
+         * @description The authenticated user must be authorized to request signatures and have the requested account signature method enabled. This endpoint does not accept arbitrary signers, visible fields or remote URLs.
+         *     Uses ordinary Nextcloud application-password authentication and OCS-APIRequest: true. This is a synchronous convenience operation. The caller is responsible for not retrying an uncertain result as a brand-new request: no additional idempotency state is introduced.
+         *     No visible signature elements are requested, but an enabled PDF footer policy may still change the visual presentation of the document.
+         */
+        post: operations["direct_sign-sign-direct"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/ocs/v2.php/apps/libresign/api/{apiVersion}/file/validate/uuid/{uuid}": {
         parameters: {
             query?: never;
@@ -3012,6 +3034,149 @@ export interface operations {
                         ocs: {
                             meta: components["schemas"]["OCSMeta"];
                             data: components["schemas"]["MessageResponse"];
+                        };
+                    };
+                };
+            };
+        };
+    };
+    "direct_sign-sign-direct": {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Required to be true for the API request to pass */
+                "OCS-APIRequest": boolean;
+            };
+            path: {
+                apiVersion: "v1";
+            };
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "application/json": {
+                    /**
+                     * @description One PDF: {base64}, {nodeId}, or {path}
+                     * @default {}
+                     */
+                    file?: {
+                        [key: string]: Record<string, never>;
+                    };
+                    /**
+                     * @description PDF filename ending in .pdf
+                     * @default
+                     */
+                    name?: string;
+                    /**
+                     * @description Account signature method: clickToSign or password
+                     * @default clickToSign
+                     */
+                    method?: string;
+                    /**
+                     * @description Token or certificate password if required by method
+                     * @default
+                     */
+                    token?: string;
+                    /**
+                     * @description Optional request file settings
+                     * @default {}
+                     */
+                    settings?: {
+                        [key: string]: Record<string, never>;
+                    };
+                    /** @description Authorized request-level policy overrides */
+                    policy?: {
+                        [key: string]: Record<string, never>;
+                    } | null;
+                };
+            };
+        };
+        responses: {
+            /** @description Signed PDF document */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/pdf": string;
+                };
+            };
+            /** @description Invalid direct-sign payload */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        ocs: {
+                            meta: components["schemas"]["OCSMeta"];
+                            data: {
+                                message: string;
+                            };
+                        };
+                    };
+                };
+            };
+            /** @description Account signing not permitted */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        ocs: {
+                            meta: components["schemas"]["OCSMeta"];
+                            data: {
+                                message: string;
+                            };
+                        };
+                    };
+                };
+            };
+            /** @description Signing not completed */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        ocs: {
+                            meta: components["schemas"]["OCSMeta"];
+                            data: {
+                                message: string;
+                            };
+                        };
+                    };
+                };
+            };
+            /** @description Signing validation failed */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        ocs: {
+                            meta: components["schemas"]["OCSMeta"];
+                            data: {
+                                message: string;
+                            };
+                        };
+                    };
+                };
+            };
+            /** @description Unexpected signing failure */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        ocs: {
+                            meta: components["schemas"]["OCSMeta"];
+                            data: {
+                                message: string;
+                            };
                         };
                     };
                 };
