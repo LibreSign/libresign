@@ -29,7 +29,6 @@ use OCP\IUserManager;
 use OCP\IUserSession;
 use Psr\Log\LoggerInterface;
 
-/** @implements NotificationModule */
 class MailNotifyListener implements NotificationModule {
 	public function __construct(
 		protected IUserSession $userSession,
@@ -44,6 +43,7 @@ class MailNotifyListener implements NotificationModule {
 	}
 
 	/** @return list<class-string<Event>> */
+	#[\Override]
 	public static function supportedEvents(): array {
 		return [SendSignNotificationEvent::class, SignedEvent::class, SignRequestCanceledEvent::class];
 	}

@@ -29,9 +29,6 @@ use OCP\IUser;
 use OCP\IUserSession;
 use OCP\Notification\IManager;
 
-/**
- * @implements NotificationModule
- */
 class NotificationListener implements NotificationModule {
 	public function __construct(
 		private IManager $notificationManager,
@@ -46,6 +43,7 @@ class NotificationListener implements NotificationModule {
 	}
 
 	/** @return list<class-string<Event>> */
+	#[\Override]
 	public static function supportedEvents(): array {
 		return [SendSignNotificationEvent::class, SignedEvent::class, SignRequestCanceledEvent::class];
 	}

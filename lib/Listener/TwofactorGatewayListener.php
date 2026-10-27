@@ -24,7 +24,6 @@ use OCA\Libresign\Service\TwofactorGatewayService;
 use OCP\EventDispatcher\Event;
 
 /** Plan gateway deliveries, not transport execution or message rendering. */
-/** @implements NotificationModule */
 class TwofactorGatewayListener implements NotificationModule {
 	public function __construct(
 		private TwofactorGatewayService $twofactorGatewayService,
@@ -35,6 +34,7 @@ class TwofactorGatewayListener implements NotificationModule {
 	}
 
 	/** @return list<class-string<Event>> */
+	#[\Override]
 	public static function supportedEvents(): array {
 		return [SendSignNotificationEvent::class, SignedEvent::class];
 	}
