@@ -179,13 +179,11 @@ final class SignerRemovalServiceTest extends TestCase {
 		$this->service->remove(5, 9);
 	}
 
-	public function testFailedRemovalRollsBackWithoutNotifying(): void {
+	public function testPersistenceFailureRollsBackSignerRemoval(): void {
 		$this->givenSigner($this->file(), $this->signer());
 		$this->requests->method('deleteIfUnsigned')->willReturn(true);
 		$this->identification->method('deleteBySignRequestId')->willThrowException(new \RuntimeException('Persistence failed'));
 		$this->db->expects($this->once())->method('rollBack');
-		$this->events->expects($this->never())->method('dispatchTyped');
-		$this->sequential->expects($this->never())->method('notifyActivatedSigners');
 
 		$this->expectException(\RuntimeException::class);
 		$this->service->remove(5, 9);

@@ -9,6 +9,7 @@ declare(strict_types=1);
 namespace OCA\Libresign\Tests\Integration\Db;
 
 use OCA\Libresign\Db\File;
+use OCA\Libresign\Db\FileElementMapper;
 use OCA\Libresign\Db\FileMapper;
 use OCA\Libresign\Db\IdentifyMethod;
 use OCA\Libresign\Db\IdentifyMethodMapper;
@@ -23,6 +24,8 @@ use OCA\Libresign\Service\SignRequest\StatusCacheService;
 use OCP\AppFramework\Db\DoesNotExistException;
 use OCP\DB\QueryBuilder\IQueryBuilder;
 use OCP\IDBConnection;
+use OCP\IUserManager;
+use OCP\IUserSession;
 use OCP\Server;
 use PHPUnit\Framework\Attributes\DataProvider;
 use Sabre\DAV\UUIDUtil;
@@ -277,6 +280,92 @@ final class SignRequestRemovalTest extends \Test\TestCase {
 
 		$this->expectException(DoesNotExistException::class);
 		$this->requests->getById($signer->getId());
+	}
+
+	public function testFailedRemovalPreservesSignersWithoutCancellationIntent(): void {
+		$signer = $this->createNotifiableSigner();
+		$sibling = new SignRequest();
+		$sibling->setUuid(UUIDUtil::getUUID());
+		$sibling->setFileId($signer->getFileId());
+		$sibling->setStatusEnum(SignRequestStatus::ABLE_TO_SIGN);
+		$sibling->setCreatedAt(new \DateTime('2026-01-01T00:00:00Z'));
+		$this->requests->insert($sibling);
+
+		// Simulate a database failure after deletion. Keep notification listeners
+		// and transaction processing real.
+		$elements = $this->getMockBuilder(FileElementMapper::class)
+			->setConstructorArgs([$this->db])
+			->onlyMethods(['getByFileIdAndSignRequestId'])
+			->getMock();
+		$elements->method('getByFileIdAndSignRequestId')
+			->willThrowException(new \RuntimeException('Database read failed'));
+		$this->overwriteService(FileElementMapper::class, $elements);
+		// Resolve a fresh service so this one test uses the failing persistence
+		// adapter even when another test has already cached the shared service.
+		$removal = \OC::$server->getAppContainerForService(SignerRemovalService::class)
+			->resolve(SignerRemovalService::class);
+		$failure = null;
+		try {
+			$this->asOwner(fn () => $removal->remove($signer->getFileId(), $signer->getId()));
+		} catch (\RuntimeException $e) {
+			$failure = $e;
+		} finally {
+			$this->restoreService(FileElementMapper::class);
+		}
+		$this->assertSame('Database read failed', $failure?->getMessage());
+
+		$this->requests->invalidateCachedEntity($signer);
+		$this->requests->invalidateCachedEntity($sibling);
+		$this->files->invalidateCachedEntity($this->files->getById($signer->getFileId()));
+		$this->assertSame(SignRequestStatus::ABLE_TO_SIGN, $this->requests->getById($signer->getId())->getStatusEnum());
+		$this->assertSame(SignRequestStatus::ABLE_TO_SIGN, $this->requests->getById($sibling->getId())->getStatusEnum());
+		$this->assertSame(FileStatus::ABLE_TO_SIGN->value, $this->files->getById($signer->getFileId())->getStatus());
+		$this->assertSame(0, $this->countCancellationIntents($signer->getId()));
+	}
+
+	public function testSuccessfulRemovalRegistersCancellationIntent(): void {
+		$signer = $this->createNotifiableSigner();
+
+		$this->asOwner(fn () => Server::get(SignerRemovalService::class)->remove($signer->getFileId(), $signer->getId()));
+
+		$this->assertSame([], $this->requests->getByFileId($signer->getFileId()));
+		$this->assertSame(1, $this->countCancellationIntents($signer->getId(), 'nextcloud'));
+	}
+
+	private function createNotifiableSigner(): SignRequest {
+		$signer = $this->createUnsignedSigner();
+		$method = new IdentifyMethod();
+		$method->setSignRequestId($signer->getId());
+		$method->setIdentifierKey('account');
+		$method->setIdentifierValue('admin');
+		$method->setMandatory(1);
+		$this->identifications->insert($method);
+		return $signer;
+	}
+
+	private function countCancellationIntents(int $signRequestId, ?string $channel = null): int {
+		$qb = $this->db->getQueryBuilder();
+		$qb->select($qb->func()->count('*'))
+			->from('libresign_notification_delivery')
+			->where($qb->expr()->eq('sign_request_id', $qb->createNamedParameter($signRequestId, IQueryBuilder::PARAM_INT)))
+			->andWhere($qb->expr()->eq('event_type', $qb->createNamedParameter('sign_request_canceled')));
+		if ($channel !== null) {
+			$qb->andWhere($qb->expr()->eq('channel', $qb->createNamedParameter($channel)));
+		}
+		return (int)$qb->executeQuery()->fetchOne();
+	}
+
+	private function asOwner(callable $action): void {
+		$session = Server::get(IUserSession::class);
+		$previous = $session->getUser();
+		$owner = Server::get(IUserManager::class)->get('admin');
+		$this->assertNotNull($owner);
+		$session->setUser($owner);
+		try {
+			$action();
+		} finally {
+			$session->setUser($previous);
+		}
 	}
 
 	#[DataProvider('completedEvidence')]
