@@ -100,7 +100,7 @@ final class TwofactorGatewayServiceTest extends TestCase {
 				'Unable to determine twofactor gateway completeness.',
 				$this->callback(static fn (array $context): bool
 					=> ($context['gateway'] ?? null) === 'telegram'
-					&& ($context['exception'] ?? null) === $exception
+					&& ($context['exceptionType'] ?? null) === get_debug_type($exception)
 				)
 			);
 		$this->container->method('get')
@@ -135,7 +135,7 @@ final class TwofactorGatewayServiceTest extends TestCase {
 				'Unable to determine twofactor gateway completeness.',
 				$this->callback(static fn (array $context): bool
 					=> ($context['gateway'] ?? null) === 'telegram'
-					&& ($context['exception'] ?? null) === $exception
+					&& ($context['exceptionType'] ?? null) === get_debug_type($exception)
 				)
 			);
 		$this->container->method('get')

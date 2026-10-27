@@ -52,7 +52,7 @@ final class TwofactorGatewayService {
 		} catch (\Exception $exception) {
 			$this->logger->warning('Unable to determine twofactor gateway completeness.', [
 				'gateway' => $gatewayName,
-				'exception' => $exception,
+				'exceptionType' => get_debug_type($exception),
 			]);
 			return false;
 		}
