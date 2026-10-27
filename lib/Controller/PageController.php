@@ -577,8 +577,7 @@ class PageController extends AEnvironmentPageAwareController {
 			);
 		}
 
-		Util::addScript(Application::APP_ID, 'libresign-validation');
-		Util::addStyle(Application::APP_ID, 'libresign-validation');
+		$this->registerValidationAssets();
 		$response = new TemplateResponse(Application::APP_ID, 'external', [], TemplateResponse::RENDER_AS_BASE);
 
 		return $response;
@@ -697,13 +696,21 @@ class PageController extends AEnvironmentPageAwareController {
 		);
 		$this->initialState->provideInitialState('file_info', $fileInfo);
 
-		Util::addScript(Application::APP_ID, 'libresign-validation');
+		$this->registerValidationAssets();
 		if (class_exists(LoadViewer::class)) {
 			$this->eventDispatcher->dispatchTyped(new LoadViewer());
 		}
 		$response = new TemplateResponse(Application::APP_ID, 'external', [], TemplateResponse::RENDER_AS_BASE);
 
 		return $response;
+	}
+
+	/**
+	 * Register the same scripts and styles on all public validation routes.
+	 */
+	private function registerValidationAssets(): void {
+		Util::addScript(Application::APP_ID, 'libresign-validation');
+		Util::addStyle(Application::APP_ID, 'libresign-validation');
 	}
 
 	/**
