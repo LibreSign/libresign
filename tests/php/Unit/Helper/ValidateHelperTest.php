@@ -948,7 +948,7 @@ final class ValidateHelperTest extends \OCA\Libresign\Tests\Unit\TestCase {
 
 		if (!$userElementExists) {
 			if (empty($fileElements)) {
-				$this->userElementMapper->method('findOne')->willThrowException(new \Exception('not found'));
+				$this->userElementMapper->method('findOne')->willThrowException(new DoesNotExistException('not found'));
 			} else {
 				$this->userElementMapper->method('findMany')->willThrowException(new \Exception('missing'));
 			}
@@ -992,6 +992,111 @@ final class ValidateHelperTest extends \OCA\Libresign\Tests\Unit\TestCase {
 
 		$this->getValidateHelper()->validateVisibleElementsRelation($visibleElements, $envelopeSignRequest, null);
 		$this->assertTrue(true);
+	}
+
+	private function prepareVisibleSignatureRelation(): \OCA\Libresign\Db\SignRequest {
+		$signRequest = new \OCA\Libresign\Db\SignRequest();
+		$signRequest->setId(47);
+		$signRequest->setFileId(22);
+		$file = new \OCA\Libresign\Db\File();
+		$file->setNodeType('file');
+		$this->fileMapper->method('getById')->with(22)->willReturn($file);
+		$element = new \OCA\Libresign\Db\FileElement();
+		$element->setId(5);
+		$element->setSignRequestId(47);
+		$element->setType('signature');
+		$this->fileElementMapper->method('getById')->with(5)->willReturn($element);
+		$this->fileElementMapper->method('getByFileIdAndSignRequestId')->with(22, 47)->willReturn([$element]);
+		$this->signerElementsService->method('canCreateSignature')->willReturn(true);
+		return $signRequest;
+	}
+
+	public function testGuestCanSignWithElementFromCurrentSession(): void {
+		$this->signerElementsService->expects($this->once())
+			->method('getElementFromSessionByNodeId')
+			->with(101)->willReturn($this->createMock(\OCP\Files\File::class));
+
+		$this->getValidateHelper()->validateVisibleElementsRelation(
+			[['documentElementId' => 5, 'profileNodeId' => 101]],
+			$this->prepareVisibleSignatureRelation(),
+			null,
+		);
+		$this->addToAssertionCount(1);
+	}
+
+	public function testGuestCannotSignWithElementOutsideSession(): void {
+		$this->signerElementsService->method('getElementFromSessionByNodeId')
+			->willThrowException(new DoesNotExistException('not in session'));
+
+		$this->expectException(LibresignException::class);
+		$this->expectExceptionMessage('Field %s does not belong to user');
+		$this->getValidateHelper()->validateVisibleElementsRelation(
+			[['documentElementId' => 5, 'profileNodeId' => 102]],
+			$this->prepareVisibleSignatureRelation(),
+			null,
+		);
+	}
+
+	#[DataProvider('invalidGuestProfileNodeCases')]
+	public function testGuestRejectsInvalidNodeIdWithoutLookup(mixed $nodeId): void {
+		$this->signerElementsService->expects($this->never())->method('getElementFromSessionByNodeId');
+		$this->expectException(LibresignException::class);
+		$this->expectExceptionMessage('Field %s must be an integer');
+		$this->getValidateHelper()->validateVisibleElementsRelation(
+			[['documentElementId' => 5, 'profileNodeId' => $nodeId]],
+			$this->prepareVisibleSignatureRelation(),
+			null,
+		);
+	}
+
+	public static function invalidGuestProfileNodeCases(): array {
+		return [
+			'node string' => ['101'],
+			'node null' => [null],
+			'node array' => [[101]],
+		];
+	}
+
+	public function testGuestLookupFailureIsNotDisguisedAsOwnershipError(): void {
+		$this->signerElementsService->method('getElementFromSessionByNodeId')
+			->willThrowException(new \RuntimeException('Storage unavailable'));
+
+		$this->expectException(\RuntimeException::class);
+		$this->expectExceptionMessage('Storage unavailable');
+		$this->getValidateHelper()->validateVisibleElementsRelation(
+			[['documentElementId' => 5, 'profileNodeId' => 101]],
+			$this->prepareVisibleSignatureRelation(),
+			null,
+		);
+	}
+
+	public function testAuthenticatedSignerCanUseOwnedSignatureElement(): void {
+		$user = $this->createMock(IUser::class);
+		$user->method('getUID')->willReturn('alice');
+		$this->userElementMapper->expects($this->once())->method('findOne')
+			->with(['node_id' => 101, 'user_id' => 'alice'])
+			->willReturn(new \OCA\Libresign\Db\UserElement());
+
+		$this->getValidateHelper()->validateVisibleElementsRelation(
+			[['documentElementId' => 5, 'profileNodeId' => 101]],
+			$this->prepareVisibleSignatureRelation(),
+			$user,
+		);
+		$this->addToAssertionCount(1);
+	}
+
+	public function testAuthenticatedSignerUnexpectedLookupFailurePropagates(): void {
+		$user = $this->createMock(IUser::class);
+		$user->method('getUID')->willReturn('alice');
+		$this->userElementMapper->method('findOne')
+			->willThrowException(new \RuntimeException('Database unavailable'));
+		$this->expectException(\RuntimeException::class);
+		$this->expectExceptionMessage('Database unavailable');
+		$this->getValidateHelper()->validateVisibleElementsRelation(
+			[['documentElementId' => 5, 'profileNodeId' => 101]],
+			$this->prepareVisibleSignatureRelation(),
+			$user,
+		);
 	}
 
 	public static function dataValidateAuthenticatedUserIsOwnerOfPdfVisibleElement(): array {
