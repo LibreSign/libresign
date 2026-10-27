@@ -9,8 +9,8 @@ declare(strict_types=1);
 namespace OCA\Libresign\Enum;
 
 /**
- * ACCEPTED means submission was accepted by the mail transport, not delivered
- * to a recipient's mailbox. UNKNOWN must never be retried automatically.
+ * ACCEPTED means the channel adapter accepted the operation.
+ * It never proves reading or mailbox delivery. UNKNOWN is not safe to retry.
  */
 enum NotificationDeliveryState: string {
 	case PENDING = 'pending';

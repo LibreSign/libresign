@@ -10,18 +10,17 @@ namespace OCA\Libresign\Listener;
 
 use OCA\Libresign\Db\File as FileEntity;
 use OCA\Libresign\Db\SignRequest;
-use OCA\Libresign\Db\SignRequestMapper;
 use OCA\Libresign\Events\SendSignNotificationEvent;
 use OCA\Libresign\Events\SignedEvent;
 use OCA\Libresign\Events\SignRequestCanceledEvent;
 use OCA\Libresign\Exception\LibresignException;
-use OCA\Libresign\Exception\NotificationPreparationException;
 use OCA\Libresign\Service\IdentifyMethod\IdentifyService;
 use OCA\Libresign\Service\IdentifyMethod\IIdentifyMethod;
-use OCA\Libresign\Service\MailService;
+use OCA\Libresign\Service\Notification\MailChannel;
+use OCA\Libresign\Service\Notification\MailPayload;
+use OCA\Libresign\Service\Notification\NotificationMessage;
 use OCA\Libresign\Service\NotificationDeliveryService;
 use OCA\Libresign\Service\NotificationPreferenceResolver;
-use OCP\DB\Exception as DatabaseException;
 use OCP\EventDispatcher\Event;
 use OCP\EventDispatcher\IEventListener;
 use OCP\IUser;
@@ -35,8 +34,7 @@ class MailNotifyListener implements IEventListener {
 		protected IUserSession $userSession,
 		protected IUserManager $userManager,
 		protected IdentifyService $identifyService,
-		protected MailService $mail,
-		private SignRequestMapper $signRequestMapper,
+		private MailChannel $mailChannel,
 		private LoggerInterface $logger,
 		private NotificationPreferenceResolver $notificationPreferenceResolver,
 		private NotificationDeliveryService $deliveryService,
@@ -102,22 +100,9 @@ class MailNotifyListener implements IEventListener {
 				}
 			}
 
-			$this->deliveryService->send(
-				$eventId, 'sign_request', $file, $signRequest, $email,
-				function () use ($signRequest, $email): void {
-					// A duplicate event must not consume another legacy
-					// reminder count or turn an initial mail into an update.
-					try {
-						$isFirstNotification = $this->signRequestMapper->incrementNotificationCounter($signRequest, 'mail');
-					} catch (DatabaseException $e) {
-						throw new NotificationPreparationException('history_write_failed', $e);
-					}
-					if ($isFirstNotification) {
-						$this->mail->notifyUnsignedUser($signRequest, $email, $signRequest->getDescription());
-					} else {
-						$this->mail->notifySignDataUpdated($signRequest, $email, $signRequest->getDescription());
-					}
-				},
+			$this->deliveryService->dispatch(
+				new NotificationMessage($eventId, 'sign_request', 'mail', $file, $signRequest, $email, new MailPayload()),
+				$this->mailChannel,
 			);
 		} catch (\InvalidArgumentException $e) {
 			$this->logger->error($e->getMessage(), ['exception' => $e]);
@@ -153,9 +138,9 @@ class MailNotifyListener implements IEventListener {
 				return;
 			}
 
-			$this->deliveryService->send(
-				$eventId, 'file_signed', $libreSignFile, $signRequest, $email,
-				fn () => $this->mail->notifySignedUser($signRequest, $email, $libreSignFile, $user->getDisplayName()),
+			$this->deliveryService->dispatch(
+				new NotificationMessage($eventId, 'file_signed', 'mail', $libreSignFile, $signRequest, $email, new MailPayload($user->getDisplayName())),
+				$this->mailChannel,
 			);
 
 		} catch (\InvalidArgumentException $e) {
@@ -199,9 +184,9 @@ class MailNotifyListener implements IEventListener {
 			}
 
 			try {
-				$this->deliveryService->send(
-					$eventId, 'sign_request_canceled', $libreSignFile, $signRequest, $email,
-					fn () => $this->mail->notifyCanceledRequest($signRequest, $email, $libreSignFile),
+				$this->deliveryService->dispatch(
+					new NotificationMessage($eventId, 'sign_request_canceled', 'mail', $libreSignFile, $signRequest, $email, new MailPayload()),
+					$this->mailChannel,
 				);
 			} catch (LibresignException) {
 				// Mail failures must not undo an otherwise committed cancellation.

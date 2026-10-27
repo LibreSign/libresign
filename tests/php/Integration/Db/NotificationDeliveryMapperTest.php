@@ -41,7 +41,9 @@ final class NotificationDeliveryMapperTest extends \OCA\Libresign\Tests\Integrat
 	private function createDelivery(string $event = 'initial'): NotificationDelivery {
 		$delivery = $this->deliveries->register(
 			hash('sha256', 'synthetic-test-' . $event . '-' . bin2hex(random_bytes(12))),
+			hash('sha256', 'correlation-for-' . $event),
 			'sign_request',
+			'mail',
 			100,
 			200,
 			'test-owner',
@@ -54,15 +56,30 @@ final class NotificationDeliveryMapperTest extends \OCA\Libresign\Tests\Integrat
 
 	public function testUniqueEventIsInsertedOnlyOnce(): void {
 		$key = hash('sha256', 'synthetic-test-' . bin2hex(random_bytes(16)));
-		$delivery = $this->deliveries->register($key, 'sign_request', 101, 201, 'test-owner', 'ciphertext');
+		$delivery = $this->deliveries->register($key, hash('sha256', $key), 'sign_request', 'mail', 101, 201, 'test-owner', 'ciphertext');
 		self::assertNotNull($delivery);
 		$this->created[] = $delivery;
-		$reused = $this->deliveries->register($key, 'sign_request', 101, 201, 'test-owner', 'ciphertext-other');
+		$reused = $this->deliveries->register($key, hash('sha256', $key), 'sign_request', 'mail', 101, 201, 'test-owner', 'ciphertext-other');
 		self::assertSame($delivery->getId(), $reused->getId());
 		// Only PENDING may be claimed, and only once even with two dispatchers.
 		self::assertTrue($this->deliveries->claim($reused->getId()));
 		self::assertFalse($this->deliveries->claim($delivery->getId()));
 		self::assertSame($delivery->getId(), $this->deliveries->findByEventKey($key)->getId());
+	}
+
+	public function testSameSourceEventHasIndependentChannelDeliveries(): void {
+		$key = hash('sha256', 'channel-' . bin2hex(random_bytes(16)));
+		$email = $this->deliveries->register($key, hash('sha256', $key), 'sign_request', 'mail', 101, 201, 'owner', 'encrypted');
+		$this->created[] = $email;
+		$otherKey = hash('sha256', $key . ':gateway:sms');
+		$gateway = $this->deliveries->register($otherKey, hash('sha256', $key), 'sign_request', 'gateway:sms', 101, 201, 'owner', 'encrypted');
+		$this->created[] = $gateway;
+		$this->assertSame('mail', $email->getChannel());
+		$this->assertSame('gateway:sms', $gateway->getChannel());
+		$this->assertCount(2, $this->deliveries->findForEvent(hash('sha256', $key)));
+		$this->assertTrue($this->deliveries->claim($email->getId()));
+		$this->assertTrue($this->deliveries->claim($gateway->getId()));
+		$this->assertFalse($this->deliveries->claim($email->getId()));
 	}
 
 	public function testClaimIsAtomicAndAttemptRetainsItsResult(): void {

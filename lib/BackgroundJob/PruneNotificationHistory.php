@@ -42,7 +42,7 @@ final class PruneNotificationHistory extends TimedJob {
 		$now = new \DateTime('now', new \DateTimeZone('UTC'));
 
 		// The absence of a process after a full day cannot establish whether
-		// SMTP accepted the message. Reconcile it to UNKNOWN, never retry.
+		// any transport accepted the message. Reconcile to UNKNOWN, never retry.
 		$interruptedBefore = (clone $now)->modify('-1 day');
 		foreach ($this->deliveries->findStaleSending($interruptedBefore) as $delivery) {
 			$this->atomic(function () use ($delivery, $interruptedBefore): void {

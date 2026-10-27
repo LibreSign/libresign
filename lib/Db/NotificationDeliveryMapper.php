@@ -22,8 +22,8 @@ class NotificationDeliveryMapper extends QBMapper {
 	}
 
 	/**
-	 * Inserts one logical notification, without ever overwriting an earlier
-	 * outcome. A duplicate event is never an instruction to retry SMTP.
+	 * Registers one delivery for an event, channel and recipient.
+	 * A duplicate is never an instruction to resubmit an uncertain delivery.
 	 *
 	 * @return NotificationDelivery The new or existing record.
 	 *                              A previously committed PENDING event may be safely claimed by a later
@@ -31,18 +31,23 @@ class NotificationDeliveryMapper extends QBMapper {
 	 */
 	public function register(
 		string $eventKey,
+		string $correlationId,
 		string $eventType,
+		string $channel,
 		int $fileId,
 		?int $signRequestId,
 		string $ownerId,
 		string $encryptedRecipient,
 	): NotificationDelivery {
-		if (strlen($eventKey) !== 64 || !ctype_xdigit($eventKey)) {
+		if (strlen($eventKey) !== 64 || !ctype_xdigit($eventKey)
+			|| strlen($correlationId) !== 64 || !ctype_xdigit($correlationId)) {
 			throw new \InvalidArgumentException('A 64-character event hash is required');
 		}
 		$delivery = new NotificationDelivery();
 		$delivery->setEventKey($eventKey);
+		$delivery->setCorrelationId($correlationId);
 		$delivery->setEventType($eventType);
+		$delivery->setChannel($channel);
 		$delivery->setFileId($fileId);
 		$delivery->setSignRequestId($signRequestId);
 		$delivery->setOwnerId($ownerId);
@@ -74,6 +79,14 @@ class NotificationDeliveryMapper extends QBMapper {
 			->where($qb->expr()->eq('event_key', $qb->createNamedParameter($eventKey)));
 		/** @var NotificationDelivery */
 		return $this->findEntity($qb);
+	}
+
+	/** @return list<NotificationDelivery> */
+	public function findForEvent(string $correlationId): array {
+		$qb = $this->db->getQueryBuilder();
+		$qb->select('*')->from($this->getTableName())
+			->where($qb->expr()->eq('correlation_id', $qb->createNamedParameter($correlationId)));
+		return $this->findEntities($qb);
 	}
 
 	/** Claim is a compare-and-swap, so a second dispatcher cannot send again. */
@@ -122,7 +135,7 @@ class NotificationDeliveryMapper extends QBMapper {
 	}
 
 	/**
-	 * A crash after SMTP submission has no reliable delivery result.
+	 * An interrupted submission has no reliable acceptance result.
 	 * Never move a stale sending record back to pending.
 	 */
 	public function markStaleUnknown(int $deliveryId, \DateTime $before): bool {

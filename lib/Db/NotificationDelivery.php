@@ -12,8 +12,12 @@ use OCP\AppFramework\Db\Entity;
 use OCP\DB\Types;
 
 /**
+ * @method void setCorrelationId(string $value)
+ * @method string getCorrelationId()
  * @method void setEventKey(string $value)
  * @method string getEventKey()
+ * @method void setChannel(string $value)
+ * @method string getChannel()
  * @method void setEventType(string $value)
  * @method string getEventType()
  * @method void setFileId(int $value)
@@ -35,7 +39,9 @@ use OCP\DB\Types;
  */
 final class NotificationDelivery extends Entity {
 	protected string $eventKey = '';
+	protected string $correlationId = '';
 	protected string $eventType = '';
+	protected string $channel = '';
 	protected int $fileId = 0;
 	protected ?int $signRequestId = null;
 	protected string $ownerId = '';

@@ -17,6 +17,9 @@ use OCA\Libresign\Db\SignRequest;
 use OCA\Libresign\Enum\NotificationDeliveryState;
 use OCA\Libresign\Exception\MailTransportException;
 use OCA\Libresign\Exception\NotificationPreparationException;
+use OCA\Libresign\Service\Notification\MailPayload;
+use OCA\Libresign\Service\Notification\NotificationChannel;
+use OCA\Libresign\Service\Notification\NotificationMessage;
 use OCA\Libresign\Service\NotificationDeliveryService;
 use OCP\IConfig;
 use OCP\IDBConnection;
@@ -56,6 +59,31 @@ final class NotificationDeliveryServiceTest extends TestCase {
 		$this->request->setId(23);
 	}
 
+	private function send(
+		string $eventId,
+		string $eventType,
+		File $file,
+		SignRequest $request,
+		string $recipient,
+		callable $send,
+	): bool {
+		$channel = new class(\Closure::fromCallable($send)) implements NotificationChannel {
+			public function __construct(
+				private \Closure $callback,
+			) {
+			}
+			public function supports(string $channel): bool {
+				return $channel === 'mail';
+			}
+			public function deliver(NotificationMessage $message): void {
+				($this->callback)();
+			}
+		};
+		return $this->service->dispatch(new NotificationMessage(
+			$eventId, $eventType, 'mail', $file, $request, $recipient, new MailPayload(),
+		), $channel);
+	}
+
 	private function expectFreshDelivery(): void {
 		$delivery = new NotificationDelivery();
 		$delivery->setId(31);
@@ -79,7 +107,7 @@ final class NotificationDeliveryServiceTest extends TestCase {
 		$this->db->expects($this->exactly(2))->method('beginTransaction');
 		$this->db->expects($this->exactly(2))->method('commit');
 
-		$called = $this->service->send('source-1', 'sign_request', $this->file, $this->request, 'signer@example.invalid', static function () use (&$calls): void {
+		$called = $this->send('source-1', 'sign_request', $this->file, $this->request, 'signer@example.invalid', static function () use (&$calls): void {
 			$calls[] = 'send';
 		});
 
@@ -94,7 +122,7 @@ final class NotificationDeliveryServiceTest extends TestCase {
 		$this->deliveries->method('claim')->with(31)->willReturn(false);
 		$this->attempts->expects($this->never())->method('begin');
 
-		$this->assertFalse($this->service->send(
+		$this->assertFalse($this->send(
 			'same-source', 'sign_request', $this->file, $this->request, 'signer@example.invalid',
 			static function (): void {
 				throw new \LogicException('A completed event must not send another email');
@@ -114,7 +142,7 @@ final class NotificationDeliveryServiceTest extends TestCase {
 		$this->attempts->expects($this->once())->method('finish')
 			->with(41, NotificationDeliveryState::ACCEPTED, null);
 		$sent = 0;
-		$this->assertTrue($this->service->send(
+		$this->assertTrue($this->send(
 			'same-source', 'sign_request', $this->file, $this->request, 'signer@example.invalid',
 			static function () use (&$sent): void {
 				$sent++;
@@ -130,7 +158,7 @@ final class NotificationDeliveryServiceTest extends TestCase {
 		$this->deliveries->method('claim')->willReturn(false);
 		$this->attempts->expects($this->never())->method('begin');
 
-		$this->assertFalse($this->service->send(
+		$this->assertFalse($this->send(
 			'race-1', 'sign_request', $this->file, $this->request, 'signer@example.invalid',
 			static function (): void {
 				throw new \LogicException('Lost claim must not reach SMTP');
@@ -146,7 +174,7 @@ final class NotificationDeliveryServiceTest extends TestCase {
 			->with(31, NotificationDeliveryState::FAILED);
 
 		$this->expectException(MailTransportException::class);
-		$this->service->send('failure-1', 'sign_request', $this->file, $this->request, 'signer@example.invalid',
+		$this->send('failure-1', 'sign_request', $this->file, $this->request, 'signer@example.invalid',
 			static function (): void {
 				throw new MailTransportException('Recipient rejected', NotificationDeliveryState::FAILED, 'recipient_rejected_unclassified');
 			},
@@ -161,7 +189,7 @@ final class NotificationDeliveryServiceTest extends TestCase {
 			->with(31, NotificationDeliveryState::TEMPORARY_FAILURE);
 
 		$this->expectException(NotificationPreparationException::class);
-		$this->service->send(
+		$this->send(
 			'history-failed', 'sign_request', $this->file, $this->request, 'signer@example.invalid',
 			static function (): void {
 				throw new NotificationPreparationException('history_write_failed');
@@ -177,7 +205,7 @@ final class NotificationDeliveryServiceTest extends TestCase {
 			->with(31, NotificationDeliveryState::UNKNOWN);
 
 		$this->expectException(\RuntimeException::class);
-		$this->service->send('timeout', 'sign_request', $this->file, $this->request, 'signer@example.invalid',
+		$this->send('timeout', 'sign_request', $this->file, $this->request, 'signer@example.invalid',
 			static function (): void {
 				throw new \RuntimeException('timeout after SMTP DATA');
 			},
@@ -190,7 +218,7 @@ final class NotificationDeliveryServiceTest extends TestCase {
 			->with(41, NotificationDeliveryState::UNKNOWN, 'unexpected_error');
 
 		$this->expectException(\TypeError::class);
-		$this->service->send('bug', 'sign_request', $this->file, $this->request, 'signer@example.invalid',
+		$this->send('bug', 'sign_request', $this->file, $this->request, 'signer@example.invalid',
 			static function (): void {
 				throw new \TypeError('programming error');
 			},
@@ -201,7 +229,7 @@ final class NotificationDeliveryServiceTest extends TestCase {
 		$this->db->method('inTransaction')->willReturn(true);
 		$this->deliveries->expects($this->never())->method('register');
 		$this->expectException(\LogicException::class);
-		$this->service->send('uncommitted', 'sign_request', $this->file, $this->request, 'signer@example.invalid',
+		$this->send('uncommitted', 'sign_request', $this->file, $this->request, 'signer@example.invalid',
 			static function (): void {
 				throw new \LogicException('This should not be reached');
 			},
