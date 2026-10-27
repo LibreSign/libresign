@@ -151,8 +151,7 @@ final class VisibleElementValidatorTest extends \OCA\Libresign\Tests\Unit\TestCa
 		$this->assertNull($actual);
 	}
 
-	#[DataProvider('guestProfileNodeCases')]
-	public function testValidateVisibleElementsRelationScopesGuestProfileNodeToSession(mixed $profileNodeId, bool $inSession, bool $valid): void {
+	private function configureGuestSignatureRelation(): SignRequest {
 		$signRequest = new SignRequest();
 		$signRequest->setId(47);
 		$signRequest->setFileId(22);
@@ -166,32 +165,41 @@ final class VisibleElementValidatorTest extends \OCA\Libresign\Tests\Unit\TestCa
 		$this->fileElementMapper->method('getById')->with(5)->willReturn($fileElement);
 		$this->fileElementMapper->method('getByFileIdAndSignRequestId')->with(22, 47)->willReturn([$fileElement]);
 		$this->signerElementsService->method('canCreateSignature')->willReturn(true);
-		$lookup = $this->signerElementsService->method('getElementFromSessionByNodeId');
-		if ($inSession) {
-			$lookup->with($profileNodeId)->willReturn($this->createMock(\OCP\Files\File::class));
-		} else {
-			$lookup->willThrowException(new DoesNotExistException('Element not found'));
-		}
-
-		if (!$valid) {
-			$this->expectException(LibresignException::class);
-			$this->expectExceptionMessage('Field %s does not belong to user');
-		}
-
-		$actual = $this->validator->validateVisibleElementsRelation(
-			[['documentElementId' => 5, 'profileNodeId' => $profileNodeId]],
-			$signRequest,
-			null,
-		);
-
-		$this->assertNull($actual);
+		return $signRequest;
 	}
 
-	public static function guestProfileNodeCases(): array {
+	public function testGuestCanSignWithElementFromCurrentSession(): void {
+		$this->signerElementsService->expects($this->once())
+			->method('getElementFromSessionByNodeId')
+			->with(101)
+			->willReturn($this->createMock(\OCP\Files\File::class));
+
+		$this->validator->validateVisibleElementsRelation(
+			[['documentElementId' => 5, 'profileNodeId' => 101]],
+			$this->configureGuestSignatureRelation(),
+			null,
+		);
+		$this->addToAssertionCount(1);
+	}
+
+	#[DataProvider('invalidGuestProfileNodeCases')]
+	public function testGuestCannotSignWithUnownedOrInvalidElement(mixed $profileNodeId): void {
+		$this->signerElementsService->method('getElementFromSessionByNodeId')
+			->willThrowException(new DoesNotExistException('Element not found'));
+
+		$this->expectException(LibresignException::class);
+		$this->expectExceptionMessage('Field %s does not belong to user');
+		$this->validator->validateVisibleElementsRelation(
+			[['documentElementId' => 5, 'profileNodeId' => $profileNodeId]],
+			$this->configureGuestSignatureRelation(),
+			null,
+		);
+	}
+
+	public static function invalidGuestProfileNodeCases(): array {
 		return [
-			'node in own session' => [101, true, true],
-			'node outside own session' => [102, false, false],
-			'non integer node' => ['101', true, false],
+			'node outside session' => [102],
+			'non-integer node' => ['101'],
 		];
 	}
 }

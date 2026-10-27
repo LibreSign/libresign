@@ -112,6 +112,21 @@ final class InjectionMiddlewareTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$this->userId = null;
 	}
 
+	public function testGuestSigningUuidReplacesEarlierRequestInSession(): void {
+		$this->userSession->method('getUser')->willReturn(null);
+		$this->session->method('get')->with('libresign-uuid')->willReturn('earlier-sign-request');
+		$this->session->expects($this->once())->method('set')->with('libresign-uuid', 'current-sign-request');
+
+		self::invokePrivate($this->getInjectionMiddleware(), 'maintainSessionConsistencyWithUuid', ['current-sign-request']);
+	}
+
+	public function testAuthenticatedRequestDoesNotReplaceGuestSigningUuid(): void {
+		$this->userSession->method('getUser')->willReturn($this->createMock(\OCP\IUser::class));
+		$this->session->expects($this->never())->method('set');
+
+		self::invokePrivate($this->getInjectionMiddleware(), 'maintainSessionConsistencyWithUuid', ['current-sign-request']);
+	}
+
 	public function getInjectionMiddleware(): InjectionMiddleware {
 		return new InjectionMiddleware(
 			$this->request,
