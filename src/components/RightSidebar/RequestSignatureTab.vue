@@ -312,6 +312,15 @@
 			:size="size"
 			:name="modalTitle"
 			@closing="filesStore.disableIdentifySigner()">
+			<NcButton v-if="participantRoleToAdd === PARTICIPANT_ROLE.SIGNER && canIncludeMyself"
+				:disabled="hasLoading"
+				variant="secondary"
+				@click="includeMyself">
+				<template #icon>
+					<NcIconSvgWrapper :path="mdiAccountCheck" :size="20" />
+				</template>
+				{{ t('libresign', 'Include myself as signer') }}
+			</NcButton>
 			<NcAppSidebar :name="modalTitle"
 				:active="activeTab"
 				@update:active="onTabChange">
@@ -463,6 +472,7 @@ import { computed, onBeforeUnmount, onMounted, ref, unref, watch } from 'vue'
 import debounce from 'debounce'
 
 import {
+	mdiAccountCheck,
 	mdiAccountPlus,
 	mdiBell,
 	mdiChartGantt,
@@ -831,6 +841,15 @@ const showViewOrderButton = computed(() => !isOriginalFileDeleted.value && isCur
 const shouldShowOrderedOptions = computed(() => isOrderedNumeric.value && signingParticipantCount.value > 1)
 const showSignatureFlowPreferenceClearedNotice = computed(() => signatureFlowPolicy.value?.preferenceWasCleared ?? false)
 const currentUserDisplayName = computed(() => getCurrentUser()?.displayName || '')
+const canIncludeMyself = computed(() => {
+	const user = getCurrentUser()
+	if (!user?.uid || !enabledMethods.value.some(method => method.name === 'account')) {
+		return false
+	}
+	const signers = filesStore.getFile()?.signers ?? []
+	return !signers.some(signer => isSigningParticipant(signer)
+		&& signer.identifyMethods?.some(method => method.method === 'account' && method.value === user.uid))
+})
 const showDocMdpWarning = computed(() => filesStore.isDocMdpNoChangesAllowed() && !filesStore.canAddSigner())
 const fileName = computed(() => filesStore.getSelectedFileView()?.name ?? '')
 const isEnvelope = computed(() => filesStore.getFile()?.nodeType === 'envelope')
@@ -1539,6 +1558,40 @@ function validationFile() {
 	sidebarStore.hideSidebar()
 }
 
+async function includeMyself(): Promise<void> {
+	if (!filesStore.canAddSigner() || !canIncludeMyself.value || hasLoading.value) {
+		return
+	}
+	const user = getCurrentUser()
+	if (!user?.uid) {
+		return
+	}
+	// Reuse the ordinary request persistence and backend authorization checks.
+	const file = filesStore.getFile()
+	const signers = [...(file?.signers ?? [])] as EditableRequestSigner[]
+	signers.push({
+		displayName: (user.displayName || user.uid).slice(0, 64),
+		description: '',
+		participantRole: PARTICIPANT_ROLE.SIGNER,
+		status: SIGN_REQUEST_STATUS.DRAFT,
+		statusText: getSignRequestStatusText(SIGN_REQUEST_STATUS.DRAFT),
+		identifyMethods: [{ method: 'account', value: user.uid, requirement: 'optional' }],
+	})
+	hasLoading.value = true
+	try {
+		const response = await filesStore.saveOrUpdateSignatureRequest({ signers })
+		if (isSaveSignatureRequestFailure(response)) {
+			showSaveSignatureRequestFailure(response, t('libresign', 'Failed to add signer'))
+			return
+		}
+		filesStore.disableIdentifySigner()
+	} catch (error) {
+		showRequestError(error, t('libresign', 'Failed to add signer'))
+	} finally {
+		hasLoading.value = false
+	}
+}
+
 function addParticipant(role: ParticipantRole) {
 	participantRoleToAdd.value = role
 	signerToEdit.value = {}
@@ -2071,6 +2124,8 @@ defineExpose({
 	showViewOrderButton,
 	shouldShowOrderedOptions,
 	currentUserDisplayName,
+	canIncludeMyself,
+	includeMyself,
 	showDocMdpWarning,
 	isOriginalFileDeleted,
 	canEditSigningOrder,

@@ -10,6 +10,7 @@ import { createPinia, setActivePinia } from 'pinia'
 import axios from '@nextcloud/axios'
 import { emit } from '@nextcloud/event-bus'
 import { loadState } from '@nextcloud/initial-state'
+import { getCurrentUser } from '@nextcloud/auth'
 import type { useFilesStore as useFilesStoreType } from '../../../store/files.js'
 import { usePoliciesStore } from '../../../store/policies'
 import RequestSignatureTab from '../../../components/RightSidebar/RequestSignatureTab.vue'
@@ -90,6 +91,10 @@ vi.mock('@nextcloud/capabilities', () => ({
 			},
 		},
 	})),
+}))
+
+vi.mock('@nextcloud/auth', () => ({
+	getCurrentUser: vi.fn(() => ({ uid: 'admin', displayName: 'Administrator' })),
 }))
 
 vi.mock('@nextcloud/event-bus', () => ({
@@ -327,6 +332,40 @@ describe('RequestSignatureTab - Critical Business Rules', () => {
 	afterEach(() => {
 		wrapper.unmount()
 		vi.restoreAllMocks()
+	})
+
+	describe('RULE: include the current user without selecting an account', () => {
+		it('shows the shortcut only for an enabled account method', async () => {
+			await updateMethods([{ name: 'email', enabled: true }])
+			expect(wrapper.vm.canIncludeMyself).toBe(false)
+			await updateMethods([{ name: 'account', enabled: true }])
+			expect(wrapper.vm.canIncludeMyself).toBe(true)
+		})
+
+		it('hides the shortcut when the current user is already a signer', async () => {
+			await updateMethods([{ name: 'account', enabled: true }])
+			await updateFile({
+				signers: [{
+					displayName: 'Administrator',
+					participantRole: PARTICIPANT_ROLE.SIGNER,
+					identifyMethods: [{ method: 'account', value: 'admin' }],
+				}],
+			})
+			expect(wrapper.vm.canIncludeMyself).toBe(false)
+		})
+
+		it('persists an ordinary draft signer without bypassing the signing flow', async () => {
+			await updateMethods([{ name: 'account', enabled: true }])
+			const save = vi.spyOn(filesStore, 'saveOrUpdateSignatureRequest').mockResolvedValue({ success: true } as never)
+			await wrapper.vm.includeMyself()
+			expect(save).toHaveBeenCalledOnce()
+			const payload = save.mock.calls[0]?.[0]
+			expect(payload?.signers).toEqual([expect.objectContaining({
+				status: SIGN_REQUEST_STATUS.DRAFT,
+				participantRole: PARTICIPANT_ROLE.SIGNER,
+				identifyMethods: [{ method: 'account', value: 'admin', requirement: 'optional' }],
+			})])
+		})
 	})
 
 	describe('RULE: showDocMdpWarning when DocMDP level prevents changes', () => {
