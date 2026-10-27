@@ -44,6 +44,7 @@ class SignerRemovalService {
 		private IL10N $l10n,
 		private IDBConnection $db,
 		private LoggerInterface $logger,
+		private NotificationDeliveryService $notificationDelivery,
 	) {
 	}
 
@@ -51,7 +52,7 @@ class SignerRemovalService {
 		$changes = new RemovalChanges();
 		try {
 			$this->atomic(
-				fn () => $this->persistRemoval($fileId, $signRequestId, $changes),
+				fn () => $this->persistRemoval($fileId, $signRequestId, $changes, $notify),
 				$this->db,
 			);
 		} finally {
@@ -59,15 +60,13 @@ class SignerRemovalService {
 			$this->invalidateCaches($changes);
 		}
 
+		// The cancellation outbox is already committed. Delivery is never
+		// attempted while the removed signer still holds a database lock.
+		$this->notificationDelivery->flushCommitted();
 		$this->sequentialSigningService->notifyActivatedSigners($changes->activatedSigners);
-		if ($notify && $changes->file !== null && $changes->signRequest !== null
-			&& $changes->signRequest->getStatus() === SignRequestStatus::ABLE_TO_SIGN->value
-		) {
-			$this->notifyCancellation($changes->file, $changes->signRequest, $changes->identifyMethods);
-		}
 	}
 
-	private function persistRemoval(int $fileId, int $signRequestId, RemovalChanges $changes): void {
+	private function persistRemoval(int $fileId, int $signRequestId, RemovalChanges $changes, bool $notify): void {
 		$targets = $this->getRemovalTargets($fileId, $signRequestId);
 		[$changes->file, $changes->signRequest] = $targets[0];
 		$changes->identifyMethods = $this->identifyMethodService->getIdentifyMethodsFromSignRequestId($signRequestId);
@@ -80,6 +79,13 @@ class SignerRemovalService {
 				$parent = $this->fileMapper->getById($file->getParentFileId());
 				$changes->files[$parent->getId()] = $parent;
 			}
+		}
+
+		// Persist cancellation intents in the same transaction as signer removal.
+		// The sender uses an encrypted snapshot after the signer's rows are gone.
+		if ($notify && $changes->file !== null && $changes->signRequest !== null
+			&& $changes->signRequest->getStatus() === SignRequestStatus::ABLE_TO_SIGN->value) {
+			$this->notifyCancellation($changes->file, $changes->signRequest, $changes->identifyMethods);
 		}
 
 		foreach ($targets as [$file, $signRequest]) {
@@ -219,14 +225,9 @@ class SignerRemovalService {
 	private function notifyCancellation(FileEntity $file, SignRequestEntity $signRequest, array $identifyMethods): void {
 		foreach ($identifyMethods as $group) {
 			foreach ($group as $identifyMethod) {
-				try {
-					$this->eventDispatcher->dispatchTyped(new SignRequestCanceledEvent($signRequest, $file, $identifyMethod));
-				} catch (\Exception $e) {
-					$this->logger->error('Unable to dispatch signer cancellation notification', [
-						'exception' => $e,
-						'signRequestId' => $signRequest->getId(),
-					]);
-				}
+				// A registration failure must abort deletion: silently dropping
+				// the intent here would violate the transactional outbox contract.
+				$this->eventDispatcher->dispatchTyped(new SignRequestCanceledEvent($signRequest, $file, $identifyMethod));
 			}
 		}
 	}

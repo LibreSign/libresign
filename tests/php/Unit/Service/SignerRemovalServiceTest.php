@@ -65,6 +65,7 @@ final class SignerRemovalServiceTest extends TestCase {
 			$l10n,
 			$this->db,
 			$this->logger,
+			$this->createMock(\OCA\Libresign\Service\NotificationDeliveryService::class),
 		);
 	}
 
@@ -224,13 +225,29 @@ final class SignerRemovalServiceTest extends TestCase {
 		});
 		$this->events->expects($this->once())->method('dispatchTyped')
 			->willReturnCallback(function ($event) use (&$committed): void {
-				$this->assertTrue($committed, 'Cancellation must only be published after commit');
+				$this->assertFalse($committed, 'Cancellation intent must be persisted before commit');
 				$this->assertInstanceOf(SignRequestCanceledEvent::class, $event);
 			});
 
 		$this->service->remove(5, 9);
 
 		$this->assertTrue($committed);
+	}
+
+	public function testFailedCancellationIntentRollsBackBeforeSignerDeletion(): void {
+		$file = $this->file();
+		$signer = $this->signer();
+		$identify = $this->createMock(IIdentifyMethod::class);
+		$this->givenSigner($file, $signer, ['account' => [$identify]]);
+		$this->requests->expects($this->never())->method('deleteIfUnsigned');
+		$this->db->expects($this->once())->method('rollBack');
+		$this->db->expects($this->never())->method('commit');
+		$this->events->method('dispatchTyped')->willThrowException(
+			new \LogicException('Unable to persist cancellation outbox'),
+		);
+
+		$this->expectException(\LogicException::class);
+		$this->service->remove(5, 9);
 	}
 
 	public function testCacheFailureDoesNotObscureCommittedRemovalOrSkipNotification(): void {

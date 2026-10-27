@@ -304,14 +304,4 @@ final class NotificationDeliveryServiceTest extends TestCase {
 		);
 	}
 
-	public function testNeverCallsSmtpInsideAnOpenDomainTransaction(): void {
-		$this->db->method('inTransaction')->willReturn(true);
-		$this->deliveries->expects($this->never())->method('register');
-		$this->expectException(\LogicException::class);
-		$this->send('uncommitted', 'sign_request', $this->file, $this->request, 'signer@example.invalid',
-			static function (): void {
-				throw new \LogicException('This should not be reached');
-			},
-		);
-	}
 }

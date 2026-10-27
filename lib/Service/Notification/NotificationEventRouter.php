@@ -14,6 +14,7 @@ use OCA\Libresign\Exception\LibresignException;
 use OCA\Libresign\Exception\NotificationTransportException;
 use OCP\EventDispatcher\Event;
 use OCP\EventDispatcher\IEventListener;
+use OCP\IDBConnection;
 use Psr\Log\LoggerInterface;
 
 /**
@@ -31,7 +32,7 @@ final class NotificationEventRouter implements IEventListener {
 	 *
 	 * @param list<NotificationModule> $modules
 	 */
-	public static function fromModules(array $modules, LoggerInterface $logger): self {
+	public static function fromModules(array $modules, LoggerInterface $logger, ?IDBConnection $db = null): self {
 		$handlers = [];
 		foreach ($modules as $module) {
 			foreach ($module::supportedEvents() as $eventClass) {
@@ -41,13 +42,14 @@ final class NotificationEventRouter implements IEventListener {
 				$handlers[$eventClass][] = $module;
 			}
 		}
-		return new self($handlers, $logger);
+		return new self($handlers, $logger, $db);
 	}
 
 	/** @param array<class-string<Event>, list<IEventListener<Event>>> $handlersByEvent */
 	public function __construct(
 		private array $handlersByEvent,
 		private LoggerInterface $logger,
+		private ?IDBConnection $db = null,
 	) {
 	}
 
@@ -68,6 +70,13 @@ final class NotificationEventRouter implements IEventListener {
 					'exceptionType' => get_debug_type($exception),
 				]);
 			}
+		}
+
+		// A domain mutation may commit only when every intended channel has
+		// been durably recorded. An ordinary channel failure cannot be ignored
+		// while the database transaction is still open.
+		if ($firstFailure !== null && $this->db?->inTransaction()) {
+			throw new \LogicException('Unable to register notifications atomically', 0, $firstFailure);
 		}
 
 		// Do not mask invariant violations as an ordinary transport problem.

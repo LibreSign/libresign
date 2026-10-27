@@ -103,6 +103,22 @@ final class NotificationEventRouterTest extends TestCase {
 		$this->assertSame(['mail', 'gateway'], $calls);
 	}
 
+	public function testTransactionalChannelRegistrationFailureIsFatal(): void {
+		$first = $this->createMock(IEventListener::class);
+		$first->method('handle')->willThrowException(new \RuntimeException('synthetic outbox write failure'));
+		$second = $this->createMock(IEventListener::class);
+		$second->expects($this->once())->method('handle');
+		$db = $this->createMock(\OCP\IDBConnection::class);
+		$db->method('inTransaction')->willReturn(true);
+		$router = new NotificationEventRouter(
+			[SendSignNotificationEvent::class => [$first, $second]],
+			$this->createMock(LoggerInterface::class),
+			$db,
+		);
+		$this->expectException(\LogicException::class);
+		$router->handle($this->event('sign-request-write:atomic'));
+	}
+
 	public function testManualPartialFailureIsReportedAfterOtherChannelsRun(): void {
 		$gatewayCalled = false;
 		$mail = $this->createMock(IEventListener::class);

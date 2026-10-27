@@ -22,8 +22,8 @@ use PHPUnit\Framework\TestCase;
 final class NotificationEnvelopeCodecTest extends TestCase {
 	private function codec(): NotificationEnvelopeCodec {
 		$crypto = $this->createMock(ICrypto::class);
-		$crypto->method('encrypt')->willReturnCallback(static fn (string $plain): string => 'sealed:' . $plain);
-		$crypto->method('decrypt')->willReturnCallback(static fn (string $sealed): string => substr($sealed, 7));
+		$crypto->method('encrypt')->willReturnCallback(static fn (string $plain): string => 'sealed:' . base64_encode($plain));
+		$crypto->method('decrypt')->willReturnCallback(static fn (string $sealed): string => base64_decode(substr($sealed, 7), true));
 		return new NotificationEnvelopeCodec($crypto, $this->createMock(IManager::class));
 	}
 
@@ -61,7 +61,7 @@ final class NotificationEnvelopeCodecTest extends TestCase {
 		$delivery->setSignRequestId(42);
 		$delivery->setEventType('sign_request');
 		$delivery->setChannel('mail');
-		$delivery->setRecipientEnc('sealed:signer@example.invalid');
+		$delivery->setRecipientEnc('sealed:' . base64_encode('signer@example.invalid'));
 		$delivery->setMessageEnc($encrypted);
 		$restored = $codec->decode($delivery);
 
@@ -81,7 +81,7 @@ final class NotificationEnvelopeCodecTest extends TestCase {
 		$delivery->setSignRequestId(42);
 		$delivery->setEventType('sign_request');
 		$delivery->setChannel('mail');
-		$delivery->setRecipientEnc('sealed:signer@example.invalid');
+		$delivery->setRecipientEnc('sealed:' . base64_encode('signer@example.invalid'));
 		$delivery->setMessageEnc($this->codec()->encode($message));
 
 		$this->expectException(\UnexpectedValueException::class);
@@ -105,7 +105,7 @@ final class NotificationEnvelopeCodecTest extends TestCase {
 		$delivery->setSignRequestId(42);
 		$delivery->setEventType('sign_request');
 		$delivery->setChannel('gateway:sms');
-		$delivery->setRecipientEnc('sealed:5550000');
+		$delivery->setRecipientEnc('sealed:' . base64_encode('5550000'));
 		$delivery->setMessageEnc($this->codec()->encode($gateway));
 
 		$restored = $this->codec()->decode($delivery);

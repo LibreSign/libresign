@@ -90,6 +90,7 @@ class Application extends App implements IBootstrap {
 		$context->registerService(NotificationEventRouter::class, static fn (ContainerInterface $container): NotificationEventRouter => NotificationEventRouter::fromModules(
 			$container->get(NotificationModuleCatalog::class)->all(),
 			$container->get(LoggerInterface::class),
+			$container->get(\OCP\IDBConnection::class),
 		));
 		// Certificate revocation is part of the signing lifecycle. Do not
 		// postpone it until external transports have returned.
