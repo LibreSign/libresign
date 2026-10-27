@@ -16,6 +16,10 @@ use OCA\Libresign\Events\SendSignNotificationEvent;
 use OCA\Libresign\Events\SignedEvent;
 use OCA\Libresign\Listener\NotificationListener;
 use OCA\Libresign\Service\IdentifyMethod\IIdentifyMethod;
+use OCA\Libresign\Service\Notification\InAppChannel;
+use OCA\Libresign\Service\Notification\NotificationChannel;
+use OCA\Libresign\Service\Notification\NotificationMessage;
+use OCA\Libresign\Service\NotificationDeliveryService;
 use OCA\Libresign\Service\NotificationPreferenceResolver;
 use OCP\AppFramework\Utility\ITimeFactory;
 use OCP\Files\File;
@@ -67,13 +71,21 @@ class NotificationListenerTest extends TestCase {
 				return 'https://example.test/fallback';
 			});
 
+		$delivery = $this->createMock(NotificationDeliveryService::class);
+		$delivery->method('dispatch')->willReturnCallback(
+			static function (NotificationMessage $message, NotificationChannel $channel): bool {
+				$channel->deliver($message);
+				return true;
+			},
+		);
 		$this->listener = new NotificationListener(
 			$this->notificationManager,
 			$this->userSession,
 			$timeFactory,
 			$this->urlGenerator,
-			$this->signRequestMapper,
 			$this->notificationPreferenceResolver,
+			$delivery,
+			new InAppChannel($this->notificationManager, $this->signRequestMapper),
 		);
 	}
 
