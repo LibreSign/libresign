@@ -124,6 +124,30 @@ class MailNotifyListenerTest extends TestCase {
 		));
 	}
 
+	public function testMissingAccountIsSkippedWithoutFailingNotificationDispatch(): void {
+		$request = new SignRequest();
+		$request->setId(77);
+		$request->setUuid('synthetic-request');
+
+		$identifyEntity = new IdentifyMethodEntity();
+		$identifyEntity->setIdentifierKey('account');
+		$identifyEntity->setIdentifierValue('deleted-local-user');
+
+		$method = $this->createMock(IIdentifyMethod::class);
+		$method->method('getName')->willReturn('account');
+		$method->method('getEntity')->willReturn($identifyEntity);
+		$this->userManager->method('get')->with('deleted-local-user')->willReturn(null);
+		$this->mailService->expects($this->never())->method('notifyUnsignedUser');
+		$this->mailService->expects($this->never())->method('notifySignDataUpdated');
+
+		$this->listener->handle(new SendSignNotificationEvent(
+			$request,
+			new FileEntity(),
+			$method,
+		));
+		$this->addToAssertionCount(1);
+	}
+
 	private function createSignedEvent(IUser $owner): SignedEvent {
 		$signRequest = new SignRequest();
 		$signRequest->setId(42);

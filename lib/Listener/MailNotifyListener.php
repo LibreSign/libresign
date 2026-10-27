@@ -82,9 +82,7 @@ class MailNotifyListener implements IEventListener {
 			$email = '';
 			if ($identifyMethod->getName() === 'account') {
 				$userId = $identifyMethod->getEntity()->getIdentifierValue();
-				$email = $this->userManager
-					->get($userId)
-					->getEMailAddress();
+				$email = $this->userManager->get($userId)?->getEMailAddress() ?? '';
 			} elseif ($identifyMethod->getName() === 'email') {
 				$email = $identifyMethod->getEntity()->getIdentifierValue();
 			}
