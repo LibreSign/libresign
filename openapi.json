@@ -1717,6 +1717,46 @@
                     }
                 }
             },
+            "NotificationStatusResponse": {
+                "type": "object",
+                "required": [
+                    "status",
+                    "complete",
+                    "channels"
+                ],
+                "properties": {
+                    "status": {
+                        "type": "string",
+                        "enum": [
+                            "processing",
+                            "completed",
+                            "attention_required",
+                            "not_found"
+                        ]
+                    },
+                    "complete": {
+                        "type": "boolean"
+                    },
+                    "channels": {
+                        "type": "array",
+                        "items": {
+                            "type": "object",
+                            "required": [
+                                "channel",
+                                "state"
+                            ],
+                            "properties": {
+                                "channel": {
+                                    "type": "string"
+                                },
+                                "state": {
+                                    "type": "string"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
             "Notify": {
                 "type": "object",
                 "required": [
@@ -7959,6 +7999,11 @@
                                         "type": "integer",
                                         "format": "int64",
                                         "description": "The sign request id"
+                                    },
+                                    "requestId": {
+                                        "type": "string",
+                                        "nullable": true,
+                                        "description": "Optional random idempotency key (32 lowercase hex characters)"
                                     }
                                 }
                             }
@@ -8109,6 +8154,108 @@
                                                 },
                                                 "data": {
                                                     "$ref": "#/components/schemas/DangerMessagesResponse"
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/ocs/v2.php/apps/libresign/api/{apiVersion}/notify/status": {
+            "get": {
+                "operationId": "notify-status",
+                "summary": "Read the status of one manual reminder, including each channel.",
+                "tags": [
+                    "notify"
+                ],
+                "security": [
+                    {
+                        "bearer_auth": []
+                    },
+                    {
+                        "basic_auth": []
+                    }
+                ],
+                "parameters": [
+                    {
+                        "name": "apiVersion",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "enum": [
+                                "v1"
+                            ],
+                            "default": "v1"
+                        }
+                    },
+                    {
+                        "name": "fileId",
+                        "in": "query",
+                        "description": "The LibreSign file ID",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "format": "int64"
+                        }
+                    },
+                    {
+                        "name": "signRequestId",
+                        "in": "query",
+                        "description": "The sign request ID",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "format": "int64"
+                        }
+                    },
+                    {
+                        "name": "requestId",
+                        "in": "query",
+                        "description": "The random idempotency key used in the POST request",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "OCS-APIRequest",
+                        "in": "header",
+                        "description": "Required to be true for the API request to pass",
+                        "required": true,
+                        "schema": {
+                            "type": "boolean",
+                            "default": true
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Current notification states",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "required": [
+                                        "ocs"
+                                    ],
+                                    "properties": {
+                                        "ocs": {
+                                            "type": "object",
+                                            "required": [
+                                                "meta",
+                                                "data"
+                                            ],
+                                            "properties": {
+                                                "meta": {
+                                                    "$ref": "#/components/schemas/OCSMeta"
+                                                },
+                                                "data": {
+                                                    "$ref": "#/components/schemas/NotificationStatusResponse"
                                                 }
                                             }
                                         }
