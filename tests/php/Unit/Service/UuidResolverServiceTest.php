@@ -13,7 +13,9 @@ use OCA\Libresign\Db\IdDocs;
 use OCA\Libresign\Db\IdDocsMapper;
 use OCA\Libresign\Db\SignRequest;
 use OCA\Libresign\Enum\FileStatus;
+use OCA\Libresign\Exception\IdDocAccessDeniedException;
 use OCA\Libresign\Exception\LibresignException;
+use OCA\Libresign\Exception\NotAnIdDocException;
 use OCA\Libresign\Service\IdDocsPolicyService;
 use OCA\Libresign\Service\SignFileService;
 use OCA\Libresign\Service\UuidResolverService;
@@ -109,7 +111,6 @@ final class UuidResolverServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	public function testResolveUuidForUserThrowsWhenNotAuthorizedForIdDoc(
 		bool $hasUser,
 		bool $canApprove,
-		string $expectedMessage,
 	): void {
 		$uuid = 'file-uuid';
 		$user = $hasUser ? $this->createMock(IUser::class) : null;
@@ -138,8 +139,7 @@ final class UuidResolverServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 				->willReturn($canApprove);
 		}
 
-		$this->expectException(LibresignException::class);
-		$this->expectExceptionMessage($expectedMessage);
+		$this->expectException(IdDocAccessDeniedException::class);
 
 		$this->getService()->resolveUuidForUser($uuid, $user);
 	}
@@ -149,12 +149,10 @@ final class UuidResolverServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			'no user provided' => [
 				'hasUser' => false,
 				'canApprove' => false,
-				'expectedMessage' => 'User is not authorized to access this identification document',
 			],
 			'user cannot approve' => [
 				'hasUser' => true,
 				'canApprove' => false,
-				'expectedMessage' => 'User is not authorized to access this identification document',
 			],
 		];
 	}
@@ -178,8 +176,7 @@ final class UuidResolverServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			->method('getByFileId')
 			->willThrowException(new DoesNotExistException(''));
 
-		$this->expectException(LibresignException::class);
-		$this->expectExceptionMessage('File is not an identification document');
+		$this->expectException(NotAnIdDocException::class);
 
 		$this->getService()->resolveUuidForUser($uuid, $user);
 	}
@@ -196,10 +193,36 @@ final class UuidResolverServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			->method('getFileByUuid')
 			->willThrowException(new DoesNotExistException(''));
 
-		$this->expectException(LibresignException::class);
-		$this->expectExceptionMessage('Invalid UUID');
+		try {
+			$this->getService()->resolveUuidForUser($uuid, $user);
+			$this->fail('Expected LibresignException was not thrown');
+		} catch (LibresignException $e) {
+			$this->assertNotInstanceOf(IdDocAccessDeniedException::class, $e);
+			$this->assertNotInstanceOf(NotAnIdDocException::class, $e);
+			$this->assertSame('Invalid UUID', $e->getMessage());
+		}
+	}
 
-		$this->getService()->resolveUuidForUser($uuid, $user);
+	public function testResolveUuidForUserDoesNotRethrowPlainExceptionWithIdDocMessage(): void {
+		$uuid = 'file-uuid';
+		$user = $this->createMock(IUser::class);
+		$original = new LibresignException('File is not an identification document');
+
+		$this->signFileService
+			->method('getSignRequestByUuid')
+			->willThrowException(new DoesNotExistException(''));
+
+		$this->signFileService
+			->method('getFileByUuid')
+			->willThrowException($original);
+
+		try {
+			$this->getService()->resolveUuidForUser($uuid, $user);
+			$this->fail('Expected LibresignException was not thrown');
+		} catch (LibresignException $e) {
+			$this->assertNotSame($original, $e);
+			$this->assertSame('Invalid UUID', $e->getMessage());
+		}
 	}
 
 	public function testResolveUuidPrioritizesSignRequestOverFileUuid(): void {
