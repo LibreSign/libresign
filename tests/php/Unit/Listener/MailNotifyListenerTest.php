@@ -20,6 +20,7 @@ use OCA\Libresign\Service\IdentifyMethod\IIdentifyMethod;
 use OCA\Libresign\Service\MailService;
 use OCA\Libresign\Service\Notification\MailChannel;
 use OCA\Libresign\Service\Notification\NotificationChannel;
+use OCA\Libresign\Service\Notification\NotificationHistoryService;
 use OCA\Libresign\Service\Notification\NotificationMessage;
 use OCA\Libresign\Service\NotificationDeliveryService;
 use OCA\Libresign\Service\NotificationPreferenceResolver;
@@ -46,6 +47,7 @@ class MailNotifyListenerTest extends TestCase {
 		$userSession = $this->createMock(IUserSession::class);
 		$identifyService = $this->createMock(IdentifyService::class);
 		$this->signRequestMapper = $this->createMock(SignRequestMapper::class);
+		$this->signRequestMapper->method('getByIdUncached')->willReturn(new SignRequest());
 		$logger = $this->createMock(LoggerInterface::class);
 		$delivery = $this->createMock(NotificationDeliveryService::class);
 		$delivery->method('dispatch')->willReturnCallback(
@@ -59,10 +61,11 @@ class MailNotifyListenerTest extends TestCase {
 			$userSession,
 			$this->userManager,
 			$identifyService,
-			new MailChannel($this->mailService, $this->signRequestMapper),
+			new MailChannel($this->mailService),
 			$logger,
 			$this->notificationPreferenceResolver,
 			$delivery,
+			new NotificationHistoryService($this->signRequestMapper),
 		);
 	}
 
@@ -111,10 +114,8 @@ class MailNotifyListenerTest extends TestCase {
 		$identifyMethod->method('getEntity')->willReturn($identifyEntity);
 
 		$this->userManager->method('getByEmail')->with('observer@example.com')->willReturn([]);
-		$this->signRequestMapper->expects($this->once())
-			->method('incrementNotificationCounter')
-			->with($signRequest, 'mail')
-			->willReturn(true);
+		// Legacy history is written by the submission service after acceptance.
+		$this->signRequestMapper->expects($this->never())->method('incrementNotificationCounter');
 		$this->mailService->expects($this->once())
 			->method('notifyUnsignedUser')
 			->with($signRequest, 'observer@example.com', 'Please review the annex');

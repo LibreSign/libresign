@@ -18,6 +18,7 @@ use OCA\Libresign\Listener\NotificationListener;
 use OCA\Libresign\Service\IdentifyMethod\IIdentifyMethod;
 use OCA\Libresign\Service\Notification\InAppChannel;
 use OCA\Libresign\Service\Notification\NotificationChannel;
+use OCA\Libresign\Service\Notification\NotificationHistoryService;
 use OCA\Libresign\Service\Notification\NotificationMessage;
 use OCA\Libresign\Service\NotificationDeliveryService;
 use OCA\Libresign\Service\NotificationPreferenceResolver;
@@ -48,6 +49,7 @@ class NotificationListenerTest extends TestCase {
 		$this->urlGenerator = $this->createMock(IURLGenerator::class);
 		$this->userSession = $this->createMock(IUserSession::class);
 		$this->signRequestMapper = $this->createMock(SignRequestMapper::class);
+		$this->signRequestMapper->method('getByIdUncached')->willReturn(new SignRequest());
 		$this->notification->method('setApp')->willReturnSelf();
 		$this->notification->method('setObject')->willReturnSelf();
 		$this->notification->method('setDateTime')->willReturnSelf();
@@ -85,7 +87,8 @@ class NotificationListenerTest extends TestCase {
 			$this->urlGenerator,
 			$this->notificationPreferenceResolver,
 			$delivery,
-			new InAppChannel($this->notificationManager, $this->signRequestMapper),
+			new InAppChannel($this->notificationManager),
+			new NotificationHistoryService($this->signRequestMapper),
 		);
 	}
 
@@ -127,9 +130,8 @@ class NotificationListenerTest extends TestCase {
 			->with('observer1', SendSignNotificationEvent::FILE_TO_SIGN, true)
 			->willReturn(false);
 
-		$this->signRequestMapper->expects($this->once())
-			->method('incrementNotificationCounter')
-			->willReturn(true);
+		// This listener prepares content without writing legacy history.
+		$this->signRequestMapper->expects($this->never())->method('incrementNotificationCounter');
 
 		$capturedSubjectParams = null;
 		$this->notification->expects($this->once())

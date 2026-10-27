@@ -16,7 +16,9 @@ use OCA\Libresign\Events\SendSignNotificationEvent;
 use OCA\Libresign\Listener\TwofactorGatewayListener;
 use OCA\Libresign\Service\IdentifyMethod\IIdentifyMethod;
 use OCA\Libresign\Service\Notification\GatewayChannel;
+use OCA\Libresign\Service\Notification\GatewayNotificationComposer;
 use OCA\Libresign\Service\Notification\NotificationChannel;
+use OCA\Libresign\Service\Notification\NotificationHistoryService;
 use OCA\Libresign\Service\Notification\NotificationMessage;
 use OCA\Libresign\Service\NotificationDeliveryService;
 use OCA\Libresign\Service\TwofactorGatewayService;
@@ -45,11 +47,15 @@ final class TwofactorGatewayListenerTest extends TestCase {
 				return true;
 			},
 		);
+		$mapper = $this->createMock(SignRequestMapper::class);
+		$mapper->method('getByIdUncached')->willReturn(new SignRequest());
 		$listener = new TwofactorGatewayListener(
-			$gatewayService, $delivery, new GatewayChannel(
-				$gatewayService, $this->createMock(SignRequestMapper::class),
+			$gatewayService, $delivery, new GatewayChannel($gatewayService),
+			new GatewayNotificationComposer(
+				new NotificationHistoryService($mapper),
 				$this->createMock(IL10N::class), $this->createMock(IURLGenerator::class),
-			), $this->createMock(LoggerInterface::class),
+			),
+			$this->createMock(LoggerInterface::class),
 		);
 		$entity = new IdentifyMethod();
 		$entity->setIdentifierKey('sms');
@@ -63,5 +69,39 @@ final class TwofactorGatewayListenerTest extends TestCase {
 		$file->setId(33);
 		$file->setUuid('synthetic-file');
 		$listener->handle(new SendSignNotificationEvent($request, $file, $method));
+	}
+
+	public function testManualGatewayFailurePropagatesSanitizedUnknownResult(): void {
+		$appManager = $this->createMock(IAppManager::class);
+		$appManager->method('isEnabledForAnyone')->willReturn(true);
+		$gatewayService = new TwofactorGatewayService(
+			$this->createMock(ContainerInterface::class), $appManager, $this->createMock(LoggerInterface::class),
+		);
+		$delivery = $this->createMock(NotificationDeliveryService::class);
+		$delivery->method('dispatch')->willThrowException(new \RuntimeException('secret gateway failure'));
+		$mapper = $this->createMock(SignRequestMapper::class);
+		$mapper->method('getByIdUncached')->willReturn(new SignRequest());
+		$listener = new TwofactorGatewayListener(
+			$gatewayService, $delivery, new GatewayChannel($gatewayService),
+			new GatewayNotificationComposer(
+				new NotificationHistoryService($mapper),
+				$this->createMock(IL10N::class), $this->createMock(IURLGenerator::class),
+			),
+			$this->createMock(LoggerInterface::class),
+		);
+		$entity = new IdentifyMethod();
+		$entity->setIdentifierKey('sms');
+		$entity->setIdentifierValue('5550000000');
+		$method = $this->createMock(IIdentifyMethod::class);
+		$method->method('getEntity')->willReturn($entity);
+		$request = new SignRequest();
+		$request->setId(44);
+		$request->setUuid('synthetic-request');
+		$file = new File();
+		$file->setId(33);
+		$file->setUuid('synthetic-file');
+
+		$this->expectException(\OCA\Libresign\Exception\NotificationTransportException::class);
+		$listener->handle(new SendSignNotificationEvent($request, $file, $method, 'manual:test-event'));
 	}
 }
