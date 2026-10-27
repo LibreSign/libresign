@@ -12,6 +12,8 @@ final readonly class GatewayPayload implements NotificationPayload {
 	public function __construct(
 		public string $gatewayName,
 		public string $body,
+		/** @var array<string, mixed> Provider-independent structured delivery options. */
+		public array $extra = [],
 	) {
 	}
 }

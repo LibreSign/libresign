@@ -71,8 +71,12 @@ final class TwofactorGatewayService {
 	/**
 	 * @throws LibresignException
 	 */
-	public function send(string $gatewayName, string $identifier, string $message): void {
-		$this->callIntegrationMethod('send', [$gatewayName, $identifier, $message]);
+	public function send(string $gatewayName, string $identifier, string $message, array $extra = []): void {
+		$arguments = [$gatewayName, $identifier, $message];
+		if ($extra !== []) {
+			$arguments[] = $extra;
+		}
+		$this->callIntegrationMethod('send', $arguments);
 	}
 
 	/**

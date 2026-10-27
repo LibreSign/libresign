@@ -159,6 +159,20 @@ final class TwofactorGatewayServiceTest extends TestCase {
 		], $integrationService->sentMessages);
 	}
 
+	public function testSendForwardsStructuredOptionsWithoutChangingOtherGateways(): void {
+		$this->appManager->method('isEnabledForAnyone')->willReturn(true);
+		$integration = new class {
+			public array $received = [];
+			public function send(string $gateway, string $recipient, string $message, array $extra = []): void {
+				$this->received = [$gateway, $recipient, $message, $extra];
+			}
+		};
+		$this->container->method('get')->willReturn($integration);
+		$extra = ['body_parameters' => ['Synthetic name', 'Synthetic link']];
+		$this->createService()->send('whatsappbusiness', '5511999990000', 'Fallback', $extra);
+		self::assertSame(['whatsappbusiness', '5511999990000', 'Fallback', $extra], $integration->received);
+	}
+
 	private function createService(): TwofactorGatewayService {
 		return new TwofactorGatewayService(
 			$this->container,
