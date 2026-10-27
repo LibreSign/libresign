@@ -59,18 +59,34 @@ class NotificationDeliveryMapper extends QBMapper {
 		$delivery->setCreatedAt($now);
 		$delivery->setUpdatedAt($now);
 
+		// PostgreSQL aborts the entire surrounding transaction on a duplicate
+		// key error. A savepoint keeps the sign request transaction usable while
+		// still allowing the unique index to arbitrate concurrent registrations.
+		$savepoint = $this->db->inTransaction() ? 'ls_notify_' . bin2hex(random_bytes(8)) : null;
+		if ($savepoint !== null) {
+			$this->db->executeStatement('SAVEPOINT ' . $savepoint);
+		}
 		try {
-			return $this->insert($delivery);
-		} catch (DatabaseException $e) {
-			if ($e->getReason() !== DatabaseException::REASON_UNIQUE_CONSTRAINT_VIOLATION) {
-				throw $e;
-			}
-			// A second writer raced us. Verify the event key; the exception
-			// could also be an unrelated constraint violation.
 			try {
-				return $this->findByEventKey($eventKey);
-			} catch (DoesNotExistException) {
-				throw $e;
+				return $this->insert($delivery);
+			} catch (DatabaseException $e) {
+				if ($savepoint !== null) {
+					$this->db->executeStatement('ROLLBACK TO SAVEPOINT ' . $savepoint);
+				}
+				if ($e->getReason() !== DatabaseException::REASON_UNIQUE_CONSTRAINT_VIOLATION) {
+					throw $e;
+				}
+				// A second writer raced us. Verify the event key; the exception
+				// could also be an unrelated constraint violation.
+				try {
+					return $this->findByEventKey($eventKey);
+				} catch (DoesNotExistException) {
+					throw $e;
+				}
+			}
+		} finally {
+			if ($savepoint !== null) {
+				$this->db->executeStatement('RELEASE SAVEPOINT ' . $savepoint);
 			}
 		}
 	}
@@ -125,6 +141,23 @@ class NotificationDeliveryMapper extends QBMapper {
 		if ($updated !== 1) {
 			throw new \LogicException('Notification delivery state changed during dispatch');
 		}
+	}
+
+	/**
+	 * Invalidate obsolete invitations while the signing-state mutation is
+	 * protected by its database transaction. A claimed submission is never
+	 * rewritten because the provider may already have accepted it.
+	 */
+	public function cancelPendingInvitations(int $signRequestId): int {
+		$qb = $this->db->getQueryBuilder();
+		return $qb->update($this->getTableName())
+			->set('state', $qb->createNamedParameter(NotificationDeliveryState::CANCELED->value))
+			->set('message_enc', $qb->createNamedParameter(null))
+			->set('updated_at', $qb->createNamedParameter(new \DateTime('now', new \DateTimeZone('UTC')), IQueryBuilder::PARAM_DATETIME_MUTABLE))
+			->where($qb->expr()->eq('sign_request_id', $qb->createNamedParameter($signRequestId, IQueryBuilder::PARAM_INT)))
+			->andWhere($qb->expr()->eq('event_type', $qb->createNamedParameter('sign_request')))
+			->andWhere($qb->expr()->eq('state', $qb->createNamedParameter(NotificationDeliveryState::PENDING->value)))
+			->executeStatement();
 	}
 
 	public function findById(int $deliveryId): NotificationDelivery {

@@ -67,6 +67,51 @@ final class NotificationDeliveryMapperTest extends \OCA\Libresign\Tests\Integrat
 		self::assertSame($delivery->getId(), $this->deliveries->findByEventKey($key)->getId());
 	}
 
+	public function testDuplicateWithinDomainTransactionDoesNotAbortFurtherWrites(): void {
+		$db = Server::get(\OCP\IDBConnection::class);
+		$key = hash('sha256', 'transactional-duplicate-' . bin2hex(random_bytes(16)));
+		$keyTwo = hash('sha256', 'transactional-control-' . bin2hex(random_bytes(16)));
+		$db->beginTransaction();
+		try {
+			$first = $this->deliveries->register($key, hash('sha256', $key), 'sign_request', 'mail', 101, 201, 'owner', 'encrypted');
+			$same = $this->deliveries->register($key, hash('sha256', $key), 'sign_request', 'mail', 101, 201, 'owner', 'different');
+			$this->assertSame($first->getId(), $same->getId());
+			$control = $this->deliveries->register($keyTwo, hash('sha256', $keyTwo), 'sign_request', 'mail', 102, 202, 'owner', 'encrypted');
+			$this->assertSame($control->getId(), $this->deliveries->findByEventKey($keyTwo)->getId());
+			$db->commit();
+			$this->created[] = $first;
+			$this->created[] = $control;
+		} finally {
+			if ($db->inTransaction()) {
+				$db->rollBack();
+			}
+		}
+	}
+
+	public function testCancellationInvalidatesOnlyPendingInvitations(): void {
+		$pending = $this->createDelivery('pending-to-cancel');
+		$accepted = $this->createDelivery('already-claimed');
+		$this->deliveries->claim($accepted->getId());
+		$this->assertSame(1, $this->deliveries->cancelPendingInvitations(200));
+		$this->assertSame(NotificationDeliveryState::CANCELED->value, $this->deliveries->findById($pending->getId())->getState());
+		$this->assertNull($this->deliveries->findById($pending->getId())->getMessageEnc());
+		$this->assertSame(NotificationDeliveryState::SENDING->value, $this->deliveries->findById($accepted->getId())->getState());
+		$this->assertFalse($this->deliveries->claim($pending->getId()));
+	}
+
+	public function testCancellationRollsBackWithDomainTransaction(): void {
+		$delivery = $this->createDelivery('cancel-rollback');
+		$db = Server::get(\OCP\IDBConnection::class);
+		$db->beginTransaction();
+		try {
+			$this->assertSame(1, $this->deliveries->cancelPendingInvitations(200));
+			$this->assertSame(NotificationDeliveryState::CANCELED->value, $this->deliveries->findById($delivery->getId())->getState());
+		} finally {
+			$db->rollBack();
+		}
+		$this->assertSame(NotificationDeliveryState::PENDING->value, $this->deliveries->findById($delivery->getId())->getState());
+	}
+
 	public function testSameSourceEventHasIndependentChannelDeliveries(): void {
 		$key = hash('sha256', 'channel-' . bin2hex(random_bytes(16)));
 		$email = $this->deliveries->register($key, hash('sha256', $key), 'sign_request', 'mail', 101, 201, 'owner', 'encrypted');
