@@ -166,6 +166,7 @@ OC.L10N.register(
     "Unavailable" : "Ekki tiltækt",
     "Save changes" : "Vista breytingar",
     "Discard changes" : "Henda breytingum",
+    "none" : "ekkert",
     "Default" : "Sjálfgefið",
     "Configure" : "Stilla",
     "Everyone" : "Allir",
@@ -220,6 +221,7 @@ OC.L10N.register(
     "User" : "Notandi",
     "Add new" : "Bæta við nýju",
     "on" : "þann",
+    "Not scheduled" : "Ekki tímasett",
     "Reminders" : "Áminningar",
     "Invalid URL" : "Ógild slóð",
     "Name is mandatory" : "Nafn er nauðsynlegt"

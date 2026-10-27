@@ -110,6 +110,7 @@ OC.L10N.register(
     "Rename" : "Pārdēvēt",
     "File name" : "Datnes nosaukums",
     "Clear filter" : "Notīrīt atlasi",
+    "Remove filter" : "Noņemt filtru",
     "Modified" : "Mainīts",
     "1 file" : "1 datne",
     "{fileCount} files" : "{fileCount} datņu",
@@ -168,6 +169,7 @@ OC.L10N.register(
     "User" : "Lietotājs",
     "Add new" : "Pievienot jaunu",
     "Customize default user folder" : "Pielāgot noklusējuma lietotāja mapi",
+    "Not scheduled" : "Nav ieplānots",
     "Reminders" : "Atgādinājumi"
 },
 "nplurals=3; plural=(n%10==1 && n%100!=11 ? 0 : n != 0 ? 1 : 2);");
