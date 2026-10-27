@@ -11,6 +11,8 @@ namespace OCA\Libresign\Service;
 use OCA\Libresign\Db\UserElement;
 use OCA\Libresign\Db\UserElementMapper;
 use OCA\Libresign\ResponseDefinitions;
+use OCP\AppFramework\Db\DoesNotExistException;
+use OCP\Files\File;
 use OCP\Files\Folder;
 use OCP\Files\NotFoundException;
 use OCP\IURLGenerator;
@@ -108,6 +110,15 @@ class SignerElementsService {
 		}
 		$fileList = $signerFolder->getDirectoryListing();
 		return $fileList;
+	}
+
+	public function getElementFromSessionByNodeId(int $nodeId): File {
+		foreach ($this->getElementsFromSession() as $file) {
+			if ($file instanceof File && $file->getId() === $nodeId) {
+				return $file;
+			}
+		}
+		throw new DoesNotExistException('Signature element not found in current session');
 	}
 
 	/**

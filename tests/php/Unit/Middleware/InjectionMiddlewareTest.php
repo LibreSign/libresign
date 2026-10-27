@@ -28,6 +28,7 @@ use OCP\IRequest;
 use OCP\IServerContainer;
 use OCP\ISession;
 use OCP\IURLGenerator;
+use OCP\IUser;
 use OCP\IUserSession;
 use PHPUnit\Framework\MockObject\MockObject;
 use Psr\Log\LoggerInterface;
@@ -80,6 +81,29 @@ final class InjectionMiddlewareTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$this->uuidResolverService = $this->createMock(UuidResolverService::class);
 		$this->l10n = $this->createMock(IL10N::class);
 		$this->userId = null;
+	}
+
+	public function testGuestSigningRequestSwitchReplacesSessionUuid(): void {
+		$this->userSession->method('getUser')->willReturn(null);
+		$this->session->method('get')->with('libresign-uuid')->willReturn('previous-request');
+		$this->session->expects($this->once())->method('set')->with('libresign-uuid', 'current-request');
+
+		self::invokePrivate($this->getInjectionMiddleware(), 'maintainSessionConsistencyWithUuid', ['current-request']);
+	}
+
+	public function testSameGuestSigningRequestDoesNotRewriteSessionUuid(): void {
+		$this->userSession->method('getUser')->willReturn(null);
+		$this->session->method('get')->with('libresign-uuid')->willReturn('current-request');
+		$this->session->expects($this->never())->method('set');
+
+		self::invokePrivate($this->getInjectionMiddleware(), 'maintainSessionConsistencyWithUuid', ['current-request']);
+	}
+
+	public function testAuthenticatedSigningRequestDoesNotChangeGuestSessionUuid(): void {
+		$this->userSession->method('getUser')->willReturn($this->createMock(IUser::class));
+		$this->session->expects($this->never())->method('set');
+
+		self::invokePrivate($this->getInjectionMiddleware(), 'maintainSessionConsistencyWithUuid', ['current-request']);
 	}
 
 	public function getInjectionMiddleware(): InjectionMiddleware {
