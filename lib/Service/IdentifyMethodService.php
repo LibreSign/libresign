@@ -23,7 +23,6 @@ use OCA\Libresign\Service\IdentifyMethod\Telegram;
 use OCA\Libresign\Service\IdentifyMethod\Whatsapp;
 use OCA\Libresign\Service\IdentifyMethod\Whatsappbusiness;
 use OCA\Libresign\Service\IdentifyMethod\Xmpp;
-use OCA\Libresign\Vendor\Wobeto\EmailBlur\Blur;
 use OCP\IL10N;
 use OCP\IUserManager;
 
