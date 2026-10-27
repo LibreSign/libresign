@@ -8,16 +8,6 @@ declare(strict_types=1);
 
 namespace OCA\Libresign\Exception;
 
-use OCA\Libresign\Enum\NotificationDeliveryState;
-
-/** A sanitized transport outcome. Raw SMTP messages must not enter audit records. */
-final class MailTransportException extends \RuntimeException {
-	public function __construct(
-		string $message,
-		public readonly NotificationDeliveryState $outcome,
-		public readonly string $reasonCode,
-		?\Throwable $previous = null,
-	) {
-		parent::__construct($message, 0, $previous);
-	}
+/** The existing mail-specific exception remains compatible with the shared transport contract. */
+final class MailTransportException extends NotificationTransportException {
 }

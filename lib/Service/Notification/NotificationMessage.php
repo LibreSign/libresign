@@ -21,6 +21,7 @@ final readonly class NotificationMessage {
 		public SignRequest $signRequest,
 		public string $recipient,
 		public NotificationPayload $payload,
+		public ?string $historyMethod = null,
 	) {
 	}
 }
