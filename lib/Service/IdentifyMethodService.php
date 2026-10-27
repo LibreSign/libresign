@@ -404,27 +404,30 @@ class IdentifyMethodService {
 			return $cachedCatalogSettings;
 		}
 
+		// getDefaultSettings() mutates the signature-method map. Resolve the
+		// catalog using clones so it never changes the account/signature
+		// methods used later in this request to authorize actual signing.
 		$this->identifyMethodsCatalogSettings = [
-			$this->account->getDefaultSettings(),
-			$this->email->getDefaultSettings(),
+			(clone $this->account)->getDefaultSettings(),
+			(clone $this->email)->getDefaultSettings(),
 		];
 		if ($this->signal->isTwofactorGatewayEnabled()) {
-			$this->identifyMethodsCatalogSettings[] = $this->signal->getDefaultSettings();
+			$this->identifyMethodsCatalogSettings[] = (clone $this->signal)->getDefaultSettings();
 		}
 		if ($this->sms->isTwofactorGatewayEnabled()) {
-			$this->identifyMethodsCatalogSettings[] = $this->sms->getDefaultSettings();
+			$this->identifyMethodsCatalogSettings[] = (clone $this->sms)->getDefaultSettings();
 		}
 		if ($this->telegram->isTwofactorGatewayEnabled()) {
-			$this->identifyMethodsCatalogSettings[] = $this->telegram->getDefaultSettings();
+			$this->identifyMethodsCatalogSettings[] = (clone $this->telegram)->getDefaultSettings();
 		}
 		if ($this->Whatsapp->isTwofactorGatewayEnabled()) {
-			$this->identifyMethodsCatalogSettings[] = $this->Whatsapp->getDefaultSettings();
+			$this->identifyMethodsCatalogSettings[] = (clone $this->Whatsapp)->getDefaultSettings();
 		}
 		if ($this->whatsappbusiness->isTwofactorGatewayEnabled()) {
-			$this->identifyMethodsCatalogSettings[] = $this->whatsappbusiness->getDefaultSettings();
+			$this->identifyMethodsCatalogSettings[] = (clone $this->whatsappbusiness)->getDefaultSettings();
 		}
 		if ($this->xmpp->isTwofactorGatewayEnabled()) {
-			$this->identifyMethodsCatalogSettings[] = $this->xmpp->getDefaultSettings();
+			$this->identifyMethodsCatalogSettings[] = (clone $this->xmpp)->getDefaultSettings();
 		}
 
 		/** @var list<LibresignIdentifyMethodAdminSetting> $catalogSettings */
@@ -494,9 +497,11 @@ class IdentifyMethodService {
 	 * @psalm-return list<LibresignPolicySnapshotIdentifyMethodFactor>
 	 */
 	public function getDefaultIdentifyMethodsPolicy(): array {
+		// Defaults are a policy seed, not live signer state. Never reset the
+		// signature methods of the singleton account/email instances.
 		return [
-			$this->buildDefaultPolicyFactorFromSettings($this->account->getDefaultSettings()),
-			$this->buildDefaultPolicyFactorFromSettings($this->email->getDefaultSettings()),
+			$this->buildDefaultPolicyFactorFromSettings((clone $this->account)->getDefaultSettings()),
+			$this->buildDefaultPolicyFactorFromSettings((clone $this->email)->getDefaultSettings()),
 		];
 	}
 

@@ -15,18 +15,9 @@ use OCA\Libresign\Db\SignRequest;
 use OCA\Libresign\Db\SignRequestMapper;
 use OCA\Libresign\Handler\SigningErrorHandler;
 use OCA\Libresign\Service\AsyncSigningService;
-use OCA\Libresign\Service\File\SettingsLoader;
-use OCA\Libresign\Service\FileService;
-use OCA\Libresign\Service\IdentifyMethodService;
-use OCA\Libresign\Service\RequestMetadataService;
 use OCA\Libresign\Service\SignatureRejection\SignatureRejectionService;
-use OCA\Libresign\Service\SignerGeolocation\SignerGeolocationMetadataValidator;
-use OCA\Libresign\Service\SignerIpGeolocation\SignerIpGeolocationPolicyService;
 use OCA\Libresign\Service\SignFileService;
-use OCA\Libresign\Service\Validation\IdentityDocumentValidator;
-use OCA\Libresign\Service\Validation\SignerValidator;
 use OCA\Libresign\Service\Validation\SigningRequestValidator;
-use OCA\Libresign\Service\Validation\VisibleElementValidator;
 use OCA\Libresign\Service\Worker\WorkerConfiguration;
 use OCP\AppFramework\Http;
 use OCP\IL10N;
@@ -63,19 +54,11 @@ final class SignFileControllerTest extends TestCase {
 			$this->l10n,
 			$this->signRequestMapper,
 			$this->userSession,
-			$this->createMock(IdentityDocumentValidator::class),
-			$this->createMock(VisibleElementValidator::class),
-			$this->createMock(SignerValidator::class),
 			$this->signingRequestValidator,
 			$this->signFileService,
-			$this->createMock(IdentifyMethodService::class),
-			$this->createMock(FileService::class),
-			$this->createMock(SettingsLoader::class),
+			$this->createMock(\OCA\Libresign\Service\SigningPreparationService::class),
 			$this->createMock(WorkerConfiguration::class),
 			$this->createMock(AsyncSigningService::class),
-			$this->createMock(RequestMetadataService::class),
-			$this->createMock(SignerGeolocationMetadataValidator::class),
-			$this->createMock(SignerIpGeolocationPolicyService::class),
 			$this->createMock(SigningErrorHandler::class),
 			$this->createMock(SignatureRejectionService::class),
 			$this->logger,
