@@ -14,6 +14,7 @@ use OCA\Libresign\Db\FileElementMapper;
 use OCA\Libresign\Db\FileMapper;
 use OCA\Libresign\Db\SignRequest;
 use OCA\Libresign\Db\SignRequestMapper;
+use OCA\Libresign\Db\UserElement;
 use OCA\Libresign\Db\UserElementMapper;
 use OCA\Libresign\Enum\NodeType;
 use OCA\Libresign\Enum\ParticipantRole;
@@ -24,6 +25,7 @@ use OCA\Libresign\Service\Validation\FileInputValidator;
 use OCA\Libresign\Service\Validation\VisibleElementValidator;
 use OCP\AppFramework\Db\DoesNotExistException;
 use OCP\IL10N;
+use OCP\IUser;
 use PHPUnit\Framework\Attributes\DataProvider;
 
 final class VisibleElementValidatorTest extends \OCA\Libresign\Tests\Unit\TestCase {
@@ -31,6 +33,7 @@ final class VisibleElementValidatorTest extends \OCA\Libresign\Tests\Unit\TestCa
 	private SignRequestMapper $signRequestMapper;
 	private FileMapper $fileMapper;
 	private FileElementMapper $fileElementMapper;
+	private UserElementMapper $userElementMapper;
 	private SignerElementsService $signerElementsService;
 	private FileInputValidator $fileInputValidator;
 
@@ -42,6 +45,7 @@ final class VisibleElementValidatorTest extends \OCA\Libresign\Tests\Unit\TestCa
 		$this->signRequestMapper = $this->createMock(SignRequestMapper::class);
 		$this->fileMapper = $this->createMock(FileMapper::class);
 		$this->fileElementMapper = $this->createMock(FileElementMapper::class);
+		$this->userElementMapper = $this->createMock(UserElementMapper::class);
 		$this->signerElementsService = $this->createMock(SignerElementsService::class);
 		$this->fileInputValidator = $this->createMock(FileInputValidator::class);
 		$this->validator = new VisibleElementValidator(
@@ -49,7 +53,7 @@ final class VisibleElementValidatorTest extends \OCA\Libresign\Tests\Unit\TestCa
 			$this->signRequestMapper,
 			$this->fileMapper,
 			$this->fileElementMapper,
-			$this->createMock(UserElementMapper::class),
+			$this->userElementMapper,
 			$this->signerElementsService,
 			$this->fileInputValidator,
 		);
@@ -151,7 +155,7 @@ final class VisibleElementValidatorTest extends \OCA\Libresign\Tests\Unit\TestCa
 		$this->assertNull($actual);
 	}
 
-	private function configureGuestSignatureRelation(): SignRequest {
+	private function configureSignatureRelation(): SignRequest {
 		$signRequest = new SignRequest();
 		$signRequest->setId(47);
 		$signRequest->setFileId(22);
@@ -176,30 +180,101 @@ final class VisibleElementValidatorTest extends \OCA\Libresign\Tests\Unit\TestCa
 
 		$this->validator->validateVisibleElementsRelation(
 			[['documentElementId' => 5, 'profileNodeId' => 101]],
-			$this->configureGuestSignatureRelation(),
+			$this->configureSignatureRelation(),
 			null,
 		);
 		$this->addToAssertionCount(1);
 	}
 
-	#[DataProvider('invalidGuestProfileNodeCases')]
-	public function testGuestCannotSignWithUnownedOrInvalidElement(mixed $profileNodeId): void {
+	public function testGuestCannotSignWithElementOutsideSession(): void {
 		$this->signerElementsService->method('getElementFromSessionByNodeId')
 			->willThrowException(new DoesNotExistException('Element not found'));
 
 		$this->expectException(LibresignException::class);
 		$this->expectExceptionMessage('Field %s does not belong to user');
 		$this->validator->validateVisibleElementsRelation(
+			[['documentElementId' => 5, 'profileNodeId' => 102]],
+			$this->configureSignatureRelation(),
+			null,
+		);
+	}
+
+	#[DataProvider('invalidGuestProfileNodeCases')]
+	public function testGuestRejectsNonIntegerNodeWithoutStorageLookup(mixed $profileNodeId): void {
+		$this->signerElementsService->expects($this->never())->method('getElementFromSessionByNodeId');
+
+		$this->expectException(LibresignException::class);
+		$this->expectExceptionMessage('Field %s must be an integer');
+		$this->validator->validateVisibleElementsRelation(
 			[['documentElementId' => 5, 'profileNodeId' => $profileNodeId]],
-			$this->configureGuestSignatureRelation(),
+			$this->configureSignatureRelation(),
 			null,
 		);
 	}
 
 	public static function invalidGuestProfileNodeCases(): array {
 		return [
-			'node outside session' => [102],
-			'non-integer node' => ['101'],
+			'node string' => ['101'],
+			'node null' => [null],
+			'node array' => [[101]],
 		];
+	}
+
+	public function testGuestUnexpectedElementLookupFailureIsNotHidden(): void {
+		$this->signerElementsService->method('getElementFromSessionByNodeId')
+			->willThrowException(new \RuntimeException('Storage lookup failed'));
+
+		$this->expectException(\RuntimeException::class);
+		$this->expectExceptionMessage('Storage lookup failed');
+		$this->validator->validateVisibleElementsRelation(
+			[['documentElementId' => 5, 'profileNodeId' => 101]],
+			$this->configureSignatureRelation(),
+			null,
+		);
+	}
+
+	public function testAuthenticatedSignerRejectsUnownedProfileNode(): void {
+		$user = $this->createMock(IUser::class);
+		$user->method('getUID')->willReturn('alice');
+		$this->userElementMapper->method('findOne')
+			->willThrowException(new DoesNotExistException('Element not found'));
+
+		$this->expectException(LibresignException::class);
+		$this->expectExceptionMessage('Field %s does not belong to user');
+		$this->validator->validateVisibleElementsRelation(
+			[['documentElementId' => 5, 'profileNodeId' => 101]],
+			$this->configureSignatureRelation(),
+			$user,
+		);
+	}
+
+	public function testAuthenticatedSignerUnexpectedLookupFailureIsNotHidden(): void {
+		$user = $this->createMock(IUser::class);
+		$user->method('getUID')->willReturn('alice');
+		$this->userElementMapper->method('findOne')
+			->willThrowException(new \RuntimeException('Database lookup failed'));
+
+		$this->expectException(\RuntimeException::class);
+		$this->expectExceptionMessage('Database lookup failed');
+		$this->validator->validateVisibleElementsRelation(
+			[['documentElementId' => 5, 'profileNodeId' => 101]],
+			$this->configureSignatureRelation(),
+			$user,
+		);
+	}
+
+	public function testAuthenticatedSignerAcceptsOwnedProfileNode(): void {
+		$user = $this->createMock(IUser::class);
+		$user->method('getUID')->willReturn('alice');
+		$this->userElementMapper->expects($this->once())->method('findOne')
+			->with(['node_id' => 101, 'user_id' => 'alice'])
+			->willReturn(new UserElement());
+
+		$this->validator->validateVisibleElementsRelation(
+			[['documentElementId' => 5, 'profileNodeId' => 101]],
+			$this->configureSignatureRelation(),
+			$user,
+		);
+		$this->addToAssertionCount(1);
 	}
 }
