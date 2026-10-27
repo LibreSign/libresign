@@ -18,6 +18,7 @@ use OCA\Libresign\Service\Notification\NotificationDeliveryStatusService;
 use OCA\Libresign\Service\Validation\FileInputValidator;
 use OCA\Libresign\Service\Validation\SigningRequestValidator;
 use OCP\IConfig;
+use OCP\IUser;
 use OCP\IUserSession;
 use PHPUnit\Framework\TestCase;
 
@@ -33,9 +34,11 @@ final class NotificationDeliveryStatusServiceTest extends TestCase {
 		$this->deliveries = $this->createMock(NotificationDeliveryMapper::class);
 		$config = $this->createMock(IConfig::class);
 		$config->method('getSystemValueString')->with('secret')->willReturn('synthetic-secret');
+		$session = $this->createMock(IUserSession::class);
+		$session->method('getUser')->willReturn($this->createMock(IUser::class));
 		$this->service = new NotificationDeliveryStatusService(
 			$this->validator, $this->createMock(FileInputValidator::class),
-			$this->createMock(IUserSession::class), $this->requests, $this->deliveries,
+			$session, $this->requests, $this->deliveries,
 			new NotificationDeliveryKeyFactory($config),
 		);
 	}

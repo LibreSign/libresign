@@ -22,7 +22,7 @@ use OCP\IUserSession;
  * No recipient, message body, event key or provider error is returned.
  * Authorization is checked before any delivery record is read.
  */
-final class NotificationDeliveryStatusService {
+class NotificationDeliveryStatusService {
 	public function __construct(
 		private SigningRequestValidator $validator,
 		private FileInputValidator $fileInputValidator,
