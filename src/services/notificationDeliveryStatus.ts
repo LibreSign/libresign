@@ -123,7 +123,7 @@ export async function submitAndWatchNotification(
 	}
 	try {
 		const status = await watchNotificationStatus(query, options)
-		if (status?.status === 'completed') {
+		if (status?.status === 'completed' && !submissionFailed) {
 			return { kind: 'accepted', message }
 		}
 		if (status?.status === 'not_found' && !submissionFailed) {

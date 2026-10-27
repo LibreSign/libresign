@@ -92,7 +92,8 @@ describe('Notification delivery status', () => {
 		const result = await submitAndWatchNotification(query, {
 			signal: new AbortController().signal, onUpdate: vi.fn(),
 		})
-		expect(result.kind).toBe('accepted')
+		expect(result.kind).toBe('unconfirmed')
+		expect(vi.mocked(axios.get)).toHaveBeenCalledTimes(1)
 		expect(vi.mocked(axios.post)).toHaveBeenCalledTimes(1)
 		expect(vi.mocked(axios.post)).toHaveBeenCalledWith(
 			'/ocs/apps/libresign/api/v1/notify/signer', query,
