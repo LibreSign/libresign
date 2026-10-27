@@ -29,7 +29,6 @@ use OCP\IUser;
  * @template-extends CachedQBMapper<SignRequest>
  */
 class SignRequestMapper extends CachedQBMapper {
-	private bool $firstNotification = false;
 
 	public function __construct(
 		IDBConnection $db,
@@ -75,10 +74,8 @@ class SignRequestMapper extends CachedQBMapper {
 		$this->db->beginTransaction();
 		try {
 			$fromDatabase = $this->getById($signRequest->getId());
-			$metadata = $fromDatabase->getMetadata();
-			if (!isset($metadata['notify'])) {
-				$this->firstNotification = true;
-			}
+			$metadata = $fromDatabase->getMetadata() ?? [];
+			$isFirstNotification = empty($metadata['notify']);
 
 			$notificationEntry = [
 				'method' => $method,
@@ -93,10 +90,13 @@ class SignRequestMapper extends CachedQBMapper {
 			$fromDatabase->setMetadata($metadata);
 			$this->update($fromDatabase);
 			$this->db->commit();
-		} catch (\Throwable) {
+		} catch (\Throwable $e) {
 			$this->db->rollBack();
+			// A failed history write must never be reported as a successful
+			// first notification. Callers must not continue to send mail.
+			throw $e;
 		}
-		return $this->firstNotification;
+		return $isFirstNotification;
 	}
 
 	/**

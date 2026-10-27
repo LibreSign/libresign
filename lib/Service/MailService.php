@@ -21,6 +21,7 @@ use OCP\IUser;
 use OCP\IUserManager;
 use OCP\Mail\IEMailTemplate;
 use OCP\Mail\IMailer;
+use OCP\Mail\IMessage;
 use OCP\Mail\Provider\Address;
 use OCP\Mail\Provider\IManager as IMailProviderManager;
 use OCP\Mail\Provider\IMessageSend;
@@ -89,7 +90,7 @@ class MailService {
 		try {
 			$this->sendSignRequestNotification($emailTemplate, $data, $email);
 		} catch (\Exception $e) {
-			$this->logger->error('Notify changes in unsigned notification mail could not be sent: ' . $e->getMessage());
+			$this->logger->error('Notify changes in unsigned notification mail could not be sent');
 			throw new LibresignException('Notify unsigned notification mail could not be sent', 1);
 		}
 	}
@@ -129,7 +130,7 @@ class MailService {
 		try {
 			$this->sendSignRequestNotification($emailTemplate, $data, $email);
 		} catch (\Exception $e) {
-			$this->logger->error('Notify unsigned notification mail could not be sent: ' . $e->getMessage());
+			$this->logger->error('Notify unsigned notification mail could not be sent');
 			throw new LibresignException('Notify unsigned notification mail could not be sent', 1);
 		}
 	}
@@ -232,7 +233,18 @@ class MailService {
 			$message->setReplyTo($replyTo);
 		}
 		$message->useTemplate($emailTemplate);
-		$this->mailer->send($message);
+		$this->sendAndCheck($message);
+	}
+
+	/**
+	 * An empty failure list means transport acceptance, not inbox delivery.
+	 * Any returned recipient failure must not be reported as success.
+	 */
+	private function sendAndCheck(IMessage $message): void {
+		$failed = $this->mailer->send($message);
+		if ($failed !== []) {
+			throw new \RuntimeException('The mail transport rejected one or more recipients');
+		}
 	}
 
 	/**
@@ -250,12 +262,19 @@ class MailService {
 				->setSubject($emailTemplate->renderSubject())
 				->setBodyHtml($emailTemplate->renderHtml())
 				->setBodyPlain($emailTemplate->renderText());
-			$service->sendMessage($message);
+			try {
+				$service->sendMessage($message);
+			} catch (\Throwable $e) {
+				// The transport may have accepted the message before the error.
+				// An automatic system-mailer fallback could send it twice.
+				throw new \RuntimeException('Requester mail submission has an unknown outcome', 0, $e);
+			}
 			return true;
+		} catch (\RuntimeException $e) {
+			throw $e;
 		} catch (\Throwable $e) {
-			$this->logger->warning('Unable to send the notification through the requester mail account, falling back to the system mailer.', [
+			$this->logger->warning('Requester mail preparation failed before submission', [
 				'requester' => $requesterId,
-				'exception' => $e,
 			]);
 			return false;
 		}
@@ -308,9 +327,9 @@ class MailService {
 
 		$message->useTemplate($emailTemplate);
 		try {
-			$this->mailer->send($message);
+			$this->sendAndCheck($message);
 		} catch (\Exception $e) {
-			$this->logger->error('Notify signed notification mail could not be sent: ' . $e->getMessage());
+			$this->logger->error('Notify signed notification mail could not be sent');
 			throw new LibresignException('Notify signed notification mail could not be sent', 1);
 		}
 	}
@@ -332,9 +351,9 @@ class MailService {
 		}
 		$message->useTemplate($emailTemplate);
 		try {
-			$this->mailer->send($message);
+			$this->sendAndCheck($message);
 		} catch (\Exception $e) {
-			$this->logger->error('Notify canceled request mail could not be sent: ' . $e->getMessage());
+			$this->logger->error('Notify canceled request mail could not be sent');
 			// Don't throw exception to avoid breaking the flow when mail fails
 		}
 	}
