@@ -41,6 +41,10 @@ final class NotificationEnvelopeCodec {
 				'body' => $message->payload->body,
 			],
 			$message->payload instanceof InAppPayload => $this->snapshotNotification($message->payload),
+			$message->payload instanceof DataPayload => [
+				'type' => 'data',
+				'data' => $message->payload->data,
+			],
 			default => throw new \LogicException('Notification payload cannot be queued'),
 		};
 		$encoded = json_encode([
@@ -135,6 +139,11 @@ final class NotificationEnvelopeCodec {
 				$payload['firstNotification'] === true,
 			),
 			'gateway' => new GatewayPayload((string)$payload['gatewayName'], (string)$payload['body']),
+			'data' => new DataPayload(
+				is_array($payload['data'] ?? null)
+					? $payload['data']
+					: throw new \UnexpectedValueException('Invalid extension notification data'),
+			),
 			'nextcloud' => new InAppPayload(
 				$this->notifications->createNotification()
 					->setApp((string)$payload['app'])

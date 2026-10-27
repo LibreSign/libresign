@@ -11,6 +11,7 @@ namespace OCA\Libresign\Tests\Unit\Service\Notification;
 use OCA\Libresign\Db\File;
 use OCA\Libresign\Db\NotificationDelivery;
 use OCA\Libresign\Db\SignRequest;
+use OCA\Libresign\Service\Notification\DataPayload;
 use OCA\Libresign\Service\Notification\GatewayPayload;
 use OCA\Libresign\Service\Notification\MailPayload;
 use OCA\Libresign\Service\Notification\NotificationEnvelopeCodec;
@@ -92,6 +93,46 @@ final class NotificationEnvelopeCodecTest extends TestCase {
 		$delivery = new NotificationDelivery();
 		$this->expectException(\UnexpectedValueException::class);
 		$this->codec()->decode($delivery);
+	}
+
+	public function testExternalTransportPayloadNeedsNoCoreCodecChanges(): void {
+		$codec = $this->codec();
+		$original = $this->message();
+		$message = new NotificationMessage(
+			$original->sourceEventId,
+			$original->eventType,
+			'third-party:chat',
+			$original->file,
+			$original->signRequest,
+			'synthetic-recipient',
+			new DataPayload(['text' => 'Please sign', 'metadata' => ['source' => 'third-party', 'priority' => 1]]),
+		);
+		$delivery = new NotificationDelivery();
+		$delivery->setFileId(31);
+		$delivery->setSignRequestId(42);
+		$delivery->setEventType('sign_request');
+		$delivery->setChannel('third-party:chat');
+		$delivery->setRecipientEnc('sealed:' . base64_encode('synthetic-recipient'));
+		$delivery->setMessageEnc($codec->encode($message));
+
+		$decoded = $codec->decode($delivery);
+		$this->assertInstanceOf(DataPayload::class, $decoded->payload);
+		$this->assertSame('synthetic-recipient', $decoded->recipient);
+		$this->assertSame(['text' => 'Please sign', 'metadata' => ['source' => 'third-party', 'priority' => 1]], $decoded->payload->data);
+	}
+
+	public function testExtensionPayloadRejectsObjectsAndExcessiveNesting(): void {
+		$this->expectException(\InvalidArgumentException::class);
+		new DataPayload(['unsafe' => new \stdClass()]);
+	}
+
+	public function testExtensionPayloadRejectsExcessiveNesting(): void {
+		$value = 'deep';
+		for ($depth = 0; $depth < 9; $depth++) {
+			$value = ['next' => $value];
+		}
+		$this->expectException(\InvalidArgumentException::class);
+		new DataPayload(['root' => $value]);
 	}
 
 	public function testGatewayPayloadCanBeRestoredWithoutGatewayDependencies(): void {
