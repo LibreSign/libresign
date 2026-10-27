@@ -14,11 +14,12 @@ use OCP\AppFramework\Db\TTransactional;
 use OCP\AppFramework\Utility\ITimeFactory;
 use OCP\BackgroundJob\IJob;
 use OCP\BackgroundJob\TimedJob;
+use OCP\IConfig;
 use OCP\IDBConnection;
 
 /**
- * Audit retention only. This job does not send or retry notifications.
- * All data is already terminal or old enough to expire by retention policy.
+ * Reconcile abandoned attempts and optionally redact old notification evidence.
+ * This job does not send or retry messages; an ambiguous SMTP result stays unknown.
  */
 final class PruneNotificationHistory extends TimedJob {
 	use TTransactional;
@@ -29,6 +30,7 @@ final class PruneNotificationHistory extends TimedJob {
 		private NotificationAttemptMapper $attempts,
 		private NotificationDeliveryMapper $deliveries,
 		private IDBConnection $db,
+		private IConfig $config,
 	) {
 		parent::__construct($time);
 		$this->setInterval(86400);
@@ -38,8 +40,6 @@ final class PruneNotificationHistory extends TimedJob {
 	#[\Override]
 	public function run($argument): void {
 		$now = new \DateTime('now', new \DateTimeZone('UTC'));
-		$attemptCutoff = (clone $now)->modify('-90 days');
-		$deliveryCutoff = (clone $now)->modify('-365 days');
 
 		// The absence of a process after a full day cannot establish whether
 		// SMTP accepted the message. Reconcile it to UNKNOWN, never retry.
@@ -52,15 +52,23 @@ final class PruneNotificationHistory extends TimedJob {
 			}, $this->db);
 		}
 
-		// Bound the job runtime to keep background jobs responsive. Another
-		// daily run continues from the oldest remaining records.
+		// There is no implicit time-based deletion of notification evidence.
+		// A configured limit removes old attempt details and redacts personal
+		// fields, preserving permanent event-id tombstones for idempotency.
+		$retentionDays = (int)$this->config->getAppValue('libresign', 'notification_history_retention_days', '0');
+		if ($retentionDays <= 0) {
+			return;
+		}
+		$cutoff = (clone $now)->modify('-' . $retentionDays . ' days');
+
+		// Bound the job runtime to keep background jobs responsive.
 		$deadline = microtime(true) + 10;
 		do {
-			$count = $this->attempts->deleteOlderThan($attemptCutoff, self::BATCH_SIZE);
+			$count = $this->attempts->deleteOlderThan($cutoff, self::BATCH_SIZE);
 		} while ($count === self::BATCH_SIZE && microtime(true) < $deadline);
 
 		do {
-			$count = $this->deliveries->deleteOlderThan($deliveryCutoff, self::BATCH_SIZE);
+			$count = $this->deliveries->redactOlderThan($cutoff, self::BATCH_SIZE);
 		} while ($count === self::BATCH_SIZE && microtime(true) < $deadline);
 	}
 }

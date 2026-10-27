@@ -25,7 +25,9 @@ class NotificationDeliveryMapper extends QBMapper {
 	 * Inserts one logical notification, without ever overwriting an earlier
 	 * outcome. A duplicate event is never an instruction to retry SMTP.
 	 *
-	 * @return NotificationDelivery|null New record, or null for an existing event.
+	 * @return NotificationDelivery The new or existing record.
+	 *                              A previously committed PENDING event may be safely claimed by a later
+	 *                              dispatch when a process died before transport submission.
 	 */
 	public function register(
 		string $eventKey,
@@ -34,7 +36,7 @@ class NotificationDeliveryMapper extends QBMapper {
 		?int $signRequestId,
 		string $ownerId,
 		string $encryptedRecipient,
-	): ?NotificationDelivery {
+	): NotificationDelivery {
 		if (strlen($eventKey) !== 64 || !ctype_xdigit($eventKey)) {
 			throw new \InvalidArgumentException('A 64-character event hash is required');
 		}
@@ -59,11 +61,10 @@ class NotificationDeliveryMapper extends QBMapper {
 			// A second writer raced us. Verify the event key; the exception
 			// could also be an unrelated constraint violation.
 			try {
-				$this->findByEventKey($eventKey);
+				return $this->findByEventKey($eventKey);
 			} catch (DoesNotExistException) {
 				throw $e;
 			}
-			return null;
 		}
 	}
 
@@ -135,11 +136,16 @@ class NotificationDeliveryMapper extends QBMapper {
 			->executeStatement() === 1;
 	}
 
-	/** Old audit details are bounded without touching signing evidence. */
-	public function deleteOlderThan(\DateTime $before, int $limit = 500): int {
+	/**
+	 * Redact recipient and owner data after an explicitly configured retention
+	 * period, but KEEP the event key and terminal state as a deduplication
+	 * tombstone. Deleting the delivery would allow a replay to submit again.
+	 */
+	public function redactOlderThan(\DateTime $before, int $limit = 500): int {
 		$qb = $this->db->getQueryBuilder();
 		$rows = $qb->select('id')->from($this->getTableName())
 			->where($qb->expr()->lt('updated_at', $qb->createNamedParameter($before, IQueryBuilder::PARAM_DATETIME_MUTABLE)))
+			->andWhere($qb->expr()->neq('recipient_enc', $qb->createNamedParameter('')))
 			->andWhere($qb->expr()->in('state', $qb->createNamedParameter([
 				NotificationDeliveryState::ACCEPTED->value,
 				NotificationDeliveryState::TEMPORARY_FAILURE->value,
@@ -154,9 +160,11 @@ class NotificationDeliveryMapper extends QBMapper {
 			return 0;
 		}
 		$ids = array_map(static fn (array $row): int => (int)$row['id'], $rows);
-		$delete = $this->db->getQueryBuilder();
-		return $delete->delete($this->getTableName())
-			->where($delete->expr()->in('id', $delete->createNamedParameter($ids, IQueryBuilder::PARAM_INT_ARRAY)))
+		$update = $this->db->getQueryBuilder();
+		return $update->update($this->getTableName())
+			->set('recipient_enc', $update->createNamedParameter(''))
+			->set('owner_id', $update->createNamedParameter(''))
+			->where($update->expr()->in('id', $update->createNamedParameter($ids, IQueryBuilder::PARAM_INT_ARRAY)))
 			->executeStatement();
 	}
 }
