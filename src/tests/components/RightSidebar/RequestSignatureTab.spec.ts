@@ -1218,13 +1218,43 @@ describe('RequestSignatureTab - Critical Business Rules', () => {
 			expect(vi.mocked(axios.post)).toHaveBeenCalledTimes(1)
 			expect(vi.mocked(axios.post)).toHaveBeenCalledWith(
 				'/ocs/apps/libresign/api/v1/notify/signer',
-				{ fileId: 1, signRequestId: 23 },
+				expect.objectContaining({
+					fileId: 1,
+					signRequestId: 23,
+					requestId: expect.stringMatching(/^[a-f0-9]{32}$/),
+				}),
 			)
 			await second
 			resolveRequest({ data: { ocs: { data: { message: 'Notification request processed. Delivery is not confirmed.' } } } })
 			await first
 			expect(wrapper.vm.isSendingNotification(signer)).toBe(false)
 			expect(showSuccess).toHaveBeenCalledWith('Notification request processed. Delivery is not confirmed.')
+		})
+
+		it('shows the channel result and makes no extra calls after completion', async () => {
+			await updateFile({
+				status: FILE_STATUS.ABLE_TO_SIGN,
+				signers: [{ displayName: 'Synthetic signer', email: 'synthetic@example.invalid', signRequestId: 23, status: SIGN_REQUEST_STATUS.ABLE_TO_SIGN }],
+			})
+			const signer = filesStore.getFile()?.signers?.[0]
+			vi.mocked(axios.get).mockClear()
+			vi.mocked(axios.post).mockResolvedValueOnce({
+				data: { ocs: { data: { message: 'Notification request processed. Delivery is not confirmed.' } } },
+			} as Awaited<ReturnType<typeof axios.post>>)
+			vi.mocked(axios.get).mockResolvedValueOnce({
+				data: { ocs: { data: { status: 'completed', complete: true, channels: [{ channel: 'mail', state: 'accepted' }] } } },
+			} as Awaited<ReturnType<typeof axios.get>>)
+			await wrapper.vm.sendNotify(signer)
+			await wrapper.vm.$nextTick()
+			expect(vi.mocked(axios.get)).toHaveBeenCalledWith(
+				'/ocs/apps/libresign/api/v1/notify/status',
+				expect.objectContaining({
+					params: expect.objectContaining({ fileId: 1, signRequestId: 23, requestId: expect.stringMatching(/^[a-f0-9]{32}$/) }),
+				}),
+			)
+			expect(wrapper.find('[role="status"]').text()).toContain('mail: Accepted by provider')
+			expect(wrapper.vm.isSendingNotification(signer)).toBe(false)
+			expect(vi.mocked(axios.get)).toHaveBeenCalledTimes(1)
 		})
 
 		it('warns about partial or unknown results instead of treating them as a safe retry', async () => {
