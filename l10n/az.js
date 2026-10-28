@@ -43,7 +43,6 @@ OC.L10N.register(
     "Name:" : "Ad:",
     "Private" : "Gizli",
     "Country:" : "Ölkə:",
-    "No date" : "No date",
     "Yes" : "Yes",
     "No" : "No",
     "Error" : "Səhv",
@@ -89,6 +88,7 @@ OC.L10N.register(
     "Today" : "Bu gün",
     "Other" : "Digər",
     "Public" : "İctimai",
+    "No date" : "No date",
     "User" : "User"
 },
 "nplurals=2; plural=(n != 1);");
