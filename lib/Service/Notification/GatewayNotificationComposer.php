@@ -53,25 +53,25 @@ final class GatewayNotificationComposer {
 
 		if ($this->history->isFirst($request, $method)) {
 			if ($hasDescription) {
-				// TRANSLATORS: Initial signature invitation with a personal message. %1$s is the sender's description, %2$s is the document name, %3$s is the signing URL. Keep the complete message and line breaks together.
+				// TRANSLATORS Initial signature invitation with a personal message. %1$s is the sender's description, %2$s is the document name, %3$s is the signing URL. Keep the complete message and line breaks together.
 				$message = $this->l10n->t("%1\$s\n\nThere is a document for you to sign. Access the link below:\n%2\$s: %3\$s", [$description, $name, $url]);
-				// TRANSLATORS: Initial signature invitation for a WhatsApp template. %1$s is the sender's description and %2$s is the document name; the signing URL is a separate template variable.
+				// TRANSLATORS Initial signature invitation for a WhatsApp template. %1$s is the sender's description and %2$s is the document name; the signing URL is a separate template variable.
 				$text = $this->l10n->t("%1\$s\n\nThere is a document for you to sign. Access the link below:\n%2\$s:", [$description, $name]);
 			} else {
-				// TRANSLATORS: Initial signature invitation. %1$s is the document name and %2$s is the signing URL. Keep the URL in the same translated message.
+				// TRANSLATORS Initial signature invitation. %1$s is the document name and %2$s is the signing URL. Keep the URL in the same translated message.
 				$message = $this->l10n->t("There is a document for you to sign. Access the link below:\n%1\$s: %2\$s", [$name, $url]);
-				// TRANSLATORS: Initial signature invitation for a WhatsApp template. %1$s is the document name; the signing URL is supplied in a separate template variable.
+				// TRANSLATORS Initial signature invitation for a WhatsApp template. %1$s is the document name; the signing URL is supplied in a separate template variable.
 				$text = $this->l10n->t("There is a document for you to sign. Access the link below:\n%1\$s:", [$name]);
 			}
 		} elseif ($hasDescription) {
-			// TRANSLATORS: Updated signature request with a personal message. %1$s is the sender's description, %2$s is the document name, %3$s is the signing URL.
+			// TRANSLATORS Updated signature request with a personal message. %1$s is the sender's description, %2$s is the document name, %3$s is the signing URL.
 			$message = $this->l10n->t("%1\$s\n\nChanges have been made in a file that you have to sign. Access the link below:\n%2\$s: %3\$s", [$description, $name, $url]);
-			// TRANSLATORS: Updated signature request for a WhatsApp template. %1$s is the sender's description, %2$s is the document name; URL is in a separate template variable.
+			// TRANSLATORS Updated signature request for a WhatsApp template. %1$s is the sender's description, %2$s is the document name; URL is in a separate template variable.
 			$text = $this->l10n->t("%1\$s\n\nChanges have been made in a file that you have to sign. Access the link below:\n%2\$s:", [$description, $name]);
 		} else {
-			// TRANSLATORS: Updated signature request. %1$s is the document name and %2$s is the signing URL.
+			// TRANSLATORS Updated signature request. %1$s is the document name and %2$s is the signing URL.
 			$message = $this->l10n->t("Changes have been made in a file that you have to sign. Access the link below:\n%1\$s: %2\$s", [$name, $url]);
-			// TRANSLATORS: Updated signature request for a WhatsApp template. %1$s is the document name; URL is in a separate template variable.
+			// TRANSLATORS Updated signature request for a WhatsApp template. %1$s is the document name; URL is in a separate template variable.
 			$text = $this->l10n->t("Changes have been made in a file that you have to sign. Access the link below:\n%1\$s:", [$name]);
 		}
 
@@ -83,9 +83,9 @@ final class GatewayNotificationComposer {
 		$url = $this->urlGenerator->linkToRouteAbsolute('libresign.page.validationFilePublic', ['uuid' => $file->getUuid()]);
 		$name = $file->getName();
 		$signer = $request->getDisplayName();
-		// TRANSLATORS: Signature completion notification. %1$s is the signer name, %2$s is the document name, %3$s is the public validation URL. Keep the complete sentence and line breaks together.
+		// TRANSLATORS Signature completion notification. %1$s is the signer name, %2$s is the document name, %3$s is the public validation URL. Keep the complete sentence and line breaks together.
 		$message = $this->l10n->t("LibreSign: A file has been signed\n%1\$s signed the document. You can access it using the link below:\n%2\$s: %3\$s", [$signer, $name, $url]);
-		// TRANSLATORS: Signature completion notification for a WhatsApp template. %1$s is the signer name and %2$s the document name; the validation URL is sent as a separate template variable.
+		// TRANSLATORS Signature completion notification for a WhatsApp template. %1$s is the signer name and %2$s the document name; the validation URL is sent as a separate template variable.
 		$text = $this->l10n->t("LibreSign: A file has been signed\n%1\$s signed the document. You can access it using the link below:\n%2\$s:", [$signer, $name]);
 		return [$message, $text, $url];
 	}
