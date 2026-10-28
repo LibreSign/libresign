@@ -56,7 +56,6 @@ OC.L10N.register(
     "Private" : "Privat",
     "Unknown" : "Onbekannt",
     "Country:" : "Land:",
-    "No date" : "No date",
     "Yes" : "Jo",
     "No" : "Nee",
     "Error" : "Fehler",
@@ -116,6 +115,7 @@ OC.L10N.register(
     "Other" : "Aner",
     "TSA" : "TSA",
     "Public" : "Ëffentlech",
+    "No date" : "No date",
     "User" : "User",
     "Reminders" : "Erennërungen"
 },

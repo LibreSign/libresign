@@ -64,7 +64,6 @@ OC.L10N.register(
     "Hide details" : "ซ่อนข้อมูล",
     "Show details" : "แสดงข้อมูล",
     "Country:" : "ประเทศ:",
-    "No date" : "ไม่มีวันที่",
     "Yes" : "ใช่",
     "No" : "ไม่",
     "Error" : "ข้อผิดพลาด",
@@ -130,6 +129,7 @@ OC.L10N.register(
     "Other" : "อื่น ๆ",
     "Public" : "สาธารณะ",
     "Cannot read file" : "ไม่สามารถอ่านไฟล์",
+    "No date" : "ไม่มีวันที่",
     "User" : "ผู้ใช้",
     "Reminders" : "การแจ้งเตือน",
     "Invalid URL" : "URL ไม่ถูกต้อง"

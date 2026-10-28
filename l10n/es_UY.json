@@ -54,7 +54,6 @@
     "Number of documents:" : "Número de documentos:",
     "Hide details" : "Ocultar detalles",
     "Country:" : "País:",
-    "No date" : "Sin fecha",
     "Yes" : "Sí",
     "No" : "No",
     "Error" : "Error",
@@ -118,6 +117,7 @@
     "_{count} file_::_{count} files_" : ["{count} archivo","{count} archivos","{count} archivos"],
     "Today" : "Hoy",
     "Public" : "Público",
+    "No date" : "Sin fecha",
     "User" : "Usuario",
     "Reminders" : "Recordatorios"
 },"pluralForm" :"nplurals=3; plural=n == 1 ? 0 : n != 0 && n % 1000000 == 0 ? 1 : 2;"
