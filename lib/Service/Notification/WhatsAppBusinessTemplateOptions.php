@@ -34,8 +34,16 @@ final class WhatsAppBusinessTemplateOptions {
 		if ($name === '' || $language === '') {
 			throw new \InvalidArgumentException('WhatsApp Business template name and language are both required.');
 		}
+		if (preg_match('/^[a-z0-9_]{1,128}$/D', $name) !== 1
+			|| preg_match('/^[A-Za-z0-9_-]{2,32}$/D', $language) !== 1) {
+			throw new \InvalidArgumentException('Invalid WhatsApp Business template configuration.');
+		}
+		if (!filter_var($url, FILTER_VALIDATE_URL) || parse_url($url, PHP_URL_SCHEME) !== 'https'
+			|| parse_url($url, PHP_URL_USER) !== null || parse_url($url, PHP_URL_PASS) !== null) {
+			throw new \InvalidArgumentException('WhatsApp Business requires an absolute HTTPS action URL.');
+		}
 		$normalized = preg_replace('/\s+/u', ' ', trim($text));
-		if ($normalized === null || $normalized === '') {
+		if ($normalized === null || $normalized === '' || mb_strlen($normalized, 'UTF-8') > 1024) {
 			throw new \InvalidArgumentException('Invalid WhatsApp Business notification text.');
 		}
 		return [

@@ -49,18 +49,17 @@ final class TwofactorGatewayService {
 
 		try {
 			$isComplete = $this->callIntegrationMethod('isGatewayComplete', [$gatewayName]);
-		} catch (\Exception $exception) {
+		} catch (\Exception) {
+			// Gateway names and exception messages can contain caller-controlled data.
 			$this->logger->warning('Unable to determine twofactor gateway completeness.', [
-				'gateway' => $gatewayName,
-				'exceptionType' => get_debug_type($exception),
+				'reason' => 'integration_error',
 			]);
 			return false;
 		}
 
 		if (!is_bool($isComplete)) {
 			$this->logger->warning('Twofactor gateway integration service returned an invalid completeness flag.', [
-				'gateway' => $gatewayName,
-				'returnedType' => get_debug_type($isComplete),
+				'reason' => 'invalid_response',
 			]);
 			return false;
 		}

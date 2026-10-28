@@ -21,14 +21,15 @@ use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 
 final class GatewayNotificationComposerTest extends TestCase {
-	private function composer(bool $first = true, array $settings = []): GatewayNotificationComposer {
+	private function composer(bool $first = true, array $settings = [], ?callable $translation = null): GatewayNotificationComposer {
 		$stored = new SignRequest();
 		$stored->setMetadata($first ? [] : ['notify' => [['method' => 'whatsappbusiness']]]);
 		$mapper = $this->createMock(SignRequestMapper::class);
 		$mapper->method('getByIdUncached')->willReturn($stored);
 		$l10n = $this->createMock(IL10N::class);
-		$l10n->method('t')->willReturnCallback(static fn (string $text, array $params = []): string
-			=> $params === [] ? $text : vsprintf($text, $params));
+		$l10n->method('t')->willReturnCallback($translation
+			?? static fn (string $text, array $params = []): string
+				=> $params === [] ? $text : vsprintf($text, $params));
 		$url = $this->createMock(IURLGenerator::class);
 		$url->method('linkToRouteAbsolute')->willReturnCallback(
 			static fn (string $route, array $params): string => 'https://example.invalid/' . $route . '/' . $params['uuid'],
@@ -43,11 +44,11 @@ final class GatewayNotificationComposerTest extends TestCase {
 	}
 
 	/** @return array{SignRequest, File} */
-	private function messageData(): array {
+	private function messageData(?string $description = 'Synthetic description'): array {
 		$request = new SignRequest();
 		$request->setId(42);
 		$request->setUuid('synthetic-request');
-		$request->setDescription('Synthetic description');
+		$request->setDescription($description);
 		$request->setDisplayName('Synthetic signer');
 		$file = new File();
 		$file->setName('Example.pdf');
@@ -88,7 +89,7 @@ final class GatewayNotificationComposerTest extends TestCase {
 		];
 	}
 
-	#[DataProvider('legacyCases')]
+	#[DataProvider('unconfiguredGatewayCases')]
 	public function testAbsentTemplateConfigKeepsExistingMessageDelivery(string $gateway): void {
 		[$request, $file] = $this->messageData();
 		$composer = $this->composer();
@@ -97,8 +98,35 @@ final class GatewayNotificationComposerTest extends TestCase {
 		$this->assertSame($composer->compose('sign_request', $request, $file, $gateway), $payload->body);
 	}
 
-	public static function legacyCases(): array {
+	public static function unconfiguredGatewayCases(): array {
 		return ['sms' => ['sms'], 'whatsappbusiness' => ['whatsappbusiness']];
+	}
+
+	#[DataProvider('requestWithoutDescriptionCases')]
+	public function testInvitationsWithoutOptionalDescriptionContainCompleteLocalizedMessage(bool $first): void {
+		[$request, $file] = $this->messageData(null);
+		$payload = $this->composer($first)->composePayload('sign_request', $request, $file, 'sms', 'sms');
+		$this->assertStringContainsString('Example.pdf: https://example.invalid/', $payload->body);
+		$this->assertStringNotContainsString('Synthetic description', $payload->body);
+		$this->assertSame([], $payload->extra);
+	}
+
+	public static function requestWithoutDescriptionCases(): array {
+		return ['initial request' => [true], 'updated request' => [false]];
+	}
+
+	public function testAReorderedTranslationCanMoveTheEntireUrlBeforeTheSigner(): void {
+		[$request, $file] = $this->messageData();
+		$translate = static function (string $text, array $params = []): string {
+			if (str_contains($text, 'signed the document') && count($params) === 3) {
+				return vsprintf('URL %3$s; DOCUMENT %2$s; SIGNER %1$s', $params);
+			}
+			return vsprintf($text, $params);
+		};
+		$payload = $this->composer(true, [], $translate)->composePayload('file_signed', $request, $file, 'sms', 'sms');
+		$this->assertStringStartsWith('URL https://example.invalid/', $payload->body);
+		$this->assertStringContainsString('SIGNER Synthetic signer', $payload->body);
+		$this->assertSame([], $payload->extra);
 	}
 
 	public function testIncompleteTemplateConfigFailsWithoutSilentFallback(): void {

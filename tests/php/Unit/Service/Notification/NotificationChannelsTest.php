@@ -81,7 +81,7 @@ final class NotificationChannelsTest extends TestCase {
 		$appManager->method('isEnabledForAnyone')->willReturn(true);
 		$gateway = new TwofactorGatewayService($container, $appManager, $this->createMock(LoggerInterface::class));
 		$l10n = $this->createMock(IL10N::class);
-		$l10n->method('t')->willReturnCallback(static fn (string $value): string => $value);
+		$l10n->method('t')->willReturnCallback(static fn (string $value, array $params = []): string => vsprintf($value, $params));
 		$url = $this->createMock(IURLGenerator::class);
 		$url->method('linkToRouteAbsolute')->willReturn('https://example.invalid/sign');
 		$channel = new GatewayChannel($gateway);

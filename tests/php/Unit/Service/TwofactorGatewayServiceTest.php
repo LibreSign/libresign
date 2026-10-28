@@ -76,7 +76,7 @@ final class TwofactorGatewayServiceTest extends TestCase {
 			->method('warning')
 			->with(
 				'Unable to determine twofactor gateway completeness.',
-				$this->arrayHasKey('gateway')
+				$this->callback(static fn (array $context): bool => ($context['reason'] ?? null) === 'integration_error' && count($context) === 1)
 			);
 		$this->container->method('get')
 			->with('OCA\\TwoFactorGateway\\Service\\GatewayDirectIntegrationService')
@@ -91,6 +91,20 @@ final class TwofactorGatewayServiceTest extends TestCase {
 		self::assertFalse($this->createService()->isGatewayComplete('sms'));
 	}
 
+	public function testNonBooleanGatewayCompletenessIsRejectedWithSafeDiagnostics(): void {
+		$this->appManager->method('isEnabledForAnyone')->willReturn(true);
+		$this->container->method('get')->willReturn(new class {
+			public function isGatewayComplete(string $gateway): string {
+				return 'private-value-synthetic';
+			}
+		});
+		$this->logger->expects($this->once())->method('warning')->with(
+			'Twofactor gateway integration service returned an invalid completeness flag.',
+			['reason' => 'invalid_response'],
+		);
+		$this->assertFalse($this->createService()->isGatewayComplete('sms'));
+	}
+
 	#[DataProvider('providerGatewayIntegrationException')]
 	public function testIsGatewayCompleteReturnsFalseWhenIntegrationThrowsException(\Exception $exception): void {
 		$this->appManager->method('isEnabledForAnyone')->with('twofactor_gateway')->willReturn(true);
@@ -99,8 +113,9 @@ final class TwofactorGatewayServiceTest extends TestCase {
 			->with(
 				'Unable to determine twofactor gateway completeness.',
 				$this->callback(static fn (array $context): bool
-					=> ($context['gateway'] ?? null) === 'telegram'
-					&& ($context['exceptionType'] ?? null) === get_debug_type($exception)
+					=> ($context['reason'] ?? null) === 'integration_error'
+					&& !str_contains(json_encode($context, JSON_THROW_ON_ERROR), $exception->getMessage())
+					&& count($context) === 1
 				)
 			);
 		$this->container->method('get')
@@ -134,8 +149,9 @@ final class TwofactorGatewayServiceTest extends TestCase {
 			->with(
 				'Unable to determine twofactor gateway completeness.',
 				$this->callback(static fn (array $context): bool
-					=> ($context['gateway'] ?? null) === 'telegram'
-					&& ($context['exceptionType'] ?? null) === get_debug_type($exception)
+					=> ($context['reason'] ?? null) === 'integration_error'
+					&& !str_contains(json_encode($context, JSON_THROW_ON_ERROR), $exception->getMessage())
+					&& count($context) === 1
 				)
 			);
 		$this->container->method('get')

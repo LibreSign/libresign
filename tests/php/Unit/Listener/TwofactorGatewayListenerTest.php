@@ -41,7 +41,7 @@ final class TwofactorGatewayListenerTest extends TestCase {
 		$mapper = $this->createMock(SignRequestMapper::class);
 		$mapper->method('getByIdUncached')->willReturn(new SignRequest());
 		$l10n = $this->createMock(IL10N::class);
-		$l10n->method('t')->willReturnCallback(static fn (string $text): string => $text);
+		$l10n->method('t')->willReturnCallback(static fn (string $text, array $params = []): string => vsprintf($text, $params));
 		$url = $this->createMock(IURLGenerator::class);
 		$url->method('linkToRouteAbsolute')->willReturn('https://example.invalid/sign');
 		$config = $this->createMock(IAppConfig::class);
