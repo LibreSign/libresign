@@ -35,12 +35,6 @@ export function canIncludeCurrentAccount(
 	)
 }
 
-/**
- * Add the authenticated account using ordinary request persistence.
- * The direct self-sign entry point starts an active request so the existing
- * Sign document action becomes available, but never signs the PDF itself.
- * The regular account picker keeps the default draft behavior.
- */
 export async function addCurrentAccountAsSigner(
 	filesStore: FilesStore,
 	identifyMethodsPolicy: EffectivePolicyValue,
@@ -66,9 +60,8 @@ export async function addCurrentAccountAsSigner(
 		}],
 	})
 
-	const response = await filesStore.saveOrUpdateSignatureRequest({
+	return filesStore.saveOrUpdateSignatureRequest({
 		signers,
 		...(options.readyToSign ? { status: FILE_STATUS.ABLE_TO_SIGN } : {}),
 	})
-	return response
 }

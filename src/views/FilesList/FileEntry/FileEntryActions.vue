@@ -153,7 +153,7 @@ const okLabel = t('libresign', 'Ok')
 const cancelLabel = t('libresign', 'Cancel')
 // TRANSLATORS Context-menu action label for creating a new signature request from file.
 const actionRequestSignatureLabel = t('libresign', 'Request signature')
-// TRANSLATORS: Prepare a personal draft from an existing unsigned file.
+// TRANSLATORS Context menu action to prepare the current account as signer.
 const actionSignMyselfLabel = t('libresign', 'Sign myself')
 // TRANSLATORS Context-menu action label opening request details.
 const actionDetailsLabel = t('libresign', 'Details')
@@ -232,13 +232,15 @@ async function onActionClick(action: Pick<MenuAction, 'id'>) {
 		filesStore.selectFile(props.source.id)
 		sidebarStore.activeRequestSignatureTab()
 		if (action.id === 'sign-myself') {
-			await policiesStore.fetchEffectivePolicies()
 			try {
+				await policiesStore.fetchEffectivePolicies()
 				const response = await addCurrentAccountAsSigner(filesStore, policiesStore.getEffectiveValue('identify_methods'), { readyToSign: true })
 				if (response && 'success' in response && response.success === false) {
+					// TRANSLATORS Error shown when the signed-in account cannot join a signature request.
 					showError(('message' in response && response.message) || t('libresign', 'Cannot add your account as signer'))
 				}
 			} catch {
+				// TRANSLATORS Error shown when adding the current account to a signature request fails.
 				showError(t('libresign', 'Failed to add signer'))
 			}
 		}

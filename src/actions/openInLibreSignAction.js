@@ -120,10 +120,9 @@ export const action = {
 }
 
 registerFileAction(action)
-// A separate, contextual shortcut for an untouched PDF. It prepares a draft
-// for the current account; the user must still request and authorize signing.
 export const signMyselfAction = {
 	id: 'sign-myself-libresign',
+	// TRANSLATORS Files context menu action to prepare the user's own PDF for signing.
 	displayName: () => t('libresign', 'Sign myself'),
 	iconSvgInline: () => SvgAccountCheck,
 	enabled({ nodes }) {

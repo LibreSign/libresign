@@ -128,8 +128,6 @@ const searchLabel = computed(() => isObserver.value
 	: t('libresign', 'Search signer'))
 const selectPlaceholder = computed(() => isObserver.value ? searchLabel.value : props.placeholder)
 
-// Selecting the signed-in account fills the normal signer form without
-// persisting anything until Save is explicitly pressed.
 const canUseMyAccount = computed(() => props.allowSelf
 	&& props.method === 'account'
 	&& !isObserver.value
@@ -147,6 +145,7 @@ function useMyAccount() {
 		identify: user.uid,
 		method: 'account',
 		displayName: user.displayName || user.uid,
+		// TRANSLATORS Short label identifying the currently logged-in account.
 		subname: t('libresign', 'Your account'),
 		isNoUser: false,
 		shareType: 0,

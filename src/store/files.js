@@ -601,10 +601,6 @@ const _filesStore = defineStore('files', () => {
 			clearRequestDraft(fileData.id)
 		}
 
-		// Validation is authoritative for the current viewer's signing permission.
-		// A stale canSign=false from the list must not hide Sign document after
-		// the request becomes active; likewise a revoked permission must not
-		// remain true merely because the list has not refreshed yet.
 		const validatedCanSign = typeof fileData.settings?.canSign === 'boolean'
 			? { canSign: fileData.settings.canSign }
 			: {}
@@ -1441,20 +1437,12 @@ const _filesStore = defineStore('files', () => {
 			const shouldAddToTop = !uuid && !selectedFile.uuid
 			store.addFile(responseFile, { position: shouldAddToTop ? 'start' : 'end' })
 		}
-		// The create/update response does not include viewer-scoped canSign.
-		// Once a request becomes signable, reload it from the authenticated
-		// validate endpoint. Otherwise the earlier draft's canSign=false is
-		// retained in the merged store and hides Sign document indefinitely.
-		// Only the server can grant this permission; never infer it from the
-		// requested status or signer identity in the client.
 		if (status === FILE_STATUS.ABLE_TO_SIGN
 			&& responseFile?.status === FILE_STATUS.ABLE_TO_SIGN
 			&& typeof newFileKey === 'number') {
 			try {
 				await store.fetchFileDetail({ fileId: newFileKey, force: true })
 			} catch (error) {
-				// Request persistence already succeeded. Do not report that the
-				// request failed (and invite resubmission) when reloading fails.
 				logger.warn('Could not refresh permissions after activating a signing request', { error })
 			}
 		}
