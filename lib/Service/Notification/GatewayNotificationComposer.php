@@ -19,6 +19,7 @@ final class GatewayNotificationComposer {
 		private NotificationHistoryService $history,
 		private IL10N $l10n,
 		private IURLGenerator $urlGenerator,
+		private WhatsAppBusinessTemplateOptions $templates,
 	) {
 	}
 
@@ -27,27 +28,12 @@ final class GatewayNotificationComposer {
 		return $text . $url;
 	}
 
-	/**
-	 * WhatsApp Business UTILITY body template contract (in positional order):
-	 * {{1}} = one-line localized notification text including the file name (without URL);
-	 * {{2}} = absolute signing/validation URL.
-	 *
-	 * Initial requests, updated requests and signature completion use the same
-	 * two positions. A neutral approved template can serve all these events;
-	 * other gateways keep their original text-only message.
-	 */
+	/** Compose a transport-neutral message with optional structured delivery data. */
 	public function composePayload(string $eventType, SignRequest $request, File $file, string $method, string $gatewayName): GatewayPayload {
 		[$text, $url] = $this->parts($eventType, $request, $file, $method);
-		// Meta template text parameters may not contain newlines or tabs.
-		// Preserve the original multiline text for all other gateway channels.
-		$templateText = preg_replace('/\s+/u', ' ', trim($text));
-		if ($gatewayName === 'whatsappbusiness' && ($templateText === null || $templateText === '')) {
-			throw new \InvalidArgumentException('Invalid template notification text');
-		}
-		$extra = $gatewayName === 'whatsappbusiness' ? [
-			'body_parameters' => [$templateText, $url],
-			'expected_body_parameter_count' => 2,
-		] : [];
+		$extra = $gatewayName === 'whatsappbusiness'
+			? $this->templates->forNotification($text, $url)
+			: [];
 		return new GatewayPayload($gatewayName, $text . $url, $extra);
 	}
 

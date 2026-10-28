@@ -39,7 +39,7 @@ final class NotificationEnvelopeCodec {
 				'type' => 'gateway',
 				'gatewayName' => $message->payload->gatewayName,
 				'body' => $message->payload->body,
-				'extra' => $this->gatewayOptions($message->payload->extra),
+				'extra' => $message->payload->extra,
 			],
 			$message->payload instanceof InAppPayload => $this->snapshotNotification($message->payload),
 			$message->payload instanceof DataPayload => [
@@ -133,36 +133,6 @@ final class NotificationEnvelopeCodec {
 		);
 	}
 
-	/**
-	 * Only approved structural options may be stored in the encrypted queue.
-	 * Never persist arbitrary gateway extras (e.g. authentication codes/tokens).
-	 * @return array<string, mixed>
-	 */
-	private function gatewayOptions(mixed $extra): array {
-		if ($extra === []) {
-			return [];
-		}
-		if (!is_array($extra)
-			|| array_diff(array_keys($extra), ['body_parameters', 'expected_body_parameter_count']) !== []
-			|| !isset($extra['body_parameters'])
-			|| !is_array($extra['body_parameters'])
-			|| !array_is_list($extra['body_parameters'])
-			|| $extra['body_parameters'] === []) {
-			throw new \UnexpectedValueException('Invalid queued gateway options');
-		}
-		foreach ($extra['body_parameters'] as $value) {
-			if (!is_string($value) || trim($value) === '') {
-				throw new \UnexpectedValueException('Invalid queued gateway body parameters');
-			}
-		}
-		if (array_key_exists('expected_body_parameter_count', $extra)
-			&& (!is_int($extra['expected_body_parameter_count'])
-				|| $extra['expected_body_parameter_count'] !== count($extra['body_parameters']))) {
-			throw new \UnexpectedValueException('Invalid queued gateway body parameter count');
-		}
-		return $extra;
-	}
-
 	private function restorePayload(array $payload): NotificationPayload {
 		return match ($payload['type'] ?? null) {
 			'mail' => new MailPayload(
@@ -172,7 +142,9 @@ final class NotificationEnvelopeCodec {
 			'gateway' => new GatewayPayload(
 				(string)$payload['gatewayName'],
 				(string)$payload['body'],
-				$this->gatewayOptions($payload['extra'] ?? []),
+				is_array($payload['extra'] ?? [])
+					? $payload['extra'] ?? []
+					: throw new \UnexpectedValueException('Invalid gateway delivery options'),
 			),
 			'data' => new DataPayload(
 				is_array($payload['data'] ?? null)

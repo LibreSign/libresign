@@ -140,6 +140,9 @@ final class NotificationEnvelopeCodecTest extends TestCase {
 		$options = [
 			'body_parameters' => ['Synthetic document', 'https://example.invalid/sign'],
 			'expected_body_parameter_count' => 2,
+			'template_name' => 'synthetic_utility',
+			'template_language' => 'pt_BR',
+			'template_category' => 'UTILITY',
 		];
 		$message = new NotificationMessage(
 			$original->sourceEventId, 'sign_request', 'gateway:whatsappbusiness',
@@ -162,15 +165,14 @@ final class NotificationEnvelopeCodecTest extends TestCase {
 		$this->assertSame($options, $restored->payload->extra);
 	}
 
-	public function testQueueRejectsUnexpectedGatewayOptions(): void {
+	public function testUnexpectedGatewayOptionsAreRejectedBeforeDeliveryOrQueue(): void {
 		$original = $this->message();
-		$message = new NotificationMessage(
+		$this->expectException(\InvalidArgumentException::class);
+		new NotificationMessage(
 			$original->sourceEventId, 'sign_request', 'gateway:whatsappbusiness',
 			$original->file, $original->signRequest, '5511999990000',
 			new GatewayPayload('whatsappbusiness', 'Text', ['code' => '123456']),
 		);
-		$this->expectException(\UnexpectedValueException::class);
-		$this->codec()->encode($message);
 	}
 
 	public function testGatewayPayloadCanBeRestoredWithoutGatewayDependencies(): void {

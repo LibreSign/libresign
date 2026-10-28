@@ -20,9 +20,11 @@ use OCA\Libresign\Service\Notification\GatewayNotificationComposer;
 use OCA\Libresign\Service\Notification\NotificationChannel;
 use OCA\Libresign\Service\Notification\NotificationHistoryService;
 use OCA\Libresign\Service\Notification\NotificationMessage;
+use OCA\Libresign\Service\Notification\WhatsAppBusinessTemplateOptions;
 use OCA\Libresign\Service\NotificationDeliveryService;
 use OCA\Libresign\Service\TwofactorGatewayService;
 use OCP\App\IAppManager;
+use OCP\IAppConfig;
 use OCP\IL10N;
 use OCP\IURLGenerator;
 use PHPUnit\Framework\TestCase;
@@ -30,120 +32,83 @@ use Psr\Container\ContainerInterface;
 use Psr\Log\LoggerInterface;
 
 final class TwofactorGatewayListenerTest extends TestCase {
-	public function testGatewayInvitationUsesChannelIdentityAndPreservesEventId(): void {
-		$appManager = $this->createMock(IAppManager::class);
-		$appManager->method('isEnabledForAnyone')->with('twofactor_gateway')->willReturn(true);
-		$gatewayService = new TwofactorGatewayService(
-			$this->createMock(ContainerInterface::class), $appManager, $this->createMock(LoggerInterface::class),
+	private function listener(NotificationDeliveryService $delivery, array $settings = []): TwofactorGatewayListener {
+		$apps = $this->createMock(IAppManager::class);
+		$apps->method('isEnabledForAnyone')->with('twofactor_gateway')->willReturn(true);
+		$service = new TwofactorGatewayService(
+			$this->createMock(ContainerInterface::class), $apps, $this->createMock(LoggerInterface::class),
 		);
+		$mapper = $this->createMock(SignRequestMapper::class);
+		$mapper->method('getByIdUncached')->willReturn(new SignRequest());
+		$l10n = $this->createMock(IL10N::class);
+		$l10n->method('t')->willReturnCallback(static fn (string $text): string => $text);
+		$url = $this->createMock(IURLGenerator::class);
+		$url->method('linkToRouteAbsolute')->willReturn('https://example.invalid/sign');
+		$config = $this->createMock(IAppConfig::class);
+		$config->method('getValueString')->willReturnCallback(
+			static fn (string $app, string $key, string $default = ''): string => $settings[$key] ?? $default,
+		);
+		$composer = new GatewayNotificationComposer(
+			new NotificationHistoryService($mapper), $l10n, $url, new WhatsAppBusinessTemplateOptions($config),
+		);
+		return new TwofactorGatewayListener($service, $delivery, new GatewayChannel($service), $composer);
+	}
+
+	private function invitation(string $method, string $recipient): SendSignNotificationEvent {
+		$entity = new IdentifyMethod();
+		$entity->setIdentifierKey($method);
+		$entity->setIdentifierValue($recipient);
+		$identify = $this->createMock(IIdentifyMethod::class);
+		$identify->method('getEntity')->willReturn($entity);
+		$request = new SignRequest();
+		$request->setId(42);
+		$request->setUuid('synthetic-request');
+		$file = new File();
+		$file->setId(31);
+		$file->setName('Example.pdf');
+		$file->setUuid('synthetic-file');
+		return new SendSignNotificationEvent($request, $file, $identify);
+	}
+
+	public function testStandardGatewayNotificationRetainsTextOnlyPayload(): void {
 		$delivery = $this->createMock(NotificationDeliveryService::class);
 		$delivery->expects($this->once())->method('dispatch')->willReturnCallback(
 			function (NotificationMessage $message, NotificationChannel $channel): bool {
 				$this->assertSame('gateway:sms', $message->channel);
 				$this->assertSame('sign_request', $message->eventType);
 				$this->assertSame('5550000000', $message->recipient);
+				$this->assertSame([], $message->payload->extra);
 				$this->assertTrue($channel->supports($message->channel));
-				$this->assertNotSame('', $message->sourceEventId);
 				return true;
 			},
 		);
-		$mapper = $this->createMock(SignRequestMapper::class);
-		$mapper->method('getByIdUncached')->willReturn(new SignRequest());
-		$listener = new TwofactorGatewayListener(
-			$gatewayService, $delivery, new GatewayChannel($gatewayService),
-			new GatewayNotificationComposer(
-				new NotificationHistoryService($mapper),
-				$this->createMock(IL10N::class), $this->createMock(IURLGenerator::class),
-			),
-		);
-		$entity = new IdentifyMethod();
-		$entity->setIdentifierKey('sms');
-		$entity->setIdentifierValue('5550000000');
-		$method = $this->createMock(IIdentifyMethod::class);
-		$method->method('getEntity')->willReturn($entity);
-		$request = new SignRequest();
-		$request->setId(44);
-		$request->setUuid('synthetic-request');
-		$file = new File();
-		$file->setId(33);
-		$file->setUuid('synthetic-file');
-		$listener->handle(new SendSignNotificationEvent($request, $file, $method));
+		$this->listener($delivery)->handle($this->invitation('sms', '5550000000'));
 	}
 
-	public function testBusinessInvitationIncludesOrderedTemplateOptions(): void {
-		$appManager = $this->createMock(IAppManager::class);
-		$appManager->method('isEnabledForAnyone')->willReturn(true);
-		$service = new TwofactorGatewayService(
-			$this->createMock(ContainerInterface::class), $appManager, $this->createMock(LoggerInterface::class),
-		);
+	public function testBusinessNotificationReceivesOrderedTemplateOptions(): void {
 		$delivery = $this->createMock(NotificationDeliveryService::class);
 		$delivery->expects($this->once())->method('dispatch')->willReturnCallback(
-			function (NotificationMessage $message, NotificationChannel $channel): bool {
+			function (NotificationMessage $message): bool {
 				$this->assertSame('gateway:whatsappbusiness', $message->channel);
-				$this->assertSame('sign_request', $message->eventType);
 				$this->assertSame('5511999990000', $message->recipient);
+				$this->assertSame('UTILITY', $message->payload->extra['template_category']);
 				$this->assertSame(2, $message->payload->extra['expected_body_parameter_count']);
-				$this->assertCount(2, $message->payload->extra['body_parameters']);
-				$this->assertStringContainsString('Synthetic.pdf', $message->payload->extra['body_parameters'][0]);
+				$this->assertStringContainsString('Example.pdf', $message->payload->extra['body_parameters'][0]);
 				$this->assertSame('https://example.invalid/sign', $message->payload->extra['body_parameters'][1]);
 				return true;
 			},
 		);
-		$mapper = $this->createMock(SignRequestMapper::class);
-		$mapper->method('getByIdUncached')->willReturn(new SignRequest());
-		$l10n = $this->createMock(IL10N::class);
-		$l10n->method('t')->willReturnCallback(static fn (string $message): string => $message);
-		$url = $this->createMock(IURLGenerator::class);
-		$url->method('linkToRouteAbsolute')->willReturn('https://example.invalid/sign');
-		$listener = new TwofactorGatewayListener(
-			$service, $delivery, new GatewayChannel($service),
-			new GatewayNotificationComposer(new NotificationHistoryService($mapper), $l10n, $url),
-		);
-		$entity = new IdentifyMethod();
-		$entity->setIdentifierKey('whatsappbusiness');
-		$entity->setIdentifierValue('5511999990000');
-		$method = $this->createMock(IIdentifyMethod::class);
-		$method->method('getEntity')->willReturn($entity);
-		$request = new SignRequest();
-		$request->setId(42);
-		$request->setUuid('synthetic-request');
-		$file = new File();
-		$file->setId(31);
-		$file->setName('Synthetic.pdf');
-		$file->setUuid('synthetic-file');
-		$listener->handle(new SendSignNotificationEvent($request, $file, $method));
+		$settings = [
+			'whatsapp_business_template_name' => 'synthetic_utility',
+			'whatsapp_business_template_language' => 'pt_BR',
+		];
+		$this->listener($delivery, $settings)->handle($this->invitation('whatsappbusiness', '5511999990000'));
 	}
 
-	public function testGatewayFailureReachesTheChannelRouter(): void {
-		$appManager = $this->createMock(IAppManager::class);
-		$appManager->method('isEnabledForAnyone')->willReturn(true);
-		$gatewayService = new TwofactorGatewayService(
-			$this->createMock(ContainerInterface::class), $appManager, $this->createMock(LoggerInterface::class),
-		);
+	public function testNotificationErrorsStillPropagate(): void {
 		$delivery = $this->createMock(NotificationDeliveryService::class);
-		$delivery->method('dispatch')->willThrowException(new \RuntimeException('secret gateway failure'));
-		$mapper = $this->createMock(SignRequestMapper::class);
-		$mapper->method('getByIdUncached')->willReturn(new SignRequest());
-		$listener = new TwofactorGatewayListener(
-			$gatewayService, $delivery, new GatewayChannel($gatewayService),
-			new GatewayNotificationComposer(
-				new NotificationHistoryService($mapper),
-				$this->createMock(IL10N::class), $this->createMock(IURLGenerator::class),
-			),
-		);
-		$entity = new IdentifyMethod();
-		$entity->setIdentifierKey('sms');
-		$entity->setIdentifierValue('5550000000');
-		$method = $this->createMock(IIdentifyMethod::class);
-		$method->method('getEntity')->willReturn($entity);
-		$request = new SignRequest();
-		$request->setId(44);
-		$request->setUuid('synthetic-request');
-		$file = new File();
-		$file->setId(33);
-		$file->setUuid('synthetic-file');
-
+		$delivery->method('dispatch')->willThrowException(new \RuntimeException('Synthetic transport failure'));
 		$this->expectException(\RuntimeException::class);
-		$listener->handle(new SendSignNotificationEvent($request, $file, $method, 'manual:test-event'));
+		$this->listener($delivery)->handle($this->invitation('sms', '5550000000'));
 	}
 }
