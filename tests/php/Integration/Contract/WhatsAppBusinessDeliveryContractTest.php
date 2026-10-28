@@ -7,7 +7,7 @@ declare(strict_types=1);
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
 
-namespace OCA\Libresign\Tests\Integration\Service;
+namespace OCA\Libresign\Tests\Integration\Contract;
 
 use OCA\Libresign\Db\File;
 use OCA\Libresign\Db\SignRequest;
