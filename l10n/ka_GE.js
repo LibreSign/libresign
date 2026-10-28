@@ -55,7 +55,6 @@ OC.L10N.register(
     "Number of documents:" : "დოკუმენტების რაოდენობა:",
     "Hide details" : "დეტალების დამალვა",
     "Country:" : "ქვეყანა:",
-    "No date" : "თარიღი არაა",
     "Yes" : "კი",
     "No" : "არა",
     "Error" : "შეცდომა",
@@ -116,6 +115,7 @@ OC.L10N.register(
     "Today" : "დღეს",
     "Other" : "სხვა",
     "Public" : "ღია",
+    "No date" : "თარიღი არაა",
     "User" : "მომხმარებელი",
     "Reminders" : "შემახსენებლები"
 },

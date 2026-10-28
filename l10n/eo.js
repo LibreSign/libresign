@@ -76,7 +76,6 @@ OC.L10N.register(
     "Hide details" : "Kaŝi la detalojn",
     "Show details" : "Montri la detalojn",
     "Country:" : "Lando:",
-    "No date" : "No date",
     "Yes" : "Yes",
     "No" : "No",
     "Error" : "Eraro",
@@ -148,6 +147,7 @@ OC.L10N.register(
     "Other" : "Alia",
     "Custom URL" : "Propra retadreso",
     "Public" : "Publika",
+    "No date" : "No date",
     "User" : "Uzanto",
     "Reminders" : "Memorigoj"
 },

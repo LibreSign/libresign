@@ -54,7 +54,6 @@
     "Private" : "Privat",
     "Unknown" : "Onbekannt",
     "Country:" : "Land:",
-    "No date" : "No date",
     "Yes" : "Jo",
     "No" : "Nee",
     "Error" : "Fehler",
@@ -114,6 +113,7 @@
     "Other" : "Aner",
     "TSA" : "TSA",
     "Public" : "Ëffentlech",
+    "No date" : "No date",
     "User" : "User",
     "Reminders" : "Erennërungen"
 },"pluralForm" :"nplurals=2; plural=(n != 1);"

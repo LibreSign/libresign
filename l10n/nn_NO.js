@@ -51,7 +51,6 @@ OC.L10N.register(
     "Unknown" : "Ukjend",
     "Hide details" : "Gøym detaljar",
     "Show details" : "Vis detaljar",
-    "No date" : "No date",
     "Yes" : "Ja",
     "No" : "Nei",
     "Error" : "Feil",
@@ -111,6 +110,7 @@ OC.L10N.register(
     "Last 7 days" : "Siste 7 dagar",
     "Last 30 days" : "Siste 30 dagar",
     "Other" : "Anna",
+    "No date" : "No date",
     "User" : "Bruker",
     "Not scheduled" : "Ikkje planlagd",
     "Reminders" : "Påminningar"
