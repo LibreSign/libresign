@@ -6,7 +6,7 @@ declare(strict_types=1);
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
 
-namespace OCA\Libresign\Tests\Integration\Service;
+namespace OCA\Libresign\Tests\Integration\Contract;
 
 use OCA\Libresign\Db\File;
 use OCA\Libresign\Db\SignRequest;
@@ -33,8 +33,8 @@ use Psr\Container\ContainerInterface;
 use Psr\Http\Message\StreamInterface;
 use Psr\Log\LoggerInterface;
 
-/** Optional cross-app contract test with no external requests. */
-final class TwofactorGatewayWhatsAppIntegrationTest extends TestCase {
+/** Cross-app LibreSign / Two-Factor Gateway delivery contract; the HTTP client is always mocked. */
+final class WhatsAppBusinessDeliveryContractTest extends TestCase {
 	private function requireGatewayApp(): void {
 		$appManager = \OCP\Server::get(IAppManager::class);
 		try {
