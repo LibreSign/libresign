@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
 
-import { describe, expect, it, beforeEach } from 'vitest'
+import { describe, expect, it, beforeEach, afterEach, vi } from 'vitest'
 import { shallowMount } from '@vue/test-utils'
 import SignerDetails from '../../../components/validation/SignerDetails.vue'
 import {
@@ -32,7 +32,11 @@ describe('SignerDetails.vue - Business Logic', () => {
 						NcAvatar: true,
 						NcButton: true,
 						NcIconSvgWrapper: true,
-						NcListItem: true,
+						NcListItem: {
+							name: 'NcListItem',
+							props: ['name'],
+							template: '<li><slot name="icon" /><slot name="name" /><slot name="subname" /><slot /></li>',
+						},
 						NcNoteCard: true,
 						CertificateChain: true,
 					},
@@ -52,6 +56,93 @@ describe('SignerDetails.vue - Business Logic', () => {
 
 	beforeEach(() => {
 		wrapper = createWrapper()
+	})
+
+	describe('certificate expiry presentation', () => {
+		const now = new Date('2026-10-27T15:00:00Z')
+
+		beforeEach(() => {
+			vi.useFakeTimers({ toFake: ['Date'] })
+			vi.setSystemTime(now)
+		})
+
+		afterEach(() => {
+			vi.useRealTimers()
+		})
+
+		it.each([
+			{ description: 'tomorrow', validTo: '2026-10-28T15:00:00Z', expected: 'Certificate expires on:' },
+			{ description: 'next year', validTo: '2027-10-28T15:00:00Z', expected: 'Certificate expires on:' },
+			{ description: 'yesterday', validTo: '2026-10-26T15:00:00Z', expected: 'Certificate expired on:' },
+			{ description: 'exactly now', validTo: '2026-10-27T15:00:00Z', expected: 'Certificate expired on:' },
+			{ description: 'timezone offset', validTo: '2026-10-27T11:59:59-03:00', expected: 'Certificate expired on:' },
+		])('shows the correct expiry label for $description', ({ validTo, expected }) => {
+			wrapper = createWrapper({
+				initiallyOpen: true,
+				signer: {
+					signed: '2026-10-23T14:32:00Z',
+					valid_from: '2026-10-23T14:00:00Z',
+					valid_to: validTo,
+					signature_validation: { id: 1 },
+				},
+			})
+			expect(wrapper.text()).toContain('Signed on:')
+			expect(wrapper.text()).toContain(expected)
+			expect(wrapper.text()).not.toContain(expected === 'Certificate expired on:' ? 'Certificate expires on:' : 'Certificate expired on:')
+			expect(wrapper.text()).not.toContain('Date signed:')
+			expect(wrapper.text()).toContain('not the document expiry date')
+			expect(wrapper.text()).not.toContain('Expiration:')
+			expect(wrapper.find('.validation-icon--error').exists()).toBe(false)
+		})
+
+		it('keeps a signature valid at signing time after the certificate has expired', async () => {
+			wrapper = createWrapper({
+				initiallyOpen: true,
+				signer: {
+					signed: '2026-10-23T14:32:00Z',
+					valid_from: '2026-10-23T14:00:00Z',
+					valid_to: '2026-10-24T14:30:00Z',
+					signature_validation: { id: 1 },
+				},
+			})
+			wrapper.vm.validationStatusOpen = true
+			await wrapper.vm.$nextTick()
+			expect(wrapper.text()).toContain('Certificate expired on:')
+			expect(wrapper.text()).toContain('Valid at signing time')
+			expect(wrapper.text()).toContain('Document integrity verified')
+			expect(wrapper.find('.validation-icon--error').exists()).toBe(false)
+		})
+
+		it.each([
+			{ description: 'missing', validTo: undefined },
+			{ description: 'malformed', validTo: 'not-a-date' },
+		])('does not show a misleading expiry label for $description metadata', ({ validTo }) => {
+			wrapper = createWrapper({
+				initiallyOpen: true,
+				signer: { signed: '2026-10-23T14:32:00Z', valid_to: validTo },
+			})
+			expect(wrapper.text()).not.toContain('Certificate expires on:')
+			expect(wrapper.text()).not.toContain('Certificate expired on:')
+			expect(wrapper.text()).not.toContain('document expiry date')
+		})
+
+		it('does not expose certificate expiry for an unsigned participant', () => {
+			wrapper = createWrapper({
+				initiallyOpen: true,
+				signer: { signed: null, status: 1, valid_to: '2026-10-24T14:30:00Z' },
+			})
+			expect(wrapper.text()).not.toContain('Certificate expires on:')
+			expect(wrapper.text()).not.toContain('Certificate expired on:')
+		})
+
+		it('does not display the certificate expiry in collapsed details', () => {
+			wrapper = createWrapper({
+				signer: { signed: '2026-10-23T14:32:00Z', valid_to: '2026-10-24T14:30:00Z' },
+			})
+			expect(wrapper.text()).toContain('Signed on:')
+			expect(wrapper.text()).not.toContain('Certificate expires on:')
+			expect(wrapper.text()).not.toContain('Certificate expired on:')
+		})
 	})
 
 	describe('getName method', () => {
@@ -291,6 +382,10 @@ describe('SignerDetails.vue - Business Logic', () => {
 		it('returns valid when valid_to is missing', () => {
 			const signer = {}
 			expect(wrapper.vm.getValidityStatus(signer)).toBe('valid')
+		})
+
+		it('returns unknown for unparseable certificate expiration metadata', () => {
+			expect(wrapper.vm.getValidityStatus({ valid_to: 'not-a-date' })).toBe('unknown')
 		})
 
 		it('returns expired when certificate has expired', () => {
