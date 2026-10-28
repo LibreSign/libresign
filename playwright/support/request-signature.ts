@@ -105,6 +105,12 @@ export async function selectAccountSigner(
 		return
 	}
 
+	if (optionName !== ADMIN_SIGNER_OPTION) {
+		await expect(namedOption).toBeVisible({ timeout: 10_000 })
+		await namedOption.click()
+		return
+	}
+
 	const emailOption = page.getByRole('option').filter({ hasText: /admin@email\.tld/i }).first()
 	await expect(emailOption).toBeVisible({ timeout: 10_000 })
 	await emailOption.click()

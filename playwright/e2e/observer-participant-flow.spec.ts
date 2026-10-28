@@ -7,7 +7,7 @@ import { expect, test } from '@playwright/test'
 
 import { createMailpitClient, extractSignLink, extractValidationLink, waitForEmailTo } from '../support/mailpit'
 import { login } from '../support/nc-login'
-import { configureOpenSsl, ensureUserExists, setSystemPolicy } from '../support/nc-provisioning'
+import { configureOpenSsl, ensureUserExists, setSystemPolicy, setUserEmail } from '../support/nc-provisioning'
 import { clickAddObserver, clickAddSigner, selectAccountSigner, selectEmailSigner, selectIdentifyMethodTab } from '../support/request-signature'
 import { useRequestSignPolicyGuard } from '../support/system-policies'
 
@@ -220,6 +220,7 @@ test('authenticated observer opens the request in read-only mode', async ({ page
 
 	await login(page.request, adminUser, adminPassword)
 	await ensureUserExists(page.request, observerUser, observerPassword)
+	await setUserEmail(page.request, observerUser, `${observerUser}@example.test`)
 
 	await configureOpenSsl(page.request, 'LibreSign Test', {
 		C: 'BR',
