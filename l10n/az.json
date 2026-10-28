@@ -41,7 +41,6 @@
     "Name:" : "Ad:",
     "Private" : "Gizli",
     "Country:" : "Ölkə:",
-    "No date" : "No date",
     "Yes" : "Yes",
     "No" : "No",
     "Error" : "Səhv",
@@ -87,6 +86,7 @@
     "Today" : "Bu gün",
     "Other" : "Digər",
     "Public" : "İctimai",
+    "No date" : "No date",
     "User" : "User"
 },"pluralForm" :"nplurals=2; plural=(n != 1);"
 }

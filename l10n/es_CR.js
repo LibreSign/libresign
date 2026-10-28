@@ -63,7 +63,6 @@ OC.L10N.register(
     "Number of documents:" : "Número de documentos:",
     "Hide details" : "Ocultar detalles",
     "Country:" : "País:",
-    "No date" : "Sin fecha",
     "Yes" : "Sí",
     "No" : "No",
     "Error" : "Error",
@@ -127,6 +126,7 @@ OC.L10N.register(
     "_{count} file_::_{count} files_" : ["{count} archivo","{count} archivos","{count} archivos"],
     "Today" : "Hoy",
     "Public" : "Público",
+    "No date" : "Sin fecha",
     "User" : "Usuario",
     "Reminders" : "Recordatorios"
 },
