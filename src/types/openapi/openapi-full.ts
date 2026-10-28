@@ -182,7 +182,7 @@ export type paths = {
         patch?: never;
         trace?: never;
     };
-    "/ocs/v2.php/apps/libresign/api/{apiVersion}/sign": {
+    "/ocs/v2.php/apps/libresign/api/{apiVersion}/sign/direct": {
         parameters: {
             query?: never;
             header?: never;
@@ -192,7 +192,7 @@ export type paths = {
         get?: never;
         put?: never;
         /**
-         * Create and sign a PDF as the authenticated account in a single call.
+         * Sign one PDF immediately and return the signed document.
          * @description The authenticated user must be authorized to request signatures and have the requested account signature method enabled. This endpoint does not accept arbitrary signers, visible fields or remote URLs.
          *     Uses ordinary Nextcloud application-password authentication and OCS-APIRequest: true. This is a synchronous convenience operation. The caller is responsible for not retrying an uncertain result as a brand-new request: no additional idempotency state is introduced.
          *     No visible signature elements are requested, but an enabled PDF footer policy may still change the visual presentation of the document.

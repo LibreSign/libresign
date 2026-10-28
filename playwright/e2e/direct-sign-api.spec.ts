@@ -8,7 +8,7 @@ import { login } from '../support/nc-login'
 import { configureOpenSsl, setSystemPolicy } from '../support/nc-provisioning'
 import { getSmallValidPdfBuffer } from '../support/pdf-fixtures'
 
-const endpoint = './ocs/v2.php/apps/libresign/api/v1/sign'
+const endpoint = './ocs/v2.php/apps/libresign/api/v1/sign/direct'
 if (process.env.PLAYWRIGHT_CHROME_BIN) {
   test.use({ launchOptions: { executablePath: process.env.PLAYWRIGHT_CHROME_BIN } })
 }
