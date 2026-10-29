@@ -88,7 +88,6 @@ OC.L10N.register(
     "Today" : "Bu gün",
     "Other" : "Digər",
     "Public" : "İctimai",
-    "No date" : "No date",
     "User" : "User"
 },
 "nplurals=2; plural=(n != 1);");

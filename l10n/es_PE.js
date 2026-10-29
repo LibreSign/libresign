@@ -124,7 +124,6 @@ OC.L10N.register(
     "Today" : "Hoy",
     "Other" : "Otro",
     "Public" : "Público",
-    "No date" : "Sin fecha",
     "User" : "Usuario",
     "Reminders" : "Recordatorios"
 },

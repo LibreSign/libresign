@@ -175,7 +175,6 @@ OC.L10N.register(
     "Custom background" : "Tùy chỉnh nền",
     "No background" : "Không có nền",
     "Public" : "Công khai",
-    "No date" : "No date",
     "User" : "Người dùng",
     "Add new" : "Thêm mới",
     "on" : "trên",

@@ -147,7 +147,6 @@ OC.L10N.register(
     "Other" : "Alia",
     "Custom URL" : "Propra retadreso",
     "Public" : "Publika",
-    "No date" : "No date",
     "User" : "Uzanto",
     "Reminders" : "Memorigoj"
 },

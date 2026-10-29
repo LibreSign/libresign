@@ -84,7 +84,6 @@ OC.L10N.register(
     "Hello {name}" : "Helo {name}",
     "Today" : "Heddiw",
     "Other" : "Arall",
-    "No date" : "No date",
     "User" : "Defnyddwyr",
     "Add new" : "Ychwanegu newydd",
     "on" : "ar",

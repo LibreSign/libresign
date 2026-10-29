@@ -207,8 +207,6 @@ OC.L10N.register(
     "Notification sent with success." : "Успешно исптарено известување.",
     "Cannot read file" : "Неможе да се прочита датотеката",
     "Underline" : "Подвлечен",
-    "Expiration:" : "Рок на траење:",
-    "No date" : "No date",
     "User" : "Корисник",
     "Add new" : "Додади нов",
     "on" : "во",

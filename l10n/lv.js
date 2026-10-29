@@ -165,7 +165,6 @@ OC.L10N.register(
     "Today" : "Šodien",
     "Other" : "Cits",
     "Public" : "Publiska",
-    "No date" : "No date",
     "User" : "Lietotājs",
     "Add new" : "Pievienot jaunu",
     "Customize default user folder" : "Pielāgot noklusējuma lietotāja mapi",

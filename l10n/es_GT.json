@@ -122,7 +122,6 @@
     "_{count} file_::_{count} files_" : ["{count} archivo","{count} archivos","{count} archivos"],
     "Today" : "Hoy",
     "Public" : "Público",
-    "No date" : "Sin fecha",
     "User" : "Ususario",
     "Reminders" : "Recordatorios"
 },"pluralForm" :"nplurals=3; plural=n == 1 ? 0 : n != 0 && n % 1000000 == 0 ? 1 : 2;"
