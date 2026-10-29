@@ -13,11 +13,14 @@ use OCA\Libresign\Db\NotificationDelivery;
 use OCA\Libresign\Db\NotificationDeliveryMapper;
 use OCA\Libresign\Enum\NotificationDeliveryState;
 use OCP\AppFramework\Db\TTransactional;
+use OCA\Libresign\Exception\NotificationPreparationException;
 use OCP\IDBConnection;
 use Psr\Log\LoggerInterface;
 
 /** Manages one attempt. The claim commits before any external side effect. */
 class NotificationSubmissionService {
+	private const MAX_ATTEMPTS = 5;
+	private const MAX_DELAY_SECONDS = 3600;
 	use TTransactional;
 
 	public function __construct(
@@ -43,6 +46,7 @@ class NotificationSubmissionService {
 
 		$outcome = NotificationDeliveryState::UNKNOWN;
 		$reason = 'unexpected_error';
+		$retrySafe = false;
 		try {
 			$channel->deliver($message);
 			$outcome = NotificationDeliveryState::ACCEPTED;
@@ -61,6 +65,8 @@ class NotificationSubmissionService {
 			}
 		} catch (\Exception $e) {
 			[$outcome, $reason] = $this->failureClassifier->classify($e);
+			// Never treat a nested preparation error in an ambiguous transport failure as proof of non-submission.
+			$retrySafe = $e instanceof NotificationPreparationException;
 			$this->logger->warning('Notification transport was not confirmed', [
 				'deliveryId' => $delivery->getId(),
 				'channel' => $message->channel,
@@ -69,9 +75,21 @@ class NotificationSubmissionService {
 			]);
 			throw $e;
 		} finally {
-			$this->atomic(function () use ($delivery, $attempt, &$outcome, &$reason): void {
+			$this->atomic(function () use ($delivery, $attempt, &$outcome, &$reason, &$retrySafe): void {
+				$retryAt = null;
+				if ($retrySafe && $outcome === NotificationDeliveryState::TEMPORARY_FAILURE) {
+					$count = $this->attempts->countForDelivery($delivery->getId());
+					if ($count < self::MAX_ATTEMPTS) {
+						$base = min(self::MAX_DELAY_SECONDS, 30 * (2 ** ($count - 1)));
+						$retryAt = new \DateTime('now', new \DateTimeZone('UTC'));
+						$retryAt->modify('+' . ($base + random_int(0, min(30, $base))) . ' seconds');
+					} else {
+						$outcome = NotificationDeliveryState::FAILED;
+						$reason = 'retry_limit_exhausted';
+					}
+				}
 				$this->attempts->finish($attempt->getId(), $outcome, $reason);
-				$this->deliveries->finish($delivery->getId(), $outcome);
+				$this->deliveries->finish($delivery->getId(), $outcome, $retryAt);
 			}, $this->db);
 		}
 		return true;

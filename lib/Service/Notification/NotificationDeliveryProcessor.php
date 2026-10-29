@@ -37,7 +37,10 @@ final class NotificationDeliveryProcessor {
 			// An old queued job may remain after the retention job deleted its row.
 			return;
 		}
-		if ($delivery->getState() !== NotificationDeliveryState::PENDING->value) {
+		if ($delivery->getState() !== NotificationDeliveryState::PENDING->value
+			&& ($delivery->getState() !== NotificationDeliveryState::TEMPORARY_FAILURE->value
+				|| $delivery->getNextAttemptAt() === null
+				|| $delivery->getNextAttemptAt() > new \DateTime('now', new \DateTimeZone('UTC')))) {
 			return;
 		}
 		if ($delivery->getEventType() === 'sign_request') {

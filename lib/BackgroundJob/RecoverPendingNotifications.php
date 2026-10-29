@@ -9,7 +9,7 @@ declare(strict_types=1);
 namespace OCA\Libresign\BackgroundJob;
 
 use OCA\Libresign\Db\NotificationDeliveryMapper;
-use OCA\Libresign\Service\Notification\NotificationDeliveryProcessor;
+use OCP\BackgroundJob\IJobList;
 use OCP\AppFramework\Utility\ITimeFactory;
 use OCP\BackgroundJob\IJob;
 use OCP\BackgroundJob\TimedJob;
@@ -19,7 +19,7 @@ final class RecoverPendingNotifications extends TimedJob {
 	public function __construct(
 		ITimeFactory $time,
 		private NotificationDeliveryMapper $deliveries,
-		private NotificationDeliveryProcessor $processor,
+		private IJobList $jobs,
 	) {
 		parent::__construct($time);
 		$this->setInterval(60);
@@ -28,8 +28,8 @@ final class RecoverPendingNotifications extends TimedJob {
 
 	#[\Override]
 	public function run($argument): void {
-		foreach ($this->deliveries->findPending(50) as $delivery) {
-			$this->processor->process($delivery->getId());
+		foreach ($this->deliveries->findDue(50) as $delivery) {
+			$this->jobs->add(DeliverNotification::class, ['id' => $delivery->getId()]);
 		}
 	}
 }

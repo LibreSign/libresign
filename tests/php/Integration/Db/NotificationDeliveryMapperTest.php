@@ -54,6 +54,37 @@ final class NotificationDeliveryMapperTest extends \OCA\Libresign\Tests\Integrat
 		return $delivery;
 	}
 
+	public function testSafeRetryIsScheduledAndCannotBeClaimedBeforeDueTime(): void {
+		$delivery = $this->createDelivery('safe-retry');
+		$this->assertTrue($this->deliveries->claim($delivery->getId()));
+		$future = new \DateTime('+1 hour', new \DateTimeZone('UTC'));
+		$this->deliveries->finish($delivery->getId(), NotificationDeliveryState::TEMPORARY_FAILURE, $future);
+		$this->assertFalse($this->deliveries->claim($delivery->getId()));
+		$this->assertSame(NotificationDeliveryState::TEMPORARY_FAILURE->value, $this->deliveries->findById($delivery->getId())->getState());
+		$this->assertNotNull($this->deliveries->findById($delivery->getId())->getNextAttemptAt());
+		$this->assertFalse(in_array($delivery->getId(), array_map(static fn (NotificationDelivery $row): int => $row->getId(), $this->deliveries->findDue(500)), true));
+	}
+
+	public function testDueRetryHasOneAtomicWinnerAndPreservesEventIdentity(): void {
+		$delivery = $this->createDelivery('due-retry');
+		$this->assertTrue($this->deliveries->claim($delivery->getId()));
+		$this->deliveries->finish($delivery->getId(), NotificationDeliveryState::TEMPORARY_FAILURE, new \DateTime('-1 minute', new \DateTimeZone('UTC')));
+		$this->assertTrue($this->deliveries->claim($delivery->getId()));
+		$this->assertFalse($this->deliveries->claim($delivery->getId()));
+		$this->assertSame($delivery->getEventKey(), $this->deliveries->findById($delivery->getId())->getEventKey());
+		$this->deliveries->finish($delivery->getId(), NotificationDeliveryState::ACCEPTED);
+		$this->assertFalse($this->deliveries->claim($delivery->getId()));
+	}
+
+	public function testCancelAlsoInvalidatesScheduledInvitation(): void {
+		$delivery = $this->createDelivery('cancel-scheduled');
+		$this->assertTrue($this->deliveries->claim($delivery->getId()));
+		$this->deliveries->finish($delivery->getId(), NotificationDeliveryState::TEMPORARY_FAILURE, new \DateTime('-1 minute', new \DateTimeZone('UTC')));
+		$this->assertSame(1, $this->deliveries->cancelPendingInvitations(200));
+		$this->assertSame(NotificationDeliveryState::CANCELED->value, $this->deliveries->findById($delivery->getId())->getState());
+		$this->assertFalse($this->deliveries->claim($delivery->getId()));
+	}
+
 	public function testUniqueEventIsInsertedOnlyOnce(): void {
 		$key = hash('sha256', 'synthetic-test-' . bin2hex(random_bytes(16)));
 		$delivery = $this->deliveries->register($key, hash('sha256', $key), 'sign_request', 'mail', 101, 201, 'test-owner', 'ciphertext');
