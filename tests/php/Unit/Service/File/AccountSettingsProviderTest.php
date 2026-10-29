@@ -337,6 +337,33 @@ final class AccountSettingsProviderTest extends \OCA\Libresign\Tests\Unit\TestCa
 		];
 	}
 
+	#[DataProvider('provideDirectSignConfirmationCases')]
+	public function testGetConfigIncludesDirectSignConfirmationPreference(string $storedValue, bool $expected): void {
+		$user = $this->createMock(IUser::class);
+		$user->method('getUID')->willReturn('preference-user');
+
+		$this->userConfig->method('getValueString')
+			->willReturnCallback(static function (string $uid, string $appId, string $key, string $default = '') use ($storedValue): string {
+				if ($uid === 'preference-user'
+					&& $appId === Application::APP_ID
+					&& $key === 'skip_direct_sign_confirmation') {
+					return $storedValue;
+				}
+				return $default;
+			});
+
+		$config = $this->getService()->getConfig($user);
+		$this->assertSame($expected, $config['skip_direct_sign_confirmation']);
+	}
+
+	public static function provideDirectSignConfirmationCases(): array {
+		return [
+			'opted out' => ['1', true],
+			'confirmation enabled' => ['0', false],
+			'default' => ['', false],
+		];
+	}
+
 	public function testGetConfigIncludesManageablePolicyGroupIds(): void {
 		$user = $this->createMock(IUser::class);
 		$user->method('getUID')->willReturn('manageable-user');
@@ -382,6 +409,7 @@ final class AccountSettingsProviderTest extends \OCA\Libresign\Tests\Unit\TestCa
 			'files_list_grid_view' => '1', 'files_list_signer_identify_tab' => 'account',
 			'policy_workbench_catalog_compact_view' => '1', 'policy_workbench_catalog_collapsed' => '1',
 			'warn_without_visible_signature_fields' => '0',
+			'skip_direct_sign_confirmation' => '1',
 		];
 		if ($user === null) {
 			$this->userConfig->expects($this->never())->method('getValueString');
@@ -413,6 +441,7 @@ final class AccountSettingsProviderTest extends \OCA\Libresign\Tests\Unit\TestCa
 			'policy_workbench_catalog_compact_view' => $user !== null,
 			'policy_workbench_catalog_collapsed' => $user !== null,
 			'warn_without_visible_signature_fields' => $user === null,
+			'skip_direct_sign_confirmation' => $user !== null,
 			'can_manage_group_policies' => $isAdmin,
 			'manageable_policy_group_ids' => [],
 		];
