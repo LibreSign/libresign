@@ -30,15 +30,6 @@
 				<!-- TRANSLATORS Button label to upload PDF file(s) from local device storage. -->
 				{{ t('libresign', 'Upload') }}
 			</NcButton>
-			<NcButton v-if="canDirectSign"
-				variant="tertiary"
-				@click="signPdfNow">
-				<template #icon>
-					<NcIconSvgWrapper :path="mdiSignature" :size="20" />
-				</template>
-				<!-- TRANSLATORS Immediate PDF signing action; opens a file picker without creating a draft request. -->
-				{{ t('libresign', 'Sign PDF now') }}
-			</NcButton>
 		</div>
 		<NcActions v-else
 			v-model:open="openedMenu"
@@ -70,6 +61,7 @@
 				{{ t('libresign', 'Upload') }}
 			</NcActionButton>
 			<NcActionButton v-if="canDirectSign" :wide="true"
+				:disabled="isDirectSigning"
 				@click="signPdfNow">
 				<template #icon>
 					<NcIconSvgWrapper :path="mdiSignature" :size="20" />
@@ -231,6 +223,7 @@ const modalUploadFromUrl = ref(false)
 const uploadUrlErrors = ref<string[]>([])
 const pdfUrl = ref('')
 const loading = ref(false)
+const isDirectSigning = ref(false)
 const openedMenu = ref(false)
 const canRequestSign = ref(loadState('libresign', 'can_request_sign', false))
 const effectivePolicies = loadState<{ policies?: { identify_methods?: { effectiveValue?: EffectivePolicyValue } } }>(
@@ -449,6 +442,9 @@ async function handleFilesSelected(files: UploadFile[]) {
 }
 
 function signPdfNow() {
+	if (isDirectSigning.value) {
+		return
+	}
 	openedMenu.value = false
 	const input = document.createElement('input')
 	input.type = 'file'
@@ -464,7 +460,12 @@ function signPdfNow() {
 			showError(t('libresign', 'Select a PDF file.'))
 			return
 		}
-		await spawnDialog(DirectSignDialog, { name: pdf.name, pdf })
+		isDirectSigning.value = true
+		try {
+			await spawnDialog(DirectSignDialog, { name: pdf.name, pdf })
+		} finally {
+			isDirectSigning.value = false
+		}
 	}
 	input.click()
 }

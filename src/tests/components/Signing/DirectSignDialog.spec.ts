@@ -4,7 +4,9 @@
  */
 
 import { beforeEach, describe, expect, it, vi } from 'vitest'
-import { mount } from '@vue/test-utils'
+import { flushPromises, mount } from '@vue/test-utils'
+import { createPinia, setActivePinia } from 'pinia'
+import { useUserConfigStore } from '../../../store/userconfig.js'
 import { nextTick } from 'vue'
 import { showSuccess } from '@nextcloud/dialogs'
 
@@ -12,7 +14,10 @@ import DirectSignDialog from '../../../components/Signing/DirectSignDialog.vue'
 import { downloadSignedPdf, signPdfDirectly } from '../../../services/directSigning.ts'
 
 vi.mock('@nextcloud/l10n', () => globalThis.mockNextcloudL10n())
-vi.mock('@nextcloud/dialogs', () => ({ showSuccess: vi.fn() }))
+vi.mock('@nextcloud/initial-state', () => ({
+	loadState: vi.fn((_app, key, fallback) => key === 'config' ? { skip_direct_sign_confirmation: false } : fallback),
+}))
+vi.mock('@nextcloud/dialogs', () => ({ showError: vi.fn(), showSuccess: vi.fn() }))
 vi.mock('../../../services/directSigning.ts', () => ({
 	signPdfDirectly: vi.fn(),
 	downloadSignedPdf: vi.fn(),
@@ -22,7 +27,10 @@ const sign = vi.mocked(signPdfDirectly)
 const download = vi.mocked(downloadSignedPdf)
 
 describe('immediate signature confirmation', () => {
-	beforeEach(() => vi.clearAllMocks())
+	beforeEach(() => {
+		vi.clearAllMocks()
+		setActivePinia(createPinia())
+	})
 
 	function dialog() {
 		return mount(DirectSignDialog, {
@@ -30,6 +38,7 @@ describe('immediate signature confirmation', () => {
 			global: { stubs: {
 					NcDialog: { name: 'NcDialog', props: ['buttons'], template: '<div><slot /></div>' },
 					NcNoteCard: { name: 'NcNoteCard', template: '<div><slot /></div>' },
+					NcCheckboxRadioSwitch: { name: 'NcCheckboxRadioSwitch', props: ['modelValue'], template: '<label><slot /></label>' },
 				} },
 		})
 	}
@@ -50,6 +59,41 @@ describe('immediate signature confirmation', () => {
 		expect(download).toHaveBeenCalledExactlyOnceWith(pdf, 'document.pdf')
 		expect(showSuccess).toHaveBeenCalledOnce()
 		expect(wrapper.emitted('close')?.[0]).toEqual([true])
+	})
+
+	it('remembers dismissal only after successful signing', async () => {
+		const config = useUserConfigStore()
+		const update = vi.spyOn(config, 'update').mockResolvedValue(undefined)
+		const wrapper = dialog()
+		wrapper.findComponent({ name: 'NcCheckboxRadioSwitch' }).vm.$emit('update:modelValue', true)
+		await nextTick()
+		const pdf = new Blob(['signed'], { type: 'application/pdf' })
+		sign.mockResolvedValueOnce({ pdf, filename: 'document.pdf' })
+		await buttons(wrapper)[1].callback()
+		expect(update).toHaveBeenCalledWith('skip_direct_sign_confirmation', true)
+	})
+
+	it('signs immediately without a confirmation if user has dismissed it', async () => {
+		const config = useUserConfigStore()
+		config.onUpdate('skip_direct_sign_confirmation', true)
+		const pdf = new Blob(['signed'], { type: 'application/pdf' })
+		sign.mockResolvedValueOnce({ pdf, filename: 'document.pdf' })
+		const wrapper = dialog()
+		await flushPromises()
+		expect(wrapper.findComponent({ name: 'NcDialog' }).exists()).toBe(false)
+		expect(sign).toHaveBeenCalledOnce()
+		expect(download).toHaveBeenCalledOnce()
+		expect(wrapper.emitted('close')?.[0]).toEqual([true])
+	})
+
+	it('shows the error dialog if silent signing encounters an uncertain result', async () => {
+		useUserConfigStore().onUpdate('skip_direct_sign_confirmation', true)
+		sign.mockRejectedValueOnce(new Error('network lost'))
+		const wrapper = dialog()
+		await flushPromises()
+		expect(wrapper.findComponent({ name: 'NcDialog' }).exists()).toBe(true)
+		expect(wrapper.text()).toContain('signing result is unknown')
+		expect(buttons(wrapper)[1].disabled).toBe(true)
 	})
 
 	it('allows cancellation without creating a signing request', () => {
@@ -73,6 +117,7 @@ describe('immediate signature confirmation', () => {
 		const wrapper = dialog()
 		sign.mockRejectedValueOnce({ response: { status: 500 } })
 		await buttons(wrapper)[1].callback()
+		await nextTick()
 		expect(buttons(wrapper)[1].disabled).toBe(true)
 	})
 
@@ -80,6 +125,7 @@ describe('immediate signature confirmation', () => {
 		const wrapper = dialog()
 		sign.mockRejectedValueOnce(new Error('connection lost'))
 		await buttons(wrapper)[1].callback()
+		await nextTick()
 		expect(buttons(wrapper)[1].disabled).toBe(true)
 		expect(wrapper.text()).toContain('signing result is unknown')
 		await buttons(wrapper)[1].callback()

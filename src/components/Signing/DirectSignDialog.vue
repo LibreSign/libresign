@@ -3,7 +3,7 @@
   - SPDX-License-Identifier: AGPL-3.0-or-later
 -->
 <template>
-	<NcDialog :name="dialogTitle" :no-close="signing" :buttons="buttons"
+	<NcDialog v-if="showDialog" :name="dialogTitle" :no-close="signing" :buttons="buttons"
 		@closing="emit('close', false)">
 		<p>
 			<!-- TRANSLATORS Confirmation for immediately signing a PDF as the current user without placing visible signature fields. -->
@@ -13,6 +13,17 @@
 			<!-- TRANSLATORS Points users to the existing flow when they need signature positions or additional signers. -->
 			{{ t('libresign', 'To add signature positions or other signers, use the regular request flow.') }}
 		</p>
+		<NcCheckboxRadioSwitch v-if="!errorMessage && !skipConfirmation"
+			v-model="rememberChoice"
+			type="checkbox"
+			:disabled="signing">
+			<!-- TRANSLATORS Opt out of future confirmation dialogs when explicitly using the immediate PDF signing action. -->
+			{{ t('libresign', 'Do not show this confirmation again') }}
+		</NcCheckboxRadioSwitch>
+		<p v-if="!errorMessage && !skipConfirmation" class="preference-hint">
+			<!-- TRANSLATORS Tells users where they can restore the confirmation prompt for immediate signing. -->
+			{{ t('libresign', 'You can restore this confirmation in LibreSign preferences.') }}
+		</p>
 		<NcNoteCard v-if="errorMessage" type="error">
 			{{ errorMessage }}
 		</NcNoteCard>
@@ -20,11 +31,13 @@
 </template>
 
 <script setup lang="ts">
-import { computed, ref } from 'vue'
+import { computed, onMounted, ref, unref } from 'vue'
 import { t } from '@nextcloud/l10n'
-import { showSuccess } from '@nextcloud/dialogs'
+import { showError, showSuccess } from '@nextcloud/dialogs'
 import NcDialog from '@nextcloud/vue/components/NcDialog'
 import NcNoteCard from '@nextcloud/vue/components/NcNoteCard'
+import NcCheckboxRadioSwitch from '@nextcloud/vue/components/NcCheckboxRadioSwitch'
+import { useUserConfigStore } from '../../store/userconfig.js'
 
 import { downloadSignedPdf, signPdfDirectly } from '../../services/directSigning.ts'
 import type { DirectSignInput } from '../../services/directSigning.ts'
@@ -36,6 +49,17 @@ const emit = defineEmits<{ (event: 'close', signed: boolean): void }>()
 const signing = ref(false)
 const errorMessage = ref('')
 const retryAllowed = ref(true)
+const userConfigStore = useUserConfigStore()
+const skipConfirmation = computed(() => unref(userConfigStore.skip_direct_sign_confirmation) === true)
+const showDialog = ref(!skipConfirmation.value)
+const rememberChoice = ref(false)
+const CONFIRMATION_KEY = 'skip_direct_sign_confirmation'
+
+onMounted(() => {
+	if (skipConfirmation.value) {
+		void signNow()
+	}
+})
 
 // TRANSLATORS Dialog title for immediate PDF signing.
 const dialogTitle = t('libresign', 'Sign PDF now')
@@ -49,10 +73,20 @@ async function signNow() {
 	try {
 		const result = await signPdfDirectly(props)
 		downloadSignedPdf(result.pdf, result.filename)
+		if (rememberChoice.value) {
+			try {
+				await userConfigStore.update(CONFIRMATION_KEY, true)
+			} catch {
+				userConfigStore.onUpdate(CONFIRMATION_KEY, false)
+				// TRANSLATORS Warning when the PDF was signed but the user preference to skip future confirmations could not be saved.
+				showError(t('libresign', 'PDF signed, but your confirmation preference could not be saved.'))
+			}
+		}
 		// TRANSLATORS Notification shown after the signed PDF has been downloaded.
 		showSuccess(t('libresign', 'The signed PDF has been downloaded.'))
 		emit('close', true)
 	} catch (error) {
+		showDialog.value = true
 		const response = error && typeof error === 'object' && 'response' in error
 			? error.response as { status?: number } | undefined
 			: undefined
@@ -85,3 +119,10 @@ const buttons = computed(() => [
 	},
 ])
 </script>
+
+<style scoped>
+.preference-hint {
+	color: var(--color-text-maxcontrast);
+	font-size: 0.85rem;
+}
+</style>

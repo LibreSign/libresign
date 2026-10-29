@@ -75,6 +75,7 @@ class AccountSettingsProvider {
 		$info['policy_workbench_catalog_collapsed'] = $this->getUserConfigByKey('policy_workbench_catalog_collapsed', $user) === '1';
 		$info['policy_workbench_category_collapsed_state'] = $this->getUserConfigJsonByKey('policy_workbench_category_collapsed_state', $user);
 		$info['warn_without_visible_signature_fields'] = $this->getUserConfigByKey('warn_without_visible_signature_fields', $user) !== '0';
+		$info['skip_direct_sign_confirmation'] = $this->getUserConfigByKey('skip_direct_sign_confirmation', $user) === '1';
 		$info['can_manage_group_policies'] = $this->policyAuthorizationService->canUserManageGroupPolicies($user);
 		$info['manageable_policy_group_ids'] = $this->policyAuthorizationService->getManageablePolicyGroupIds($user);
 
