@@ -166,9 +166,11 @@ final class NotificationDeliveryServiceTest extends TestCase {
 	private function expectFreshDelivery(): void {
 		$delivery = new NotificationDelivery();
 		$delivery->setId(31);
+		$delivery->setAttemptCount(1);
 		$attempt = new NotificationAttempt();
 		$attempt->setId(41);
 		$this->deliveries->method('register')->willReturn($delivery);
+		$this->deliveries->method('findById')->with(31)->willReturn($delivery);
 		$this->deliveries->method('claim')->with(31)->willReturn(true);
 		$this->attempts->method('begin')->with(31)->willReturn($attempt);
 	}
