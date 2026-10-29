@@ -13,6 +13,7 @@
 				<!-- TRANSLATORS Button label to import a PDF for signing by providing a direct URL. -->
 				{{ t('libresign', 'Upload from URL') }}
 			</NcButton>
+			<!-- TRANSLATORS Tooltip on the existing-files picker when selecting multiple PDF files is enabled. -->
 			<NcButton variant="secondary"
 				:title="envelopeEnabled ? t('libresign', 'Multiple files allowed') : null"
 				@click="openFilePicker">
@@ -43,14 +44,17 @@
 				<template #icon>
 					<NcIconSvgWrapper :path="mdiLink" :size="20" />
 				</template>
+				<!-- TRANSLATORS Menu action to import PDF files from a URL. -->
 				{{ t('libresign', 'Upload from URL') }}
 			</NcActionButton>
+			<!-- TRANSLATORS Tooltip on the existing-files menu action when selecting multiple PDF files is enabled. -->
 			<NcActionButton :wide="true"
 				:title="envelopeEnabled ? t('libresign', 'Multiple files allowed') : null"
 				@click="openFilePicker">
 				<template #icon>
 					<NcIconSvgWrapper :path="mdiFolder" :size="20" />
 				</template>
+				<!-- TRANSLATORS Menu action to choose existing PDF files stored in Nextcloud. -->
 				{{ t('libresign', 'Choose from Files') }}
 			</NcActionButton>
 			<NcActionButton :wide="true"
@@ -58,6 +62,7 @@
 				<template #icon>
 					<NcIconSvgWrapper :path="mdiUpload" :size="20" />
 				</template>
+				<!-- TRANSLATORS Menu action to upload PDF files from the local device. -->
 				{{ t('libresign', 'Upload') }}
 			</NcActionButton>
 			<NcActionButton v-if="canDirectSign" :wide="true"
@@ -96,6 +101,7 @@
 				<NcButton :disabled="!canUploadFronUrl"
 					type="submit"
 					variant="primary">
+					<!-- TRANSLATORS Button to submit the URL of a PDF for upload. -->
 					{{ t('libresign', 'Send') }}
 					<template #icon>
 						<NcLoadingIcon v-if="loading" :size="20" />
@@ -122,9 +128,11 @@
 					variant="primary"
 					:disabled="envelopeNameInput.trim().length < ENVELOPE_NAME_MIN_LENGTH"
 					@click="handleEnvelopeNameSubmit()">
+					<!-- TRANSLATORS Button that creates a new envelope with the entered name. -->
 					{{ t('libresign', 'Create') }}
 				</NcButton>
 				<NcButton @click="closeEnvelopeNameDialog">
+					<!-- TRANSLATORS Button that cancels creating a new envelope. -->
 					{{ t('libresign', 'Cancel') }}
 				</NcButton>
 			</template>
@@ -479,9 +487,11 @@ function signPdfNow() {
 						{ readyToSign: true },
 						)
 						if (response && 'success' in response && response.success === false) {
+							// TRANSLATORS Error shown when the current account cannot be added as signer during request preparation.
 							showError(('message' in response && response.message) || t('libresign', 'Cannot add your account as signer'))
 						}
 					} catch {
+						// TRANSLATORS Error shown if adding the current account as signer during request preparation fails.
 						showError(t('libresign', 'Failed to add signer'))
 					}
 				}
@@ -539,8 +549,11 @@ async function handleFileChoose(nodes: FilePickerNode[] = []) {
 		const dialogEnvelopeName = await spawnDialog(
 			EditNameDialog,
 			{
+				// TRANSLATORS Dialog title for naming an envelope containing multiple PDFs.
 				title: t('libresign', 'Envelope name'),
+				// TRANSLATORS Label for the field used to name a new envelope.
 				label: t('libresign', 'Enter a name for the envelope'),
+				// TRANSLATORS Placeholder for the envelope name field.
 				placeholder: t('libresign', 'Envelope name'),
 			},
 		)
@@ -559,6 +572,7 @@ async function handleFileChoose(nodes: FilePickerNode[] = []) {
 					sidebarStore.activeRequestSignatureTab()
 				})
 				.catch(({ response }: { response?: { data?: { ocs?: { data?: { message?: string } } } } }) => {
+					// TRANSLATORS Fallback error displayed when a PDF upload from Nextcloud Files fails.
 					showError(response?.data?.ocs?.data?.message || t('libresign', 'Upload failed'))
 				})
 				.finally(() => {
@@ -582,6 +596,7 @@ async function handleFileChoose(nodes: FilePickerNode[] = []) {
 			sidebarStore.activeRequestSignatureTab()
 		})
 		.catch(({ response }: { response?: { data?: { ocs?: { data?: { message?: string } } } } }) => {
+			// TRANSLATORS Fallback error displayed when a selected PDF upload fails.
 			showError(response?.data?.ocs?.data?.message || t('libresign', 'Upload failed'))
 		})
 }

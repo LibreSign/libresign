@@ -645,10 +645,12 @@ const _filesStore = defineStore('files', () => {
 				if (error.code === 'ERR_CANCELED') {
 					return {
 						success: false,
+						// TRANSLATORS Status message after the PDF upload has been canceled.
 						message: t('libresign', 'Upload cancelled'),
 						error,
 					}
 				}
+				// TRANSLATORS Error if adding the selected PDFs to an envelope fails.
 				const message = error.response?.data?.ocs?.data?.message || t('libresign', 'Failed to add files to envelope')
 				return {
 					success: false,
@@ -676,13 +678,16 @@ const _filesStore = defineStore('files', () => {
 				return {
 					success: true,
 					message: isSingle
+						// TRANSLATORS Success message after one PDF is removed from an envelope.
 						? t('libresign', 'File removed from envelope')
+						// TRANSLATORS Success message after multiple PDFs are removed from an envelope.
 						: t('libresign', 'Files removed from envelope'),
 					removedCount: fileIds.length,
 					removedIds: fileIds,
 				}
 			})
 			.catch((error) => {
+				// TRANSLATORS Error when removing one or more files from an envelope fails.
 				const message = error.response?.data?.ocs?.data?.message || t('libresign', 'Failed to remove file(s) from envelope')
 				return {
 					success: false,
@@ -873,6 +878,7 @@ const _filesStore = defineStore('files', () => {
 		if ((selectedFile?.requested_by?.userId ?? '').length === 0 || selectedFile?.created_at.length === 0) {
 			return ''
 		}
+		// TRANSLATORS Subtitle identifying the requester and creation date; {name} is the requester name and {date} is the formatted date.
 		return t('libresign', 'Requested by {name}, at {date}', {
 			name: selectedFile.requested_by.userId,
 			date: Moment(Date.parse(selectedFile.created_at)).format('LL LTS'),
@@ -1365,6 +1371,7 @@ const _filesStore = defineStore('files', () => {
 
 		const response = await axios(config)
 			.catch((error) => {
+				// TRANSLATORS Error when the signature request cannot be created or updated.
 				const message = error.response?.data?.ocs?.data?.message || t('libresign', 'Failed to save or update signature request')
 				return {
 					success: false,

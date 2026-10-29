@@ -42,6 +42,7 @@
 				</div>
 			</template>
 			<template #no-options="{ search }">
+				<!-- TRANSLATORS Placeholder message in signer search before a query has been typed. -->
 				{{ search ? noResultText : t('libresign', 'No recommendations. Start typing.') }}
 			</template>
 		</NcSelect>
@@ -87,6 +88,7 @@ const props = withDefaults(defineProps<{
 	allowSelf?: boolean
 }>(), {
 	method: 'all',
+	// TRANSLATORS Default placeholder for the signer-name input field.
 	placeholder: t('libresign', 'Name'),
 	participantRole: PARTICIPANT_ROLE.SIGNER,
 	allowSelf: false,
@@ -161,6 +163,7 @@ const mandatoryErrorText = computed(() => isObserver.value
 
 const noResultText = computed(() => {
 	if (loading.value) {
+		// TRANSLATORS Status displayed while searching for signers or observers.
 		return t('libresign', 'Searching …')
 	}
 
