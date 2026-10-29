@@ -185,7 +185,6 @@ OC.L10N.register(
     "You are not allowed to request signing" : "Avètz pas l'autorizacion de demandar una signatura",
     "File to sign" : "Fichièr a signar",
     "Sign »%s«" : "Signar « %s »",
-    "No date" : "Cap de data",
     "User" : "Utilizator",
     "Add new" : "Apondre novèl",
     "on" : "lo",

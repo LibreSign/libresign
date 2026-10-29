@@ -139,7 +139,6 @@ OC.L10N.register(
     "Today" : "Sot",
     "Other" : "Tjetër",
     "Public" : "Publik",
-    "No date" : "No date",
     "User" : "Përdorues",
     "Not scheduled" : "I paplanifikuar",
     "Reminders" : "Kujtesë",

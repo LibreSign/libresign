@@ -208,8 +208,6 @@ OC.L10N.register(
     "Public" : "Нийтийн",
     "System default" : "Системийн анхдагч",
     "Underline" : "Доогуур зурсан",
-    "Expiration:" : "Хугацаа дуусах:",
-    "No date" : "No date",
     "User" : "Хэрэглэгч",
     "Add new" : "–®–∏–Ω—ç—ç—Ä –Ω—ç–º—ç—Ö",
     "off" : "унтраах",

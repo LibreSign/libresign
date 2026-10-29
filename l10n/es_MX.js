@@ -195,8 +195,6 @@ OC.L10N.register(
     "No background" : "Sin fondo",
     "Public" : "Público",
     "Underline" : "Subrayado",
-    "Expiration:" : "Caducidad:",
-    "No date" : "Sin fecha",
     "User" : "Usuario",
     "Add new" : "Añadir nuevo",
     "on" : "el",

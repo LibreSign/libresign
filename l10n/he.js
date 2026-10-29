@@ -177,7 +177,6 @@ OC.L10N.register(
     "Custom URL" : "כתובת מותאמת אישית",
     "Custom template" : "תבנית בהתאמה אישית",
     "Public" : "ציבורי",
-    "No date" : "No date",
     "User" : "משתמש",
     "Add new" : "הוסף חדש",
     "on" : "על",
