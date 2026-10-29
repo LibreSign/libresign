@@ -39,6 +39,7 @@ final class NotificationEnvelopeCodec {
 				'type' => 'gateway',
 				'gatewayName' => $message->payload->gatewayName,
 				'body' => $message->payload->body,
+				'extra' => $message->payload->extra,
 			],
 			$message->payload instanceof InAppPayload => $this->snapshotNotification($message->payload),
 			$message->payload instanceof DataPayload => [
@@ -138,7 +139,13 @@ final class NotificationEnvelopeCodec {
 				isset($payload['displayName']) ? (string)$payload['displayName'] : null,
 				$payload['firstNotification'] === true,
 			),
-			'gateway' => new GatewayPayload((string)$payload['gatewayName'], (string)$payload['body']),
+			'gateway' => new GatewayPayload(
+				(string)$payload['gatewayName'],
+				(string)$payload['body'],
+				is_array($payload['extra'] ?? [])
+					? $payload['extra'] ?? []
+					: throw new \UnexpectedValueException('Invalid gateway delivery options'),
+			),
 			'data' => new DataPayload(
 				is_array($payload['data'] ?? null)
 					? $payload['data']

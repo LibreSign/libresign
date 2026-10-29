@@ -16,7 +16,6 @@ use OCA\Libresign\Service\IdentifyMethod\IIdentifyMethod;
 use OCA\Libresign\Service\IdentifyMethodService;
 use OCA\Libresign\Service\Notification\GatewayChannel;
 use OCA\Libresign\Service\Notification\GatewayNotificationComposer;
-use OCA\Libresign\Service\Notification\GatewayPayload;
 use OCA\Libresign\Service\Notification\NotificationMessage;
 use OCA\Libresign\Service\Notification\NotificationModule;
 use OCA\Libresign\Service\NotificationDeliveryService;
@@ -78,10 +77,10 @@ class TwofactorGatewayListener implements NotificationModule {
 			return;
 		}
 		$gatewayName = IdentifyMethodService::resolveTwofactorGatewayName($entity->getIdentifierKey());
-		$body = $this->composer->compose($eventType, $signRequest, $file, $entity->getIdentifierKey());
+		$payload = $this->composer->composePayload($eventType, $signRequest, $file, $entity->getIdentifierKey(), $gatewayName);
 		$this->deliveryService->dispatch(new NotificationMessage(
 			$eventId, $eventType, 'gateway:' . $gatewayName, $file, $signRequest,
-			$recipient, new GatewayPayload($gatewayName, $body),
+			$recipient, $payload,
 			$eventType === 'sign_request' ? $entity->getIdentifierKey() : null,
 		), $this->channel);
 	}

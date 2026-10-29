@@ -49,18 +49,17 @@ final class TwofactorGatewayService {
 
 		try {
 			$isComplete = $this->callIntegrationMethod('isGatewayComplete', [$gatewayName]);
-		} catch (\Exception $exception) {
+		} catch (\Exception) {
+			// Gateway names and exception messages can contain caller-controlled data.
 			$this->logger->warning('Unable to determine twofactor gateway completeness.', [
-				'gateway' => $gatewayName,
-				'exception' => $exception,
+				'reason' => 'integration_error',
 			]);
 			return false;
 		}
 
 		if (!is_bool($isComplete)) {
 			$this->logger->warning('Twofactor gateway integration service returned an invalid completeness flag.', [
-				'gateway' => $gatewayName,
-				'returnedType' => get_debug_type($isComplete),
+				'reason' => 'invalid_response',
 			]);
 			return false;
 		}
@@ -71,8 +70,12 @@ final class TwofactorGatewayService {
 	/**
 	 * @throws LibresignException
 	 */
-	public function send(string $gatewayName, string $identifier, string $message): void {
-		$this->callIntegrationMethod('send', [$gatewayName, $identifier, $message]);
+	public function send(string $gatewayName, string $identifier, string $message, array $extra = []): void {
+		$arguments = [$gatewayName, $identifier, $message];
+		if ($extra !== []) {
+			$arguments[] = $extra;
+		}
+		$this->callIntegrationMethod('send', $arguments);
 	}
 
 	/**
