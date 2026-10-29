@@ -13,7 +13,10 @@ use OCA\Libresign\Db\NotificationDelivery;
 use OCA\Libresign\Db\NotificationDeliveryMapper;
 use OCA\Libresign\Enum\NotificationDeliveryState;
 use OCA\Libresign\Migration\Version19002Date20261025000000;
+use OCA\Libresign\Migration\Version19004Date20261029000000;
 use OCP\DB\ISchemaWrapper;
+use OCP\DB\Schema\ITable;
+use OCP\DB\Types;
 use OCP\Migration\IOutput;
 use OCP\Server;
 
@@ -241,6 +244,22 @@ final class NotificationDeliveryMapperTest extends \OCA\Libresign\Tests\Integrat
 		$this->assertSame('', $persisted->getOwnerId());
 		$this->assertSame(NotificationDeliveryState::ACCEPTED->value, $persisted->getState());
 		$this->assertFalse($this->deliveries->claim($persisted->getId()));
+	}
+
+	public function testAttemptCounterMigrationIsIdempotent(): void {
+		$table = $this->createMock(ITable::class);
+		$table->expects($this->exactly(2))->method('hasColumn')->with('attempt_count')
+			->willReturnOnConsecutiveCalls(false, true);
+		$table->expects($this->once())->method('addColumn')
+			->with('attempt_count', Types::INTEGER, ['notnull' => true, 'default' => 0]);
+		$schema = $this->createMock(ISchemaWrapper::class);
+		$schema->method('hasTable')->with('libresign_notification_delivery')->willReturn(true);
+		$schema->method('getTable')->with('libresign_notification_delivery')->willReturn($table);
+		$migration = new Version19004Date20261029000000();
+		$schemaClosure = static fn () => $schema;
+		$output = $this->createMock(IOutput::class);
+		$this->assertSame($schema, $migration->changeSchema($output, $schemaClosure, []));
+		$this->assertNull($migration->changeSchema($output, $schemaClosure, []));
 	}
 
 	public function testSchemaMigrationIsIdempotentAfterInstall(): void {
