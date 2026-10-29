@@ -216,8 +216,6 @@ OC.L10N.register(
     "No background" : "Enginn bakgrunnur",
     "Public" : "Opinbert",
     "Underline" : "Undirstrikað",
-    "Expiration:" : "Gildistími:",
-    "No date" : "Engin dagsetning",
     "User" : "Notandi",
     "Add new" : "Bæta við nýju",
     "on" : "þann",

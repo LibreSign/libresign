@@ -96,7 +96,6 @@ OC.L10N.register(
     "_{count} file_::_{count} files_" : ["{count} restr","{count} restr","restroù zo","an darn vrasañ eus ar restroù","{count} restr"],
     "Today" : "Hiziv",
     "Public" : "Publik",
-    "No date" : "Deizat ebet",
     "User" : "Implijer",
     "Invalid URL" : "URL fall"
 },
