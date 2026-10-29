@@ -8,8 +8,10 @@ declare(strict_types=1);
 
 namespace OCA\Libresign\Tests\Integration\Service\Worker;
 
+use OCA\Libresign\BackgroundJob\DeliverNotification;
 use OCA\Libresign\BackgroundJob\SignFileJob;
 use OCA\Libresign\BackgroundJob\SignSingleFileJob;
+use OCA\Libresign\Service\Worker\WorkerConfiguration;
 use OCA\Libresign\Service\Worker\WorkerJobCounter;
 use OCP\App\IAppManager;
 use OCP\BackgroundJob\IJobList;
@@ -49,6 +51,30 @@ class WorkerJobCounterTest extends TestCase {
 				'Nextcloud changed scheduled-job eligibility. Compare with JobList::getNext() and update WorkerJobCounter before upgrade.');
 		} finally {
 			$queue->remove(SignSingleFileJob::class, $args);
+		}
+	}
+
+	public function testNotificationPoolExcludesSigningAndFutureJobs(): void {
+		Server::get(IAppManager::class)->loadApp('libresign');
+		$queue = Server::get(IJobList::class);
+		$counter = Server::get(WorkerJobCounter::class);
+		$base = random_int(1000000000, 1900000000);
+		$due = ['id' => $base];
+		$future = ['id' => $base + 1];
+		$signing = ['fileId' => -$base, 'signRequestId' => -1, 'test' => 'notification-pool-isolation'];
+		$before = $counter->countEligibleJobs(32, WorkerConfiguration::NOTIFICATION);
+		try {
+			$queue->add(DeliverNotification::class, $due);
+			$queue->scheduleAfter(DeliverNotification::class, time() + 3600, $future);
+			$queue->add(SignFileJob::class, $signing);
+			$this->assertSame(min(32, $before + 1),
+				$counter->countEligibleJobs(32, WorkerConfiguration::NOTIFICATION),
+				'Notification readiness must ignore signing classes and future notifications');
+			$this->assertSame(1, $counter->countEligibleJobs(1, WorkerConfiguration::NOTIFICATION));
+		} finally {
+			$queue->remove(DeliverNotification::class, $due);
+			$queue->remove(DeliverNotification::class, $future);
+			$queue->remove(SignFileJob::class, $signing);
 		}
 	}
 
