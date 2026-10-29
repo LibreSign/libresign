@@ -54,6 +54,21 @@ final class NotificationDeliveryMapperTest extends \OCA\Libresign\Tests\Integrat
 		return $delivery;
 	}
 
+	public function testDueQueriesUseStablePaginationAndExcludeFutureRetries(): void {
+		for ($index = 0; $index < 55; $index++) {
+			$this->createDelivery('pagination-' . $index);
+		}
+		$first = $this->deliveries->findDue(10, 0);
+		$second = $this->deliveries->findDue(10, 10);
+		self::assertCount(10, $first);
+		self::assertCount(10, $second);
+		self::assertSame([], array_intersect(
+			array_map(static fn (NotificationDelivery $row): int => $row->getId(), $first),
+			array_map(static fn (NotificationDelivery $row): int => $row->getId(), $second),
+		));
+		self::assertCount(1, $this->deliveries->findPending(1));
+	}
+
 	public function testSafeRetryIsScheduledAndCannotBeClaimedBeforeDueTime(): void {
 		$delivery = $this->createDelivery('safe-retry');
 		$this->assertTrue($this->deliveries->claim($delivery->getId()));

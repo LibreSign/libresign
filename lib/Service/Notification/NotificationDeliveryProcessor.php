@@ -16,7 +16,7 @@ use OCP\AppFramework\Db\DoesNotExistException;
 use Psr\Log\LoggerInterface;
 
 /**
- * Process a durable notification. Only PENDING records are eligible.
+ * Process a durable notification. Only PENDING records and due safe retries are eligible.
  * A claimed transport attempt is never retried after an uncertain outcome.
  */
 final class NotificationDeliveryProcessor {
@@ -37,10 +37,12 @@ final class NotificationDeliveryProcessor {
 			// An old queued job may remain after the retention job deleted its row.
 			return;
 		}
-		if ($delivery->getState() !== NotificationDeliveryState::PENDING->value
-			&& ($delivery->getState() !== NotificationDeliveryState::TEMPORARY_FAILURE->value
-				|| $delivery->getNextAttemptAt() === null
-				|| $delivery->getNextAttemptAt() > new \DateTime('now', new \DateTimeZone('UTC')))) {
+		$isPending = $delivery->getState() === NotificationDeliveryState::PENDING->value;
+		$retryAt = $delivery->getNextAttemptAt();
+		$isDueRetry = $delivery->getState() === NotificationDeliveryState::TEMPORARY_FAILURE->value
+			&& $retryAt !== null
+			&& $retryAt <= new \DateTime('now', new \DateTimeZone('UTC'));
+		if (!$isPending && !$isDueRetry) {
 			return;
 		}
 		if ($delivery->getEventType() === 'sign_request') {

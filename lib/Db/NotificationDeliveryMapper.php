@@ -188,7 +188,7 @@ class NotificationDeliveryMapper extends QBMapper {
 		$qb->select('*')->from($this->getTableName())
 			->where($qb->expr()->eq('state', $qb->createNamedParameter(NotificationDeliveryState::PENDING->value)))
 			->orderBy('created_at', 'ASC')->addOrderBy('id', 'ASC')
-			->setMaxResults($limit)->setFirstResult($offset);
+			->setMaxResults($limit);
 		return $this->findEntities($qb);
 	}
 
@@ -204,7 +204,8 @@ class NotificationDeliveryMapper extends QBMapper {
 					$qb->expr()->lte('next_attempt_at', $qb->createNamedParameter($now, IQueryBuilder::PARAM_DATETIME_MUTABLE)),
 				),
 			))
-			->orderBy('created_at', 'ASC')->setMaxResults($limit);
+			->orderBy('created_at', 'ASC')->addOrderBy('id', 'ASC')
+			->setMaxResults($limit)->setFirstResult($offset);
 		return $this->findEntities($qb);
 	}
 

@@ -139,6 +139,34 @@ final class NotificationDeliveryProcessorTest extends TestCase {
 		))->process(31);
 	}
 
+	public function testDueTemporaryFailureIsEligibleForDelivery(): void {
+		$delivery = $this->delivery();
+		$delivery->setState(NotificationDeliveryState::TEMPORARY_FAILURE->value);
+		$delivery->setNextAttemptAt(new \DateTime('-5 minutes', new \DateTimeZone('UTC')));
+		$codec = $this->codec();
+		$this->enqueueSnapshot($delivery, $codec);
+		$mapper = $this->createMock(NotificationDeliveryMapper::class);
+		$mapper->method('findById')->willReturn($delivery);
+		$requests = $this->createMock(SignRequestMapper::class);
+		$request = new SignRequest();
+		$request->setStatusEnum(SignRequestStatus::ABLE_TO_SIGN);
+		$requests->method('getByIdUncached')->willReturn($request);
+		$submission = $this->createMock(NotificationSubmissionService::class);
+		$submission->expects($this->once())->method('submit')->willReturn(true);
+		(new NotificationDeliveryProcessor($mapper, $requests, $codec, $this->registry(), $submission, $this->createMock(LoggerInterface::class)))->process(31);
+	}
+
+	public function testFutureTemporaryFailureIsNotSentEarly(): void {
+		$delivery = $this->delivery();
+		$delivery->setState(NotificationDeliveryState::TEMPORARY_FAILURE->value);
+		$delivery->setNextAttemptAt(new \DateTime('+5 minutes', new \DateTimeZone('UTC')));
+		$mapper = $this->createMock(NotificationDeliveryMapper::class);
+		$mapper->method('findById')->willReturn($delivery);
+		$submission = $this->createMock(NotificationSubmissionService::class);
+		$submission->expects($this->never())->method('submit');
+		(new NotificationDeliveryProcessor($mapper, $this->createMock(SignRequestMapper::class), $this->codec(), $this->registry(), $submission, $this->createMock(LoggerInterface::class)))->process(31);
+	}
+
 	public function testCompletedDeliveryIsNeverSubmittedAgain(): void {
 		$delivery = $this->delivery();
 		$delivery->setState(NotificationDeliveryState::UNKNOWN->value);

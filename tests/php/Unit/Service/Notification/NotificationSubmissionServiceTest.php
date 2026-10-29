@@ -25,6 +25,7 @@ use OCA\Libresign\Service\Notification\NotificationHistoryService;
 use OCA\Libresign\Service\Notification\NotificationMessage;
 use OCA\Libresign\Service\Notification\NotificationSubmissionService;
 use OCP\IDBConnection;
+use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\LoggerInterface;
 
@@ -43,7 +44,17 @@ final class NotificationSubmissionServiceTest extends TestCase {
 		$deliveries->method('claim')->with(9)->willReturn(true);
 		$deliveries->method('findById')->with(9)->willReturn($delivery);
 		$deliveries->expects($this->once())->method('finish')->with(9, $expected, $this->callback(
-			static fn (?\DateTime $due): bool => $expectRetry ? ($due !== null && $due > new \DateTime('now', new \DateTimeZone('UTC'))) : $due === null,
+			static function (?\DateTime $due) use ($expectRetry, $attemptNumber): bool {
+				if (!$expectRetry) {
+					return $due === null;
+				}
+				if ($due === null) {
+					return false;
+				}
+				$seconds = $due->getTimestamp() - time();
+				$base = min(3600, 30 * (2 ** ($attemptNumber - 1)));
+				return $seconds >= $base - 1 && $seconds <= $base + min(30, $base) + 1;
+			},
 		));
 		$attempts = $this->createMock(NotificationAttemptMapper::class);
 		$attempts->method('begin')->with(9)->willReturn($attempt);
@@ -59,8 +70,14 @@ final class NotificationSubmissionServiceTest extends TestCase {
 		$service->submit($delivery, $this->message(), $channel);
 	}
 
-	public function testProvenPreSubmissionFailureIsScheduled(): void {
-		$this->executeFailure(new NotificationPreparationException('configuration_temporarily_unavailable'), 1, NotificationDeliveryState::TEMPORARY_FAILURE, true);
+	/** @return array<string, array{int}> */
+	public static function safeAttemptNumbers(): array {
+		return ['initial' => [1], 'second' => [2], 'third' => [3], 'fourth' => [4]];
+	}
+
+	#[DataProvider('safeAttemptNumbers')]
+	public function testProvenPreSubmissionFailureIsScheduled(int $attemptNumber): void {
+		$this->executeFailure(new NotificationPreparationException('configuration_temporarily_unavailable'), $attemptNumber, NotificationDeliveryState::TEMPORARY_FAILURE, true);
 	}
 
 	public function testRetryLimitIsTerminal(): void {
@@ -73,6 +90,10 @@ final class NotificationSubmissionServiceTest extends TestCase {
 
 	public function testDefinitiveRejectionIsNotRetried(): void {
 		$this->executeFailure(new NotificationTransportException('synthetic rejection', NotificationDeliveryState::PERMANENT_FAILURE, 'recipient_rejected'), 1, NotificationDeliveryState::PERMANENT_FAILURE, false);
+	}
+
+	public function testTransportTemporaryFailureWithoutProofIsUnknown(): void {
+		$this->executeFailure(new NotificationTransportException('synthetic temporary', NotificationDeliveryState::TEMPORARY_FAILURE, 'temporary'), 1, NotificationDeliveryState::UNKNOWN, false);
 	}
 
 	public function testGenericTransportWrapperCannotMakeNestedPreparationSafe(): void {
