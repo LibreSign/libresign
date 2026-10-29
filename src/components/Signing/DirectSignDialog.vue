@@ -3,16 +3,21 @@
   - SPDX-License-Identifier: AGPL-3.0-or-later
 -->
 <template>
-	<NcDialog v-if="showDialog" :name="dialogTitle" :no-close="signing" :buttons="buttons"
+	<NcDialog v-if="showDialog" size="normal" :name="dialogTitle" :no-close="signing" :buttons="buttons"
 		@closing="emit('close', false)">
-		<p>
-			<!-- TRANSLATORS Confirmation for immediately signing a PDF as the current user without placing visible signature fields. -->
-			{{ t('libresign', 'Sign this PDF with your account now, without visible signature fields?') }}
-		</p>
-		<p>
-			<!-- TRANSLATORS Points users to the existing flow when they need signature positions or additional signers. -->
-			{{ t('libresign', 'To add signature positions or other signers, use the regular request flow.') }}
-		</p>
+		<div class="signing-dialog-copy">
+			<p class="document-name">
+				<strong><bdi dir="auto">{{ props.name }}</bdi></strong>
+			</p>
+			<p>
+				<!-- TRANSLATORS Explain exactly what the one-click signing option does. -->
+				{{ t('libresign', 'Sign this PDF with your account using Click to Sign and download the signed document. No visible signature field will be added.') }}
+			</p>
+			<p v-if="!errorMessage && !skipConfirmation">
+				<!-- TRANSLATORS Explain that there is an alternative action in this dialog for configuring the PDF before signing. -->
+				{{ t('libresign', 'Need to place a visible signature or invite someone else? Choose Prepare signing below.') }}
+			</p>
+		</div>
 		<NcCheckboxRadioSwitch v-if="!errorMessage && !skipConfirmation"
 			v-model="rememberChoice"
 			type="checkbox"
@@ -22,7 +27,7 @@
 		</NcCheckboxRadioSwitch>
 		<p v-if="!errorMessage && !skipConfirmation" class="preference-hint">
 			<!-- TRANSLATORS Tells users where they can restore the confirmation prompt for immediate signing. -->
-			{{ t('libresign', 'You can restore this confirmation in LibreSign preferences.') }}
+			{{ t('libresign', 'This preference is saved only after a successful Sign now action. Restore the confirmation under LibreSign → Preferences → Signature requests.') }}
 		</p>
 		<NcNoteCard v-if="errorMessage" type="error">
 			{{ errorMessage }}
@@ -45,7 +50,7 @@ import type { DirectSignInput } from '../../services/directSigning.ts'
 defineOptions({ name: 'DirectSignDialog' })
 
 const props = defineProps<DirectSignInput>()
-const emit = defineEmits<{ (event: 'close', signed: boolean): void }>()
+const emit = defineEmits<{ (event: 'close', result: boolean | 'prepare'): void }>()
 const signing = ref(false)
 const errorMessage = ref('')
 const retryAllowed = ref(true)
@@ -90,9 +95,9 @@ async function signNow() {
 		const response = error && typeof error === 'object' && 'response' in error
 			? error.response as { status?: number } | undefined
 			: undefined
-		if (response?.status && response.status < 500 && response.status !== 409) {
+		if (response?.status === 400 || response?.status === 403) {
 			// TRANSLATORS Failure to sign immediately; the normal request workflow remains available.
-			errorMessage.value = t('libresign', 'Could not sign this PDF. You can use Sign myself to review the request.')
+			errorMessage.value = t('libresign', 'Could not sign this PDF. Choose Prepare signing to review the document and its signers.')
 		} else {
 			retryAllowed.value = false
 			// TRANSLATORS Signing may have completed although its network response was lost; warns against duplicate retries.
@@ -110,6 +115,15 @@ const buttons = computed(() => [
 		callback: () => emit('close', false),
 		disabled: signing.value,
 	},
+	...(retryAllowed.value
+		? [{
+			// TRANSLATORS Choose the normal preparation flow instead of signing immediately.
+			label: t('libresign', 'Prepare signing'),
+			variant: 'secondary' as const,
+			callback: () => emit('close', 'prepare' as const),
+			disabled: signing.value,
+		}]
+		: []),
 	{
 		// TRANSLATORS Confirms immediate signing of the selected PDF.
 		label: t('libresign', 'Sign now'),
@@ -121,7 +135,22 @@ const buttons = computed(() => [
 </script>
 
 <style scoped>
+.signing-dialog-copy {
+	display: flex;
+	flex-direction: column;
+	gap: 12px;
+	padding-block: 8px;
+}
+.signing-dialog-copy p {
+	margin: 0;
+	line-height: 1.5;
+}
+.document-name {
+	word-break: break-word;
+}
 .preference-hint {
+	margin-block: 12px;
+	line-height: 1.5;
 	color: var(--color-text-maxcontrast);
 	font-size: 0.85rem;
 }

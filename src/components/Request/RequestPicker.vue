@@ -164,6 +164,8 @@ import UploadProgress from '../UploadProgress.vue'
 import EditNameDialog from '../Common/EditNameDialog.vue'
 import DirectSignDialog from '../Signing/DirectSignDialog.vue'
 import { canSignDirectly } from '../../services/directSigning.ts'
+import { addCurrentAccountAsSigner } from '../../services/selfSigning.ts'
+import { usePoliciesStore } from '../../store/policies.ts'
 
 import { useActionsMenuStore } from '../../store/actionsmenu.js'
 import { useFilesStore } from '../../store/files.js'
@@ -218,6 +220,7 @@ withDefaults(defineProps<{
 const actionsMenuStore = useActionsMenuStore() as ActionsMenuStore
 const filesStore = useFilesStore() as FilesStore
 const sidebarStore = useSidebarStore() as SidebarStore
+const policiesStore = usePoliciesStore()
 
 const modalUploadFromUrl = ref(false)
 const uploadUrlErrors = ref<string[]>([])
@@ -347,9 +350,9 @@ function closeModalUploadFromUrl() {
 	loading.value = false
 }
 
-async function upload(files: UploadFile[], selectedEnvelopeName: string | null = null) {
+async function upload(files: UploadFile[], selectedEnvelopeName: string | null = null): Promise<number | null> {
 	if (!validateMaxFileUploads(files.length)) {
-		return
+		return null
 	}
 
 	loading.value = true
@@ -379,7 +382,7 @@ async function upload(files: UploadFile[], selectedEnvelopeName: string | null =
 	const abortController = new AbortController()
 	uploadAbortController.value = abortController
 
-	await filesStore.upload(formData, {
+	return await filesStore.upload(formData, {
 		signal: abortController.signal,
 		onUploadProgress: (progressEvent) => {
 			if (progressEvent.total) {
@@ -391,10 +394,11 @@ async function upload(files: UploadFile[], selectedEnvelopeName: string | null =
 		.then((id) => {
 			filesStore.selectFile(id)
 			sidebarStore.activeRequestSignatureTab()
+			return id
 		})
 		.catch((error: { code?: string; response?: { data?: { ocs?: { data?: { message?: string } } } } }) => {
 			if (error.code === 'ERR_CANCELED') {
-				return
+				return null
 			}
 			if (error.response?.data?.ocs?.data?.message) {
 				showError(error.response.data.ocs.data.message)
@@ -402,6 +406,7 @@ async function upload(files: UploadFile[], selectedEnvelopeName: string | null =
 				// TRANSLATORS Generic error message when file upload fails and server did not provide details.
 				showError(t('libresign', 'Upload failed'))
 			}
+			return null
 		})
 		.finally(() => {
 			loading.value = false
@@ -462,7 +467,25 @@ function signPdfNow() {
 		}
 		isDirectSigning.value = true
 		try {
-			await spawnDialog(DirectSignDialog, { name: pdf.name, pdf })
+			const result = await spawnDialog(DirectSignDialog, { name: pdf.name, pdf })
+			if (result === 'prepare') {
+				const id = await upload([pdf])
+				if (id !== null) {
+					try {
+						await policiesStore.fetchEffectivePolicies()
+						const response = await addCurrentAccountAsSigner(
+						useFilesStore(),
+						policiesStore.getEffectiveValue('identify_methods'),
+						{ readyToSign: true },
+						)
+						if (response && 'success' in response && response.success === false) {
+							showError(('message' in response && response.message) || t('libresign', 'Cannot add your account as signer'))
+						}
+					} catch {
+						showError(t('libresign', 'Failed to add signer'))
+					}
+				}
+			}
 		} finally {
 			isDirectSigning.value = false
 		}

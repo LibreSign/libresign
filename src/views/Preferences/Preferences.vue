@@ -125,7 +125,7 @@
 						</NcCheckboxRadioSwitch>
 						<div class="preferences-view__option-copy">
 							<!-- TRANSLATORS Explains that the immediate signature action signs the PDF without visible signature fields and that users can restore the confirmation here. -->
-							<p>{{ t('libresign', 'Ask for confirmation before using Sign PDF now. Turn this on to restore a dismissed confirmation.') }}</p>
+							<p>{{ t('libresign', 'When this is off, choosing Sign PDF now signs immediately with Click to Sign and downloads the PDF without a preview or visible signature fields. This never changes Sign myself or other request flows. Turn it on to choose between signing now and preparing signing.') }}</p>
 						</div>
 					</div>
 				</div>
