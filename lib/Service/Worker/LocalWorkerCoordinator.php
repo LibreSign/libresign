@@ -42,8 +42,15 @@ class LocalWorkerCoordinator {
 		$toStart = $this->workersToStart($availableSlots, $state, $pool);
 
 		if ($toStart > 0) {
-			$state['lastAttempt'] = microtime(true);
+			$before = count($running);
 			$running = $this->startWorkers($toStart, $running, $pool);
+			// Keep signing's existing cooldown. For notifications, only a
+			// failed/unidentified start needs one; drained workers may restart.
+			if ($pool === WorkerConfiguration::SIGNING || count($running) === $before) {
+				$state['lastAttempt'] = microtime(true);
+			} else {
+				unset($state['lastAttempt']);
+			}
 		}
 
 		$state['workers'] = $running;
@@ -72,14 +79,7 @@ class LocalWorkerCoordinator {
 
 	/** @param array<string, mixed> $state */
 	private function workersToStart(int $availableSlots, array $state, string $pool): int {
-		if ($availableSlots === 0) {
-			return 0;
-		}
-		// A previously identified notification worker may exit after draining
-		// its queue. Do not lose a new wake-up to the launch cooldown.
-		// Keep the cooldown when no child identity was recorded.
-		if (($pool === WorkerConfiguration::SIGNING || ($state['workers'] ?? []) === [])
-			&& microtime(true) - (float)($state['lastAttempt'] ?? 0) < self::COOLDOWN_SECONDS) {
+		if ($availableSlots === 0 || microtime(true) - (float)($state['lastAttempt'] ?? 0) < self::COOLDOWN_SECONDS) {
 			return 0;
 		}
 		return min($availableSlots, $this->jobCounter->countEligibleJobs($availableSlots, $pool));

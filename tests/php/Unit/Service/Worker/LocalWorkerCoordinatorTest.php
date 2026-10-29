@@ -94,6 +94,18 @@ class LocalWorkerCoordinatorTest extends TestCase {
 		$this->assertTrue($coordinator->ensureCapacity(1, WorkerConfiguration::NOTIFICATION));
 	}
 
+	public function testNotificationWakeSurvivesAnEmptyQueueCheckBetweenJobs(): void {
+		$starter = $this->createMock(WorkerStarter::class);
+		$starter->expects($this->exactly(2))->method('startWorker')
+			->with(WorkerConfiguration::NOTIFICATION)->willReturnOnConsecutiveCalls(6201, 6202);
+		$counter = $this->createMock(WorkerJobCounter::class);
+		$counter->method('countEligibleJobs')->willReturnOnConsecutiveCalls(1, 0, 1);
+		$coordinator = $this->coordinator($starter, $counter);
+		$this->assertTrue($coordinator->ensureCapacity(1, WorkerConfiguration::NOTIFICATION));
+		$this->assertTrue($coordinator->ensureCapacity(1, WorkerConfiguration::NOTIFICATION));
+		$this->assertTrue($coordinator->ensureCapacity(1, WorkerConfiguration::NOTIFICATION));
+	}
+
 	public function testFailedNotificationStartupRespectsLaunchCooldown(): void {
 		$starter = $this->createMock(WorkerStarter::class);
 		$starter->expects($this->once())->method('startWorker')
