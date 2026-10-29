@@ -17,6 +17,7 @@ use OCA\Libresign\Service\Notification\NotificationDeliveryRegistrar;
 use OCA\Libresign\Service\Notification\NotificationEnvelopeCodec;
 use OCA\Libresign\Service\Notification\NotificationMessage;
 use OCA\Libresign\Service\Notification\NotificationSubmissionService;
+use OCA\Libresign\Service\Worker\WorkerActivationService;
 use OCP\BackgroundJob\IJobList;
 use OCP\IDBConnection;
 
@@ -28,6 +29,9 @@ class NotificationDeliveryService {
 	/** @var array<int, array{NotificationDelivery, NotificationMessage, NotificationChannel}> */
 	private array $afterCommit = [];
 
+	/** @var array<int, string> Delivery ID => event key, checked after commit. */
+	private array $notificationWakes = [];
+
 	public function __construct(
 		private NotificationDeliveryRegistrar $registrar,
 		private NotificationSubmissionService $submission,
@@ -36,6 +40,7 @@ class NotificationDeliveryService {
 		private IJobList $jobs,
 		private IDBConnection $db,
 		private NotificationDeliveryMapper $deliveries,
+		private WorkerActivationService $workerActivationService,
 	) {
 	}
 
@@ -44,12 +49,18 @@ class NotificationDeliveryService {
 		try {
 			$delivery = $this->registrar->register($message, $channel, $this->codec->encode($message));
 			$async = $this->mode->isAsync();
-			if ($this->db->inTransaction() || $async) {
+			$inTransaction = $this->db->inTransaction();
+			if ($inTransaction || $async) {
 				// Job insertion uses the same database connection and rolls back with
 				// a failed signer mutation. The timed recovery job is a second path.
 				$this->jobs->add(DeliverNotification::class, ['id' => $delivery->getId()]);
 				if (!$async) {
 					$this->afterCommit[$delivery->getId()] = [$delivery, $message, $channel];
+				} elseif ($inTransaction) {
+					// Never start a worker against an uncommitted outbox row.
+					$this->notificationWakes[$delivery->getId()] = $delivery->getEventKey();
+				} else {
+					$this->workerActivationService->ensureNotificationWorkerRunning();
 				}
 				return true;
 			}
@@ -71,6 +82,21 @@ class NotificationDeliveryService {
 		if ($this->db->inTransaction()) {
 			return;
 		}
+		// Only wake for an event that survived the business transaction.
+		// A rollback may leave a stale in-memory ID, or an ID may be reused.
+		$wakes = $this->notificationWakes;
+		$this->notificationWakes = [];
+		foreach ($wakes as $id => $eventKey) {
+			try {
+				if ($this->deliveries->findById($id)->getEventKey() === $eventKey) {
+					$this->workerActivationService->ensureNotificationWorkerRunning();
+					break;
+				}
+			} catch (\Exception) {
+				// A missing or rolled-back intent must not trigger early execution.
+				}
+		}
+
 		$buffer = $this->afterCommit;
 		$this->afterCommit = [];
 		foreach ($buffer as [$delivery, $message, $channel]) {
