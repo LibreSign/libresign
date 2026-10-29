@@ -19,6 +19,19 @@ Types of changes:
 <!-- changelog-linker -->
 <!-- changelog-linker -->
 
+## 13.4.8 - 2026-10-29
+
+### Changed
+- Update translations
+- keep public validation assets consistent
+  [#9274](https://github.com/LibreSign/libresign/pull/9274)
+
+### Fixed
+- isolate guest signing-session elements (#9248)
+  [#9270](https://github.com/LibreSign/libresign/pull/9270)
+- distinguish signing date from certificate expiry
+  [#9282](https://github.com/LibreSign/libresign/pull/9282)
+
 ## 13.4.7 - 2026-10-26
 
 ### Changed
