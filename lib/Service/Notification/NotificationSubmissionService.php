@@ -12,8 +12,8 @@ use OCA\Libresign\Db\NotificationAttemptMapper;
 use OCA\Libresign\Db\NotificationDelivery;
 use OCA\Libresign\Db\NotificationDeliveryMapper;
 use OCA\Libresign\Enum\NotificationDeliveryState;
-use OCP\AppFramework\Db\TTransactional;
 use OCA\Libresign\Exception\NotificationPreparationException;
+use OCP\AppFramework\Db\TTransactional;
 use OCP\IDBConnection;
 use Psr\Log\LoggerInterface;
 

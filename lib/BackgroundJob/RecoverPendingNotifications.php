@@ -9,9 +9,9 @@ declare(strict_types=1);
 namespace OCA\Libresign\BackgroundJob;
 
 use OCA\Libresign\Db\NotificationDeliveryMapper;
-use OCP\BackgroundJob\IJobList;
 use OCP\AppFramework\Utility\ITimeFactory;
 use OCP\BackgroundJob\IJob;
+use OCP\BackgroundJob\IJobList;
 use OCP\BackgroundJob\TimedJob;
 
 /** Reconcile a lost queued job or process interruption, without a broker. */
