@@ -16,8 +16,8 @@ class LocalWorkerStateStore {
 	}
 
 	/** @param callable(): bool $operation */
-	public function withExclusiveLock(callable $operation): bool {
-		$handle = $this->openLock();
+	public function withExclusiveLock(callable $operation, string $pool = WorkerConfiguration::SIGNING): bool {
+		$handle = $this->openLock($pool);
 		try {
 			$wouldBlock = 0;
 			if (!flock($handle, LOCK_EX | LOCK_NB, $wouldBlock)) {
@@ -34,9 +34,9 @@ class LocalWorkerStateStore {
 	}
 
 	/** @return resource */
-	private function openLock() {
+	private function openLock(string $pool) {
 		$this->ensurePrivateDirectory();
-		$path = $this->directory() . '/lock';
+		$path = $this->directory() . '/lock' . $this->suffix($pool);
 		if (is_link($path)) {
 			throw new \RuntimeException('Unsafe local worker lock');
 		}
@@ -65,8 +65,8 @@ class LocalWorkerStateStore {
 	}
 
 	/** @return array<string, mixed> */
-	public function readState(): array {
-		$path = $this->directory() . '/workers.json';
+	public function readState(string $pool = WorkerConfiguration::SIGNING): array {
+		$path = $this->directory() . '/workers' . $this->suffix($pool) . '.json';
 		if (!is_file($path)) {
 			return [];
 		}
@@ -90,8 +90,8 @@ class LocalWorkerStateStore {
 	}
 
 	/** @param array<string, mixed> $state */
-	public function writeState(array $state): void {
-		$file = $this->directory() . '/workers.json';
+	public function writeState(array $state, string $pool = WorkerConfiguration::SIGNING): void {
+		$file = $this->directory() . '/workers' . $this->suffix($pool) . '.json';
 		$temp = tempnam($this->directory(), 'workers-');
 		if ($temp === false) {
 			throw new \RuntimeException('Cannot allocate local worker state');
@@ -103,6 +103,14 @@ class LocalWorkerStateStore {
 		} finally {
 			@unlink($temp);
 		}
+	}
+
+	private function suffix(string $pool): string {
+		return match ($pool) {
+			WorkerConfiguration::SIGNING => '',
+			WorkerConfiguration::NOTIFICATION => '-notification',
+			default => throw new \InvalidArgumentException('Unknown local worker pool'),
+		};
 	}
 
 	private function directory(): string {
