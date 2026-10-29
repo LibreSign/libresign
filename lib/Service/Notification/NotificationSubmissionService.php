@@ -66,6 +66,10 @@ class NotificationSubmissionService {
 			[$outcome, $reason] = $this->failureClassifier->classify($e);
 			// Never treat a nested preparation error in an ambiguous transport failure as proof of non-submission.
 			$retrySafe = $e instanceof NotificationPreparationException;
+			if (!$retrySafe && $outcome === NotificationDeliveryState::TEMPORARY_FAILURE) {
+				$outcome = NotificationDeliveryState::UNKNOWN;
+				$reason = 'transport_outcome_unknown';
+			}
 			$this->logger->warning('Notification transport was not confirmed', [
 				'deliveryId' => $delivery->getId(),
 				'channel' => $message->channel,

@@ -75,6 +75,10 @@ final class NotificationSubmissionServiceTest extends TestCase {
 		$this->executeFailure(new NotificationTransportException('synthetic rejection', NotificationDeliveryState::PERMANENT_FAILURE, 'recipient_rejected'), 1, NotificationDeliveryState::PERMANENT_FAILURE, false);
 	}
 
+	public function testGenericTransportWrapperCannotMakeNestedPreparationSafe(): void {
+		$this->executeFailure(new \RuntimeException('synthetic uncertain transport', 0, new NotificationPreparationException('preparation')), 1, NotificationDeliveryState::UNKNOWN, false);
+	}
+
 	public function testNestedPreparationFailureCannotMakeTransportOutcomeSafe(): void {
 		$this->executeFailure(new NotificationTransportException('synthetic uncertain outcome', NotificationDeliveryState::UNKNOWN, 'smtp_outcome_unknown', new NotificationPreparationException('preparation')), 1, NotificationDeliveryState::UNKNOWN, false);
 	}

@@ -194,6 +194,13 @@ final class NotificationDeliveryMapperTest extends \OCA\Libresign\Tests\Integrat
 		$this->assertSame(1, $this->attempts->finishInterrupted($delivery->getId()));
 		$this->assertFalse($this->deliveries->markStaleUnknown($delivery->getId(), $cutoff));
 		$this->assertSame(NotificationDeliveryState::UNKNOWN->value, $this->deliveries->findByEventKey($delivery->getEventKey())->getState());
+		// A delayed worker must not overwrite the reconciled unknown outcome.
+		try {
+			$this->deliveries->finish($delivery->getId(), NotificationDeliveryState::ACCEPTED);
+			$this->fail('Stale worker must not complete after reconciliation');
+		} catch (\LogicException) {
+			$this->assertSame(NotificationDeliveryState::UNKNOWN->value, $this->deliveries->findById($delivery->getId())->getState());
+		}
 		$this->assertSame('submission_interrupted', $this->attempts->findForDelivery($delivery->getId())[0]->getReasonCode());
 	}
 
