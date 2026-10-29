@@ -146,7 +146,8 @@ final class NotificationDeliveryServiceTest extends TestCase {
 		$this->deliveries->method('findById')->willReturn($delivery);
 		$this->activation->expects($this->once())->method('ensureNotificationWorkerRunning');
 		$this->send('transactional', 'sign_request', $this->file, $this->request,
-			'signer@example.invalid', static function (): void {},
+			'signer@example.invalid', static function (): void {
+			},
 		);
 		$this->service->flushCommitted();
 		$this->insideTransaction = false;
@@ -163,7 +164,8 @@ final class NotificationDeliveryServiceTest extends TestCase {
 		$this->deliveries->method('findById')->willThrowException(new \RuntimeException('Rolled back'));
 		$this->activation->expects($this->never())->method('ensureNotificationWorkerRunning');
 		$this->send('transactional', 'sign_request', $this->file, $this->request,
-			'signer@example.invalid', static function (): void {},
+			'signer@example.invalid', static function (): void {
+			},
 		);
 		$this->insideTransaction = false;
 		$this->service->flushCommitted();

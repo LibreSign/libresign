@@ -94,7 +94,7 @@ class NotificationDeliveryService {
 				}
 			} catch (\Exception) {
 				// A missing or rolled-back intent must not trigger early execution.
-				}
+			}
 		}
 
 		$buffer = $this->afterCommit;
