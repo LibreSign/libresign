@@ -78,7 +78,7 @@ class NotificationSubmissionService {
 				$retryAt = null;
 				if ($retrySafe && $outcome === NotificationDeliveryState::TEMPORARY_FAILURE) {
 					$count = $this->deliveries->findById($delivery->getId())->getAttemptCount();
-					if ($count < NotificationDeliveryMapper::MAX_ATTEMPTS) {
+					if ($count > 0 && $count < NotificationDeliveryMapper::MAX_ATTEMPTS) {
 						$base = min(self::MAX_DELAY_SECONDS, 30 * (2 ** ($count - 1)));
 						$retryAt = new \DateTime('now', new \DateTimeZone('UTC'));
 						$retryAt->modify('+' . ($base + random_int(0, min(30, $base))) . ' seconds');

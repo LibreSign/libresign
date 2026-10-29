@@ -29,7 +29,12 @@ final class RecoverPendingNotifications extends TimedJob {
 	#[\Override]
 	public function run($argument): void {
 		foreach ($this->deliveries->findDue(50) as $delivery) {
-			$this->jobs->add(DeliverNotification::class, ['id' => $delivery->getId()]);
+			$argument = ['id' => $delivery->getId()];
+			// Nextcloud 36 add() resets an existing job's reservation.
+			// Do not release another worker's lease during reconciliation.
+			if (!$this->jobs->has(DeliverNotification::class, $argument)) {
+				$this->jobs->add(DeliverNotification::class, $argument);
+			}
 		}
 	}
 }

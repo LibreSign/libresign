@@ -23,7 +23,19 @@ final class RecoverPendingNotificationsTest extends TestCase {
 		$mapper = $this->createMock(NotificationDeliveryMapper::class);
 		$mapper->expects($this->once())->method('findDue')->with(50)->willReturn([$delivery]);
 		$jobs = $this->createMock(IJobList::class);
+		$jobs->expects($this->once())->method('has')->with(DeliverNotification::class, ['id' => 42])->willReturn(false);
 		$jobs->expects($this->once())->method('add')->with(DeliverNotification::class, ['id' => 42]);
 		(new RecoverPendingNotifications($this->createMock(ITimeFactory::class), $mapper, $jobs))->run(null);
 	}
+	public function testRecoveryDoesNotResetLeaseOfExistingJob(): void {
+		$delivery = new NotificationDelivery();
+		$delivery->setId(43);
+		$mapper = $this->createMock(NotificationDeliveryMapper::class);
+		$mapper->method('findDue')->willReturn([$delivery]);
+		$jobs = $this->createMock(IJobList::class);
+		$jobs->expects($this->once())->method('has')->with(DeliverNotification::class, ['id' => 43])->willReturn(true);
+		$jobs->expects($this->never())->method('add');
+		(new RecoverPendingNotifications($this->createMock(ITimeFactory::class), $mapper, $jobs))->run(null);
+	}
+
 }
