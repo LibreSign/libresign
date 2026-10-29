@@ -251,7 +251,7 @@ test('authenticated observer opens the request in read-only mode', async ({ page
 
 		await clickAddSigner(page)
 		await selectIdentifyMethodTab(page, 'Account')
-		await selectAccountSigner(page, 'a')
+		await selectAccountSigner(page, 'admin', /\badmin\b/i)
 		await page.getByRole('button', { name: 'Save' }).click()
 
 		await clickAddObserver(page)
