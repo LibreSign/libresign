@@ -215,8 +215,8 @@ test('email observer receives validation link when the signer uses account ident
 test('authenticated observer opens the request in read-only mode', async ({ page }) => {
 	const adminUser = process.env.NEXTCLOUD_ADMIN_USER ?? 'admin'
 	const adminPassword = process.env.NEXTCLOUD_ADMIN_PASSWORD ?? 'admin'
-	const observerUser = 'observer-readonly-e2e'
-	const observerPassword = '123456'
+	const observerUser = `observer-readonly-${Date.now()}`
+	const observerPassword = 'LibreSign-Observer-2026!'
 
 	await login(page.request, adminUser, adminPassword)
 	await ensureUserExists(page.request, observerUser, observerPassword)
