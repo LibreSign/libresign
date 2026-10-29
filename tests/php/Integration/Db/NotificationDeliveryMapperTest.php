@@ -71,6 +71,7 @@ final class NotificationDeliveryMapperTest extends \OCA\Libresign\Tests\Integrat
 		$this->deliveries->finish($delivery->getId(), NotificationDeliveryState::TEMPORARY_FAILURE, new \DateTime('-1 minute', new \DateTimeZone('UTC')));
 		$this->assertTrue($this->deliveries->claim($delivery->getId()));
 		$this->assertFalse($this->deliveries->claim($delivery->getId()));
+		$this->assertSame(2, $this->deliveries->findById($delivery->getId())->getAttemptCount());
 		$this->assertSame($delivery->getEventKey(), $this->deliveries->findById($delivery->getId())->getEventKey());
 		$this->deliveries->finish($delivery->getId(), NotificationDeliveryState::ACCEPTED);
 		$this->assertFalse($this->deliveries->claim($delivery->getId()));

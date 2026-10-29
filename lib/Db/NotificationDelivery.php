@@ -32,6 +32,8 @@ use OCP\DB\Types;
  * @method ?string getMessageEnc()
  * @method void setState(string $value)
  * @method string getState()
+ * @method void setAttemptCount(int $value)
+ * @method int getAttemptCount()
  * @method void setNextAttemptAt(?\DateTime $value)
  * @method ?\DateTime getNextAttemptAt()
  * @method void setCreatedAt(\DateTime $value)
@@ -50,6 +52,7 @@ final class NotificationDelivery extends Entity {
 	protected string $recipientEnc = '';
 	protected ?string $messageEnc = null;
 	protected string $state = '';
+	protected int $attemptCount = 0;
 	protected ?\DateTime $nextAttemptAt = null;
 	protected ?\DateTime $createdAt = null;
 	protected ?\DateTime $updatedAt = null;
@@ -57,6 +60,7 @@ final class NotificationDelivery extends Entity {
 	public function __construct() {
 		$this->addType('fileId', Types::INTEGER);
 		$this->addType('signRequestId', Types::INTEGER);
+		$this->addType('attemptCount', Types::INTEGER);
 		$this->addType('nextAttemptAt', Types::DATETIME);
 		$this->addType('createdAt', Types::DATETIME);
 		$this->addType('updatedAt', Types::DATETIME);

@@ -35,16 +35,17 @@ final class NotificationSubmissionServiceTest extends TestCase {
 	private function executeFailure(\Exception $failure, int $attemptNumber, NotificationDeliveryState $expected, bool $expectRetry): void {
 		$delivery = new NotificationDelivery();
 		$delivery->setId(9);
+		$delivery->setAttemptCount($attemptNumber);
 		$attempt = new NotificationAttempt();
 		$attempt->setId(28);
 		$deliveries = $this->createMock(NotificationDeliveryMapper::class);
 		$deliveries->method('claim')->with(9)->willReturn(true);
+		$deliveries->method('findById')->with(9)->willReturn($delivery);
 		$deliveries->expects($this->once())->method('finish')->with(9, $expected, $this->callback(
 			static fn (?\DateTime $due): bool => $expectRetry ? ($due !== null && $due > new \DateTime('now', new \DateTimeZone('UTC'))) : $due === null,
 		));
 		$attempts = $this->createMock(NotificationAttemptMapper::class);
 		$attempts->method('begin')->with(9)->willReturn($attempt);
-		$attempts->method('countForDelivery')->willReturn($attemptNumber);
 		$attempts->expects($this->once())->method('finish')->with(28, $expected, $this->anything());
 		$db = $this->createMock(IDBConnection::class);
 		$db->expects($this->exactly(2))->method('beginTransaction');

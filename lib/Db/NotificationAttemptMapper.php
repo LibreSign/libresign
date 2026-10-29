@@ -41,14 +41,6 @@ class NotificationAttemptMapper extends QBMapper {
 		}
 	}
 
-	/** Persisted count is authoritative after a restart or lost queued job. */
-	public function countForDelivery(int $deliveryId): int {
-		$qb = $this->db->getQueryBuilder();
-		$qb->select($qb->func()->count('id'))->from($this->getTableName())
-			->where($qb->expr()->eq('delivery_id', $qb->createNamedParameter($deliveryId, IQueryBuilder::PARAM_INT)));
-		return (int)$qb->executeQuery()->fetchOne();
-	}
-
 	/** @return list<NotificationAttempt> */
 	public function findForDelivery(int $deliveryId): array {
 		$qb = $this->db->getQueryBuilder();

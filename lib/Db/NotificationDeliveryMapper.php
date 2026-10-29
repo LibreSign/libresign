@@ -17,6 +17,7 @@ use OCP\IDBConnection;
 
 /** @template-extends QBMapper<NotificationDelivery> */
 class NotificationDeliveryMapper extends QBMapper {
+	public const MAX_ATTEMPTS = 5;
 	public function __construct(IDBConnection $db) {
 		parent::__construct($db, 'libresign_notification_delivery', NotificationDelivery::class);
 	}
@@ -55,6 +56,7 @@ class NotificationDeliveryMapper extends QBMapper {
 		$delivery->setRecipientEnc($encryptedRecipient);
 		$delivery->setMessageEnc($encryptedMessage);
 		$delivery->setState(NotificationDeliveryState::PENDING->value);
+		$delivery->setAttemptCount(0);
 		$now = new \DateTime('now', new \DateTimeZone('UTC'));
 		$delivery->setCreatedAt($now);
 		$delivery->setUpdatedAt($now);
@@ -113,8 +115,10 @@ class NotificationDeliveryMapper extends QBMapper {
 		$now = new \DateTime('now', new \DateTimeZone('UTC'));
 		return $qb->update($this->getTableName())
 			->set('state', $qb->createNamedParameter(NotificationDeliveryState::SENDING->value))
+			->set('attempt_count', 'attempt_count + 1')
 			->set('updated_at', $qb->createNamedParameter($now, IQueryBuilder::PARAM_DATETIME_MUTABLE))
 			->where($qb->expr()->eq('id', $qb->createNamedParameter($deliveryId, IQueryBuilder::PARAM_INT)))
+			->andWhere($qb->expr()->lt('attempt_count', $qb->createNamedParameter(self::MAX_ATTEMPTS, IQueryBuilder::PARAM_INT)))
 			->andWhere($qb->expr()->orX(
 				$qb->expr()->eq('state', $qb->createNamedParameter(NotificationDeliveryState::PENDING->value)),
 				$qb->expr()->andX(

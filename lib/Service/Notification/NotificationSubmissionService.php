@@ -19,7 +19,6 @@ use Psr\Log\LoggerInterface;
 
 /** Manages one attempt. The claim commits before any external side effect. */
 class NotificationSubmissionService {
-	private const MAX_ATTEMPTS = 5;
 	private const MAX_DELAY_SECONDS = 3600;
 	use TTransactional;
 
@@ -78,8 +77,8 @@ class NotificationSubmissionService {
 			$this->atomic(function () use ($delivery, $attempt, &$outcome, &$reason, &$retrySafe): void {
 				$retryAt = null;
 				if ($retrySafe && $outcome === NotificationDeliveryState::TEMPORARY_FAILURE) {
-					$count = $this->attempts->countForDelivery($delivery->getId());
-					if ($count < self::MAX_ATTEMPTS) {
+					$count = $this->deliveries->findById($delivery->getId())->getAttemptCount();
+					if ($count < NotificationDeliveryMapper::MAX_ATTEMPTS) {
 						$base = min(self::MAX_DELAY_SECONDS, 30 * (2 ** ($count - 1)));
 						$retryAt = new \DateTime('now', new \DateTimeZone('UTC'));
 						$retryAt->modify('+' . ($base + random_int(0, min(30, $base))) . ' seconds');
