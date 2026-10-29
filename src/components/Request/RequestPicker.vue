@@ -30,6 +30,15 @@
 				<!-- TRANSLATORS Button label to upload PDF file(s) from local device storage. -->
 				{{ t('libresign', 'Upload') }}
 			</NcButton>
+			<NcButton v-if="canDirectSign"
+				variant="tertiary"
+				@click="signPdfNow">
+				<template #icon>
+					<NcIconSvgWrapper :path="mdiSignature" :size="20" />
+				</template>
+				<!-- TRANSLATORS Immediate PDF signing action; opens a file picker without creating a draft request. -->
+				{{ t('libresign', 'Sign PDF now') }}
+			</NcButton>
 		</div>
 		<NcActions v-else
 			v-model:open="openedMenu"
@@ -59,6 +68,14 @@
 					<NcIconSvgWrapper :path="mdiUpload" :size="20" />
 				</template>
 				{{ t('libresign', 'Upload') }}
+			</NcActionButton>
+			<NcActionButton v-if="canDirectSign" :wide="true"
+				@click="signPdfNow">
+				<template #icon>
+					<NcIconSvgWrapper :path="mdiSignature" :size="20" />
+				</template>
+				<!-- TRANSLATORS Menu entry for immediate signing of one local PDF without visible fields. -->
+				{{ t('libresign', 'Sign PDF now') }}
 			</NcActionButton>
 		</NcActions>
 		<UploadProgress :is-uploading="isUploading"
@@ -132,6 +149,7 @@ import {
 	mdiFolder,
 	mdiLink,
 	mdiPlus,
+	mdiSignature,
 	mdiUpload,
 } from '@mdi/js'
 
@@ -152,11 +170,13 @@ import NcTextField from '@nextcloud/vue/components/NcTextField'
 
 import UploadProgress from '../UploadProgress.vue'
 import EditNameDialog from '../Common/EditNameDialog.vue'
+import DirectSignDialog from '../Signing/DirectSignDialog.vue'
+import { canSignDirectly } from '../../services/directSigning.ts'
 
 import { useActionsMenuStore } from '../../store/actionsmenu.js'
 import { useFilesStore } from '../../store/files.js'
 import { useSidebarStore } from '../../store/sidebar.js'
-import type { LibresignCapabilities } from '../../types/index'
+import type { EffectivePolicyValue, LibresignCapabilities } from '../../types/index'
 import { ENVELOPE_NAME_MIN_LENGTH, ENVELOPE_NAME_MAX_LENGTH } from '../../constants.js'
 
 type UploadFile = {
@@ -213,6 +233,11 @@ const pdfUrl = ref('')
 const loading = ref(false)
 const openedMenu = ref(false)
 const canRequestSign = ref(loadState('libresign', 'can_request_sign', false))
+const effectivePolicies = loadState<{ policies?: { identify_methods?: { effectiveValue?: EffectivePolicyValue } } }>(
+	'libresign', 'effective_policies', { policies: {} },
+)
+const canDirectSign = computed(() => canRequestSign.value
+	&& canSignDirectly(effectivePolicies?.policies?.identify_methods?.effectiveValue ?? null))
 const uploadProgress = ref(0)
 const isUploading = ref(false)
 const uploadAbortController = ref<AbortController | null>(null)
@@ -421,6 +446,27 @@ async function handleFilesSelected(files: UploadFile[]) {
 	}
 
 	await upload(files)
+}
+
+function signPdfNow() {
+	openedMenu.value = false
+	const input = document.createElement('input')
+	input.type = 'file'
+	input.accept = 'application/pdf'
+	input.onchange = async () => {
+		const pdf = input.files?.item(0)
+		input.remove()
+		if (!pdf) {
+			return
+		}
+		if (!pdf.name.toLowerCase().endsWith('.pdf')) {
+			// TRANSLATORS Error when the selected file is not a PDF document.
+			showError(t('libresign', 'Select a PDF file.'))
+			return
+		}
+		await spawnDialog(DirectSignDialog, { name: pdf.name, pdf })
+	}
+	input.click()
 }
 
 function uploadFile() {
