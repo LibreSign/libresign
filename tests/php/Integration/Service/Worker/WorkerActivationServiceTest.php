@@ -10,6 +10,7 @@ namespace OCA\Libresign\Tests\Integration\Service\Worker;
 
 use OCA\Libresign\BackgroundJob\CleanupStaleSigningStatus;
 use OCA\Libresign\BackgroundJob\DeliverNotification;
+use OCA\Libresign\BackgroundJob\SignFileJob;
 use OCA\Libresign\Service\Worker\LocalWorkerCoordinator;
 use OCA\Libresign\Service\Worker\LocalWorkerProcess;
 use OCA\Libresign\Service\Worker\LocalWorkerStateStore;
@@ -39,6 +40,12 @@ class WorkerActivationServiceTest extends TestCase {
 		$coordinator = Server::get(LocalWorkerCoordinator::class);
 		$state = Server::get(LocalWorkerStateStore::class);
 		$args = ['id' => random_int(1000000000, 1900000000)];
+		$signingArgs = [
+			'fileId' => -random_int(1000000000, 1900000000),
+			'signRequestId' => -1,
+			'test' => 'notification-worker-isolation',
+		];
+		$queue->add(SignFileJob::class, $signingArgs);
 		$queue->add(DeliverNotification::class, $args);
 		$queuedAt = microtime(true);
 		try {
@@ -54,6 +61,8 @@ class WorkerActivationServiceTest extends TestCase {
 			$elapsedMs = (microtime(true) - $queuedAt) * 1000;
 			$this->assertFalse($queue->has(DeliverNotification::class, $args),
 				'The real OCC worker must drain the queued synthetic delivery');
+			$this->assertTrue($queue->has(SignFileJob::class, $signingArgs),
+				'The notification worker must not claim signing jobs in the same Nextcloud');
 			// Queue-to-drain includes OCC startup and processing, not just job-start latency.
 			fwrite(STDERR, sprintf("Notification enqueue-to-drain: %.1f ms\n", $elapsedMs));
 			foreach ($records as $record) {
@@ -66,6 +75,7 @@ class WorkerActivationServiceTest extends TestCase {
 			}
 		} finally {
 			$queue->remove(DeliverNotification::class, $args);
+			$queue->remove(SignFileJob::class, $signingArgs);
 		}
 	}
 

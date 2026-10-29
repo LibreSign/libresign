@@ -91,6 +91,7 @@ class LocalWorkerCoordinator {
 	private function startWorkers(int $count, array $running, string $pool): array {
 		for ($i = 0; $i < $count; $i++) {
 			try {
+				$this->logger->debug('Local worker launch attempt', ['pool' => $pool]);
 				$pid = $this->starter->startWorker($pool);
 				$startTime = $this->processes->startTime($pid);
 				if ($startTime === null) {
@@ -100,6 +101,7 @@ class LocalWorkerCoordinator {
 					break;
 				}
 				$running[] = ['pid' => $pid, 'start' => $startTime];
+				$this->logger->debug('Local worker process identified', ['pool' => $pool, 'pid' => $pid]);
 			} catch (\RuntimeException $e) {
 				$this->logger->warning('Cannot start local ' . $pool . ' worker', ['exception' => $e]);
 				break;
