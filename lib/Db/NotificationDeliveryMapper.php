@@ -139,6 +139,9 @@ class NotificationDeliveryMapper extends QBMapper {
 		], true)) {
 			throw new \InvalidArgumentException('Invalid terminal notification state');
 		}
+		if (($state === NotificationDeliveryState::TEMPORARY_FAILURE) !== ($retryAt !== null)) {
+			throw new \InvalidArgumentException('Only a scheduled temporary failure can retain a notification handoff');
+		}
 		$qb = $this->db->getQueryBuilder();
 		$now = new \DateTime('now', new \DateTimeZone('UTC'));
 		$update = $qb->update($this->getTableName());
@@ -192,20 +195,25 @@ class NotificationDeliveryMapper extends QBMapper {
 		return $this->findEntities($qb);
 	}
 
-	/** @return list<NotificationDelivery> Work due now; future retries are never queued early. */
-	public function findDue(int $limit = 50, int $offset = 0): array {
+	/**
+	 * Work due now, after the last scanned ID. Keyset pagination stays stable
+	 * when other workers change delivery states while recovery is scanning.
+	 *
+	 * @return list<NotificationDelivery>
+	 */
+	public function findDue(int $limit = 50, int $afterId = 0): array {
 		$qb = $this->db->getQueryBuilder();
 		$now = new \DateTime('now', new \DateTimeZone('UTC'));
 		$qb->select('*')->from($this->getTableName())
-			->where($qb->expr()->orX(
+			->where($qb->expr()->gt('id', $qb->createNamedParameter($afterId, IQueryBuilder::PARAM_INT)))
+			->andWhere($qb->expr()->orX(
 				$qb->expr()->eq('state', $qb->createNamedParameter(NotificationDeliveryState::PENDING->value)),
 				$qb->expr()->andX(
 					$qb->expr()->eq('state', $qb->createNamedParameter(NotificationDeliveryState::TEMPORARY_FAILURE->value)),
 					$qb->expr()->lte('next_attempt_at', $qb->createNamedParameter($now, IQueryBuilder::PARAM_DATETIME_MUTABLE)),
 				),
 			))
-			->orderBy('created_at', 'ASC')->addOrderBy('id', 'ASC')
-			->setMaxResults($limit)->setFirstResult($offset);
+			->orderBy('id', 'ASC')->setMaxResults($limit);
 		return $this->findEntities($qb);
 	}
 

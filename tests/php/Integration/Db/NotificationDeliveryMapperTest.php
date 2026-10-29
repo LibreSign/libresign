@@ -41,7 +41,7 @@ final class NotificationDeliveryMapperTest extends \OCA\Libresign\Tests\Integrat
 		parent::tearDown();
 	}
 
-	private function createDelivery(string $event = 'initial'): NotificationDelivery {
+	private function createDelivery(string $event = 'initial', ?string $snapshot = null): NotificationDelivery {
 		$delivery = $this->deliveries->register(
 			hash('sha256', 'synthetic-test-' . $event . '-' . bin2hex(random_bytes(12))),
 			hash('sha256', 'correlation-for-' . $event),
@@ -51,10 +51,25 @@ final class NotificationDeliveryMapperTest extends \OCA\Libresign\Tests\Integrat
 			200,
 			'test-owner',
 			'encrypted-synthetic@example.invalid',
+			$snapshot,
 		);
 		self::assertNotNull($delivery);
 		$this->created[] = $delivery;
 		return $delivery;
+	}
+
+	public function testTemporaryFailureWithoutRetryScheduleIsRejected(): void {
+		$delivery = $this->createDelivery('missing-retry-time');
+		$this->assertTrue($this->deliveries->claim($delivery->getId()));
+		$this->expectException(\InvalidArgumentException::class);
+		$this->deliveries->finish($delivery->getId(), NotificationDeliveryState::TEMPORARY_FAILURE);
+	}
+
+	public function testTerminalStateCannotRetainAReplaySchedule(): void {
+		$delivery = $this->createDelivery('terminal-with-retry-time');
+		$this->assertTrue($this->deliveries->claim($delivery->getId()));
+		$this->expectException(\InvalidArgumentException::class);
+		$this->deliveries->finish($delivery->getId(), NotificationDeliveryState::UNKNOWN, new \DateTime('+2 minutes', new \DateTimeZone('UTC')));
 	}
 
 	public function testDueQueriesUseStablePaginationAndExcludeFutureRetries(): void {
@@ -62,7 +77,8 @@ final class NotificationDeliveryMapperTest extends \OCA\Libresign\Tests\Integrat
 			$this->createDelivery('pagination-' . $index);
 		}
 		$first = $this->deliveries->findDue(10, 0);
-		$second = $this->deliveries->findDue(10, 10);
+		$this->assertTrue($this->deliveries->claim($first[0]->getId()));
+		$second = $this->deliveries->findDue(10, $first[9]->getId());
 		self::assertCount(10, $first);
 		self::assertCount(10, $second);
 		self::assertSame([], array_intersect(
@@ -73,18 +89,19 @@ final class NotificationDeliveryMapperTest extends \OCA\Libresign\Tests\Integrat
 	}
 
 	public function testSafeRetryIsScheduledAndCannotBeClaimedBeforeDueTime(): void {
-		$delivery = $this->createDelivery('safe-retry');
+		$delivery = $this->createDelivery('safe-retry', 'encrypted-handoff-test-data');
 		$this->assertTrue($this->deliveries->claim($delivery->getId()));
 		$future = new \DateTime('+1 hour', new \DateTimeZone('UTC'));
 		$this->deliveries->finish($delivery->getId(), NotificationDeliveryState::TEMPORARY_FAILURE, $future);
 		$this->assertFalse($this->deliveries->claim($delivery->getId()));
 		$this->assertSame(NotificationDeliveryState::TEMPORARY_FAILURE->value, $this->deliveries->findById($delivery->getId())->getState());
 		$this->assertNotNull($this->deliveries->findById($delivery->getId())->getNextAttemptAt());
+		$this->assertSame('encrypted-handoff-test-data', $this->deliveries->findById($delivery->getId())->getMessageEnc());
 		$this->assertFalse(in_array($delivery->getId(), array_map(static fn (NotificationDelivery $row): int => $row->getId(), $this->deliveries->findDue(500)), true));
 	}
 
 	public function testDueRetryHasOneAtomicWinnerAndPreservesEventIdentity(): void {
-		$delivery = $this->createDelivery('due-retry');
+		$delivery = $this->createDelivery('due-retry', 'encrypted-handoff-test-data');
 		$this->assertTrue($this->deliveries->claim($delivery->getId()));
 		$this->deliveries->finish($delivery->getId(), NotificationDeliveryState::TEMPORARY_FAILURE, new \DateTime('-1 minute', new \DateTimeZone('UTC')));
 		$this->assertTrue($this->deliveries->claim($delivery->getId()));
@@ -92,15 +109,17 @@ final class NotificationDeliveryMapperTest extends \OCA\Libresign\Tests\Integrat
 		$this->assertSame(2, $this->deliveries->findById($delivery->getId())->getAttemptCount());
 		$this->assertSame($delivery->getEventKey(), $this->deliveries->findById($delivery->getId())->getEventKey());
 		$this->deliveries->finish($delivery->getId(), NotificationDeliveryState::ACCEPTED);
+		$this->assertNull($this->deliveries->findById($delivery->getId())->getMessageEnc());
 		$this->assertFalse($this->deliveries->claim($delivery->getId()));
 	}
 
 	public function testCancelAlsoInvalidatesScheduledInvitation(): void {
-		$delivery = $this->createDelivery('cancel-scheduled');
+		$delivery = $this->createDelivery('cancel-scheduled', 'encrypted-handoff-test-data');
 		$this->assertTrue($this->deliveries->claim($delivery->getId()));
 		$this->deliveries->finish($delivery->getId(), NotificationDeliveryState::TEMPORARY_FAILURE, new \DateTime('-1 minute', new \DateTimeZone('UTC')));
 		$this->assertSame(1, $this->deliveries->cancelPendingInvitations(200));
 		$this->assertSame(NotificationDeliveryState::CANCELED->value, $this->deliveries->findById($delivery->getId())->getState());
+		$this->assertNull($this->deliveries->findById($delivery->getId())->getMessageEnc());
 		$this->assertFalse($this->deliveries->claim($delivery->getId()));
 	}
 
