@@ -11,6 +11,7 @@ namespace OCA\Libresign\Tests\Unit\Service\Worker;
 use OCA\Libresign\Service\Worker\LocalWorkerCoordinator;
 use OCA\Libresign\Service\Worker\LocalWorkerProcess;
 use OCA\Libresign\Service\Worker\LocalWorkerStateStore;
+use OCA\Libresign\Service\Worker\WorkerConfiguration;
 use OCA\Libresign\Service\Worker\WorkerJobCounter;
 use OCA\Libresign\Service\Worker\WorkerStarter;
 use PHPUnit\Framework\Attributes\DataProvider;
@@ -64,6 +65,21 @@ class LocalWorkerCoordinatorTest extends TestCase {
 		$counter->method('countEligibleJobs')->willReturn(min($capacity, $queued));
 		$this->assertTrue($this->coordinator($starter, $counter)->ensureCapacity($capacity));
 		$this->assertSame($expectedStarts, $starts);
+	}
+
+	public function testSigningAndNotificationHaveIndependentWorkerCapacity(): void {
+		$launched = [];
+		$starter = $this->createMock(WorkerStarter::class);
+		$starter->method('startWorker')->willReturnCallback(static function (string $pool) use (&$launched): int {
+			$launched[] = $pool;
+			return 6100 + count($launched);
+		});
+		$counter = $this->createMock(WorkerJobCounter::class);
+		$counter->method('countEligibleJobs')->willReturn(1);
+		$registry = $this->coordinator($starter, $counter);
+		$this->assertTrue($registry->ensureCapacity(1, WorkerConfiguration::SIGNING));
+		$this->assertTrue($registry->ensureCapacity(1, WorkerConfiguration::NOTIFICATION));
+		$this->assertSame([WorkerConfiguration::SIGNING, WorkerConfiguration::NOTIFICATION], $launched);
 	}
 
 	public function testSecondRequestDoesNotExceedCapacity(): void {
