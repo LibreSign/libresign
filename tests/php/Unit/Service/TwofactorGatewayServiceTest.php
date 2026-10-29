@@ -76,7 +76,7 @@ final class TwofactorGatewayServiceTest extends TestCase {
 			->method('warning')
 			->with(
 				'Unable to determine twofactor gateway completeness.',
-				$this->arrayHasKey('gateway')
+				['reason' => 'integration_error']
 			);
 		$this->container->method('get')
 			->with('OCA\\TwoFactorGateway\\Service\\GatewayDirectIntegrationService')
@@ -105,6 +105,44 @@ final class TwofactorGatewayServiceTest extends TestCase {
 		], $integrationService->sentMessages);
 	}
 
+	public function testSendForwardsOrderedTemplateOptionsToDirectIntegration(): void {
+		$this->appManager->method('isEnabledForAnyone')->with('twofactor_gateway')->willReturn(true);
+		$integration = new TwofactorGatewayIntegrationStub(true);
+		$this->container->method('get')
+			->with('OCA\\TwoFactorGateway\\Service\\GatewayDirectIntegrationService')
+			->willReturn($integration);
+
+		$extra = [
+			'body_parameters' => ['Document', 'https://example.invalid/sign'],
+			'expected_body_parameter_count' => 2,
+			'template_name' => 'synthetic_utility',
+			'template_language' => 'pt_BR',
+			'template_category' => 'UTILITY',
+		];
+		$this->createService()->send('whatsappbusiness', 'synthetic-recipient', 'Notification', $extra);
+
+		self::assertSame([[
+			'gateway' => 'whatsappbusiness',
+			'identifier' => 'synthetic-recipient',
+			'message' => 'Notification',
+			'extra' => $extra,
+		]], $integration->sentMessages);
+	}
+
+	public function testUnexpectedCompletenessResultOnlyLogsConstantMetadata(): void {
+		$this->appManager->method('isEnabledForAnyone')->willReturn(true);
+		$this->container->method('get')->willReturn(new class {
+			public function isGatewayComplete(string $gatewayName): string {
+				return 'synthetic-invalid-value';
+			}
+		});
+		$this->logger->expects($this->once())->method('warning')->with(
+			'Twofactor gateway integration service returned an invalid completeness flag.',
+			['reason' => 'invalid_response'],
+		);
+		self::assertFalse($this->createService()->isGatewayComplete('whatsappbusiness'));
+	}
+
 	private function createService(): TwofactorGatewayService {
 		return new TwofactorGatewayService(
 			$this->container,
@@ -130,11 +168,15 @@ final class TwofactorGatewayIntegrationStub {
 		return $this->complete;
 	}
 
-	public function send(string $gatewayName, string $identifier, string $message): void {
-		$this->sentMessages[] = [
+	public function send(string $gatewayName, string $identifier, string $message, array $extra = []): void {
+		$entry = [
 			'gateway' => $gatewayName,
 			'identifier' => $identifier,
 			'message' => $message,
 		];
+		if ($extra !== []) {
+			$entry['extra'] = $extra;
+		}
+		$this->sentMessages[] = $entry;
 	}
 }

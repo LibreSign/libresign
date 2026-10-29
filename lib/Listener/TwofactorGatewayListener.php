@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 /**
- * SPDX-FileCopyrightText: 2025 LibreCode coop and contributors
+ * SPDX-FileCopyrightText: 2025-2026 LibreCode coop and contributors
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
 
@@ -17,11 +17,10 @@ use OCA\Libresign\Events\SignedEvent;
 use OCA\Libresign\Service\IdentifyMethod\IdentifyService;
 use OCA\Libresign\Service\IdentifyMethod\IIdentifyMethod;
 use OCA\Libresign\Service\IdentifyMethodService;
+use OCA\Libresign\Service\Notification\GatewayNotificationComposer;
 use OCA\Libresign\Service\TwofactorGatewayService;
 use OCP\EventDispatcher\Event;
 use OCP\EventDispatcher\IEventListener;
-use OCP\IL10N;
-use OCP\IURLGenerator;
 use OCP\IUserManager;
 use OCP\IUserSession;
 use Psr\Log\LoggerInterface;
@@ -35,8 +34,7 @@ class TwofactorGatewayListener implements IEventListener {
 		private SignRequestMapper $signRequestMapper,
 		private TwofactorGatewayService $twofactorGatewayService,
 		private LoggerInterface $logger,
-		protected IL10N $l10n,
-		protected IURLGenerator $urlGenerator,
+		private GatewayNotificationComposer $composer,
 	) {
 	}
 
@@ -62,55 +60,7 @@ class TwofactorGatewayListener implements IEventListener {
 		IIdentifyMethod $identifyMethod,
 		FileEntity $libreSignFile,
 	): void {
-		try {
-			$entity = $identifyMethod->getEntity();
-			if ($entity->isDeletedAccount()) {
-				return;
-			}
-			if (!in_array($entity->getIdentifierKey(), IdentifyMethodService::IDENTIFY_TWOFACTOR_GATEWAY_METHODS, true)) {
-				return;
-			}
-			if (!$this->twofactorGatewayService->isEnabled()) {
-				$this->logger->info('Twofactor Gateway app is not enabled');
-				return;
-			}
-			$identifier = $entity->getIdentifierValue();
-			if (empty($identifier)) {
-				return;
-			}
-
-			$isFirstNotification = $this->signRequestMapper->incrementNotificationCounter($signRequest, $entity->getIdentifierKey());
-
-			$message = '';
-			if (!empty($signRequest->getDescription())) {
-				$message = $signRequest->getDescription() . "\n\n";
-			}
-
-			if ($isFirstNotification) {
-				// TRANSLATORS SMS/gateway body sent via Nextcloud Twofactor Gateway when LibreSign first asks someone to sign a document; a signing link follows this sentence.
-				$message .= $this->l10n->t('There is a document for you to sign. Access the link below:');
-			} else {
-				// TRANSLATORS SMS/gateway body sent via Nextcloud Twofactor Gateway when a pending LibreSign signing request was updated and the signer must open the link again.
-				$message .= $this->l10n->t('Changes have been made in a file that you have to sign. Access the link below:');
-			}
-			$message .= "\n";
-			$link = $this->urlGenerator->linkToRouteAbsolute('libresign.page.sign', ['uuid' => $signRequest->getUuid()]);
-			$message .= $libreSignFile->getName() . ': ' . $link;
-
-			$gatewayName = IdentifyMethodService::resolveTwofactorGatewayName($entity->getIdentifierKey());
-			try {
-				$this->twofactorGatewayService->send($gatewayName, $identifier, $message);
-			} catch (Exception $e) {
-				$this->logger->error('Could not send 2FA message', [
-					'identifier' => $identifier,
-					'exception' => $e,
-				]);
-				return;
-			}
-		} catch (\InvalidArgumentException $e) {
-			$this->logger->error($e->getMessage(), ['exception' => $e]);
-			return;
-		}
+		$this->deliver($signRequest, $identifyMethod, $libreSignFile, false);
 	}
 
 	protected function sendSignedNotification(
@@ -118,12 +68,19 @@ class TwofactorGatewayListener implements IEventListener {
 		IIdentifyMethod $identifyMethod,
 		FileEntity $libreSignFile,
 	): void {
+		$this->deliver($signRequest, $identifyMethod, $libreSignFile, true);
+	}
+
+	private function deliver(
+		SignRequest $request,
+		IIdentifyMethod $identifyMethod,
+		FileEntity $file,
+		bool $signed,
+	): void {
 		try {
 			$entity = $identifyMethod->getEntity();
-			if ($entity->isDeletedAccount()) {
-				return;
-			}
-			if (!in_array($entity->getIdentifierKey(), IdentifyMethodService::IDENTIFY_TWOFACTOR_GATEWAY_METHODS, true)) {
+			if ($entity->isDeletedAccount()
+				|| !in_array($entity->getIdentifierKey(), IdentifyMethodService::IDENTIFY_TWOFACTOR_GATEWAY_METHODS, true)) {
 				return;
 			}
 			if (!$this->twofactorGatewayService->isEnabled()) {
@@ -131,34 +88,25 @@ class TwofactorGatewayListener implements IEventListener {
 				return;
 			}
 			$identifier = $entity->getIdentifierValue();
-			if (empty($identifier)) {
+			if (!is_string($identifier) || trim($identifier) === '') {
 				return;
 			}
-
-			// TRANSLATORS SMS/gateway subject line sent via Nextcloud Twofactor Gateway after a LibreSign document was signed; details and a validation link follow.
-			$message = $this->l10n->t('LibreSign: A file has been signed');
-			$message .= "\n";
-			// TRANSLATORS The text in the message that is sent after a document has been signed by a user. %s will be replaced with the name of the user who signed the document.
-			$message .= $this->l10n->t('%s signed the document. You can access it using the link below:', [$signRequest->getDisplayName()]);
-			$link = $this->urlGenerator->linkToRouteAbsolute('libresign.page.validationFilePublic', [
-				'uuid' => $libreSignFile->getUuid(),
-			]);
-			$message .= "\n";
-			$message .= $libreSignFile->getName() . ': ' . $link;
-
-			$gatewayName = IdentifyMethodService::resolveTwofactorGatewayName($entity->getIdentifierKey());
-			try {
-				$this->twofactorGatewayService->send($gatewayName, $identifier, $message);
-			} catch (Exception $e) {
-				$this->logger->error('Could not send 2FA message', [
-					'identifier' => $identifier,
-					'exception' => $e,
-				]);
-				return;
-			}
-		} catch (\InvalidArgumentException $e) {
-			$this->logger->error($e->getMessage(), ['exception' => $e]);
-			return;
+			$method = $entity->getIdentifierKey();
+			$gatewayName = IdentifyMethodService::resolveTwofactorGatewayName($method);
+			$payload = $signed
+				? $this->composer->composeSignedFile($request, $file, $gatewayName)
+				: $this->composer->composeSignRequest(
+					$request,
+					$file,
+					$this->signRequestMapper->incrementNotificationCounter($request, $method),
+					$gatewayName,
+				);
+			$this->twofactorGatewayService->send($payload->gatewayName, $identifier, $payload->body, $payload->extra);
+		} catch (\InvalidArgumentException) {
+			// Identifier, document details and option values must never reach logs.
+			$this->logger->warning('Could not prepare gateway notification.', ['reason' => 'invalid_notification']);
+		} catch (Exception) {
+			$this->logger->error('Could not send gateway notification.', ['reason' => 'delivery_failure']);
 		}
 	}
 }
