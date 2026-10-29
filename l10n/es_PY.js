@@ -119,7 +119,6 @@ OC.L10N.register(
     "_{count} file_::_{count} files_" : ["{count} archivo","{count} archivos","{count} archivos"],
     "Today" : "Hoy",
     "Public" : "Público",
-    "No date" : "Sin fecha",
     "User" : "Usuario",
     "Reminders" : "Recordatorios"
 },

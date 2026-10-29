@@ -137,7 +137,6 @@ OC.L10N.register(
     "Public" : "Público",
     "{from} made changes on {file}" : "{from} cambios hechos sobre {file}",
     "Notification sent with success." : "Se envío notificación con éxito",
-    "No date" : "Sin fecha",
     "User" : "Ususario",
     "Reminders" : "Recordatorios",
     "Name is mandatory" : "El Nombre es obligatorio"

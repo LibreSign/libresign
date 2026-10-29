@@ -129,7 +129,6 @@ OC.L10N.register(
     "Other" : "อื่น ๆ",
     "Public" : "สาธารณะ",
     "Cannot read file" : "ไม่สามารถอ่านไฟล์",
-    "No date" : "ไม่มีวันที่",
     "User" : "ผู้ใช้",
     "Reminders" : "การแจ้งเตือน",
     "Invalid URL" : "URL ไม่ถูกต้อง"

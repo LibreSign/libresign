@@ -235,8 +235,6 @@ OC.L10N.register(
     "Public" : "公開",
     "Cannot read file" : "ファイルを読み込めません",
     "Underline" : "下線",
-    "Expiration:" : "期限切れ:",
-    "No date" : "日付なし",
     "User" : "ユーザー",
     "Add new" : "新規作成",
     "off" : "オフ",

@@ -101,7 +101,6 @@ OC.L10N.register(
     "Last 7 days" : "Laaste 7 dae",
     "Last 30 days" : "Laaste 30 dae",
     "Other" : "Ander",
-    "No date" : "Geen datum",
     "User" : "Gebruiker",
     "Reminders" : "Herinneringe"
 },

@@ -115,7 +115,6 @@ OC.L10N.register(
     "Today" : "დღეს",
     "Other" : "სხვა",
     "Public" : "ღია",
-    "No date" : "თარიღი არაა",
     "User" : "მომხმარებელი",
     "Reminders" : "შემახსენებლები"
 },

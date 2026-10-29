@@ -222,8 +222,6 @@ OC.L10N.register(
     "Public" : "Azayaz",
     "From: %s • Date: %s" : "Sɣur: %s • Azemz: %s",
     "Underline" : "Yettuderrer",
-    "Valid from:" : "D uɣbil si:",
-    "Valid to:" : "D uɣbil i:",
     "User" : "Aseqdac",
     "Add new" : "Rnu amaynut",
     "off" : "yemdel",
