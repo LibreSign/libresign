@@ -18,6 +18,7 @@ use OCA\Libresign\Service\Worker\WorkerActivationService;
 use OCA\Libresign\Service\Worker\WorkerConfiguration;
 use OCP\App\IAppManager;
 use OCP\BackgroundJob\IJobList;
+use OCP\BackgroundJob\IJobRuns;
 use OCP\IDBConnection;
 use OCP\Server;
 use PHPUnit\Framework\TestCase;
@@ -63,8 +64,28 @@ class WorkerActivationServiceTest extends TestCase {
 				'The real OCC worker must drain the queued synthetic delivery');
 			$this->assertTrue($queue->has(SignFileJob::class, $signingArgs),
 				'The notification worker must not claim signing jobs in the same Nextcloud');
-			// Queue-to-drain includes OCC startup and processing, not just job-start latency.
-			fwrite(STDERR, sprintf("Notification enqueue-to-drain: %.1f ms\n", $elapsedMs));
+			// IJobRuns records the real OCC job start, independently from the
+			// queue completion time. Both clocks are on this isolated host.
+			$workerPids = array_column($records, 'pid');
+			$startedMs = null;
+			while ($startedMs === null && microtime(true) < $deadline) {
+				foreach (Server::get(IJobRuns::class)->completedJobs(classes: [DeliverNotification::class]) as $run) {
+					if (in_array($run->pid, $workerPids, true)) {
+						$startedAt = (float)$run->startedAt->format('U.u');
+						if ($startedAt >= $queuedAt - 0.01) {
+							$startedMs = ($startedAt - $queuedAt) * 1000;
+							break;
+						}
+					}
+				}
+				if ($startedMs === null) {
+					usleep(50000);
+				}
+			}
+			$this->assertNotNull($startedMs, 'Nextcloud must record the worker job start');
+			$this->assertGreaterThanOrEqual(-2.0, $startedMs, 'Start timestamp must follow enqueue (millisecond tolerance)');
+			fwrite(STDERR, sprintf("Notification enqueue-to-start: %.1f ms; enqueue-to-drain: %.1f ms\n",
+				max(0, $startedMs), $elapsedMs));
 			foreach ($records as $record) {
 				while ($processes->isRunning($record['pid'], $record['start'], [DeliverNotification::class])
 					&& microtime(true) < $deadline) {
