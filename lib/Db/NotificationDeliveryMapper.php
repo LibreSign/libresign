@@ -115,7 +115,7 @@ class NotificationDeliveryMapper extends QBMapper {
 		$now = new \DateTime('now', new \DateTimeZone('UTC'));
 		return $qb->update($this->getTableName())
 			->set('state', $qb->createNamedParameter(NotificationDeliveryState::SENDING->value))
-			->set('attempt_count', 'attempt_count + 1')
+			->set('attempt_count', $qb->createFunction('attempt_count + 1'))
 			->set('updated_at', $qb->createNamedParameter($now, IQueryBuilder::PARAM_DATETIME_MUTABLE))
 			->where($qb->expr()->eq('id', $qb->createNamedParameter($deliveryId, IQueryBuilder::PARAM_INT)))
 			->andWhere($qb->expr()->lt('attempt_count', $qb->createNamedParameter(self::MAX_ATTEMPTS, IQueryBuilder::PARAM_INT)))
@@ -187,12 +187,13 @@ class NotificationDeliveryMapper extends QBMapper {
 		$qb = $this->db->getQueryBuilder();
 		$qb->select('*')->from($this->getTableName())
 			->where($qb->expr()->eq('state', $qb->createNamedParameter(NotificationDeliveryState::PENDING->value)))
-			->orderBy('created_at', 'ASC')->setMaxResults($limit);
+			->orderBy('created_at', 'ASC')->addOrderBy('id', 'ASC')
+			->setMaxResults($limit)->setFirstResult($offset);
 		return $this->findEntities($qb);
 	}
 
 	/** @return list<NotificationDelivery> Work due now; future retries are never queued early. */
-	public function findDue(int $limit = 50): array {
+	public function findDue(int $limit = 50, int $offset = 0): array {
 		$qb = $this->db->getQueryBuilder();
 		$now = new \DateTime('now', new \DateTimeZone('UTC'));
 		$qb->select('*')->from($this->getTableName())

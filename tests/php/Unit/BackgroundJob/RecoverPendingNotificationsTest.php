@@ -21,7 +21,7 @@ final class RecoverPendingNotificationsTest extends TestCase {
 		$delivery = new NotificationDelivery();
 		$delivery->setId(42);
 		$mapper = $this->createMock(NotificationDeliveryMapper::class);
-		$mapper->expects($this->once())->method('findDue')->with(50)->willReturn([$delivery]);
+		$mapper->expects($this->once())->method('findDue')->with(50, 0)->willReturn([$delivery]);
 		$jobs = $this->createMock(IJobList::class);
 		$jobs->expects($this->once())->method('has')->with(DeliverNotification::class, ['id' => 42])->willReturn(false);
 		$jobs->expects($this->once())->method('add')->with(DeliverNotification::class, ['id' => 42]);
@@ -35,6 +35,25 @@ final class RecoverPendingNotificationsTest extends TestCase {
 		$jobs = $this->createMock(IJobList::class);
 		$jobs->expects($this->once())->method('has')->with(DeliverNotification::class, ['id' => 43])->willReturn(true);
 		$jobs->expects($this->never())->method('add');
+		(new RecoverPendingNotifications($this->createMock(ITimeFactory::class), $mapper, $jobs))->run(null);
+	}
+
+	public function testQueuedFirstPageDoesNotStarveLaterDueJobs(): void {
+		$first = [];
+		for ($i = 1; $i <= 50; $i++) {
+			$delivery = new NotificationDelivery();
+			$delivery->setId($i);
+			$first[] = $delivery;
+		}
+		$next = new NotificationDelivery();
+		$next->setId(51);
+		$mapper = $this->createMock(NotificationDeliveryMapper::class);
+		$mapper->expects($this->exactly(2))->method('findDue')->willReturnCallback(
+			static fn (int $limit, int $offset): array => $offset === 0 ? $first : [$next],
+		);
+		$jobs = $this->createMock(IJobList::class);
+		$jobs->method('has')->willReturnCallback(static fn (string $class, array $args): bool => $args['id'] !== 51);
+		$jobs->expects($this->once())->method('add')->with(DeliverNotification::class, ['id' => 51]);
 		(new RecoverPendingNotifications($this->createMock(ITimeFactory::class), $mapper, $jobs))->run(null);
 	}
 

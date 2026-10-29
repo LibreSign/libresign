@@ -14,6 +14,7 @@ use OCA\Libresign\Db\NotificationAttemptMapper;
 use OCA\Libresign\Db\NotificationDelivery;
 use OCA\Libresign\Db\NotificationDeliveryMapper;
 use OCA\Libresign\Db\SignRequest;
+use OCA\Libresign\Db\SignRequestMapper;
 use OCA\Libresign\Enum\NotificationDeliveryState;
 use OCA\Libresign\Exception\NotificationPreparationException;
 use OCA\Libresign\Exception\NotificationTransportException;
@@ -53,7 +54,7 @@ final class NotificationSubmissionServiceTest extends TestCase {
 		$db->expects($this->never())->method('rollBack');
 		$channel = $this->createMock(NotificationChannel::class);
 		$channel->method('deliver')->willThrowException($failure);
-		$service = new NotificationSubmissionService($deliveries, $attempts, $db, new NotificationFailureClassifier(), $this->createMock(NotificationHistoryService::class), $this->createMock(LoggerInterface::class));
+		$service = new NotificationSubmissionService($deliveries, $attempts, $db, new NotificationFailureClassifier(), new NotificationHistoryService($this->createMock(SignRequestMapper::class)), $this->createMock(LoggerInterface::class));
 		$this->expectException(get_class($failure));
 		$service->submit($delivery, $this->message(), $channel);
 	}
