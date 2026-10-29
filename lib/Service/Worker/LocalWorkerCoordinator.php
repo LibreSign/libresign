@@ -72,7 +72,14 @@ class LocalWorkerCoordinator {
 
 	/** @param array<string, mixed> $state */
 	private function workersToStart(int $availableSlots, array $state, string $pool): int {
-		if ($availableSlots === 0 || microtime(true) - (float)($state['lastAttempt'] ?? 0) < self::COOLDOWN_SECONDS) {
+		if ($availableSlots === 0) {
+			return 0;
+		}
+		// A previously identified notification worker may exit after draining
+		// its queue. Do not lose a new wake-up to the launch cooldown.
+		// Keep the cooldown when no child identity was recorded.
+		if (($pool === WorkerConfiguration::SIGNING || ($state['workers'] ?? []) === [])
+			&& microtime(true) - (float)($state['lastAttempt'] ?? 0) < self::COOLDOWN_SECONDS) {
 			return 0;
 		}
 		return min($availableSlots, $this->jobCounter->countEligibleJobs($availableSlots, $pool));

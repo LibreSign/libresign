@@ -82,6 +82,29 @@ class LocalWorkerCoordinatorTest extends TestCase {
 		$this->assertSame([WorkerConfiguration::SIGNING, WorkerConfiguration::NOTIFICATION], $launched);
 	}
 
+	public function testNotificationWakesAgainAsSoonAsPreviousWorkerExits(): void {
+		$starter = $this->createMock(WorkerStarter::class);
+		$starter->expects($this->exactly(2))->method('startWorker')
+			->with(WorkerConfiguration::NOTIFICATION)->willReturnOnConsecutiveCalls(6101, 6102);
+		$counter = $this->createMock(WorkerJobCounter::class);
+		$counter->method('countEligibleJobs')->willReturn(1);
+		// The previous child is no longer in procfs when the next job arrives.
+		$coordinator = $this->coordinator($starter, $counter);
+		$this->assertTrue($coordinator->ensureCapacity(1, WorkerConfiguration::NOTIFICATION));
+		$this->assertTrue($coordinator->ensureCapacity(1, WorkerConfiguration::NOTIFICATION));
+	}
+
+	public function testFailedNotificationStartupRespectsLaunchCooldown(): void {
+		$starter = $this->createMock(WorkerStarter::class);
+		$starter->expects($this->once())->method('startWorker')
+			->with(WorkerConfiguration::NOTIFICATION)->willThrowException(new \RuntimeException('No CLI available'));
+		$counter = $this->createMock(WorkerJobCounter::class);
+		$counter->method('countEligibleJobs')->willReturn(1);
+		$coordinator = $this->coordinator($starter, $counter);
+		$this->assertFalse($coordinator->ensureCapacity(1, WorkerConfiguration::NOTIFICATION));
+		$coordinator->ensureCapacity(1, WorkerConfiguration::NOTIFICATION);
+	}
+
 	public function testSecondRequestDoesNotExceedCapacity(): void {
 		$starts = 0;
 		$starter = $this->createMock(WorkerStarter::class);
