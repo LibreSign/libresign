@@ -46,12 +46,15 @@ vi.mock('../../../store/policies', () => ({
 
 const userConfigUpdateMock = vi.fn()
 const userConfigOnUpdateMock = vi.fn()
-const userConfigState: { warn_without_visible_signature_fields?: boolean } = {}
+const userConfigState: { warn_without_visible_signature_fields?: boolean; skip_direct_sign_confirmation?: boolean } = {}
 
 vi.mock('../../../store/userconfig.js', () => ({
 	useUserConfigStore: () => ({
 		get warn_without_visible_signature_fields() {
 			return userConfigState.warn_without_visible_signature_fields
+		},
+		get skip_direct_sign_confirmation() {
+			return userConfigState.skip_direct_sign_confirmation
 		},
 		update: userConfigUpdateMock,
 		onUpdate: userConfigOnUpdateMock,
@@ -184,6 +187,7 @@ describe('Preferences view', () => {
 		userConfigUpdateMock.mockReset().mockResolvedValue(undefined)
 		userConfigOnUpdateMock.mockReset()
 		delete userConfigState.warn_without_visible_signature_fields
+		delete userConfigState.skip_direct_sign_confirmation
 		saveUserPreferenceMock.mockReset().mockResolvedValue(undefined)
 		clearUserPreferenceMock.mockReset().mockResolvedValue(undefined)
 		getPolicyMock.mockReset().mockReturnValue({
@@ -225,6 +229,27 @@ describe('Preferences view', () => {
 			},
 		})
 	}
+
+	it('restores the immediate signing confirmation from personal preferences', async () => {
+		userConfigState.skip_direct_sign_confirmation = true
+		const wrapper = await createWrapper()
+		await nextTick()
+		expect(wrapper.vm.confirmDirectSigning).toBe(false)
+		expect(wrapper.text()).toContain('Confirm before signing a PDF immediately')
+		await wrapper.vm.onConfirmDirectSigningChange(true)
+		expect(userConfigUpdateMock).toHaveBeenCalledWith('skip_direct_sign_confirmation', false)
+		expect(wrapper.vm.confirmDirectSigning).toBe(true)
+	})
+
+	it('does not claim the confirmation preference was changed when persistence fails', async () => {
+		const wrapper = await createWrapper()
+		await nextTick()
+		userConfigUpdateMock.mockRejectedValueOnce(new Error('request failed'))
+		await wrapper.vm.onConfirmDirectSigningChange(false)
+		expect(wrapper.vm.confirmDirectSigning).toBe(true)
+		expect(userConfigOnUpdateMock).toHaveBeenCalledWith('skip_direct_sign_confirmation', false)
+		expect(wrapper.vm.errorMessageFor('skip_direct_sign_confirmation')).toContain('Could not save')
+	})
 
 	it('loads effective policies on mount', async () => {
 		await createWrapper()

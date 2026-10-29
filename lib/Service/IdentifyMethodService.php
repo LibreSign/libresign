@@ -404,27 +404,28 @@ class IdentifyMethodService {
 			return $cachedCatalogSettings;
 		}
 
+		// Build catalog defaults without mutating live identify methods.
 		$this->identifyMethodsCatalogSettings = [
-			$this->account->getDefaultSettings(),
-			$this->email->getDefaultSettings(),
+			(clone $this->account)->getDefaultSettings(),
+			(clone $this->email)->getDefaultSettings(),
 		];
 		if ($this->signal->isTwofactorGatewayEnabled()) {
-			$this->identifyMethodsCatalogSettings[] = $this->signal->getDefaultSettings();
+			$this->identifyMethodsCatalogSettings[] = (clone $this->signal)->getDefaultSettings();
 		}
 		if ($this->sms->isTwofactorGatewayEnabled()) {
-			$this->identifyMethodsCatalogSettings[] = $this->sms->getDefaultSettings();
+			$this->identifyMethodsCatalogSettings[] = (clone $this->sms)->getDefaultSettings();
 		}
 		if ($this->telegram->isTwofactorGatewayEnabled()) {
-			$this->identifyMethodsCatalogSettings[] = $this->telegram->getDefaultSettings();
+			$this->identifyMethodsCatalogSettings[] = (clone $this->telegram)->getDefaultSettings();
 		}
 		if ($this->Whatsapp->isTwofactorGatewayEnabled()) {
-			$this->identifyMethodsCatalogSettings[] = $this->Whatsapp->getDefaultSettings();
+			$this->identifyMethodsCatalogSettings[] = (clone $this->Whatsapp)->getDefaultSettings();
 		}
 		if ($this->whatsappbusiness->isTwofactorGatewayEnabled()) {
-			$this->identifyMethodsCatalogSettings[] = $this->whatsappbusiness->getDefaultSettings();
+			$this->identifyMethodsCatalogSettings[] = (clone $this->whatsappbusiness)->getDefaultSettings();
 		}
 		if ($this->xmpp->isTwofactorGatewayEnabled()) {
-			$this->identifyMethodsCatalogSettings[] = $this->xmpp->getDefaultSettings();
+			$this->identifyMethodsCatalogSettings[] = (clone $this->xmpp)->getDefaultSettings();
 		}
 
 		/** @var list<LibresignIdentifyMethodAdminSetting> $catalogSettings */
@@ -495,8 +496,8 @@ class IdentifyMethodService {
 	 */
 	public function getDefaultIdentifyMethodsPolicy(): array {
 		return [
-			$this->buildDefaultPolicyFactorFromSettings($this->account->getDefaultSettings()),
-			$this->buildDefaultPolicyFactorFromSettings($this->email->getDefaultSettings()),
+			$this->buildDefaultPolicyFactorFromSettings((clone $this->account)->getDefaultSettings()),
+			$this->buildDefaultPolicyFactorFromSettings((clone $this->email)->getDefaultSettings()),
 		];
 	}
 

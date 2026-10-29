@@ -237,6 +237,27 @@ export async function deleteUser(
 }
 
 /**
+ * Assigns an email to an account via the Nextcloud Provisioning API.
+ */
+export async function setUserEmail(
+	request: APIRequestContext,
+	userId: string,
+	email: string,
+): Promise<void> {
+	const result = await ocsRequest(
+		request,
+		'PUT',
+		`/cloud/users/${encodeURIComponent(userId)}`,
+		undefined,
+		undefined,
+		{ key: 'email', value: email },
+	)
+	if (result.ocs.meta.statuscode !== 200) {
+		throw new Error(`Failed to set email for user "${userId}": ${result.ocs.meta.message}`)
+	}
+}
+
+/**
  * Forces a user's Nextcloud language via Provisioning API.
  */
 export async function setUserLanguage(

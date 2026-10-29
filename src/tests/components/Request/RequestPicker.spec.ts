@@ -48,6 +48,7 @@ vi.mock('@nextcloud/initial-state')
 vi.mock('@nextcloud/capabilities')
 vi.mock('@nextcloud/dialogs', () => ({
 	showError: vi.fn(),
+	showSuccess: vi.fn(),
 	getFilePickerBuilder: vi.fn(() => filePickerBuilder),
 }))
 
@@ -174,6 +175,27 @@ describe('RequestPicker component rules', () => {
 				},
 			}) as RequestPickerWrapper
 			expect(newWrapper.find('div').exists()).toBe(false)
+		})
+	})
+
+	describe('immediate signing availability', () => {
+		it('offers a one-time action only with an allowed account click-to-sign method', () => {
+			loadStateMock.mockImplementation((_app, key) => key === 'effective_policies'
+				? { policies: { identify_methods: { effectiveValue: { factors: [
+					{ name: 'account', enabled: true, signatureMethods: { clickToSign: { enabled: true } } },
+				] } } } }
+				: true)
+			const withPolicy = mount(RequestPicker, {
+				props: { inline: true },
+				global: { stubs: {
+					NcActions: true, NcActionButton: true, NcButton: true, NcDialog: true,
+					NcLoadingIcon: true, NcNoteCard: true, NcTextField: true,
+					UploadProgress: true,
+				} },
+			})
+			expect((withPolicy.vm as unknown as { canDirectSign: boolean }).canDirectSign).toBe(true)
+			withPolicy.unmount()
+			expect((wrapper.vm as unknown as { canDirectSign: boolean }).canDirectSign).toBe(false)
 		})
 	})
 

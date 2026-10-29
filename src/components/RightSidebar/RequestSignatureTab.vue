@@ -17,6 +17,7 @@
 			{{ t('libresign', 'Some signers use identification methods that have been disabled. Please remove or update them before requesting signatures.') }}
 		</NcNoteCard>
 		<NcNoteCard v-if="shouldLoadDetail && isLoadingFileDetail" type="info">
+			<!-- TRANSLATORS Status shown while the sidebar loads the list of signing participants. -->
 			{{ t('libresign', 'Loading signer details\u00A0…') }}
 		</NcNoteCard>
 		<NcNoteCard v-if="showSignatureFlowPreferenceClearedNotice" type="info">
@@ -30,8 +31,11 @@
 				<template #icon>
 					<NcIconSvgWrapper :path="mdiAccountPlus" :size="20" />
 				</template>
+				<!-- TRANSLATORS Button to add a person who must sign this document. -->
 				{{ t('libresign', 'Add signer') }}
 			</NcButton>
+			<!-- TRANSLATORS Accessible label for the menu that adds a signer or an observer. -->
+			<!-- TRANSLATORS Short label for the menu of participant types. -->
 			<NcActions v-else
 				:aria-label="t('libresign', 'Add participant')"
 				:menu-name="t('libresign', 'Add')"
@@ -45,6 +49,7 @@
 					<template #icon>
 						<NcIconSvgWrapper :path="mdiAccountPlus" :size="20" />
 					</template>
+					<!-- TRANSLATORS Participant who must sign the PDF; also used when a signer name is missing. -->
 					{{ t('libresign', 'Signer') }}
 				</NcActionButton>
 				<NcActionButton :close-after-click="true"
@@ -52,6 +57,7 @@
 					<template #icon>
 						<NcIconSvgWrapper :path="mdiEyeOutline" :size="20" />
 					</template>
+					<!-- TRANSLATORS Participant who can follow the request without signing. -->
 					{{ t('libresign', 'Observer') }}
 				</NcActionButton>
 			</NcActions>
@@ -60,12 +66,14 @@
 			v-model="preserveOrder"
 			type="switch"
 			@update:modelValue="onPreserveOrderChange">
+			<!-- TRANSLATORS Switch to require participants to sign in sequence. -->
 			{{ t('libresign', 'Sign in order') }}
 		</NcCheckboxRadioSwitch>
 		<NcCheckboxRadioSwitch v-if="showRememberSignatureFlow && !isOriginalFileDeleted"
 			v-model="rememberSignatureFlow"
 			type="switch"
 			@update:modelValue="onRememberSignatureFlowChange">
+			<!-- TRANSLATORS Switch to remember this signing order for future requests. -->
 			{{ t('libresign', 'Use this as my default signing order') }}
 		</NcCheckboxRadioSwitch>
 		<template v-if="showFooterTemplateSelector && !isOriginalFileDeleted">
@@ -83,6 +91,7 @@
 			v-model="rememberFooterTemplate"
 			type="switch"
 			@update:modelValue="onRememberFooterTemplateChange">
+			<!-- TRANSLATORS Switch to remember the selected PDF footer for future requests. -->
 			{{ t('libresign', 'Use this as my default footer template') }}
 		</NcCheckboxRadioSwitch>
 		<NcButton v-if="showViewOrderButton && !isOriginalFileDeleted"
@@ -91,11 +100,13 @@
 			<template #icon>
 				<NcIconSvgWrapper :path="mdiChartGantt" :size="20" />
 			</template>
+			<!-- TRANSLATORS Button to open a diagram of the sequence in which participants sign. -->
 			{{ t('libresign', 'View signing order') }}
 		</NcButton>
 		<div v-if="(!shouldLoadDetail || isCurrentFileDetailed) && signingParticipants.length > 0"
 			class="participants-section">
 			<h3 class="participants-section__title">
+				<!-- TRANSLATORS Section heading listing the people who must sign the document. -->
 				{{ t('libresign', 'Signers') }}
 			</h3>
 			<Signers :event="participantListEvent"
@@ -103,6 +114,7 @@
 				@signing-order-changed="debouncedSave">
 				<template #actions="{signer, closeActions}">
 					<template v-if="!isReadOnlyObserver && !isOriginalFileDeleted">
+						<!-- TRANSLATORS Editable numeric field determining the position of this signer in the sequence. -->
 						<NcActionInput v-if="canEditSigningOrder(signer)"
 							:label="t('libresign', 'Signing order')"
 							type="number"
@@ -120,6 +132,7 @@
 							<template #icon>
 								<NcIconSvgWrapper :path="mdiMessageText" :size="20" />
 							</template>
+							<!-- TRANSLATORS Action to customize the notification message for a participant. -->
 							{{ t('libresign', 'Customize message') }}
 						</NcActionButton>
 						<NcActionButton v-if="canDelete(signer)"
@@ -129,6 +142,7 @@
 							<template #icon>
 								<NcIconSvgWrapper :path="mdiDelete" :size="20" />
 							</template>
+							<!-- TRANSLATORS Action to remove this signer or observer from the request. -->
 							{{ t('libresign', 'Delete') }}
 						</NcActionButton>
 						<NcActionButton v-if="canRequestSignature(signer)"
@@ -137,6 +151,7 @@
 							<template #icon>
 								<NcIconSvgWrapper :path="mdiSend" :size="20" />
 							</template>
+							<!-- TRANSLATORS Action to send the signature invitation to one participant. -->
 							{{ t('libresign', 'Request signature') }}
 						</NcActionButton>
 						<NcActionButton v-if="canSendReminder(signer)"
@@ -147,6 +162,7 @@
 								<NcLoadingIcon v-if="isSendingNotification(signer)" :size="20" />
 								<NcIconSvgWrapper v-else :path="mdiBell" :size="20" />
 							</template>
+							<!-- TRANSLATORS Action to remind a signer about the pending signature. -->
 							{{ t('libresign', 'Send reminder') }}
 						</NcActionButton>
 					</template>
@@ -156,6 +172,7 @@
 		<div v-if="(!shouldLoadDetail || isCurrentFileDetailed) && observerParticipants.length > 0"
 			class="participants-section">
 			<h3 class="participants-section__title">
+				<!-- TRANSLATORS Section heading listing observers who do not need to sign. -->
 				{{ t('libresign', 'Observers') }}
 			</h3>
 			<Signers :event="participantListEvent"
@@ -168,6 +185,7 @@
 							<template #icon>
 								<NcIconSvgWrapper :path="mdiMessageText" :size="20" />
 							</template>
+							<!-- TRANSLATORS Action to customize the notification message for a participant. -->
 							{{ t('libresign', 'Customize message') }}
 						</NcActionButton>
 						<NcActionButton v-if="canDelete(signer)"
@@ -177,6 +195,7 @@
 							<template #icon>
 								<NcIconSvgWrapper :path="mdiDelete" :size="20" />
 							</template>
+							<!-- TRANSLATORS Action to remove this signer or observer from the request. -->
 							{{ t('libresign', 'Delete') }}
 						</NcActionButton>
 						<NcActionButton v-if="canSendObserverNotification(signer)"
@@ -187,6 +206,7 @@
 								<NcLoadingIcon v-if="isSendingNotification(signer)" :size="20" />
 								<NcIconSvgWrapper v-else :path="mdiBell" :size="20" />
 							</template>
+							<!-- TRANSLATORS Action to send a notification to an observer. -->
 							{{ t('libresign', 'Send notification') }}
 						</NcActionButton>
 					</template>
@@ -199,9 +219,12 @@
 			:type="item.issue.type"
 			:show-alert="true"
 			class="notification-issue">
-			<p class="notification-issue__signer"><strong><bdi dir="auto">{{ item.name }}</bdi></strong></p>
+			<p class="notification-issue__signer">
+				<strong><bdi dir="auto">{{ item.name }}</bdi></strong>
+			</p>
 			<p>{{ item.issue.message }}</p>
 			<details v-if="item.issue.channels.length > 0" class="notification-issue__details">
+				<!-- TRANSLATORS Expandable summary displaying the delivery status of notifications. -->
 				<summary>{{ t('libresign', 'View sending details') }}</summary>
 				<dl>
 					<div v-for="channel in item.issue.channels" :key="channel.channel">
@@ -257,6 +280,7 @@
 					<NcLoadingIcon v-if="hasLoading" :size="20" />
 					<NcIconSvgWrapper v-else :path="mdiSend" :size="20" />
 				</template>
+				<!-- TRANSLATORS Button to send the signature requests to all participants. -->
 				{{ t('libresign', 'Request signatures') }}
 			</NcButton>
 		</NcFormBox>
@@ -276,6 +300,7 @@
 					<NcLoadingIcon v-if="hasLoading" :size="20" />
 					<NcIconSvgWrapper v-else :path="mdiPencil" :size="20" />
 				</template>
+				<!-- TRANSLATORS Button allowing the current user to sign the prepared document. -->
 				{{ t('libresign', 'Sign document') }}
 			</NcButton>
 		</NcFormBox>
@@ -287,6 +312,7 @@
 				<template #icon>
 					<NcIconSvgWrapper :path="mdiInformation" :size="20" />
 				</template>
+				<!-- TRANSLATORS Button to display information about the document signature validation. -->
 				{{ t('libresign', 'Validation info') }}
 			</NcButton>
 			<NcButton v-if="!isEnvelope && !isOriginalFileDeleted"
@@ -296,6 +322,7 @@
 				<template #icon>
 					<NcIconSvgWrapper :path="mdiFileDocument" :size="20" />
 				</template>
+				<!-- TRANSLATORS Button opening the current PDF in the viewer. -->
 				{{ t('libresign', 'Open file') }}
 			</NcButton>
 		</NcFormBox>
@@ -327,11 +354,13 @@
 						:placeholder="method.friendly_name"
 						:method="method.name"
 						:methods="methods"
+						:allow-self="participantRoleToAdd === PARTICIPANT_ROLE.SIGNER && canIncludeMyself"
 						:participant-role="participantRoleToAdd"
 						:disabled="isSignerMethodDisabled" />
 				</NcAppSidebarTab>
 			</NcAppSidebar>
 		</NcDialog>
+		<!-- TRANSLATORS Title of the dialog confirming that signature invitations will be sent. -->
 		<NcDialog v-if="showConfirmRequest"
 			:name="t('libresign', 'Confirm')"
 			@closing="closeConfirmRequestDialog">
@@ -372,6 +401,7 @@
 			</template>
 			<template #actions>
 				<NcButton @click="closeConfirmRequestDialog">
+					<!-- TRANSLATORS Button closing the request confirmation without sending invitations. -->
 					{{ t('libresign', 'Cancel') }}
 				</NcButton>
 				<NcButton variant="primary"
@@ -381,10 +411,12 @@
 						<NcLoadingIcon v-if="hasLoading" :size="20" />
 						<NcIconSvgWrapper v-else :path="mdiSend" :size="20" />
 					</template>
+					<!-- TRANSLATORS Button to confirm sending the signature invitation. -->
 					{{ t('libresign', 'Send') }}
 				</NcButton>
 			</template>
 		</NcDialog>
+		<!-- TRANSLATORS Title of the dialog confirming that signature invitations will be sent. -->
 		<NcDialog v-if="showConfirmRequestSigner"
 			:name="t('libresign', 'Confirm')"
 			@closing="closeConfirmRequestSignerDialog">
@@ -425,6 +457,7 @@
 			</template>
 			<template #actions>
 				<NcButton @click="closeConfirmRequestSignerDialog">
+					<!-- TRANSLATORS Button closing the request confirmation without sending invitations. -->
 					{{ t('libresign', 'Cancel') }}
 				</NcButton>
 				<NcButton variant="primary"
@@ -434,10 +467,12 @@
 						<NcLoadingIcon v-if="hasLoading" :size="20" />
 						<NcIconSvgWrapper v-else :path="mdiSend" :size="20" />
 					</template>
+					<!-- TRANSLATORS Button to confirm sending the signature invitation. -->
 					{{ t('libresign', 'Send') }}
 				</NcButton>
 			</template>
 		</NcDialog>
+		<!-- TRANSLATORS Title of the window showing the signing sequence. -->
 		<NcDialog v-if="showOrderDiagram"
 			:name="t('libresign', 'Signing order diagram')"
 			size="large"
@@ -446,6 +481,7 @@
 				:sender-name="currentUserDisplayName" />
 			<template #actions>
 				<NcButton @click="showOrderDiagram = false">
+					<!-- TRANSLATORS Button closing the signing order diagram. -->
 					{{ t('libresign', 'Close') }}
 				</NcButton>
 			</template>
@@ -531,6 +567,7 @@ import { getSigningRouteUuid, getValidationRouteUuid, mergeSignDocumentForRoute 
 import { openDocument } from '../../utils/viewer.js'
 import router from '../../router/router'
 import { useFilesStore } from '../../store/files.js'
+import { canIncludeCurrentAccount } from '../../services/selfSigning.ts'
 import { usePoliciesStore } from '../../store/policies'
 import { useSidebarStore } from '../../store/sidebar.js'
 import { useSignStore } from '../../store/sign.js'
@@ -730,13 +767,16 @@ const currentFile = computed<EditableRequestFile | null>(() => (filesStore.getFi
 const isCurrentFileDetailed = computed(() => currentFile.value?.detailsLoaded === true)
 const notificationIssueItems = computed(() => Object.entries(notificationIssues.value).map(([id, issue]) => ({
 	id: Number(id),
+	// TRANSLATORS Participant who must sign the PDF; also used when a signer name is missing.
 	name: currentFile.value?.signers?.find(signer => signer.signRequestId === Number(id))?.displayName || t('libresign', 'Signer'),
 	issue,
 })))
 
 function notificationIssueHeading(issue: NotificationIssue): string {
 	return issue.type === 'error'
+		// TRANSLATORS Heading indicating that delivery of a participant notification failed.
 		? t('libresign', 'Notification not sent')
+		// TRANSLATORS Heading asking the requester to review a notification delivery issue.
 		: t('libresign', 'Check notification')
 }
 
@@ -746,12 +786,12 @@ function notificationIssueFromStatus(status: NotificationStatus | null): Notific
 	return {
 		type: allFailed ? 'error' : 'warning',
 		message: allFailed
-			// TRANSLATORS: Every delivery method failed or was canceled.
+			// TRANSLATORS Every delivery method failed or was canceled.
 			? t('libresign', 'Could not send the notification. Check the request before trying again.')
 			: status?.status === 'attention_required'
-				// TRANSLATORS: At least one delivery method has an uncertain or failed result. Retrying may cause duplicates.
+				// TRANSLATORS At least one delivery method has an uncertain or failed result. Retrying may cause duplicates.
 				? t('libresign', 'Some notifications may not have been sent. Check with the signer before trying again.')
-				// TRANSLATORS: The result of the sending request is unknown. Retrying may send a duplicate.
+				// TRANSLATORS The result of the sending request is unknown. Retrying may send a duplicate.
 				: t('libresign', 'Could not check whether the notification was sent. Ask the signer before trying again.'),
 		channels,
 	}
@@ -760,10 +800,13 @@ function notificationIssueFromStatus(status: NotificationStatus | null): Notific
 function notificationChannelName(channel: string): string {
 	switch (channel) {
 		case 'mail':
+			// TRANSLATORS Name of the email notification channel.
 			return t('libresign', 'Email')
 		case 'gateway':
+			// TRANSLATORS Generic name for a messaging-based notification channel.
 			return t('libresign', 'Messaging service')
 		case 'nextcloud':
+			// TRANSLATORS Name of the notification channel internal to Nextcloud.
 			return t('libresign', 'Nextcloud notification')
 		default:
 			return channel
@@ -773,17 +816,23 @@ function notificationChannelName(channel: string): string {
 function notificationChannelStateLabel(state: string): string {
 	switch (state) {
 		case 'accepted':
+			// TRANSLATORS Notification status showing that a message was handed off for delivery.
 			return t('libresign', 'Sent for delivery')
 		case 'sending':
 		case 'pending':
+			// TRANSLATORS Notification status shown while delivery is in progress.
 			return t('libresign', 'Sending')
 		case 'unknown':
+			// TRANSLATORS Notification status when delivery has not been confirmed.
 			return t('libresign', 'Not confirmed')
 		case 'failed':
+			// TRANSLATORS Notification status when no notification was sent.
 			return t('libresign', 'Not sent')
 		case 'canceled':
+			// TRANSLATORS Notification status when a message was canceled.
 			return t('libresign', 'Canceled')
 		default:
+			// TRANSLATORS Notification status when its delivery information cannot be retrieved.
 			return t('libresign', 'Status unavailable')
 	}
 }
@@ -831,6 +880,11 @@ const showViewOrderButton = computed(() => !isOriginalFileDeleted.value && isCur
 const shouldShowOrderedOptions = computed(() => isOrderedNumeric.value && signingParticipantCount.value > 1)
 const showSignatureFlowPreferenceClearedNotice = computed(() => signatureFlowPolicy.value?.preferenceWasCleared ?? false)
 const currentUserDisplayName = computed(() => getCurrentUser()?.displayName || '')
+const canIncludeMyself = computed(() => canIncludeCurrentAccount(
+	filesStore,
+	policiesStore.getEffectiveValue('identify_methods'),
+))
+
 const showDocMdpWarning = computed(() => filesStore.isDocMdpNoChangesAllowed() && !filesStore.canAddSigner())
 const fileName = computed(() => filesStore.getSelectedFileView()?.name ?? '')
 const isEnvelope = computed(() => filesStore.getFile()?.nodeType === 'envelope')
@@ -891,6 +945,7 @@ async function saveFooterTemplatePreference(footerPolicyValue: string): Promise<
 		await policiesStore.saveUserPreference('add_footer', footerPolicyValue)
 		syncRememberFooterTemplateWithPolicy()
 	} catch (error: unknown) {
+		// TRANSLATORS Error when saving the chosen default footer template fails.
 		showRequestError(error, t('libresign', 'Failed to save footer template preference'))
 		rememberFooterTemplate.value = false
 	}
@@ -915,6 +970,7 @@ async function onRememberFooterTemplateChange(value: boolean): Promise<void> {
 		await policiesStore.clearUserPreference('add_footer')
 		syncRememberFooterTemplateWithPolicy()
 	} catch (error: unknown) {
+		// TRANSLATORS Error when removing the saved default footer template fails.
 		showRequestError(error, t('libresign', 'Failed to clear footer template preference'))
 		rememberFooterTemplate.value = previousValue
 	}
@@ -1320,6 +1376,7 @@ const debouncedSave = debounce(async () => {
 			...(policy ? { policy } : {}),
 		})
 	} catch (error: unknown) {
+		// TRANSLATORS Error when the current signature request cannot be saved.
 		showRequestError(error, t('libresign', 'Failed to save signature request'))
 	}
 }, 1000)
@@ -1388,6 +1445,7 @@ async function saveSignatureFlowPreference(flow: 'parallel' | 'ordered_numeric')
 		await policiesStore.saveUserPreference('signature_flow', flow)
 		syncRememberSignatureFlowWithPolicy()
 	} catch (error: unknown) {
+		// TRANSLATORS Error when saving the default signing order fails.
 		showRequestError(error, t('libresign', 'Failed to save signing order preference'))
 		rememberSignatureFlow.value = false
 	}
@@ -1409,6 +1467,7 @@ async function onRememberSignatureFlowChange(value: boolean): Promise<void> {
 		await policiesStore.clearUserPreference('signature_flow')
 		syncRememberSignatureFlowWithPolicy()
 	} catch (error: unknown) {
+		// TRANSLATORS Error when clearing the default signing order fails.
 		showRequestError(error, t('libresign', 'Failed to clear signing order preference'))
 		rememberSignatureFlow.value = previousValue
 	}
@@ -1475,6 +1534,7 @@ async function ensureCurrentFileDetail(force = false) {
 		syncPreserveOrderWithFile()
 		syncSelectedFooterTemplateSourceWithPolicy()
 	} catch (error: unknown) {
+		// TRANSLATORS Error when details of a signer cannot be retrieved.
 		showRequestError(error, t('libresign', 'Failed to load signer details'))
 	} finally {
 		isLoadingFileDetail.value = false
@@ -1525,6 +1585,7 @@ function getSignRouteUuid() {
 function validationFile() {
 	const targetUuid = getValidationFileUuid()
 	if (!targetUuid) {
+		// TRANSLATORS Error shown when the requested document cannot be found.
 		showError(t('libresign', 'Document not found'))
 		return
 	}
@@ -1670,6 +1731,7 @@ function isSendingNotification(signer: Partial<EditableRequestSigner>): boolean 
 
 async function sendNotify(signer: EditableRequestSigner): Promise<void> {
 	if (!signer.signRequestId) {
+		// TRANSLATORS Error shown when the selected participant signature request cannot be found.
 		showError(t('libresign', 'Signer request not found'))
 		return
 	}
@@ -1678,6 +1740,7 @@ async function sendNotify(signer: EditableRequestSigner): Promise<void> {
 	}
 	const file = filesStore.getEditableFile()
 	if (!file?.id) {
+		// TRANSLATORS Error shown when the requested document cannot be found.
 		showError(t('libresign', 'Document not found'))
 		return
 	}
@@ -1701,9 +1764,10 @@ async function sendNotify(signer: EditableRequestSigner): Promise<void> {
 		}
 		if (result.kind === 'invalid_request') {
 			// Keep actionable validation errors from the server; no duplicate status card.
+			// TRANSLATORS Error when sending a notification to a participant fails.
 			showRequestError(result.error, t('libresign', 'Could not send the notification'))
 		} else if (result.kind === 'accepted') {
-			// TRANSLATORS: A delivery service accepted the message, but the recipient's receipt is not known.
+			// TRANSLATORS A delivery service accepted the message, but the recipient's receipt is not known.
 			showSuccess(t('libresign', 'Notification sent for delivery'))
 		} else {
 			notificationIssues.value[signerId] = notificationIssueFromStatus(latestStatus)
@@ -1738,6 +1802,7 @@ async function saveMissingVisibleSignaturePreference(): Promise<void> {
 	} catch (error: unknown) {
 		userConfigStore.onUpdate('warn_without_visible_signature_fields', previous)
 		logger.error('Failed to update warn_without_visible_signature_fields preference', { error })
+		// TRANSLATORS Error when saving a personal preference fails; asks the user to retry.
 		showError(t('libresign', 'Could not save your preference. Try again.'))
 	}
 }
@@ -1751,6 +1816,7 @@ async function confirmRequestSigner() {
 	try {
 		const selectedSignRequestId = selectedSigner.value.signRequestId
 		if (!selectedSignRequestId) {
+			// TRANSLATORS Error shown when the selected participant signature request cannot be found.
 			showError(t('libresign', 'Signer request not found'))
 			return
 		}
@@ -1772,13 +1838,16 @@ async function confirmRequestSigner() {
 			...(policy ? { policy } : {}),
 		})
 		if (isSaveSignatureRequestFailure(response)) {
+			// TRANSLATORS Error when creating the signature request for one signer fails.
 			showSaveSignatureRequestFailure(response, t('libresign', 'Failed to create signature request'))
 			return
 		}
 		await saveMissingVisibleSignaturePreference()
+		// TRANSLATORS Success message after the signature request is created or sent.
 		showSuccess(t('libresign', 'Signature requested'))
 		closeConfirmRequestSignerDialog()
 	} catch (error: unknown) {
+		// TRANSLATORS Error when creating the signature request for one signer fails.
 		showRequestError(error, t('libresign', 'Failed to create signature request'))
 	}
 	hasLoading.value = false
@@ -1794,6 +1863,7 @@ async function sign() {
 
 	const initialUuid = getSignRouteUuid()
 	if (!initialUuid) {
+		// TRANSLATORS Error shown when the selected participant signature request cannot be found.
 		showError(t('libresign', 'Signer request not found'))
 		return
 	}
@@ -1831,6 +1901,7 @@ async function save() {
 		})
 		emit('libresign:show-visible-elements', new CustomEvent('libresign:show-visible-elements'))
 	} catch (error: unknown) {
+		// TRANSLATORS Error when the current signature request cannot be saved.
 		showRequestError(error, t('libresign', 'Failed to save signature request'))
 	}
 	hasLoading.value = false
@@ -1871,13 +1942,16 @@ async function confirmRequest() {
 			...(policy ? { policy } : {}),
 		})
 		if (isSaveSignatureRequestFailure(response)) {
+			// TRANSLATORS Error when creating signature requests for several signers fails.
 			showSaveSignatureRequestFailure(response, t('libresign', 'Failed to create signature requests'))
 			return
 		}
 		await saveMissingVisibleSignaturePreference()
+		// TRANSLATORS Success message after the signature request is created or sent.
 		showSuccess(t('libresign', 'Signature requested'))
 		closeConfirmRequestDialog()
 	} catch (error: unknown) {
+		// TRANSLATORS Error when creating signature requests for several signers fails.
 		showRequestError(error, t('libresign', 'Failed to create signature requests'))
 	}
 	hasLoading.value = false
@@ -1917,10 +1991,12 @@ function openFile() {
 	const file = filesStore.getFile()
 	const fileUrl = getCurrentFileUrl(file)
 	if (!fileUrl) {
+		// TRANSLATORS Error when the source document URL cannot be resolved.
 		showError(t('libresign', 'Document URL not found'))
 		return
 	}
 	if (typeof file?.name !== 'string' || typeof file?.nodeId !== 'number') {
+		// TRANSLATORS Error shown when the requested document cannot be found.
 		showError(t('libresign', 'Document not found'))
 		return
 	}
@@ -1961,6 +2037,7 @@ function startSigningProgressPolling() {
 		() => !filesStore.getFile() || filesStore.getFile().id !== file.id,
 		(error: unknown) => {
 			logger.error('Error during signing progress polling', { error })
+			// TRANSLATORS Error when monitoring the document signing progress fails.
 			showError(t('libresign', 'Error monitoring signing progress'))
 		},
 	)
@@ -2071,6 +2148,7 @@ defineExpose({
 	showViewOrderButton,
 	shouldShowOrderedOptions,
 	currentUserDisplayName,
+	canIncludeMyself,
 	showDocMdpWarning,
 	isOriginalFileDeleted,
 	canEditSigningOrder,

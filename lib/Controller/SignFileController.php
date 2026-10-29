@@ -20,18 +20,10 @@ use OCA\Libresign\Middleware\Attribute\RequireManager;
 use OCA\Libresign\Middleware\Attribute\RequireSigner;
 use OCA\Libresign\ResponseDefinitions;
 use OCA\Libresign\Service\AsyncSigningService;
-use OCA\Libresign\Service\File\SettingsLoader;
-use OCA\Libresign\Service\FileService;
-use OCA\Libresign\Service\IdentifyMethodService;
-use OCA\Libresign\Service\RequestMetadataService;
 use OCA\Libresign\Service\SignatureRejection\SignatureRejectionService;
-use OCA\Libresign\Service\SignerGeolocation\SignerGeolocationMetadataValidator;
-use OCA\Libresign\Service\SignerIpGeolocation\SignerIpGeolocationPolicyService;
 use OCA\Libresign\Service\SignFileService;
-use OCA\Libresign\Service\Validation\IdentityDocumentValidator;
-use OCA\Libresign\Service\Validation\SignerValidator;
+use OCA\Libresign\Service\Signing\SigningPreparationService;
 use OCA\Libresign\Service\Validation\SigningRequestValidator;
-use OCA\Libresign\Service\Validation\VisibleElementValidator;
 use OCA\Libresign\Service\Worker\WorkerConfiguration;
 use OCP\AppFramework\Http;
 use OCP\AppFramework\Http\Attribute\ApiRoute;
@@ -61,19 +53,11 @@ class SignFileController extends AEnvironmentAwareController implements ISignatu
 		protected IL10N $l10n,
 		private SignRequestMapper $signRequestMapper,
 		protected IUserSession $userSession,
-		private IdentityDocumentValidator $identityDocumentValidator,
-		private VisibleElementValidator $visibleElementValidator,
-		private SignerValidator $signerValidator,
 		private SigningRequestValidator $signingRequestValidator,
 		protected SignFileService $signFileService,
-		private IdentifyMethodService $identifyMethodService,
-		private FileService $fileService,
-		private SettingsLoader $settingsLoader,
+		private SigningPreparationService $signingPreparationService,
 		private WorkerConfiguration $workerConfiguration,
 		private AsyncSigningService $asyncSigningService,
-		private RequestMetadataService $requestMetadataService,
-		private SignerGeolocationMetadataValidator $signerGeolocationMetadataValidator,
-		private SignerIpGeolocationPolicyService $signerIpGeolocationPolicyService,
 		private SigningErrorHandler $errorHandler,
 		private SignatureRejectionService $signatureRejectionService,
 		private LoggerInterface $logger,
@@ -160,50 +144,18 @@ class SignFileController extends AEnvironmentAwareController implements ISignatu
 				$signRequest = $this->signFileService->getSignRequestToSign($libreSignFile, $signRequestUuid, $user);
 			}
 
-			$this->identityDocumentValidator->canSignWithIdentificationDocumentStatus(
-				$user,
-				$this->settingsLoader->getIdentificationDocumentsStatus($user, $signRequest)
-			);
-
-			$this->visibleElementValidator->validateVisibleElementsRelation($elements, $signRequest, $user);
-			$this->signerValidator->validateCredentials($signRequest, $method, $identifyValue, $token);
-
-			$userIdentifier = $this->identifyMethodService->getUserIdentifier($signRequest->getId());
-			$metadata = $this->requestMetadataService->collectMetadata();
-			$normalizedDeviceGeolocation = $this->signerGeolocationMetadataValidator->normalize(
-				$deviceGeolocation === [] ? null : $deviceGeolocation,
-			);
-			$this->signerGeolocationMetadataValidator->validateSubmission($signRequest, $normalizedDeviceGeolocation);
-			if ($normalizedDeviceGeolocation !== null) {
-				$metadata = $this->signerGeolocationMetadataValidator->mergeDeviceIntoMetadata(
-					$metadata,
-					$normalizedDeviceGeolocation,
-				);
-			}
-
-			// GeoIP must run before the async/sync split so background workers never
-			// resolve location from a non-signer connection.
-			$ipGeolocation = $this->signerIpGeolocationPolicyService->collectMetadata(
-				$libreSignFile,
-				$this->request,
-			);
-			if ($ipGeolocation !== null) {
-				$metadata = $this->signerIpGeolocationPolicyService->mergeIntoMetadata(
-					$metadata,
-					$ipGeolocation,
-				);
-			}
-
-			$this->signFileService->prepareForSigning(
+			$prepared = $this->signingPreparationService->prepare(
 				$libreSignFile,
 				$signRequest,
 				$user,
-				$userIdentifier,
-				$signRequest->getDisplayName(),
-				$method !== 'password',
-				$method === 'password' ? $token : null,
 				$method,
+				$identifyValue,
+				$token,
+				$elements,
+				$deviceGeolocation,
 			);
+			$userIdentifier = $prepared['userIdentifier'];
+			$metadata = $prepared['metadata'];
 
 			if ($async && $this->workerConfiguration->isAsyncSigningEnabled()) {
 				return $this->signAsync($libreSignFile, $signRequest, $user, $userIdentifier, $method, $token, $elements, $metadata);

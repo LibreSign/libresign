@@ -10,6 +10,9 @@ import { spawnDialog } from '@nextcloud/vue/functions/dialog'
 import EditNameDialog from '../components/Common/EditNameDialog.vue'
 
 import SvgIcon from '../../img/app-dark.svg?raw'
+import SvgAccountCheck from '@mdi/svg/svg/account-check.svg?raw'
+
+import { isAccountIdentificationEnabled } from '../services/selfSigning.ts'
 
 /**
  * Prompts user for envelope name via dialog
@@ -18,8 +21,11 @@ async function promptEnvelopeName() {
 	const envelopeName = await spawnDialog(
 		EditNameDialog,
 		{
+			// TRANSLATORS Dialog title asking for the name of a new envelope containing selected PDFs.
 			title: t('libresign', 'Envelope name'),
+			// TRANSLATORS Field label for entering the new envelope name.
 			label: t('libresign', 'Enter a name for the envelope'),
+			// TRANSLATORS Placeholder in the envelope name field.
 			placeholder: t('libresign', 'Envelope name'),
 		},
 	)
@@ -28,6 +34,7 @@ async function promptEnvelopeName() {
 
 export const action = {
 	id: 'open-in-libresign',
+	// TRANSLATORS Nextcloud Files context-menu action that opens the selected file in the LibreSign sidebar.
 	displayName: () => t('libresign', 'Open in LibreSign'),
 	iconSvgInline: () => SvgIcon,
 
@@ -117,3 +124,43 @@ export const action = {
 }
 
 registerFileAction(action)
+export const signMyselfAction = {
+	id: 'sign-myself-libresign',
+	// TRANSLATORS Files context menu action to prepare the user's own PDF for signing.
+	displayName: () => t('libresign', 'Sign myself'),
+	iconSvgInline: () => SvgAccountCheck,
+	enabled({ nodes }) {
+		if (nodes?.length !== 1 || (nodes[0].mime || nodes[0].mimetype) !== 'application/pdf') {
+			return false
+		}
+		if (nodes[0].attributes?.['libresign-signature-status'] !== undefined) {
+			return false
+		}
+		if (!loadState('libresign', 'certificate_ok', false)
+			|| !loadState('libresign', 'can_request_sign', false)) {
+			return false
+		}
+		const initialPolicies = loadState('libresign', 'effective_policies', { policies: {} })
+		return isAccountIdentificationEnabled(initialPolicies?.policies?.identify_methods?.effectiveValue)
+	},
+	async exec({ nodes }) {
+		const node = nodes[0]
+		const nodeId = node?.fileid ?? node?.id
+		if (nodeId === undefined || nodeId === null) {
+			return null
+		}
+		window.OCA.Libresign.pendingSelfSignNodeId = nodeId
+		try {
+			const sidebar = getSidebar()
+			await sidebar.open(node, 'libresign')
+			sidebar.setActiveTab('libresign')
+		} catch (error) {
+			delete window.OCA.Libresign.pendingSelfSignNodeId
+			throw error
+		}
+		return null
+	},
+	order: -999,
+}
+
+registerFileAction(signMyselfAction)

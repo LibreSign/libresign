@@ -3,11 +3,11 @@
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
 
-import { expect, test } from '@playwright/test'
+import { expect, test, type BrowserContext } from '@playwright/test'
 
 import { createMailpitClient, extractSignLink, extractValidationLink, waitForEmailTo } from '../support/mailpit'
 import { login } from '../support/nc-login'
-import { configureOpenSsl, ensureUserExists, setSystemPolicy } from '../support/nc-provisioning'
+import { configureOpenSsl, ensureUserExists, setSystemPolicy, setUserEmail } from '../support/nc-provisioning'
 import { clickAddObserver, clickAddSigner, selectAccountSigner, selectEmailSigner, selectIdentifyMethodTab } from '../support/request-signature'
 import { useRequestSignPolicyGuard } from '../support/system-policies'
 
@@ -212,14 +212,16 @@ test('email observer receives validation link when the signer uses account ident
 	}
 })
 
-test('authenticated observer opens the request in read-only mode', async ({ page }) => {
+test('authenticated observer opens the request in read-only mode', async ({ page, browser }) => {
 	const adminUser = process.env.NEXTCLOUD_ADMIN_USER ?? 'admin'
 	const adminPassword = process.env.NEXTCLOUD_ADMIN_PASSWORD ?? 'admin'
-	const observerUser = 'observer-readonly-e2e'
-	const observerPassword = '123456'
+	const observerUser = `observer-readonly-${Date.now()}`
+	const observerPassword = 'LibreSign-Observer-2026!'
+	let observerContext: BrowserContext | null = null
 
 	await login(page.request, adminUser, adminPassword)
 	await ensureUserExists(page.request, observerUser, observerPassword)
+	await setUserEmail(page.request, observerUser, `${observerUser}@example.test`)
 
 	await configureOpenSsl(page.request, 'LibreSign Test', {
 		C: 'BR',
@@ -250,7 +252,7 @@ test('authenticated observer opens the request in read-only mode', async ({ page
 
 		await clickAddSigner(page)
 		await selectIdentifyMethodTab(page, 'Account')
-		await selectAccountSigner(page, 'a')
+		await selectAccountSigner(page, 'admin', /\badmin\b/i)
 		await page.getByRole('button', { name: 'Save' }).click()
 
 		await clickAddObserver(page)
@@ -266,18 +268,23 @@ test('authenticated observer opens the request in read-only mode', async ({ page
 		await page.getByRole('button', { name: 'Request signatures' }).click()
 		await page.getByRole('button', { name: 'Send' }).click()
 
-		await page.context().clearCookies()
-		await login(page.request, observerUser, observerPassword)
-		await page.goto('./apps/libresign')
+		observerContext = await browser.newContext({
+			baseURL: process.env.PLAYWRIGHT_BASE_URL ?? 'http://localhost:8080',
+			ignoreHTTPSErrors: true,
+			locale: 'en-US',
+		})
+		await login(observerContext.request, observerUser, observerPassword)
+		const observerPage = await observerContext.newPage()
+		await observerPage.goto('./apps/libresign')
 
-		const fileRow = page.getByRole('row').filter({ hasText: /small_valid|Readonly|Observer/i }).first()
-		await expect(fileRow.or(page.locator('.files-list__row').first())).toBeVisible({ timeout: 20_000 })
+		const fileRow = observerPage.getByRole('row').filter({ hasText: /small_valid|Readonly|Observer/i }).first()
+		await expect(fileRow.or(observerPage.locator('.files-list__row').first())).toBeVisible({ timeout: 20_000 })
 		const clickTarget = await fileRow.isVisible().catch(() => false)
 			? fileRow
-			: page.locator('.files-list__row, [data-cy-files-list-row-name], .file-row').first()
+			: observerPage.locator('.files-list__row, [data-cy-files-list-row-name], .file-row').first()
 		await clickTarget.click()
 
-		const sidebar = page.locator('#request-signature-tab, .app-sidebar')
+		const sidebar = observerPage.locator('#request-signature-tab, .app-sidebar')
 		await expect(sidebar.getByRole('heading', { name: 'Signers', exact: true })).toBeVisible({ timeout: 15_000 })
 		await expect(sidebar.getByRole('heading', { name: 'Observers', exact: true })).toBeVisible()
 		await expect(sidebar.getByRole('button', { name: 'Sign document', exact: true })).toHaveCount(0)
@@ -291,12 +298,12 @@ test('authenticated observer opens the request in read-only mode', async ({ page
 		await expect(sidebar.getByRole('button', { name: 'Open file', exact: true })).toBeVisible()
 
 		await sidebar.getByRole('button', { name: 'View signature positions', exact: true }).click()
-		const positionsModal = page.getByRole('dialog').filter({ hasText: /Signature positions/i })
+		const positionsModal = observerPage.getByRole('dialog').filter({ hasText: /Signature positions/i })
 		await expect(positionsModal).toBeVisible({ timeout: 15_000 })
 		await expect(positionsModal.locator('canvas, .pdfViewer, .page, [class*="pdf"]').first()).toBeVisible({ timeout: 20_000 })
-		await expect(page.getByText('UnknownErrorException')).toHaveCount(0)
+		await expect(observerPage.getByText('UnknownErrorException')).toHaveCount(0)
 	} finally {
-		await login(page.request, adminUser, adminPassword)
+		await observerContext?.close()
 		await setSystemPolicy(page.request, 'enable_observer_profile', JSON.stringify(false))
 	}
 })
