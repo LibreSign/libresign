@@ -9,6 +9,7 @@ declare(strict_types=1);
 namespace OCA\Libresign\Tests\Unit\Service\Worker;
 
 use OCA\Libresign\Service\Worker\LocalWorkerStateStore;
+use OCA\Libresign\Service\Worker\WorkerConfiguration;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 
@@ -41,6 +42,22 @@ class LocalWorkerStateStoreTest extends TestCase {
 			$this->assertCount(1, $second->readState()['workers']);
 			return true;
 		}));
+	}
+
+	public function testSigningAndNotificationPoolsHaveIndependentLocksAndState(): void {
+		$store = new LocalWorkerStateStore($this->directory);
+		$notificationEntered = false;
+		$this->assertTrue($store->withExclusiveLock(function () use ($store, &$notificationEntered): bool {
+			$store->writeState(['workers' => [['pid' => 101, 'start' => 'signer']]], WorkerConfiguration::SIGNING);
+			return $store->withExclusiveLock(function () use ($store, &$notificationEntered): bool {
+				$notificationEntered = true;
+				$store->writeState(['workers' => [['pid' => 202, 'start' => 'notifier']]], WorkerConfiguration::NOTIFICATION);
+				return true;
+			}, WorkerConfiguration::NOTIFICATION);
+		}, WorkerConfiguration::SIGNING));
+		$this->assertTrue($notificationEntered, 'An active signing lock cannot block the notification pool');
+		$this->assertSame(101, $store->readState(WorkerConfiguration::SIGNING)['workers'][0]['pid']);
+		$this->assertSame(202, $store->readState(WorkerConfiguration::NOTIFICATION)['workers'][0]['pid']);
 	}
 
 	public function testContendedLockDoesNotRunTheSecondOperation(): void {

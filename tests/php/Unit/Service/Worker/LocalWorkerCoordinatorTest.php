@@ -126,6 +126,22 @@ class LocalWorkerCoordinatorTest extends TestCase {
 		$this->assertFalse($this->coordinator($starter, $counter)->ensureCapacity(1));
 	}
 
+	public function testUnknownChildIdentityStopsAdditionalLaunches(): void {
+		$starter = $this->createMock(WorkerStarter::class);
+		$starter->expects($this->once())->method('startWorker')->willReturn(6001);
+		$counter = $this->createMock(WorkerJobCounter::class);
+		$counter->method('jobClasses')->willReturn([]);
+		$counter->method('countEligibleJobs')->willReturn(4);
+		$processes = $this->createMock(LocalWorkerProcess::class);
+		$processes->method('isSupported')->willReturn(true);
+		$processes->method('startTime')->willReturn(null);
+		$coordinator = new LocalWorkerCoordinator(
+			$starter, $counter, $processes,
+			new LocalWorkerStateStore($this->directory), $this->createMock(LoggerInterface::class),
+		);
+		$this->assertFalse($coordinator->ensureCapacity(4));
+	}
+
 	public function testQueryErrorDoesNotLookLikeEmptyQueue(): void {
 		$counter = $this->createMock(WorkerJobCounter::class);
 		$counter->method('countEligibleJobs')->willThrowException(new \RuntimeException('Queue unavailable'));
