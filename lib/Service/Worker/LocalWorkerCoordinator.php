@@ -88,7 +88,9 @@ class LocalWorkerCoordinator {
 				$startTime = $this->processes->startTime($pid);
 				if ($startTime === null) {
 					$this->logger->warning('Worker process identity is unavailable', ['pid' => $pid]);
-					continue;
+					// The child may still be running. Do not spawn additional
+					// workers without a verified identity.
+					break;
 				}
 				$running[] = ['pid' => $pid, 'start' => $startTime];
 			} catch (\RuntimeException $e) {
