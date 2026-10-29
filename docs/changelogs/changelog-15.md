@@ -19,6 +19,28 @@ Types of changes:
 <!-- changelog-linker -->
 <!-- changelog-linker -->
 
+## 15.0.11 - 2026-10-29
+
+### Added
+- forward structured gateway delivery options
+  [#9287](https://github.com/LibreSign/libresign/pull/9287)
+
+### Changed
+- Update translations
+- keep public validation assets consistent
+  [#9276](https://github.com/LibreSign/libresign/pull/9276)
+- Internal maintenance
+
+### Fixed
+- isolate guest signing-session elements (#9248)
+  [#9268](https://github.com/LibreSign/libresign/pull/9268)
+- keep asking for the email code after a page reload
+  [#9272](https://github.com/LibreSign/libresign/pull/9272)
+- distinguish signing date from certificate expiry
+  [#9284](https://github.com/LibreSign/libresign/pull/9284)
+- reconcile AppConfig types after recorded repair
+  [#9285](https://github.com/LibreSign/libresign/pull/9285)
+
 ## 15.0.10 - 2026-10-26
 
 ### Changed
