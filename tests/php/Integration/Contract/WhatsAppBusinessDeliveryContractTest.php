@@ -1,7 +1,6 @@
 <?php
 
 declare(strict_types=1);
-
 /**
  * SPDX-FileCopyrightText: 2026 LibreCode coop and contributors
  * SPDX-License-Identifier: AGPL-3.0-or-later
@@ -11,11 +10,9 @@ namespace OCA\Libresign\Tests\Integration\Contract;
 
 use OCA\Libresign\Db\File;
 use OCA\Libresign\Db\SignRequest;
-use OCA\Libresign\Db\SignRequestMapper;
-use OCA\Libresign\Service\Notification\GatewayChannel;
 use OCA\Libresign\Service\Notification\GatewayNotificationComposer;
-use OCA\Libresign\Service\Notification\NotificationHistoryService;
-use OCA\Libresign\Service\Notification\NotificationMessage;
+use OCA\Libresign\Service\Notification\GatewayPayload;
+use OCA\Libresign\Service\Notification\WhatsAppBusinessTemplateOptions;
 use OCA\Libresign\Service\TwofactorGatewayService;
 use OCA\TwoFactorGateway\Provider\Channel\WhatsApp\Provider\Drivers\WhatsAppBusiness\Gateway;
 use OCA\TwoFactorGateway\Service\GatewayDirectIntegrationService;
@@ -27,14 +24,15 @@ use OCP\Http\Client\IResponse;
 use OCP\IAppConfig;
 use OCP\IL10N;
 use OCP\IURLGenerator;
+use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 use Psr\Container\ContainerInterface;
 use Psr\Http\Message\StreamInterface;
 use Psr\Log\LoggerInterface;
 
-/** Optional cross-app contract test. Never sends an actual WhatsApp message. */
-final class TwofactorGatewayWhatsAppIntegrationTest extends TestCase {
-	public function testOrderedNotificationValuesReachTheMockedHttpClient(): void {
+/** Cross-app LibreSign / Two-Factor Gateway delivery contract; the HTTP client is always mocked. */
+final class WhatsAppBusinessDeliveryContractTest extends TestCase {
+	private function requireGatewayApp(): void {
 		$appManager = \OCP\Server::get(IAppManager::class);
 		try {
 			$appManager->getAppPath('twofactor_gateway');
@@ -45,26 +43,19 @@ final class TwofactorGatewayWhatsAppIntegrationTest extends TestCase {
 		if (!class_exists(Gateway::class)) {
 			$this->markTestSkipped('WhatsApp Business driver is not available');
 		}
+	}
 
-		$stored = [];
-		$config = $this->createMock(IAppConfig::class);
-		$config->method('setValueString')->willReturnCallback(static function (string $app, string $key, string $value) use (&$stored): bool {
-			$stored[$key] = $value;
-			return true;
-		});
-		$config->method('getValueString')->willReturnCallback(static function (string $app, string $key, string $default = '') use (&$stored): string {
-			return $stored[$key] ?? $default;
-		});
-
+	private function fakeHttpClient(string $expectedRoute): IClient {
 		$client = $this->createMock(IClient::class);
 		$client->expects($this->once())->method('post')->with(
 			$this->anything(),
-			$this->callback(function (array $options): bool {
-				$body = $options['json']['template']['components'][0]['parameters'];
-				$this->assertCount(2, $body);
-				$this->assertStringContainsString('Example.pdf', $body[0]['text']);
-				$this->assertSame('https://example.invalid/sign', $body[1]['text']);
-				$this->assertSame('5511999990000', $options['json']['to']);
+			$this->callback(function (array $options) use ($expectedRoute): bool {
+				$template = $options['json']['template'];
+				$this->assertSame('synthetic_utility', $template['name']);
+				$this->assertSame('pt_BR', $template['language']['code']);
+				$this->assertCount(1, $template['components']);
+				$this->assertStringContainsString('Example.pdf', $template['components'][0]['parameters'][0]['text']);
+				$this->assertStringContainsString($expectedRoute, $template['components'][0]['parameters'][1]['text']);
 				return true;
 			}),
 		)->willReturnCallback(function (): IResponse {
@@ -74,45 +65,73 @@ final class TwofactorGatewayWhatsAppIntegrationTest extends TestCase {
 			$response->method('getBody')->willReturn($stream);
 			return $response;
 		});
-		$clientService = $this->createMock(IClientService::class);
-		$clientService->method('newClient')->willReturn($client);
+		return $client;
+	}
+
+	private function channel(IClient $client): TwofactorGatewayService {
+		$http = $this->createMock(IClientService::class);
+		$http->method('newClient')->willReturn($client);
 		$l10n = $this->createMock(IL10N::class);
-		$l10n->method('t')->willReturnCallback(static fn (string $message): string => $message);
-		$logger = $this->createMock(LoggerInterface::class);
-		$logger->expects($this->never())->method('warning');
-
-		$provider = new Gateway($config, $clientService, $l10n, $logger);
-		$provider->setPhoneNumberId('synthetic-phone');
-		$provider->setAccessToken('synthetic-credential');
-		$provider->setTemplateName('synthetic_utility');
-		$provider->setTemplateLanguage('pt_BR');
-		$provider->setTemplateCategory('UTILITY');
-		$provider->setTemplateBodyParameterCount('2');
-
+		$l10n->method('t')->willReturnCallback(static fn (string $value): string => $value);
+		$provider = new Gateway($this->createMock(IAppConfig::class), $http, $l10n, $this->createMock(LoggerInterface::class));
+		$provider = $provider->withRuntimeConfig([
+			'phone_number_id' => 'synthetic-phone',
+			'access_token' => 'synthetic-token',
+			'template_name' => 'administrative_otp',
+			'template_language' => 'en_US',
+			'template_category' => 'AUTHENTICATION',
+		]);
 		$availability = $this->createMock(GatewayRuntimeAvailabilityService::class);
 		$availability->method('getGateway')->with('whatsappbusiness')->willReturn($provider);
 		$container = $this->createMock(ContainerInterface::class);
 		$container->method('get')->willReturn(new GatewayDirectIntegrationService($availability));
 		$enabled = $this->createMock(IAppManager::class);
 		$enabled->method('isEnabledForAnyone')->willReturn(true);
-		$service = new TwofactorGatewayService($container, $enabled, $logger);
+		$gateway = new TwofactorGatewayService($container, $enabled, $this->createMock(LoggerInterface::class));
+		return $gateway;
+	}
 
+	private function compose(string $event): GatewayPayload {
 		$request = new SignRequest();
 		$request->setId(42);
 		$request->setUuid('synthetic-request');
+		$request->setDisplayName('Synthetic signer');
 		$file = new File();
 		$file->setName('Example.pdf');
 		$file->setUuid('synthetic-file');
-		$mapper = $this->createMock(SignRequestMapper::class);
-		$mapper->method('getByIdUncached')->willReturn(new SignRequest());
+		$l10n = $this->createMock(IL10N::class);
+		$l10n->method('t')->willReturnCallback(static fn (string $text, array $values = []): string
+			=> $values === [] ? $text : vsprintf($text, $values));
 		$url = $this->createMock(IURLGenerator::class);
-		$url->method('linkToRouteAbsolute')->willReturn('https://example.invalid/sign');
-		$composer = new GatewayNotificationComposer(new NotificationHistoryService($mapper), $l10n, $url);
-		$payload = $composer->composePayload('sign_request', $request, $file, 'whatsappbusiness', 'whatsappbusiness');
+		$url->method('linkToRouteAbsolute')->willReturnCallback(
+			static fn (string $route): string => 'https://example.invalid/' . $route,
+		);
+		$config = $this->createMock(IAppConfig::class);
+		$config->method('getValueString')->willReturnCallback(
+			static fn (string $app, string $key, string $default = ''): string => [
+				'whatsapp_business_template_name' => 'synthetic_utility',
+				'whatsapp_business_template_language' => 'pt_BR',
+			][$key] ?? $default,
+		);
+		$composer = new GatewayNotificationComposer($l10n, $url, new WhatsAppBusinessTemplateOptions($config));
+		return $event === 'file_signed'
+			? $composer->composeSignedFile($request, $file, 'whatsappbusiness')
+			: $composer->composeSignRequest($request, $file, true, 'whatsappbusiness');
+	}
 
-		(new GatewayChannel($service))->deliver(new NotificationMessage(
-			'synthetic-event', 'sign_request', 'gateway:whatsappbusiness',
-			$file, $request, '5511999990000', $payload,
-		));
+	#[DataProvider('eventCases')]
+	public function testDirectGatewayOverridesDefaultOtpWithoutNetwork(string $event, string $route): void {
+		$this->requireGatewayApp();
+		$payload = $this->compose($event);
+		$this->channel($this->fakeHttpClient($route))->send(
+			$payload->gatewayName, '0000000000', $payload->body, $payload->extra,
+		);
+	}
+
+	public static function eventCases(): array {
+		return [
+			'invitation' => ['sign_request', 'libresign.page.sign'],
+			'completion' => ['file_signed', 'libresign.page.validationFilePublic'],
+		];
 	}
 }
