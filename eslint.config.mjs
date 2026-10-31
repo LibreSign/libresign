@@ -81,11 +81,10 @@ export default [
 			'vue/v-on-event-hyphenation': 'off', // ~74 hits; may rename listeners
 			'vue/no-v-html': 'off', // ~8 hits; intentional trusted HTML in places
 			'vue/multi-word-component-names': 'off', // ~18 hits; rename churn for short view names
-			'camelcase': 'off', // ~9 hits; store fields mirror backend/API keys
+			camelcase: 'off', // ~9 hits; store fields mirror backend/API keys
 
 			// Formatting — large autofix churn; follow-up PR
 			'@stylistic/arrow-parens': 'off', // ~168 hits
-			'@stylistic/comma-dangle': 'off', // ~46 hits
 			'@stylistic/eol-last': 'off', // ~10 hits
 			'@stylistic/exp-list-style': 'off', // ~34 hits
 			'@stylistic/function-call-argument-newline': 'off', // ~4 hits
@@ -103,7 +102,6 @@ export default [
 			'@stylistic/no-trailing-spaces': 'off', // ~1 hit
 			'@stylistic/operator-linebreak': 'off', // ~6 hits
 			'@stylistic/padded-blocks': 'off', // ~4 hits
-			'@stylistic/quote-props': 'off', // ~26 hits
 			'@stylistic/semi': 'off', // ~16 hits
 			'@stylistic/space-before-function-paren': 'off', // ~2 hits
 			'@stylistic/space-in-parens': 'off', // ~2 hits

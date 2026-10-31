@@ -70,10 +70,10 @@ vi.mock('@nextcloud/l10n', () => globalThis.mockNextcloudL10n({
 }))
 vi.mock('../../../utils/fileStatus.js', () => ({
 	buildStatusMap: vi.fn(() => ({
-		'0': { label: 'Draft' },
-		'1': { label: 'Ready to sign' },
-		'3': { label: 'Signed' },
-		'5': { label: 'Signing' },
+		0: { label: 'Draft' },
+		1: { label: 'Ready to sign' },
+		3: { label: 'Signed' },
+		5: { label: 'Signing' },
 	})),
 }))
 
@@ -282,7 +282,7 @@ describe('SigningProgress', () => {
 		it('returns icon and label for file', () => {
 			wrapper = createWrapper()
 			wrapper.vm.statusMap = {
-				'3': { label: 'Signed', icon: 'check' },
+				3: { label: 'Signed', icon: 'check' },
 			}
 
 			const meta = wrapper.vm.getFileStatusMeta({ id: 1, name: 'file.pdf', status: 3, statusText: 'Signed' })
@@ -418,7 +418,7 @@ describe('SigningProgress', () => {
 
 			expect(axios.get).toHaveBeenCalledWith(
 				'/apps/libresign/api/v1/file/progress/new-uuid',
-				expect.any(Object)
+				expect.any(Object),
 			)
 		})
 

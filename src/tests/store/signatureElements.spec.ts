@@ -145,7 +145,7 @@ describe('signatureElements store - signature business rules', () => {
 				expect.objectContaining({
 					method: 'patch',
 					url: '/ocs/v2.php/apps/libresign/api/v1/signature/elements/123',
-				})
+				}),
 			)
 		})
 
@@ -172,7 +172,7 @@ describe('signatureElements store - signature business rules', () => {
 				expect.objectContaining({
 					method: 'post',
 					url: '/ocs/v2.php/apps/libresign/api/v1/signature/elements',
-				})
+				}),
 			)
 		})
 	})
@@ -206,7 +206,7 @@ describe('signatureElements store - signature business rules', () => {
 					headers: {
 						'libresign-sign-request-uuid': 'uuid-123',
 					},
-				})
+				}),
 			)
 		})
 
@@ -330,7 +330,7 @@ describe('signatureElements store - signature business rules', () => {
 					headers: {
 						'libresign-sign-request-uuid': 'uuid-123',
 					},
-				})
+				}),
 			)
 		})
 	})
@@ -387,7 +387,7 @@ describe('signatureElements store - signature business rules', () => {
 				expect.objectContaining({
 					method: 'get',
 					url: '/ocs/v2.php/apps/libresign/api/v1/signature/elements',
-				})
+				}),
 			)
 		})
 	})

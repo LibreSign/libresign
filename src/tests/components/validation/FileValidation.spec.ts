@@ -236,7 +236,7 @@ describe('FileValidation', () => {
 			expect(detailsComponent.props('document')).toEqual(
 				expect.objectContaining({
 					name: 'Important.pdf',
-				})
+				}),
 			)
 		})
 
@@ -353,7 +353,7 @@ describe('FileValidation', () => {
 			expect(detailsComponent.props('document')).toEqual(
 				expect.objectContaining({
 					name: 'complex.pdf',
-				})
+				}),
 			)
 		})
 	})
