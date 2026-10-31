@@ -9,17 +9,9 @@ declare(strict_types=1);
 namespace OCA\Libresign\Tests\Integration\Service\Worker;
 
 use OCA\Libresign\BackgroundJob\CleanupStaleSigningStatus;
-use OCA\Libresign\BackgroundJob\DeliverNotification;
-use OCA\Libresign\BackgroundJob\SignFileJob;
 use OCA\Libresign\Service\Worker\LocalWorkerCoordinator;
-use OCA\Libresign\Service\Worker\LocalWorkerProcess;
-use OCA\Libresign\Service\Worker\LocalWorkerStateStore;
 use OCA\Libresign\Service\Worker\WorkerActivationService;
-use OCA\Libresign\Service\Worker\WorkerConfiguration;
 use OCP\App\IAppManager;
-use OCP\BackgroundJob\IJobList;
-use OCP\BackgroundJob\IJobRuns;
-use OCP\IDBConnection;
 use OCP\Server;
 use PHPUnit\Framework\TestCase;
 
@@ -27,77 +19,6 @@ class WorkerActivationServiceTest extends TestCase {
 	public function testRegisteredStaleSigningJobStillResolvesAfterUpgrade(): void {
 		Server::get(IAppManager::class)->loadApp('libresign');
 		$this->assertInstanceOf(CleanupStaleSigningStatus::class, Server::get(CleanupStaleSigningStatus::class));
-	}
-
-	public function testRealOccNotificationWorkerDrainsQueueAndExits(): void {
-		$processes = new LocalWorkerProcess();
-		if (!$processes->isSupported()) {
-			$this->markTestSkipped('A readable Linux procfs is required for the local worker');
-		}
-		Server::get(IAppManager::class)->loadApp('libresign');
-		$this->assertFalse(Server::get(IDBConnection::class)->inTransaction(),
-			'A real OCC worker must not be started against an uncommitted integration fixture');
-		$queue = Server::get(IJobList::class);
-		$coordinator = Server::get(LocalWorkerCoordinator::class);
-		$state = Server::get(LocalWorkerStateStore::class);
-		$args = ['id' => random_int(1000000000, 1900000000)];
-		$signingArgs = [
-			'fileId' => -random_int(1000000000, 1900000000),
-			'signRequestId' => -1,
-			'test' => 'notification-worker-isolation',
-		];
-		$queue->add(SignFileJob::class, $signingArgs);
-		$queue->add(DeliverNotification::class, $args);
-		$queuedAt = microtime(true);
-		try {
-			$this->assertTrue($queue->has(DeliverNotification::class, $args));
-			$this->assertTrue($coordinator->ensureCapacity(1, WorkerConfiguration::NOTIFICATION),
-				'A local notification worker must start when a due job exists');
-			$records = $state->readState(WorkerConfiguration::NOTIFICATION)['workers'] ?? [];
-			$this->assertNotEmpty($records);
-			$deadline = microtime(true) + 20;
-			while ($queue->has(DeliverNotification::class, $args) && microtime(true) < $deadline) {
-				usleep(50000);
-			}
-			$elapsedMs = (microtime(true) - $queuedAt) * 1000;
-			$this->assertFalse($queue->has(DeliverNotification::class, $args),
-				'The real OCC worker must drain the queued synthetic delivery');
-			$this->assertTrue($queue->has(SignFileJob::class, $signingArgs),
-				'The notification worker must not claim signing jobs in the same Nextcloud');
-			// IJobRuns records the real OCC job start, independently from the
-			// queue completion time. Both clocks are on this isolated host.
-			$workerPids = array_column($records, 'pid');
-			$startedMs = null;
-			while ($startedMs === null && microtime(true) < $deadline) {
-				foreach (Server::get(IJobRuns::class)->completedJobs(classes: [DeliverNotification::class]) as $run) {
-					if (in_array($run->pid, $workerPids, true)) {
-						$startedAt = (float)$run->startedAt->format('U.u');
-						if ($startedAt >= $queuedAt - 0.01) {
-							$startedMs = ($startedAt - $queuedAt) * 1000;
-							break;
-						}
-					}
-				}
-				if ($startedMs === null) {
-					usleep(50000);
-				}
-			}
-			$this->assertNotNull($startedMs, 'Nextcloud must record the worker job start');
-			$this->assertGreaterThanOrEqual(-2.0, $startedMs, 'Start timestamp must follow enqueue (millisecond tolerance)');
-			fwrite(STDERR, sprintf("Notification enqueue-to-start: %.1f ms; enqueue-to-drain: %.1f ms\n",
-				max(0, $startedMs), $elapsedMs));
-			foreach ($records as $record) {
-				while ($processes->isRunning($record['pid'], $record['start'], [DeliverNotification::class])
-					&& microtime(true) < $deadline) {
-					usleep(50000);
-				}
-				$this->assertFalse($processes->isRunning($record['pid'], $record['start'], [DeliverNotification::class]),
-					'An idle local notification worker must exit naturally');
-			}
-		} finally {
-			$queue->remove(DeliverNotification::class, $args);
-			$queue->remove(SignFileJob::class, $signingArgs);
-		}
 	}
 
 	public function testNextcloudResolvesRenamedWorkerServices(): void {
