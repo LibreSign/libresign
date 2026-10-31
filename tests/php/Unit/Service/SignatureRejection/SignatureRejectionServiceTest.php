@@ -739,6 +739,27 @@ final class SignatureRejectionServiceTest extends TestCase {
 		yield 'workflow canceled' => [true];
 	}
 
+	public function testAWorkflowThatContinuesIsReportedCanceledOnceEverybodyRejected(): void {
+		$this->withPolicy(self::policy(behavior: 'continue'));
+		$file = $this->file();
+		$this->signingWorkflowStatusResolver->method('resolve')
+			->willReturn(FileStatus::CANCELED);
+
+		$dispatched = null;
+		$this->eventDispatcher
+			->expects($this->once())
+			->method('dispatchTyped')
+			->willReturnCallback(function (object $event) use (&$dispatched): void {
+				$dispatched = $event;
+			});
+
+		$this->getService()->reject($file, $this->signRequest());
+
+		$this->assertSame(FileStatus::CANCELED->value, $file->getStatus());
+		$this->assertInstanceOf(SignatureRejectedEvent::class, $dispatched);
+		$this->assertTrue($dispatched->wasWorkflowCanceled());
+	}
+
 	public function testAFailingListenerDoesNotDiscardARecordedRejection(): void {
 		$this->withPolicy(self::policy());
 		$signRequest = $this->signRequest();

@@ -53,8 +53,8 @@ class SigningWorkflowStatusResolver {
 			return FileStatus::SIGNED;
 		}
 
-		if ($this->workflowCompletedDespiteRejections($file, $signers, $totalSigned)) {
-			return FileStatus::SIGNED;
+		if ($this->workflowEndedDespiteRejections($file, $signers, $totalSigned)) {
+			return $totalSigned > 0 ? FileStatus::SIGNED : FileStatus::CANCELED;
 		}
 
 		if ($totalSigned > 0) {
@@ -67,29 +67,26 @@ class SigningWorkflowStatusResolver {
 	/**
 	 * A rejection configured not to cancel the workflow leaves behind a signer
 	 * who will never sign, so counting signatures alone would keep the file
-	 * partially signed forever. The workflow is complete once nobody is expected
-	 * to act any more and at least one signature was actually applied.
+	 * partially signed forever. The workflow is over once nobody is expected to
+	 * act any more: it is complete when at least one signature was applied, and
+	 * canceled when every signer rejected.
 	 *
 	 * A rejected signer keeps its own status: only the file-level status says
-	 * that the configured workflow finished.
+	 * how the configured workflow finished.
 	 *
 	 * @param SignRequestEntity[] $signers
 	 */
-	private function workflowCompletedDespiteRejections(FileEntity $file, array $signers, int $totalSigned): bool {
-		if ($totalSigned === 0) {
-			return false;
-		}
-
-		if ($this->signatureRejectionPolicyService->getBehavior($file) !== SignatureRejectionBehavior::CONTINUE) {
-			return false;
-		}
-
+	private function workflowEndedDespiteRejections(FileEntity $file, array $signers, int $totalSigned): bool {
 		$totalRejected = count(array_filter(
 			$signers,
 			static fn (SignRequestEntity $signer): bool => $signer->getStatusEnum() === SignRequestStatus::REJECTED,
 		));
 
-		return $totalSigned + $totalRejected === count($signers);
+		if ($totalSigned + $totalRejected !== count($signers)) {
+			return false;
+		}
+
+		return $this->signatureRejectionPolicyService->getBehavior($file) === SignatureRejectionBehavior::CONTINUE;
 	}
 
 	/**
