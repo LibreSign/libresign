@@ -32,7 +32,6 @@ path = [
     "img/*.png",
     "img/*.svg",
     "img/screenshot/*",
-    "img/screenshot/notification-delivery/*.png",
     "jsconfig.json",
     "l10n/*.js",
     "l10n/*.json",
