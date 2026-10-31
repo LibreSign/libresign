@@ -17,6 +17,7 @@ import { identificationDocumentsRealDefinition } from './identification-document
 import { identifyMethodsRealDefinition } from './identify-methods/realDefinition'
 import { legalInformationRealDefinition } from './legal-information/realDefinition'
 import { mailSenderStrategyRealDefinition } from './mail-sender-strategy/realDefinition'
+import { notificationDeliveryRealDefinition } from './notification-delivery/realDefinition'
 import { observerProfileRealDefinition } from './observer-profile/realDefinition'
 import type { RealPolicySettingDefinition } from './realTypes'
 import { reminderRealDefinition } from './reminder/realDefinition'
@@ -71,4 +72,5 @@ export const realDefinitions = {
 	make_validation_url_private: { ...validationAccessRealDefinition, category: 'system-behavior' },
 	signing_mode: { ...signingModeRealDefinition, category: 'system-behavior' },
 	mail_sender_strategy: { ...mailSenderStrategyRealDefinition, category: 'system-behavior' },
+	notification_delivery_mode: { ...notificationDeliveryRealDefinition, category: 'system-behavior' },
 } satisfies Record<string, RealPolicySettingDefinition>
