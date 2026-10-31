@@ -93,6 +93,9 @@ class SignFileService {
 	private string $friendlyName = '';
 	private ?IUser $user = null;
 	private ?ISignEngineHandler $engine = null;
+	// The stamp and the validation URL read the footer of the same file.
+	private ?FileEntity $footerPolicyFile = null;
+	private string $footerPolicyValue = '';
 
 	public function __construct(
 		protected IL10N $l10n,
@@ -1000,9 +1003,7 @@ class SignFileService {
 	}
 
 	private function buildValidationUrl(string $uuid): string {
-		$footerPolicy = FooterPolicyValue::normalize(
-			$this->policyService->resolve(FooterPolicy::KEY)->getEffectiveValue()
-		);
+		$footerPolicy = FooterPolicyValue::normalize($this->getFooterPolicyValue());
 		$validationSite = trim($footerPolicy['validationSite']);
 		if ($validationSite !== '') {
 			return rtrim($validationSite, '/') . '/' . $uuid;
@@ -1519,7 +1520,7 @@ class SignFileService {
 			return $this->createSignedFile($originalFile, $originalContent);
 		}
 		$metadata = $this->footerHandler->getMetadata($originalFile, $this->libreSignFile);
-		$this->footerHandler->setStoredRequestPolicyOverrides($this->resolveFooterPolicyRequestOverridesFromFileMetadata());
+		$this->footerHandler->setPolicyValue($this->getFooterPolicyValue());
 		$footer = $this->footerHandler
 			->setTemplateVar('uuid', $this->libreSignFile->getUuid())
 			->setTemplateVar('signers', array_map(fn (SignRequestEntity $signer) => [
@@ -1552,31 +1553,20 @@ class SignFileService {
 		return $this->createSignedFile($originalFile, $pdfContent);
 	}
 
-	/** @return array<string, string> */
-	private function resolveFooterPolicyRequestOverridesFromFileMetadata(): array {
-		$metadata = $this->libreSignFile->getMetadata();
-		if (!is_array($metadata)) {
-			return [];
+	/**
+	 * Once frozen, the request signs with the footer it stores: it was resolved
+	 * and validated when stored, so later policy changes do not apply to it.
+	 */
+	private function getFooterPolicyValue(): string {
+		if ($this->footerPolicyFile !== $this->libreSignFile) {
+			$storedFooter = FooterPolicyValue::getSnapshotEffectiveValue($this->libreSignFile);
+			$this->footerPolicyValue = $storedFooter !== null && FileStatusService::isPolicySnapshotFrozen($this->libreSignFile, $this->fileMapper->findEnvelope($this->libreSignFile))
+				? $storedFooter
+				: (string)$this->policyService->resolve(FooterPolicy::KEY)->getEffectiveValue();
+			$this->footerPolicyFile = $this->libreSignFile;
 		}
 
-		$policySnapshot = $metadata['policy_snapshot'] ?? null;
-		if (!is_array($policySnapshot)) {
-			return [];
-		}
-
-		$footerSnapshot = $policySnapshot[FooterPolicy::KEY] ?? null;
-		if (!is_array($footerSnapshot)) {
-			return [];
-		}
-
-		$effectiveValue = $footerSnapshot['effectiveValue'] ?? null;
-		if (!is_string($effectiveValue) || trim($effectiveValue) === '') {
-			return [];
-		}
-
-		return [
-			FooterPolicy::KEY => $effectiveValue,
-		];
+		return $this->footerPolicyValue;
 	}
 
 	protected function getSignedFile(): ?File {

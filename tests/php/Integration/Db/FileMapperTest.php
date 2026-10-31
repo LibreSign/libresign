@@ -62,6 +62,31 @@ final class FileMapperTest extends \OCA\Libresign\Tests\Integration\TestCase {
 		$this->assertSame('owner-user', $storageUserId);
 	}
 
+	public function testFindEnvelope(): void {
+		$envelope = $this->fileMapper->insert($this->createFileEntity(
+			uuid: 'c3333333-3333-4333-8333-333333333333',
+			nodeId: 30303,
+			userId: 'owner-user'
+		));
+		try {
+			$document = $this->createFileEntity(
+				uuid: 'd4444444-4444-4444-8444-444444444444',
+				nodeId: 40404,
+				userId: 'owner-user'
+			);
+
+			$this->assertNull($this->fileMapper->findEnvelope($document));
+
+			$document->setParentFileId($envelope->getId());
+			$this->assertSame($envelope->getId(), $this->fileMapper->findEnvelope($document)?->getId());
+
+			$document->setParentFileId($envelope->getId() + 1000000);
+			$this->assertNull($this->fileMapper->findEnvelope($document));
+		} finally {
+			$this->fileMapper->delete($envelope);
+		}
+	}
+
 	public function testRecentSigningStatusDoesNotBecomeStaleBecauseFileIsOld(): void {
 		$file = $this->createFileEntity(
 			uuid: 'synthetic-' . bin2hex(random_bytes(12)),

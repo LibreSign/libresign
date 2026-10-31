@@ -44,7 +44,7 @@ final class FooterHandlerTest extends \OCA\Libresign\Tests\Integration\TestCase 
 		$this->urlGenerator = $this->createMock(IURLGenerator::class);
 		$this->policyService = $this->createMock(PolicyService::class);
 		$this->policyService
-			->method('resolveWithStoredRequestOverrides')
+			->method('resolve')
 			->willReturnCallback(function (string $policyKey): ResolvedPolicy {
 				$value = match ($policyKey) {
 					FooterPolicy::KEY => $this->footerPolicyValue,
@@ -125,24 +125,17 @@ final class FooterHandlerTest extends \OCA\Libresign\Tests\Integration\TestCase 
 		$this->assertEmpty($actual);
 	}
 
-	public function testStoredFooterPolicyIsReplayedInsteadOfSubmitted(): void {
-		$storedFooter = FooterPolicyValue::encode(['enabled' => false]);
+	public function testAGivenFooterPolicyIsRenderedAsIsWhateverTheCurrentPolicy(): void {
+		$givenFooter = FooterPolicyValue::encode(['customizeFooterTemplate' => true, 'footerTemplate' => '<p>Given</p>']);
 		$this->policyService = $this->createMock(PolicyService::class);
 		$this->policyService->expects($this->never())->method('resolve');
-		$this->policyService
-			->expects($this->once())
-			->method('resolveWithStoredRequestOverrides')
-			->with(FooterPolicy::KEY, [FooterPolicy::KEY => $storedFooter])
-			->willReturn((new ResolvedPolicy())
-				->setPolicyKey(FooterPolicy::KEY)
-				->setEffectiveValue($storedFooter));
 		$this->l10n = $this->l10nFactory->get(Application::APP_ID);
 
-		$actual = $this->getClass()
-			->setStoredRequestPolicyOverrides([FooterPolicy::KEY => $storedFooter])
-			->getEffectiveFooterPolicyAsJson();
+		$footerHandler = $this->getClass()->setPolicyValue($givenFooter);
 
-		$this->assertSame($storedFooter, $actual);
+		$this->assertSame($givenFooter, $footerHandler->getEffectiveFooterPolicyAsJson());
+		$this->assertSame('<p>Given</p>', $footerHandler->getTemplate());
+		$this->assertNotEmpty($footerHandler->setTemplateVar('uuid', 'test-uuid')->getFooter([['w' => 595, 'h' => 842]]));
 	}
 
 	#[DataProvider('dataGetFooterWithSuccess')]
