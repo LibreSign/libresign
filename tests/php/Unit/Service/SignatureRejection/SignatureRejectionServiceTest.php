@@ -16,6 +16,7 @@ use OCA\Libresign\Enum\FileStatus;
 use OCA\Libresign\Enum\SignRequestStatus;
 use OCA\Libresign\Events\SignatureRejectedEvent;
 use OCA\Libresign\Exception\LibresignException;
+use OCA\Libresign\Service\File\SigningWorkflowStatusResolver;
 use OCA\Libresign\Service\FileStatusService;
 use OCA\Libresign\Service\IdentifyMethod\IIdentifyMethod;
 use OCA\Libresign\Service\IdentifyMethodService;
@@ -42,6 +43,7 @@ final class SignatureRejectionServiceTest extends TestCase {
 	private FileStatusService&MockObject $fileStatusService;
 	private IdentifyMethodService&MockObject $identifyMethodService;
 	private SequentialSigningService&MockObject $sequentialSigningService;
+	private SigningWorkflowStatusResolver&MockObject $signingWorkflowStatusResolver;
 	private IEventDispatcher&MockObject $eventDispatcher;
 	private IDBConnection&MockObject $db;
 	private ITimeFactory&MockObject $timeFactory;
@@ -61,6 +63,7 @@ final class SignatureRejectionServiceTest extends TestCase {
 		$this->fileStatusService = $this->createMock(FileStatusService::class);
 		$this->identifyMethodService = $this->createMock(IdentifyMethodService::class);
 		$this->sequentialSigningService = $this->createMock(SequentialSigningService::class);
+		$this->signingWorkflowStatusResolver = $this->createMock(SigningWorkflowStatusResolver::class);
 		$this->eventDispatcher = $this->createMock(IEventDispatcher::class);
 		$this->db = $this->createMock(IDBConnection::class);
 		$this->timeFactory = $this->createMock(ITimeFactory::class);
@@ -104,6 +107,7 @@ final class SignatureRejectionServiceTest extends TestCase {
 			$this->fileStatusService,
 			$this->identifyMethodService,
 			$this->sequentialSigningService,
+			$this->signingWorkflowStatusResolver,
 			$this->eventDispatcher,
 			$this->db,
 			$this->timeFactory,
@@ -499,6 +503,110 @@ final class SignatureRejectionServiceTest extends TestCase {
 		$this->expectExceptionMessage('bug in the notification path');
 
 		$this->getService()->reject($this->file(), $signRequest);
+	}
+
+	public function testTheLastRejectionCompletesAWorkflowSomebodyAlreadySigned(): void {
+		$this->withPolicy(self::policy(behavior: 'continue'));
+		$file = $this->file(FileStatus::PARTIAL_SIGNED->value);
+		$signersOfTheDocument = [$this->signRequest(SignRequestStatus::SIGNED->value, id: 2)];
+		$this->signRequestMapper->method('getByFileId')
+			->with(10)
+			->willReturn($signersOfTheDocument);
+
+		$calls = [];
+		$this->signingWorkflowStatusResolver->expects($this->once())
+			->method('resolve')
+			->with($file, $signersOfTheDocument)
+			->willReturn(FileStatus::SIGNED);
+		$this->fileStatusService->expects($this->once())
+			->method('update')
+			->with($file)
+			->willReturnCallback(function (File $file) use (&$calls): File {
+				$calls[] = 'status';
+				return $file;
+			});
+		$this->db->method('commit')
+			->willReturnCallback(function () use (&$calls): void {
+				$calls[] = 'commit';
+			});
+
+		$this->getService()->reject($file, $this->signRequest());
+
+		$this->assertSame(FileStatus::SIGNED->value, $file->getStatus());
+		$this->assertSame(['status', 'commit'], $calls);
+	}
+
+	public function testARejectionThatLeavesSomebodyToSignKeepsTheStatus(): void {
+		$this->withPolicy(self::policy(behavior: 'continue'));
+		$file = $this->file(FileStatus::PARTIAL_SIGNED->value);
+		$this->signingWorkflowStatusResolver->method('resolve')
+			->willReturn(FileStatus::PARTIAL_SIGNED);
+
+		$this->fileStatusService->expects($this->never())->method('update');
+
+		$this->getService()->reject($file, $this->signRequest());
+
+		$this->assertSame(FileStatus::PARTIAL_SIGNED->value, $file->getStatus());
+	}
+
+	public function testRejectingAnEnvelopeResolvesTheStatusOfEveryDocumentButNotOfTheEnvelope(): void {
+		$this->withPolicy(self::policy(behavior: 'continue'));
+		$envelope = $this->envelope(FileStatus::PARTIAL_SIGNED->value);
+		$onDoc1 = $this->signRequest(id: 11);
+		$onDoc1->setFileId(21);
+		$onDoc2 = $this->signRequest(id: 12);
+		$onDoc2->setFileId(22);
+		$onTheEnvelope = $this->signRequest(id: 13);
+		$onTheEnvelope->setFileId(1);
+		$this->envelopeChildSignRequests = [$onDoc1, $onDoc2];
+		$this->envelopeSignRequest = $onTheEnvelope;
+		$this->filesById[1] = $envelope;
+
+		$resolved = [];
+		$this->signingWorkflowStatusResolver->method('resolve')
+			->willReturnCallback(function (File $document) use (&$resolved): FileStatus {
+				$resolved[] = $document->getId();
+				return FileStatus::SIGNED;
+			});
+		$updated = [];
+		$this->fileStatusService->method('update')
+			->willReturnCallback(function (File $document) use (&$updated): File {
+				$updated[] = $document->getId();
+				return $document;
+			});
+
+		$this->getService()->reject($envelope, $onDoc1);
+
+		$this->assertSame([21, 22], $resolved);
+		$this->assertSame([21, 22], $updated);
+	}
+
+	public function testACancellingRejectionDoesNotResolveTheStatusFromTheSigners(): void {
+		$this->withPolicy(self::policy(behavior: 'cancel'));
+
+		$this->signingWorkflowStatusResolver->expects($this->never())->method('resolve');
+
+		$this->getService()->reject($this->file(), $this->signRequest());
+	}
+
+	public function testAFailedStatusUpdateLeavesNoPartiallyUpdatedWorkflow(): void {
+		$this->withPolicy(self::policy(behavior: 'continue'));
+		$file = $this->file(FileStatus::PARTIAL_SIGNED->value);
+		$signRequest = $this->signRequest();
+		$this->signingWorkflowStatusResolver->method('resolve')
+			->willReturn(FileStatus::SIGNED);
+		$this->fileStatusService->method('update')
+			->willThrowException(new \RuntimeException('database is down'));
+		$this->db->expects($this->once())->method('rollBack');
+		$this->db->expects($this->never())->method('commit');
+
+		try {
+			$this->getService()->reject($file, $signRequest);
+			$this->fail('The rejection must fail when the document status cannot be saved.');
+		} catch (LibresignException) {
+			$this->assertSame(FileStatus::PARTIAL_SIGNED->value, $file->getStatus());
+			$this->assertSame(SignRequestStatus::ABLE_TO_SIGN, $signRequest->getStatusEnum());
+		}
 	}
 
 	public function testWorkflowIsClosedWhenThePolicyCancelsIt(): void {

@@ -17,6 +17,7 @@ use OCA\Libresign\Enum\SignatureRejectionCommentMode;
 use OCA\Libresign\Enum\SignRequestStatus;
 use OCA\Libresign\Events\SignatureRejectedEvent;
 use OCA\Libresign\Exception\LibresignException;
+use OCA\Libresign\Service\File\SigningWorkflowStatusResolver;
 use OCA\Libresign\Service\FileStatusService;
 use OCA\Libresign\Service\IdentifyMethodService;
 use OCA\Libresign\Service\SequentialSigningService;
@@ -43,6 +44,7 @@ class SignatureRejectionService {
 		private FileStatusService $fileStatusService,
 		private IdentifyMethodService $identifyMethodService,
 		private SequentialSigningService $sequentialSigningService,
+		private SigningWorkflowStatusResolver $signingWorkflowStatusResolver,
 		private IEventDispatcher $eventDispatcher,
 		private IDBConnection $db,
 		private ITimeFactory $timeFactory,
@@ -129,6 +131,7 @@ class SignatureRejectionService {
 				$activatedSigners = [];
 			} else {
 				$activatedSigners = $this->releaseNextSigningOrders($libreSignFile, $signRequests);
+				$this->resolveStatusOfRejectedDocuments($libreSignFile, $signRequests);
 			}
 
 			$this->db->commit();
@@ -214,6 +217,38 @@ class SignatureRejectionService {
 		}
 
 		return $activatedSigners;
+	}
+
+	/**
+	 * A rejection ends the signer's turn just like a signature does, so it can be
+	 * the last action a document was waiting for. Its status is then resolved by
+	 * the same rule the signing flow uses, otherwise a document whose last signer
+	 * rejected would stay partially signed forever.
+	 *
+	 * An envelope is skipped: its status follows the documents it contains.
+	 *
+	 * @param list<SignRequestEntity> $rejectedSignRequests
+	 */
+	private function resolveStatusOfRejectedDocuments(FileEntity $libreSignFile, array $rejectedSignRequests): void {
+		foreach ($rejectedSignRequests as $rejected) {
+			$document = $rejected->getFileId() === $libreSignFile->getId()
+				? $libreSignFile
+				: $this->fileMapper->getById($rejected->getFileId());
+			if ($document->isEnvelope()) {
+				continue;
+			}
+
+			$status = $this->signingWorkflowStatusResolver->resolve(
+				$document,
+				$this->signRequestMapper->getByFileId($document->getId()),
+			);
+			if ($status === null || $status->value === $document->getStatus()) {
+				continue;
+			}
+
+			$document->setStatusEnum($status);
+			$this->fileStatusService->update($document);
+		}
 	}
 
 	/**
