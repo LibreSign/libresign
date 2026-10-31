@@ -226,7 +226,8 @@ class SignatureRejectionService {
 	 * the same rule the signing flow uses, otherwise a document whose last signer
 	 * rejected would stay partially signed forever.
 	 *
-	 * An envelope is skipped: its status follows the documents it contains.
+	 * An envelope is not resolved here: its status follows the documents it
+	 * contains, so it is read back once they are saved.
 	 *
 	 * @param list<SignRequestEntity> $rejectedSignRequests
 	 */
@@ -249,6 +250,10 @@ class SignatureRejectionService {
 
 			$document->setStatusEnum($status);
 			$this->fileStatusService->update($document);
+		}
+
+		if ($libreSignFile->isEnvelope()) {
+			$libreSignFile->setStatus($this->fileMapper->getById($libreSignFile->getId())->getStatus());
 		}
 	}
 

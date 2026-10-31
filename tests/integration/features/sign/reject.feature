@@ -1144,6 +1144,111 @@ Feature: sign-signature-rejection
       | (jq).ocs.data.data[0].signers[0].status | 3     |
       | (jq).ocs.data.data[0].signers[1].status | 3     |
 
+  Scenario: Every signer rejecting an envelope that continues cancels the envelope and its documents
+    Given as user "admin"
+    And user "signer1" exists
+    And user "signer2" exists
+    And run the command "libresign:configure:openssl --cn test" with result code 0
+    And sending "post" to ocs "/apps/libresign/api/v1/policies/system/rejection_enabled"
+      | value | true |
+      | allowChildOverride | true |
+    And the response should have a status code 200
+    And sending "post" to ocs "/apps/libresign/api/v1/policies/system/rejection_behavior"
+      | value | continue |
+      | allowChildOverride | true |
+    And the response should have a status code 200
+    And sending "post" to ocs "/apps/libresign/api/v1/request-signature"
+      | files | [{"base64":"<SMALL_VALID_PDF_BASE64>","name":"Doc1.pdf"},{"base64":"<SMALL_VALID_PDF_BASE64>","name":"Doc2.pdf"}] |
+      | signers | [{"identifyMethods":[{"method":"account","value":"signer1"}]},{"identifyMethods":[{"method":"account","value":"signer2"}]}] |
+      | name | Package |
+      | status | 0 |
+      | policy | {"overrides":{"rejection_enabled":true}} |
+    And the response should have a status code 200
+    And sending "get" to ocs "/apps/libresign/api/v1/file/list?details=1"
+    And fetch field "(FILE_ID)ocs.data.data.0.id" from previous JSON response
+    And fetch field "(FILE_UUID)ocs.data.data.0.uuid" from previous JSON response
+    And sending "patch" to ocs "/apps/libresign/api/v1/request-signature"
+      | uuid | <FILE_UUID> |
+      | signers | [{"identifyMethods":[{"method":"account","value":"signer1"}]},{"identifyMethods":[{"method":"account","value":"signer2"}]}] |
+      | status | 1 |
+    And the response should have a status code 200
+    When as user "signer1"
+    And sending "post" to ocs "/apps/libresign/api/v1/sign/file_id/<FILE_ID>/reject"
+    Then the response should have a status code 200
+    And the response should be a JSON array with the following mandatory values
+      | key                            | value |
+      | (jq).ocs.data.workflowCanceled | false |
+    When as user "signer2"
+    And sending "post" to ocs "/apps/libresign/api/v1/sign/file_id/<FILE_ID>/reject"
+    Then the response should have a status code 200
+    And the response should be a JSON array with the following mandatory values
+      | key                            | value |
+      | (jq).ocs.data.workflowCanceled | true  |
+    When as user "admin"
+    And sending "get" to ocs "/apps/libresign/api/v1/file/list?details=1"
+    Then the response should be a JSON array with the following mandatory values
+      | key                                              | value |
+      | (jq).ocs.data.data[0].nodeType                   | envelope |
+      | (jq).ocs.data.data[0].status                     | 6     |
+    And sending "get" to ocs "/apps/libresign/api/v1/file/validate/file_id/<FILE_ID>?showVisibleElements=false&showMessages=false&showValidateFile=false"
+    And the response should be a JSON array with the following mandatory values
+      | key                               | value |
+      | (jq)[.ocs.data.files[].status]    | [6,6] |
+
+  Scenario: An envelope that continues after a rejection completes when the other signer signs
+    Given as user "admin"
+    And user "signer1" exists
+    And user "signer2" exists
+    And run the command "libresign:install --use-local-cert --java" with result code 0
+    And run the command "libresign:install --use-local-cert --jsignpdf" with result code 0
+    And run the command "libresign:install --use-local-cert --pdftk" with result code 0
+    And run the command "libresign:configure:openssl --cn test" with result code 0
+    And sending "post" to ocs "/apps/libresign/api/v1/policies/system/identify_methods"
+      | value | (string){"factors":[{"name":"account","enabled":true,"requirement":"required","signatureMethods":{"clickToSign":{"enabled":true}},"signatureMethodEnabled":"clickToSign"}]} |
+    And the response should have a status code 200
+    And sending "post" to ocs "/apps/libresign/api/v1/policies/system/rejection_enabled"
+      | value | true |
+      | allowChildOverride | true |
+    And the response should have a status code 200
+    And sending "post" to ocs "/apps/libresign/api/v1/policies/system/rejection_behavior"
+      | value | continue |
+      | allowChildOverride | true |
+    And the response should have a status code 200
+    And sending "post" to ocs "/apps/libresign/api/v1/request-signature"
+      | files | [{"base64":"<SMALL_VALID_PDF_BASE64>","name":"Doc1.pdf"},{"base64":"<SMALL_VALID_PDF_BASE64>","name":"Doc2.pdf"}] |
+      | signers | [{"identifyMethods":[{"method":"account","value":"signer1"}]},{"identifyMethods":[{"method":"account","value":"signer2"}]}] |
+      | name | Package |
+      | status | 0 |
+      | policy | {"overrides":{"rejection_enabled":true}} |
+    And the response should have a status code 200
+    And sending "get" to ocs "/apps/libresign/api/v1/file/list?details=1"
+    And fetch field "(FILE_ID)ocs.data.data.0.id" from previous JSON response
+    And fetch field "(FILE_UUID)ocs.data.data.0.uuid" from previous JSON response
+    And sending "patch" to ocs "/apps/libresign/api/v1/request-signature"
+      | uuid | <FILE_UUID> |
+      | signers | [{"identifyMethods":[{"method":"account","value":"signer1"}]},{"identifyMethods":[{"method":"account","value":"signer2"}]}] |
+      | status | 1 |
+    And the response should have a status code 200
+    When as user "signer1"
+    And sending "post" to ocs "/apps/libresign/api/v1/sign/file_id/<FILE_ID>/reject"
+    Then the response should have a status code 200
+    When as user "signer2"
+    And sending "get" to ocs "/apps/libresign/api/v1/file/list?details=1"
+    And fetch field "(SIGNER2_UUID)ocs.data.data.0.signers.1.sign_request_uuid" from previous JSON response
+    And sending "post" to ocs "/apps/libresign/api/v1/sign/uuid/<SIGNER2_UUID>"
+      | method | clickToSign |
+    Then the response should have a status code 200
+    When as user "admin"
+    And sending "get" to ocs "/apps/libresign/api/v1/file/list?details=1"
+    Then the response should be a JSON array with the following mandatory values
+      | key                                    | value    |
+      | (jq).ocs.data.data[0].nodeType         | envelope |
+      | (jq).ocs.data.data[0].status           | 3        |
+    And sending "get" to ocs "/apps/libresign/api/v1/file/validate/file_id/<FILE_ID>?showVisibleElements=false&showMessages=false&showValidateFile=false"
+    And the response should be a JSON array with the following mandatory values
+      | key                               | value |
+      | (jq)[.ocs.data.files[].status]    | [3,3] |
+
   Scenario: Rejecting one document of an envelope closes the whole envelope
     Given as user "admin"
     And user "signer1" exists

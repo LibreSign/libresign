@@ -67,6 +67,13 @@ class FileStatusService {
 			return;
 		}
 
+		// A canceled document is over without a signature: the envelope follows the
+		// documents that are left, and is canceled only when none is left.
+		$children = array_filter(
+			$children,
+			static fn (FileEntity $child): bool => $child->getStatus() !== FileStatus::CANCELED->value,
+		);
+
 		$minStatus = FileStatus::SIGNED->value;
 		$maxStatus = FileStatus::DRAFT->value;
 
@@ -82,7 +89,9 @@ class FileStatusService {
 
 		$newStatus = FileStatus::DRAFT->value;
 
-		if ($minStatus === FileStatus::SIGNED->value && $maxStatus === FileStatus::SIGNED->value) {
+		if ($children === []) {
+			$newStatus = FileStatus::CANCELED->value;
+		} elseif ($minStatus === FileStatus::SIGNED->value && $maxStatus === FileStatus::SIGNED->value) {
 			$newStatus = FileStatus::SIGNED->value;
 		} elseif ($maxStatus >= FileStatus::PARTIAL_SIGNED->value) {
 			$newStatus = FileStatus::PARTIAL_SIGNED->value;

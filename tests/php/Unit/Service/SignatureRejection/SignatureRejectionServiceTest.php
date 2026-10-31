@@ -760,6 +760,37 @@ final class SignatureRejectionServiceTest extends TestCase {
 		$this->assertTrue($dispatched->wasWorkflowCanceled());
 	}
 
+	public function testRejectingAnEnvelopeReportsTheStatusItsDocumentsLeftIt(): void {
+		$this->withPolicy(self::policy(behavior: 'continue'));
+		$envelope = $this->envelope();
+		$onDoc = $this->signRequest(id: 11);
+		$onDoc->setFileId(21);
+		$this->envelopeChildSignRequests = [$onDoc];
+		// The envelope row the documents propagate their status to.
+		$storedEnvelope = $this->envelope();
+		$this->filesById[1] = $storedEnvelope;
+
+		$this->signingWorkflowStatusResolver->method('resolve')
+			->willReturn(FileStatus::CANCELED);
+		$this->fileStatusService->method('update')
+			->willReturnCallback(function (File $document) use ($storedEnvelope): File {
+				$storedEnvelope->setStatusEnum(FileStatus::CANCELED);
+				return $document;
+			});
+
+		$dispatched = null;
+		$this->eventDispatcher
+			->method('dispatchTyped')
+			->willReturnCallback(function (object $event) use (&$dispatched): void {
+				$dispatched = $event;
+			});
+
+		$this->getService()->reject($envelope, $onDoc);
+
+		$this->assertSame(FileStatus::CANCELED->value, $envelope->getStatus());
+		$this->assertTrue($dispatched->wasWorkflowCanceled());
+	}
+
 	public function testAFailingListenerDoesNotDiscardARecordedRejection(): void {
 		$this->withPolicy(self::policy());
 		$signRequest = $this->signRequest();

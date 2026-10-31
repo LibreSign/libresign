@@ -215,6 +215,7 @@ class FileStatusServiceTest extends TestCase {
 		$able = FileStatus::ABLE_TO_SIGN->value;
 		$partial = FileStatus::PARTIAL_SIGNED->value;
 		$signed = FileStatus::SIGNED->value;
+		$canceled = FileStatus::CANCELED->value;
 
 		return [
 			'all draft' => [[$draft, $draft, $draft], $draft, $draft],
@@ -227,6 +228,10 @@ class FileStatusServiceTest extends TestCase {
 			'mixed draft, able and partial' => [[$draft, $able, $partial], $partial, $draft],
 			'mixed all statuses' => [[$draft, $able, $partial, $signed], $partial, $draft],
 			'one signed, rest draft' => [[$draft, $draft, $signed], $partial, $draft],
+			'signed and canceled documents complete the envelope' => [[$signed, $canceled], $signed, $partial],
+			'canceled document beside one still able to sign' => [[$canceled, $able], $able, $able],
+			'canceled document beside one partially signed' => [[$canceled, $partial], $partial, $able],
+			'all documents canceled' => [[$canceled, $canceled], $canceled, $able],
 		];
 	}
 
