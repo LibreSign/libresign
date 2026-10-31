@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "9ffc13f6e2e3c1acd213729f3967fa79",
+    "content-hash": "9a0843ff1ed6801ec2bf4522f673ec8a",
     "packages": [
         {
             "name": "behat/behat",
@@ -522,57 +522,6 @@
                 "source": "https://github.com/cucumber/tag-expressions-php/tree/v11.0.1"
             },
             "time": "2026-03-24T10:42:49+00:00"
-        },
-        {
-            "name": "estahn/json-query-wrapper",
-            "version": "v1.0.0",
-            "source": {
-                "type": "git",
-                "url": "https://github.com/estahn/json-query-wrapper.git",
-                "reference": "79516b22ba364db552fc6dca719fcedc57ca5862"
-            },
-            "dist": {
-                "type": "zip",
-                "url": "https://api.github.com/repos/estahn/json-query-wrapper/zipball/79516b22ba364db552fc6dca719fcedc57ca5862",
-                "reference": "79516b22ba364db552fc6dca719fcedc57ca5862",
-                "shasum": ""
-            },
-            "require": {
-                "php": "^7.1|^8",
-                "symfony/process": "^4|^5"
-            },
-            "require-dev": {
-                "phpunit/phpunit": "^7|^8|^9",
-                "vimeo/psalm": "4.x-dev"
-            },
-            "type": "library",
-            "autoload": {
-                "psr-4": {
-                    "JsonQueryWrapper\\": "src/JsonQueryWrapper"
-                }
-            },
-            "notification-url": "https://packagist.org/downloads/",
-            "license": [
-                "MIT"
-            ],
-            "authors": [
-                {
-                    "name": "Enrico Stahn",
-                    "email": "enrico.stahn@gmail.com"
-                }
-            ],
-            "description": "Wrapper for jq, a lightweight and flexible command-line JSON processor",
-            "homepage": "https://github.com/estahn/json-query-wrapper",
-            "keywords": [
-                "jq",
-                "json",
-                "query"
-            ],
-            "support": {
-                "issues": "https://github.com/estahn/json-query-wrapper/issues",
-                "source": "https://github.com/estahn/json-query-wrapper/tree/v1.0.0"
-            },
-            "time": "2021-01-11T23:19:55+00:00"
         },
         {
             "name": "guzzlehttp/guzzle",
@@ -1174,30 +1123,31 @@
         },
         {
             "name": "libresign/nextcloud-behat",
-            "version": "v1.6.3",
+            "version": "dev-main",
             "source": {
                 "type": "git",
                 "url": "https://github.com/LibreSign/nextcloud-behat.git",
-                "reference": "b003bb2103d9767cad20d3bbb0d08dba70a38050"
+                "reference": "3de5745c38a0a9c0458367cd92cb97310bdaa110"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/LibreSign/nextcloud-behat/zipball/b003bb2103d9767cad20d3bbb0d08dba70a38050",
-                "reference": "b003bb2103d9767cad20d3bbb0d08dba70a38050",
+                "url": "https://api.github.com/repos/LibreSign/nextcloud-behat/zipball/3de5745c38a0a9c0458367cd92cb97310bdaa110",
+                "reference": "3de5745c38a0a9c0458367cd92cb97310bdaa110",
                 "shasum": ""
             },
             "require": {
-                "behat/behat": "^3.29",
-                "estahn/json-query-wrapper": "*",
+                "behat/behat": "^3.29 || ^4.0",
                 "guzzlehttp/guzzle": "^7.10 || ^8.0",
                 "libresign/behat-builtin-extension": "^0.7.1",
                 "php": ">=8.2",
-                "phpunit/phpunit": "*"
+                "phpunit/phpunit": "*",
+                "symfony/process": "^6.4 || ^7.0"
             },
             "require-dev": {
                 "bamarni/composer-bin-plugin": "^1.9",
                 "donatj/mock-webserver": "^2.9"
             },
+            "default-branch": true,
             "type": "library",
             "extra": {
                 "bamarni-bin": {
@@ -1228,9 +1178,9 @@
             ],
             "support": {
                 "issues": "https://github.com/LibreSign/nextcloud-behat/issues",
-                "source": "https://github.com/LibreSign/nextcloud-behat/tree/v1.6.3"
+                "source": "https://github.com/LibreSign/nextcloud-behat/tree/main"
             },
-            "time": "2026-10-07T02:34:48+00:00"
+            "time": "2026-10-19T16:45:47+00:00"
         },
         {
             "name": "myclabs/deep-copy",
@@ -4980,21 +4930,20 @@
         },
         {
             "name": "symfony/process",
-            "version": "v5.4.54",
+            "version": "v7.4.22",
             "source": {
                 "type": "git",
                 "url": "https://github.com/symfony/process.git",
-                "reference": "485d7b3f15ae329058d2407c9772c57ed4f564de"
+                "reference": "a5a6912edbbfc4c98cd080bc4bbe37c8e7eeb20a"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/symfony/process/zipball/485d7b3f15ae329058d2407c9772c57ed4f564de",
-                "reference": "485d7b3f15ae329058d2407c9772c57ed4f564de",
+                "url": "https://api.github.com/repos/symfony/process/zipball/a5a6912edbbfc4c98cd080bc4bbe37c8e7eeb20a",
+                "reference": "a5a6912edbbfc4c98cd080bc4bbe37c8e7eeb20a",
                 "shasum": ""
             },
             "require": {
-                "php": ">=7.2.5",
-                "symfony/polyfill-php80": "^1.16"
+                "php": ">=8.2"
             },
             "type": "library",
             "autoload": {
@@ -5022,7 +4971,7 @@
             "description": "Executes commands in sub-processes",
             "homepage": "https://symfony.com",
             "support": {
-                "source": "https://github.com/symfony/process/tree/v5.4.54"
+                "source": "https://github.com/symfony/process/tree/v7.4.22"
             },
             "funding": [
                 {
@@ -5042,7 +4991,7 @@
                     "type": "tidelift"
                 }
             ],
-            "time": "2026-09-01T06:19:14+00:00"
+            "time": "2026-10-25T14:40:16+00:00"
         },
         {
             "name": "symfony/service-contracts",
@@ -5615,7 +5564,9 @@
     "packages-dev": [],
     "aliases": [],
     "minimum-stability": "stable",
-    "stability-flags": {},
+    "stability-flags": {
+        "libresign/nextcloud-behat": 20
+    },
     "prefer-stable": false,
     "prefer-lowest": false,
     "platform": {},
