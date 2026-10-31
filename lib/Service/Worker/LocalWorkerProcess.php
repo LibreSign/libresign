@@ -42,7 +42,8 @@ class LocalWorkerProcess {
 		return $fields[19] ?? null;
 	}
 
-	public function isRunning(int $pid, string $startTime): bool {
+	/** @param list<class-string> $jobClasses */
+	public function isRunning(int $pid, string $startTime, array $jobClasses = []): bool {
 		if ($startTime === '' || $this->startTime($pid) !== $startTime
 			|| (function_exists('posix_geteuid') && @fileowner($this->procRoot . '/' . $pid) !== posix_geteuid())) {
 			return false;
@@ -58,6 +59,7 @@ class LocalWorkerProcess {
 		// WorkerStarter always passes [php, this Nextcloud's occ, command].
 		// Arbitrary process arguments must not look like a running worker.
 		return ($argv[1] ?? null) === $expectedOcc
-			&& ($argv[2] ?? null) === 'background-job:worker';
+			&& ($argv[2] ?? null) === 'background-job:worker'
+			&& ($jobClasses === [] || array_slice($argv, 3) === [...$jobClasses, '--stop_after=30m', '--interval=0']);
 	}
 }

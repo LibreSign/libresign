@@ -11,6 +11,7 @@ namespace OCA\Libresign\Tests\Unit\Service\Worker;
 use OCA\Libresign\Service\Worker\LocalWorkerCoordinator;
 use OCA\Libresign\Service\Worker\LocalWorkerProcess;
 use OCA\Libresign\Service\Worker\LocalWorkerStateStore;
+use OCA\Libresign\Service\Worker\WorkerConfiguration;
 use OCA\Libresign\Service\Worker\WorkerJobCounter;
 use OCA\Libresign\Service\Worker\WorkerStarter;
 use PHPUnit\Framework\Attributes\DataProvider;
@@ -64,6 +65,56 @@ class LocalWorkerCoordinatorTest extends TestCase {
 		$counter->method('countEligibleJobs')->willReturn(min($capacity, $queued));
 		$this->assertTrue($this->coordinator($starter, $counter)->ensureCapacity($capacity));
 		$this->assertSame($expectedStarts, $starts);
+	}
+
+	public function testSigningAndNotificationHaveIndependentWorkerCapacity(): void {
+		$launched = [];
+		$starter = $this->createMock(WorkerStarter::class);
+		$starter->method('startWorker')->willReturnCallback(static function (string $pool) use (&$launched): int {
+			$launched[] = $pool;
+			return 6100 + count($launched);
+		});
+		$counter = $this->createMock(WorkerJobCounter::class);
+		$counter->method('countEligibleJobs')->willReturn(1);
+		$registry = $this->coordinator($starter, $counter);
+		$this->assertTrue($registry->ensureCapacity(1, WorkerConfiguration::SIGNING));
+		$this->assertTrue($registry->ensureCapacity(1, WorkerConfiguration::NOTIFICATION));
+		$this->assertSame([WorkerConfiguration::SIGNING, WorkerConfiguration::NOTIFICATION], $launched);
+	}
+
+	public function testNotificationWakesAgainAsSoonAsPreviousWorkerExits(): void {
+		$starter = $this->createMock(WorkerStarter::class);
+		$starter->expects($this->exactly(2))->method('startWorker')
+			->with(WorkerConfiguration::NOTIFICATION)->willReturnOnConsecutiveCalls(6101, 6102);
+		$counter = $this->createMock(WorkerJobCounter::class);
+		$counter->method('countEligibleJobs')->willReturn(1);
+		// The previous child is no longer in procfs when the next job arrives.
+		$coordinator = $this->coordinator($starter, $counter);
+		$this->assertTrue($coordinator->ensureCapacity(1, WorkerConfiguration::NOTIFICATION));
+		$this->assertTrue($coordinator->ensureCapacity(1, WorkerConfiguration::NOTIFICATION));
+	}
+
+	public function testNotificationWakeSurvivesAnEmptyQueueCheckBetweenJobs(): void {
+		$starter = $this->createMock(WorkerStarter::class);
+		$starter->expects($this->exactly(2))->method('startWorker')
+			->with(WorkerConfiguration::NOTIFICATION)->willReturnOnConsecutiveCalls(6201, 6202);
+		$counter = $this->createMock(WorkerJobCounter::class);
+		$counter->method('countEligibleJobs')->willReturnOnConsecutiveCalls(1, 0, 1);
+		$coordinator = $this->coordinator($starter, $counter);
+		$this->assertTrue($coordinator->ensureCapacity(1, WorkerConfiguration::NOTIFICATION));
+		$this->assertTrue($coordinator->ensureCapacity(1, WorkerConfiguration::NOTIFICATION));
+		$this->assertTrue($coordinator->ensureCapacity(1, WorkerConfiguration::NOTIFICATION));
+	}
+
+	public function testFailedNotificationStartupRespectsLaunchCooldown(): void {
+		$starter = $this->createMock(WorkerStarter::class);
+		$starter->expects($this->once())->method('startWorker')
+			->with(WorkerConfiguration::NOTIFICATION)->willThrowException(new \RuntimeException('No CLI available'));
+		$counter = $this->createMock(WorkerJobCounter::class);
+		$counter->method('countEligibleJobs')->willReturn(1);
+		$coordinator = $this->coordinator($starter, $counter);
+		$this->assertFalse($coordinator->ensureCapacity(1, WorkerConfiguration::NOTIFICATION));
+		$coordinator->ensureCapacity(1, WorkerConfiguration::NOTIFICATION);
 	}
 
 	public function testSecondRequestDoesNotExceedCapacity(): void {
@@ -124,6 +175,22 @@ class LocalWorkerCoordinatorTest extends TestCase {
 		$counter = $this->createMock(WorkerJobCounter::class);
 		$counter->method('countEligibleJobs')->willReturn(1);
 		$this->assertFalse($this->coordinator($starter, $counter)->ensureCapacity(1));
+	}
+
+	public function testUnknownChildIdentityStopsAdditionalLaunches(): void {
+		$starter = $this->createMock(WorkerStarter::class);
+		$starter->expects($this->once())->method('startWorker')->willReturn(6001);
+		$counter = $this->createMock(WorkerJobCounter::class);
+		$counter->method('jobClasses')->willReturn([]);
+		$counter->method('countEligibleJobs')->willReturn(4);
+		$processes = $this->createMock(LocalWorkerProcess::class);
+		$processes->method('isSupported')->willReturn(true);
+		$processes->method('startTime')->willReturn(null);
+		$coordinator = new LocalWorkerCoordinator(
+			$starter, $counter, $processes,
+			new LocalWorkerStateStore($this->directory), $this->createMock(LoggerInterface::class),
+		);
+		$this->assertFalse($coordinator->ensureCapacity(4));
 	}
 
 	public function testQueryErrorDoesNotLookLikeEmptyQueue(): void {
