@@ -232,6 +232,7 @@ OC.L10N.register(
     "Click on the place you want to add." : "Fai clic sul luogo che desideri aggiungere.",
     "Sign" : "Firma",
     "An error occurred" : "Si è verificato un errore",
+    "Failed to load files" : "Caricamento dei file non riuscito",
     "Upload cancelled" : "Caricamento annullato",
     "Saved" : "Salvato",
     "_{count} selected_::_{count} selected_" : ["{count} selezionato","{count} selezionati","{count} selezionati"],
