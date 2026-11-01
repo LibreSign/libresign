@@ -51,6 +51,41 @@ class WorkerConfigurationTest extends \PHPUnit\Framework\TestCase {
 		$this->assertFalse($this->makeService()->isAsyncLocalEnabled());
 	}
 
+	public function testNotificationWorkersDefaultToExternalWithOneProcess(): void {
+		$this->appConfig->method('getValueString')->willReturnCallback(
+			static fn (string $app, string $key, string $default): string => $default,
+		);
+		$this->assertFalse($this->makeService()->isNotificationLocalEnabled());
+		$this->assertSame(1, $this->makeService()->getDesiredNotificationWorkerCount());
+		$this->assertSame([
+			\OCA\Libresign\BackgroundJob\DeliverNotification::class,
+		], $this->makeService()->getNotificationJobClasses());
+	}
+
+	public function testNotificationLocalModeDoesNotRequireAsyncSigning(): void {
+		$this->appConfig->method('getValueString')->willReturnCallback(
+			static fn (string $app, string $key, string $default): string => $key === 'notification_worker_type' ? 'local' : $default,
+		);
+		$this->assertTrue($this->makeService()->isNotificationLocalEnabled());
+		$this->assertFalse($this->makeService()->isAsyncSigningEnabled());
+	}
+
+	#[DataProvider('notificationConcurrencyCases')]
+	public function testNotificationConcurrencyIsBounded(int $configured, int $expected): void {
+		$this->appConfig->method('getValueString')->willReturn((string)$configured);
+		$this->assertSame($expected, $this->makeService()->getDesiredNotificationWorkerCount());
+	}
+
+	public static function notificationConcurrencyCases(): array {
+		return [
+			'zero' => [0, 1],
+			'negative' => [-10, 1],
+			'one' => [1, 1],
+			'four' => [4, 4],
+			'too many' => [100, 4],
+		];
+	}
+
 	public function testSigningJobClassesAreExplicit(): void {
 		$this->assertSame([
 			\OCA\Libresign\BackgroundJob\SignFileJob::class,

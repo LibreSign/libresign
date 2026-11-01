@@ -36,4 +36,19 @@ class WorkerActivationService {
 			return false;
 		}
 	}
+	/** Best effort; notification workers do not depend on signing_mode. */
+	public function ensureNotificationWorkerRunning(): bool {
+		try {
+			if (!$this->workerConfiguration->isNotificationLocalEnabled()) {
+				return false;
+			}
+			return $this->coordinator->ensureCapacity(
+				$this->workerConfiguration->getDesiredNotificationWorkerCount(),
+				WorkerConfiguration::NOTIFICATION,
+			);
+		} catch (\RuntimeException|DatabaseException $e) {
+			$this->logger->warning('Unable to check or start notification workers; Nextcloud cron can process pending jobs', ['exception' => $e]);
+			return false;
+		}
+	}
 }

@@ -23,7 +23,16 @@ class WorkerJobCounter {
 	) {
 	}
 
-	public function countEligibleJobs(int $max): int {
+	/** @return list<class-string> */
+	public function jobClasses(string $pool): array {
+		return match ($pool) {
+			WorkerConfiguration::SIGNING => $this->configuration->getSigningJobClasses(),
+			WorkerConfiguration::NOTIFICATION => $this->configuration->getNotificationJobClasses(),
+			default => throw new \InvalidArgumentException('Unknown local worker pool'),
+		};
+	}
+
+	public function countEligibleJobs(int $max, string $pool = WorkerConfiguration::SIGNING): int {
 		if ($max <= 0) {
 			return 0;
 		}
@@ -32,7 +41,7 @@ class WorkerJobCounter {
 		$query = $this->db->getQueryBuilder();
 		$query->select('id')->from('jobs')
 			->where($query->expr()->in('class', $query->createNamedParameter(
-				$this->configuration->getSigningJobClasses(), IQueryBuilder::PARAM_STR_ARRAY,
+				$this->jobClasses($pool), IQueryBuilder::PARAM_STR_ARRAY,
 			)))
 			->andWhere($query->expr()->lte('reserved_at', $query->createNamedParameter($now - 12 * 3600, IQueryBuilder::PARAM_INT)))
 			->andWhere($query->expr()->lte('last_checked', $query->createNamedParameter($now, IQueryBuilder::PARAM_INT)))

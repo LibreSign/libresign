@@ -9,6 +9,8 @@ declare(strict_types=1);
 namespace OCA\Libresign\Tests\Unit\Service\Worker;
 
 use OCA\Libresign\Service\Worker\LocalWorkerStateStore;
+use OCA\Libresign\Service\Worker\WorkerConfiguration;
+use OCA\Libresign\Vendor\Symfony\Component\Process\Process;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 
@@ -43,6 +45,22 @@ class LocalWorkerStateStoreTest extends TestCase {
 		}));
 	}
 
+	public function testSigningAndNotificationPoolsHaveIndependentLocksAndState(): void {
+		$store = new LocalWorkerStateStore($this->directory);
+		$notificationEntered = false;
+		$this->assertTrue($store->withExclusiveLock(function () use ($store, &$notificationEntered): bool {
+			$store->writeState(['workers' => [['pid' => 101, 'start' => 'signer']]], WorkerConfiguration::SIGNING);
+			return $store->withExclusiveLock(function () use ($store, &$notificationEntered): bool {
+				$notificationEntered = true;
+				$store->writeState(['workers' => [['pid' => 202, 'start' => 'notifier']]], WorkerConfiguration::NOTIFICATION);
+				return true;
+			}, WorkerConfiguration::NOTIFICATION);
+		}, WorkerConfiguration::SIGNING));
+		$this->assertTrue($notificationEntered, 'An active signing lock cannot block the notification pool');
+		$this->assertSame(101, $store->readState(WorkerConfiguration::SIGNING)['workers'][0]['pid']);
+		$this->assertSame(202, $store->readState(WorkerConfiguration::NOTIFICATION)['workers'][0]['pid']);
+	}
+
 	public function testContendedLockDoesNotRunTheSecondOperation(): void {
 		$first = new LocalWorkerStateStore($this->directory);
 		$second = new LocalWorkerStateStore($this->directory);
@@ -55,6 +73,20 @@ class LocalWorkerStateStoreTest extends TestCase {
 			return true;
 		}));
 		$this->assertFalse($secondWasCalled, 'Contention must not launch a duplicate worker');
+	}
+
+	public function testAnotherPhpProcessCannotAcquireTheHeldSigningLock(): void {
+		$store = new LocalWorkerStateStore($this->directory);
+		$result = null;
+		$this->assertTrue($store->withExclusiveLock(function () use (&$result): bool {
+			$script = '$fd = fopen($argv[1], "c+"); $wouldBlock = 0; echo flock($fd, LOCK_EX | LOCK_NB, $wouldBlock) ? "acquired" : "blocked"; fclose($fd);';
+			$process = new Process([PHP_BINARY, '-r', $script, $this->directory . '/lock']);
+			$process->setTimeout(5);
+			$process->mustRun();
+			$result = trim($process->getOutput());
+			return true;
+		}));
+		$this->assertSame('blocked', $result, 'An independent PHP process must respect the OS flock');
 	}
 
 	public function testLockIsReleasedAfterAnOperationFails(): void {

@@ -7,11 +7,13 @@ declare(strict_types=1);
 
 namespace OCA\Libresign\Tests\Unit\Service\Worker;
 
+use OCA\Libresign\BackgroundJob\DeliverNotification;
 use OCA\Libresign\BackgroundJob\SignFileJob;
 use OCA\Libresign\Service\Worker\WorkerConfiguration;
 use OCA\Libresign\Service\Worker\WorkerStarter;
 use OCA\Libresign\Vendor\Symfony\Component\Process\Process;
 use OCP\IBinaryFinder;
+use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 
 class WorkerStarterTest extends TestCase {
@@ -57,7 +59,44 @@ class WorkerStarterTest extends TestCase {
 		], $starter->command);
 	}
 
-	public function testDetachedWorkerSurvivesOutputAfterRequestReleasesProcess(): void {
+	public function testNotificationWorkerUsesTheNotificationClassOnly(): void {
+		$finder = $this->createMock(IBinaryFinder::class);
+		$finder->method('findBinaryPath')->willReturn('/usr/bin/php');
+		$config = $this->createMock(WorkerConfiguration::class);
+		$config->method('getNotificationJobClasses')->willReturn([DeliverNotification::class]);
+		$process = $this->createMock(Process::class);
+		$process->method('getPid')->willReturn(10002);
+		$starter = new class($finder, $config, $process) extends WorkerStarter {
+			public array $command = [];
+			public function __construct(
+				IBinaryFinder $finder,
+				WorkerConfiguration $config,
+				private Process $process,
+			) {
+				parent::__construct($finder, $config);
+			}
+			protected function createProcess(array $command): Process {
+				$this->command = $command;
+				return $this->process;
+			}
+		};
+		$this->assertSame(10002, $starter->startWorker(WorkerConfiguration::NOTIFICATION));
+		$this->assertSame([
+			'/usr/bin/php', \OC::$SERVERROOT . '/occ', 'background-job:worker',
+			DeliverNotification::class, '--stop_after=30m', '--interval=0',
+		], $starter->command);
+	}
+
+	/** @return array<string, array{string}> */
+	public static function detachedWorkerPools(): array {
+		return [
+			'signing' => [WorkerConfiguration::SIGNING],
+			'notification' => [WorkerConfiguration::NOTIFICATION],
+		];
+	}
+
+	#[DataProvider('detachedWorkerPools')]
+	public function testDetachedWorkerSurvivesOutputAfterRequestReleasesProcess(string $pool): void {
 		if (PHP_OS_FAMILY !== 'Linux') {
 			$this->markTestSkipped('Detached Linux worker lifetime');
 		}
@@ -83,7 +122,7 @@ class WorkerStarterTest extends TestCase {
 			}
 		};
 		try {
-			$this->assertGreaterThan(0, $starter->startWorker());
+			$this->assertGreaterThan(0, $starter->startWorker($pool));
 			$deadline = microtime(true) + 4;
 			while (!is_file($marker) && microtime(true) < $deadline) {
 				usleep(25000);
