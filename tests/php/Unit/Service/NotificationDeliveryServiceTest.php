@@ -171,13 +171,14 @@ final class NotificationDeliveryServiceTest extends TestCase {
 		$this->service->flushCommitted();
 	}
 
-	public function testExplicitAsyncPolicyQueuesWithoutCallingAnyProvider(): void {
+	public function testAsyncNotificationRemainsQueuedWhenLocalWorkerIsUnavailable(): void {
 		$this->asyncMode = true;
 		$delivery = new NotificationDelivery();
 		$delivery->setId(35);
 		$this->deliveries->method('register')->willReturn($delivery);
 		$this->jobs->expects($this->once())->method('add')->with(DeliverNotification::class, ['id' => 35]);
 		$this->attempts->expects($this->never())->method('begin');
+		$this->activation->expects($this->once())->method('ensureNotificationWorkerRunning')->willReturn(false);
 		$this->assertTrue($this->send(
 			'manual:synthetic', 'sign_request', $this->file, $this->request, 'signer@example.invalid',
 			static function (): void {
