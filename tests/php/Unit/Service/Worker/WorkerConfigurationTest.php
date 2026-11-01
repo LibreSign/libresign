@@ -51,15 +51,22 @@ class WorkerConfigurationTest extends \PHPUnit\Framework\TestCase {
 		$this->assertFalse($this->makeService()->isAsyncLocalEnabled());
 	}
 
-	public function testNotificationWorkersDefaultToExternalWithOneProcess(): void {
+	public function testNotificationWorkersDefaultToLocalWithOneProcess(): void {
 		$this->appConfig->method('getValueString')->willReturnCallback(
 			static fn (string $app, string $key, string $default): string => $default,
 		);
-		$this->assertFalse($this->makeService()->isNotificationLocalEnabled());
+		$this->assertTrue($this->makeService()->isNotificationLocalEnabled());
 		$this->assertSame(1, $this->makeService()->getDesiredNotificationWorkerCount());
 		$this->assertSame([
 			\OCA\Libresign\BackgroundJob\DeliverNotification::class,
 		], $this->makeService()->getNotificationJobClasses());
+	}
+
+	public function testNotificationWorkersCanBeManagedExternally(): void {
+		$this->appConfig->expects($this->once())->method('getValueString')
+			->with(Application::APP_ID, 'notification_worker_type', 'local')
+			->willReturn('external');
+		$this->assertFalse($this->makeService()->isNotificationLocalEnabled());
 	}
 
 	public function testNotificationLocalModeDoesNotRequireAsyncSigning(): void {

@@ -41,7 +41,7 @@ class WorkerConfiguration {
 
 	/** Notification worker selection is independent of signing_mode. */
 	public function isNotificationLocalEnabled(): bool {
-		return $this->appConfig->getValueString(Application::APP_ID, 'notification_worker_type', 'external') === 'local';
+		return $this->appConfig->getValueString(Application::APP_ID, 'notification_worker_type', 'local') === 'local';
 	}
 
 	public function isAsyncSigningEnabled(): bool {
