@@ -26,7 +26,6 @@ use OCA\Libresign\Db\UserElementMapper;
 use OCA\Libresign\Enum\DocMdpLevel;
 use OCA\Libresign\Enum\FileStatus;
 use OCA\Libresign\Enum\FileStatus as FileStatusEnum;
-use OCA\Libresign\Enum\ParticipantRole;
 use OCA\Libresign\Enum\SignatureRejectionBehavior;
 use OCA\Libresign\Enum\SignRequestStatus;
 use OCA\Libresign\Events\SignedEvent;
@@ -42,6 +41,7 @@ use OCA\Libresign\Handler\SignEngine\SignEngineHandler;
 use OCA\Libresign\Helper\JavaHelper;
 use OCA\Libresign\Service\CertificateValidityPolicy;
 use OCA\Libresign\Service\Envelope\EnvelopeStatusDeterminer;
+use OCA\Libresign\Service\File\SigningWorkflowStatusResolver;
 use OCA\Libresign\Service\FileStatusService;
 use OCA\Libresign\Service\FolderService;
 use OCA\Libresign\Service\IdentifyMethod\IIdentifyMethod;
@@ -135,7 +135,6 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	private SignatureRejectionPolicyService&MockObject $signatureRejectionPolicyService;
 	/** @var array<string, mixed> */
 	private array $policyValues = [];
-	private SignatureRejectionBehavior $rejectionBehavior = SignatureRejectionBehavior::CANCEL;
 
 	public function setUp(): void {
 		$this->l10n = $this->createMock(IL10N::class);
@@ -197,7 +196,7 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$this->signatureRejectionPolicyService = $this->createMock(SignatureRejectionPolicyService::class);
 		$this->signatureRejectionPolicyService
 			->method('getBehavior')
-			->willReturnCallback(fn (): SignatureRejectionBehavior => $this->rejectionBehavior);
+			->willReturn(SignatureRejectionBehavior::CANCEL);
 		$this->policyValues = [
 			CollectMetadataPolicy::KEY => false,
 			FooterPolicy::KEY => FooterPolicyValue::encode(FooterPolicyValue::defaults()),
@@ -536,9 +535,9 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 					$this->subjectAlternativeNameService,
 					$this->signRequestService,
 					$this->policyService,
-					$this->signatureRejectionPolicyService,
 					new TemporarySignatureImageService($this->tempManager, $this->l10n),
 					$this->notificationDeliveries,
+					new SigningWorkflowStatusResolver($this->idDocsMapper, $this->signatureRejectionPolicyService),
 				])
 				->onlyMethods($methods)
 				->getMock();
@@ -585,9 +584,9 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			$this->subjectAlternativeNameService,
 			$this->signRequestService,
 			$this->policyService,
-			$this->signatureRejectionPolicyService,
 			new TemporarySignatureImageService($this->tempManager, $this->l10n),
 			$this->notificationDeliveries,
+			new SigningWorkflowStatusResolver($this->idDocsMapper, $this->signatureRejectionPolicyService),
 		);
 	}
 
@@ -994,6 +993,7 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$signRequest = $this->createMock(SignRequest::class);
 		$signRequest->method('__call')->willReturnCallback($signRequestCallback);
 		$libreSignFile = new \OCA\Libresign\Db\File();
+		$libreSignFile->setId(1);
 		$libreSignFile->setStatus($fileStatus);
 		$libreSignFile->resetUpdatedFields();
 
@@ -1036,174 +1036,6 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		for ($i = 0; $i < $signed; $i ++) {
 			$signers[$i]->setSigned(new DateTime());
 		}
-		return $signers;
-	}
-
-	public function testIdDocApprovalReachesSignedWhenUploaderPlaceholderIsUnsigned(): void {
-		$uploader = new SignRequest();
-		$uploader->setId(10);
-		$uploader->setStatus(SignRequestStatus::DRAFT->value);
-
-		$approver = new SignRequest();
-		$approver->setId(20);
-		$approver->setSigned(new DateTime());
-		$approver->setStatus(SignRequestStatus::SIGNED->value);
-
-		$idDocs = new IdDocs();
-		$idDocs->setSignRequestId(10);
-		$this->idDocsMapper
-			->method('getByFileId')
-			->with(1)
-			->willReturn($idDocs);
-
-		$service = $this->getService(['getSigners']);
-		$service->method('getSigners')->willReturn([$uploader, $approver]);
-
-		$signRequest = new SignRequest();
-		$signRequest->setFileId(1);
-		$service->setSignRequest($signRequest);
-
-		$status = self::invokePrivate($service, 'evaluateStatusFromSigners', [new \OCA\Libresign\Db\File()]);
-		$this->assertSame(FileStatus::SIGNED->value, $status);
-	}
-
-	public function testDraftSignersStillCountWhenFileIsNotAnIdentificationDocument(): void {
-		$this->idDocsMapper
-			->method('getByFileId')
-			->willThrowException(new DoesNotExistException('no identification document'));
-
-		$signed = new SignRequest();
-		$signed->setId(1);
-		$signed->setSigned(new DateTime());
-
-		$draft = new SignRequest();
-		$draft->setId(2);
-		$draft->setStatus(SignRequestStatus::DRAFT->value);
-
-		$service = $this->getService(['getSigners']);
-		$service->method('getSigners')->willReturn([$signed, $draft]);
-
-		$signRequest = new SignRequest();
-		$signRequest->setFileId(99);
-		$service->setSignRequest($signRequest);
-
-		$status = self::invokePrivate($service, 'evaluateStatusFromSigners', [new \OCA\Libresign\Db\File()]);
-		$this->assertSame(FileStatus::PARTIAL_SIGNED->value, $status);
-	}
-
-	public function testEvaluateStatusFromSignersIgnoresUnsignedObservers(): void {
-		$this->idDocsMapper
-			->method('getByFileId')
-			->willThrowException(new DoesNotExistException('no identification document'));
-
-		$signed = new SignRequest();
-		$signed->setId(1);
-		$signed->setSigned(new DateTime());
-
-		$observer = new SignRequest();
-		$observer->setId(2);
-		$observer->setParticipantRole(ParticipantRole::OBSERVER->value);
-
-		$service = $this->getService(['getSigners']);
-		$service->method('getSigners')->willReturn([$signed, $observer]);
-
-		$signRequest = new SignRequest();
-		$signRequest->setFileId(99);
-		$service->setSignRequest($signRequest);
-
-		$status = self::invokePrivate($service, 'evaluateStatusFromSigners', [new \OCA\Libresign\Db\File()]);
-		$this->assertSame(FileStatus::SIGNED->value, $status);
-	}
-
-	/**
-	 * @param array{signed: int, rejected: int, pending: int} $signers
-	 */
-	#[DataProvider('providerCompletionAfterARejection')]
-	public function testTheWorkflowCompletesOnlyWhenNobodyElseIsExpectedToAct(
-		SignatureRejectionBehavior $behavior,
-		array $signers,
-		?int $expectedStatus,
-	): void {
-		$this->idDocsMapper
-			->method('getByFileId')
-			->willThrowException(new DoesNotExistException('no identification document'));
-		$this->rejectionBehavior = $behavior;
-
-		$service = $this->getService(['getSigners']);
-		$service->method('getSigners')->willReturn(self::generateSignersWithRejections(
-			$signers['signed'],
-			$signers['rejected'],
-			$signers['pending'],
-		));
-
-		$signRequest = new SignRequest();
-		$signRequest->setFileId(1);
-		$service->setSignRequest($signRequest);
-
-		$status = self::invokePrivate($service, 'evaluateStatusFromSigners', [new \OCA\Libresign\Db\File()]);
-
-		$this->assertSame($expectedStatus, $status);
-	}
-
-	public static function providerCompletionAfterARejection(): array {
-		return [
-			'continue: everybody acted and someone signed' => [
-				SignatureRejectionBehavior::CONTINUE,
-				['signed' => 2, 'rejected' => 1, 'pending' => 0],
-				FileStatus::SIGNED->value,
-			],
-			'continue: someone can still sign' => [
-				SignatureRejectionBehavior::CONTINUE,
-				['signed' => 1, 'rejected' => 1, 'pending' => 1],
-				FileStatus::PARTIAL_SIGNED->value,
-			],
-			'continue: everybody rejected, so no signature was applied' => [
-				SignatureRejectionBehavior::CONTINUE,
-				['signed' => 0, 'rejected' => 2, 'pending' => 0],
-				null,
-			],
-			'continue: a single signer who rejected' => [
-				SignatureRejectionBehavior::CONTINUE,
-				['signed' => 0, 'rejected' => 1, 'pending' => 0],
-				null,
-			],
-			'cancel: a rejection closes the workflow instead of completing it' => [
-				SignatureRejectionBehavior::CANCEL,
-				['signed' => 1, 'rejected' => 1, 'pending' => 0],
-				FileStatus::PARTIAL_SIGNED->value,
-			],
-			'no rejection at all keeps the plain count' => [
-				SignatureRejectionBehavior::CONTINUE,
-				['signed' => 2, 'rejected' => 0, 'pending' => 1],
-				FileStatus::PARTIAL_SIGNED->value,
-			],
-		];
-	}
-
-	/** @return SignRequest[] */
-	private static function generateSignersWithRejections(int $signed, int $rejected, int $pending): array {
-		$signers = [];
-		$id = 0;
-		for ($i = 0; $i < $signed; $i ++) {
-			$signer = new SignRequest();
-			$signer->setId(++$id);
-			$signer->setSigned(new DateTime());
-			$signer->setStatus(SignRequestStatus::SIGNED->value);
-			$signers[] = $signer;
-		}
-		for ($i = 0; $i < $rejected; $i ++) {
-			$signer = new SignRequest();
-			$signer->setId(++$id);
-			$signer->setStatus(SignRequestStatus::REJECTED->value);
-			$signers[] = $signer;
-		}
-		for ($i = 0; $i < $pending; $i ++) {
-			$signer = new SignRequest();
-			$signer->setId(++$id);
-			$signer->setStatus(SignRequestStatus::ABLE_TO_SIGN->value);
-			$signers[] = $signer;
-		}
-
 		return $signers;
 	}
 
