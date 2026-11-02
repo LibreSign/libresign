@@ -192,7 +192,7 @@ import {
 } from '@mdi/js'
 
 import axios from '@nextcloud/axios'
-import { showError } from '@nextcloud/dialogs-v8'
+import { showError } from '@nextcloud/dialogs'
 import { generateOcsUrl } from '@nextcloud/router'
 
 import { FILE_STATUS } from '../../constants.js'

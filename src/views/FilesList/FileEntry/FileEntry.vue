@@ -55,7 +55,7 @@
 import { t } from '@nextcloud/l10n'
 import { ref } from 'vue'
 
-import { showSuccess } from '@nextcloud/dialogs-v8'
+import { showSuccess } from '@nextcloud/dialogs'
 import NcDateTime from '@nextcloud/vue/components/NcDateTime'
 
 import FileEntryActions from './FileEntryActions.vue'

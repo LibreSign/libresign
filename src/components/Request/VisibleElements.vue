@@ -87,7 +87,7 @@
 <script setup lang="ts">
 import axios from '@nextcloud/axios'
 import { getCapabilities } from '@nextcloud/capabilities'
-import { showSuccess, showError } from '@nextcloud/dialogs-v8'
+import { showSuccess, showError } from '@nextcloud/dialogs'
 import { subscribe, unsubscribe, type Event as NextcloudEvent, type EventHandler } from '@nextcloud/event-bus'
 import { loadState } from '@nextcloud/initial-state'
 import { t } from '@nextcloud/l10n'

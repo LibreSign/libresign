@@ -89,7 +89,7 @@ import NcIconSvgWrapper from '@nextcloud/vue/components/NcIconSvgWrapper'
 import NcNoteCard from '@nextcloud/vue/components/NcNoteCard'
 import NcTextArea from '@nextcloud/vue/components/NcTextArea'
 import NcTextField from '@nextcloud/vue/components/NcTextField'
-import { showError } from '@nextcloud/dialogs-v8'
+import { showError } from '@nextcloud/dialogs'
 
 import SignerSelect from './SignerSelect.vue'
 

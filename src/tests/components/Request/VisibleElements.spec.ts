@@ -9,7 +9,7 @@ import type { VueWrapper } from '@vue/test-utils'
 import { createPinia, setActivePinia } from 'pinia'
 import axios from '@nextcloud/axios'
 import { getCapabilities } from '@nextcloud/capabilities'
-import { showError, showSuccess } from '@nextcloud/dialogs-v8'
+import { showError, showSuccess } from '@nextcloud/dialogs'
 import VisibleElements from '../../../components/Request/VisibleElements.vue'
 import { FILE_STATUS } from '../../../constants.js'
 import type { useFilesStore as useFilesStoreType } from '../../../store/files.js'
@@ -47,7 +47,7 @@ vi.mock('@nextcloud/axios', () => ({
 	},
 }))
 
-vi.mock('@nextcloud/dialogs-v8', () => ({
+vi.mock('@nextcloud/dialogs', () => ({
 	showSuccess: vi.fn(),
 	showError: vi.fn(),
 }))

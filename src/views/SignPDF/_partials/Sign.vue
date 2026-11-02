@@ -256,7 +256,7 @@ import { useRoute } from 'vue-router'
 import axios from '@nextcloud/axios'
 import { getCapabilities } from '@nextcloud/capabilities'
 import { loadState } from '@nextcloud/initial-state'
-import { showError, showSuccess } from '@nextcloud/dialogs-v8'
+import { showError, showSuccess } from '@nextcloud/dialogs'
 import { generateOcsUrl } from '@nextcloud/router'
 import { getCurrentUser } from '@nextcloud/auth'
 

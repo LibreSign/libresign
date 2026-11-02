@@ -148,7 +148,7 @@ import { computed, nextTick, ref, watch } from 'vue'
 import md5 from 'blueimp-md5'
 
 import axios from '@nextcloud/axios'
-import { showError } from '@nextcloud/dialogs-v8'
+import { showError } from '@nextcloud/dialogs'
 import { loadState } from '@nextcloud/initial-state'
 import { generateOcsUrl } from '@nextcloud/router'
 

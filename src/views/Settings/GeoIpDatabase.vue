@@ -68,7 +68,7 @@
 
 <script setup lang="ts">
 import { computed, onMounted, ref } from 'vue'
-import { showError, showSuccess } from '@nextcloud/dialogs-v8'
+import { showError, showSuccess } from '@nextcloud/dialogs'
 import { t } from '@nextcloud/l10n'
 
 import NcButton from '@nextcloud/vue/components/NcButton'

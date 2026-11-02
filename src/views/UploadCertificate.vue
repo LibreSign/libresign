@@ -29,7 +29,7 @@ import { t } from '@nextcloud/l10n'
 import { computed, ref } from 'vue'
 
 import axios from '@nextcloud/axios'
-import { showError, showSuccess } from '@nextcloud/dialogs-v8'
+import { showError, showSuccess } from '@nextcloud/dialogs'
 import { generateOcsUrl } from '@nextcloud/router'
 
 import NcButton from '@nextcloud/vue/components/NcButton'

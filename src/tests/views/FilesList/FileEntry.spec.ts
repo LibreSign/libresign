@@ -45,7 +45,7 @@ type FileEntryVm = InstanceType<typeof FileEntry> & {
 
 const t: TranslationFunction = (_app, text) => text
 
-vi.mock('@nextcloud/dialogs-v8', () => ({
+vi.mock('@nextcloud/dialogs', () => ({
 	showSuccess: vi.fn(),
 }))
 
@@ -298,7 +298,7 @@ describe('FileEntry.vue - Individual File Entry', () => {
 	})
 
 	it('shows success message after rename', async () => {
-		const { showSuccess } = await import('@nextcloud/dialogs-v8')
+		const { showSuccess } = await import('@nextcloud/dialogs')
 		const wrapper = createWrapper()
 
 		await wrapper.vm.$nextTick()

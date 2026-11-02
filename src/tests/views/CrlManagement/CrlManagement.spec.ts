@@ -43,7 +43,7 @@ vi.mock('@nextcloud/router', () => ({
 	}),
 }))
 
-vi.mock('@nextcloud/dialogs-v8', () => ({
+vi.mock('@nextcloud/dialogs', () => ({
 	showError: vi.fn((...args: unknown[]) => showErrorMock(...args)),
 	showSuccess: vi.fn((...args: unknown[]) => showSuccessMock(...args)),
 }))

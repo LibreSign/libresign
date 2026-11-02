@@ -33,7 +33,7 @@ vi.mock('@nextcloud/l10n', () => globalThis.mockNextcloudL10n({
 	t: (_app: string, text: string, params?: Record<string, string>) => interpolateL10n(text, params),
 }))
 
-vi.mock('@nextcloud/dialogs-v8', () => ({
+vi.mock('@nextcloud/dialogs', () => ({
 	showError: vi.fn((...args: unknown[]) => showErrorMock(...args)),
 	showSuccess: vi.fn((...args: unknown[]) => showSuccessMock(...args)),
 }))
