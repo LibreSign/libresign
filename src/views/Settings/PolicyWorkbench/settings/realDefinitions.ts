@@ -26,6 +26,7 @@ import { requestSignGroupsRealDefinition } from './request-sign-groups/realDefin
 import { signatureFlowRealDefinition } from './signature-flow/realDefinition'
 import { signatureFooterRealDefinition } from './signature-footer/realDefinition'
 import { signatureHashAlgorithmRealDefinition } from './signature-hash-algorithm/realDefinition'
+import { signatureRejectionRealDefinition } from './signature-rejection/realDefinition'
 import { signatureTextRealDefinition } from './signature-text/realDefinition'
 import { signerGeolocationRealDefinition } from './signer-geolocation/realDefinition'
 import { signerIpGeolocationRealDefinition } from './signer-ip-geolocation/realDefinition'
@@ -45,6 +46,7 @@ export const realDefinitions = {
 	// 2. How signing works
 	signature_flow: { ...signatureFlowRealDefinition, category: 'how-signing-works' },
 	envelope_enabled: { ...envelopeRealDefinition, category: 'how-signing-works' },
+	rejection_enabled: { ...signatureRejectionRealDefinition, category: 'how-signing-works' },
 
 	// 3. What the signer sees
 	add_footer: { ...signatureFooterRealDefinition, category: 'signer-experience' },

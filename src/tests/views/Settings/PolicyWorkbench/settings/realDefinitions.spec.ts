@@ -20,6 +20,7 @@ const expectedTopLevelKeys = [
 	'enable_observer_profile',
 	'signature_flow',
 	'envelope_enabled',
+	'rejection_enabled',
 	'add_footer',
 	'signature_stamp',
 	'show_confetti_after_signing',
@@ -59,10 +60,15 @@ describe('realDefinitions', () => {
 		expect(realDefinitions).not.toHaveProperty('renewal_interval')
 		expect(realDefinitions).not.toHaveProperty('worker_config')
 		expect(realDefinitions).not.toHaveProperty('signature_background_type')
+		expect(realDefinitions).not.toHaveProperty('rejection_behavior')
+		expect(realDefinitions).not.toHaveProperty('rejection_comment_mode')
+		expect(realDefinitions).not.toHaveProperty('rejection_visibility')
+		expect(realDefinitions).not.toHaveProperty('rejection_comment_visibility')
 	})
 
 	it('assigns representative categories to representative policies', () => {
 		expect(realDefinitions.groups_request_sign.category).toBe('who-can-sign')
+		expect(realDefinitions.rejection_enabled.category).toBe('how-signing-works')
 		expect(realDefinitions.add_footer.category).toBe('signer-experience')
 		expect(realDefinitions.legal_information.category).toBe('what-gets-recorded')
 		expect(realDefinitions.docmdp.category).toBe('trust-and-verification')
