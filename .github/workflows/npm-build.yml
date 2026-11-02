@@ -26,6 +26,7 @@ jobs:
 
     outputs:
       src: ${{ steps.changes.outputs.src}}
+      viewer: ${{ steps.changes.outputs.viewer}}
 
     steps:
       - uses: dorny/paths-filter@ceb8a2b8f2d89434be7ff52d3de7ec3738c5cc9d # v4.0.3
@@ -43,6 +44,9 @@ jobs:
               - '**.js'
               - '**.ts'
               - '**.vue'
+            viewer:
+              - 'src/viewer/package.json'
+              - 'src/viewer/package-lock.json'
 
   build:
     runs-on: ubuntu-latest
@@ -85,6 +89,35 @@ jobs:
         run: |
           npm ci
           npm run build --if-present
+
+
+      # Dependabot triggers this check when the isolated Viewer changes.
+      - name: Require Viewer cleanup when dialogs 8 becomes compatible
+        if: needs.changes.outputs.viewer != 'false'
+        run: |
+          test -f src/viewer/package.json || { echo "::error::Remove this obsolete Viewer check with the isolated Viewer."; exit 1; }
+          tmp=$(mktemp -d)
+          trap 'rm -rf "$tmp"' EXIT
+          cp src/viewer/package.json "$tmp/package.json"
+          version=$(node -p "require('./package.json').dependencies['@nextcloud/dialogs']")
+          npm pkg set --prefix "$tmp" "dependencies.@nextcloud/dialogs=$version"
+          if npm install --prefix "$tmp" --package-lock-only --strict-peer-deps --ignore-scripts --no-audit --no-fund >"$tmp/install.log" 2>&1; then
+            if node - "$tmp/package-lock.json" <<'NODE'
+          const p = require(process.argv[2]).packages
+          const compatible = p['node_modules/@nextcloud/viewer']
+            && p['node_modules/@nextcloud/dialogs']?.version?.startsWith('8.')
+            && Object.entries(p).every(([path, pkg]) =>
+              !path.endsWith('/@nextcloud/dialogs') || pkg.version?.startsWith('8.'))
+          process.exit(compatible ? 0 : 1)
+          NODE
+            then
+              echo "::error title=Viewer cleanup available::Remove src/viewer, postinstall, nested Dependabot and REUSE entries; restore direct Viewer import and mocks, then run PDF security and E2E tests."
+              exit 1
+            fi
+          elif ! grep -q 'ERESOLVE' "$tmp/install.log"; then
+            cat "$tmp/install.log"
+            exit 1
+          fi
 
       - name: Check build changes
         run: |
