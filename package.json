@@ -104,7 +104,7 @@
     "vite": "^8.3.5",
     "vite-plugin-node-polyfills": "^0.28.0",
     "vitest": "^5.0.0",
-    "vue-tsc": "^3.3.13"
+    "vue-tsc": "^3.3.14"
   },
   "engines": {
     "node": "^24.0.0",
