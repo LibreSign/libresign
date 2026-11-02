@@ -21,7 +21,9 @@
 		"allowImportingTsExtensions": true,
 		"noUncheckedIndexedAccess": false,
 		"strictNullChecks": true,
-		"types": [],
+		"types": [
+			"node"
+		],
 		"lib": [
 			"ESNext",
 			"DOM",
