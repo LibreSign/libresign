@@ -15,6 +15,7 @@ use OCA\Libresign\Service\IdentifyMethod\IIdentifyMethod;
 use OCA\Libresign\Service\IdentifyMethodService;
 use OCP\AppFramework\Db\DoesNotExistException;
 use OCP\AppFramework\Db\Entity;
+use OCP\AppFramework\Db\TTransactional;
 use OCP\DB\QueryBuilder\IQueryBuilder;
 use OCP\ICacheFactory;
 use OCP\IDBConnection;
@@ -29,7 +30,7 @@ use OCP\IUser;
  * @template-extends CachedQBMapper<SignRequest>
  */
 class SignRequestMapper extends CachedQBMapper {
-	private bool $firstNotification = false;
+	use TTransactional;
 
 	public function __construct(
 		IDBConnection $db,
@@ -72,31 +73,69 @@ class SignRequestMapper extends CachedQBMapper {
 	 * @return boolean true when is the first notification
 	 */
 	public function incrementNotificationCounter(SignRequest $signRequest, string $method): bool {
-		$this->db->beginTransaction();
-		try {
-			$fromDatabase = $this->getById($signRequest->getId());
-			$metadata = $fromDatabase->getMetadata();
-			if (!isset($metadata['notify'])) {
-				$this->firstNotification = true;
+		return $this->atomic(function () use ($signRequest, $method): bool {
+			// Bypass entity caches: mail, activity and in-app notification
+			// listeners share this JSON log. Lock the latest DB row so two
+			// writers cannot replace each other's entries.
+			$qb = $this->db->getQueryBuilder();
+			$qb->select('*')
+				->from($this->getTableName())
+				->where($qb->expr()->eq('id', $qb->createNamedParameter($signRequest->getId(), IQueryBuilder::PARAM_INT)));
+			if ($this->db->getDatabaseProvider() !== IDBConnection::PLATFORM_SQLITE) {
+				$qb->forUpdate();
+			}
+			/** @var SignRequest $fromDatabase */
+			$fromDatabase = $this->findEntity($qb);
+			$metadata = $fromDatabase->getMetadata() ?? [];
+			// First in THIS channel, not first across unrelated channels.
+			// The shared legacy history and its reminder dates are preserved.
+			$isFirstNotification = true;
+			foreach ($metadata['notify'] ?? [] as $notification) {
+				if (($notification['method'] ?? null) === $method) {
+					$isFirstNotification = false;
+					break;
+				}
 			}
 
-			$notificationEntry = [
-				'method' => $method,
-				'date' => time(),
-			];
-
-			if (!empty($fromDatabase->getDescription())) {
-				$notificationEntry['description'] = $fromDatabase->getDescription();
+			$entry = ['method' => $method, 'date' => time()];
+			if ($fromDatabase->getDescription() !== null && $fromDatabase->getDescription() !== '') {
+				$entry['description'] = $fromDatabase->getDescription();
 			}
-
-			$metadata['notify'][] = $notificationEntry;
+			$metadata['notify'][] = $entry;
 			$fromDatabase->setMetadata($metadata);
 			$this->update($fromDatabase);
-			$this->db->commit();
-		} catch (\Throwable) {
-			$this->db->rollBack();
+			return $isFirstNotification;
+		}, $this->db);
+	}
+
+	/**
+	 * Delete only while the signing evidence is still absent in the database.
+	 *
+	 * An earlier read is not sufficient: a concurrent signer may have completed
+	 * the request after the service checked its status.
+	 */
+	public function deleteIfUnsigned(SignRequest $signRequest): bool {
+		$id = $signRequest->getId();
+		if ($id === null) {
+			throw new \InvalidArgumentException('Sign request must be persisted before removal');
 		}
-		return $this->firstNotification;
+
+		$qb = $this->db->getQueryBuilder();
+		$deleted = $qb->delete($this->getTableName())
+			->where($qb->expr()->eq('id', $qb->createNamedParameter($id, IQueryBuilder::PARAM_INT)))
+			->andWhere($qb->expr()->neq('status', $qb->createNamedParameter(SignRequestStatus::SIGNED->value, IQueryBuilder::PARAM_INT)))
+			->andWhere($qb->expr()->isNull('signed'))
+			->andWhere($qb->expr()->isNull('signed_hash'))
+			->executeStatement();
+
+		if ($deleted === 1) {
+			$this->invalidateCachedEntity($signRequest);
+			if ($signRequest->getUuid() !== '') {
+				$this->cacheRemove('uuid:' . $signRequest->getUuid());
+			}
+		}
+
+		return $deleted === 1;
 	}
 
 	/**
@@ -169,6 +208,27 @@ class SignRequestMapper extends CachedQBMapper {
 		$signRequest = $this->findEntity($qb);
 		$this->cacheEntity($signRequest);
 		return $signRequest;
+	}
+
+	/**
+	 * Read and lock every signing request for a file until the current database
+	 * transaction ends. Do not use cached entities for integrity decisions.
+	 *
+	 * @return list<SignRequest>
+	 */
+	public function getByFileIdForUpdate(int $fileId): array {
+		$qb = $this->db->getQueryBuilder();
+		$qb->select('*')
+			->from($this->getTableName())
+			->where($qb->expr()->eq('file_id', $qb->createNamedParameter($fileId, IQueryBuilder::PARAM_INT)))
+			->orderBy('id', 'ASC');
+		// SQLite serializes writers and does not support SELECT FOR UPDATE.
+		if ($this->db->getDatabaseProvider() !== IDBConnection::PLATFORM_SQLITE) {
+			$qb->forUpdate();
+		}
+
+		/** @var list<SignRequest> */
+		return $this->findEntities($qb);
 	}
 
 	/**
@@ -253,6 +313,54 @@ class SignRequestMapper extends CachedQBMapper {
 			$this->cacheEntity($signRequest);
 		}
 		return $signRequests;
+	}
+
+	/**
+	 * Resolve only the envelope children with the same full identification as
+	 * the selected parent signer. A shared email alone does not identify the
+	 * same participant when their account or other factors differ.
+	 *
+	 * @return list<SignRequest>
+	 */
+	public function getEnvelopeChildrenForRemoval(int $parentFileId, int $signRequestId): array {
+		$candidates = $this->getByEnvelopeChildrenAndIdentifyMethod($parentFileId, $signRequestId);
+		if ($candidates === []) {
+			return [];
+		}
+
+		$ids = array_merge([$signRequestId], array_map(
+			static fn (SignRequest $signer): int => $signer->getId(),
+			$candidates,
+		));
+		$qb = $this->db->getQueryBuilder();
+		$qb->select('sign_request_id', 'identifier_key', 'identifier_value')
+			->from('libresign_identify_method')
+			->where($qb->expr()->in('sign_request_id', $qb->createNamedParameter($ids, IQueryBuilder::PARAM_INT_ARRAY)));
+
+		$identities = [];
+		$result = $qb->executeQuery();
+		try {
+			while ($method = $result->fetch()) {
+				$id = (int)$method['sign_request_id'];
+				$factor = $method['identifier_key'] . chr(0) . $method['identifier_value'];
+				$identities[$id][$factor] = true;
+			}
+		} finally {
+			$result->closeCursor();
+		}
+
+		$parentIdentity = $identities[$signRequestId] ?? [];
+		if ($parentIdentity === []) {
+			return [];
+		}
+
+		return array_values(array_filter($candidates,
+			static function (SignRequest $child) use ($parentIdentity, $identities): bool {
+				$childIdentity = $identities[$child->getId()] ?? [];
+				return count($parentIdentity) === count($childIdentity)
+					&& array_diff_key($parentIdentity, $childIdentity) === [];
+			},
+		));
 	}
 
 	/**

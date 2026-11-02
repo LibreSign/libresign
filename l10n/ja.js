@@ -105,8 +105,6 @@ OC.L10N.register(
     "Hide details" : "詳細を隠す",
     "Show details" : "詳細を見る",
     "Country:" : "国:",
-    "Expiration:" : "期限切れ:",
-    "No date" : "日付なし",
     "Yes" : "はい",
     "No" : "いいえ",
     "Error" : "エラー",

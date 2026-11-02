@@ -29,6 +29,8 @@ use OCA\Libresign\Middleware\GlobalInjectionMiddleware;
 use OCA\Libresign\Middleware\InjectionMiddleware;
 use OCA\Libresign\Notification\Notifier;
 use OCA\Libresign\Search\FileSearchProvider;
+use OCA\Libresign\Service\Notification\NotificationEventRouter;
+use OCA\Libresign\Service\Notification\NotificationModuleCatalog;
 use OCP\AppFramework\App;
 use OCP\AppFramework\Bootstrap\IBootContext;
 use OCP\AppFramework\Bootstrap\IBootstrap;
@@ -36,6 +38,8 @@ use OCP\AppFramework\Bootstrap\IRegistrationContext;
 use OCP\Files\Cache\CacheEntryRemovedEvent;
 use OCP\Files\Events\Node\BeforeNodeDeletedEvent;
 use OCP\User\Events\UserDeletedEvent;
+use Psr\Container\ContainerInterface;
+use Psr\Log\LoggerInterface;
 
 /**
  * @codeCoverageIgnore
@@ -74,22 +78,27 @@ class Application extends App implements IBootstrap {
 		$context->registerEventListener(SignRequestCanceledEvent::class, ActivityListener::class);
 		$context->registerEventListener(SignatureRejectedEvent::class, ActivityListener::class);
 
-		// Notification listeners
-		$context->registerEventListener(SendSignNotificationEvent::class, NotificationListener::class);
-		$context->registerEventListener(SignedEvent::class, NotificationListener::class);
-		$context->registerEventListener(SignRequestCanceledEvent::class, NotificationListener::class);
-
-		// MailNotify listener
-		$context->registerEventListener(SendSignNotificationEvent::class, MailNotifyListener::class);
-		$context->registerEventListener(SignedEvent::class, MailNotifyListener::class);
-		$context->registerEventListener(SignRequestCanceledEvent::class, MailNotifyListener::class);
-
-		// Certificate Revocation listener
+		// One dispatcher isolates channel failures. New delivery channels
+		// register one handler here without changing existing channels.
+		// Each module declares the business events that it supports.
+		// Add one module here; do not edit existing channels or the router.
+		$context->registerService(NotificationModuleCatalog::class, static fn (ContainerInterface $container): NotificationModuleCatalog => new NotificationModuleCatalog([
+			$container->get(NotificationListener::class),
+			$container->get(MailNotifyListener::class),
+			$container->get(TwofactorGatewayListener::class),
+		]));
+		$context->registerService(NotificationEventRouter::class, static fn (ContainerInterface $container): NotificationEventRouter => NotificationEventRouter::fromModules(
+			$container->get(NotificationModuleCatalog::class)->all(),
+			$container->get(LoggerInterface::class),
+			$container->get(\OCP\IDBConnection::class),
+		));
+		// Certificate revocation is part of the signing lifecycle. Do not
+		// postpone it until external transports have returned.
 		$context->registerEventListener(SignedEvent::class, RevokeClickToSignCertificateListener::class);
 
-		// TwofactorGateway listener
-		$context->registerEventListener(SendSignNotificationEvent::class, TwofactorGatewayListener::class);
-		$context->registerEventListener(SignedEvent::class, TwofactorGatewayListener::class);
+		$context->registerEventListener(SendSignNotificationEvent::class, NotificationEventRouter::class);
+		$context->registerEventListener(SignedEvent::class, NotificationEventRouter::class);
+		$context->registerEventListener(SignRequestCanceledEvent::class, NotificationEventRouter::class);
 
 		$context->registerEventListener(UserDeletedEvent::class, UserDeletedListener::class);
 

@@ -86,7 +86,6 @@ OC.L10N.register(
     "Hide details" : "הסתרת פרטים",
     "Show details" : "הצגת פרטים",
     "Country:" : "ארץ:",
-    "No date" : "No date",
     "Yes" : "כן",
     "No" : "לא",
     "Error" : "שגיאה",

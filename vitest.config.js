@@ -9,6 +9,11 @@ import vue from '@vitejs/plugin-vue'
 
 export default defineConfig({
 	plugins: [vue()],
+	server: {
+		fs: {
+			strict: process.env.STRYKER_MUTATOR_WORKER === undefined,
+		},
+	},
 	resolve: {
 		alias: [
 			{

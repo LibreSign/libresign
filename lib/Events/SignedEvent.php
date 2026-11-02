@@ -28,6 +28,11 @@ class SignedEvent extends Event {
 	) {
 	}
 
+	public function getDeliveryEventId(): string {
+		// Idempotent for a repeat of the same completed signature.
+		return 'signed:' . $this->signRequest->getUuid() . ':' . ($this->signRequest->getSignedHash() ?? '');
+	}
+
 	public function getLibreSignFile(): FileEntity {
 		return $this->libreSignFile;
 	}

@@ -123,6 +123,21 @@ class SignerElementsService {
 	}
 
 	/**
+	 * Unauthenticated signers may only reach elements stored in their own session folder
+	 *
+	 * @throws DoesNotExistException
+	 */
+	public function getElementFromSessionByNodeId(int $nodeId): File {
+		foreach ($this->getElementsFromSession() as $element) {
+			if ($element instanceof File && $element->getId() === $nodeId) {
+				return $element;
+			}
+		}
+		// TRANSLATORS Error when a visible signature element linked to the user account cannot be found.
+		throw new DoesNotExistException($this->l10n->t('Element not found'));
+	}
+
+	/**
 	 * @return LibresignUserElement[]
 	 */
 	public function getElementsFromSessionAsArray(): array {

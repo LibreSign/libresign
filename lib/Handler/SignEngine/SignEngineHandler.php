@@ -12,6 +12,7 @@ use InvalidArgumentException;
 use OCA\Libresign\DataObjects\VisibleElementAssoc;
 use OCA\Libresign\Exception\EmptyCertificateException;
 use OCA\Libresign\Exception\LibresignException;
+use OCA\Libresign\Exception\PasswordToSignNotDefinedException;
 use OCA\Libresign\Handler\CertificateEngine\CertificateEngineFactory;
 use OCA\Libresign\Handler\CertificateEngine\IEngineHandler;
 use OCA\Libresign\Service\FolderService;
@@ -207,14 +208,14 @@ abstract class SignEngineHandler implements IPkcs12SignEngineHandler {
 			$certificate = $node->getContent();
 		} catch (NotFoundException) {
 			// TRANSLATORS Error shown to the signer when LibreSign has no stored signing certificate/password yet; they must create a signing password before signing.
-			throw new LibresignException($this->l10n->t('Password to sign not defined. Create a password to sign.'), 400);
+			throw new PasswordToSignNotDefinedException($this->l10n->t('Password to sign not defined. Create a password to sign.'), 400);
 		} finally {
 			$this->folderService->setUserId($previousUserId);
 		}
 
 		if (empty($certificate)) {
 			// TRANSLATORS Error shown to the signer when LibreSign has no stored signing certificate/password yet; they must create a signing password before signing.
-			throw new LibresignException($this->l10n->t('Password to sign not defined. Create a password to sign.'), 400);
+			throw new PasswordToSignNotDefinedException($this->l10n->t('Password to sign not defined. Create a password to sign.'), 400);
 		}
 		return $certificate;
 	}

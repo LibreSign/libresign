@@ -10,32 +10,47 @@ namespace OCA\Libresign\Listener;
 
 use OCA\Libresign\Db\File as FileEntity;
 use OCA\Libresign\Db\SignRequest;
-use OCA\Libresign\Db\SignRequestMapper;
 use OCA\Libresign\Events\SendSignNotificationEvent;
 use OCA\Libresign\Events\SignedEvent;
 use OCA\Libresign\Events\SignRequestCanceledEvent;
+use OCA\Libresign\Exception\LibresignException;
 use OCA\Libresign\Service\IdentifyMethod\IdentifyService;
 use OCA\Libresign\Service\IdentifyMethod\IIdentifyMethod;
-use OCA\Libresign\Service\MailService;
+use OCA\Libresign\Service\Notification\MailChannel;
+use OCA\Libresign\Service\Notification\MailPayload;
+use OCA\Libresign\Service\Notification\NotificationHistoryService;
+use OCA\Libresign\Service\Notification\NotificationMessage;
+use OCA\Libresign\Service\Notification\NotificationModule;
+use OCA\Libresign\Service\NotificationDeliveryService;
 use OCA\Libresign\Service\NotificationPreferenceResolver;
 use OCP\EventDispatcher\Event;
-use OCP\EventDispatcher\IEventListener;
 use OCP\IUser;
 use OCP\IUserManager;
 use OCP\IUserSession;
 use Psr\Log\LoggerInterface;
 
-/** @template-implements IEventListener<Event> */
-class MailNotifyListener implements IEventListener {
+class MailNotifyListener implements NotificationModule {
 	public function __construct(
 		protected IUserSession $userSession,
 		protected IUserManager $userManager,
 		protected IdentifyService $identifyService,
-		protected MailService $mail,
-		private SignRequestMapper $signRequestMapper,
+		private MailChannel $mailChannel,
 		private LoggerInterface $logger,
 		private NotificationPreferenceResolver $notificationPreferenceResolver,
+		private NotificationDeliveryService $deliveryService,
+		private NotificationHistoryService $history,
 	) {
+	}
+
+	#[\Override]
+	public function transport(): \OCA\Libresign\Service\Notification\NotificationChannel {
+		return $this->mailChannel;
+	}
+
+	/** @return list<class-string<Event>> */
+	#[\Override]
+	public static function supportedEvents(): array {
+		return [SendSignNotificationEvent::class, SignedEvent::class, SignRequestCanceledEvent::class];
 	}
 
 	#[\Override]
@@ -45,17 +60,21 @@ class MailNotifyListener implements IEventListener {
 			SendSignNotificationEvent::class => $this->sendSignMailNotification(
 				$event->getSignRequest(),
 				$event->getIdentifyMethod(),
+				$event->getLibreSignFile(),
+				$event->getDeliveryEventId(),
 			),
 			SignedEvent::class => $this->sendSignedMailNotification(
 				$event->getSignRequest(),
 				$event->getIdentifyMethod(),
 				$event->getLibreSignFile(),
 				$event->getUser(),
+				$event->getDeliveryEventId(),
 			),
 			SignRequestCanceledEvent::class => $this->sendCanceledMailNotification(
 				$event->getSignRequest(),
 				$event->getIdentifyMethod(),
 				$event->getLibreSignFile(),
+				$event->getDeliveryEventId(),
 			),
 		};
 	}
@@ -63,6 +82,8 @@ class MailNotifyListener implements IEventListener {
 	protected function sendSignMailNotification(
 		SignRequest $signRequest,
 		IIdentifyMethod $identifyMethod,
+		FileEntity $file,
+		string $eventId,
 	): void {
 		try {
 			if ($identifyMethod->getEntity()->isDeletedAccount()) {
@@ -71,9 +92,7 @@ class MailNotifyListener implements IEventListener {
 			$email = '';
 			if ($identifyMethod->getName() === 'account') {
 				$userId = $identifyMethod->getEntity()->getIdentifierValue();
-				$email = $this->userManager
-					->get($userId)
-					->getEMailAddress();
+				$email = $this->userManager->get($userId)?->getEMailAddress() ?? '';
 			} elseif ($identifyMethod->getName() === 'email') {
 				$email = $identifyMethod->getEntity()->getIdentifierValue();
 			}
@@ -93,12 +112,14 @@ class MailNotifyListener implements IEventListener {
 				}
 			}
 
-			$isFirstNotification = $this->signRequestMapper->incrementNotificationCounter($signRequest, 'mail');
-			if ($isFirstNotification) {
-				$this->mail->notifyUnsignedUser($signRequest, $email, $signRequest->getDescription());
-				return;
-			}
-			$this->mail->notifySignDataUpdated($signRequest, $email, $signRequest->getDescription());
+			$this->deliveryService->dispatch(
+				new NotificationMessage(
+					$eventId, 'sign_request', 'mail', $file, $signRequest, $email,
+					new MailPayload(firstNotification: $this->history->isFirst($signRequest, 'mail')),
+					'mail',
+				),
+				$this->mailChannel,
+			);
 		} catch (\InvalidArgumentException $e) {
 			$this->logger->error($e->getMessage(), ['exception' => $e]);
 			return;
@@ -110,6 +131,7 @@ class MailNotifyListener implements IEventListener {
 		IIdentifyMethod $identifyMethod,
 		FileEntity $libreSignFile,
 		IUser $user,
+		string $eventId,
 	): void {
 		try {
 			if ($libreSignFile->hasParent()) {
@@ -132,7 +154,10 @@ class MailNotifyListener implements IEventListener {
 				return;
 			}
 
-			$this->mail->notifySignedUser($signRequest, $email, $libreSignFile, $user->getDisplayName());
+			$this->deliveryService->dispatch(
+				new NotificationMessage($eventId, 'file_signed', 'mail', $libreSignFile, $signRequest, $email, new MailPayload($user->getDisplayName())),
+				$this->mailChannel,
+			);
 
 		} catch (\InvalidArgumentException $e) {
 			$this->logger->error($e->getMessage(), ['exception' => $e]);
@@ -144,6 +169,7 @@ class MailNotifyListener implements IEventListener {
 		SignRequest $signRequest,
 		IIdentifyMethod $identifyMethod,
 		FileEntity $libreSignFile,
+		string $eventId,
 	): void {
 		try {
 			if ($identifyMethod->getEntity()->isDeletedAccount()) {
@@ -173,7 +199,15 @@ class MailNotifyListener implements IEventListener {
 				}
 			}
 
-			$this->mail->notifyCanceledRequest($signRequest, $email, $libreSignFile);
+			try {
+				$this->deliveryService->dispatch(
+					new NotificationMessage($eventId, 'sign_request_canceled', 'mail', $libreSignFile, $signRequest, $email, new MailPayload()),
+					$this->mailChannel,
+				);
+			} catch (LibresignException) {
+				// Mail failures must not undo an otherwise committed cancellation.
+				return;
+			}
 
 		} catch (\InvalidArgumentException $e) {
 			$this->logger->error($e->getMessage(), ['exception' => $e]);

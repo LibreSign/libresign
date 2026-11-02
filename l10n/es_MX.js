@@ -91,8 +91,6 @@ OC.L10N.register(
     "Hide details" : "Ocultar detalles",
     "Show details" : "Mostrar detalles",
     "Country:" : "País:",
-    "Expiration:" : "Caducidad:",
-    "No date" : "Sin fecha",
     "Yes" : "Sí",
     "No" : "No",
     "Error" : "Error",

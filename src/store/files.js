@@ -1310,7 +1310,7 @@ const _filesStore = defineStore('files', () => {
 			? policy.overrides
 			: {}
 		const policyOverrides = Object.fromEntries(
-			Object.entries(rawPolicyOverrides).filter(([key]) => key !== 'signature_flow' && key !== 'add_footer')
+			Object.entries(rawPolicyOverrides).filter(([key]) => key !== 'signature_flow' && key !== 'add_footer'),
 		)
 		const requestedSignatureFlow = rawPolicyOverrides.signature_flow ?? selectedFile?.signatureFlow ?? null
 		if (canUseSignatureFlowOverride && (requestedSignatureFlow === 'none' || requestedSignatureFlow === 'parallel' || requestedSignatureFlow === 'ordered_numeric')) {

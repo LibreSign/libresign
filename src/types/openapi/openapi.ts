@@ -561,6 +561,23 @@ export type paths = {
         patch?: never;
         trace?: never;
     };
+    "/ocs/v2.php/apps/libresign/api/{apiVersion}/notify/status": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Read the status of one manual reminder, including each channel. */
+        get: operations["notify-status"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/ocs/v2.php/apps/libresign/api/{apiVersion}/notify/notification": {
         parameters: {
             query?: never;
@@ -1442,6 +1459,15 @@ export type components = {
             status?: number;
             participantRole?: components["schemas"]["ParticipantRole"];
             deviceGeolocationRequired?: boolean;
+        };
+        NotificationStatusResponse: {
+            /** @enum {string} */
+            status: "processing" | "completed" | "attention_required" | "not_found";
+            complete: boolean;
+            channels: {
+                channel: string;
+                state: string;
+            }[];
         };
         Notify: {
             /** Format: int64 */
@@ -3747,7 +3773,7 @@ export interface operations {
             };
         };
         responses: {
-            /** @description OK */
+            /** @description Request processed */
             200: {
                 headers: {
                     [name: string]: unknown;
@@ -3761,8 +3787,36 @@ export interface operations {
                     };
                 };
             };
-            /** @description Unauthorized */
-            401: {
+            /** @description Request cannot be processed */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        ocs: {
+                            meta: components["schemas"]["OCSMeta"];
+                            data: components["schemas"]["MessageResponse"] | components["schemas"]["ActionErrorResponse"];
+                        };
+                    };
+                };
+            };
+            /** @description Unexpected server error */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        ocs: {
+                            meta: components["schemas"]["OCSMeta"];
+                            data: components["schemas"]["DangerMessagesResponse"];
+                        };
+                    };
+                };
+            };
+            /** @description Transport did not confirm submission */
+            502: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -3802,11 +3856,13 @@ export interface operations {
                      * @description The sign request id
                      */
                     signRequestId: number;
+                    /** @description Optional random idempotency key (32 lowercase hex characters) */
+                    requestId?: string | null;
                 };
             };
         };
         responses: {
-            /** @description OK */
+            /** @description Request processed */
             200: {
                 headers: {
                     [name: string]: unknown;
@@ -3820,8 +3876,22 @@ export interface operations {
                     };
                 };
             };
-            /** @description Unauthorized */
-            401: {
+            /** @description Request cannot be processed */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        ocs: {
+                            meta: components["schemas"]["OCSMeta"];
+                            data: components["schemas"]["MessageResponse"] | components["schemas"]["ActionErrorResponse"];
+                        };
+                    };
+                };
+            };
+            /** @description Unexpected server error */
+            500: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -3830,6 +3900,57 @@ export interface operations {
                         ocs: {
                             meta: components["schemas"]["OCSMeta"];
                             data: components["schemas"]["DangerMessagesResponse"];
+                        };
+                    };
+                };
+            };
+            /** @description Transport did not confirm submission */
+            502: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        ocs: {
+                            meta: components["schemas"]["OCSMeta"];
+                            data: components["schemas"]["DangerMessagesResponse"];
+                        };
+                    };
+                };
+            };
+        };
+    };
+    "notify-status": {
+        parameters: {
+            query: {
+                /** @description The LibreSign file ID */
+                fileId: number;
+                /** @description The sign request ID */
+                signRequestId: number;
+                /** @description The random idempotency key used in the POST request */
+                requestId: string;
+            };
+            header: {
+                /** @description Required to be true for the API request to pass */
+                "OCS-APIRequest": boolean;
+            };
+            path: {
+                apiVersion: "v1";
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Current notification states */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        ocs: {
+                            meta: components["schemas"]["OCSMeta"];
+                            data: components["schemas"]["NotificationStatusResponse"];
                         };
                     };
                 };

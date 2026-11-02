@@ -41,6 +41,37 @@ class WorkerActivationServiceTest extends TestCase {
 		$service = new WorkerActivationService($config, $coordinator, $this->createMock(LoggerInterface::class));
 		$this->assertTrue($service->ensureWorkerRunning());
 	}
+	public function testNotificationExternalModeNeverStartsLocalWorkers(): void {
+		$config = $this->createMock(WorkerConfiguration::class);
+		$config->method('isNotificationLocalEnabled')->willReturn(false);
+		$coordinator = $this->createMock(LocalWorkerCoordinator::class);
+		$coordinator->expects($this->never())->method('ensureCapacity');
+		$service = new WorkerActivationService($config, $coordinator, $this->createMock(LoggerInterface::class));
+		$this->assertFalse($service->ensureNotificationWorkerRunning());
+	}
+
+	public function testNotificationPoolStartsIndependentlyOfSigning(): void {
+		$config = $this->createMock(WorkerConfiguration::class);
+		$config->method('isNotificationLocalEnabled')->willReturn(true);
+		$config->method('getDesiredNotificationWorkerCount')->willReturn(2);
+		$coordinator = $this->createMock(LocalWorkerCoordinator::class);
+		$coordinator->expects($this->once())->method('ensureCapacity')
+			->with(2, WorkerConfiguration::NOTIFICATION)->willReturn(true);
+		$service = new WorkerActivationService($config, $coordinator, $this->createMock(LoggerInterface::class));
+		$this->assertTrue($service->ensureNotificationWorkerRunning());
+	}
+
+	public function testNotificationWorkerStartFailureLeavesTheQueuedJobForCron(): void {
+		$config = $this->createMock(WorkerConfiguration::class);
+		$config->method('isNotificationLocalEnabled')->willReturn(true);
+		$coordinator = $this->createMock(LocalWorkerCoordinator::class);
+		$coordinator->method('ensureCapacity')->willThrowException(new \RuntimeException('Cannot start PHP CLI'));
+		$logger = $this->createMock(LoggerInterface::class);
+		$logger->expects($this->once())->method('warning')->with($this->stringContains('notification'));
+		$service = new WorkerActivationService($config, $coordinator, $logger);
+		$this->assertFalse($service->ensureNotificationWorkerRunning());
+	}
+
 	public function testExternalModeNeverStartsLocalWorkers(): void {
 		$config = $this->createMock(WorkerConfiguration::class);
 		$config->method('isAsyncLocalEnabled')->willReturn(false);

@@ -21,6 +21,7 @@ use OCA\Libresign\Service\Policy\Provider\IdentificationDocuments\Identification
 use OCA\Libresign\Service\Policy\Provider\IdentifyMethods\IdentifyMethodsPolicy;
 use OCA\Libresign\Service\Policy\Provider\LegalInformation\LegalInformationPolicy;
 use OCA\Libresign\Service\Policy\Provider\MailSenderStrategy\MailSenderStrategyPolicy;
+use OCA\Libresign\Service\Policy\Provider\NotificationDelivery\NotificationDeliveryModePolicy;
 use OCA\Libresign\Service\Policy\Provider\ObserverProfile\ObserverProfilePolicy;
 use OCA\Libresign\Service\Policy\Provider\Reminder\ReminderPolicy;
 use OCA\Libresign\Service\Policy\Provider\RequestSignGroups\RequestSignGroupsPolicy;
@@ -53,6 +54,7 @@ final class PolicyProviders {
 		DefaultUserFolderPolicy::KEY => DefaultUserFolderPolicy::class,
 		LegalInformationPolicy::KEY => LegalInformationPolicy::class,
 		MailSenderStrategyPolicy::KEY => MailSenderStrategyPolicy::class,
+		NotificationDeliveryModePolicy::KEY => NotificationDeliveryModePolicy::class,
 		SignatureHashAlgorithmPolicy::KEY => SignatureHashAlgorithmPolicy::class,
 		SignatureRejectionPolicy::KEY_ENABLED => SignatureRejectionPolicy::class,
 		SignatureRejectionPolicy::KEY_BEHAVIOR => SignatureRejectionPolicy::class,

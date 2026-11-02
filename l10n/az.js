@@ -43,7 +43,6 @@ OC.L10N.register(
     "Name:" : "Ad:",
     "Private" : "Gizli",
     "Country:" : "Ölkə:",
-    "No date" : "No date",
     "Yes" : "Yes",
     "No" : "No",
     "Error" : "Səhv",

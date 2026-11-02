@@ -88,8 +88,6 @@ OC.L10N.register(
     "Number of documents:" : "–±–∞—Ä–∏–º—Ç –±–∏—á–≥–∏–π–Ω —Ç–æ–æ",
     "Hide details" : "Дэлгэрэнгүйг нуух",
     "Show details" : "Дэлгэрэнгүйг харуулах",
-    "Expiration:" : "Хугацаа дуусах:",
-    "No date" : "No date",
     "Yes" : "–¢–∏–π–º",
     "No" : "“Æ–≥“Ø–π",
     "Error" : "–ê–ª–¥–∞–∞",

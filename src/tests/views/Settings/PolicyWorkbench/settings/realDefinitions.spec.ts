@@ -38,6 +38,7 @@ const expectedTopLevelKeys = [
 	'make_validation_url_private',
 	'signing_mode',
 	'mail_sender_strategy',
+	'notification_delivery_mode',
 ] as const
 
 describe('realDefinitions', () => {
@@ -66,5 +67,6 @@ describe('realDefinitions', () => {
 		expect(realDefinitions.docmdp.category).toBe('trust-and-verification')
 		expect(realDefinitions.signing_mode.category).toBe('system-behavior')
 		expect(realDefinitions.mail_sender_strategy.category).toBe('system-behavior')
+		expect(realDefinitions.notification_delivery_mode.category).toBe('system-behavior')
 	})
 })

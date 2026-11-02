@@ -392,8 +392,8 @@ describe('CertificateChain', () => {
 			await wrapper.vm.$nextTick()
 
 			const text = wrapper.findAll('.cert-details').at(0)!.text()
-			expect(text).toContain('Valid from:')
-			expect(text).toContain('Valid to:')
+			expect(text).toContain('Certificate valid from:')
+			expect(text).toContain('Certificate valid until:')
 		})
 
 		it('returns empty string for null timestamp', () => {
@@ -417,7 +417,7 @@ describe('CertificateChain', () => {
 			await wrapper.vm.$nextTick()
 
 			const text = wrapper.findAll('.cert-details').at(0)!.text()
-			expect(text).not.toContain('Valid from:')
+			expect(text).not.toContain('Certificate valid from:')
 		})
 	})
 
@@ -567,7 +567,7 @@ describe('CertificateChain', () => {
 			expect(text).toContain('Issued by:')
 			expect(text).toContain('Intermediate CA')
 			expect(text).toContain('Serial Number:')
-			expect(text).toContain('Valid from:')
+			expect(text).toContain('Certificate valid from:')
 		})
 
 		it('handles certificates with minimal fields', async () => {

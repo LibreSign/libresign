@@ -11,7 +11,9 @@ namespace OCA\Libresign\Service;
 use OCA\Libresign\Db\File;
 use OCA\Libresign\Db\FileMapper;
 use OCA\Libresign\Db\SignRequest;
+use OCA\Libresign\Enum\NotificationDeliveryState;
 use OCA\Libresign\Exception\LibresignException;
+use OCA\Libresign\Exception\MailTransportException;
 use OCA\Libresign\Service\Policy\PolicyService;
 use OCA\Libresign\Service\Policy\Provider\MailSenderStrategy\MailSenderStrategyPolicy;
 use OCP\IAppConfig;
@@ -21,6 +23,7 @@ use OCP\IUser;
 use OCP\IUserManager;
 use OCP\Mail\IEMailTemplate;
 use OCP\Mail\IMailer;
+use OCP\Mail\IMessage;
 use OCP\Mail\Provider\Address;
 use OCP\Mail\Provider\IManager as IMailProviderManager;
 use OCP\Mail\Provider\IMessageSend;
@@ -89,8 +92,8 @@ class MailService {
 		try {
 			$this->sendSignRequestNotification($emailTemplate, $data, $email);
 		} catch (\Exception $e) {
-			$this->logger->error('Notify changes in unsigned notification mail could not be sent: ' . $e->getMessage());
-			throw new LibresignException('Notify unsigned notification mail could not be sent', 1);
+			$this->logger->error('Notify changes in unsigned notification mail could not be sent');
+			throw new LibresignException('Notify unsigned notification mail could not be sent', 1, $e);
 		}
 	}
 
@@ -129,8 +132,8 @@ class MailService {
 		try {
 			$this->sendSignRequestNotification($emailTemplate, $data, $email);
 		} catch (\Exception $e) {
-			$this->logger->error('Notify unsigned notification mail could not be sent: ' . $e->getMessage());
-			throw new LibresignException('Notify unsigned notification mail could not be sent', 1);
+			$this->logger->error('Notify unsigned notification mail could not be sent');
+			throw new LibresignException('Notify unsigned notification mail could not be sent', 1, $e);
 		}
 	}
 
@@ -232,33 +235,71 @@ class MailService {
 			$message->setReplyTo($replyTo);
 		}
 		$message->useTemplate($emailTemplate);
-		$this->mailer->send($message);
+		$this->sendAndCheck($message);
 	}
 
+	/**
+	 * An empty failure list means transport acceptance, not inbox delivery.
+	 * Any returned recipient failure must not be reported as success.
+	 */
+	private function sendAndCheck(IMessage $message): void {
+		try {
+			$failed = $this->mailer->send($message);
+		} catch (\Exception $e) {
+			// A timeout can happen after SMTP DATA was accepted.
+			throw new MailTransportException(
+				'Mail transport returned no reliable submission result',
+				NotificationDeliveryState::UNKNOWN,
+				'smtp_outcome_unknown',
+				$e,
+			);
+		}
+		if ($failed !== []) {
+			throw new MailTransportException(
+				'Mail transport reported rejected recipients',
+				NotificationDeliveryState::FAILED,
+				'recipient_rejected_unclassified',
+			);
+		}
+	}
 	/**
 	 * @return bool true when the message was sent through the requester mail account
 	 */
 	private function sendAsRequester(IEMailTemplate $emailTemplate, SignRequest $data, string $email, string $requesterId, ?IUser $requester): bool {
+		// A missing or unusable account is safe to fall back from. A send
+		// exception is not: it might occur *after* the SMTP server accepted.
 		try {
 			$service = $this->findRequesterMailService($requesterId, $requester);
-			if ($service === null) {
-				return false;
-			}
+		} catch (\Exception) {
+			// Account lookup has no transport side effect.
+			$this->logger->warning('Requester mail account lookup failed; using the system mailer');
+			return false;
+		}
+		if ($service === null) {
+			return false;
+		}
+		try {
 			$message = $service->initiateMessage()
 				->setFrom($service->getPrimaryAddress())
 				->setTo(new Address($email, $data->getDisplayName() ?: null))
 				->setSubject($emailTemplate->renderSubject())
 				->setBodyHtml($emailTemplate->renderHtml())
 				->setBodyPlain($emailTemplate->renderText());
-			$service->sendMessage($message);
-			return true;
-		} catch (\Throwable $e) {
-			$this->logger->warning('Unable to send the notification through the requester mail account, falling back to the system mailer.', [
-				'requester' => $requesterId,
-				'exception' => $e,
-			]);
+		} catch (\Exception $e) {
+			$this->logger->warning('Requester mail could not be prepared; using the system mailer');
 			return false;
 		}
+		try {
+			$service->sendMessage($message);
+		} catch (\Exception $e) {
+			throw new MailTransportException(
+				'Requester mail submission outcome is unknown',
+				NotificationDeliveryState::UNKNOWN,
+				'requester_outcome_unknown',
+				$e,
+			);
+		}
+		return true;
 	}
 
 	private function findRequesterMailService(string $requesterId, ?IUser $requester): (IService&IMessageSend)|null {
@@ -308,10 +349,10 @@ class MailService {
 
 		$message->useTemplate($emailTemplate);
 		try {
-			$this->mailer->send($message);
+			$this->sendAndCheck($message);
 		} catch (\Exception $e) {
-			$this->logger->error('Notify signed notification mail could not be sent: ' . $e->getMessage());
-			throw new LibresignException('Notify signed notification mail could not be sent', 1);
+			$this->logger->error('Notify signed notification mail could not be sent');
+			throw new LibresignException('Notify signed notification mail could not be sent', 1, $e);
 		}
 	}
 
@@ -332,10 +373,10 @@ class MailService {
 		}
 		$message->useTemplate($emailTemplate);
 		try {
-			$this->mailer->send($message);
+			$this->sendAndCheck($message);
 		} catch (\Exception $e) {
-			$this->logger->error('Notify canceled request mail could not be sent: ' . $e->getMessage());
-			// Don't throw exception to avoid breaking the flow when mail fails
+			$this->logger->error('Notify canceled request mail could not be sent');
+			throw new LibresignException('Notify canceled request mail could not be sent', 1, $e);
 		}
 	}
 

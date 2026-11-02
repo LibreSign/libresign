@@ -26,6 +26,10 @@ enum FileStatus: int {
 	case SIGNING_IN_PROGRESS = 5;
 	case CANCELED = 6;
 
+	public function allowsSignerRemoval(): bool {
+		return $this === self::DRAFT || $this === self::ABLE_TO_SIGN;
+	}
+
 	public function getLabel(IL10N $l10n): string {
 		return match($this) {
 			// TRANSLATORS File status shown when the file is not part of any LibreSign signing flow.
@@ -36,7 +40,7 @@ enum FileStatus: int {
 			self::ABLE_TO_SIGN => $l10n->t('Ready to sign'),
 			// TRANSLATORS File status shown when some required signers have signed, but not all.
 			self::PARTIAL_SIGNED => $l10n->t('Partially signed'),
-			// TRANSLATORS File status shown when all required signatures are complete.
+			// TRANSLATORS File status shown when the signing workflow is complete: at least one signature was applied and no signer is still pending. Signers who rejected count as done.
 			self::SIGNED => $l10n->t('Signed'),
 			// TRANSLATORS File status shown when the LibreSign file record was deleted.
 			self::DELETED => $l10n->t('Deleted'),

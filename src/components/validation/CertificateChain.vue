@@ -56,12 +56,12 @@
 					</div>
 					<div v-if="cert.validFrom_time_t" class="cert-field">
 						<!-- TRANSLATORS: Label shown next to the date and time from which a certificate becomes valid. Before that date the certificate cannot be trusted, even if it looks genuine. -->
-						<dt>{{ t('libresign', 'Valid from:') }}</dt>
+						<dt>{{ t('libresign', 'Certificate valid from:') }}</dt>
 						<dd>{{ formatTimestamp(cert.validFrom_time_t) }}</dd>
 					</div>
 					<div v-if="cert.validTo_time_t" class="cert-field">
 						<!-- TRANSLATORS: The date and time after which this certificate expires and can no longer be trusted. Like an expiry date on an ID card. -->
-						<dt>{{ t('libresign', 'Valid to:') }}</dt>
+						<dt>{{ t('libresign', 'Certificate valid until:') }}</dt>
 						<dd>{{ formatTimestamp(cert.validTo_time_t) }}</dd>
 					</div>
 				</dl>
@@ -174,17 +174,16 @@ defineExpose({
 }
 
 .cert-field {
-	display: flex;
-	flex-wrap: wrap;
+	display: grid;
+	grid-template-columns: 180px minmax(0, 1fr);
 	align-items: baseline;
-	gap: 4px;
+	gap: 8px;
 	line-height: 1.5;
-	word-break: break-word;
 
 	dt {
 		font-weight: bold;
-		min-width: 90px;
-		text-align: right;
+		text-align: end;
+		white-space: nowrap;
 		margin: 0;
 		padding: 0;
 	}
@@ -192,7 +191,19 @@ defineExpose({
 	dd {
 		margin: 0;
 		padding: 0;
-		word-break: break-all;
+		overflow-wrap: anywhere;
+	}
+}
+
+@media screen and (max-width: 700px) {
+	.cert-field {
+		grid-template-columns: minmax(0, 1fr);
+		gap: 0;
+
+		dt {
+			text-align: start;
+			white-space: normal;
+		}
 	}
 }
 

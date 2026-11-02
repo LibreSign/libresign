@@ -67,3 +67,50 @@ Feature: sequential-signing
     When sending "post" to ocs "/apps/libresign/api/v1/sign/uuid/<SIGN_REQUEST_UUID_2>"
       | method | clickToSign |
     Then the response should have a status code 200
+
+  Scenario: Removing one of two first-order signers preserves the next order
+    Given user "signer1" exists
+    And user "signer2" exists
+    And user "signer3" exists
+    And as user "admin"
+    And sending "post" to ocs "/apps/libresign/api/v1/policies/system/signature_flow"
+      | value | ordered_numeric |
+    And the response should have a status code 200
+    When sending "post" to ocs "/apps/libresign/api/v1/request-signature"
+      | file | {"base64":"<SMALL_VALID_PDF_BASE64>"} |
+      | signers | [{"identifyMethods":[{"method":"account","value":"signer1"}],"signingOrder":1},{"identifyMethods":[{"method":"account","value":"signer2"}],"signingOrder":1},{"identifyMethods":[{"method":"account","value":"signer3"}],"signingOrder":2}] |
+      | name | Sequential removal |
+    Then the response should have a status code 200
+    And sending "get" to ocs "/apps/libresign/api/v1/file/list?details=1"
+    And fetch field "(FILE_ID)ocs.data.data.0.id" from previous JSON response
+    And fetch field "(REMOVE_SIGNER_ID)ocs.data.data.0.signers.1.signRequestId" from previous JSON response
+    And reset notifications of user "signer3"
+    When sending "delete" to ocs "/apps/libresign/api/v1/sign/file_id/<FILE_ID>/<REMOVE_SIGNER_ID>"
+    Then the response should have a status code 200
+    Given as user "signer3"
+    When sending "get" to ocs "/apps/libresign/api/v1/file/list?details=1"
+    Then the response should have a status code 200
+    And the response should be a JSON array with the following mandatory values
+      | key                         | value |
+      | (jq).ocs.data.data\|length | 0     |
+    When sending "get" to ocs "/apps/notifications/api/v2/notifications"
+    Then the response should be a JSON array with the following mandatory values
+      | key           | value |
+      | (jq).ocs.data | []    |
+    Given as user "signer1"
+    When sending "get" to ocs "/apps/libresign/api/v1/file/list?details=1"
+    Then the response should have a status code 200
+    And fetch field "(FIRST_SIGNER_UUID)ocs.data.data.0.signers.0.sign_request_uuid" from previous JSON response
+    When sending "post" to ocs "/apps/libresign/api/v1/sign/uuid/<FIRST_SIGNER_UUID>"
+      | method | clickToSign |
+    Then the response should have a status code 200
+    Given as user "signer3"
+    When sending "get" to ocs "/apps/libresign/api/v1/file/list?details=1"
+    Then the response should have a status code 200
+    And the response should be a JSON array with the following mandatory values
+      | key                         | value |
+      | (jq).ocs.data.data\|length | 1     |
+    When sending "get" to ocs "/apps/notifications/api/v2/notifications"
+    Then the response should be a JSON array with the following mandatory values
+      | key                    | value |
+      | (jq).ocs.data\|length | 1     |

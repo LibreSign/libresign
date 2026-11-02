@@ -374,7 +374,7 @@ let spawnDialog: typeof import('@nextcloud/vue/functions/dialog').spawnDialog
 							const instance = { $on: vi.fn() }
 							component.mounted.call(instance)
 							const call = instance.$on.mock.calls.find(
-								(c) => c && c[0] === 'close'
+								(c) => c && c[0] === 'close',
 							)
 							const closeHandler = call ? call[1] : null
 							if (closeHandler) {

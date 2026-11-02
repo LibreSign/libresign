@@ -557,6 +557,36 @@ final class SignerElementsServiceTest extends \OCA\Libresign\Tests\Unit\TestCase
 		$this->assertSame($expected, $this->getService()->getElementsFromSession());
 	}
 
+	#[DataProvider('provideSessionUpdateCases')]
+	public function testGetElementFromSessionByNodeIdOnlyReturnsOwnSessionImage(bool $exists): void {
+		$root = $this->createMock(Folder::class);
+		$folder = $this->createMock(Folder::class);
+		$target = $this->createMock(File::class);
+		$target->method('getId')->willReturn(42);
+		$other = $this->createMock(File::class);
+		$other->method('getId')->willReturn(43);
+		$this->folderService->method('getFolder')->willReturn($root);
+		$this->folderService->expects($this->never())->method('getFileByNodeId');
+		$this->sessionService->method('getSessionId')->willReturn('session-id');
+		$root->method('get')->with('session-id')->willReturn($folder);
+		$folder->method('getDirectoryListing')->willReturn($exists ? [$other, $target] : [$other]);
+
+		if (!$exists) {
+			$this->expectException(DoesNotExistException::class);
+		}
+		$this->assertSame($target, $this->getService()->getElementFromSessionByNodeId(42));
+	}
+
+	public function testGetElementFromSessionByNodeIdWithoutSessionFolder(): void {
+		$root = $this->createMock(Folder::class);
+		$this->folderService->method('getFolder')->willReturn($root);
+		$this->sessionService->method('getSessionId')->willReturn('session-id');
+		$root->method('get')->with('session-id')->willThrowException(new NotFoundException());
+
+		$this->expectException(DoesNotExistException::class);
+		$this->getService()->getElementFromSessionByNodeId(42);
+	}
+
 	#[DataProvider('provideInvalidUrlImageCases')]
 	public function testSaveVisibleElementRejectsInvalidUrlImageInput(string $url, string $mime, string $body, string $error): void {
 		$element = new UserElement();

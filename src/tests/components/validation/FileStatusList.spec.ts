@@ -101,12 +101,12 @@ vi.mock('@nextcloud/axios', () => ({
 vi.mock('../../../utils/fileStatus.js', () => ({
 	getStatusLabel: vi.fn((status: number) => {
 		const labels: Record<string, string> = {
-			'0': 'Draft',
-			'1': 'Ready',
-			'2': 'Partial',
-			'3': 'Signed',
-			'4': 'Deleted',
-			'5': 'Signing',
+			0: 'Draft',
+			1: 'Ready',
+			2: 'Partial',
+			3: 'Signed',
+			4: 'Deleted',
+			5: 'Signing',
 		}
 		return labels[String(status)] ?? 'Unknown'
 	}),
