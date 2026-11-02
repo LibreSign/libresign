@@ -41,6 +41,7 @@ use OCA\Libresign\Handler\SignEngine\SignEngineHandler;
 use OCA\Libresign\Helper\JSActions;
 use OCA\Libresign\Helper\ValidateHelper;
 use OCA\Libresign\Service\Envelope\EnvelopeStatusDeterminer;
+use OCA\Libresign\Service\File\SigningWorkflowStatusResolver;
 use OCA\Libresign\Service\IdentifyMethod\IIdentifyMethod;
 use OCA\Libresign\Service\IdentifyMethod\SignatureMethod\IToken;
 use OCA\Libresign\Service\Policy\PolicyService;
@@ -129,6 +130,7 @@ class SignFileService {
 		private SignRequestService $signRequestService,
 		private PolicyService $policyService,
 		private TemporarySignatureImageService $temporarySignatureImageService,
+		private SigningWorkflowStatusResolver $signingWorkflowStatusResolver,
 	) {
 	}
 
@@ -1092,7 +1094,7 @@ class SignFileService {
 	}
 
 	protected function setNewStatusIfNecessary(FileEntity $libreSignFile): bool {
-		$newStatus = $this->evaluateStatusFromSigners();
+		$newStatus = $this->evaluateStatusFromSigners($libreSignFile);
 
 		if ($newStatus === null || $newStatus === $libreSignFile->getStatus()) {
 			return false;
@@ -1107,61 +1109,8 @@ class SignFileService {
 		$this->statusService->cacheFileStatus($file);
 	}
 
-	private function evaluateStatusFromSigners(): ?int {
-		$signers = $this->excludeIdDocUploaderPlaceholder($this->getSigners());
-
-		$total = count($signers);
-
-		if ($total === 0) {
-			return null;
-		}
-
-		$totalSigned = count(array_filter($signers, fn ($s) => $s->getSigned() !== null));
-
-		if ($totalSigned === $total) {
-			return FileStatus::SIGNED->value;
-		}
-
-		if ($totalSigned > 0) {
-			return FileStatus::PARTIAL_SIGNED->value;
-		}
-
-		return null;
-	}
-
-	/**
-	 * @param SignRequestEntity[] $signers
-	 * @return SignRequestEntity[]
-	 */
-	private function excludeIdDocUploaderPlaceholder(array $signers): array {
-		$placeholderId = $this->getIdDocUploaderSignRequestId();
-		if ($placeholderId === null) {
-			return $signers;
-		}
-
-		return array_values(array_filter(
-			$signers,
-			static fn (SignRequestEntity $signer): bool => $signer->getId() !== $placeholderId,
-		));
-	}
-
-	private function getIdDocUploaderSignRequestId(): ?int {
-		$fileId = $this->signRequest->getFileId();
-		if ($fileId === null) {
-			return null;
-		}
-
-		try {
-			$idDocs = $this->idDocsMapper->getByFileId($fileId);
-		} catch (DoesNotExistException) {
-			return null;
-		}
-
-		if (!$idDocs instanceof IdDocs) {
-			return null;
-		}
-
-		return $idDocs->getSignRequestId();
+	private function evaluateStatusFromSigners(FileEntity $file): ?int {
+		return $this->signingWorkflowStatusResolver->resolve($file, $this->getSigners())?->value;
 	}
 
 	private function getOrGeneratePfxContent(SignEngineHandler $engine): string {

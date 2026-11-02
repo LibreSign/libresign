@@ -10,12 +10,14 @@ namespace OCA\Libresign\Tests\Unit\Service\SignatureRejection;
 
 use OCA\Libresign\Db\File;
 use OCA\Libresign\Db\FileMapper;
+use OCA\Libresign\Db\IdDocsMapper;
 use OCA\Libresign\Db\SignRequest;
 use OCA\Libresign\Db\SignRequestMapper;
 use OCA\Libresign\Enum\FileStatus;
 use OCA\Libresign\Enum\SignRequestStatus;
 use OCA\Libresign\Events\SignatureRejectedEvent;
 use OCA\Libresign\Exception\LibresignException;
+use OCA\Libresign\Service\File\SigningWorkflowStatusResolver;
 use OCA\Libresign\Service\FileStatusService;
 use OCA\Libresign\Service\IdentifyMethod\IIdentifyMethod;
 use OCA\Libresign\Service\IdentifyMethodService;
@@ -93,6 +95,7 @@ final class SignatureRejectionServiceTest extends TestCase {
 			$this->timeFactory,
 			$this->l10n,
 			$this->logger,
+			new SigningWorkflowStatusResolver($this->createMock(IdDocsMapper::class), $this->rejectionPolicyService),
 		);
 	}
 
@@ -283,6 +286,93 @@ final class SignatureRejectionServiceTest extends TestCase {
 		$this->getService()->reject($file, $this->signRequest());
 
 		$this->assertSame(FileStatus::ABLE_TO_SIGN->value, $file->getStatus());
+	}
+
+	public function testLastRejectionAfterSignatureCompletesDocument(): void {
+		$this->withPolicy(['enabled' => true, 'cancel_workflow' => false]);
+		$file = $this->file(FileStatus::PARTIAL_SIGNED->value);
+		$rejected = $this->signRequest();
+		$signed = $this->signRequest(SignRequestStatus::SIGNED->value, 2);
+		$signed->setSigned(new \DateTime('2026-09-05T10:00:00+00:00'));
+		$this->signRequestMapper->method('getByFileId')->with(10)->willReturn([$signed, $rejected]);
+		$this->fileStatusService->expects($this->once())->method('update')->with($file);
+
+		$this->getService()->reject($file, $rejected);
+
+		$this->assertSame(SignRequestStatus::REJECTED, $rejected->getStatusEnum());
+		$this->assertSame(FileStatus::SIGNED->value, $file->getStatus());
+	}
+
+	public function testFailedStatusUpdateRollsBackRejectionAndRestoresFile(): void {
+		$this->withPolicy(['enabled' => true, 'cancel_workflow' => false]);
+		$file = $this->file(FileStatus::PARTIAL_SIGNED->value);
+		$rejected = $this->signRequest();
+		$signed = $this->signRequest(SignRequestStatus::SIGNED->value, 2);
+		$signed->setSigned(new \DateTime('2026-09-05T10:00:00+00:00'));
+		$this->signRequestMapper->method('getByFileId')->with(10)->willReturn([$signed, $rejected]);
+		$this->fileStatusService->method('update')->willThrowException(new \RuntimeException('status update failed'));
+		$this->fileStatusService->expects($this->once())->method('invalidateCachedStatus')->with($file);
+		$this->db->expects($this->once())->method('rollBack');
+
+		try {
+			$this->getService()->reject($file, $rejected);
+			$this->fail('The failed status update must abort the rejection.');
+		} catch (LibresignException $e) {
+			$this->assertSame('It was not possible to register the rejection. Nothing was changed.', $e->getMessage());
+		}
+		$this->assertSame(FileStatus::PARTIAL_SIGNED->value, $file->getStatus());
+		$this->assertSame(SignRequestStatus::ABLE_TO_SIGN, $rejected->getStatusEnum());
+	}
+
+	public function testAnEnvelopeRollbackRestoresBothDocumentsAndParentCache(): void {
+		$this->withPolicy(['enabled' => true, 'cancel_workflow' => false]);
+		$envelope = $this->envelope(FileStatus::PARTIAL_SIGNED->value);
+		$first = $this->file(FileStatus::PARTIAL_SIGNED->value, parentFileId: 1);
+		$second = $this->file(FileStatus::PARTIAL_SIGNED->value, parentFileId: 1);
+		$second->setId(20);
+		$pendingFirst = $this->signRequest(id: 11);
+		$pendingSecond = $this->signRequest(id: 12);
+		$pendingSecond->setFileId(20);
+		$envelopeSigner = $this->signRequest(id: 13);
+		$envelopeSigner->setFileId(1);
+		$signedFirst = $this->signRequest(SignRequestStatus::SIGNED->value, 21);
+		$signedFirst->setSigned(new \DateTime('2026-09-05T10:00:00+00:00'));
+		$signedSecond = $this->signRequest(SignRequestStatus::SIGNED->value, 22);
+		$signedSecond->setFileId(20);
+		$signedSecond->setSigned(new \DateTime('2026-09-05T10:00:00+00:00'));
+
+		$this->envelopeChildSignRequests = [$pendingSecond];
+		$this->envelopeSignRequest = $envelopeSigner;
+		$this->fileMapper->method('getById')->willReturnCallback(
+			static fn (int $id): File => $id === 20 ? $second : $envelope,
+		);
+		$this->signRequestMapper->method('getByFileId')->willReturnCallback(
+			static fn (int $fileId): array => $fileId === 20
+				? [$signedSecond, $pendingSecond]
+				: [$signedFirst, $pendingFirst],
+		);
+		$this->fileStatusService->expects($this->exactly(2))->method('update')
+			->willReturnCallback(static function (File $file): File {
+				if ($file->getId() === 20) {
+					throw new \RuntimeException('second document update failed');
+				}
+				return $file;
+			});
+		$this->fileStatusService->expects($this->exactly(3))->method('invalidateCachedStatus');
+		$this->db->expects($this->once())->method('rollBack');
+		$this->eventDispatcher->expects($this->never())->method('dispatchTyped');
+
+		$this->expectException(LibresignException::class);
+		try {
+			$this->getService()->reject($first, $pendingFirst);
+		} finally {
+			$this->assertSame(FileStatus::PARTIAL_SIGNED->value, $first->getStatus());
+			$this->assertSame(FileStatus::PARTIAL_SIGNED->value, $second->getStatus());
+			$this->assertSame(FileStatus::PARTIAL_SIGNED->value, $envelope->getStatus());
+			$this->assertSame(SignRequestStatus::ABLE_TO_SIGN, $pendingFirst->getStatusEnum());
+			$this->assertSame(SignRequestStatus::ABLE_TO_SIGN, $pendingSecond->getStatusEnum());
+			$this->assertSame(SignRequestStatus::ABLE_TO_SIGN, $envelopeSigner->getStatusEnum());
+		}
 	}
 
 	public function testWorkflowIsClosedWhenThePolicyCancelsIt(): void {

@@ -17,6 +17,7 @@ use OCA\Libresign\Enum\SignatureRejectionCommentMode;
 use OCA\Libresign\Enum\SignRequestStatus;
 use OCA\Libresign\Events\SignatureRejectedEvent;
 use OCA\Libresign\Exception\LibresignException;
+use OCA\Libresign\Service\File\SigningWorkflowStatusResolver;
 use OCA\Libresign\Service\FileStatusService;
 use OCA\Libresign\Service\IdentifyMethodService;
 use OCP\AppFramework\Utility\ITimeFactory;
@@ -46,6 +47,7 @@ class SignatureRejectionService {
 		private ITimeFactory $timeFactory,
 		private IL10N $l10n,
 		private LoggerInterface $logger,
+		private SigningWorkflowStatusResolver $statusResolver,
 	) {
 	}
 
@@ -107,6 +109,7 @@ class SignatureRejectionService {
 		);
 		$previousFileStatus = $libreSignFile->getStatus();
 		$rejectedAt = $this->timeFactory->getDateTime();
+		$previousDocumentStates = [];
 
 		$this->db->beginTransaction();
 		try {
@@ -120,12 +123,20 @@ class SignatureRejectionService {
 
 			if ($workflowCanceled) {
 				$this->cancelWorkflow($libreSignFile);
+			} else {
+				$this->resolveStatusOfRejectedDocuments($libreSignFile, $signRequests, $previousDocumentStates);
 			}
 
 			$this->db->commit();
 		} catch (\Throwable $e) {
 			$this->db->rollBack();
 			$this->restoreState($libreSignFile, $signRequests, $previousSignerStatuses, $previousFileStatus);
+			foreach ($previousDocumentStates as $entry) {
+				$document = $entry['file'];
+				$document->setStatus($entry['status']);
+				$document->setMetadata($entry['metadata']);
+				$this->fileStatusService->invalidateCachedStatus($document);
+			}
 			$this->logger->error('Failed to register the signature rejection: ' . $e->getMessage(), [
 				'exception' => $e,
 				'signRequestId' => $signRequest->getId(),
@@ -133,6 +144,59 @@ class SignatureRejectionService {
 
 			// TRANSLATORS Error shown when the rejection could not be saved and nothing was changed.
 			throw new LibresignException($this->l10n->t('It was not possible to register the rejection. Nothing was changed.'));
+		}
+	}
+
+	/**
+	 * Resolve the documents affected by this rejection in the same transaction.
+	 * An envelope's final outcome is derived separately from its documents.
+	 *
+	 * @param list<SignRequestEntity> $signRequests
+	 * @param array<int, array{file: FileEntity, status: int, metadata: ?array}> $previousDocumentStates
+	 */
+	private function resolveStatusOfRejectedDocuments(
+		FileEntity $libreSignFile,
+		array $signRequests,
+		array &$previousDocumentStates,
+	): void {
+		foreach ($signRequests as $rejected) {
+			$fileId = $rejected->getFileId();
+			if ($fileId === null || isset($previousDocumentStates[$fileId])) {
+				continue;
+			}
+			$document = $fileId === $libreSignFile->getId()
+				? $libreSignFile
+				: $this->fileMapper->getById($fileId);
+			if ($document->isEnvelope()) {
+				continue;
+			}
+			$status = $this->statusResolver->resolve(
+				$document,
+				$this->signRequestMapper->getByFileId($fileId),
+			);
+			if ($status === null || $status->value === $document->getStatus()) {
+				continue;
+			}
+			$previousDocumentStates[$fileId] = [
+				'file' => $document,
+				'status' => $document->getStatus(),
+				'metadata' => $document->getMetadata(),
+			];
+			if ($document->hasParent()) {
+				$parentId = $document->getParentFileId();
+				if ($parentId !== null && !isset($previousDocumentStates[$parentId])) {
+					$parent = $libreSignFile->getId() === $parentId
+						? $libreSignFile
+						: $this->fileMapper->getById($parentId);
+					$previousDocumentStates[$parentId] = [
+						'file' => $parent,
+						'status' => $parent->getStatus(),
+						'metadata' => $parent->getMetadata(),
+					];
+				}
+			}
+			$document->setStatusEnum($status);
+			$this->fileStatusService->update($document);
 		}
 	}
 
