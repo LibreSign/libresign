@@ -5,6 +5,7 @@
 
 import { getCurrentUser } from '@nextcloud/auth'
 import { File, Permission } from '@nextcloud/files'
+// TODO(viewer-compat): Import directly from @nextcloud/viewer once src/viewer/ is removed.
 import { canView, getHandlers, getViewer } from '../viewer/index.js'
 
 /**

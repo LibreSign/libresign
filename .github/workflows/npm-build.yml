@@ -91,7 +91,8 @@ jobs:
           npm run build --if-present
 
 
-      # Dependabot triggers this check when the isolated Viewer changes.
+      # TODO(viewer-compat): Remove this check and viewer path filter when src/viewer/ is deleted.
+      # Also remove the root postinstall and restore direct Viewer imports.
       - name: Require Viewer cleanup when dialogs 8 becomes compatible
         if: needs.changes.outputs.viewer != 'false'
         run: |

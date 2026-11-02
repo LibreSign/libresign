@@ -26,6 +26,7 @@ updates:
   - package-ecosystem: "npm"
     directories:
       - "/"
+      # TODO(viewer-compat): Remove this directory when the isolated Viewer is deleted.
       - "/src/viewer"
     schedule:
       interval: "daily"
