@@ -2410,6 +2410,13 @@
                     },
                     "job": {
                         "$ref": "#/components/schemas/SigningJob"
+                    },
+                    "signatureSaveStatus": {
+                        "type": "string",
+                        "enum": [
+                            "saved",
+                            "failed"
+                        ]
                     }
                 }
             },

@@ -1675,6 +1675,8 @@ export type components = {
             message?: string;
             file?: components["schemas"]["FileUuidReference"];
             job?: components["schemas"]["SigningJob"];
+            /** @enum {string} */
+            signatureSaveStatus?: "saved" | "failed";
         };
         SignatureMethod: {
             enabled: boolean;
