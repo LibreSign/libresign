@@ -78,6 +78,7 @@ use RuntimeException;
 use Sabre\DAV\UUIDUtil;
 
 class SignFileService {
+	private ?string $signatureSessionId = null;
 	private ?SignRequestEntity $signRequest = null;
 	private string $password = '';
 	private ?FileEntity $libreSignFile = null;
@@ -397,7 +398,9 @@ class SignFileService {
 		try {
 			return $this->folderService->getFileByNodeId($nodeId);
 		} catch (\Throwable) {
-			$filesOfElementes = $this->signerElementsService->getElementsFromSession();
+			$filesOfElementes = $this->signatureSessionId === null
+				? $this->signerElementsService->getElementsFromSession()
+				: $this->signerElementsService->getElementsFromSession($this->signatureSessionId);
 			return $this->array_find($filesOfElementes, fn ($file) => $file->getId() === $nodeId);
 		}
 	}
@@ -424,8 +427,20 @@ class SignFileService {
 		return $this->elements;
 	}
 
+	/** Use only the storage context captured by a server-created signing job. */
+	public function setSignatureSessionId(?string $sessionId): self {
+		$this->signatureSessionId = $sessionId;
+		return $this;
+	}
+
 	public function getJobArgumentsWithoutCredentials(): array {
 		$args = [];
+		if ($this->signatureSessionId !== null || !$this->user instanceof IUser) {
+			$sessionId = $this->signatureSessionId ?? $this->signerElementsService->getSessionStorageId();
+			if ($sessionId !== '') {
+				$args['signatureSessionId'] = $sessionId;
+			}
+		}
 
 		if (!empty($this->userUniqueIdentifier)) {
 			$args['userUniqueIdentifier'] = $this->userUniqueIdentifier;

@@ -14,6 +14,7 @@ import type {
 import type { CollectedGeolocation } from '../helpers/signerGeolocation'
 
 export type SignResultData = Omit<Partial<SignActionResponseRecord>, 'file' | 'job'> & {
+	signatureSaveStatus?: 'saved' | 'failed'
 	file?: Partial<FileUuidReferenceRecord>
 	job?: Partial<SigningJobRecord> & {
 		file?: Partial<FileUuidReferenceRecord>
@@ -33,6 +34,7 @@ export type SubmitSignaturePayload = {
 		profileNodeId?: number
 	}>
 	deviceGeolocation?: CollectedGeolocation
+	saveSignature?: boolean
 }
 
 export type SignatureMethodConfig = {
@@ -155,14 +157,20 @@ export function getEnvelopeSubmitRequests({
 		const signerElements = signer.level === 'top' && matchingElements.length === 0
 			? elements
 			: matchingElements
+		const payload = buildSubmitSignaturePayload({
+			basePayload,
+			elements: signerElements,
+			canCreateSignature,
+			signatures,
+		})
+		// Some envelope documents require no reusable image. Avoid reporting a
+		// failed optional save for those documents when another one saved it.
+		if (payload.saveSignature && !payload.elements?.some(element => element.profileNodeId !== undefined)) {
+			delete payload.saveSignature
+		}
 		requests.push({
 			signRequestUuid: signer.sign_request_uuid,
-			payload: buildSubmitSignaturePayload({
-				basePayload,
-				elements: signerElements,
-				canCreateSignature,
-				signatures,
-			}),
+			payload,
 		})
 	}
 

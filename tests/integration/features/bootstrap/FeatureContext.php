@@ -50,6 +50,8 @@ class FeatureContext extends NextcloudApiContext implements OpenedEmailStorageAw
 
 	protected function beforeRequest(string $fullUrl, array $options): array {
 		[$fullUrl, $options] = parent::beforeRequest($fullUrl, $options);
+		// Anonymous signing requests share a browser session, just like authenticated requests.
+		$options['cookies'] ??= $this->getUserCookieJar($this->currentUser);
 		$options = $this->parseFormParams($options);
 		$fullUrl = $this->parseText($fullUrl);
 		return [$fullUrl, $options];

@@ -8,6 +8,7 @@ import { confettiRealDefinition } from './confetti/realDefinition'
 import { crlValidationRealDefinition } from './crl-validation/realDefinition'
 import { defaultUserFolderRealDefinition } from './default-user-folder/realDefinition'
 import { docMdpRealDefinition } from './docmdp/realDefinition'
+import { emailSignerSignatureRealDefinition } from './email-signer-signature/realDefinition'
 import { envelopeRealDefinition } from './envelope/realDefinition'
 import {
 	expiryInDaysRealDefinition,
@@ -49,6 +50,7 @@ export const realDefinitions = {
 	add_footer: { ...signatureFooterRealDefinition, category: 'signer-experience' },
 	signature_stamp: { ...signatureTextRealDefinition, category: 'signer-experience' },
 	show_confetti_after_signing: { ...confettiRealDefinition, category: 'signer-experience' },
+	persist_email_signer_signatures: { ...emailSignerSignatureRealDefinition, category: 'signer-experience' },
 
 	// 4. What gets recorded
 	collect_metadata: { ...collectMetadataRealDefinition, category: 'what-gets-recorded' },

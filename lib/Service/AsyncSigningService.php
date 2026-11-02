@@ -29,6 +29,7 @@ class AsyncSigningService {
 		private IDBConnection $db,
 		private WorkerActivationService $workerActivationService,
 		private LoggerInterface $logger,
+		private SessionService $sessionService,
 	) {
 	}
 
@@ -54,6 +55,7 @@ class AsyncSigningService {
 			'userId' => $user?->getUID() ?? $libreSignFile->getUserId(),
 			'credentialsId' => $credentialsId,
 			'isExternalSigner' => $user === null,
+			'signatureSessionId' => $user === null ? $this->sessionService->getSessionId() : null,
 			'userUniqueIdentifier' => $userUniqueIdentifier,
 			'friendlyName' => $signRequest->getDisplayName(),
 			'signatureMethod' => $signatureMethod,

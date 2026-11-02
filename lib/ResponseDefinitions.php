@@ -352,6 +352,7 @@ namespace OCA\Libresign;
  *     message?: string,
  *     file?: LibresignFileUuidReference,
  *     job?: LibresignSigningJob,
+ *     signatureSaveStatus?: 'saved'|'failed',
  * }
  * @psalm-type LibresignSignActionErrorResponse = array{
  *     action: int,

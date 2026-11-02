@@ -29,7 +29,9 @@ class SessionService {
 		}
 		$uuid = $this->session->get('libresign-uuid');
 		if (is_string($uuid) && $uuid !== '') {
-			return $uuid;
+			// Verification in one browser must not release saved images to another
+			// browser holding the same signing link.
+			return hash('sha256', $uuid . ':' . $this->session->getId());
 		}
 		return $this->session->getId();
 	}
@@ -49,6 +51,25 @@ class SessionService {
 		}
 		$this->session->reopen();
 		$this->session->set('libresign-sign-start-time', time());
+	}
+
+	public function setEmailSignatureKey(string $key): void {
+		$this->session->reopen();
+		$keys = $this->session->get('libresign-email-signature-keys');
+		if (!is_array($keys)) {
+			$keys = [];
+		}
+		$keys[$this->getSessionId()] = $key;
+		$this->session->set('libresign-email-signature-keys', $keys);
+	}
+
+	public function getEmailSignatureKey(): string {
+		$keys = $this->session->get('libresign-email-signature-keys');
+		if (!is_array($keys)) {
+			return '';
+		}
+		$key = $keys[$this->getSessionId()] ?? null;
+		return is_string($key) ? $key : '';
 	}
 
 	public function isAuthenticated(): bool {

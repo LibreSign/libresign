@@ -140,6 +140,10 @@ class SignJobCoordinator {
 
 	private function hydrateSignService(array $argument, FileEntity $file, SignRequestEntity $signRequest): void {
 		$user = $this->resolveUser($argument['userId']);
+		// Always reset the context: one worker can process several signers.
+		$this->signFileService->setSignatureSessionId(
+			$argument['isExternalSigner'] ? ($argument['signatureSessionId'] ?? null) : null,
+		);
 
 		$credentials = null;
 		if ($user && !$argument['isExternalSigner']) {

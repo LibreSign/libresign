@@ -105,6 +105,15 @@ class FolderService {
 	}
 
 	/**
+	 * Resolve guest signature storage independently of a document owner's context.
+	 */
+	public function getUnauthenticatedFolder(): Folder {
+		$service = clone $this;
+		$service->setUserId(null);
+		return $service->getFolder();
+	}
+
+	/**
 	 * @throws NotFoundException
 	 */
 	public function getFileByNodeId(int $nodeId): File {

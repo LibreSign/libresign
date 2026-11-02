@@ -8,6 +8,11 @@
 			<Signatures v-if="hasSignatures" />
 		</div>
 		<div v-if="!loading" class="button-wrapper">
+			<NcCheckboxRadioSwitch v-if="signatureElementsStore.emailSigner && hasSignatures && hasVisibleSignatureField"
+				v-model="rememberSignature">
+				<!-- TRANSLATORS Opt-in to remember an external email signer's visible signature after confirmed signing. -->
+				{{ t('libresign', 'Save my signature for future documents') }}
+			</NcCheckboxRadioSwitch>
 			<NcNoteCard v-if="requiresDeviceGeolocation"
 				type="info">
 				{{ geolocationRequiredBannerText }}
@@ -50,6 +55,14 @@
 					<!-- TRANSLATORS Warning shown when the signer has not created any reusable signature yet. -->
 					{{ t('libresign', 'You do not have any signature defined.') }}
 				</p>
+				<NcButton v-if="canUseSavedSignature"
+					:wide="true"
+					:disabled="loading"
+					variant="primary"
+					@click="useSavedSignature">
+					<!-- TRANSLATORS Button label for a signer identified by email to reuse the signature saved while signing an earlier document. -->
+					{{ t('libresign', 'Use my saved signature') }}
+				</NcButton>
 				<NcButton :wide="true"
 					:disabled="loading"
 					variant="primary"
@@ -219,6 +232,11 @@
 			mode="email"
 			@change="signWithEmailToken"
 			@close="signMethodsStore.closeModal('emailToken')" />
+		<ModalVerificationCode v-if="showSavedSignatureCode"
+			mode="email"
+			purpose="savedSignature"
+			@unlocked="showSavedSignatureCode = false"
+			@close="showSavedSignatureCode = false" />
 		<NcDialog v-if="showGeolocationPrivacyDialog"
 			:no-close="collectingGeolocation"
 			:name="geolocationPrivacyDialogTitle"
@@ -261,6 +279,7 @@ import { generateOcsUrl } from '@nextcloud/router'
 import { getCurrentUser } from '@nextcloud/auth'
 
 import NcButton from '@nextcloud/vue/components/NcButton'
+import NcCheckboxRadioSwitch from '@nextcloud/vue/components/NcCheckboxRadioSwitch'
 import NcDialog from '@nextcloud/vue/components/NcDialog'
 import NcLoadingIcon from '@nextcloud/vue/components/NcLoadingIcon'
 import NcNoteCard from '@nextcloud/vue/components/NcNoteCard'
@@ -478,6 +497,8 @@ type SignatureElementsStoreContract = ReturnType<typeof useSignatureElementsStor
 	signRequestUuid: string
 	success: string
 	error: string
+	emailSigner: { confirmMethod: string } | null
+	useSavedSignature: (token?: string) => Promise<boolean>
 }
 
 type SidebarStoreContract = ReturnType<typeof useSidebarStore>
@@ -611,6 +632,9 @@ const needCreateSignature = computed(() => {
 	}
 	return hasVisibleElementsForCurrentUser(visibleElementsDocument.value)
 })
+const showSavedSignatureCode = ref(false)
+const rememberSignature = ref(false)
+const canUseSavedSignature = computed(() => needCreateSignature.value && Boolean(signatureElementsStore.emailSigner))
 const hasVisibleSignatureField = computed(() => hasVisibleElementsForCurrentUser(visibleElementsDocument.value))
 const needIdentificationDocuments = computed(() => identificationDocumentStore.showDocumentsComponent())
 const canCreateSignature = computed(() => {
@@ -699,6 +723,21 @@ function saveSignature() {
 	signMethodsStore.closeModal('createSignature')
 }
 
+async function useSavedSignature() {
+	// The server releases the saved signature only through the confirm method
+	// configured for the Email identification factor.
+	if (signatureElementsStore.emailSigner?.confirmMethod === 'emailToken') {
+		showSavedSignatureCode.value = true
+		return
+	}
+	if (!await signatureElementsStore.useSavedSignature()) {
+		const error = signatureElementsStore.error as unknown
+		const message = typeof error === 'object' && error !== null ? (error as { message?: string }).message : ''
+		// TRANSLATORS Error shown when the signature saved while signing an earlier document cannot be reused.
+		showError(message || t('libresign', 'Unable to use the saved signature'))
+	}
+}
+
 async function signWithClick() {
 	await submitSignature({ method: 'clickToSign' })
 }
@@ -769,6 +808,9 @@ const submitSignature = async (methodConfig: SignatureMethodConfig = {}) => {
 			createBaseSubmitSignaturePayload(methodConfig),
 			collectedGeolocation.value,
 		)
+		if (signatureElementsStore.emailSigner && rememberSignature.value) {
+			basePayload.saveSignature = true
+		}
 		const envelopeRequests = getEnvelopeSubmitRequests({
 			document: signStore.document,
 			basePayload,
@@ -812,6 +854,9 @@ const submitSignature = async (methodConfig: SignatureMethodConfig = {}) => {
 		}
 
 		const outcome = resolveSignSubmissionOutcome(attempts)
+		if (attempts.some(attempt => attempt.result.data?.signatureSaveStatus === 'failed')) {
+			showError(t('libresign', 'Your signature could not be saved for future documents'))
+		}
 		const modalCode = methodConfig.modalCode || methodConfig.method || 'token'
 
 		ensureServices()
@@ -906,7 +951,9 @@ function confirmSignDocument() {
 function proceedWithSigning() {
 	ensureServices()
 	syncSignatureMethodsFromDocument()
-	if (signMethodsStore.needClickToSign()) {
+	if (rememberSignature.value && signatureElementsStore.emailSigner?.confirmMethod === 'emailToken') {
+		actionHandler!.showModal('emailToken')
+	} else if (signMethodsStore.needClickToSign()) {
 		actionHandler!.showModal('clickToSign')
 	} else if (signMethodsStore.needSignWithPassword()) {
 		actionHandler!.showModal('password')
@@ -999,6 +1046,10 @@ defineExpose({
 	elements,
 	hasSignatures,
 	needCreateSignature,
+	canUseSavedSignature,
+	showSavedSignatureCode,
+	rememberSignature,
+	useSavedSignature,
 	canCreateSignature,
 	submitSignature,
 	signWithTokenCode,
