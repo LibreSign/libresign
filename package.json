@@ -27,12 +27,6 @@
     "extends @nextcloud/browserslist-config"
   ],
   "overrides": {
-    "@nextcloud/image-editor": {
-      "@nextcloud/dialogs": "$@nextcloud/dialogs"
-    },
-    "@nextcloud/viewer": {
-      "@nextcloud/dialogs": "$@nextcloud/dialogs"
-    },
     "openapi-typescript": {
       "typescript": "$typescript"
     }
@@ -52,7 +46,8 @@
     "@nextcloud/auth": "^2.6.0",
     "@nextcloud/axios": "^2.6.0",
     "@nextcloud/capabilities": "^1.2.1",
-    "@nextcloud/dialogs": "^8.0.0",
+    "@nextcloud/dialogs": "^7.6.0",
+    "@nextcloud/dialogs-v8": "npm:@nextcloud/dialogs@^8.0.0",
     "@nextcloud/event-bus": "^3.3.3",
     "@nextcloud/files": "^4.1.1",
     "@nextcloud/initial-state": "^3.0.0",
@@ -79,7 +74,7 @@
     "pinia": "^4.1.0",
     "signature_pad": "^5.1.4",
     "sortablejs": "^1.15.7",
-    "vue": "^3.5.30",
+    "vue": "^3.5.44",
     "vue-advanced-cropper": "^2.8.9",
     "vue-codemirror6": "^1.7.0",
     "vue-router": "^5.4.0",
