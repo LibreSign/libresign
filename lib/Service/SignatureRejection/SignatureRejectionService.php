@@ -77,10 +77,11 @@ class SignatureRejectionService {
 		// always the signer's call and no policy can take that choice away.
 		$commentIsPrivate = $normalizedComment !== null && $privateComment;
 
-		$workflowCanceled = $config->cancelsWorkflow();
-		$activatedSigners = $this->persistRejection($libreSignFile, $signRequest, $normalizedComment, $commentIsPrivate, $workflowCanceled);
+		$activatedSigners = $this->persistRejection($libreSignFile, $signRequest, $normalizedComment, $commentIsPrivate, $config->cancelsWorkflow());
 		// Record the committed rejection before notification errors can interrupt this flow.
-		$this->dispatchRejectedEvent($signRequest, $libreSignFile, $workflowCanceled);
+		// The event reports the status the rejection left, as the API does: a workflow that
+		// continues after rejections is still canceled once every signer rejected.
+		$this->dispatchRejectedEvent($signRequest, $libreSignFile, $this->isWorkflowCanceled($libreSignFile));
 		$this->sequentialSigningService->notifyActivatedSigners($activatedSigners);
 
 		return $signRequest;
@@ -106,7 +107,7 @@ class SignatureRejectionService {
 		SignRequestEntity $signRequest,
 		?string $comment,
 		bool $commentIsPrivate,
-		bool $workflowCanceled,
+		bool $cancelWorkflow,
 	): array {
 		$signRequests = $this->collectSignRequestsToReject($libreSignFile, $signRequest);
 		$previousSignerStatuses = array_map(
@@ -126,7 +127,7 @@ class SignatureRejectionService {
 				$this->signRequestMapper->update($each);
 			}
 
-			if ($workflowCanceled) {
+			if ($cancelWorkflow) {
 				$this->cancelWorkflow($libreSignFile);
 				$activatedSigners = [];
 			} else {
@@ -225,7 +226,8 @@ class SignatureRejectionService {
 	 * the same rule the signing flow uses, otherwise a document whose last signer
 	 * rejected would stay partially signed forever.
 	 *
-	 * An envelope is skipped: its status follows the documents it contains.
+	 * An envelope is not resolved here: its status follows the documents it
+	 * contains, so it is read back once they are saved.
 	 *
 	 * @param list<SignRequestEntity> $rejectedSignRequests
 	 */
@@ -248,6 +250,10 @@ class SignatureRejectionService {
 
 			$document->setStatusEnum($status);
 			$this->fileStatusService->update($document);
+		}
+
+		if ($libreSignFile->isEnvelope()) {
+			$libreSignFile->setStatus($this->fileMapper->getById($libreSignFile->getId())->getStatus());
 		}
 	}
 

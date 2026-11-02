@@ -117,11 +117,25 @@ final class SigningWorkflowStatusResolverTest extends TestCase {
 		$this->assertSame(FileStatus::SIGNED, $status);
 	}
 
+	public function testAnObserverDoesNotKeepAWorkflowEverybodyRejectedOpen(): void {
+		$this->withoutIdentificationDocument();
+		$this->rejectionBehavior = SignatureRejectionBehavior::CONTINUE;
+
+		$observer = new SignRequest();
+		$observer->setId(99);
+		$observer->setParticipantRole(ParticipantRole::OBSERVER->value);
+
+		$signers = self::generateSignersWithRejections(0, 2, 0);
+		$signers[] = $observer;
+
+		$this->assertSame(FileStatus::CANCELED, $this->getResolver()->resolve(self::file(), $signers));
+	}
+
 	/**
 	 * @param array{signed: int, rejected: int, pending: int} $signers
 	 */
 	#[DataProvider('providerCompletionAfterARejection')]
-	public function testTheWorkflowCompletesOnlyWhenNobodyElseIsExpectedToAct(
+	public function testTheWorkflowEndsOnlyWhenNobodyElseIsExpectedToAct(
 		SignatureRejectionBehavior $behavior,
 		array $signers,
 		?FileStatus $expectedStatus,
@@ -153,12 +167,12 @@ final class SigningWorkflowStatusResolverTest extends TestCase {
 			'continue: everybody rejected, so no signature was applied' => [
 				SignatureRejectionBehavior::CONTINUE,
 				['signed' => 0, 'rejected' => 2, 'pending' => 0],
-				null,
+				FileStatus::CANCELED,
 			],
 			'continue: a single signer who rejected' => [
 				SignatureRejectionBehavior::CONTINUE,
 				['signed' => 0, 'rejected' => 1, 'pending' => 0],
-				null,
+				FileStatus::CANCELED,
 			],
 			'continue: a rejection before anybody signed keeps the file open' => [
 				SignatureRejectionBehavior::CONTINUE,
@@ -169,6 +183,11 @@ final class SigningWorkflowStatusResolverTest extends TestCase {
 				SignatureRejectionBehavior::CANCEL,
 				['signed' => 1, 'rejected' => 1, 'pending' => 0],
 				FileStatus::PARTIAL_SIGNED,
+			],
+			'cancel: the rejection flow cancels the workflow, not this rule' => [
+				SignatureRejectionBehavior::CANCEL,
+				['signed' => 0, 'rejected' => 2, 'pending' => 0],
+				null,
 			],
 			'no rejection at all keeps the plain count' => [
 				SignatureRejectionBehavior::CONTINUE,

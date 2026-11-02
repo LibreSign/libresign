@@ -12,6 +12,7 @@ use OCA\Libresign\Db\File as FileEntity;
 use OCA\Libresign\Db\SignRequest;
 use OCA\Libresign\Enum\FileStatus;
 use OCA\Libresign\Enum\ParticipantRole;
+use OCA\Libresign\Enum\SignRequestStatus;
 use OCA\Libresign\Service\Envelope\EnvelopeStatusDeterminer;
 use OCA\Libresign\Tests\Unit\TestCase;
 use PHPUnit\Framework\Attributes\DataProvider;
@@ -43,7 +44,9 @@ final class EnvelopeStatusDeterminerTest extends TestCase {
 				foreach ($signRequestsData[$fileId] as $signedStatus) {
 					$signRequest = new SignRequest();
 					$signRequest->setFileId($fileId);
-					if ($signedStatus) {
+					if ($signedStatus === 'rejected') {
+						$signRequest->setStatusEnum(SignRequestStatus::REJECTED);
+					} elseif ($signedStatus) {
 						$signRequest->setSigned(new \DateTime());
 					}
 					$requests[] = $signRequest;
@@ -113,6 +116,38 @@ final class EnvelopeStatusDeterminerTest extends TestCase {
 					3 => [true, false],
 				],
 				'expectedStatus' => FileStatus::PARTIAL_SIGNED->value,
+			],
+			'signed and rejected with nobody pending returns SIGNED' => [
+				'childFilesData' => [1, 2],
+				'signRequestsData' => [
+					1 => [true, 'rejected'],
+					2 => ['rejected'],
+				],
+				'expectedStatus' => FileStatus::SIGNED->value,
+			],
+			'signed and rejected with somebody pending returns PARTIAL_SIGNED' => [
+				'childFilesData' => [1, 2],
+				'signRequestsData' => [
+					1 => [true, 'rejected'],
+					2 => [false],
+				],
+				'expectedStatus' => FileStatus::PARTIAL_SIGNED->value,
+			],
+			'rejected with somebody pending and no signature returns ABLE_TO_SIGN' => [
+				'childFilesData' => [1, 2],
+				'signRequestsData' => [
+					1 => ['rejected'],
+					2 => [false],
+				],
+				'expectedStatus' => FileStatus::ABLE_TO_SIGN->value,
+			],
+			'everybody rejected returns CANCELED' => [
+				'childFilesData' => [1, 2],
+				'signRequestsData' => [
+					1 => ['rejected', 'rejected'],
+					2 => ['rejected'],
+				],
+				'expectedStatus' => FileStatus::CANCELED->value,
 			],
 			'empty child files returns DRAFT' => [
 				'childFilesData' => [],
