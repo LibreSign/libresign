@@ -42,6 +42,7 @@ use OCA\Libresign\Helper\JavaHelper;
 use OCA\Libresign\Helper\ValidateHelper;
 use OCA\Libresign\Service\CertificateValidityPolicy;
 use OCA\Libresign\Service\Envelope\EnvelopeStatusDeterminer;
+use OCA\Libresign\Service\File\SigningWorkflowStatusResolver;
 use OCA\Libresign\Service\FileStatusService;
 use OCA\Libresign\Service\FolderService;
 use OCA\Libresign\Service\IdentifyMethod\IIdentifyMethod;
@@ -55,6 +56,8 @@ use OCA\Libresign\Service\Policy\PolicyService;
 use OCA\Libresign\Service\Policy\Provider\CollectMetadata\CollectMetadataPolicy;
 use OCA\Libresign\Service\Policy\Provider\Footer\FooterPolicy;
 use OCA\Libresign\Service\Policy\Provider\Footer\FooterPolicyValue;
+use OCA\Libresign\Service\Policy\Provider\SignatureRejection\SignatureRejectionPolicyValue;
+use OCA\Libresign\Service\SignatureRejection\SignatureRejectionPolicyService;
 use OCA\Libresign\Service\SignerElementsService;
 use OCA\Libresign\Service\SignFileService;
 use OCA\Libresign\Service\SigningCoordinatorService;
@@ -487,6 +490,12 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		);
 	}
 
+	private function getStatusResolver(): SigningWorkflowStatusResolver {
+		$policy = $this->createMock(SignatureRejectionPolicyService::class);
+		$policy->method('getPolicyValue')->willReturn(SignatureRejectionPolicyValue::defaults());
+		return new SigningWorkflowStatusResolver($this->idDocsMapper, $policy);
+	}
+
 	private function getService(array $methods = []): SignFileService|MockObject {
 		if ($methods) {
 			return $this->getMockBuilder(SignFileService::class)
@@ -532,6 +541,7 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 					$this->signRequestService,
 					$this->policyService,
 					new TemporarySignatureImageService($this->tempManager, $this->l10n),
+					$this->getStatusResolver(),
 				])
 				->onlyMethods($methods)
 				->getMock();
@@ -578,6 +588,7 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			$this->signRequestService,
 			$this->policyService,
 			new TemporarySignatureImageService($this->tempManager, $this->l10n),
+			$this->getStatusResolver(),
 		);
 	}
 
@@ -1056,7 +1067,9 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$signRequest->setFileId(1);
 		$service->setSignRequest($signRequest);
 
-		$status = self::invokePrivate($service, 'evaluateStatusFromSigners');
+		$file = new \OCA\Libresign\Db\File();
+		$file->setId($signRequest->getFileId());
+		$status = self::invokePrivate($service, 'evaluateStatusFromSigners', [$file]);
 		$this->assertSame(FileStatus::SIGNED->value, $status);
 	}
 
@@ -1080,7 +1093,9 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$signRequest->setFileId(99);
 		$service->setSignRequest($signRequest);
 
-		$status = self::invokePrivate($service, 'evaluateStatusFromSigners');
+		$file = new \OCA\Libresign\Db\File();
+		$file->setId($signRequest->getFileId());
+		$status = self::invokePrivate($service, 'evaluateStatusFromSigners', [$file]);
 		$this->assertSame(FileStatus::PARTIAL_SIGNED->value, $status);
 	}
 
