@@ -293,6 +293,7 @@ final class SignFileControllerTest extends TestCase {
 		$response = $this->getController()->signBySignerUuid('signer-uuid', 'email', $elements, token: '123456', saveSignature: true);
 
 		$this->assertSame(Http::STATUS_OK, $response->getStatus());
+		$this->assertSame('saved', $response->getData()['signatureSaveStatus']);
 	}
 
 	public function testFailedSigningDoesNotSaveEvenWithConsent(): void {
@@ -335,6 +336,7 @@ final class SignFileControllerTest extends TestCase {
 		$response = $this->getController()->signBySignerUuid('signer-uuid', 'email', saveSignature: true);
 
 		$this->assertSame(Http::STATUS_OK, $response->getStatus());
+		$this->assertSame('failed', $response->getData()['signatureSaveStatus']);
 	}
 
 	public function testAsyncSigningCanSaveWithExplicitConsent(): void {
@@ -369,5 +371,6 @@ final class SignFileControllerTest extends TestCase {
 		$response = $this->getController()->signBySignerUuid('signer-uuid', 'email', saveSignature: true);
 
 		$this->assertSame(Http::STATUS_OK, $response->getStatus());
+		$this->assertSame('failed', $response->getData()['signatureSaveStatus']);
 	}
 }

@@ -14,6 +14,7 @@ import type {
 import type { CollectedGeolocation } from '../helpers/signerGeolocation'
 
 export type SignResultData = Omit<Partial<SignActionResponseRecord>, 'file' | 'job'> & {
+	signatureSaveStatus?: 'saved' | 'failed'
 	file?: Partial<FileUuidReferenceRecord>
 	job?: Partial<SigningJobRecord> & {
 		file?: Partial<FileUuidReferenceRecord>

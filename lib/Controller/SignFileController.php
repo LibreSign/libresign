@@ -199,11 +199,14 @@ class SignFileController extends AEnvironmentAwareController implements ISignatu
 			}
 
 			$signature = null;
+			$signatureSaveFailed = false;
 			if ($saveSignature && !$user instanceof IUser) {
 				try {
 					$signature = $this->emailSignerElementsService->prepareSignature($signRequest, $token, $elements, true);
+					$signatureSaveFailed = $signature === null;
 				} catch (\Throwable $e) {
 					$this->logger->warning('Unable to prepare signature elements of email signer', ['exception' => $e]);
+					$signatureSaveFailed = true;
 				}
 			}
 
@@ -223,8 +226,13 @@ class SignFileController extends AEnvironmentAwareController implements ISignatu
 			} else {
 				$response = $this->signSync($libreSignFile, $elements, $metadata);
 			}
-			if ($signature !== null && $response->getStatus() === Http::STATUS_OK) {
-				$this->saveEmailSignerElements($signature);
+			if ($response->getStatus() === Http::STATUS_OK && $saveSignature && !$user instanceof IUser) {
+				if ($signature !== null && !$this->saveEmailSignerElements($signature)) {
+					$signatureSaveFailed = true;
+				}
+				$data = $response->getData();
+				$data['signatureSaveStatus'] = $signatureSaveFailed ? 'failed' : 'saved';
+				$response->setData($data);
 			}
 			return $response;
 		} catch (\Throwable $e) {
@@ -234,12 +242,14 @@ class SignFileController extends AEnvironmentAwareController implements ISignatu
 	}
 
 	/** @param array{key: string, elements: array<string, string>} $signature */
-	private function saveEmailSignerElements(array $signature): void {
+	private function saveEmailSignerElements(array $signature): bool {
 		try {
 			$this->emailSignerElementsService->saveSignature($signature);
+			return true;
 		} catch (\Throwable $e) {
-			// Keeping the signature for later documents must never block signing this one.
+			// A failed optional save must never undo successful document signing.
 			$this->logger->warning('Unable to save signature elements of email signer', ['exception' => $e]);
+			return false;
 		}
 	}
 
