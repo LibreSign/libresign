@@ -17,7 +17,7 @@ vi.mock('@nextcloud/auth', () => ({
 	getCurrentUser: mocks.getCurrentUser,
 }))
 
-// TODO(viewer-compat): Mock @nextcloud/viewer directly after removing src/viewer/.
+// TODO(viewer-compat): Mock @nextcloud/viewer directly after cleanup (PR #9301).
 vi.mock('../../viewer/index.js', () => ({
 	getHandlers: mocks.getHandlers,
 	getViewer: mocks.getViewer,

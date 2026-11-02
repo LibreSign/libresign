@@ -7,7 +7,7 @@ import { describe, expect, it } from 'vitest'
 import { nextTick } from 'vue'
 import { getFilePickerBuilder, showError, showSuccess, showWarning } from '@nextcloud/dialogs'
 
-describe('dialogs v8 integration', () => {
+describe('Nextcloud dialogs integration', () => {
 	it.each([
 		['success', showSuccess, 'status'],
 		['warning', showWarning, 'status'],

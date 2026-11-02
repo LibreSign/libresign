@@ -15,7 +15,7 @@ export default defineConfig({
 		},
 	},
 	resolve: {
-		// TODO(viewer-compat): Recheck whether Vue deduplication is needed without src/viewer/.
+		// TODO(viewer-compat): Recheck Vue deduplication after cleanup; do not remove blindly (PR #9301).
 		dedupe: ['vue', '@nextcloud/vue'],
 		alias: [
 			{
