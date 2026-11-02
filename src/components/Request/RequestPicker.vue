@@ -266,7 +266,7 @@ async function openFilePicker() {
 	const filePicker = getFilePickerBuilder(
 		envelopeEnabled.value
 			? selectYourFilesTitle
-			: selectYourFileTitle
+			: selectYourFileTitle,
 	)
 		.setMultiSelect(envelopeEnabled.value)
 		.setMimeTypeFilter(['application/pdf'])

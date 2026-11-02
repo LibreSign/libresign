@@ -163,7 +163,7 @@ async function fetchProgressFromValidation() {
 		return
 	}
 	const response = await Promise.resolve(axios.get(
-		generateOcsUrl(`/apps/libresign/api/v1/file/validate/uuid/${props.signRequestUuid}`)
+		generateOcsUrl(`/apps/libresign/api/v1/file/validate/uuid/${props.signRequestUuid}`),
 	)).catch(() => null)
 	if (!response) {
 		return
@@ -186,7 +186,7 @@ async function pollFileProgress() {
 			{
 				params: { timeout: pollTimeoutSeconds.value },
 				timeout: (pollTimeoutSeconds.value + 5) * 1000,
-			}
+			},
 		)
 
 		const responseData: PollResponse = data.ocs?.data || data

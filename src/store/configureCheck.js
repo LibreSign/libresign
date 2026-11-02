@@ -82,7 +82,7 @@ const _configureCheckStore = defineStore('configureCheck', () => {
 	const saveCertificateEngine = (engine) => {
 		return axios.post(
 			generateOcsUrl('/apps/libresign/api/v1/admin/certificate/engine'),
-			{ engine }
+			{ engine },
 		)
 			.then((response) => {
 				setCertificateEngine(engine)

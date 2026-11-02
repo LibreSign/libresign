@@ -42,7 +42,7 @@ type AppConfigGlobal = {
 			app: string,
 			key: string,
 			value: string,
-			callbacks: { success: () => void }
+			callbacks: { success: () => void },
 		) => void
 	}
 }
