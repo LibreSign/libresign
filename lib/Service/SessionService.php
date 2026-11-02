@@ -55,16 +55,21 @@ class SessionService {
 
 	public function setEmailSignatureKey(string $key): void {
 		$this->session->reopen();
-		$this->session->set('libresign-email-signature-key', [
-			'key' => $key,
-			'sessionId' => $this->getSessionId(),
-		]);
+		$keys = $this->session->get('libresign-email-signature-keys');
+		if (!is_array($keys)) {
+			$keys = [];
+		}
+		$keys[$this->getSessionId()] = $key;
+		$this->session->set('libresign-email-signature-keys', $keys);
 	}
 
 	public function getEmailSignatureKey(): string {
-		$key = $this->session->get('libresign-email-signature-key');
-		return is_array($key) && ($key['sessionId'] ?? '') === $this->getSessionId()
-			? (string)($key['key'] ?? '') : '';
+		$keys = $this->session->get('libresign-email-signature-keys');
+		if (!is_array($keys)) {
+			return '';
+		}
+		$key = $keys[$this->getSessionId()] ?? null;
+		return is_string($key) ? $key : '';
 	}
 
 	public function isAuthenticated(): bool {

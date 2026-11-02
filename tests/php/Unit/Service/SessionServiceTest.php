@@ -52,6 +52,21 @@ final class SessionServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$this->assertSame('', $service->getEmailSignatureKey());
 	}
 
+	public function testVerifiedEmailKeysRemainAvailableWhenSwitchingBetweenRequests(): void {
+		$values = ['libresign-uuid' => 'sign-request-a'];
+		$service = $this->createService('same-browser', $values);
+
+		$service->setEmailSignatureKey('verified-email-a');
+		$values['libresign-uuid'] = 'sign-request-b';
+		$this->assertSame('', $service->getEmailSignatureKey());
+
+		$service->setEmailSignatureKey('verified-email-b');
+		$this->assertSame('verified-email-b', $service->getEmailSignatureKey());
+
+		$values['libresign-uuid'] = 'sign-request-a';
+		$this->assertSame('verified-email-a', $service->getEmailSignatureKey());
+	}
+
 	public function testAuthenticatedSessionsKeepTheirExistingStorageId(): void {
 		$values = ['user_id' => 'user-a', 'libresign-uuid' => 'sign-request-a'];
 		$this->assertSame('browser-a', $this->createService('browser-a', $values)->getSessionId());
