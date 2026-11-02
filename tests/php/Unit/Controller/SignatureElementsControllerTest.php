@@ -19,6 +19,7 @@ use OCA\Libresign\Service\SignatureTextService;
 use OCA\Libresign\Service\SignerElementsService;
 use OCA\Libresign\Service\SignFileService;
 use OCA\Libresign\Service\Validation\VisibleElementValidator;
+use OCP\AppFramework\Db\DoesNotExistException;
 use OCP\AppFramework\Http;
 use OCP\IL10N;
 use OCP\IPreview;
@@ -104,18 +105,15 @@ final class SignatureElementsControllerTest extends \OCA\Libresign\Tests\Unit\Te
 		$this->assertTrue($response->isThrottled());
 	}
 
-	public function testStorageErrorsDoNotExposeInternalDetails(): void {
+	public function testUnexpectedStorageErrorsAreNotReportedAsInvalidVerification(): void {
 		$exception = new \RuntimeException('Internal storage path and email');
 		$this->emailSignerElementsService->method('unlock')->willThrowException($exception);
 		$this->logger->expects($this->once())->method('error')->with(
 			'Unable to load saved email signature elements', ['exception' => $exception],
 		);
 
-		$response = $this->getController(new SignRequest())->useSavedSignatureElements();
-
-		$this->assertSame(Http::STATUS_UNPROCESSABLE_ENTITY, $response->getStatus());
-		$this->assertSame(['message' => 'Unable to use the saved signature'], $response->getData());
-		$this->assertFalse($response->isThrottled());
+		$this->expectExceptionObject($exception);
+		$this->getController(new SignRequest())->useSavedSignatureElements();
 	}
 
 	public function testMissingSavedSignatureDoesNotCountAsInvalidCredentials(): void {
@@ -127,15 +125,25 @@ final class SignatureElementsControllerTest extends \OCA\Libresign\Tests\Unit\Te
 		$this->assertFalse($response->isThrottled());
 	}
 
-	public function testSavedCopyStorageFailureDoesNotBlockDeletingSessionElement(): void {
+	public function testSavedCopyStorageFailurePreservesSessionElementForRetry(): void {
 		$exception = new \RuntimeException('Storage unavailable');
 		$this->emailSignerElementsService->expects($this->once())->method('forgetSessionElement')
 			->with(10)->willThrowException($exception);
-		$this->accountService->expects($this->once())->method('deleteSignatureElement')->with(null, $this->anything(), 10);
-		$this->logger->expects($this->once())->method('warning')
-			->with('Unable to delete saved email signature element', ['exception' => $exception]);
+		$this->accountService->expects($this->never())->method('deleteSignatureElement');
+		$this->logger->expects($this->once())->method('error')
+			->with('Unable to delete signature element', ['exception' => $exception]);
 
-		$this->assertSame(Http::STATUS_OK, $this->getController()->deleteSignatureElement(10)->getStatus());
+		$this->expectExceptionObject($exception);
+		$this->getController()->deleteSignatureElement(10);
+	}
+
+	public function testMissingSessionElementStillReturnsNotFound(): void {
+		$this->accountService->method('deleteSignatureElement')
+			->willThrowException(new DoesNotExistException('Element not found'));
+
+		$response = $this->getController()->deleteSignatureElement(10);
+
+		$this->assertSame(Http::STATUS_NOT_FOUND, $response->getStatus());
 	}
 
 	public function testAccountElementDeletionDoesNotAccessEmailStorage(): void {

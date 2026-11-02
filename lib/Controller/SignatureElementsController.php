@@ -194,14 +194,8 @@ class SignatureElementsController extends AEnvironmentAwareController implements
 		}
 		try {
 			$elements = $this->emailSignerElementsService->unlock($signRequest, $token);
-		} catch (\Throwable $th) {
-			// TRANSLATORS Error shown when a saved signature cannot be loaded.
-			$message = $this->l10n->t('Unable to use the saved signature');
-			if ($th instanceof LibresignException) {
-				$message = $th->getMessage();
-			} else {
-				$this->logger->error('Unable to load saved email signature elements', ['exception' => $th]);
-			}
+		} catch (LibresignException $e) {
+			$message = $e->getMessage();
 			$decoded = json_decode($message, true);
 			if (is_array($decoded) && isset($decoded['errors'][0]['message'])) {
 				$message = (string)$decoded['errors'][0]['message'];
@@ -212,10 +206,14 @@ class SignatureElementsController extends AEnvironmentAwareController implements
 				],
 				Http::STATUS_UNPROCESSABLE_ENTITY
 			);
-			if ($th instanceof LibresignException && $th->getCode() === AbstractIdentifyMethod::CODE_INVALID_TOKEN) {
+			if ($e->getCode() === AbstractIdentifyMethod::CODE_INVALID_TOKEN) {
 				$response->throttle();
 			}
 			return $response;
+		} catch (\Exception $e) {
+			// Unexpected failures must not be reported as invalid credentials.
+			$this->logger->error('Unable to load saved email signature elements', ['exception' => $e]);
+			throw $e;
 		}
 		return new DataResponse(
 			[
@@ -380,18 +378,15 @@ class SignatureElementsController extends AEnvironmentAwareController implements
 	public function deleteSignatureElement(int $nodeId): DataResponse {
 		try {
 			if (!$this->userSession->getUser() instanceof IUser) {
-				try {
-					$this->emailSignerElementsService->forgetSessionElement($nodeId);
-				} catch (\Throwable $e) {
-					$this->logger->warning('Unable to delete saved email signature element', ['exception' => $e]);
-				}
+				// Keep the session element available for retry when forgetting its copy fails.
+				$this->emailSignerElementsService->forgetSessionElement($nodeId);
 			}
 			$this->accountService->deleteSignatureElement(
 				user: $this->userSession->getUser(),
 				nodeId: $nodeId,
 				sessionId: $this->sessionService->getSessionId(),
 			);
-		} catch (\Throwable) {
+		} catch (DoesNotExistException|\OCP\Files\NotFoundException) {
 			return new DataResponse(
 				[
 					// TRANSLATORS Error shown when deleting a visible signature element that cannot be found.
@@ -399,6 +394,9 @@ class SignatureElementsController extends AEnvironmentAwareController implements
 				],
 				Http::STATUS_NOT_FOUND
 			);
+		} catch (\Exception $e) {
+			$this->logger->error('Unable to delete signature element', ['exception' => $e]);
+			throw $e;
 		}
 		return new DataResponse(
 			[
