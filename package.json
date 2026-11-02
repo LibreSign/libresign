@@ -27,6 +27,12 @@
     "extends @nextcloud/browserslist-config"
   ],
   "overrides": {
+    "@nextcloud/image-editor": {
+      "@nextcloud/dialogs": "$@nextcloud/dialogs"
+    },
+    "@nextcloud/viewer": {
+      "@nextcloud/dialogs": "$@nextcloud/dialogs"
+    },
     "openapi-typescript": {
       "typescript": "$typescript"
     }
