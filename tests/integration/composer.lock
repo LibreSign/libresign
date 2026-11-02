@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "9a0843ff1ed6801ec2bf4522f673ec8a",
+    "content-hash": "3fe6d5cb1a652073484225331a048537",
     "packages": [
         {
             "name": "behat/behat",
@@ -1123,7 +1123,7 @@
         },
         {
             "name": "libresign/nextcloud-behat",
-            "version": "dev-main",
+            "version": "v1.6.4",
             "source": {
                 "type": "git",
                 "url": "https://github.com/LibreSign/nextcloud-behat.git",
@@ -1147,7 +1147,6 @@
                 "bamarni/composer-bin-plugin": "^1.9",
                 "donatj/mock-webserver": "^2.9"
             },
-            "default-branch": true,
             "type": "library",
             "extra": {
                 "bamarni-bin": {
@@ -1178,7 +1177,7 @@
             ],
             "support": {
                 "issues": "https://github.com/LibreSign/nextcloud-behat/issues",
-                "source": "https://github.com/LibreSign/nextcloud-behat/tree/main"
+                "source": "https://github.com/LibreSign/nextcloud-behat/tree/v1.6.4"
             },
             "time": "2026-10-19T16:45:47+00:00"
         },
@@ -5564,9 +5563,7 @@
     "packages-dev": [],
     "aliases": [],
     "minimum-stability": "stable",
-    "stability-flags": {
-        "libresign/nextcloud-behat": 20
-    },
+    "stability-flags": {},
     "prefer-stable": false,
     "prefer-lowest": false,
     "platform": {},
