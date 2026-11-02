@@ -76,13 +76,20 @@ async function waitForIdDocsCard(page: Page): Promise<void> {
 
 async function clearExistingIdDocument(page: Page): Promise<void> {
 	await waitForIdDocsCard(page)
-	if (await deleteButton(page).isVisible()) {
-		const [response] = await Promise.all([
+	for (let attempt = 0; attempt < 5; attempt++) {
+		if (!(await deleteButton(page).isVisible().catch(() => false))) {
+			break
+		}
+		const [deleteResponse] = await Promise.all([
 			page.waitForResponse(response => response.request().method() === 'DELETE'
 				&& response.url().includes('/apps/libresign/api/v1/id-docs/')),
 			deleteButton(page).click(),
 		])
-		expect(response.status()).toBe(200)
+		expect(deleteResponse.status()).toBe(200)
+		await expect(
+			page.locator('[aria-live="polite"]').filter({ hasText: /File was deleted\./i }),
+		).toBeVisible({ timeout: 20_000 })
+		await waitForIdDocsCard(page)
 	}
 	await expect(emptyStatus(page)).toBeVisible({ timeout: 20_000 })
 	await expect(uploadButton(page)).toBeVisible()
@@ -118,6 +125,9 @@ test('identification documents appear on the account page after upload', async (
 	])
 	expect(uploadResponse.status()).toBe(200)
 
+	await expect(
+		page.locator('[aria-live="polite"]').filter({ hasText: /File was sent\./i }),
+	).toBeVisible({ timeout: 20_000 })
 	await expect(deleteButton(page)).toBeVisible({ timeout: 20_000 })
 	await expect(emptyStatus(page)).toHaveCount(0)
 	await shot(page, '03-account-id-doc-uploaded')
