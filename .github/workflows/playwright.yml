@@ -207,6 +207,9 @@ jobs:
           git clone --depth 1 -b ${{ matrix.server-versions }} https://github.com/nextcloud/activity apps/activity
           composer --working-dir=apps/activity install --no-dev
           ./occ app:enable --force activity
+          # Exercise the native PDF Viewer path instead of the browser fallback.
+          git clone --depth 1 -b ${{ matrix.server-versions }} https://github.com/nextcloud/files_pdfviewer apps/files_pdfviewer
+          ./occ app:enable --force files_pdfviewer
 
       - name: Set up LibreSign
         run: |
