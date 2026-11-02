@@ -2468,7 +2468,7 @@ describe('RequestSignatureTab - Critical Business Rules', () => {
 			await wrapper.vm.$nextTick()
 
 			expect(updateSpy).toHaveBeenCalledWith('warn_without_visible_signature_fields', false)
-			expect(showSuccess).toHaveBeenCalledWith('Signature requested')
+			expect(showSuccess).not.toHaveBeenCalled()
 			expect(wrapper.vm.disableMissingVisibleSignatureWarning).toBe(false)
 			expect(wrapper.vm.showConfirmRequest).toBe(false)
 		})
@@ -2493,7 +2493,7 @@ describe('RequestSignatureTab - Critical Business Rules', () => {
 			await wrapper.vm.$nextTick()
 
 			expect(updateSpy).toHaveBeenCalledWith('warn_without_visible_signature_fields', false)
-			expect(showSuccess).toHaveBeenCalledWith('Signature requested')
+			expect(showSuccess).not.toHaveBeenCalled()
 			expect(wrapper.vm.disableMissingVisibleSignatureWarning).toBe(false)
 			expect(wrapper.vm.showConfirmRequestSigner).toBe(false)
 		})
@@ -2524,7 +2524,7 @@ describe('RequestSignatureTab - Critical Business Rules', () => {
 
 			expect(userConfigStore.warn_without_visible_signature_fields).toBe(true)
 			expect(showError).toHaveBeenCalledWith('Could not save your preference. Try again.')
-			expect(showSuccess).toHaveBeenCalledWith('Signature requested')
+			expect(showSuccess).not.toHaveBeenCalled()
 			expect(wrapper.vm.showConfirmRequest).toBe(false)
 		})
 
@@ -2545,7 +2545,7 @@ describe('RequestSignatureTab - Critical Business Rules', () => {
 			await wrapper.vm.$nextTick()
 
 			expect(updateSpy).not.toHaveBeenCalled()
-			expect(showSuccess).toHaveBeenCalledWith('Signature requested')
+			expect(showSuccess).not.toHaveBeenCalled()
 		})
 
 		it('never blocks request when signers have no visible signature fields', async () => {
@@ -2563,7 +2563,7 @@ describe('RequestSignatureTab - Critical Business Rules', () => {
 			await flushPromises()
 			await wrapper.vm.$nextTick()
 
-			expect(showSuccess).toHaveBeenCalledWith('Signature requested')
+			expect(showSuccess).not.toHaveBeenCalled()
 			expect(showError).not.toHaveBeenCalled()
 		})
 	})

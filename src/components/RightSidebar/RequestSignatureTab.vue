@@ -1776,7 +1776,8 @@ async function confirmRequestSigner() {
 			return
 		}
 		await saveMissingVisibleSignaturePreference()
-		showSuccess(t('libresign', 'Signature requested'))
+		// The updated signer status confirms success in the sidebar. A toast
+		// would cover the action buttons in the mobile request view.
 		closeConfirmRequestSignerDialog()
 	} catch (error: unknown) {
 		showRequestError(error, t('libresign', 'Failed to create signature request'))
@@ -1875,7 +1876,8 @@ async function confirmRequest() {
 			return
 		}
 		await saveMissingVisibleSignaturePreference()
-		showSuccess(t('libresign', 'Signature requested'))
+		// The updated signer status confirms success in the sidebar. A toast
+		// would cover the action buttons in the mobile request view.
 		closeConfirmRequestDialog()
 	} catch (error: unknown) {
 		showRequestError(error, t('libresign', 'Failed to create signature requests'))
