@@ -15,6 +15,7 @@ export default defineConfig({
 		},
 	},
 	resolve: {
+		dedupe: ['vue', '@nextcloud/vue'],
 		alias: [
 			{
 				find: /^@libresign\/pdf-elements$/,

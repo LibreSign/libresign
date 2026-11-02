@@ -24,7 +24,9 @@ updates:
 
   # Maintain dependencies for npm
   - package-ecosystem: "npm"
-    directory: "/"
+    directories:
+      - "/"
+      - "/src/viewer"
     schedule:
       interval: "daily"
     groups:

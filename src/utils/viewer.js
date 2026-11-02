@@ -5,7 +5,7 @@
 
 import { getCurrentUser } from '@nextcloud/auth'
 import { File, Permission } from '@nextcloud/files'
-import { canView, getHandlers, getViewer } from '@nextcloud/viewer'
+import { canView, getHandlers, getViewer } from '../viewer/index.js'
 
 /**
  * Construct a read-only file for a URL supplied by LibreSign. In particular,

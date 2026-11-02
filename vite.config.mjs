@@ -41,6 +41,7 @@ export default createAppConfig({
 			host: '0.0.0.0',
 		},
 		resolve: {
+			dedupe: ['vue', '@nextcloud/vue'],
 			alias: [
 				{
 					find: /^@libresign\/pdf-elements$/,

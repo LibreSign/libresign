@@ -17,7 +17,7 @@ vi.mock('@nextcloud/auth', () => ({
 	getCurrentUser: mocks.getCurrentUser,
 }))
 
-vi.mock('@nextcloud/viewer', () => ({
+vi.mock('../../viewer/index.js', () => ({
 	getHandlers: mocks.getHandlers,
 	getViewer: mocks.getViewer,
 	canView: mocks.canView,
