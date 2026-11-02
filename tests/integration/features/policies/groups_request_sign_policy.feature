@@ -141,7 +141,9 @@ Feature: policies/groups_request_sign_policy
     And the response should be a JSON array with the following mandatory values
       | key                                                       | value                               |
       | (jq).ocs.data.policies.groups_request_sign.sourceScope    | global                              |
-      | (jq).ocs.data.policies.groups_request_sign.effectiveValue | {\"allowGroups\":[\"policy-request-access-board-gadmin\"],\"denyGroups\":[]} |
+      | (jq)((.ocs.data.policies.groups_request_sign.effectiveValue \| fromjson).allowGroups \| length) | 1 |
+      | (jq)(.ocs.data.policies.groups_request_sign.effectiveValue \| fromjson).allowGroups[0] | policy-request-access-board-gadmin |
+      | (jq)((.ocs.data.policies.groups_request_sign.effectiveValue \| fromjson).denyGroups \| length) | 0 |
 
     When sending "get" to ocs "/apps/libresign/api/v1/policies/by-policy/group/groups_request_sign"
     Then the response should have a status code 200
@@ -178,7 +180,10 @@ Feature: policies/groups_request_sign_policy
       | key                                                     | value              |
       | (jq).ocs.data.policies                                 | (jq)length == 1    |
       | (jq).ocs.data.policies[0].targetId                     | policy-request-access-board-gadmin |
-      | (jq).ocs.data.policies[0].value                        | {\"allowGroups\":[\"policy-request-access-board-gadmin\"],\"denyGroups\":[\"policy-request-access-board-gadmin\"]} |
+      | (jq)((.ocs.data.policies[0].value \| fromjson).allowGroups \| length) | 1 |
+      | (jq)(.ocs.data.policies[0].value \| fromjson).allowGroups[0] | policy-request-access-board-gadmin |
+      | (jq)((.ocs.data.policies[0].value \| fromjson).denyGroups \| length) | 1 |
+      | (jq)(.ocs.data.policies[0].value \| fromjson).denyGroups[0] | policy-request-access-board-gadmin |
 
     # VALIDATION: After the deny override, the regular member loses the ability to request signatures
     Given as user "member-request-access-policy"
@@ -404,7 +409,10 @@ Feature: policies/groups_request_sign_policy
       | (jq).ocs.data.policy.policyKey          | groups_request_sign                                                                                         |
       | (jq).ocs.data.policy.targetId           | policy-request-access-board-overlay                                                                         |
       | (jq).ocs.data.policy.allowChildOverride | false                                                                                                       |
-      | (jq).ocs.data.policy.value              | {\"allowGroups\":[\"policy-request-access-board-overlay\"],\"denyGroups\":[\"policy-request-access-board-overlay\"]} |
+      | (jq)((.ocs.data.policy.value \| fromjson).allowGroups \| length) | 1 |
+      | (jq)(.ocs.data.policy.value \| fromjson).allowGroups[0] | policy-request-access-board-overlay |
+      | (jq)((.ocs.data.policy.value \| fromjson).denyGroups \| length) | 1 |
+      | (jq)(.ocs.data.policy.value \| fromjson).denyGroups[0] | policy-request-access-board-overlay |
 
     # VALIDATION: The delegated admin must keep the policy card editable and still be able to read the deny row they just created,
     # even after locking lower-level customization and while another managed allow rule remains editable.
@@ -421,7 +429,10 @@ Feature: policies/groups_request_sign_policy
       | key                                     | value                                                                                                       |
       | (jq).ocs.data.policy.targetId           | policy-request-access-board-overlay                                                                         |
       | (jq).ocs.data.policy.allowChildOverride | false                                                                                                       |
-      | (jq).ocs.data.policy.value              | {\"allowGroups\":[\"policy-request-access-board-overlay\"],\"denyGroups\":[\"policy-request-access-board-overlay\"]} |
+      | (jq)((.ocs.data.policy.value \| fromjson).allowGroups \| length) | 1 |
+      | (jq)(.ocs.data.policy.value \| fromjson).allowGroups[0] | policy-request-access-board-overlay |
+      | (jq)((.ocs.data.policy.value \| fromjson).denyGroups \| length) | 1 |
+      | (jq)(.ocs.data.policy.value \| fromjson).denyGroups[0] | policy-request-access-board-overlay |
 
     # RULE: Removing the board row deletes only the delegated deny override.
     When sending "delete" to ocs "/apps/libresign/api/v1/policies/group/policy-request-access-board-overlay/groups_request_sign"
@@ -436,13 +447,17 @@ Feature: policies/groups_request_sign_policy
     Then the response should have a status code 200
     And the response should be a JSON array with the following mandatory values
       | key                        | value                                                                |
-      | (jq).ocs.data.policy.value | {\"allowGroups\":[\"policy-request-access-board-overlay\"],\"denyGroups\":[]} |
+      | (jq)((.ocs.data.policy.value \| fromjson).allowGroups \| length) | 1 |
+      | (jq)(.ocs.data.policy.value \| fromjson).allowGroups[0] | policy-request-access-board-overlay |
+      | (jq)((.ocs.data.policy.value \| fromjson).denyGroups \| length) | 0 |
 
     When sending "get" to ocs "/apps/libresign/api/v1/policies/group/policy-request-access-company-overlay/groups_request_sign"
     Then the response should have a status code 200
     And the response should be a JSON array with the following mandatory values
       | key                        | value                                                                  |
-      | (jq).ocs.data.policy.value | {\"allowGroups\":[\"policy-request-access-company-overlay\"],\"denyGroups\":[]} |
+      | (jq)((.ocs.data.policy.value \| fromjson).allowGroups \| length) | 1 |
+      | (jq)(.ocs.data.policy.value \| fromjson).allowGroups[0] | policy-request-access-company-overlay |
+      | (jq)((.ocs.data.policy.value \| fromjson).denyGroups \| length) | 0 |
 
     # CLEANUP: reset policy state and remove temporary groups.
     When sending "delete" to ocs "/apps/libresign/api/v1/policies/group/policy-request-access-board-overlay/groups_request_sign"
