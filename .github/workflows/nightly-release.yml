@@ -4,14 +4,8 @@
 name: Nightly release
 
 on:
-  push:
-    branches:
-      - 'stable*'
-    paths:
-      - '**'
-      - '!**.md'
-      - '!.github/**'
-      - '.github/workflows/nightly-release.yml'
+  schedule:
+    - cron: '17 3 * * *'
   workflow_dispatch:
 
 permissions:
@@ -19,12 +13,12 @@ permissions:
   pull-requests: read
 
 concurrency:
-  group: nightly-release-${{ github.repository }}-${{ github.ref_name }}
+  group: nightly-release-${{ github.repository }}
   cancel-in-progress: true
 
 jobs:
-  check-latest-stable:
-    name: Check latest stable
+  resolve-latest-stable:
+    name: Resolve latest stable
     runs-on: ubuntu-latest
     outputs:
       is-latest: ${{ steps.stable.outputs.is-latest }}
@@ -35,75 +29,62 @@ jobs:
     steps:
       - id: stable
         name: Resolve stable release line
-        uses: LibreCodeCoop/release-tool/actions/stable-select@30ba5d8a33089331d829f586546d34cd45a529d7
+        uses: LibreCodeCoop/release-tool/actions/stable-select@30ba5d8a33089331d829f586546d34cd45a529d7 # v0.11.21
         with:
           github-token: ${{ github.token }}
 
   nightly-release:
     name: Build and publish nightly
-    needs: check-latest-stable
-    if: needs.check-latest-stable.outputs.is-latest == 'true'
+    needs: resolve-latest-stable
+    if: needs.resolve-latest-stable.outputs.latest-branch != ''
     runs-on: ubuntu-latest
     timeout-minutes: 30
 
     steps:
-      - name: Check actor permission
-        uses: skjnldsv/check-actor-permission@69e92a3c4711150929bca9fcf34448c5bf5526e7 # v3.0
-        with:
-          require: write
-
       - name: Set app environment
         shell: bash
         run: echo "APP_NAME=${GITHUB_REPOSITORY##*/}" >> "${GITHUB_ENV}"
 
-      - name: Checkout
+      - name: Checkout latest stable
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
           fetch-depth: 0
           submodules: true
+          ref: ${{ needs.resolve-latest-stable.outputs.latest-branch }}
           path: ${{ env.APP_NAME }}
 
-      - name: Get app version number
-        id: app-version
-        uses: skjnldsv/xpath-action@f5b036e9d973f42c86324833fd00be90665fbf77 # v1.0.0
+      - name: Resolve checked out commit
+        id: source
+        working-directory: ${{ env.APP_NAME }}
+        shell: bash
+        run: echo "sha=$(git rev-parse HEAD)" >> "${GITHUB_OUTPUT}"
+
+      - name: Inspect checked-out stable metadata
+        id: build_metadata
+        uses: LibreCodeCoop/release-tool/actions/build-inspect@30ba5d8a33089331d829f586546d34cd45a529d7 # v0.11.21
         with:
-          filename: ${{ env.APP_NAME }}/appinfo/info.xml
-          expression: "//info//version/text()"
+          root: ${{ env.APP_NAME }}
 
       - name: Set app version
         shell: bash
         env:
-          APP_VERSION: ${{ fromJSON(steps.app-version.outputs.result).version }}
+          APP_VERSION: ${{ steps.build_metadata.outputs.version }}
         run: echo "APP_VERSION=${APP_VERSION}" >> "${GITHUB_ENV}"
 
-      - name: Get appinfo data
-        id: appinfo
-        uses: skjnldsv/xpath-action@f5b036e9d973f42c86324833fd00be90665fbf77 # v1.0.0
+      - name: Set up node ${{ steps.build_metadata.outputs.node-version }}
+        if: steps.build_metadata.outputs.has-package-json == 'true'
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
-          filename: ${{ env.APP_NAME }}/appinfo/info.xml
-          expression: "//info//dependencies//nextcloud/@min-version"
-
-      - name: Read package.json node and npm engines version
-        id: versions
-        uses: skjnldsv/read-package-engines-version-actions@06d6baf7d8f41934ab630e97d9e6c0bc9c9ac5e4 # v3
-        continue-on-error: true
-        with:
-          path: ${{ env.APP_NAME }}
-          fallbackNode: '^24'
-          fallbackNpm: '^11.3'
-
-      - name: Set up node ${{ steps.versions.outputs.nodeVersion }}
-        if: steps.versions.outputs.nodeVersion
-        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
-        with:
-          node-version: ${{ steps.versions.outputs.nodeVersion }}
+          node-version: ${{ steps.build_metadata.outputs.node-version }}
           package-manager-cache: false
 
-      - name: Set up npm ${{ steps.versions.outputs.npmVersion }}
-        if: steps.versions.outputs.npmVersion
+      - name: Set up npm ${{ steps.build_metadata.outputs.npm-version }}
+        if: steps.build_metadata.outputs.has-package-json == 'true'
         shell: bash
-        run: npm i -g 'npm@${{ steps.versions.outputs.npmVersion }}'
+        env:
+          NPM_VERSION: ${{ steps.build_metadata.outputs.npm-version }}
+        run: npm i -g "npm@${NPM_VERSION}"
 
       - name: Get PHP version
         id: php-versions
@@ -112,7 +93,7 @@ jobs:
           filename: ${{ env.APP_NAME }}/appinfo/info.xml
 
       - name: Set up PHP ${{ steps.php-versions.outputs.php-min }}
-        uses: shivammathur/setup-php@f3e473d116dcccaddc5834248c87452386958240 # 2.37.2
+        uses: shivammathur/setup-php@eb7c497e18156a6bbabfef1d3a82760b9eda3962 # 2.40.0
         with:
           php-version: ${{ steps.php-versions.outputs.php-min }}
           coverage: none
@@ -134,7 +115,7 @@ jobs:
           ignore-cache: 'yes'
 
       - name: Build ${{ env.APP_NAME }}
-        if: steps.versions.outputs.nodeVersion
+        if: steps.build_metadata.outputs.has-package-json == 'true'
         env:
           CYPRESS_INSTALL_BINARY: 0
         shell: bash
@@ -168,7 +149,7 @@ jobs:
         continue-on-error: true
         shell: bash
         env:
-          NEXTCLOUD_VERSION: ${{ fromJSON(steps.appinfo.outputs.result).nextcloud.min-version }}
+          NEXTCLOUD_VERSION: ${{ steps.build_metadata.outputs.nextcloud-min-version }}
         run: |
           download_url="$(curl -fsSL "https://updates.nextcloud.com/updater_server/latest?channel=beta&version=${NEXTCLOUD_VERSION}" | jq -r '.downloads.zip[0]')"
           test -n "${download_url}" && test "${download_url}" != "null"
@@ -219,7 +200,7 @@ jobs:
           tar -zcf "${APP_NAME}.tar.gz" "${APP_NAME}"
 
       - name: Validate release artifact
-        uses: LibreCodeCoop/release-tool/actions/artifact-validate@30ba5d8a33089331d829f586546d34cd45a529d7
+        uses: LibreCodeCoop/release-tool/actions/artifact-validate@30ba5d8a33089331d829f586546d34cd45a529d7 # v0.11.21
         with:
           artifact: ${{ env.APP_NAME }}/build/artifacts/${{ env.APP_NAME }}.tar.gz
           app-name: ${{ env.APP_NAME }}
@@ -230,7 +211,7 @@ jobs:
         shell: bash
         run: |
           echo "tag=nightly" >> "${GITHUB_OUTPUT}"
-          echo "branch=${{ needs.check-latest-stable.outputs.current-branch }}" >> "${GITHUB_OUTPUT}"
+          echo "branch=${{ needs.resolve-latest-stable.outputs.latest-branch }}" >> "${GITHUB_OUTPUT}"
 
       - name: Move nightly tag to this commit
         shell: bash
@@ -238,14 +219,14 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           if gh api "repos/${GITHUB_REPOSITORY}/git/ref/tags/nightly" >/dev/null 2>&1; then
-            gh api --method PATCH "repos/${GITHUB_REPOSITORY}/git/refs/tags/nightly"               -f sha="${GITHUB_SHA}"               -F force=true >/dev/null
+            gh api --method PATCH "repos/${GITHUB_REPOSITORY}/git/refs/tags/nightly"               -f sha="${{ steps.source.outputs.sha }}"               -F force=true >/dev/null
           else
-            gh api --method POST "repos/${GITHUB_REPOSITORY}/git/refs"               -f ref='refs/tags/nightly'               -f sha="${GITHUB_SHA}" >/dev/null
+            gh api --method POST "repos/${GITHUB_REPOSITORY}/git/refs"               -f ref='refs/tags/nightly'               -f sha="${{ steps.source.outputs.sha }}" >/dev/null
           fi
 
       - name: Build nightly change list
         id: release-note-changes
-        uses: LibreCodeCoop/release-tool/actions/release-notes@30ba5d8a33089331d829f586546d34cd45a529d7
+        uses: LibreCodeCoop/release-tool/actions/release-notes@30ba5d8a33089331d829f586546d34cd45a529d7 # v0.11.21
         with:
           repository: ${{ github.repository }}
           branch: ${{ steps.nightly.outputs.branch }}
@@ -271,7 +252,8 @@ jobs:
             cat "${CHANGES_FILE}"
             echo
             echo "---"
-            printf 'Generated from commit `%s`.\n' "${GITHUB_SHA:0:7}"
+            source_sha='${{ steps.source.outputs.sha }}'
+            printf 'Generated from commit `%s`.\n' "${source_sha:0:7}"
           } > release-notes.md
 
       - name: Create or update GitHub release
