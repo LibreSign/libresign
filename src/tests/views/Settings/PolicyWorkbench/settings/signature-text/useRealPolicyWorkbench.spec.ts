@@ -12,7 +12,7 @@ import {
 	fetchGroupPolicy,
 	getPolicy,
 	resetWorkbenchHarness,
-	saveGroupPolicyCompound
+	saveGroupPolicyCompound,
 } from '../workbenchTestUtils'
 import { createRealPolicyWorkbenchState } from '../../../../../../views/Settings/PolicyWorkbench/useRealPolicyWorkbench'
 
