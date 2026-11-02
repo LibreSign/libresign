@@ -110,7 +110,7 @@
 
 <script setup lang="ts">
 import axios from '@nextcloud/axios'
-import { showError } from '@nextcloud/dialogs'
+import { showError } from '@nextcloud/dialogs-v8'
 import { subscribe, unsubscribe } from '@nextcloud/event-bus'
 import type { Event as NextcloudEvent, EventHandler } from '@nextcloud/event-bus'
 import { loadState } from '@nextcloud/initial-state'

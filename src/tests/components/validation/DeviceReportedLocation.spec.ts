@@ -6,13 +6,13 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { mount } from '@vue/test-utils'
 import type { VueWrapper } from '@vue/test-utils'
-import { showSuccess } from '@nextcloud/dialogs'
+import { showSuccess } from '@nextcloud/dialogs-v8'
 
 import DeviceReportedLocation from '../../../components/validation/DeviceReportedLocation.vue'
 
 vi.mock('@nextcloud/l10n', () => globalThis.mockNextcloudL10n())
 
-vi.mock('@nextcloud/dialogs', () => ({
+vi.mock('@nextcloud/dialogs-v8', () => ({
 	showSuccess: vi.fn(),
 }))
 

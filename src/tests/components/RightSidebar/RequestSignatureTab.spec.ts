@@ -16,7 +16,7 @@ import RequestSignatureTab from '../../../components/RightSidebar/RequestSignatu
 import { useFilesStore } from '../../../store/files.js'
 import { useUserConfigStore } from '../../../store/userconfig.js'
 import { FILE_STATUS, SIGN_REQUEST_STATUS } from '../../../constants.js'
-import { showError, showSuccess, showWarning } from '@nextcloud/dialogs'
+import { showError, showSuccess, showWarning } from '@nextcloud/dialogs-v8'
 import { PARTICIPANT_ROLE } from '../../../utils/participantRole.ts'
 
 const { capabilitiesState, generateUrlMock } = vi.hoisted(() => ({
@@ -98,7 +98,7 @@ vi.mock('@nextcloud/event-bus', () => ({
 	emit: vi.fn(),
 }))
 
-vi.mock('@nextcloud/dialogs')
+vi.mock('@nextcloud/dialogs-v8')
 vi.mock('../../../logger.js', () => ({
 	default: {
 		error: vi.fn(),

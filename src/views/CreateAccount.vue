@@ -70,7 +70,7 @@ import { computed, getCurrentInstance, onBeforeMount, reactive, ref, toRefs } fr
 import md5 from 'blueimp-md5'
 
 import axios from '@nextcloud/axios'
-import { showWarning } from '@nextcloud/dialogs'
+import { showWarning } from '@nextcloud/dialogs-v8'
 import { loadState } from '@nextcloud/initial-state'
 import { generateOcsUrl } from '@nextcloud/router'
 

@@ -40,7 +40,7 @@ type CreateAccountVm = InstanceType<typeof CreateAccount> & {
 }
 
 // Mock @nextcloud modules
-vi.mock('@nextcloud/dialogs', () => ({
+vi.mock('@nextcloud/dialogs-v8', () => ({
 	showWarning: vi.fn(),
 }))
 

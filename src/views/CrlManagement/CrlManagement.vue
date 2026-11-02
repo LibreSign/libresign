@@ -317,7 +317,7 @@ import {
 
 import axios from '@nextcloud/axios'
 import { generateOcsUrl } from '@nextcloud/router'
-import { showError, showSuccess } from '@nextcloud/dialogs'
+import { showError, showSuccess } from '@nextcloud/dialogs-v8'
 
 import { useUserConfigStore } from '../../store/userconfig.js'
 import logger from '../../logger.js'

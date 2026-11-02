@@ -22,7 +22,7 @@ vi.mock('../../../../store/signatureElements.js', () => ({
 	}),
 }))
 
-vi.mock('@nextcloud/dialogs', () => ({
+vi.mock('@nextcloud/dialogs-v8', () => ({
 	showError: vi.fn(),
 	showSuccess: vi.fn(),
 }))

@@ -5,13 +5,13 @@
 
 import { flushPromises, mount } from '@vue/test-utils'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
-import { showError, showSuccess } from '@nextcloud/dialogs'
+import { showError, showSuccess } from '@nextcloud/dialogs-v8'
 
 import GeoIpDatabase from '../../../views/Settings/GeoIpDatabase.vue'
 import { getGeoIpConfig, saveGeoIpConfig } from '../../../services/geoip'
 
 vi.mock('@nextcloud/l10n', () => globalThis.mockNextcloudL10n())
-vi.mock('@nextcloud/dialogs', () => ({
+vi.mock('@nextcloud/dialogs-v8', () => ({
 	showError: vi.fn(),
 	showSuccess: vi.fn(),
 }))

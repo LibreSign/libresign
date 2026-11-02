@@ -17,7 +17,7 @@ const signerSelectStub = {
 	template: '<div class="signer-select-stub" />',
 }
 
-vi.mock('@nextcloud/dialogs', () => ({
+vi.mock('@nextcloud/dialogs-v8', () => ({
 	showError: vi.fn(),
 }))
 
@@ -526,7 +526,7 @@ describe('IdentifySigner rules', () => {
 		})
 
 		it('handles save error gracefully', async () => {
-			const { showError } = await import('@nextcloud/dialogs')
+			const { showError } = await import('@nextcloud/dialogs-v8')
 			filesStore.saveOrUpdateSignatureRequest.mockRejectedValue(
 				new Error('Network error'),
 			)
@@ -540,7 +540,7 @@ describe('IdentifySigner rules', () => {
 		})
 
 		it('shows the API error from a 422 OCS response and keeps the modal open', async () => {
-			const { showError } = await import('@nextcloud/dialogs')
+			const { showError } = await import('@nextcloud/dialogs-v8')
 			filesStore.saveOrUpdateSignatureRequest.mockRejectedValue({
 				response: {
 					status: 422,
@@ -566,7 +566,7 @@ describe('IdentifySigner rules', () => {
 		})
 
 		it('shows the API error from a failed save response and keeps the modal open', async () => {
-			const { showError } = await import('@nextcloud/dialogs')
+			const { showError } = await import('@nextcloud/dialogs-v8')
 			filesStore.saveOrUpdateSignatureRequest.mockResolvedValue({
 				success: false,
 				message: 'Observer participants are not enabled',

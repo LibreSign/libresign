@@ -54,7 +54,7 @@ import { computed, onMounted, ref } from 'vue'
 
 import svgDelete from '@mdi/svg/svg/delete.svg?raw'
 
-import { showError, showSuccess } from '@nextcloud/dialogs'
+import { showError, showSuccess } from '@nextcloud/dialogs-v8'
 
 import NcActionButton from '@nextcloud/vue/components/NcActionButton'
 import NcActions from '@nextcloud/vue/components/NcActions'

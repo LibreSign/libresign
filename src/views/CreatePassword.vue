@@ -34,7 +34,7 @@
 import { t } from '@nextcloud/l10n'
 
 import axios from '@nextcloud/axios'
-import { showSuccess } from '@nextcloud/dialogs'
+import { showSuccess } from '@nextcloud/dialogs-v8'
 import { generateOcsUrl } from '@nextcloud/router'
 import { ref } from 'vue'
 

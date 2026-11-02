@@ -137,8 +137,8 @@ import {
 
 import { getCapabilities } from '@nextcloud/capabilities'
 import { loadState } from '@nextcloud/initial-state'
-import { showError } from '@nextcloud/dialogs'
-import { getFilePickerBuilder } from '@nextcloud/dialogs'
+import { showError } from '@nextcloud/dialogs-v8'
+import { getFilePickerBuilder } from '@nextcloud/dialogs-v8'
 import { spawnDialog } from '@nextcloud/vue/functions/dialog'
 
 import NcActionButton from '@nextcloud/vue/components/NcActionButton'

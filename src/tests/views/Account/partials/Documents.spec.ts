@@ -29,7 +29,7 @@ vi.mock('@nextcloud/router', () => ({
 	generateOcsUrl: vi.fn((path: string) => path),
 }))
 
-vi.mock('@nextcloud/dialogs', () => ({
+vi.mock('@nextcloud/dialogs-v8', () => ({
 	showError: vi.fn(),
 	showWarning: vi.fn(),
 	showSuccess: vi.fn(),

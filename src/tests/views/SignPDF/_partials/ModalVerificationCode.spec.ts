@@ -80,7 +80,7 @@ vi.mock('@nextcloud/initial-state', () => ({
 	loadState: vi.fn(() => 6),
 }))
 
-vi.mock('@nextcloud/dialogs', () => ({
+vi.mock('@nextcloud/dialogs-v8', () => ({
 	showError: vi.fn(),
 	showSuccess: vi.fn(),
 }))

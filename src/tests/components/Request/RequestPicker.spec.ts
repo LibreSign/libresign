@@ -10,7 +10,7 @@ import type { VueWrapper } from '@vue/test-utils'
 import { nextTick } from 'vue'
 import { loadState } from '@nextcloud/initial-state'
 import { getCapabilities } from '@nextcloud/capabilities'
-import { getFilePickerBuilder, showError } from '@nextcloud/dialogs'
+import { getFilePickerBuilder, showError } from '@nextcloud/dialogs-v8'
 import RequestPicker from '../../../components/Request/RequestPicker.vue'
 import { useActionsMenuStore } from '../../../store/actionsmenu.js'
 import { useFilesStore } from '../../../store/files.js'
@@ -46,7 +46,7 @@ const filePickerPick = vi.fn()
 
 vi.mock('@nextcloud/initial-state')
 vi.mock('@nextcloud/capabilities')
-vi.mock('@nextcloud/dialogs', () => ({
+vi.mock('@nextcloud/dialogs-v8', () => ({
 	showError: vi.fn(),
 	getFilePickerBuilder: vi.fn(() => filePickerBuilder),
 }))
