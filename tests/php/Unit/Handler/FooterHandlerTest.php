@@ -98,7 +98,6 @@ final class FooterHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$this->getClass()->getFooter([['w' => 595, 'h' => 100]]);
 	}
 
-
 	public function testExplicitFrozenFooterBypassesCurrentPolicy(): void {
 		$storedFooter = FooterPolicyValue::encode([
 			'enabled' => true,

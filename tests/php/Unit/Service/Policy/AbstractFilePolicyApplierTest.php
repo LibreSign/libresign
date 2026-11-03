@@ -207,7 +207,6 @@ final class AbstractFilePolicyApplierTest extends TestCase {
 		];
 	}
 
-
 	/** @param array<string, mixed>|null $envelopeMetadata */
 	#[DataProvider('frozenSnapshotProvider')]
 	public function testIsPolicySnapshotFrozen(int $status, array $metadata, ?array $envelopeMetadata, bool $expected): void {
