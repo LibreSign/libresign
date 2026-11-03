@@ -55,8 +55,9 @@ final class FooterPolicy implements IPolicyDefinitionProvider {
 					}
 
 					if (!self::canManageTechnicalFooterSettings($context)) {
-						$normalized = FooterPolicyValue::normalize($decoded);
-						if ($normalized['validationSite'] !== '') {
+						// An inherited administrator-configured URL is not a request override.
+						$submittedFooter = $context->getRequestOverrides()[self::KEY] ?? null;
+						if ($submittedFooter !== null && FooterPolicyValue::normalize($submittedFooter)['validationSite'] !== '') {
 							throw new \InvalidArgumentException('Validation URL override is not allowed for this actor');
 						}
 					}
