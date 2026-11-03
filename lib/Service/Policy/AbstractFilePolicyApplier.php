@@ -22,7 +22,7 @@ abstract class AbstractFilePolicyApplier implements IFilePolicyApplier {
 		protected readonly PolicyService $policyService,
 		protected readonly FileService $fileService,
 		protected readonly ?IL10N $l10n = null,
-		protected readonly ?FileMapper $fileMapper = null,
+		protected readonly ?FileMapper $snapshotFileMapper = null,
 	) {
 	}
 
@@ -84,7 +84,7 @@ abstract class AbstractFilePolicyApplier implements IFilePolicyApplier {
 	 * documents of a frozen envelope.
 	 */
 	protected function isPolicySnapshotFrozen(FileEntity $file): bool {
-		return FileStatusService::isPolicySnapshotFrozen($file, $this->fileMapper?->findEnvelope($file));
+		return FileStatusService::isPolicySnapshotFrozen($file, $this->snapshotFileMapper?->findEnvelope($file));
 	}
 
 	protected function storePolicySnapshot(FileEntity $file, ResolvedPolicy $resolvedPolicy, mixed $effectiveValue = null): void {

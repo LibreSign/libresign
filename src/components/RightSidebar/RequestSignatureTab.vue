@@ -468,7 +468,7 @@ const isPolicySnapshotFrozen = computed(() => {
 		return false
 	}
 	const metadata = file.metadata as Record<string, unknown> | null | undefined
-	return file.status >= FILE_STATUS.ABLE_TO_SIGN
+	return (file.status ?? FILE_STATUS.DRAFT) >= FILE_STATUS.ABLE_TO_SIGN
 		|| typeof metadata?.policy_snapshot_frozen_at === 'string'
 })
 
