@@ -297,13 +297,13 @@ final class RequestSignatureControllerTest extends ApiTestCase {
 					'identifyMethods' => [[
 						'method' => 'email',
 						'requirement' => 'optional',
-						'value' => 'person@test.coop',
+						'value' => 'external-signer@test.coop',
 					]],
 				]],
-			]);
+			])
+			->expectStatus(200);
 
-		$response = $this->assertRequest();
-		$this->assertSame(200, $response->getStatusCode());
+		$this->assertRequest();
 		$sent = $fileMapper->getById($file->getId())->getMetadata();
 		$this->assertSame($updatedFooter, $sent['policy_snapshot']['add_footer']['effectiveValue']);
 		$this->assertArrayHasKey('policy_snapshot_frozen_at', $sent);
