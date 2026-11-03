@@ -217,6 +217,20 @@ final class FooterPolicyTest extends TestCase {
 		]];
 	}
 
+	public function testRegularActorCannotPersistCustomValidationSite(): void {
+		$definition = (new FooterPolicy())->get(FooterPolicy::KEY);
+		$footer = $definition->normalizeValue([
+			'enabled' => true,
+			'validationSite' => 'https://not-allowed.example',
+		]);
+		$context = (new PolicyContext())->setActorRole(ActorRole::regularUser());
+
+		$this->expectException(\InvalidArgumentException::class);
+		$this->expectExceptionMessage('Validation URL override is not allowed for this actor');
+
+		$definition->validateValueForPersistence($footer, $context);
+	}
+
 	#[DataProvider('provideCanCurrentActorManageGroupPolicyCases')]
 	public function testCanCurrentActorManageGroupPolicyWithDataProvider(
 		ActorRole $actorRole,
