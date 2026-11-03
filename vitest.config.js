@@ -9,7 +9,14 @@ import vue from '@vitejs/plugin-vue'
 
 export default defineConfig({
 	plugins: [vue()],
+	server: {
+		fs: {
+			strict: process.env.STRYKER_MUTATOR_WORKER === undefined,
+		},
+	},
 	resolve: {
+		// TODO(viewer-compat): Recheck Vue deduplication after cleanup; do not remove blindly (PR #9301).
+		dedupe: ['vue', '@nextcloud/vue'],
 		alias: [
 			{
 				find: /^@libresign\/pdf-elements$/,

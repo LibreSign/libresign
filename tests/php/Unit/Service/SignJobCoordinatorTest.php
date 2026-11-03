@@ -68,6 +68,26 @@ class SignJobCoordinatorTest extends TestCase {
 		);
 	}
 
+	public function testAnonymousCredentialsAreDeletedAfterJobCompletion(): void {
+		$this->credentialsManager->expects($this->once())->method('delete')->with('', 'anonymous-cred');
+		$this->coordinator->discardJobCredentials(['userId' => '', 'credentialsId' => 'anonymous-cred']);
+	}
+
+	public function testExternalSignerCredentialsAreRemovedFromGuestStore(): void {
+		$this->credentialsManager->expects($this->once())->method('delete')->with('', 'external-credentials');
+		$this->coordinator->discardJobCredentials([
+			'userId' => 'document-owner',
+			'isExternalSigner' => true,
+			'credentialsId' => 'external-credentials',
+		]);
+	}
+
+	public function testCredentialDeleteFailureDoesNotFailSigning(): void {
+		$this->credentialsManager->method('delete')->willThrowException(new \RuntimeException('Temporary store unavailable'));
+		$this->logger->expects($this->once())->method('warning');
+		$this->coordinator->discardJobCredentials(['userId' => 'user-1', 'credentialsId' => 'cred']);
+	}
+
 	public function testRunSignSingleFileMarksInProgressAndDeletesCredentialsOnSuccess(): void {
 		$file = new File();
 		$file->setId(10);
@@ -138,7 +158,7 @@ class SignJobCoordinatorTest extends TestCase {
 			->method('delete')
 			->with('user1', 'cred-1');
 
-		$this->coordinator->runSignSingleFile([
+		$this->assertTrue($this->coordinator->runSignSingleFile([
 			'fileId' => $file->getId(),
 			'signRequestId' => $signRequest->getId(),
 			'userId' => 'user1',
@@ -149,7 +169,7 @@ class SignJobCoordinatorTest extends TestCase {
 			'credentialsId' => 'cred-1',
 			'metadata' => [],
 			'visibleElements' => [],
-		]);
+		]));
 	}
 
 	public function testRunSignSingleFileDeletesCredentialsWhenSigningFails(): void {
@@ -236,7 +256,7 @@ class SignJobCoordinatorTest extends TestCase {
 			->method('sign')
 			->willThrowException($exception);
 
-		$this->coordinator->runSignFile([
+		$this->assertFalse($this->coordinator->runSignFile([
 			'fileId' => $file->getId(),
 			'signRequestId' => $signRequest->getId(),
 			'userId' => '',
@@ -247,7 +267,7 @@ class SignJobCoordinatorTest extends TestCase {
 			'credentialsId' => null,
 			'metadata' => [],
 			'visibleElements' => [],
-		]);
+		]));
 	}
 
 	public function testRunSignSingleFileStoresErrorWhenValidationFails(): void {
@@ -340,5 +360,31 @@ class SignJobCoordinatorTest extends TestCase {
 
 		$this->coordinator->runSignSingleFile([]);
 		$this->addToAssertionCount(1);
+	}
+
+	public function testExternalJobUsesItsCapturedStorageContextAndNextJobClearsIt(): void {
+		$file = new File();
+		$file->setId(10);
+		$signRequest = new SignRequest();
+		$signRequest->setId(20);
+		$signRequest->setUuid('request-uuid');
+		$this->fileMapper->method('getById')->willReturn($file);
+		$this->signRequestMapper->method('getById')->willReturn($signRequest);
+		$this->signFileService->method('setLibreSignFile')->willReturnSelf();
+		$this->signFileService->method('setSignRequest')->willReturnSelf();
+		$this->signFileService->method('setCurrentUser')->willReturnSelf();
+		$this->signFileService->method('storeUserMetadata')->willReturnSelf();
+		$contexts = [];
+		$this->signFileService->expects($this->exactly(2))->method('setSignatureSessionId')
+			->willReturnCallback(function (?string $sessionId) use (&$contexts): SignFileService {
+				$contexts[] = $sessionId;
+				return $this->signFileService;
+			});
+		$argument = ['fileId' => 10, 'signRequestId' => 20, 'userId' => '', 'isExternalSigner' => true, 'signatureSessionId' => 'browser-request-storage'];
+
+		$this->assertTrue($this->coordinator->runSignFile($argument));
+		$argument['isExternalSigner'] = false;
+		$this->assertTrue($this->coordinator->runSignFile($argument));
+		$this->assertSame(['browser-request-storage', null], $contexts);
 	}
 }

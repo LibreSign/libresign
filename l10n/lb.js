@@ -56,7 +56,6 @@ OC.L10N.register(
     "Private" : "Privat",
     "Unknown" : "Onbekannt",
     "Country:" : "Land:",
-    "No date" : "No date",
     "Yes" : "Jo",
     "No" : "Nee",
     "Error" : "Fehler",

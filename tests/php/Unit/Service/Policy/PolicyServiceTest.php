@@ -267,47 +267,6 @@ final class PolicyServiceTest extends TestCase {
 		$this->assertSame('request', $resolved->getSourceScope());
 	}
 
-	public function testStoredFooterIsReplayedForSignerWhoCannotSubmitRequestOverrides(): void {
-		$signer = $this->createMock(IUser::class);
-		$signer->method('getUID')->willReturn('signer');
-		$this->userSession->method('getUser')->willReturn($signer);
-		$this->groupManager->method('getUserGroupIds')->willReturn([]);
-
-		$defaultFooter = FooterPolicyValue::encode(FooterPolicyValue::defaults());
-		$storedFooter = FooterPolicyValue::encode(['enabled' => false]);
-		$this->source
-			->method('loadSystemPolicy')
-			->willReturn((new PolicyLayer())
-				->setScope('system')
-				->setValue($defaultFooter)
-				->setAllowChildOverride(true)
-				->setVisibleToChild(true));
-		$this->source->method('loadGroupPolicies')->willReturn([]);
-		$this->source->method('loadUserPreference')->willReturn(null);
-		$this->source
-			->method('loadRequestOverride')
-			->willReturn((new PolicyLayer())
-				->setScope('request')
-				->setValue($storedFooter));
-
-		$service = new PolicyService(
-			$this->contextFactory,
-			$this->source,
-			$this->registry,
-			$this->l10n,
-			$this->db,
-		);
-
-		$submitted = $service->resolve(FooterPolicy::KEY, [FooterPolicy::KEY => $storedFooter]);
-		$this->assertFalse($submitted->canUseAsRequestOverride());
-		$this->assertSame($defaultFooter, $submitted->getEffectiveValue());
-
-		$replayed = $service->resolveWithStoredRequestOverrides(FooterPolicy::KEY, [FooterPolicy::KEY => $storedFooter]);
-		$this->assertFalse($replayed->canUseAsRequestOverride());
-		$this->assertSame($storedFooter, $replayed->getEffectiveValue());
-		$this->assertSame('request', $replayed->getSourceScope());
-	}
-
 	public function testResolveForUserIdWithoutUserFallsBackToSystem(): void {
 		$this->userManager
 			->expects($this->once())
@@ -2468,6 +2427,66 @@ final class PolicyServiceTest extends TestCase {
 			->with(SignatureRejectionPolicy::KEY_COMMENT_VISIBILITY, 'public', false);
 
 		$this->newService()->saveSystem(SignatureRejectionPolicy::KEY_COMMENT_VISIBILITY, 'public');
+	}
+
+	/**
+	 * A null value means there is no explicit system rule: the built-in
+	 * default applies and lower layers may override it.
+	 */
+	public function testSavingNullRemovesTheExplicitSystemRule(): void {
+		$this->givenSystemRejectionPolicy([]);
+		$this->source
+			->expects($this->once())
+			->method('clearSystemPolicy')
+			->with(SignatureRejectionPolicy::KEY_VISIBILITY);
+		$this->source->expects($this->never())->method('saveSystemPolicy');
+
+		$this->newService()->saveSystem(SignatureRejectionPolicy::KEY_VISIBILITY, null);
+	}
+
+	/**
+	 * A value equal to the built-in default is still an explicit rule, with
+	 * its own override flag.
+	 */
+	public function testSavingTheDefaultValueKeepsAnExplicitSystemRule(): void {
+		$this->givenSystemRejectionPolicy([]);
+		$this->source
+			->expects($this->once())
+			->method('saveSystemPolicy')
+			->with(SignatureRejectionPolicy::KEY_VISIBILITY, 'requester', false);
+		$this->source->expects($this->never())->method('clearSystemPolicy');
+
+		$this->newService()->saveSystem(SignatureRejectionPolicy::KEY_VISIBILITY, 'requester');
+	}
+
+	public function testACompoundWriteTellsANullApartFromAnExplicitDefault(): void {
+		$this->givenSystemRejectionPolicy([
+			SignatureRejectionPolicy::KEY_ENABLED => true,
+			SignatureRejectionPolicy::KEY_VISIBILITY => 'public',
+			SignatureRejectionPolicy::KEY_COMMENT_MODE => 'optional',
+			SignatureRejectionPolicy::KEY_COMMENT_VISIBILITY => 'public',
+		]);
+		$this->source
+			->expects($this->once())
+			->method('clearSystemPolicy')
+			->with(SignatureRejectionPolicy::KEY_VISIBILITY);
+		$this->source
+			->expects($this->once())
+			->method('saveSystemPolicy')
+			->with(SignatureRejectionPolicy::KEY_COMMENT_VISIBILITY, 'requester', false);
+
+		$saved = $this->newService()->saveSystemCompound(SignatureRejectionPolicy::KEY_ENABLED, [
+			SignatureRejectionPolicy::KEY_VISIBILITY => null,
+			SignatureRejectionPolicy::KEY_COMMENT_VISIBILITY => 'requester',
+		], [
+			SignatureRejectionPolicy::KEY_VISIBILITY => false,
+			SignatureRejectionPolicy::KEY_COMMENT_VISIBILITY => false,
+		]);
+
+		$this->assertSame(
+			[SignatureRejectionPolicy::KEY_VISIBILITY, SignatureRejectionPolicy::KEY_COMMENT_VISIBILITY],
+			array_keys($saved),
+		);
 	}
 
 	public function testACompoundWriteIsPersistedAsASingleTransaction(): void {

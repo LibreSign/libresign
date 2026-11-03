@@ -272,6 +272,17 @@ namespace OCA\Libresign;
  *     rejection?: LibresignSignerRejection,
  * }
  *
+ * Notification delivery status
+ *
+ * @psalm-type LibresignNotificationStatusResponse = array{
+ *     status: 'processing'|'completed'|'attention_required'|'not_found',
+ *     complete: bool,
+ *     channels: list<array{
+ *         channel: string,
+ *         state: string,
+ *     }>,
+ * }
+ *
  * Shared feedback and action contracts
  *
  * @psalm-type LibresignInfoMessage = array{
@@ -341,6 +352,7 @@ namespace OCA\Libresign;
  *     message?: string,
  *     file?: LibresignFileUuidReference,
  *     job?: LibresignSigningJob,
+ *     signatureSaveStatus?: 'saved'|'failed',
  * }
  * @psalm-type LibresignSignActionErrorResponse = array{
  *     action: int,

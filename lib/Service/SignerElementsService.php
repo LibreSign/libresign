@@ -110,16 +110,39 @@ class SignerElementsService {
 		return true;
 	}
 
-	public function getElementsFromSession(): array {
-		$folder = $this->folderService->getFolder();
+	public function getSessionStorageId(): string {
+		return $this->sessionService->getSessionId();
+	}
+
+	/** The optional storage ID is supplied only by server-created signing jobs. */
+	public function getElementsFromSession(?string $sessionId = null): array {
+		if ($sessionId !== null && !preg_match('/^[a-zA-Z0-9,-]+$/D', $sessionId)) {
+			throw new \InvalidArgumentException('Invalid signature session storage ID');
+		}
+		$folder = $this->folderService->getUnauthenticatedFolder();
 		try {
 			/** @var Folder $signerFolder */
-			$signerFolder = $folder->get($this->sessionService->getSessionId());
+			$signerFolder = $folder->get($sessionId ?? $this->getSessionStorageId());
 		} catch (NotFoundException) {
 			return [];
 		}
 		$fileList = $signerFolder->getDirectoryListing();
 		return $fileList;
+	}
+
+	/**
+	 * Unauthenticated signers may only reach elements stored in their own session folder
+	 *
+	 * @throws DoesNotExistException
+	 */
+	public function getElementFromSessionByNodeId(int $nodeId): File {
+		foreach ($this->getElementsFromSession() as $element) {
+			if ($element instanceof File && $element->getId() === $nodeId) {
+				return $element;
+			}
+		}
+		// TRANSLATORS Error when a visible signature element linked to the user account cannot be found.
+		throw new DoesNotExistException($this->l10n->t('Element not found'));
 	}
 
 	/**
@@ -210,17 +233,37 @@ class SignerElementsService {
 	}
 
 	private function createFileOfVisibleElementUsingSession(array $data, string $sessionId): File {
-		$rootSignatureFolder = $this->folderService->getFolder();
+		return $this->createSessionElement($data['type'], $this->getFileRaw($data), $sessionId);
+	}
+
+	private function createSessionElement(string $type, string $content, string $sessionId): File {
+		$rootSignatureFolder = $this->folderService->getUnauthenticatedFolder();
 		$folderName = $sessionId;
-		$folderToFile = $rootSignatureFolder->newFolder($folderName);
+		$folderToFile = $rootSignatureFolder->getOrCreateFolder($folderName);
 		$filename = implode(
 			'_',
 			[
-				$data['type'],
+				$type,
 				$this->timeFactory->getDateTime()->getTimestamp(),
 			]
 		) . '.png';
-		return $folderToFile->newFile($filename, $this->getFileRaw($data));
+		return $folderToFile->newFile($filename, $content);
+	}
+
+	public function getSessionElementType(File $element): string {
+		return explode('_', pathinfo($element->getName(), PATHINFO_FILENAME))[0];
+	}
+
+	/**
+	 * Replace the element of a type stored in the current signing session
+	 */
+	public function replaceSessionElement(string $type, string $content): void {
+		foreach ($this->getElementsFromSession() as $element) {
+			if ($element instanceof File && $this->getSessionElementType($element) === $type) {
+				$element->delete();
+			}
+		}
+		$this->createSessionElement($type, $content, $this->sessionService->getSessionId());
 	}
 
 	private function insertVisibleElement(array $data, IUser $user, File $file): void {
@@ -285,7 +328,7 @@ class SignerElementsService {
 	}
 
 	private function deleteSignatureElementFromSession(string $sessionId, int $nodeId): void {
-		$rootSignatureFolder = $this->folderService->getFolder();
+		$rootSignatureFolder = $this->folderService->getUnauthenticatedFolder();
 		try {
 			/** @var \OCP\Files\Folder $sessionFolder */
 			$sessionFolder = $rootSignatureFolder->get($sessionId);

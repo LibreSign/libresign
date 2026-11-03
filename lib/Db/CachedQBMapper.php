@@ -49,6 +49,20 @@ abstract class CachedQBMapper extends QBMapper {
 		return $updated;
 	}
 
+	/**
+	 * Keep uncommitted entity state out of the distributed cache.
+	 * @param T $entity
+	 * @return T
+	 */
+	public function updateWithoutCache(Entity $entity): Entity {
+		return parent::update($entity);
+	}
+
+	/** @param T $entity Invalidate cached state after a transaction boundary. */
+	public function invalidateEntityCache(Entity $entity): void {
+		$this->evictEntity($entity);
+	}
+
 	#[\Override]
 	public function delete(Entity $entity): Entity {
 		$deleted = parent::delete($entity);
@@ -101,6 +115,14 @@ abstract class CachedQBMapper extends QBMapper {
 		foreach ($this->getEntityCacheKeys($entity) as $key) {
 			$this->cacheSet($key, $entity);
 		}
+	}
+
+	/**
+	 * Drop speculative cache writes after a transaction commits or rolls back.
+	 * A subsequent lookup reloads the authoritative database state.
+	 */
+	public function invalidateCachedEntity(Entity $entity): void {
+		$this->evictEntity($entity);
 	}
 
 	private function evictEntity(Entity $entity): void {

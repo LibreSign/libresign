@@ -8,20 +8,28 @@ declare(strict_types=1);
 
 namespace OCA\Libresign\Tests\Unit\Service\Policy;
 
+use OCA\Libresign\Service\Policy\Model\PolicyLayer;
 use OCA\Libresign\Service\Policy\Model\ResolvedPolicy;
 use OCA\Libresign\Service\Policy\PolicyAuthorizationService;
 use OCA\Libresign\Service\Policy\PolicyManagementScopeService;
 use OCA\Libresign\Service\Policy\PolicyService;
+use OCA\Libresign\Service\Policy\Provider\ExpirationRules\ExpirationRulesPolicy;
 use OCA\Libresign\Service\Policy\Provider\RequestSignGroups\RequestSignGroupsPolicy;
+use OCA\Libresign\Service\Policy\Runtime\PolicyContextFactory;
+use OCA\Libresign\Service\Policy\Runtime\PolicyRegistry;
+use OCA\Libresign\Service\Policy\Runtime\PolicySource;
 use OCP\Group\ISubAdmin;
+use OCP\IDBConnection;
 use OCP\IGroup;
 use OCP\IGroupManager;
+use OCP\IL10N;
 use OCP\IUser;
 use OCP\IUserManager;
 use OCP\IUserSession;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
+use Psr\Container\ContainerInterface;
 
 final class PolicyManagementScopeServiceTest extends TestCase {
 	private IUserSession&MockObject $userSession;
@@ -110,6 +118,91 @@ final class PolicyManagementScopeServiceTest extends TestCase {
 
 		$this->assertSame(1, $result[RequestSignGroupsPolicy::KEY]['groupCount']);
 		$this->assertSame(2, $result['signature_flow']['userCount']);
+	}
+
+	/**
+	 * @param array<string, list<array{groupId: string, createdBySystemAdmin: bool}>> $groupRules
+	 */
+	#[DataProvider('compositeVisibleGroupCountScenarios')]
+	public function testResolveVisibleRuleCountsForCurrentActorCountsCompositeChildRulesForSubAdmin(array $groupRules, int $expectedParentCount): void {
+		$this->groupManager->method('isAdmin')->with('current-user')->willReturn(false);
+		$this->subAdmin->method('isSubAdmin')->with($this->currentUser)->willReturn(true);
+		$this->groupManager->method('getUserGroupIds')->with($this->currentUser)->willReturn(['finance', 'legal']);
+
+		$container = $this->createMock(ContainerInterface::class);
+		$container->method('get')->willReturnCallback(static fn (string $class): object => new $class());
+		$registry = new PolicyRegistry($container, [ExpirationRulesPolicy::class]);
+
+		$source = $this->createMock(PolicySource::class);
+		$source->method('loadSystemPolicy')->willReturn(null);
+		$allGroupIds = array_unique(array_column(array_merge(...array_values($groupRules)), 'groupId'));
+		$source->method('loadRuleCounts')->with(['finance', 'legal'], [])->willReturn([
+			ExpirationRulesPolicy::KEY_MAXIMUM_VALIDITY => ['groupCount' => count($allGroupIds), 'userCount' => 0, 'everyoneCount' => 0],
+		]);
+		$source->method('listGroupPoliciesByKeyForTargets')->willReturnCallback(
+			static fn (string $policyKey, array $groupIds): array => array_map(
+				static fn (array $rule): array => [
+					'targetId' => $rule['groupId'],
+					'policy' => (new PolicyLayer())->setCreatedBySystemAdmin($rule['createdBySystemAdmin']),
+				],
+				$groupRules[$policyKey] ?? [],
+			),
+		);
+
+		$policyService = new PolicyService(
+			new PolicyContextFactory($this->userManager, $this->groupManager, $this->subAdmin, $this->userSession),
+			$source,
+			$registry,
+			$this->createMock(IL10N::class),
+			$this->createMock(IDBConnection::class),
+		);
+		$service = new PolicyManagementScopeService(
+			$this->userSession,
+			$this->groupManager,
+			$this->userManager,
+			$this->subAdmin,
+			$policyService,
+			new PolicyAuthorizationService($this->groupManager, $this->subAdmin, $policyService),
+		);
+
+		$result = $service->resolveVisibleRuleCountsForCurrentActor();
+
+		$this->assertSame($expectedParentCount, $result[ExpirationRulesPolicy::KEY_MAXIMUM_VALIDITY]['groupCount']);
+	}
+
+	public static function compositeVisibleGroupCountScenarios(): array {
+		$visible = static fn (string $groupId): array => ['groupId' => $groupId, 'createdBySystemAdmin' => false];
+		$systemCreated = static fn (string $groupId): array => ['groupId' => $groupId, 'createdBySystemAdmin' => true];
+
+		return [
+			'parent and child in different groups' => [
+				[
+					ExpirationRulesPolicy::KEY_MAXIMUM_VALIDITY => [$visible('finance')],
+					ExpirationRulesPolicy::KEY_RENEWAL_INTERVAL => [$visible('legal')],
+				],
+				2,
+			],
+			'parent and child in the same group' => [
+				[
+					ExpirationRulesPolicy::KEY_MAXIMUM_VALIDITY => [$visible('finance')],
+					ExpirationRulesPolicy::KEY_RENEWAL_INTERVAL => [$visible('finance')],
+				],
+				1,
+			],
+			'child only' => [
+				[
+					ExpirationRulesPolicy::KEY_RENEWAL_INTERVAL => [$visible('legal')],
+				],
+				1,
+			],
+			'hidden system-created child rule' => [
+				[
+					ExpirationRulesPolicy::KEY_MAXIMUM_VALIDITY => [$visible('finance')],
+					ExpirationRulesPolicy::KEY_RENEWAL_INTERVAL => [$systemCreated('legal')],
+				],
+				1,
+			],
+		];
 	}
 
 	public function testCanCurrentActorManageGroupPolicyUsesDelegatedManageableGroupsForRequestSignPolicy(): void {

@@ -10,6 +10,7 @@ namespace OCA\Libresign\Controller;
 
 use OCA\Libresign\AppInfo\Application;
 use OCA\Libresign\Db\FileMapper;
+use OCA\Libresign\Db\SignRequest;
 use OCA\Libresign\Db\SignRequestMapper;
 use OCA\Libresign\Exception\LibresignException;
 use OCA\Libresign\Handler\CertificateEngine\CertificateEngineFactory;
@@ -19,6 +20,7 @@ use OCA\Libresign\Middleware\Attribute\RequireParticipantUuid;
 use OCA\Libresign\Middleware\Attribute\RequireSetupOk;
 use OCA\Libresign\Middleware\Attribute\RequireSignRequestUuid;
 use OCA\Libresign\Service\AccountService;
+use OCA\Libresign\Service\EmailSignerElementsService;
 use OCA\Libresign\Service\File\FileListService;
 use OCA\Libresign\Service\FileService;
 use OCA\Libresign\Service\IdentifyMethod\SignatureMethod\TokenService;
@@ -81,6 +83,7 @@ class PageController extends AEnvironmentPageAwareController {
 		private SigningRequestValidator $signingRequestValidator,
 		private IEventDispatcher $eventDispatcher,
 		private IURLGenerator $urlGenerator,
+		private EmailSignerElementsService $emailSignerElementsService,
 	) {
 		parent::__construct(
 			request: $request,
@@ -443,6 +446,13 @@ class PageController extends AEnvironmentPageAwareController {
 			$signatures = $this->signerElementsService->getUserElements($this->userSession->getUser()->getUID());
 		} else {
 			$signatures = $this->signerElementsService->getElementsFromSessionAsArray();
+			$signRequest = $this->getSignRequestEntity();
+			if ($signRequest instanceof SignRequest) {
+				$this->initialState->provideInitialState(
+					'email_signer_signature',
+					$this->emailSignerElementsService->getSignerState($signRequest),
+				);
+			}
 		}
 		$this->initialState->provideInitialState('user_signatures', $signatures);
 	}
@@ -579,8 +589,7 @@ class PageController extends AEnvironmentPageAwareController {
 			);
 		}
 
-		Util::addScript(Application::APP_ID, 'libresign-validation');
-		Util::addStyle(Application::APP_ID, 'libresign-validation');
+		$this->registerValidationAssets();
 		$response = new TemplateResponse(Application::APP_ID, 'external', [], TemplateResponse::RENDER_AS_BASE);
 
 		return $response;
@@ -699,14 +708,21 @@ class PageController extends AEnvironmentPageAwareController {
 		);
 		$this->initialState->provideInitialState('file_info', $fileInfo);
 
-		Util::addScript(Application::APP_ID, 'libresign-validation');
-		Util::addStyle(Application::APP_ID, 'libresign-validation');
+		$this->registerValidationAssets();
 		if (class_exists(LoadViewer::class)) {
 			$this->eventDispatcher->dispatchTyped(new LoadViewer());
 		}
 		$response = new TemplateResponse(Application::APP_ID, 'external', [], TemplateResponse::RENDER_AS_BASE);
 
 		return $response;
+	}
+
+	/**
+	 * Register the same scripts and styles on all public validation routes.
+	 */
+	private function registerValidationAssets(): void {
+		Util::addScript(Application::APP_ID, 'libresign-validation');
+		Util::addStyle(Application::APP_ID, 'libresign-validation');
 	}
 
 	/**

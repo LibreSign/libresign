@@ -561,6 +561,23 @@ export type paths = {
         patch?: never;
         trace?: never;
     };
+    "/ocs/v2.php/apps/libresign/api/{apiVersion}/notify/status": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Read the status of one manual reminder, including each channel. */
+        get: operations["notify-status"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/ocs/v2.php/apps/libresign/api/{apiVersion}/notify/notification": {
         parameters: {
             query?: never;
@@ -915,6 +932,26 @@ export type paths = {
         put?: never;
         /** Create signature element */
         post: operations["signature_elements-create-signature-element"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/ocs/v2.php/apps/libresign/api/{apiVersion}/signature/elements/saved": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Use the saved signature elements of a signer identified by email
+         * @description The saved elements are copied into the current signing session only after the signer satisfies the confirm method configured for the Email identification factor.
+         */
+        post: operations["signature_elements-use-saved-signature-elements"];
         delete?: never;
         options?: never;
         head?: never;
@@ -1443,6 +1480,15 @@ export type components = {
             participantRole?: components["schemas"]["ParticipantRole"];
             deviceGeolocationRequired?: boolean;
         };
+        NotificationStatusResponse: {
+            /** @enum {string} */
+            status: "processing" | "completed" | "attention_required" | "not_found";
+            complete: boolean;
+            channels: {
+                channel: string;
+                state: string;
+            }[];
+        };
         Notify: {
             /** Format: int64 */
             date: number;
@@ -1629,6 +1675,8 @@ export type components = {
             message?: string;
             file?: components["schemas"]["FileUuidReference"];
             job?: components["schemas"]["SigningJob"];
+            /** @enum {string} */
+            signatureSaveStatus?: "saved" | "failed";
         };
         SignatureMethod: {
             enabled: boolean;
@@ -3747,7 +3795,7 @@ export interface operations {
             };
         };
         responses: {
-            /** @description OK */
+            /** @description Request processed */
             200: {
                 headers: {
                     [name: string]: unknown;
@@ -3761,8 +3809,36 @@ export interface operations {
                     };
                 };
             };
-            /** @description Unauthorized */
-            401: {
+            /** @description Request cannot be processed */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        ocs: {
+                            meta: components["schemas"]["OCSMeta"];
+                            data: components["schemas"]["MessageResponse"] | components["schemas"]["ActionErrorResponse"];
+                        };
+                    };
+                };
+            };
+            /** @description Unexpected server error */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        ocs: {
+                            meta: components["schemas"]["OCSMeta"];
+                            data: components["schemas"]["DangerMessagesResponse"];
+                        };
+                    };
+                };
+            };
+            /** @description Transport did not confirm submission */
+            502: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -3802,11 +3878,13 @@ export interface operations {
                      * @description The sign request id
                      */
                     signRequestId: number;
+                    /** @description Optional random idempotency key (32 lowercase hex characters) */
+                    requestId?: string | null;
                 };
             };
         };
         responses: {
-            /** @description OK */
+            /** @description Request processed */
             200: {
                 headers: {
                     [name: string]: unknown;
@@ -3820,8 +3898,22 @@ export interface operations {
                     };
                 };
             };
-            /** @description Unauthorized */
-            401: {
+            /** @description Request cannot be processed */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        ocs: {
+                            meta: components["schemas"]["OCSMeta"];
+                            data: components["schemas"]["MessageResponse"] | components["schemas"]["ActionErrorResponse"];
+                        };
+                    };
+                };
+            };
+            /** @description Unexpected server error */
+            500: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -3830,6 +3922,57 @@ export interface operations {
                         ocs: {
                             meta: components["schemas"]["OCSMeta"];
                             data: components["schemas"]["DangerMessagesResponse"];
+                        };
+                    };
+                };
+            };
+            /** @description Transport did not confirm submission */
+            502: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        ocs: {
+                            meta: components["schemas"]["OCSMeta"];
+                            data: components["schemas"]["DangerMessagesResponse"];
+                        };
+                    };
+                };
+            };
+        };
+    };
+    "notify-status": {
+        parameters: {
+            query: {
+                /** @description The LibreSign file ID */
+                fileId: number;
+                /** @description The sign request ID */
+                signRequestId: number;
+                /** @description The random idempotency key used in the POST request */
+                requestId: string;
+            };
+            header: {
+                /** @description Required to be true for the API request to pass */
+                "OCS-APIRequest": boolean;
+            };
+            path: {
+                apiVersion: "v1";
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Current notification states */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        ocs: {
+                            meta: components["schemas"]["OCSMeta"];
+                            data: components["schemas"]["NotificationStatusResponse"];
                         };
                     };
                 };
@@ -5091,6 +5234,11 @@ export interface operations {
                     deviceGeolocation?: {
                         [key: string]: Record<string, never>;
                     };
+                    /**
+                     * @description Explicitly save the external email signer's visible signature for future documents
+                     * @default false
+                     */
+                    saveSignature?: boolean;
                 };
             };
         };
@@ -5478,6 +5626,60 @@ export interface operations {
                 };
             };
             /** @description Invalid data */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        ocs: {
+                            meta: components["schemas"]["OCSMeta"];
+                            data: components["schemas"]["MessageResponse"];
+                        };
+                    };
+                };
+            };
+        };
+    };
+    "signature_elements-use-saved-signature-elements": {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Required to be true for the API request to pass */
+                "OCS-APIRequest": boolean;
+            };
+            path: {
+                apiVersion: "v1";
+            };
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "application/json": {
+                    /**
+                     * @description Verification code, required when the confirm method is the email token
+                     * @default
+                     */
+                    token?: string;
+                };
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        ocs: {
+                            meta: components["schemas"]["OCSMeta"];
+                            data: components["schemas"]["UserElementsResponse"];
+                        };
+                    };
+                };
+            };
+            /** @description The saved elements cannot be used */
             422: {
                 headers: {
                     [name: string]: unknown;

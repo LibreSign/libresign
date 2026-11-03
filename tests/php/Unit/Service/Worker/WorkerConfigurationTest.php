@@ -32,51 +32,72 @@ class WorkerConfigurationTest extends \PHPUnit\Framework\TestCase {
 		return json_encode(['worker_type' => $workerType, 'parallel_workers' => $parallelWorkers]);
 	}
 
-	public function testIsAsyncLocalEnabledWhenAsyncAndLocalWorker(): void {
-		$this->appConfig->expects($this->exactly(2))
-			->method('getValueString')
-			->willReturnMap([
-				[Application::APP_ID, 'signing_mode', 'sync', 'async'],
-				[Application::APP_ID, WorkerConfigPolicy::SYSTEM_APP_CONFIG_KEY, '', $this->encodeConfig('local', 4)],
-			]);
-
-		$service = $this->makeService();
-		$this->assertTrue($service->isAsyncLocalEnabled());
-	}
-
-	public function testIsAsyncLocalEnabledFalseWhenSigningModeNotAsync(): void {
+	#[DataProvider('asyncSigningModes')]
+	public function testAsyncSigningModeDoesNotDependOnWorkerType(string $mode, bool $expected): void {
 		$this->appConfig->expects($this->once())
 			->method('getValueString')
 			->with(Application::APP_ID, 'signing_mode', 'sync')
-			->willReturn('sync');
+			->willReturn($mode);
 
-		$service = $this->makeService();
-		$this->assertFalse($service->isAsyncLocalEnabled());
+		$this->assertSame($expected, $this->makeService()->isAsyncSigningEnabled());
 	}
 
-	public function testIsAsyncLocalEnabledFalseWhenWorkerTypeIsExternal(): void {
-		$this->appConfig->expects($this->exactly(2))
-			->method('getValueString')
-			->willReturnMap([
-				[Application::APP_ID, 'signing_mode', 'sync', 'async'],
-				[Application::APP_ID, WorkerConfigPolicy::SYSTEM_APP_CONFIG_KEY, '', $this->encodeConfig('external', 4)],
-			]);
-
-		$service = $this->makeService();
-		$this->assertFalse($service->isAsyncLocalEnabled());
+	public static function asyncSigningModes(): array {
+		return ['async' => ['async', true], 'sync' => ['sync', false]];
 	}
 
-	public function testIsAsyncLocalEnabledUsesDefaultLocalWhenConfigEmpty(): void {
-		$this->appConfig->expects($this->exactly(2))
-			->method('getValueString')
-			->willReturnMap([
-				[Application::APP_ID, 'signing_mode', 'sync', 'async'],
-				[Application::APP_ID, WorkerConfigPolicy::SYSTEM_APP_CONFIG_KEY, '', ''],
-			]);
+	public function testAsyncLocalIsDisabledForDedicatedWorker(): void {
+		$this->appConfig->method('getValueString')->willReturnCallback(static fn (string $app, string $key): string => $key === 'signing_mode' ? 'async' : '{"worker_type":"external","parallel_workers":4}');
+		$this->assertFalse($this->makeService()->isAsyncLocalEnabled());
+	}
 
-		$service = $this->makeService();
-		// Default worker_type is 'local', so async + local = enabled
-		$this->assertTrue($service->isAsyncLocalEnabled());
+	public function testNotificationWorkersDefaultToLocalWithOneProcess(): void {
+		$this->appConfig->method('getValueString')->willReturnCallback(
+			static fn (string $app, string $key, string $default): string => $default,
+		);
+		$this->assertTrue($this->makeService()->isNotificationLocalEnabled());
+		$this->assertSame(1, $this->makeService()->getDesiredNotificationWorkerCount());
+		$this->assertSame([
+			\OCA\Libresign\BackgroundJob\DeliverNotification::class,
+		], $this->makeService()->getNotificationJobClasses());
+	}
+
+	public function testNotificationWorkersCanBeManagedExternally(): void {
+		$this->appConfig->expects($this->once())->method('getValueString')
+			->with(Application::APP_ID, 'notification_worker_type', 'local')
+			->willReturn('external');
+		$this->assertFalse($this->makeService()->isNotificationLocalEnabled());
+	}
+
+	public function testNotificationLocalModeDoesNotRequireAsyncSigning(): void {
+		$this->appConfig->method('getValueString')->willReturnCallback(
+			static fn (string $app, string $key, string $default): string => $key === 'notification_worker_type' ? 'local' : $default,
+		);
+		$this->assertTrue($this->makeService()->isNotificationLocalEnabled());
+		$this->assertFalse($this->makeService()->isAsyncSigningEnabled());
+	}
+
+	#[DataProvider('notificationConcurrencyCases')]
+	public function testNotificationConcurrencyIsBounded(int $configured, int $expected): void {
+		$this->appConfig->method('getValueString')->willReturn((string)$configured);
+		$this->assertSame($expected, $this->makeService()->getDesiredNotificationWorkerCount());
+	}
+
+	public static function notificationConcurrencyCases(): array {
+		return [
+			'zero' => [0, 1],
+			'negative' => [-10, 1],
+			'one' => [1, 1],
+			'four' => [4, 4],
+			'too many' => [100, 4],
+		];
+	}
+
+	public function testSigningJobClassesAreExplicit(): void {
+		$this->assertSame([
+			\OCA\Libresign\BackgroundJob\SignFileJob::class,
+			\OCA\Libresign\BackgroundJob\SignSingleFileJob::class,
+		], $this->makeService()->getSigningJobClasses());
 	}
 
 	#[DataProvider('desiredWorkerCountProvider')]

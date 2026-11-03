@@ -214,7 +214,7 @@ describe('router business rules', () => {
 	describe('internal vs external route separation', () => {
 		it('internal routes do not start with /p/', () => {
 			const internalRoutes = getRoutes().filter((r: RouteRecordNormalized) =>
-				!r.path.startsWith('/p/')
+				!r.path.startsWith('/p/'),
 			)
 
 			expect(internalRoutes.length).toBeGreaterThan(0)
@@ -225,7 +225,7 @@ describe('router business rules', () => {
 
 		it('all public routes start with /p/', () => {
 			const publicRoutes = getRoutes().filter((r: RouteRecordNormalized) =>
-				r.path.startsWith('/p/')
+				r.path.startsWith('/p/'),
 			)
 
 			expect(publicRoutes.length).toBeGreaterThan(0)
@@ -238,7 +238,7 @@ describe('router business rules', () => {
 	describe('component lazy loading', () => {
 		it('uses dynamic imports for main views', () => {
 			const signPdfRoute = getRoutes().find(
-					(r: RouteRecordNormalized) => r.name === 'SignPDFExternal'
+					(r: RouteRecordNormalized) => r.name === 'SignPDFExternal',
 			)
 
 			expect(signPdfRoute).toBeDefined()
@@ -248,7 +248,7 @@ describe('router business rules', () => {
 
 		it('dynamic component returns thenable', async () => {
 			const validationRoute = getRoutes().find(
-					(r: RouteRecordNormalized) => r.name === 'ValidationFileExternal'
+					(r: RouteRecordNormalized) => r.name === 'ValidationFileExternal',
 			)
 
 				const component = validationRoute?.components?.default
@@ -263,7 +263,7 @@ describe('router business rules', () => {
 		it('passes props to routed components', () => {
 			// /p/sign/:uuid is now a redirect-only route, test /p/sign/:uuid/pdf instead
 			const signRoute = getRoutes().find(
-					(r: RouteRecordNormalized) => r.path === '/p/sign/:uuid/pdf'
+					(r: RouteRecordNormalized) => r.path === '/p/sign/:uuid/pdf',
 			)
 
 				expect(signRoute).toBeDefined()
@@ -274,7 +274,7 @@ describe('router business rules', () => {
 
 		it('enables param passing to component', () => {
 			const validationRoute = getRoutes().find(
-					(r: RouteRecordNormalized) => r.path === '/p/validation/:uuid'
+					(r: RouteRecordNormalized) => r.path === '/p/validation/:uuid',
 			)
 
 				expect(validationRoute).toBeDefined()

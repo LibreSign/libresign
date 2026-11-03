@@ -23,12 +23,12 @@ use OCA\Libresign\Db\FileMapper;
 use OCA\Libresign\Db\IdDocs;
 use OCA\Libresign\Db\IdDocsMapper;
 use OCA\Libresign\Db\IdentifyMethodMapper;
+use OCA\Libresign\Db\NotificationDeliveryMapper;
 use OCA\Libresign\Db\SignRequest as SignRequestEntity;
 use OCA\Libresign\Db\SignRequestMapper;
 use OCA\Libresign\Db\UserElementMapper;
 use OCA\Libresign\Enum\FileStatus;
 use OCA\Libresign\Enum\IdentifyMethodRequirement;
-use OCA\Libresign\Enum\SignatureRejectionBehavior;
 use OCA\Libresign\Enum\SignRequestStatus;
 use OCA\Libresign\Events\SignedEventFactory;
 use OCA\Libresign\Exception\FooterStampUnavailableException;
@@ -43,13 +43,13 @@ use OCA\Libresign\Handler\SignEngine\SignEngineFactory;
 use OCA\Libresign\Handler\SignEngine\SignEngineHandler;
 use OCA\Libresign\Helper\JSActions;
 use OCA\Libresign\Service\Envelope\EnvelopeStatusDeterminer;
+use OCA\Libresign\Service\File\SigningWorkflowStatusResolver;
 use OCA\Libresign\Service\IdentifyMethod\IIdentifyMethod;
 use OCA\Libresign\Service\IdentifyMethod\SignatureMethod\IToken;
 use OCA\Libresign\Service\Policy\PolicyService;
 use OCA\Libresign\Service\Policy\Provider\CollectMetadata\CollectMetadataPolicy;
 use OCA\Libresign\Service\Policy\Provider\Footer\FooterPolicy;
 use OCA\Libresign\Service\Policy\Provider\Footer\FooterPolicyValue;
-use OCA\Libresign\Service\SignatureRejection\SignatureRejectionPolicyService;
 use OCA\Libresign\Service\SignRequest\SignRequestService;
 use OCA\Libresign\Service\SignRequest\StatusService;
 use OCA\Libresign\Service\Validation\IdentityDocumentValidator;
@@ -78,6 +78,7 @@ use RuntimeException;
 use Sabre\DAV\UUIDUtil;
 
 class SignFileService {
+	private ?string $signatureSessionId = null;
 	private ?SignRequestEntity $signRequest = null;
 	private string $password = '';
 	private ?FileEntity $libreSignFile = null;
@@ -92,6 +93,9 @@ class SignFileService {
 	private string $friendlyName = '';
 	private ?IUser $user = null;
 	private ?ISignEngineHandler $engine = null;
+	// The stamp and the validation URL read the footer of the same file.
+	private ?FileEntity $footerPolicyFile = null;
+	private string $footerPolicyValue = '';
 
 	public function __construct(
 		protected IL10N $l10n,
@@ -135,8 +139,9 @@ class SignFileService {
 		private SubjectAlternativeNameService $subjectAlternativeNameService,
 		private SignRequestService $signRequestService,
 		private PolicyService $policyService,
-		private SignatureRejectionPolicyService $signatureRejectionPolicyService,
 		private TemporarySignatureImageService $temporarySignatureImageService,
+		private NotificationDeliveryMapper $notificationDeliveries,
+		private SigningWorkflowStatusResolver $signingWorkflowStatusResolver,
 	) {
 	}
 
@@ -396,7 +401,9 @@ class SignFileService {
 		try {
 			return $this->folderService->getFileByNodeId($nodeId);
 		} catch (\Throwable) {
-			$filesOfElementes = $this->signerElementsService->getElementsFromSession();
+			$filesOfElementes = $this->signatureSessionId === null
+				? $this->signerElementsService->getElementsFromSession()
+				: $this->signerElementsService->getElementsFromSession($this->signatureSessionId);
 			return $this->array_find($filesOfElementes, fn ($file) => $file->getId() === $nodeId);
 		}
 	}
@@ -423,8 +430,20 @@ class SignFileService {
 		return $this->elements;
 	}
 
+	/** Use only the storage context captured by a server-created signing job. */
+	public function setSignatureSessionId(?string $sessionId): self {
+		$this->signatureSessionId = $sessionId;
+		return $this;
+	}
+
 	public function getJobArgumentsWithoutCredentials(): array {
 		$args = [];
+		if ($this->signatureSessionId !== null || !$this->user instanceof IUser) {
+			$sessionId = $this->signatureSessionId ?? $this->signerElementsService->getSessionStorageId();
+			if ($sessionId !== '') {
+				$args['signatureSessionId'] = $sessionId;
+			}
+		}
 
 		if (!empty($this->userUniqueIdentifier)) {
 			$args['userUniqueIdentifier'] = $this->userUniqueIdentifier;
@@ -891,6 +910,11 @@ class SignFileService {
 		$this->storeCertificateInfoInMetadata($certificateInfo);
 
 		$this->signRequestMapper->update($this->signRequest);
+		// A queued invitation is no longer actionable once signing completed.
+		// Transient signing fixtures have no persisted request ID to invalidate.
+		if ($this->signRequest->getId() !== null) {
+			$this->notificationDeliveries->cancelPendingInvitations($this->signRequest->getId());
+		}
 
 		$this->sequentialSigningService
 			->setFile($this->libreSignFile)
@@ -993,9 +1017,7 @@ class SignFileService {
 	}
 
 	private function buildValidationUrl(string $uuid): string {
-		$footerPolicy = FooterPolicyValue::normalize(
-			$this->policyService->resolve(FooterPolicy::KEY)->getEffectiveValue()
-		);
+		$footerPolicy = FooterPolicyValue::normalize($this->getFooterPolicyValue());
 		$validationSite = trim($footerPolicy['validationSite']);
 		if ($validationSite !== '') {
 			return rtrim($validationSite, '/') . '/' . $uuid;
@@ -1120,96 +1142,7 @@ class SignFileService {
 	}
 
 	private function evaluateStatusFromSigners(FileEntity $libreSignFile): ?int {
-		$signers = $this->excludeIdDocUploaderPlaceholder($this->getSigners());
-		$signers = array_values(array_filter(
-			$signers,
-			static fn (SignRequestEntity $signer): bool => !$signer->isObserver(),
-		));
-
-		$total = count($signers);
-
-		if ($total === 0) {
-			return null;
-		}
-
-		$totalSigned = count(array_filter($signers, fn ($s) => $s->getSigned() !== null));
-
-		if ($totalSigned === $total) {
-			return FileStatus::SIGNED->value;
-		}
-
-		if ($this->workflowCompletedDespiteRejections($libreSignFile, $signers, $totalSigned)) {
-			return FileStatus::SIGNED->value;
-		}
-
-		if ($totalSigned > 0) {
-			return FileStatus::PARTIAL_SIGNED->value;
-		}
-
-		return null;
-	}
-
-	/**
-	 * A rejection configured not to cancel the workflow leaves behind a signer
-	 * who will never sign, so counting signatures alone would keep the file
-	 * partially signed forever. The workflow is complete once nobody is expected
-	 * to act any more and at least one signature was actually applied.
-	 *
-	 * A rejected signer keeps its own status: only the file-level status says
-	 * that the configured workflow finished.
-	 *
-	 * @param SignRequestEntity[] $signers
-	 */
-	private function workflowCompletedDespiteRejections(FileEntity $libreSignFile, array $signers, int $totalSigned): bool {
-		if ($totalSigned === 0) {
-			return false;
-		}
-
-		if ($this->signatureRejectionPolicyService->getBehavior($libreSignFile) !== SignatureRejectionBehavior::CONTINUE) {
-			return false;
-		}
-
-		$totalRejected = count(array_filter(
-			$signers,
-			static fn (SignRequestEntity $signer): bool => $signer->getStatusEnum() === SignRequestStatus::REJECTED,
-		));
-
-		return $totalSigned + $totalRejected === count($signers);
-	}
-
-	/**
-	 * @param SignRequestEntity[] $signers
-	 * @return SignRequestEntity[]
-	 */
-	private function excludeIdDocUploaderPlaceholder(array $signers): array {
-		$placeholderId = $this->getIdDocUploaderSignRequestId();
-		if ($placeholderId === null) {
-			return $signers;
-		}
-
-		return array_values(array_filter(
-			$signers,
-			static fn (SignRequestEntity $signer): bool => $signer->getId() !== $placeholderId,
-		));
-	}
-
-	private function getIdDocUploaderSignRequestId(): ?int {
-		$fileId = $this->signRequest->getFileId();
-		if ($fileId === null) {
-			return null;
-		}
-
-		try {
-			$idDocs = $this->idDocsMapper->getByFileId($fileId);
-		} catch (DoesNotExistException) {
-			return null;
-		}
-
-		if (!$idDocs instanceof IdDocs) {
-			return null;
-		}
-
-		return $idDocs->getSignRequestId();
+		return $this->signingWorkflowStatusResolver->resolve($libreSignFile, $this->getSigners())?->value;
 	}
 
 	private function getOrGeneratePfxContent(SignEngineHandler $engine): string {
@@ -1512,7 +1445,7 @@ class SignFileService {
 			return $this->createSignedFile($originalFile, $originalContent);
 		}
 		$metadata = $this->footerHandler->getMetadata($originalFile, $this->libreSignFile);
-		$this->footerHandler->setStoredRequestPolicyOverrides($this->resolveFooterPolicyRequestOverridesFromFileMetadata());
+		$this->footerHandler->setPolicyValue($this->getFooterPolicyValue());
 		$footer = $this->footerHandler
 			->setTemplateVar('uuid', $this->libreSignFile->getUuid())
 			->setTemplateVar('signers', array_map(fn (SignRequestEntity $signer) => [
@@ -1545,31 +1478,20 @@ class SignFileService {
 		return $this->createSignedFile($originalFile, $pdfContent);
 	}
 
-	/** @return array<string, string> */
-	private function resolveFooterPolicyRequestOverridesFromFileMetadata(): array {
-		$metadata = $this->libreSignFile->getMetadata();
-		if (!is_array($metadata)) {
-			return [];
+	/**
+	 * Once frozen, the request signs with the footer it stores: it was resolved
+	 * and validated when stored, so later policy changes do not apply to it.
+	 */
+	private function getFooterPolicyValue(): string {
+		if ($this->footerPolicyFile !== $this->libreSignFile) {
+			$storedFooter = FooterPolicyValue::getSnapshotEffectiveValue($this->libreSignFile);
+			$this->footerPolicyValue = $storedFooter !== null && FileStatusService::isPolicySnapshotFrozen($this->libreSignFile, $this->fileMapper->findEnvelope($this->libreSignFile))
+				? $storedFooter
+				: (string)$this->policyService->resolve(FooterPolicy::KEY)->getEffectiveValue();
+			$this->footerPolicyFile = $this->libreSignFile;
 		}
 
-		$policySnapshot = $metadata['policy_snapshot'] ?? null;
-		if (!is_array($policySnapshot)) {
-			return [];
-		}
-
-		$footerSnapshot = $policySnapshot[FooterPolicy::KEY] ?? null;
-		if (!is_array($footerSnapshot)) {
-			return [];
-		}
-
-		$effectiveValue = $footerSnapshot['effectiveValue'] ?? null;
-		if (!is_string($effectiveValue) || trim($effectiveValue) === '') {
-			return [];
-		}
-
-		return [
-			FooterPolicy::KEY => $effectiveValue,
-		];
+		return $this->footerPolicyValue;
 	}
 
 	protected function getSignedFile(): ?File {

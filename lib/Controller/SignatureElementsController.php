@@ -9,8 +9,12 @@ declare(strict_types=1);
 namespace OCA\Libresign\Controller;
 
 use OCA\Libresign\AppInfo\Application;
+use OCA\Libresign\Db\SignRequest;
+use OCA\Libresign\Exception\LibresignException;
 use OCA\Libresign\Middleware\Attribute\RequireSignRequestUuid;
 use OCA\Libresign\Service\AccountService;
+use OCA\Libresign\Service\EmailSignerElementsService;
+use OCA\Libresign\Service\IdentifyMethod\AbstractIdentifyMethod;
 use OCA\Libresign\Service\SessionService;
 use OCA\Libresign\Service\SignatureTextService;
 use OCA\Libresign\Service\SignerElementsService;
@@ -19,7 +23,9 @@ use OCA\Libresign\Service\Validation\FileInputValidator;
 use OCA\Libresign\Service\Validation\VisibleElementValidator;
 use OCP\AppFramework\Db\DoesNotExistException;
 use OCP\AppFramework\Http;
+use OCP\AppFramework\Http\Attribute\AnonRateLimit;
 use OCP\AppFramework\Http\Attribute\ApiRoute;
+use OCP\AppFramework\Http\Attribute\BruteForceProtection;
 use OCP\AppFramework\Http\Attribute\NoAdminRequired;
 use OCP\AppFramework\Http\Attribute\NoCSRFRequired;
 use OCP\AppFramework\Http\Attribute\OpenAPI;
@@ -35,6 +41,7 @@ use OCP\IURLGenerator;
 use OCP\IUser;
 use OCP\IUserSession;
 use OCP\Preview\IMimeIconProvider;
+use Psr\Log\LoggerInterface;
 
 /**
  * @psalm-import-type LibresignMessageResponse from \OCA\Libresign\ResponseDefinitions
@@ -57,6 +64,8 @@ class SignatureElementsController extends AEnvironmentAwareController implements
 		protected IMimeIconProvider $mimeIconProvider,
 		protected IURLGenerator $urlGenerator,
 		private VisibleElementValidator $visibleElementValidator,
+		private EmailSignerElementsService $emailSignerElementsService,
+		private LoggerInterface $logger,
 	) {
 		parent::__construct(Application::APP_ID, $request);
 	}
@@ -155,6 +164,69 @@ class SignatureElementsController extends AEnvironmentAwareController implements
 	}
 
 	/**
+	 * Use the saved signature elements of a signer identified by email
+	 *
+	 * The saved elements are copied into the current signing session only
+	 * after the signer satisfies the confirm method configured for the Email
+	 * identification factor.
+	 *
+	 * @param string $token Verification code, required when the confirm method is the email token
+	 * @return DataResponse<Http::STATUS_OK, LibresignUserElementsResponse, array{}>|DataResponse<Http::STATUS_UNPROCESSABLE_ENTITY, LibresignMessageResponse, array{}>
+	 *
+	 * 200: OK
+	 * 422: The saved elements cannot be used
+	 */
+	#[NoAdminRequired]
+	#[NoCSRFRequired]
+	#[PublicPage]
+	#[AnonRateLimit(limit: 10, period: 60)]
+	#[BruteForceProtection(action: 'libresign_email_signer_elements')]
+	#[RequestHeader(name: 'libresign-sign-request-uuid', description: 'The UUID of the sign request, used to identify the request', indirect: true)]
+	#[RequireSignRequestUuid]
+	#[ApiRoute(verb: 'POST', url: '/api/{apiVersion}/signature/elements/saved', requirements: ['apiVersion' => '(v1)'])]
+	public function useSavedSignatureElements(string $token = ''): DataResponse {
+		$signRequest = $this->getSignRequestEntity();
+		if ($this->userSession->getUser() instanceof IUser || !$signRequest instanceof SignRequest) {
+			return new DataResponse(
+				[
+					// TRANSLATORS Error shown when a signer tries to reuse a saved signature on a request that was not sent by email.
+					'message' => $this->l10n->t('Saved signatures are only available to signers identified by email'),
+				],
+				Http::STATUS_UNPROCESSABLE_ENTITY
+			);
+		}
+		try {
+			$elements = $this->emailSignerElementsService->unlock($signRequest, $token);
+		} catch (LibresignException $e) {
+			$message = $e->getMessage();
+			$decoded = json_decode($message, true);
+			if (is_array($decoded) && isset($decoded['errors'][0]['message'])) {
+				$message = (string)$decoded['errors'][0]['message'];
+			}
+			$response = new DataResponse(
+				[
+					'message' => $message,
+				],
+				Http::STATUS_UNPROCESSABLE_ENTITY
+			);
+			if ($e->getCode() === AbstractIdentifyMethod::CODE_INVALID_TOKEN) {
+				$response->throttle();
+			}
+			return $response;
+		} catch (\Exception $e) {
+			// Unexpected failures must not be reported as invalid credentials.
+			$this->logger->error('Unable to load saved email signature elements', ['exception' => $e]);
+			throw $e;
+		}
+		return new DataResponse(
+			[
+				'elements' => $elements,
+			],
+			Http::STATUS_OK
+		);
+	}
+
+	/**
 	 * Get preview of signature elements of
 	 *
 	 * @param int $nodeId Node id of a Nextcloud file
@@ -171,7 +243,9 @@ class SignatureElementsController extends AEnvironmentAwareController implements
 	#[ApiRoute(verb: 'GET', url: '/api/{apiVersion}/signature/elements/preview/{nodeId}', requirements: ['apiVersion' => '(v1)'])]
 	public function previewSignatureElement(int $nodeId) {
 		try {
-			$node = $this->accountService->getFileByNodeId($nodeId);
+			$node = $this->userSession->getUser() instanceof IUser
+				? $this->accountService->getFileByNodeId($nodeId)
+				: $this->signerElementsService->getElementFromSessionByNodeId($nodeId);
 			if ($this->preview->isAvailable($node)) {
 				$preview = $this->preview->getPreview(
 					file: $node,
@@ -310,12 +384,16 @@ class SignatureElementsController extends AEnvironmentAwareController implements
 	#[ApiRoute(verb: 'DELETE', url: '/api/{apiVersion}/signature/elements/{nodeId}', requirements: ['apiVersion' => '(v1)'])]
 	public function deleteSignatureElement(int $nodeId): DataResponse {
 		try {
+			if (!$this->userSession->getUser() instanceof IUser) {
+				// Keep the session element available for retry when forgetting its copy fails.
+				$this->emailSignerElementsService->forgetSessionElement($nodeId);
+			}
 			$this->accountService->deleteSignatureElement(
 				user: $this->userSession->getUser(),
 				nodeId: $nodeId,
 				sessionId: $this->sessionService->getSessionId(),
 			);
-		} catch (\Throwable) {
+		} catch (DoesNotExistException|\OCP\Files\NotFoundException) {
 			return new DataResponse(
 				[
 					// TRANSLATORS Error shown when deleting a visible signature element that cannot be found.
@@ -323,6 +401,9 @@ class SignatureElementsController extends AEnvironmentAwareController implements
 				],
 				Http::STATUS_NOT_FOUND
 			);
+		} catch (\Exception $e) {
+			$this->logger->error('Unable to delete signature element', ['exception' => $e]);
+			throw $e;
 		}
 		return new DataResponse(
 			[

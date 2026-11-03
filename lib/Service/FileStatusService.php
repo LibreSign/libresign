@@ -42,6 +42,10 @@ class FileStatusService {
 		return $file;
 	}
 
+	public function invalidateCachedStatus(FileEntity $file): void {
+		$this->statusCacheService->invalidateStatus($file->getUuid());
+	}
+
 	public function canNotifySigners(?int $fileStatus): bool {
 		return $fileStatus === FileStatus::ABLE_TO_SIGN->value;
 	}
@@ -63,6 +67,13 @@ class FileStatusService {
 			return;
 		}
 
+		// A canceled document is over without a signature: the envelope follows the
+		// documents that are left, and is canceled only when none is left.
+		$children = array_filter(
+			$children,
+			static fn (FileEntity $child): bool => $child->getStatus() !== FileStatus::CANCELED->value,
+		);
+
 		$minStatus = FileStatus::SIGNED->value;
 		$maxStatus = FileStatus::DRAFT->value;
 
@@ -78,7 +89,9 @@ class FileStatusService {
 
 		$newStatus = FileStatus::DRAFT->value;
 
-		if ($minStatus === FileStatus::SIGNED->value && $maxStatus === FileStatus::SIGNED->value) {
+		if ($children === []) {
+			$newStatus = FileStatus::CANCELED->value;
+		} elseif ($minStatus === FileStatus::SIGNED->value && $maxStatus === FileStatus::SIGNED->value) {
 			$newStatus = FileStatus::SIGNED->value;
 		} elseif ($maxStatus >= FileStatus::PARTIAL_SIGNED->value) {
 			$newStatus = FileStatus::PARTIAL_SIGNED->value;
@@ -92,6 +105,32 @@ class FileStatusService {
 			$this->touchStatusChangedAt($parent);
 			$this->fileMapper->update($parent);
 			$this->statusCacheService->setStatus($parent->getUuid(), $newStatus);
+		}
+	}
+
+	/** Persist enqueue status inside the caller's database transaction. */
+	public function updateForQueuedJob(FileEntity $file): FileEntity {
+		$this->touchStatusChangedAt($file);
+		$this->fileMapper->updateWithoutCache($file);
+		return $file;
+	}
+
+	/** Restore the local entity after rollback; do not write to the database again. */
+	public function discardQueuedJobStatus(FileEntity $file, int $previousStatus, ?array $previousMetadata): void {
+		$file->setStatus($previousStatus);
+		$file->setMetadata($previousMetadata ?? []);
+		$this->fileMapper->invalidateEntityCache($file);
+	}
+
+	/**
+	 * Invalidate enqueue-era hints after commit, rather than publishing an
+	 * in-progress snapshot that might already have been superseded by a worker.
+	 */
+	public function onQueuedJobCommitted(FileEntity $file): void {
+		$this->fileMapper->invalidateEntityCache($file);
+		$this->statusCacheService->invalidateStatus($file->getUuid());
+		if ($file->hasParent()) {
+			$this->propagateStatusToParent($file->getParentFileId());
 		}
 	}
 

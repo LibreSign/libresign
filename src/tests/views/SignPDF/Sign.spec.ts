@@ -110,6 +110,7 @@ const createSignMountOptions = () => ({
 	global: {
 		stubs: {
 			NcButton: true,
+			NcCheckboxRadioSwitch: true,
 			NcDialog: true,
 			NcLoadingIcon: true,
 			TokenManager: true,
@@ -275,7 +276,7 @@ describe('Sign.vue - signWithTokenCode', () => {
 				) {
 					const tokenMethods: TokenMethodKey[] = ['smsToken', 'whatsappToken', 'signalToken', 'telegramToken', 'xmppToken']
 					const activeMethod = tokenMethods.find(method =>
-						Object.hasOwn(this.signMethodsStore.settings, method)
+						Object.hasOwn(this.signMethodsStore.settings, method),
 					)
 
 					if (!activeMethod) {
@@ -539,6 +540,28 @@ describe('Sign.vue - signWithTokenCode', () => {
 
 			expect(signMethodsStore.modal.clickToSign).toBe(true)
 			expect(signStore.pendingAction).toBe(null)
+		})
+
+		it('opens the email code modal when an email token was already requested', async () => {
+			setActivePinia(createPinia())
+
+			const { useSignStore } = await import('../../../store/sign.js')
+			const signStore = useSignStore()
+			const signMethodsStore = useSignMethodsStore()
+
+			signStore.document = createSignDocument({
+				status: FILE_STATUS.ABLE_TO_SIGN,
+				signers: [{ me: true, status: SIGN_REQUEST_STATUS.ABLE_TO_SIGN, signRequestId: 501, sign_request_uuid: 'email-token-uuid' }],
+			})
+			signStore.queueAction('sign')
+			signMethodsStore.settings = {
+				emailToken: { needCode: false, hasConfirmCode: true, identifyMethod: 'email' },
+			}
+
+			await mountRealSignComponent()
+			await flushPromises()
+
+			expect(signMethodsStore.modal.emailToken).toBe(true)
 		})
 
 		it('emits signing-started on mount when document is already signing in progress', async () => {
@@ -1015,7 +1038,7 @@ describe('Sign.vue - signWithTokenCode', () => {
 					) {
 						const tokenMethods: TokenMethodKey[] = ['smsToken', 'whatsappToken', 'signalToken', 'telegramToken', 'xmppToken']
 						const activeMethod = tokenMethods.find(method =>
-							Object.hasOwn(this.signMethodsStore.settings, method)
+							Object.hasOwn(this.signMethodsStore.settings, method),
 						)
 
 						if (!activeMethod) {
@@ -1136,7 +1159,7 @@ describe('Sign.vue - signWithTokenCode', () => {
 					) {
 						const tokenMethods: TokenMethodKey[] = ['smsToken', 'whatsappToken', 'signalToken', 'telegramToken', 'xmppToken']
 						const activeMethod = tokenMethods.find(method =>
-							Object.hasOwn(this.signMethodsStore.settings, method)
+							Object.hasOwn(this.signMethodsStore.settings, method),
 						)
 
 						if (!activeMethod) {
@@ -1707,6 +1730,69 @@ describe('Sign.vue - signWithTokenCode', () => {
 			expect(wrapper.vm.canCreateSignature).toBe(true)
 			expect(wrapper.vm.hasSignatures).toBe(false)
 			expect(wrapper.vm.needCreateSignature).toBe(false)
+		})
+	})
+
+	describe('Sign.vue - saved signature of an email signer', () => {
+		const mountWithEmailSigner = async (emailSigner: { confirmMethod: string } | null) => {
+			setActivePinia(createPinia())
+			const { default: realSign } = await import('../../../views/SignPDF/_partials/Sign.vue')
+			const { useSignStore } = await import('../../../store/sign.js')
+			const { useSignatureElementsStore } = await import('../../../store/signatureElements.js')
+			const signStore = useSignStore()
+			const signatureElementsStore = useSignatureElementsStore()
+			signStore.document = createSignDocument({
+				signers: [{ signRequestId: 501, me: true }],
+				visibleElements: [
+					{ elementId: 201, fileId: 1, signRequestId: 501, type: 'signature', coordinates: { page: 1, left: 10, top: 20, width: 30, height: 40 } },
+				],
+			})
+			signatureElementsStore.emailSigner = emailSigner
+			const useSavedSignature = vi.spyOn(signatureElementsStore, 'useSavedSignature').mockResolvedValue(true)
+			const wrapper = mount(realSign, createSignMountOptions())
+			return { wrapper, useSavedSignature, signStore, signatureElementsStore }
+		}
+
+		it('offers reuse to eligible email signers without knowing whether a signature exists', async () => {
+			expect((await mountWithEmailSigner({ confirmMethod: 'clickToSign' })).wrapper.vm.canUseSavedSignature).toBe(true)
+			expect((await mountWithEmailSigner(null)).wrapper.vm.canUseSavedSignature).toBe(false)
+		})
+
+		it('asks for the email code before releasing the saved signature when email token is configured', async () => {
+			const { wrapper, useSavedSignature } = await mountWithEmailSigner({ confirmMethod: 'emailToken' })
+
+			await wrapper.vm.useSavedSignature()
+
+			expect(wrapper.vm.showSavedSignatureCode).toBe(true)
+			expect(useSavedSignature).not.toHaveBeenCalled()
+		})
+
+		it('uses the sign link alone when click to sign is configured', async () => {
+			const { wrapper, useSavedSignature } = await mountWithEmailSigner({ confirmMethod: 'clickToSign' })
+
+			await wrapper.vm.useSavedSignature()
+
+			expect(useSavedSignature).toHaveBeenCalledWith()
+			expect(wrapper.vm.showSavedSignatureCode).toBe(false)
+		})
+
+		it('sends the save choice only after the signer explicitly opts in', async () => {
+			const { wrapper, signStore, signatureElementsStore } = await mountWithEmailSigner({ confirmMethod: 'emailToken' })
+			signatureElementsStore.signs.signature = {
+				type: 'signature', id: 1, starred: false, createdAt: '2026-10-31', file: { nodeId: 10, url: '/signature.png' },
+			}
+			const submit = vi.spyOn(signStore, 'submitSignature').mockResolvedValue({ status: 'signed', data: {} })
+			await flushPromises()
+			const checkbox = wrapper.findComponent({ name: 'NcCheckboxRadioSwitch' })
+			expect(checkbox.props('modelValue')).toBe(false)
+
+			await wrapper.vm.submitSignature({ method: 'email', token: '123456' })
+			expect(submit.mock.calls[0]?.[0]).not.toHaveProperty('saveSignature')
+
+			wrapper.findComponent({ name: 'NcCheckboxRadioSwitch' }).vm.$emit('update:modelValue', true)
+			await flushPromises()
+			await wrapper.vm.submitSignature({ method: 'email', token: '123456' })
+			expect(submit.mock.calls[1]?.[0]).toMatchObject({ saveSignature: true, token: '123456' })
 		})
 	})
 

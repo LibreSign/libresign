@@ -159,6 +159,7 @@ import NcTextField from '@nextcloud/vue/components/NcTextField'
 import NcIconSvgWrapper from '@nextcloud/vue/components/NcIconSvgWrapper'
 
 import { useSignStore } from '../../../store/sign.js'
+import { useSignatureElementsStore } from '../../../store/signatureElements.js'
 import { useSignMethodsStore } from '../../../store/signMethods.js'
 import { getSigningRouteUuid } from '../../../utils/signRequestUuid.ts'
 import { validateEmail } from '../../../utils/validators.js'
@@ -170,13 +171,16 @@ defineOptions({
 const props = withDefaults(defineProps<{
 	mode: Mode
 	phoneNumber?: string
+	purpose?: Purpose
 }>(), {
 	phoneNumber: '',
+	purpose: 'sign',
 })
 
 const emit = defineEmits<{
 	(e: 'change', token: string): void
 	(e: 'close'): void
+	(e: 'unlocked'): void
 	(e: 'update:phone', value: string): void
 }>()
 
@@ -186,6 +190,9 @@ const sanitizePhoneNumber = (val: string) => {
 }
 
 type Mode = 'email' | 'token'
+
+// savedSignature: the code only unlocks the saved signature of an email signer
+type Purpose = 'sign' | 'savedSignature'
 
 type TokenMethod = 'smsToken' | 'whatsappToken' | 'signalToken' | 'telegramToken' | 'xmppToken'
 
@@ -227,6 +234,11 @@ type SignStore = {
 	buildRequestCodeUrl: (signRequestUuid: string) => string
 }
 
+type SignatureElementsStore = {
+	error: string | { message?: string } | null
+	useSavedSignature: (token: string) => Promise<boolean>
+}
+
 type RequestCodeError = {
 	response?: {
 		data?: {
@@ -246,7 +258,8 @@ const signMethodsStore = useSignMethodsStore() as SignMethodsStore
 
 const loading = ref(false)
 const tokenLength = ref(loadState('libresign', 'token_length', 6))
-const token = ref('')
+// Reuse a code already validated to unlock the saved signature, so the signer types it once
+const token = ref(props.mode === 'email' ? (signMethodsStore.settings.emailToken?.token ?? '') : '')
 const identityVerified = ref(false)
 const sendTo = ref('')
 const errorMessage = ref('')
@@ -275,6 +288,13 @@ const dialogTitle = computed(() => {
 })
 
 const progressText = computed(() => {
+	if (props.purpose === 'savedSignature') {
+		return step1Active.value
+			// TRANSLATORS Progress shown while a signer identified by email requests a code to reuse their saved signature.
+			? t('libresign', 'Step 1 of 2 - Email verification')
+			// TRANSLATORS Progress shown while a signer identified by email types the code to reuse their saved signature.
+			: t('libresign', 'Step 2 of 2 - Code validation')
+	}
 	if (step1Active.value) {
 		return props.mode === 'email'
 			? t('libresign', 'Step 1 of 3 - Email verification')
@@ -420,11 +440,30 @@ async function requestCode() {
 	}
 }
 
-function sendCode() {
+async function sendCode() {
 	if (!canSendCode.value) {
 		return
 	}
+	if (props.purpose === 'savedSignature') {
+		await useSavedSignature()
+		return
+	}
 	identityVerified.value = true
+}
+
+async function useSavedSignature() {
+	const signatureElementsStore = useSignatureElementsStore() as unknown as SignatureElementsStore
+	loading.value = true
+	const unlocked = await signatureElementsStore.useSavedSignature(token.value)
+	loading.value = false
+	if (unlocked) {
+		emit('unlocked')
+		return
+	}
+	const error = signatureElementsStore.error
+	const message = typeof error === 'object' ? error?.message : ''
+	// TRANSLATORS Error shown when the code typed to reuse a saved signature is not accepted.
+	showError(message || t('libresign', 'Invalid code.'))
 }
 
 function signDocument() {
@@ -468,6 +507,7 @@ defineExpose({
 	requestNewCode,
 	requestCode,
 	sendCode,
+	useSavedSignature,
 	signDocument,
 	close,
 })

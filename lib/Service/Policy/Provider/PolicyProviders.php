@@ -14,6 +14,7 @@ use OCA\Libresign\Service\Policy\Provider\Confetti\ConfettiPolicy;
 use OCA\Libresign\Service\Policy\Provider\CrlValidation\CrlValidationPolicy;
 use OCA\Libresign\Service\Policy\Provider\DefaultUserFolder\DefaultUserFolderPolicy;
 use OCA\Libresign\Service\Policy\Provider\DocMdp\DocMdpPolicy;
+use OCA\Libresign\Service\Policy\Provider\EmailSignerSignature\EmailSignerSignaturePolicy;
 use OCA\Libresign\Service\Policy\Provider\Envelope\EnvelopePolicy;
 use OCA\Libresign\Service\Policy\Provider\ExpirationRules\ExpirationRulesPolicy;
 use OCA\Libresign\Service\Policy\Provider\Footer\FooterPolicy;
@@ -21,6 +22,7 @@ use OCA\Libresign\Service\Policy\Provider\IdentificationDocuments\Identification
 use OCA\Libresign\Service\Policy\Provider\IdentifyMethods\IdentifyMethodsPolicy;
 use OCA\Libresign\Service\Policy\Provider\LegalInformation\LegalInformationPolicy;
 use OCA\Libresign\Service\Policy\Provider\MailSenderStrategy\MailSenderStrategyPolicy;
+use OCA\Libresign\Service\Policy\Provider\NotificationDelivery\NotificationDeliveryModePolicy;
 use OCA\Libresign\Service\Policy\Provider\ObserverProfile\ObserverProfilePolicy;
 use OCA\Libresign\Service\Policy\Provider\Reminder\ReminderPolicy;
 use OCA\Libresign\Service\Policy\Provider\RequestSignGroups\RequestSignGroupsPolicy;
@@ -44,6 +46,7 @@ final class PolicyProviders {
 		CrlValidationPolicy::KEY => CrlValidationPolicy::class,
 		FooterPolicy::KEY => FooterPolicy::class,
 		DocMdpPolicy::KEY => DocMdpPolicy::class,
+		EmailSignerSignaturePolicy::KEY => EmailSignerSignaturePolicy::class,
 		EnvelopePolicy::KEY => EnvelopePolicy::class,
 		ExpirationRulesPolicy::KEY_MAXIMUM_VALIDITY => ExpirationRulesPolicy::class,
 		ExpirationRulesPolicy::KEY_RENEWAL_INTERVAL => ExpirationRulesPolicy::class,
@@ -53,6 +56,7 @@ final class PolicyProviders {
 		DefaultUserFolderPolicy::KEY => DefaultUserFolderPolicy::class,
 		LegalInformationPolicy::KEY => LegalInformationPolicy::class,
 		MailSenderStrategyPolicy::KEY => MailSenderStrategyPolicy::class,
+		NotificationDeliveryModePolicy::KEY => NotificationDeliveryModePolicy::class,
 		SignatureHashAlgorithmPolicy::KEY => SignatureHashAlgorithmPolicy::class,
 		SignatureRejectionPolicy::KEY_ENABLED => SignatureRejectionPolicy::class,
 		SignatureRejectionPolicy::KEY_BEHAVIOR => SignatureRejectionPolicy::class,

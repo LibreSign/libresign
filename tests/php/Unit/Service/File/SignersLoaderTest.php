@@ -20,7 +20,10 @@ use OCA\Libresign\Enum\SignatureFlow;
 use OCA\Libresign\Enum\SignRequestStatus;
 use OCA\Libresign\Service\File\FileResponseOptions;
 use OCA\Libresign\Service\File\SignersLoader;
+use OCA\Libresign\Service\IdentifyMethod\IdentifyService;
 use OCA\Libresign\Service\IdentifyMethod\IIdentifyMethod;
+use OCA\Libresign\Service\IdentifyMethod\SignatureMethod\EmailToken;
+use OCA\Libresign\Service\IdentifyMethod\SignatureMethod\TokenService;
 use OCA\Libresign\Service\IdentifyMethodService;
 use OCA\Libresign\Service\Policy\Provider\SignatureRejection\SignatureRejectionPolicyConfig;
 use OCA\Libresign\Service\SignatureRejection\SignatureRejectionPolicyService;
@@ -192,6 +195,66 @@ final class SignersLoaderTest extends TestCase {
 		$this->assertSame('route-signer-uuid', $fileData->signers[0]->sign_request_uuid);
 		$this->assertFalse($fileData->signers[1]->me);
 		$this->assertObjectNotHasProperty('sign_request_uuid', $fileData->signers[1]);
+	}
+
+	public function testLoadLibreSignSignersStillAsksForEmailCodeAfterItWasRequested(): void {
+		$file = new File();
+		$file->setId(10);
+
+		$signRequest = new SignRequest();
+		$signRequest->setId(52);
+		$signRequest->setFileId(10);
+		$signRequest->setUuid('sign-request-uuid');
+		$signRequest->setDisplayName('Signer User');
+		$signRequest->setCreatedAt(new DateTime('2026-01-01T00:00:00Z'));
+		$signRequest->setStatusEnum(SignRequestStatus::ABLE_TO_SIGN);
+
+		$identifyEntity = new IdentifyMethod();
+		$identifyEntity->setIdentifierKey(IdentifyMethodService::IDENTIFY_EMAIL);
+		$identifyEntity->setIdentifierValue('signer@example.com');
+		$identifyEntity->setMandatory(1);
+		$identifyEntity->setCode('hashed-code');
+		$identifyEntity->setIdentifiedAtDate('2026-01-01 00:00:00');
+
+		$identifyMethod = $this->createMock(IIdentifyMethod::class);
+		$identifyMethod->method('getEntity')->willReturn($identifyEntity);
+
+		$identifyService = $this->getMockBuilder(IdentifyService::class)
+			->disableOriginalConstructor()
+			->onlyMethods(['getL10n'])
+			->getMock();
+		$identifyService->method('getL10n')->willReturn($this->createMock(IL10N::class));
+		$emailToken = new EmailToken($identifyService, $this->createMock(TokenService::class));
+		$emailToken->enable();
+
+		$currentIdentifyMethod = $this->createMock(IIdentifyMethod::class);
+		$currentIdentifyMethod->method('getEntity')->willReturn($identifyEntity);
+		$currentIdentifyMethod->method('getSignatureMethods')->willReturn([$emailToken]);
+
+		$options = new FileResponseOptions();
+		$options->setSignRequest($signRequest);
+
+		$fileData = new \stdClass();
+		$fileData->settings = [
+			'canSign' => false,
+			'canRequestSign' => false,
+			'phoneNumber' => '',
+		];
+
+		$this->signRequestMapper->method('getByFileId')->with(10)->willReturn([$signRequest]);
+		$this->signRequestMapper->method('getTextOfSignerStatus')->willReturn('pending');
+		$this->identifyMethodService->method('setIsRequest')->willReturnSelf();
+		$this->identifyMethodService->method('getIdentifyMethodsFromSignRequestIds')->willReturn([
+			52 => [IdentifyMethodService::IDENTIFY_EMAIL => [$identifyMethod]],
+		]);
+		$this->identifyMethodService->method('setCurrentIdentifyMethod')->willReturnSelf();
+		$this->identifyMethodService->method('getInstanceOfIdentifyMethod')->willReturn($currentIdentifyMethod);
+
+		$this->getService()->loadLibreSignSigners($file, $fileData, $options);
+
+		$emailTokenData = $fileData->signers[0]->signatureMethods['emailToken'];
+		$this->assertTrue($emailTokenData['needCode']);
+		$this->assertTrue($emailTokenData['hasConfirmCode']);
 	}
 
 	#[DataProvider('dataCanSignFollowsTheSigningRules')]

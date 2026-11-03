@@ -52,6 +52,17 @@ test.afterEach(async () => {
 	originalGeoIpPath = null
 })
 
+async function openGeolocationCategory(page: import('@playwright/test').Page) {
+	const section = page.locator('[data-category-key="signer-geolocation"]')
+	const toggle = section.locator('.policy-workbench__category-toggle')
+	await expect(toggle).toHaveAttribute('aria-expanded', /^(true|false)$/)
+	if (await toggle.getAttribute('aria-expanded') === 'false') {
+		await toggle.click()
+	}
+	await expect(toggle).toHaveAttribute('aria-expanded', 'true')
+	return section
+}
+
 test('Policy Workbench groups device and IP geolocation as independent cards', async ({ page }) => {
 	adminContext = await createAuthenticatedRequestContext(adminUser, adminPassword)
 	originalDevice = await getSystemPolicySnapshot(adminContext, DEVICE_POLICY)
@@ -68,7 +79,7 @@ test('Policy Workbench groups device and IP geolocation as independent cards', a
 	await login(page.request, adminUser, adminPassword)
 	await page.goto('./settings/admin/libresign')
 
-	const geolocationSection = page.locator('[data-category-key="signer-geolocation"]')
+	const geolocationSection = await openGeolocationCategory(page)
 	await expect(geolocationSection.getByText('Signer geolocation', { exact: true })).toBeVisible()
 	await expect(geolocationSection.getByRole('heading', { name: 'Device-reported location' })).toBeVisible()
 	await expect(geolocationSection.getByRole('heading', { name: 'IP-based approximate location' })).toBeVisible()
@@ -76,7 +87,7 @@ test('Policy Workbench groups device and IP geolocation as independent cards', a
 })
 
 async function openIpGeolocationSettingDialog(page: import('@playwright/test').Page) {
-	const geolocationSection = page.locator('[data-category-key="signer-geolocation"]')
+	const geolocationSection = await openGeolocationCategory(page)
 	const ipCard = geolocationSection.locator('article').filter({
 		has: page.getByRole('heading', { name: 'IP-based approximate location' }),
 	})

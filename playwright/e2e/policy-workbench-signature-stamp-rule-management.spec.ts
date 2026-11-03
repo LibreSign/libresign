@@ -10,6 +10,7 @@ import { expect, test } from '@playwright/test'
 
 import { bootstrapLibreSignAdmin, ensureCatalogSettingCardVisible } from '../support/footer-policy-workbench'
 import { login } from '../support/nc-login'
+import { createAuthenticatedRequestContext, getEffectivePolicy } from '../support/policy-api'
 import { openPolicyWorkbenchSystemRuleEditor, waitForPolicyWorkbenchIdle } from '../support/policy-workbench-rules'
 
 const adminUser = process.env.NEXTCLOUD_ADMIN_USER ?? 'admin'
@@ -62,12 +63,18 @@ test.describe('P06: signature_stamp persists a system rule from the workbench UI
 		await expect(saveButton).toBeEnabled({ timeout: 10000 })
 		const [response] = await Promise.all([
 			page.waitForResponse((response) => {
-				return ['POST', 'PUT', 'PATCH'].includes(response.request().method())
-					&& response.url().includes('/apps/libresign/api/v1/policies/system/signature_stamp')
+				return response.request().method() === 'POST'
+					&& response.url().includes('/apps/libresign/api/v1/policies/compound/system/signature_stamp')
 			}),
 			saveButton.click(),
 		])
 		expect(response.status()).toBe(200)
+
+		const savedValues = (response.request().postDataJSON() as { values?: Record<string, unknown> }).values ?? {}
+		expect(Object.keys(savedValues).sort()).toEqual(['collect_metadata', 'signature_stamp'])
+		expect(typeof savedValues.signature_stamp).toBe('string')
+		expect(typeof savedValues.collect_metadata).toBe('boolean')
+		const savedRenderMode = JSON.parse(savedValues.signature_stamp as string).render_mode
 
 		// Wait for save confirmation (network idle or success toast)
 		await waitForPolicyWorkbenchIdle(page)
@@ -90,5 +97,19 @@ test.describe('P06: signature_stamp persists a system rule from the workbench UI
 		// Verify that the dialog opens (indicating persistence was successful)
 		const dialogReopen = page.getByRole('dialog').filter({ hasText: /Signature stamp text/i }).first()
 		await expect(dialogReopen).toBeVisible({ timeout: 10000 })
+
+		// Both compound members keep the values that were sent in the compound write
+		const adminRequest = await createAuthenticatedRequestContext(adminUser, adminPassword)
+		try {
+			const [signatureStamp, collectMetadata] = await Promise.all([
+				getEffectivePolicy(adminRequest, 'signature_stamp'),
+				getEffectivePolicy(adminRequest, 'collect_metadata'),
+			])
+
+			expect(JSON.parse(String(signatureStamp?.effectiveValue)).render_mode).toBe(savedRenderMode)
+			expect(collectMetadata?.effectiveValue).toBe(savedValues.collect_metadata)
+		} finally {
+			await adminRequest.dispose()
+		}
 	})
 })

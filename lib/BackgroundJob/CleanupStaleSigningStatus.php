@@ -9,23 +9,23 @@ declare(strict_types=1);
 namespace OCA\Libresign\BackgroundJob;
 
 use DateTime;
+use OCA\Libresign\Db\File;
 use OCA\Libresign\Db\FileMapper;
-use OCA\Libresign\Enum\FileStatus;
 use OCP\AppFramework\Utility\ITimeFactory;
 use OCP\BackgroundJob\IJob;
 use OCP\BackgroundJob\TimedJob;
 use Psr\Log\LoggerInterface;
 
 /**
- * Background job to clean up stale SIGNING_IN_PROGRESS statuses
+ * Report stale signing operations for reconciliation.
  *
- * If a signing process is interrupted (server crash, PHP timeout, etc.),
- * files can get stuck in SIGNING_IN_PROGRESS status. This job reverts
- * those statuses back to ABLE_TO_SIGN after a timeout period.
+ * Keep the registered class name for upgrade compatibility. A timeout cannot
+ * establish whether a cryptographic operation wrote a PDF, so resetting the
+ * status automatically would permit an unsafe second signature.
  */
 class CleanupStaleSigningStatus extends TimedJob {
-	/** @var int Timeout in minutes - files in IN_PROGRESS for longer will be reverted */
 	private const int STALE_TIMEOUT_MINUTES = 10;
+	private const int MAX_FILE_IDS_IN_LOG = 10;
 
 	public function __construct(
 		ITimeFactory $time,
@@ -33,37 +33,26 @@ class CleanupStaleSigningStatus extends TimedJob {
 		private LoggerInterface $logger,
 	) {
 		parent::__construct($time);
-
-		// Run every 5 minutes
 		$this->setInterval(60 * 5);
 		$this->setTimeSensitivity(IJob::TIME_INSENSITIVE);
 	}
 
-	/**
-	 * @inheritDoc
-	 */
 	#[\Override]
 	public function run($argument): void {
-		$staleThreshold = new DateTime();
-		$staleThreshold->modify('-' . self::STALE_TIMEOUT_MINUTES . ' minutes');
-
-		try {
-			$staleFiles = $this->fileMapper->findStaleSigningInProgress($staleThreshold);
-
-			$revertedCount = 0;
-			foreach ($staleFiles as $file) {
-				$file->setStatusEnum(FileStatus::ABLE_TO_SIGN);
-				$meta = $file->getMetadata() ?? [];
-				$meta['status_changed_at'] = (new DateTime())->format(DateTime::ATOM);
-				$file->setMetadata($meta);
-				$this->fileMapper->update($file);
-				$revertedCount++;
-			}
-		} catch (\Exception $e) {
-			$this->logger->error(
-				'Failed to cleanup stale signing statuses: {message}',
-				['message' => $e->getMessage(), 'exception' => $e]
-			);
+		$staleFiles = $this->fileMapper->findStaleSigningInProgress(
+			new DateTime('-' . self::STALE_TIMEOUT_MINUTES . ' minutes'),
+		);
+		if ($staleFiles === []) {
+			return;
 		}
+
+		// One diagnostic per cron run, not one warning for every affected file.
+		$this->logger->warning('Stale signing statuses need manual review before retry', [
+			'count' => count($staleFiles),
+			'fileIds' => array_map(
+				static fn (File $file): int => $file->getId(),
+				array_slice($staleFiles, 0, self::MAX_FILE_IDS_IN_LOG),
+			),
+		]);
 	}
 }

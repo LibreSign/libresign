@@ -83,7 +83,6 @@ OC.L10N.register(
     "Hide details" : "Ẩn chi tiết",
     "Show details" : "Hiển thị chi tiết",
     "Country:" : "Quốc gia :",
-    "No date" : "No date",
     "Yes" : "Có",
     "No" : "Không",
     "Error" : "Lỗi",

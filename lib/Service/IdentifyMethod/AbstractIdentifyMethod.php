@@ -157,7 +157,7 @@ abstract class AbstractIdentifyMethod implements IIdentifyMethod {
 	}
 
 	#[\Override]
-	public function notify(): bool {
+	public function notify(?string $deliveryEventId = null): bool {
 		if (!$this->willNotify) {
 			return false;
 		}
@@ -166,7 +166,8 @@ abstract class AbstractIdentifyMethod implements IIdentifyMethod {
 		$this->identifyService->getEventDispatcher()->dispatchTyped(new SendSignNotificationEvent(
 			$signRequest,
 			$libresignFile,
-			$this
+			$this,
+			$deliveryEventId,
 		));
 		return true;
 	}
@@ -444,9 +445,9 @@ abstract class AbstractIdentifyMethod implements IIdentifyMethod {
 	}
 
 	#[\Override]
-	public function save(): void {
+	public function save(?string $deliveryEventId = null): void {
 		$this->identifyService->save($this->getEntity());
-		$this->notify();
+		$this->notify($deliveryEventId);
 	}
 
 	#[\Override]

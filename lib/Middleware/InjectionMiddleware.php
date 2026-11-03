@@ -299,7 +299,7 @@ class InjectionMiddleware extends Middleware {
 	 */
 	private function maintainSessionConsistencyWithUuid(?string $uuid): void {
 		if ($uuid && !($this->userSession->getUser() instanceof IUser)) {
-			if (!$this->session->get('libresign-uuid')) {
+			if ($this->session->get('libresign-uuid') !== $uuid) {
 				$this->session->set('libresign-uuid', $uuid);
 			}
 		}
@@ -520,6 +520,9 @@ class InjectionMiddleware extends Middleware {
 	}
 
 	private function getStatusCodeFromException(\Exception $exception): int {
+		if ($exception instanceof LibresignException) {
+			return $exception->getHttpStatus();
+		}
 		if ($exception->getCode() === 0) {
 			return Http::STATUS_UNPROCESSABLE_ENTITY;
 		}

@@ -69,6 +69,22 @@ class FileMapper extends CachedQBMapper {
 	}
 
 	/**
+	 * Lock and reload the current file state, independently of the entity cache.
+	 */
+	public function getByIdForUpdate(int $id): File {
+		$qb = $this->db->getQueryBuilder();
+		$qb->select('*')
+			->from($this->getTableName())
+			->where($qb->expr()->eq('id', $qb->createNamedParameter($id, IQueryBuilder::PARAM_INT)));
+		if ($this->db->getDatabaseProvider() !== IDBConnection::PLATFORM_SQLITE) {
+			$qb->forUpdate();
+		}
+
+		/** @var File */
+		return $this->findEntity($qb);
+	}
+
+	/**
 	 * Return LibreSign file by ID
 	 *
 	 * @throws DoesNotExistException
@@ -295,6 +311,23 @@ class FileMapper extends CachedQBMapper {
 		return $this->getById($file->getParentFileId());
 	}
 
+	/**
+	 * The envelope of a document, or null when it has none or the envelope no
+	 * longer exists.
+	 */
+	public function findEnvelope(File $file): ?File {
+		$envelopeId = $file->getParentFileId();
+		if ($envelopeId === null) {
+			return null;
+		}
+
+		try {
+			return $this->getById($envelopeId);
+		} catch (DoesNotExistException) {
+			return null;
+		}
+	}
+
 	public function countChildrenFiles(int $envelopeId): int {
 		$qb = $this->db->getQueryBuilder();
 
@@ -350,18 +383,20 @@ class FileMapper extends CachedQBMapper {
 
 		$stale = [];
 		foreach ($files as $file) {
-			$isStale = false;
 			$meta = $file->getMetadata();
-
-			if (is_array($meta) && isset($meta['status_changed_at'])) {
-				try {
-					$changedAt = new \DateTime($meta['status_changed_at']);
-					$isStale = $changedAt < $staleThreshold;
-				} catch (\Exception) {
+			$changedAt = is_array($meta) ? ($meta['status_changed_at'] ?? null) : null;
+			if ($changedAt !== null) {
+				// Creation time must not override a recent processing timestamp.
+				// Invalid timestamps require review, not an automatic retry.
+				if (!is_string($changedAt) || $changedAt === '') {
+					continue;
 				}
-			}
-
-			if (!$isStale) {
+				try {
+					$isStale = new \DateTime($changedAt) < $staleThreshold;
+				} catch (\Exception) {
+					continue;
+				}
+			} else {
 				$created = $file->getCreatedAt();
 				$isStale = $created instanceof \DateTime && $created < $staleThreshold;
 			}

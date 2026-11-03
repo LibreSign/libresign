@@ -153,26 +153,39 @@ class SequentialSigningService {
 	 * @param int $deletedOrder The order that was deleted
 	 */
 	public function reorderAfterDeletion(int $fileId, int $deletedOrder): void {
-		if (!$this->isOrderedNumericFlow()) {
-			return;
+		if ($this->file === null || $this->file->getId() !== $fileId) {
+			throw new \LogicException('File must be set before reordering signers');
+		}
+		$this->notifyActivatedSigners($this->activateAfterDeletion($this->file, $deletedOrder));
+	}
+
+	/**
+	 * Persist the next activation without external notifications while a
+	 * transaction is open. The caller sends notifications after commit.
+	 *
+	 * @return list<SignRequestEntity>
+	 */
+	public function activateAfterDeletion(FileEntity $file, int $deletedOrder): array {
+		if ($deletedOrder < 1 || $file->getSignatureFlowEnum() !== SignatureFlow::ORDERED_NUMERIC) {
+			return [];
 		}
 
-		$allSignRequests = $this->signRequestMapper->getByFileId($fileId);
-
-		$hasSignersAtDeletedOrder = !empty(array_filter(
+		$allSignRequests = $this->signRequestMapper->getByFileId($file->getId());
+		$hasSignersAtDeletedOrder = array_filter(
 			$allSignRequests,
-			fn ($sr) => $sr->getSigningOrder() === $deletedOrder
-		));
-
-		if (!$hasSignersAtDeletedOrder) {
-			$previousOrder = $deletedOrder - 1;
-			if ($previousOrder > 0 && $this->isOrderFullyCompleted($allSignRequests, $previousOrder)) {
-				$nextOrder = $this->findNextOrder($allSignRequests, $deletedOrder);
-				if ($nextOrder !== null) {
-					$this->notifyActivatedSigners($this->activateSignersForOrder($allSignRequests, $nextOrder));
-				}
-			}
+			static fn (SignRequestEntity $sr): bool => $sr->getSigningOrder() === $deletedOrder,
+		);
+		if ($hasSignersAtDeletedOrder !== []) {
+			return [];
 		}
+
+		$previousOrder = $deletedOrder - 1;
+		if ($previousOrder > 0 && !$this->isOrderFullyCompleted($allSignRequests, $previousOrder)) {
+			return [];
+		}
+
+		$nextOrder = $this->findNextOrder($allSignRequests, $deletedOrder);
+		return $nextOrder !== null ? $this->activateSignersForOrder($allSignRequests, $nextOrder) : [];
 	}
 
 	/**

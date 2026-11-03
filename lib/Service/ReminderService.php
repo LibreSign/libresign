@@ -173,7 +173,15 @@ class ReminderService {
 		}
 
 		foreach ($this->fetchJob($daysBefore, $daysBetween, $max) as $job) {
-			$job->notify();
+			// Repeat of a daily reminder run must not submit twice.
+			$entity = $job->getEntity();
+			$eventId = sprintf(
+				'reminder:%d:%d:%s',
+				$entity->getSignRequestId(),
+				$entity->getId() ?? 0,
+				$this->time->getDateTime('now', new \DateTimeZone('UTC'))->format('Y-m-d'),
+			);
+			$job->notify($eventId);
 		}
 	}
 

@@ -64,7 +64,6 @@ OC.L10N.register(
     "Hide details" : "ซ่อนข้อมูล",
     "Show details" : "แสดงข้อมูล",
     "Country:" : "ประเทศ:",
-    "No date" : "ไม่มีวันที่",
     "Yes" : "ใช่",
     "No" : "ไม่",
     "Error" : "ข้อผิดพลาด",

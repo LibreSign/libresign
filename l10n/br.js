@@ -50,7 +50,6 @@ OC.L10N.register(
     "Hide details" : "Skoachañ ar munudoù",
     "Show details" : "Diskouel ar munudoù",
     "Country:" : "Bro :",
-    "No date" : "Deizat ebet",
     "Yes" : "Ya",
     "No" : "Nann",
     "Error" : "Fazi",

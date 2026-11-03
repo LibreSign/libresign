@@ -23,6 +23,15 @@ class SignRequestCanceledEvent extends Event {
 	) {
 	}
 
+	public function getDeliveryEventId(): string {
+		return sprintf(
+			'canceled:%d:%d:%d',
+			$this->libreSignFile->getId(),
+			$this->signRequest->getId(),
+			$this->identifyMethod->getEntity()->getId() ?? 0,
+		);
+	}
+
 	public function getLibreSignFile(): FileEntity {
 		return $this->libreSignFile;
 	}

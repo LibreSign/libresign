@@ -10,15 +10,24 @@ namespace OCA\Libresign\Tests\Integration\Handler\SignEngine;
  */
 
 use OCA\Libresign\AppInfo\Application;
+use OCA\Libresign\Db\File as LibreSignFile;
+use OCA\Libresign\Db\FileMapper;
+use OCA\Libresign\Db\SignRequest;
+use OCA\Libresign\Db\SignRequestMapper;
+use OCA\Libresign\Enum\FileStatus;
 use OCA\Libresign\Handler\CertificateEngine\CertificateEngineFactory;
 use OCA\Libresign\Handler\CertificateEngine\IEngineHandler;
 use OCA\Libresign\Handler\SignEngine\PhpNativeHandler;
 use OCA\Libresign\Service\Signature\PdfSignatureValidationService;
+use OCA\Libresign\Service\SigningAttemptGuard;
+use OCA\Libresign\Service\SignRequest\Error\SignRequestErrorReporter;
 use OCA\Libresign\Tests\Integration\TestCase;
+use OCP\BackgroundJob\IJobList;
 use OCP\Files\File;
 use OCP\IAppConfig;
 use OCP\IL10N;
 use OCP\L10N\IFactory as IL10NFactory;
+use OCP\Lock\ILockingProvider;
 use Psr\Log\LoggerInterface;
 
 /**
@@ -44,6 +53,10 @@ final class PhpNativeSigningRegressionTest extends TestCase {
 	private array $cleanupPaths = [];
 	/** @var array<string, string> */
 	private array $nodeContents = [];
+	/** @var list<SignRequest> */
+	private array $testSignRequests = [];
+	/** @var list<LibreSignFile> */
+	private array $testFiles = [];
 
 	#[\Override]
 	public function setUp(): void {
@@ -82,6 +95,13 @@ final class PhpNativeSigningRegressionTest extends TestCase {
 
 	#[\Override]
 	public function tearDown(): void {
+		// A test may throw during signing. Fixtures must always be removed.
+		foreach ($this->testSignRequests as $request) {
+			\OCP\Server::get(SignRequestMapper::class)->delete($request);
+		}
+		foreach ($this->testFiles as $file) {
+			\OCP\Server::get(FileMapper::class)->delete($file);
+		}
 		foreach ($this->cleanupResources as $resource) {
 			if (is_resource($resource)) {
 				fclose($resource);
@@ -171,6 +191,71 @@ final class PhpNativeSigningRegressionTest extends TestCase {
 		$this->assertStringStartsWith('%PDF', $signed);
 
 		$this->assertCryptographicallyValid($signed, 1);
+	}
+
+	/**
+	 * A crash after writing a cryptographically signed PDF must never cause a
+	 * second signature when the signing job is recovered.
+	 */
+	public function testInterruptedPersistedPdfSignatureRequiresReviewBeforeRetry(): void {
+		$identity = $this->generatePkcs12('rsa');
+		$this->handler
+			->setInputFile($this->fileNode($this->simplePdf()))
+			->setCertificate($identity['pfx'])
+			->setPassword($identity['password']);
+
+		$request = $this->createSigningRequestFixture();
+		$guard = $this->createAttemptGuard();
+		$args = ['signRequestId' => $request->getId(), 'fileId' => $request->getFileId()];
+		$pdfPath = $this->tempPath('');
+
+		try {
+			$guard->execute($args, '12345', function () use ($pdfPath): void {
+				file_put_contents($pdfPath, $this->handler->getSignedContent());
+				throw new \RuntimeException('Simulated interruption after writing PDF');
+			});
+			$this->fail('The simulated worker must stop after producing the signed PDF');
+		} catch (\RuntimeException $e) {
+			$this->assertSame('Simulated interruption after writing PDF', $e->getMessage());
+		}
+
+		$signedPdf = file_get_contents($pdfPath);
+		$this->assertIsString($signedPdf);
+		$this->assertCryptographicallyValid($signedPdf, 1);
+		$this->assertFalse($guard->execute($args, '12346', function (): void {
+			$this->fail('An interrupted signing operation cannot be repeated automatically');
+		}));
+		$this->assertSame($signedPdf, file_get_contents($pdfPath));
+	}
+
+	private function createSigningRequestFixture(): SignRequest {
+		$file = new LibreSignFile();
+		$file->setNodeId(random_int(300000, 999999));
+		$file->setUserId('test-owner');
+		$file->setUuid('crash-fixture-' . bin2hex(random_bytes(8)));
+		$file->setCreatedAt(new \DateTime());
+		$file->setName('synthetic-crash.pdf');
+		$file->setStatus(FileStatus::SIGNING_IN_PROGRESS->value);
+		$file = \OCP\Server::get(FileMapper::class)->insert($file);
+		$this->testFiles[] = $file;
+
+		$request = new SignRequest();
+		$request->setUuid('crash-request-' . bin2hex(random_bytes(8)));
+		$request->setFileId($file->getId());
+		$request->setCreatedAt(new \DateTime());
+		$request = \OCP\Server::get(SignRequestMapper::class)->insert($request);
+		$this->testSignRequests[] = $request;
+		return $request;
+	}
+
+	private function createAttemptGuard(): SigningAttemptGuard {
+		return new SigningAttemptGuard(
+			\OCP\Server::get(SignRequestMapper::class),
+			\OCP\Server::get(ILockingProvider::class),
+			\OCP\Server::get(IJobList::class),
+			$this->createMock(SignRequestErrorReporter::class),
+			$this->logger,
+		);
 	}
 
 	private function assertCryptographicallyValid(string $pdf, int $expectedSignatureCount): void {

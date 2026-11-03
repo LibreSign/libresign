@@ -17,7 +17,7 @@ use OCA\Libresign\Enum\FileStatus;
 use OCA\Libresign\Service\FileService;
 use OCA\Libresign\Service\SessionService;
 use OCA\Libresign\Service\SignRequest\ProgressService;
-use OCA\Libresign\Service\Worker\WorkerHealthService;
+use OCA\Libresign\Service\Worker\WorkerActivationService;
 use OCP\AppFramework\Http;
 use OCP\IRequest;
 use OCP\IUserSession;
@@ -32,7 +32,7 @@ class FileProgressControllerTest extends TestCase {
 	private FileService&MockObject $fileService;
 	private SessionService&MockObject $sessionService;
 	private IUserSession&MockObject $userSession;
-	private WorkerHealthService&MockObject $workerHealthService;
+	private WorkerActivationService&MockObject $workerActivationService;
 	private ProgressService&MockObject $progressService;
 	private IRequest&MockObject $request;
 
@@ -42,7 +42,7 @@ class FileProgressControllerTest extends TestCase {
 		$this->fileService = $this->createMock(FileService::class);
 		$this->sessionService = $this->createMock(SessionService::class);
 		$this->userSession = $this->createMock(IUserSession::class);
-		$this->workerHealthService = $this->createMock(WorkerHealthService::class);
+		$this->workerActivationService = $this->createMock(WorkerActivationService::class);
 		$this->progressService = $this->createMock(ProgressService::class);
 		$this->request = $this->createMock(IRequest::class);
 
@@ -53,7 +53,7 @@ class FileProgressControllerTest extends TestCase {
 			$this->fileService,
 			$this->sessionService,
 			$this->userSession,
-			$this->workerHealthService,
+			$this->workerActivationService,
 			$this->progressService,
 		);
 	}
@@ -125,7 +125,7 @@ class FileProgressControllerTest extends TestCase {
 		$this->assertArrayHasKey('progress', $data);
 	}
 
-	public function testCheckProgressByUuidCallsWorkerHealthServiceWhenSigningInProgress(): void {
+	public function testCheckProgressByUuidCallsWorkerActivationServiceWhenSigningInProgress(): void {
 		$uuid = 'test-uuid';
 		$file = new FileEntity();
 		$file->setId(1);
@@ -152,7 +152,7 @@ class FileProgressControllerTest extends TestCase {
 			->method('getStatusCodeForSignRequest')
 			->willReturn(FileStatus::SIGNING_IN_PROGRESS->value);
 
-		$this->workerHealthService
+		$this->workerActivationService
 			->expects($this->once())
 			->method('ensureWorkerRunning');
 
