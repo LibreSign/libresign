@@ -98,6 +98,23 @@ final class FooterHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$this->getClass()->getFooter([['w' => 595, 'h' => 100]]);
 	}
 
+
+	public function testExplicitFrozenFooterBypassesCurrentPolicy(): void {
+		$storedFooter = FooterPolicyValue::encode([
+			'enabled' => true,
+			'customizeFooterTemplate' => true,
+			'footerTemplate' => '<p>Frozen</p>',
+		]);
+		$this->policyService = $this->createMock(PolicyService::class);
+		$this->policyService->expects($this->never())->method('resolve');
+		$this->l10n = $this->l10nFactory->get(Application::APP_ID);
+
+		$handler = $this->getClass()->setPolicyValue($storedFooter);
+
+		$this->assertSame($storedFooter, $handler->getEffectiveFooterPolicyAsJson());
+		$this->assertSame('<p>Frozen</p>', $handler->getTemplate());
+	}
+
 	public function testGetFooterWithoutValidationSite(): void {
 		$this->setFooterPolicy([
 			'enabled' => false,
