@@ -23,7 +23,7 @@ class LocalWorkerCoordinator {
 	) {
 	}
 
-	public function ensureCapacity(int $desired): bool {
+	public function ensureCapacity(int $desired, string $pool = WorkerConfiguration::SIGNING): bool {
 		if ($desired <= 0) {
 			return true;
 		}
@@ -32,29 +32,37 @@ class LocalWorkerCoordinator {
 			return false;
 		}
 
-		return $this->store->withExclusiveLock(fn (): bool => $this->launchUnderLock(min($desired, 32)));
+		return $this->store->withExclusiveLock(fn (): bool => $this->launchUnderLock(min($desired, 32), $pool), $pool);
 	}
 
-	private function launchUnderLock(int $desired): bool {
-		$state = $this->store->readState();
-		$running = $this->runningWorkers($state['workers'] ?? []);
+	private function launchUnderLock(int $desired, string $pool): bool {
+		$state = $this->store->readState($pool);
+		$running = $this->runningWorkers($state['workers'] ?? [], $this->jobCounter->jobClasses($pool));
 		$availableSlots = max(0, $desired - count($running));
-		$toStart = $this->workersToStart($availableSlots, $state);
+		$toStart = $this->workersToStart($availableSlots, $state, $pool);
 
 		if ($toStart > 0) {
-			$state['lastAttempt'] = microtime(true);
-			$running = $this->startWorkers($toStart, $running);
+			$before = count($running);
+			$running = $this->startWorkers($toStart, $running, $pool);
+			// Keep signing's existing cooldown. For notifications, only a
+			// failed/unidentified start needs one; drained workers may restart.
+			if ($pool === WorkerConfiguration::SIGNING || count($running) === $before) {
+				$state['lastAttempt'] = microtime(true);
+			} else {
+				unset($state['lastAttempt']);
+			}
 		}
 
 		$state['workers'] = $running;
-		$this->store->writeState($state);
+		$this->store->writeState($state, $pool);
 		return $running !== [] || $toStart === 0;
 	}
 
 	/** @param array<mixed> $entries
+	 * @param list<class-string> $jobClasses
 	 * @return list<array{pid: int, start: string}>
 	 */
-	private function runningWorkers(array $entries): array {
+	private function runningWorkers(array $entries, array $jobClasses): array {
 		$running = [];
 		foreach ($entries as $entry) {
 			if (!is_array($entry)) {
@@ -62,7 +70,7 @@ class LocalWorkerCoordinator {
 			}
 			$pid = (int)($entry['pid'] ?? 0);
 			$startTime = (string)($entry['start'] ?? '');
-			if ($this->processes->isRunning($pid, $startTime)) {
+			if ($this->processes->isRunning($pid, $startTime, $jobClasses)) {
 				$running[] = ['pid' => $pid, 'start' => $startTime];
 			}
 		}
@@ -70,28 +78,32 @@ class LocalWorkerCoordinator {
 	}
 
 	/** @param array<string, mixed> $state */
-	private function workersToStart(int $availableSlots, array $state): int {
+	private function workersToStart(int $availableSlots, array $state, string $pool): int {
 		if ($availableSlots === 0 || microtime(true) - (float)($state['lastAttempt'] ?? 0) < self::COOLDOWN_SECONDS) {
 			return 0;
 		}
-		return min($availableSlots, $this->jobCounter->countEligibleJobs($availableSlots));
+		return min($availableSlots, $this->jobCounter->countEligibleJobs($availableSlots, $pool));
 	}
 
 	/** @param list<array{pid: int, start: string}> $running
 	 * @return list<array{pid: int, start: string}>
 	 */
-	private function startWorkers(int $count, array $running): array {
+	private function startWorkers(int $count, array $running, string $pool): array {
 		for ($i = 0; $i < $count; $i++) {
 			try {
-				$pid = $this->starter->startWorker();
+				$this->logger->debug('Local worker launch attempt', ['pool' => $pool]);
+				$pid = $this->starter->startWorker($pool);
 				$startTime = $this->processes->startTime($pid);
 				if ($startTime === null) {
 					$this->logger->warning('Worker process identity is unavailable', ['pid' => $pid]);
-					continue;
+					// The child may still be running. Do not spawn additional
+					// workers without a verified identity.
+					break;
 				}
 				$running[] = ['pid' => $pid, 'start' => $startTime];
+				$this->logger->debug('Local worker process identified', ['pool' => $pool, 'pid' => $pid]);
 			} catch (\RuntimeException $e) {
-				$this->logger->warning('Cannot start local signing worker', ['exception' => $e]);
+				$this->logger->warning('Cannot start local ' . $pool . ' worker', ['exception' => $e]);
 				break;
 			}
 		}

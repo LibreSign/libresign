@@ -14,6 +14,7 @@ use OCA\Libresign\Service\Policy\Provider\Confetti\ConfettiPolicy;
 use OCA\Libresign\Service\Policy\Provider\CrlValidation\CrlValidationPolicy;
 use OCA\Libresign\Service\Policy\Provider\DefaultUserFolder\DefaultUserFolderPolicy;
 use OCA\Libresign\Service\Policy\Provider\DocMdp\DocMdpPolicy;
+use OCA\Libresign\Service\Policy\Provider\EmailSignerSignature\EmailSignerSignaturePolicy;
 use OCA\Libresign\Service\Policy\Provider\Envelope\EnvelopePolicy;
 use OCA\Libresign\Service\Policy\Provider\ExpirationRules\ExpirationRulesPolicy;
 use OCA\Libresign\Service\Policy\Provider\Footer\FooterPolicy;
@@ -45,6 +46,7 @@ final class PolicyProviders {
 		CrlValidationPolicy::KEY => CrlValidationPolicy::class,
 		FooterPolicy::KEY => FooterPolicy::class,
 		DocMdpPolicy::KEY => DocMdpPolicy::class,
+		EmailSignerSignaturePolicy::KEY => EmailSignerSignaturePolicy::class,
 		EnvelopePolicy::KEY => EnvelopePolicy::class,
 		ExpirationRulesPolicy::KEY_MAXIMUM_VALIDITY => ExpirationRulesPolicy::class,
 		ExpirationRulesPolicy::KEY_RENEWAL_INTERVAL => ExpirationRulesPolicy::class,

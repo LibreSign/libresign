@@ -207,6 +207,14 @@ jobs:
           git clone --depth 1 -b ${{ matrix.server-versions }} https://github.com/nextcloud/activity apps/activity
           composer --working-dir=apps/activity install --no-dev
           ./occ app:enable --force activity
+          # Exercise the native PDF Viewer path instead of the browser fallback.
+          git clone --depth 1 -b ${{ matrix.server-versions }} https://github.com/nextcloud/files_pdfviewer apps/files_pdfviewer
+          # TODO(viewer-compat): Remove this E2E-only fixture once files_pdfviewer
+          # ships the stylesheet referenced by LoadViewerListener (PR #9301).
+          # Its real styles come from Vite chunks; the missing entry point
+          # otherwise causes a browser MIME error on unrelated Nextcloud pages.
+          test -f apps/files_pdfviewer/css/files_pdfviewer-main.css || touch apps/files_pdfviewer/css/files_pdfviewer-main.css
+          ./occ app:enable --force files_pdfviewer
 
       - name: Set up LibreSign
         run: |

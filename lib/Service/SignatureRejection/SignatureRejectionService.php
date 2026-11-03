@@ -17,6 +17,7 @@ use OCA\Libresign\Enum\SignatureRejectionCommentMode;
 use OCA\Libresign\Enum\SignRequestStatus;
 use OCA\Libresign\Events\SignatureRejectedEvent;
 use OCA\Libresign\Exception\LibresignException;
+use OCA\Libresign\Service\File\SigningWorkflowStatusResolver;
 use OCA\Libresign\Service\FileStatusService;
 use OCA\Libresign\Service\IdentifyMethodService;
 use OCA\Libresign\Service\SequentialSigningService;
@@ -43,6 +44,7 @@ class SignatureRejectionService {
 		private FileStatusService $fileStatusService,
 		private IdentifyMethodService $identifyMethodService,
 		private SequentialSigningService $sequentialSigningService,
+		private SigningWorkflowStatusResolver $signingWorkflowStatusResolver,
 		private IEventDispatcher $eventDispatcher,
 		private IDBConnection $db,
 		private ITimeFactory $timeFactory,
@@ -75,10 +77,11 @@ class SignatureRejectionService {
 		// always the signer's call and no policy can take that choice away.
 		$commentIsPrivate = $normalizedComment !== null && $privateComment;
 
-		$workflowCanceled = $config->cancelsWorkflow();
-		$activatedSigners = $this->persistRejection($libreSignFile, $signRequest, $normalizedComment, $commentIsPrivate, $workflowCanceled);
+		$activatedSigners = $this->persistRejection($libreSignFile, $signRequest, $normalizedComment, $commentIsPrivate, $config->cancelsWorkflow());
 		// Record the committed rejection before notification errors can interrupt this flow.
-		$this->dispatchRejectedEvent($signRequest, $libreSignFile, $workflowCanceled);
+		// The event reports the status the rejection left, as the API does: a workflow that
+		// continues after rejections is still canceled once every signer rejected.
+		$this->dispatchRejectedEvent($signRequest, $libreSignFile, $this->isWorkflowCanceled($libreSignFile));
 		$this->sequentialSigningService->notifyActivatedSigners($activatedSigners);
 
 		return $signRequest;
@@ -104,7 +107,7 @@ class SignatureRejectionService {
 		SignRequestEntity $signRequest,
 		?string $comment,
 		bool $commentIsPrivate,
-		bool $workflowCanceled,
+		bool $cancelWorkflow,
 	): array {
 		$signRequests = $this->collectSignRequestsToReject($libreSignFile, $signRequest);
 		$previousSignerStatuses = array_map(
@@ -124,11 +127,12 @@ class SignatureRejectionService {
 				$this->signRequestMapper->update($each);
 			}
 
-			if ($workflowCanceled) {
+			if ($cancelWorkflow) {
 				$this->cancelWorkflow($libreSignFile);
 				$activatedSigners = [];
 			} else {
 				$activatedSigners = $this->releaseNextSigningOrders($libreSignFile, $signRequests);
+				$this->resolveStatusOfRejectedDocuments($libreSignFile, $signRequests);
 			}
 
 			$this->db->commit();
@@ -214,6 +218,43 @@ class SignatureRejectionService {
 		}
 
 		return $activatedSigners;
+	}
+
+	/**
+	 * A rejection ends the signer's turn just like a signature does, so it can be
+	 * the last action a document was waiting for. Its status is then resolved by
+	 * the same rule the signing flow uses, otherwise a document whose last signer
+	 * rejected would stay partially signed forever.
+	 *
+	 * An envelope is not resolved here: its status follows the documents it
+	 * contains, so it is read back once they are saved.
+	 *
+	 * @param list<SignRequestEntity> $rejectedSignRequests
+	 */
+	private function resolveStatusOfRejectedDocuments(FileEntity $libreSignFile, array $rejectedSignRequests): void {
+		foreach ($rejectedSignRequests as $rejected) {
+			$document = $rejected->getFileId() === $libreSignFile->getId()
+				? $libreSignFile
+				: $this->fileMapper->getById($rejected->getFileId());
+			if ($document->isEnvelope()) {
+				continue;
+			}
+
+			$status = $this->signingWorkflowStatusResolver->resolve(
+				$document,
+				$this->signRequestMapper->getByFileId($document->getId()),
+			);
+			if ($status === null || $status->value === $document->getStatus()) {
+				continue;
+			}
+
+			$document->setStatusEnum($status);
+			$this->fileStatusService->update($document);
+		}
+
+		if ($libreSignFile->isEnvelope()) {
+			$libreSignFile->setStatus($this->fileMapper->getById($libreSignFile->getId())->getStatus());
+		}
 	}
 
 	/**

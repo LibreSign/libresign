@@ -124,6 +124,34 @@ describe('signSubmit service', () => {
 		])
 	})
 
+	it('only requests reusable signature storage for envelope files with a signature element', () => {
+		const requests = getEnvelopeSubmitRequests({
+			document: {
+				nodeType: 'envelope',
+				files: [
+					{ signers: [{ me: true, signRequestId: 10, sign_request_uuid: 'uuid-with-signature' }] },
+					{ signers: [{ me: true, signRequestId: 30, sign_request_uuid: 'uuid-without-signature' }] },
+				],
+			},
+			basePayload: { method: 'email', saveSignature: true },
+			elements: [
+				{ elementId: 101, signRequestId: 10, type: 'signature' },
+				{ elementId: 303, signRequestId: 30, type: 'date' },
+			],
+			canCreateSignature: true,
+			signatures: { signature: { file: { nodeId: 42 } } },
+		})
+
+		expect(requests[0].payload).toMatchObject({
+			saveSignature: true,
+			elements: [{ documentElementId: 101, profileNodeId: 42 }],
+		})
+		expect(requests[1].payload).toEqual({
+			method: 'email',
+			elements: [{ documentElementId: 303 }],
+		})
+	})
+
 	it('prefers top-level envelope signer and includes file-level visible elements in payload', () => {
 		const requests = getEnvelopeSubmitRequests({
 			document: {

@@ -17,6 +17,7 @@ use OCP\IDBConnection;
 
 /** @template-extends QBMapper<NotificationDelivery> */
 class NotificationDeliveryMapper extends QBMapper {
+	public const MAX_ATTEMPTS = 5;
 	public function __construct(IDBConnection $db) {
 		parent::__construct($db, 'libresign_notification_delivery', NotificationDelivery::class);
 	}
@@ -55,6 +56,7 @@ class NotificationDeliveryMapper extends QBMapper {
 		$delivery->setRecipientEnc($encryptedRecipient);
 		$delivery->setMessageEnc($encryptedMessage);
 		$delivery->setState(NotificationDeliveryState::PENDING->value);
+		$delivery->setAttemptCount(0);
 		$now = new \DateTime('now', new \DateTimeZone('UTC'));
 		$delivery->setCreatedAt($now);
 		$delivery->setUpdatedAt($now);
@@ -113,13 +115,21 @@ class NotificationDeliveryMapper extends QBMapper {
 		$now = new \DateTime('now', new \DateTimeZone('UTC'));
 		return $qb->update($this->getTableName())
 			->set('state', $qb->createNamedParameter(NotificationDeliveryState::SENDING->value))
+			->set('attempt_count', $qb->createFunction('attempt_count + 1'))
 			->set('updated_at', $qb->createNamedParameter($now, IQueryBuilder::PARAM_DATETIME_MUTABLE))
 			->where($qb->expr()->eq('id', $qb->createNamedParameter($deliveryId, IQueryBuilder::PARAM_INT)))
-			->andWhere($qb->expr()->eq('state', $qb->createNamedParameter(NotificationDeliveryState::PENDING->value)))
+			->andWhere($qb->expr()->lt('attempt_count', $qb->createNamedParameter(self::MAX_ATTEMPTS, IQueryBuilder::PARAM_INT)))
+			->andWhere($qb->expr()->orX(
+				$qb->expr()->eq('state', $qb->createNamedParameter(NotificationDeliveryState::PENDING->value)),
+				$qb->expr()->andX(
+					$qb->expr()->eq('state', $qb->createNamedParameter(NotificationDeliveryState::TEMPORARY_FAILURE->value)),
+					$qb->expr()->lte('next_attempt_at', $qb->createNamedParameter($now, IQueryBuilder::PARAM_DATETIME_MUTABLE)),
+				),
+			))
 			->executeStatement() === 1;
 	}
 
-	public function finish(int $deliveryId, NotificationDeliveryState $state): void {
+	public function finish(int $deliveryId, NotificationDeliveryState $state, ?\DateTime $retryAt = null): void {
 		if (!in_array($state, [
 			NotificationDeliveryState::ACCEPTED,
 			NotificationDeliveryState::TEMPORARY_FAILURE,
@@ -129,12 +139,19 @@ class NotificationDeliveryMapper extends QBMapper {
 		], true)) {
 			throw new \InvalidArgumentException('Invalid terminal notification state');
 		}
+		if (($state === NotificationDeliveryState::TEMPORARY_FAILURE) !== ($retryAt !== null)) {
+			throw new \InvalidArgumentException('Only a scheduled temporary failure can retain a notification handoff');
+		}
 		$qb = $this->db->getQueryBuilder();
 		$now = new \DateTime('now', new \DateTimeZone('UTC'));
-		$updated = $qb->update($this->getTableName())
+		$update = $qb->update($this->getTableName());
+		if ($retryAt === null) {
+			$update->set('message_enc', $qb->createNamedParameter(null));
+		}
+		$updated = $update
 			->set('state', $qb->createNamedParameter($state->value))
 			->set('updated_at', $qb->createNamedParameter($now, IQueryBuilder::PARAM_DATETIME_MUTABLE))
-			->set('message_enc', $qb->createNamedParameter(null))
+			->set('next_attempt_at', $qb->createNamedParameter($retryAt, $retryAt === null ? IQueryBuilder::PARAM_NULL : IQueryBuilder::PARAM_DATETIME_MUTABLE))
 			->where($qb->expr()->eq('id', $qb->createNamedParameter($deliveryId, IQueryBuilder::PARAM_INT)))
 			->andWhere($qb->expr()->eq('state', $qb->createNamedParameter(NotificationDeliveryState::SENDING->value)))
 			->executeStatement();
@@ -156,7 +173,7 @@ class NotificationDeliveryMapper extends QBMapper {
 			->set('updated_at', $qb->createNamedParameter(new \DateTime('now', new \DateTimeZone('UTC')), IQueryBuilder::PARAM_DATETIME_MUTABLE))
 			->where($qb->expr()->eq('sign_request_id', $qb->createNamedParameter($signRequestId, IQueryBuilder::PARAM_INT)))
 			->andWhere($qb->expr()->eq('event_type', $qb->createNamedParameter('sign_request')))
-			->andWhere($qb->expr()->eq('state', $qb->createNamedParameter(NotificationDeliveryState::PENDING->value)))
+			->andWhere($qb->expr()->in('state', $qb->createNamedParameter([NotificationDeliveryState::PENDING->value, NotificationDeliveryState::TEMPORARY_FAILURE->value], IQueryBuilder::PARAM_STR_ARRAY)))
 			->executeStatement();
 	}
 
@@ -173,7 +190,30 @@ class NotificationDeliveryMapper extends QBMapper {
 		$qb = $this->db->getQueryBuilder();
 		$qb->select('*')->from($this->getTableName())
 			->where($qb->expr()->eq('state', $qb->createNamedParameter(NotificationDeliveryState::PENDING->value)))
-			->orderBy('created_at', 'ASC')->setMaxResults($limit);
+			->orderBy('created_at', 'ASC')->addOrderBy('id', 'ASC')
+			->setMaxResults($limit);
+		return $this->findEntities($qb);
+	}
+
+	/**
+	 * Work due now, after the last scanned ID. Keyset pagination stays stable
+	 * when other workers change delivery states while recovery is scanning.
+	 *
+	 * @return list<NotificationDelivery>
+	 */
+	public function findDue(int $limit = 50, int $afterId = 0): array {
+		$qb = $this->db->getQueryBuilder();
+		$now = new \DateTime('now', new \DateTimeZone('UTC'));
+		$qb->select('*')->from($this->getTableName())
+			->where($qb->expr()->gt('id', $qb->createNamedParameter($afterId, IQueryBuilder::PARAM_INT)))
+			->andWhere($qb->expr()->orX(
+				$qb->expr()->eq('state', $qb->createNamedParameter(NotificationDeliveryState::PENDING->value)),
+				$qb->expr()->andX(
+					$qb->expr()->eq('state', $qb->createNamedParameter(NotificationDeliveryState::TEMPORARY_FAILURE->value)),
+					$qb->expr()->lte('next_attempt_at', $qb->createNamedParameter($now, IQueryBuilder::PARAM_DATETIME_MUTABLE)),
+				),
+			))
+			->orderBy('id', 'ASC')->setMaxResults($limit);
 		return $this->findEntities($qb);
 	}
 
@@ -185,7 +225,7 @@ class NotificationDeliveryMapper extends QBMapper {
 			->set('message_enc', $qb->createNamedParameter(null))
 			->set('updated_at', $qb->createNamedParameter(new \DateTime('now', new \DateTimeZone('UTC')), IQueryBuilder::PARAM_DATETIME_MUTABLE))
 			->where($qb->expr()->eq('id', $qb->createNamedParameter($deliveryId, IQueryBuilder::PARAM_INT)))
-			->andWhere($qb->expr()->eq('state', $qb->createNamedParameter(NotificationDeliveryState::PENDING->value)))
+			->andWhere($qb->expr()->in('state', $qb->createNamedParameter([NotificationDeliveryState::PENDING->value, NotificationDeliveryState::TEMPORARY_FAILURE->value], IQueryBuilder::PARAM_STR_ARRAY)))
 			->executeStatement() === 1;
 	}
 
@@ -227,7 +267,6 @@ class NotificationDeliveryMapper extends QBMapper {
 			->andWhere($qb->expr()->neq('recipient_enc', $qb->createNamedParameter('')))
 			->andWhere($qb->expr()->in('state', $qb->createNamedParameter([
 				NotificationDeliveryState::ACCEPTED->value,
-				NotificationDeliveryState::TEMPORARY_FAILURE->value,
 				NotificationDeliveryState::PERMANENT_FAILURE->value,
 				NotificationDeliveryState::FAILED->value,
 				NotificationDeliveryState::UNKNOWN->value,

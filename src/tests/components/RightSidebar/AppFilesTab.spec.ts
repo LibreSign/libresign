@@ -372,7 +372,7 @@ describe('AppFilesTab', () => {
 
 			expect(mockStat).toHaveBeenCalledWith(
 				expect.stringContaining('/Documents/Test.pdf'),
-				expect.objectContaining({ details: true })
+				expect.objectContaining({ details: true }),
 			)
 			expect(emit).toHaveBeenCalledWith('files:node:created', { id: 123, name: 'Test.pdf' })
 		})
@@ -408,7 +408,7 @@ describe('AppFilesTab', () => {
 
 			expect(mockStat).toHaveBeenCalledWith(
 				expect.stringContaining('/Documents'),
-				expect.any(Object)
+				expect.any(Object),
 			)
 			expect(emit).toHaveBeenCalledWith('files:node:updated', { id: 789, type: 'folder' })
 		})
@@ -423,7 +423,7 @@ describe('AppFilesTab', () => {
 
 			expect(mockStat).toHaveBeenCalledWith(
 				expect.stringContaining('/remote.php/dav/files/testuser/'),
-				expect.any(Object)
+				expect.any(Object),
 			)
 		})
 	})
@@ -438,12 +438,12 @@ describe('AppFilesTab', () => {
 
 			await wrapper.vm.handleLibreSignFileChange(
 				{ path: '/Documents/file.pdf' },
-				'created'
+				'created',
 			)
 
 			expect(mockStat).toHaveBeenCalledWith(
 				expect.stringContaining('/Documents/file.pdf'),
-				expect.any(Object)
+				expect.any(Object),
 			)
 			expect(emit).toHaveBeenCalledWith('files:node:created', { id: 321, name: 'Path.pdf' })
 		})

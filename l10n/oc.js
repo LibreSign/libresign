@@ -111,7 +111,6 @@ OC.L10N.register(
     "Hide details" : "Amagar detalhs",
     "Show details" : "Mostrar detalhs",
     "Country:" : "País :",
-    "No date" : "Cap de data",
     "Yes" : "Òc",
     "No" : "Non",
     "Error" : "Error",

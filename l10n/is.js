@@ -98,8 +98,6 @@ OC.L10N.register(
     "Hide details" : "Fela nánari upplýsingar",
     "Show details" : "Birta nánari upplýsingar",
     "Country:" : "Land:",
-    "Expiration:" : "Gildistími:",
-    "No date" : "Engin dagsetning",
     "Yes" : "Já",
     "No" : "Nei",
     "Error" : "Villa",

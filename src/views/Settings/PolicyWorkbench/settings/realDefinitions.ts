@@ -8,6 +8,7 @@ import { confettiRealDefinition } from './confetti/realDefinition'
 import { crlValidationRealDefinition } from './crl-validation/realDefinition'
 import { defaultUserFolderRealDefinition } from './default-user-folder/realDefinition'
 import { docMdpRealDefinition } from './docmdp/realDefinition'
+import { emailSignerSignatureRealDefinition } from './email-signer-signature/realDefinition'
 import { envelopeRealDefinition } from './envelope/realDefinition'
 import {
 	expiryInDaysRealDefinition,
@@ -17,6 +18,7 @@ import { identificationDocumentsRealDefinition } from './identification-document
 import { identifyMethodsRealDefinition } from './identify-methods/realDefinition'
 import { legalInformationRealDefinition } from './legal-information/realDefinition'
 import { mailSenderStrategyRealDefinition } from './mail-sender-strategy/realDefinition'
+import { notificationDeliveryRealDefinition } from './notification-delivery/realDefinition'
 import { observerProfileRealDefinition } from './observer-profile/realDefinition'
 import type { RealPolicySettingDefinition } from './realTypes'
 import { reminderRealDefinition } from './reminder/realDefinition'
@@ -48,6 +50,7 @@ export const realDefinitions = {
 	add_footer: { ...signatureFooterRealDefinition, category: 'signer-experience' },
 	signature_stamp: { ...signatureTextRealDefinition, category: 'signer-experience' },
 	show_confetti_after_signing: { ...confettiRealDefinition, category: 'signer-experience' },
+	persist_email_signer_signatures: { ...emailSignerSignatureRealDefinition, category: 'signer-experience' },
 
 	// 4. What gets recorded
 	collect_metadata: { ...collectMetadataRealDefinition, category: 'what-gets-recorded' },
@@ -71,4 +74,5 @@ export const realDefinitions = {
 	make_validation_url_private: { ...validationAccessRealDefinition, category: 'system-behavior' },
 	signing_mode: { ...signingModeRealDefinition, category: 'system-behavior' },
 	mail_sender_strategy: { ...mailSenderStrategyRealDefinition, category: 'system-behavior' },
+	notification_delivery_mode: { ...notificationDeliveryRealDefinition, category: 'system-behavior' },
 } satisfies Record<string, RealPolicySettingDefinition>

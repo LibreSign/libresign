@@ -80,9 +80,14 @@ async function clearExistingIdDocument(page: Page): Promise<void> {
 		if (!(await deleteButton(page).isVisible().catch(() => false))) {
 			break
 		}
-		await deleteButton(page).click()
+		const [deleteResponse] = await Promise.all([
+			page.waitForResponse(response => response.request().method() === 'DELETE'
+				&& response.url().includes('/apps/libresign/api/v1/id-docs/')),
+			deleteButton(page).click(),
+		])
+		expect(deleteResponse.status()).toBe(200)
 		await expect(
-			page.getByRole('status').filter({ hasText: /File was deleted\./i }),
+			page.locator('[aria-live="polite"]').filter({ hasText: /File was deleted\./i }),
 		).toBeVisible({ timeout: 20_000 })
 		await waitForIdDocsCard(page)
 	}
@@ -113,10 +118,15 @@ test('identification documents appear on the account page after upload', async (
 		page.waitForEvent('filechooser'),
 		uploadButton(page).click(),
 	])
-	await fileChooser.setFiles(resolve(process.cwd(), 'tests/php/fixtures/pdfs/small_valid.pdf'))
+	const [uploadResponse] = await Promise.all([
+		page.waitForResponse(response => response.request().method() === 'POST'
+			&& response.url().includes('/apps/libresign/api/v1/id-docs')),
+		fileChooser.setFiles(resolve(process.cwd(), 'tests/php/fixtures/pdfs/small_valid.pdf')),
+	])
+	expect(uploadResponse.status()).toBe(200)
 
 	await expect(
-		page.getByRole('status').filter({ hasText: /File was sent\./i }),
+		page.locator('[aria-live="polite"]').filter({ hasText: /File was sent\./i }),
 	).toBeVisible({ timeout: 20_000 })
 	await expect(deleteButton(page)).toBeVisible({ timeout: 20_000 })
 	await expect(emptyStatus(page)).toHaveCount(0)

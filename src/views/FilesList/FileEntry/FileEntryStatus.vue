@@ -27,12 +27,12 @@ defineProps<{
 function statusToVariant(status: number) {
 	const statusMap: Record<string, string> = {
 		'-1': 'not-libresign',
-		'0': 'draft',
-		'1': 'available',
-		'2': 'partial',
-		'3': 'signed',
-		'4': 'deleted',
-		'5': 'signing',
+		0: 'draft',
+		1: 'available',
+		2: 'partial',
+		3: 'signed',
+		4: 'deleted',
+		5: 'signing',
 	}
 	return statusMap[String(status)] || 'draft'
 }

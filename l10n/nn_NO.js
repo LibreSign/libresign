@@ -51,7 +51,6 @@ OC.L10N.register(
     "Unknown" : "Ukjend",
     "Hide details" : "Gøym detaljar",
     "Show details" : "Vis detaljar",
-    "No date" : "No date",
     "Yes" : "Ja",
     "No" : "Nei",
     "Error" : "Feil",

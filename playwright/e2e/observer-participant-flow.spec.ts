@@ -109,14 +109,27 @@ test('observer receives validation link and cannot enter signing flow', async ({
 			response.url().includes('/apps/libresign/p/pdf/')
 			&& response.request().resourceType() !== 'preflight'
 		))
-		const popupPromise = page.waitForEvent('popup')
+		let popupOpened = false
+		page.on('popup', () => { popupOpened = true })
 		await page.getByRole('button', { name: 'View document' }).click()
-		const [popup, pdfResponse] = await Promise.all([popupPromise, pdfResponsePromise])
+		const pdfResponse = await pdfResponsePromise
 		expect(pdfResponse.status()).toBe(200)
 		expect(pdfResponse.headers()['content-type'] ?? '').toMatch(/pdf/i)
 		expect(pdfResponse.url()).toMatch(/\/apps\/libresign\/p\/pdf\//)
-		// Chromium may keep the popup on about:blank while rendering/downloading the PDF body.
-		await expect(popup).not.toHaveURL(/\/login/)
+
+		// With files_pdfviewer installed the observer should get the native,
+		// read-only PDF Viewer, not the browser fallback used without the handler.
+		await expect(page.locator('[role="dialog"][data-handler="pdf"]')).toBeVisible({ timeout: 15_000 })
+		await expect.poll(async () => {
+			const frame = page.frames().find(f => f.url().includes('/apps/files_pdfviewer/'))
+			return frame?.evaluate(() => {
+				const app = (window as typeof window & {
+					PDFViewerApplication?: { pdfDocument?: { numPages?: number } }
+				}).PDFViewerApplication
+				return app?.pdfDocument?.numPages ?? 0
+			}) ?? 0
+		}, { timeout: 15_000 }).toBeGreaterThan(0)
+		expect(popupOpened).toBe(false)
 	} finally {
 		await login(
 			page.request,

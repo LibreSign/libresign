@@ -99,8 +99,6 @@ OC.L10N.register(
     "Order" : "Asmizzwer",
     "Open sidebar" : "Ldi-d afeggag adisan",
     "Issued by:" : "Yettwasgel sɣur:",
-    "Valid from:" : "D uɣbil si:",
-    "Valid to:" : "D uɣbil i:",
     "Name:" : "Isem:",
     "Status:" : "aẓayeṛ",
     "File size:" : "Tiddi n ufaylu :",

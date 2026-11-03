@@ -41,7 +41,6 @@ OC.L10N.register(
     "Issued by:" : "Rhoddwyd gan:",
     "Unknown" : "Anhysbys",
     "Country:" : "Gwlad:",
-    "No date" : "No date",
     "Yes" : "Iawn",
     "No" : "No",
     "Error" : "Gwall",

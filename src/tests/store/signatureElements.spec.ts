@@ -145,7 +145,7 @@ describe('signatureElements store - signature business rules', () => {
 				expect.objectContaining({
 					method: 'patch',
 					url: '/ocs/v2.php/apps/libresign/api/v1/signature/elements/123',
-				})
+				}),
 			)
 		})
 
@@ -172,7 +172,7 @@ describe('signatureElements store - signature business rules', () => {
 				expect.objectContaining({
 					method: 'post',
 					url: '/ocs/v2.php/apps/libresign/api/v1/signature/elements',
-				})
+				}),
 			)
 		})
 	})
@@ -206,7 +206,7 @@ describe('signatureElements store - signature business rules', () => {
 					headers: {
 						'libresign-sign-request-uuid': 'uuid-123',
 					},
-				})
+				}),
 			)
 		})
 
@@ -330,7 +330,7 @@ describe('signatureElements store - signature business rules', () => {
 					headers: {
 						'libresign-sign-request-uuid': 'uuid-123',
 					},
-				})
+				}),
 			)
 		})
 	})
@@ -387,7 +387,7 @@ describe('signatureElements store - signature business rules', () => {
 				expect.objectContaining({
 					method: 'get',
 					url: '/ocs/v2.php/apps/libresign/api/v1/signature/elements',
-				})
+				}),
 			)
 		})
 	})
@@ -433,6 +433,83 @@ describe('signatureElements store - signature business rules', () => {
 			await store.save('signature', 'invalid')
 
 			expect(store.error).toEqual({ message: 'Generic error' })
+		})
+	})
+
+	describe('RULE: email signers reuse the saved signature through the confirm method', () => {
+		const mockState = (emailSigner: unknown) => {
+			loadStateMock.mockImplementation((app, key, defaultValue) => {
+				if (key === 'user_signatures') {
+					return []
+				}
+				if (key === 'sign_request_uuid') {
+					return 'sign-request-uuid'
+				}
+				if (key === 'email_signer_signature') {
+					return emailSigner
+				}
+				return defaultValue
+			})
+		}
+
+		it('exposes the email signer state from the sign page', () => {
+			mockState({ confirmMethod: 'emailToken' })
+
+			const store = useSignatureElementsStore()
+
+			expect(store.emailSigner).toEqual({ confirmMethod: 'emailToken' })
+		})
+
+		it('defaults to no email signer state', () => {
+			mockState(null)
+
+			const store = useSignatureElementsStore()
+
+			expect(store.emailSigner).toBeNull()
+		})
+
+		it('sends the code with the sign request header and loads the returned elements', async () => {
+			mockState({ confirmMethod: 'emailToken' })
+			axiosMock.mockResolvedValue({
+				data: {
+					ocs: {
+						data: {
+							elements: [{
+								type: 'signature',
+								createdAt: '2026-01-01 00:00:00',
+								file: { url: '/preview/55', nodeId: 55 },
+							}],
+						},
+					},
+				},
+			})
+
+			const store = useSignatureElementsStore()
+			const unlocked = await store.useSavedSignature('123456')
+
+			expect(unlocked).toBe(true)
+			expect(axiosMock).toHaveBeenCalledWith({
+				url: '/ocs/v2.php/apps/libresign/api/v1/signature/elements/saved',
+				method: 'post',
+				data: { token: '123456' },
+				headers: { 'libresign-sign-request-uuid': 'sign-request-uuid' },
+			})
+			expect(store.signs.signature.file.nodeId).toBe(55)
+			expect(store.hasSignatureOfType('signature')).toBe(true)
+		})
+
+		it('keeps the signature empty and reports the error when the code is rejected', async () => {
+			mockState({ confirmMethod: 'emailToken' })
+			axiosMock.mockRejectedValue({
+				response: { data: { ocs: { data: { message: 'Invalid code.' } } } },
+			})
+
+			const store = useSignatureElementsStore()
+			const unlocked = await store.useSavedSignature('000000')
+
+			expect(unlocked).toBe(false)
+			expect(store.error).toEqual({ message: 'Invalid code.' })
+			expect(store.hasSignatureOfType('signature')).toBe(false)
 		})
 	})
 })

@@ -29,6 +29,7 @@ use OCA\Libresign\Service\Notification\NotificationHistoryService;
 use OCA\Libresign\Service\Notification\NotificationMessage;
 use OCA\Libresign\Service\Notification\NotificationSubmissionService;
 use OCA\Libresign\Service\NotificationDeliveryService;
+use OCA\Libresign\Service\Worker\WorkerActivationService;
 use OCP\BackgroundJob\IJobList;
 use OCP\IConfig;
 use OCP\IDBConnection;
@@ -44,6 +45,7 @@ final class NotificationDeliveryServiceTest extends TestCase {
 	private IDBConnection&MockObject $db;
 	private NotificationDeliveryModeResolver&MockObject $mode;
 	private IJobList&MockObject $jobs;
+	private WorkerActivationService&MockObject $activation;
 	private NotificationDeliveryService $service;
 	private bool $insideTransaction = false;
 	private bool $asyncMode = false;
@@ -60,6 +62,7 @@ final class NotificationDeliveryServiceTest extends TestCase {
 		$this->mode = $this->createMock(NotificationDeliveryModeResolver::class);
 		$this->mode->method('isAsync')->willReturnCallback(fn (): bool => $this->asyncMode);
 		$this->jobs = $this->createMock(IJobList::class);
+		$this->activation = $this->createMock(WorkerActivationService::class);
 		$crypto = $this->createMock(ICrypto::class);
 		$crypto->method('encrypt')->with('signer@example.invalid')->willReturn('encrypted-mail');
 		$config = $this->createMock(IConfig::class);
@@ -82,6 +85,7 @@ final class NotificationDeliveryServiceTest extends TestCase {
 			$this->jobs,
 			$this->db,
 			$this->deliveries,
+			$this->activation,
 		);
 		$this->file = new File();
 		$this->file->setId(12);
@@ -132,13 +136,49 @@ final class NotificationDeliveryServiceTest extends TestCase {
 		));
 	}
 
-	public function testExplicitAsyncPolicyQueuesWithoutCallingAnyProvider(): void {
+	public function testAsyncWorkerStartsAfterCommitOnly(): void {
+		$this->insideTransaction = true;
+		$this->asyncMode = true;
+		$delivery = new NotificationDelivery();
+		$delivery->setId(35);
+		$delivery->setEventKey('event-key');
+		$this->deliveries->method('register')->willReturn($delivery);
+		$this->deliveries->method('findById')->willReturn($delivery);
+		$this->activation->expects($this->once())->method('ensureNotificationWorkerRunning');
+		$this->send('transactional', 'sign_request', $this->file, $this->request,
+			'signer@example.invalid', static function (): void {
+			},
+		);
+		$this->service->flushCommitted();
+		$this->insideTransaction = false;
+		$this->service->flushCommitted();
+	}
+
+	public function testRolledBackAsyncDeliveryDoesNotStartWorker(): void {
+		$this->insideTransaction = true;
+		$this->asyncMode = true;
+		$delivery = new NotificationDelivery();
+		$delivery->setId(35);
+		$delivery->setEventKey('event-key');
+		$this->deliveries->method('register')->willReturn($delivery);
+		$this->deliveries->method('findById')->willThrowException(new \RuntimeException('Rolled back'));
+		$this->activation->expects($this->never())->method('ensureNotificationWorkerRunning');
+		$this->send('transactional', 'sign_request', $this->file, $this->request,
+			'signer@example.invalid', static function (): void {
+			},
+		);
+		$this->insideTransaction = false;
+		$this->service->flushCommitted();
+	}
+
+	public function testAsyncNotificationRemainsQueuedWhenLocalWorkerIsUnavailable(): void {
 		$this->asyncMode = true;
 		$delivery = new NotificationDelivery();
 		$delivery->setId(35);
 		$this->deliveries->method('register')->willReturn($delivery);
 		$this->jobs->expects($this->once())->method('add')->with(DeliverNotification::class, ['id' => 35]);
 		$this->attempts->expects($this->never())->method('begin');
+		$this->activation->expects($this->once())->method('ensureNotificationWorkerRunning')->willReturn(false);
 		$this->assertTrue($this->send(
 			'manual:synthetic', 'sign_request', $this->file, $this->request, 'signer@example.invalid',
 			static function (): void {
@@ -166,9 +206,11 @@ final class NotificationDeliveryServiceTest extends TestCase {
 	private function expectFreshDelivery(): void {
 		$delivery = new NotificationDelivery();
 		$delivery->setId(31);
+		$delivery->setAttemptCount(1);
 		$attempt = new NotificationAttempt();
 		$attempt->setId(41);
 		$this->deliveries->method('register')->willReturn($delivery);
+		$this->deliveries->method('findById')->with(31)->willReturn($delivery);
 		$this->deliveries->method('claim')->with(31)->willReturn(true);
 		$this->attempts->method('begin')->with(31)->willReturn($attempt);
 	}

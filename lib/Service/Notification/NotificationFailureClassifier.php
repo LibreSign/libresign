@@ -15,11 +15,17 @@ use OCA\Libresign\Exception\NotificationTransportException;
 final class NotificationFailureClassifier {
 	/** @return array{NotificationDeliveryState, string} */
 	public function classify(\Exception $error): array {
+		// Only an explicit top-level preparation failure proves the provider
+		// was not contacted. Nested causes can come from an ambiguous transport.
+		if ($error instanceof NotificationPreparationException) {
+			return [NotificationDeliveryState::TEMPORARY_FAILURE, $error->reasonCode];
+		}
 		for ($current = $error; $current !== null; $current = $current->getPrevious()) {
-			if ($current instanceof NotificationPreparationException) {
-				return [NotificationDeliveryState::TEMPORARY_FAILURE, $current->reasonCode];
-			}
 			if ($current instanceof NotificationTransportException) {
+				// A transport exception alone never proves non-submission.
+				if ($current->outcome === NotificationDeliveryState::TEMPORARY_FAILURE) {
+					return [NotificationDeliveryState::UNKNOWN, 'transport_outcome_unknown'];
+				}
 				return [$current->outcome, $current->reasonCode];
 			}
 		}

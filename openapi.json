@@ -2410,6 +2410,13 @@
                     },
                     "job": {
                         "$ref": "#/components/schemas/SigningJob"
+                    },
+                    "signatureSaveStatus": {
+                        "type": "string",
+                        "enum": [
+                            "saved",
+                            "failed"
+                        ]
                     }
                 }
             },
@@ -11568,6 +11575,11 @@
                                         "additionalProperties": {
                                             "type": "object"
                                         }
+                                    },
+                                    "saveSignature": {
+                                        "type": "boolean",
+                                        "default": false,
+                                        "description": "Explicitly save the external email signer's visible signature for future documents"
                                     }
                                 }
                             }
@@ -12508,6 +12520,128 @@
                     },
                     "404": {
                         "description": "Invalid data",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "required": [
+                                        "ocs"
+                                    ],
+                                    "properties": {
+                                        "ocs": {
+                                            "type": "object",
+                                            "required": [
+                                                "meta",
+                                                "data"
+                                            ],
+                                            "properties": {
+                                                "meta": {
+                                                    "$ref": "#/components/schemas/OCSMeta"
+                                                },
+                                                "data": {
+                                                    "$ref": "#/components/schemas/MessageResponse"
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/ocs/v2.php/apps/libresign/api/{apiVersion}/signature/elements/saved": {
+            "post": {
+                "operationId": "signature_elements-use-saved-signature-elements",
+                "summary": "Use the saved signature elements of a signer identified by email",
+                "description": "The saved elements are copied into the current signing session only after the signer satisfies the confirm method configured for the Email identification factor.",
+                "tags": [
+                    "signature_elements"
+                ],
+                "security": [
+                    {},
+                    {
+                        "bearer_auth": []
+                    },
+                    {
+                        "basic_auth": []
+                    }
+                ],
+                "requestBody": {
+                    "required": false,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object",
+                                "properties": {
+                                    "token": {
+                                        "type": "string",
+                                        "default": "",
+                                        "description": "Verification code, required when the confirm method is the email token"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                "parameters": [
+                    {
+                        "name": "apiVersion",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "enum": [
+                                "v1"
+                            ],
+                            "default": "v1"
+                        }
+                    },
+                    {
+                        "name": "OCS-APIRequest",
+                        "in": "header",
+                        "description": "Required to be true for the API request to pass",
+                        "required": true,
+                        "schema": {
+                            "type": "boolean",
+                            "default": true
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "required": [
+                                        "ocs"
+                                    ],
+                                    "properties": {
+                                        "ocs": {
+                                            "type": "object",
+                                            "required": [
+                                                "meta",
+                                                "data"
+                                            ],
+                                            "properties": {
+                                                "meta": {
+                                                    "$ref": "#/components/schemas/OCSMeta"
+                                                },
+                                                "data": {
+                                                    "$ref": "#/components/schemas/UserElementsResponse"
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "The saved elements cannot be used",
                         "content": {
                             "application/json": {
                                 "schema": {

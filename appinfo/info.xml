@@ -27,7 +27,7 @@ If your organization uses LibreSign, support its development:
 For enterprise support, contact LibreCode:
 https://libresign.coop
 	]]></description>
-	<version>16.0.0-dev.2</version>
+	<version>16.0.0-dev.3</version>
 	<licence>agpl</licence>
 	<author mail="contact@librecode.coop" homepage="https://librecode.coop">LibreCode</author>
 	<types>
@@ -81,6 +81,7 @@ https://libresign.coop
 		<command>OCA\Libresign\Command\Crl\Stats</command>
 		<command>OCA\Libresign\Command\Crl\Cleanup</command>
 		<command>OCA\Libresign\Command\Crl\Revoke</command>
+		<command>OCA\Libresign\Command\SignatureElements\Cleanup</command>
 		<command>OCA\Libresign\Command\Developer\Reset</command>
 		<command>OCA\Libresign\Command\Developer\SignSetup</command>
 		<command>OCA\Libresign\Command\Install</command>

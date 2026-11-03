@@ -19,16 +19,21 @@ class WorkerStarter {
 	) {
 	}
 
-	public function startWorker(): int {
+	public function startWorker(string $pool = WorkerConfiguration::SIGNING): int {
 		$php = $this->binaryFinder->findBinaryPath('php');
 		if ($php === false) {
 			throw new \RuntimeException('PHP CLI is unavailable');
 		}
+		$classes = match ($pool) {
+			WorkerConfiguration::SIGNING => $this->workerConfiguration->getSigningJobClasses(),
+			WorkerConfiguration::NOTIFICATION => $this->workerConfiguration->getNotificationJobClasses(),
+			default => throw new \InvalidArgumentException('Unknown local worker pool'),
+		};
 		$command = [
 			$php,
 			\OC::$SERVERROOT . '/occ',
 			'background-job:worker',
-			...$this->workerConfiguration->getSigningJobClasses(),
+			...$classes,
 			'--stop_after=30m',
 			'--interval=0',
 		];

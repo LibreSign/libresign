@@ -8,6 +8,8 @@ declare(strict_types=1);
 
 namespace OCA\Libresign\Tests\Unit\Service\Worker;
 
+use OCA\Libresign\BackgroundJob\DeliverNotification;
+use OCA\Libresign\BackgroundJob\SignFileJob;
 use OCA\Libresign\Service\Worker\LocalWorkerProcess;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
@@ -72,11 +74,27 @@ class LocalWorkerProcessTest extends TestCase {
 			'unrelated executable' => ["php\0/srv/nextcloud/notocc\0background-job:worker\0", false],
 			'OCC path only appears as an unrelated argument' => ["php\0-r\0echo\0/srv/nextcloud/occ\0background-job:worker\0", false],
 			'worker subcommand appears after another OCC command' => ["php\0/srv/nextcloud/occ\0background-job:list\0background-job:worker\0", false],
+			'notification class and flags are identified' => [
+				"php\0/srv/nextcloud/occ\0background-job:worker\0" . DeliverNotification::class . "\0--stop_after=30m\0--interval=0\0",
+				true, [DeliverNotification::class],
+			],
+			'signing class cannot count as a notification worker' => [
+				"php\0/srv/nextcloud/occ\0background-job:worker\0" . SignFileJob::class . "\0--stop_after=30m\0--interval=0\0",
+				false, [DeliverNotification::class],
+			],
+			'notification class cannot count as a signing worker' => [
+				"php\0/srv/nextcloud/occ\0background-job:worker\0" . DeliverNotification::class . "\0--stop_after=30m\0--interval=0\0",
+				false, [SignFileJob::class],
+			],
+			'an unexpected extra argument invalidates pool identity' => [
+				"php\0/srv/nextcloud/occ\0background-job:worker\0" . DeliverNotification::class . "\0--stop_after=30m\0--interval=0\0--unknown\0",
+				false, [DeliverNotification::class],
+			],
 		];
 	}
 
 	#[DataProvider('workerCommandCases')]
-	public function testOnlyRecognizesTheExpectedWorkerProcess(string $cmdline, bool $expected): void {
+	public function testOnlyRecognizesTheExpectedWorkerProcess(string $cmdline, bool $expected, array $jobClasses = []): void {
 		if (PHP_OS_FAMILY !== 'Linux') {
 			$this->markTestSkipped('Linux procfs fixture');
 		}
@@ -92,7 +110,7 @@ class LocalWorkerProcessTest extends TestCase {
 		try {
 			$processes = new LocalWorkerProcess($procRoot, '/srv/nextcloud/occ');
 			$this->assertSame('12345678', $processes->startTime($pid));
-			$this->assertSame($expected, $processes->isRunning($pid, '12345678'));
+			$this->assertSame($expected, $processes->isRunning($pid, '12345678', $jobClasses));
 			$this->assertFalse($processes->isRunning($pid, 'reused-process-birth'));
 		} finally {
 			@unlink($procRoot . '/' . $pid . '/stat');

@@ -65,7 +65,6 @@ OC.L10N.register(
     "Number of documents:" : "Numri i dokumenteve:",
     "Hide details" : "Fsheh detajet",
     "Country:" : "Vend:",
-    "No date" : "No date",
     "Yes" : "Yes",
     "No" : "Jo",
     "Error" : "Gabim",

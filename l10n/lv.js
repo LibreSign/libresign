@@ -80,7 +80,6 @@ OC.L10N.register(
     "Hide details" : "Paslēpt informāciju",
     "Show details" : "Rādīt informāciju",
     "Country:" : "Valsts:",
-    "No date" : "No date",
     "Yes" : "Jā",
     "No" : "Nē",
     "Error" : "Kļūda",

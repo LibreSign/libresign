@@ -135,6 +135,46 @@ final class NotificationEnvelopeCodecTest extends TestCase {
 		new DataPayload(['root' => $value]);
 	}
 
+	public function testGatewayParametersSurviveEncryptedQueueHandoff(): void {
+		$original = $this->message();
+		$options = [
+			'body_parameters' => ['Synthetic document', 'https://example.invalid/sign'],
+			'expected_body_parameter_count' => 2,
+			'template_name' => 'synthetic_utility',
+			'template_language' => 'pt_BR',
+			'template_category' => 'UTILITY',
+		];
+		$message = new NotificationMessage(
+			$original->sourceEventId, 'sign_request', 'gateway:whatsappbusiness',
+			$original->file, $original->signRequest, '5511999990000',
+			new GatewayPayload('whatsappbusiness', 'Original text', $options),
+		);
+		$codec = $this->codec();
+		$sealed = $codec->encode($message);
+		$this->assertStringNotContainsString('Synthetic document', $sealed);
+		$this->assertStringNotContainsString('5511999990000', $sealed);
+		$delivery = new NotificationDelivery();
+		$delivery->setFileId(31);
+		$delivery->setSignRequestId(42);
+		$delivery->setEventType('sign_request');
+		$delivery->setChannel('gateway:whatsappbusiness');
+		$delivery->setRecipientEnc('sealed:' . base64_encode('5511999990000'));
+		$delivery->setMessageEnc($sealed);
+		$restored = $codec->decode($delivery);
+		$this->assertInstanceOf(GatewayPayload::class, $restored->payload);
+		$this->assertSame($options, $restored->payload->extra);
+	}
+
+	public function testUnexpectedGatewayOptionsAreRejectedBeforeDeliveryOrQueue(): void {
+		$original = $this->message();
+		$this->expectException(\InvalidArgumentException::class);
+		new NotificationMessage(
+			$original->sourceEventId, 'sign_request', 'gateway:whatsappbusiness',
+			$original->file, $original->signRequest, '5511999990000',
+			new GatewayPayload('whatsappbusiness', 'Text', ['code' => '123456']),
+		);
+	}
+
 	public function testGatewayPayloadCanBeRestoredWithoutGatewayDependencies(): void {
 		$message = $this->message();
 		$gateway = new NotificationMessage(

@@ -13,7 +13,10 @@ use OCA\Libresign\Db\NotificationDelivery;
 use OCA\Libresign\Db\NotificationDeliveryMapper;
 use OCA\Libresign\Enum\NotificationDeliveryState;
 use OCA\Libresign\Migration\Version19002Date20261025000000;
+use OCA\Libresign\Migration\Version19004Date20261029000000;
 use OCP\DB\ISchemaWrapper;
+use OCP\DB\Schema\ITable;
+use OCP\DB\Types;
 use OCP\Migration\IOutput;
 use OCP\Server;
 
@@ -38,7 +41,7 @@ final class NotificationDeliveryMapperTest extends \OCA\Libresign\Tests\Integrat
 		parent::tearDown();
 	}
 
-	private function createDelivery(string $event = 'initial'): NotificationDelivery {
+	private function createDelivery(string $event = 'initial', ?string $snapshot = null): NotificationDelivery {
 		$delivery = $this->deliveries->register(
 			hash('sha256', 'synthetic-test-' . $event . '-' . bin2hex(random_bytes(12))),
 			hash('sha256', 'correlation-for-' . $event),
@@ -48,10 +51,76 @@ final class NotificationDeliveryMapperTest extends \OCA\Libresign\Tests\Integrat
 			200,
 			'test-owner',
 			'encrypted-synthetic@example.invalid',
+			$snapshot,
 		);
 		self::assertNotNull($delivery);
 		$this->created[] = $delivery;
 		return $delivery;
+	}
+
+	public function testTemporaryFailureWithoutRetryScheduleIsRejected(): void {
+		$delivery = $this->createDelivery('missing-retry-time');
+		$this->assertTrue($this->deliveries->claim($delivery->getId()));
+		$this->expectException(\InvalidArgumentException::class);
+		$this->deliveries->finish($delivery->getId(), NotificationDeliveryState::TEMPORARY_FAILURE);
+	}
+
+	public function testTerminalStateCannotRetainAReplaySchedule(): void {
+		$delivery = $this->createDelivery('terminal-with-retry-time');
+		$this->assertTrue($this->deliveries->claim($delivery->getId()));
+		$this->expectException(\InvalidArgumentException::class);
+		$this->deliveries->finish($delivery->getId(), NotificationDeliveryState::UNKNOWN, new \DateTime('+2 minutes', new \DateTimeZone('UTC')));
+	}
+
+	public function testDueQueriesUseStablePaginationAndExcludeFutureRetries(): void {
+		for ($index = 0; $index < 55; $index++) {
+			$this->createDelivery('pagination-' . $index);
+		}
+		$first = $this->deliveries->findDue(10, 0);
+		$this->assertTrue($this->deliveries->claim($first[0]->getId()));
+		$second = $this->deliveries->findDue(10, $first[9]->getId());
+		self::assertCount(10, $first);
+		self::assertCount(10, $second);
+		self::assertSame([], array_intersect(
+			array_map(static fn (NotificationDelivery $row): int => $row->getId(), $first),
+			array_map(static fn (NotificationDelivery $row): int => $row->getId(), $second),
+		));
+		self::assertCount(1, $this->deliveries->findPending(1));
+	}
+
+	public function testSafeRetryIsScheduledAndCannotBeClaimedBeforeDueTime(): void {
+		$delivery = $this->createDelivery('safe-retry', 'encrypted-handoff-test-data');
+		$this->assertTrue($this->deliveries->claim($delivery->getId()));
+		$future = new \DateTime('+1 hour', new \DateTimeZone('UTC'));
+		$this->deliveries->finish($delivery->getId(), NotificationDeliveryState::TEMPORARY_FAILURE, $future);
+		$this->assertFalse($this->deliveries->claim($delivery->getId()));
+		$this->assertSame(NotificationDeliveryState::TEMPORARY_FAILURE->value, $this->deliveries->findById($delivery->getId())->getState());
+		$this->assertNotNull($this->deliveries->findById($delivery->getId())->getNextAttemptAt());
+		$this->assertSame('encrypted-handoff-test-data', $this->deliveries->findById($delivery->getId())->getMessageEnc());
+		$this->assertFalse(in_array($delivery->getId(), array_map(static fn (NotificationDelivery $row): int => $row->getId(), $this->deliveries->findDue(500)), true));
+	}
+
+	public function testDueRetryHasOneAtomicWinnerAndPreservesEventIdentity(): void {
+		$delivery = $this->createDelivery('due-retry', 'encrypted-handoff-test-data');
+		$this->assertTrue($this->deliveries->claim($delivery->getId()));
+		$this->deliveries->finish($delivery->getId(), NotificationDeliveryState::TEMPORARY_FAILURE, new \DateTime('-1 minute', new \DateTimeZone('UTC')));
+		$this->assertTrue($this->deliveries->claim($delivery->getId()));
+		$this->assertFalse($this->deliveries->claim($delivery->getId()));
+		$this->assertSame(2, $this->deliveries->findById($delivery->getId())->getAttemptCount());
+		$this->assertSame($delivery->getEventKey(), $this->deliveries->findById($delivery->getId())->getEventKey());
+		$this->deliveries->finish($delivery->getId(), NotificationDeliveryState::ACCEPTED);
+		$this->assertNull($this->deliveries->findById($delivery->getId())->getMessageEnc());
+		$this->assertFalse($this->deliveries->claim($delivery->getId()));
+	}
+
+	public function testCancelAlsoInvalidatesScheduledInvitation(): void {
+		$delivery = $this->createDelivery('cancel-scheduled', 'encrypted-handoff-test-data');
+		$this->assertTrue($this->deliveries->claim($delivery->getId()));
+		$this->deliveries->finish($delivery->getId(), NotificationDeliveryState::TEMPORARY_FAILURE, new \DateTime('-1 minute', new \DateTimeZone('UTC')));
+		$this->assertSame(1, $this->deliveries->cancelPendingInvitations(200));
+		$this->assertSame(NotificationDeliveryState::CANCELED->value, $this->deliveries->findById($delivery->getId())->getState());
+		$this->assertNull($this->deliveries->findById($delivery->getId())->getMessageEnc());
+		$this->assertFalse($this->deliveries->claim($delivery->getId()));
 	}
 
 	public function testUniqueEventIsInsertedOnlyOnce(): void {
@@ -162,6 +231,13 @@ final class NotificationDeliveryMapperTest extends \OCA\Libresign\Tests\Integrat
 		$this->assertSame(1, $this->attempts->finishInterrupted($delivery->getId()));
 		$this->assertFalse($this->deliveries->markStaleUnknown($delivery->getId(), $cutoff));
 		$this->assertSame(NotificationDeliveryState::UNKNOWN->value, $this->deliveries->findByEventKey($delivery->getEventKey())->getState());
+		// A delayed worker must not overwrite the reconciled unknown outcome.
+		try {
+			$this->deliveries->finish($delivery->getId(), NotificationDeliveryState::ACCEPTED);
+			$this->fail('Stale worker must not complete after reconciliation');
+		} catch (\LogicException) {
+			$this->assertSame(NotificationDeliveryState::UNKNOWN->value, $this->deliveries->findById($delivery->getId())->getState());
+		}
 		$this->assertSame('submission_interrupted', $this->attempts->findForDelivery($delivery->getId())[0]->getReasonCode());
 	}
 
@@ -187,6 +263,22 @@ final class NotificationDeliveryMapperTest extends \OCA\Libresign\Tests\Integrat
 		$this->assertSame('', $persisted->getOwnerId());
 		$this->assertSame(NotificationDeliveryState::ACCEPTED->value, $persisted->getState());
 		$this->assertFalse($this->deliveries->claim($persisted->getId()));
+	}
+
+	public function testAttemptCounterMigrationIsIdempotent(): void {
+		$table = $this->createMock(ITable::class);
+		$table->expects($this->exactly(2))->method('hasColumn')->with('attempt_count')
+			->willReturnOnConsecutiveCalls(false, true);
+		$table->expects($this->once())->method('addColumn')
+			->with('attempt_count', Types::INTEGER, ['notnull' => true, 'default' => 0]);
+		$schema = $this->createMock(ISchemaWrapper::class);
+		$schema->method('hasTable')->with('libresign_notification_delivery')->willReturn(true);
+		$schema->method('getTable')->with('libresign_notification_delivery')->willReturn($table);
+		$migration = new Version19004Date20261029000000();
+		$schemaClosure = static fn () => $schema;
+		$output = $this->createMock(IOutput::class);
+		$this->assertSame($schema, $migration->changeSchema($output, $schemaClosure, []));
+		$this->assertNull($migration->changeSchema($output, $schemaClosure, []));
 	}
 
 	public function testSchemaMigrationIsIdempotentAfterInstall(): void {

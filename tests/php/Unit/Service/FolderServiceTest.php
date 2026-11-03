@@ -213,6 +213,22 @@ final class FolderServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$this->assertEquals($folder, $actual);
 	}
 
+	public function testGuestSignatureStorageDoesNotUseOrChangeTheDocumentOwnerContext(): void {
+		$container = $this->createMock(Folder::class);
+		$expected = $this->createMock(Folder::class);
+		$container->method('getOrCreateFolder')->with('unauthenticated')->willReturn($expected);
+		$fakeFolder = new FakeFolder();
+		$fakeFolder->folder = $container;
+		$appData = $this->createMock(IAppData::class);
+		$appData->method('getFolder')->willReturn($fakeFolder);
+		$this->appDataFactory->method('get')->willReturn($appData);
+		$this->root->expects($this->never())->method('getUserFolder');
+		$service = $this->getInstance('document-owner');
+
+		$this->assertSame($expected, $service->getUnauthenticatedFolder());
+		$this->assertSame('document-owner', $service->getUserId());
+	}
+
 	#[DataProvider('providerGetFolderName')]
 	public function testGetFolderName(array $data, string $uid, ?string $expectExact, ?string $expectRegex): void {
 		$user = $this->createMock(IUser::class);

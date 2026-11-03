@@ -640,7 +640,7 @@ describe('useSignStore', () => {
 
 			expect(axiosPost).toHaveBeenCalledWith(
 				expect.stringContaining('/sign/uuid/uuid-123'),
-				payload
+				payload,
 			)
 		})
 
@@ -658,7 +658,7 @@ describe('useSignStore', () => {
 
 			expect(axiosPost).toHaveBeenCalledWith(
 				expect.stringContaining('/sign/file_id/999'),
-				payload
+				payload,
 			)
 		})
 
@@ -690,7 +690,7 @@ describe('useSignStore', () => {
 			})
 
 			await expect(
-				store.submitSignature({}, 'uuid-123')
+				store.submitSignature({}, 'uuid-123'),
 			).rejects.toMatchObject({
 				type: 'missingCertification',
 			})

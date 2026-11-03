@@ -28,6 +28,6 @@ final class GatewayChannel implements NotificationChannel {
 		if (!$payload instanceof GatewayPayload || 'gateway:' . $payload->gatewayName !== $message->channel) {
 			throw new \InvalidArgumentException('Invalid gateway notification payload');
 		}
-		$this->gateway->send($payload->gatewayName, $message->recipient, $payload->body);
+		$this->gateway->send($payload->gatewayName, $message->recipient, $payload->body, $payload->extra);
 	}
 }

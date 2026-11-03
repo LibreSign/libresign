@@ -55,7 +55,6 @@ OC.L10N.register(
     "Cancel upload" : "Kanselleer oplaai",
     "Paragraph" : "Paragraaf",
     "Country:" : "Land:",
-    "No date" : "Geen datum",
     "Yes" : "Ja",
     "No" : "Nee",
     "File" : "Lêer",
