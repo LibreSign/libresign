@@ -115,19 +115,23 @@ final class FileMapperTest extends \OCA\Libresign\Tests\Integration\TestCase {
 			nodeId: 30303,
 			userId: 'owner-user'
 		));
-		$document = $this->createFileEntity(
-			uuid: 'd4444444-4444-4444-8444-444444444444',
-			nodeId: 40404,
-			userId: 'owner-user'
-		);
+		try {
+			$document = $this->createFileEntity(
+				uuid: 'd4444444-4444-4444-8444-444444444444',
+				nodeId: 40404,
+				userId: 'owner-user'
+			);
 
-		$this->assertNull($this->fileMapper->findEnvelope($document));
+			$this->assertNull($this->fileMapper->findEnvelope($document));
 
-		$document->setParentFileId($envelope->getId());
-		$this->assertSame($envelope->getId(), $this->fileMapper->findEnvelope($document)?->getId());
+			$document->setParentFileId($envelope->getId());
+			$this->assertSame($envelope->getId(), $this->fileMapper->findEnvelope($document)?->getId());
 
-		$document->setParentFileId($envelope->getId() + 1000000);
-		$this->assertNull($this->fileMapper->findEnvelope($document));
+			$document->setParentFileId($envelope->getId() + 1000000);
+			$this->assertNull($this->fileMapper->findEnvelope($document));
+		} finally {
+			$this->fileMapper->delete($envelope);
+		}
 	}
 
 	private function createFileEntity(string $uuid, int $nodeId, ?string $userId): File {
