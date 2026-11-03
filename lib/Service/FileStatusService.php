@@ -175,6 +175,20 @@ class FileStatusService {
 		$file->setMetadata($metadata);
 	}
 
+	/**
+	 * A request remains frozen if it returns to draft; documents inherit
+	 * their envelope's freeze state. Legacy sent requests have no marker.
+	 */
+	public static function isPolicySnapshotFrozen(FileEntity $file, ?FileEntity $envelope = null): bool {
+		return self::hasFrozenPolicySnapshot($file)
+			|| ($envelope !== null && self::hasFrozenPolicySnapshot($envelope));
+	}
+
+	private static function hasFrozenPolicySnapshot(FileEntity $file): bool {
+		return isset(($file->getMetadata() ?? [])[self::POLICY_SNAPSHOT_FROZEN_AT])
+			|| $file->getStatus() >= FileStatus::ABLE_TO_SIGN->value;
+	}
+
 	private function touchStatusChangedAt(FileEntity $file): void {
 		$metadata = $file->getMetadata() ?? [];
 		$metadata['status_changed_at'] = (new DateTime())->format(DateTimeInterface::ATOM);

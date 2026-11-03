@@ -460,6 +460,17 @@ const footerPolicy = computed(() => policiesStore.getPolicy('add_footer'))
 const canChooseSigningOrderAtRequestLevel = computed(() => policiesStore.canUseRequestOverride('signature_flow'))
 const canChooseFooterTemplateAtRequestLevel = computed(() => policiesStore.canUseRequestOverride('add_footer'))
 const isAdminFlowForced = computed(() => !canChooseSigningOrderAtRequestLevel.value)
+// The snapshot stays frozen even when a request returns to draft. Legacy
+// requests that were already sent may not have the freeze timestamp.
+const isPolicySnapshotFrozen = computed(() => {
+	const file = filesStore.getFile()
+	if (!file) {
+		return false
+	}
+	const metadata = file.metadata as Record<string, unknown> | null | undefined
+	return (file.status ?? FILE_STATUS.DRAFT) >= FILE_STATUS.ABLE_TO_SIGN
+		|| typeof metadata?.policy_snapshot_frozen_at === 'string'
+})
 
 watch(() => policiesStore.getEffectiveValue('identify_methods'), (value) => {
 	methods.value = normalizeIdentifyMethodsPolicy(value)
@@ -513,6 +524,7 @@ const showFooterTemplateSelector = computed(() => {
 		&& isCurrentFileDetailed.value
 		&& filesStore.canSave()
 		&& canChooseFooterTemplateAtRequestLevel.value
+		&& !isPolicySnapshotFrozen.value
 		&& footerTemplateSourceOptions.value.length > 1
 })
 const showRememberFooterTemplate = computed(() => showFooterTemplateSelector.value && canSaveFooterPreference.value)
@@ -552,6 +564,7 @@ function getFooterPolicyPayloadForSave(): string | null {
 		canChooseFooterTemplateAtRequestLevel.value,
 		footerTemplateSourceOptions.value,
 		selectedFooterTemplateSource.value,
+		isPolicySnapshotFrozen.value,
 	)
 }
 

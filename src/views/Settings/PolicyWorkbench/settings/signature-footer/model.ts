@@ -235,8 +235,10 @@ export function resolveFooterPolicyPayloadForRequest(
 	canChooseFooterTemplateAtRequestLevel: boolean,
 	options: FooterTemplateSourceOption[],
 	selectedSource: FooterTemplateSource,
+	isFrozen = false,
 ): string | null {
-	if (!canChooseFooterTemplateAtRequestLevel) {
+	// A frozen request keeps the footer it stores, so it is not sent again.
+	if (!canChooseFooterTemplateAtRequestLevel || isFrozen) {
 		return null
 	}
 

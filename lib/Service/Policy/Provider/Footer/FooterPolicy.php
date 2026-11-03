@@ -55,14 +55,18 @@ final class FooterPolicy implements IPolicyDefinitionProvider {
 					}
 
 					if (!self::canManageTechnicalFooterSettings($context)) {
-						$normalized = FooterPolicyValue::normalize($decoded);
-						if ($normalized['validationSite'] !== '') {
+						// An inherited administrator-configured URL is not a request override.
+						$submittedFooter = $context->getRequestOverrides()[self::KEY] ?? null;
+						if ($submittedFooter !== null && FooterPolicyValue::normalize($submittedFooter)['validationSite'] !== '') {
 							throw new \InvalidArgumentException('Validation URL override is not allowed for this actor');
 						}
 					}
 				},
-				persistenceValidator: static function (mixed $value, PolicyContext $_context): void {
+				persistenceValidator: static function (mixed $value, PolicyContext $context): void {
 					$footerPolicy = FooterPolicyValue::normalize($value);
+					if (!self::canManageTechnicalFooterSettings($context) && $footerPolicy['validationSite'] !== '') {
+						throw new \InvalidArgumentException('Validation URL override is not allowed for this actor');
+					}
 					// Allow a legacy template to be disabled or replaced without executing it.
 					if ($footerPolicy['enabled'] && $footerPolicy['customizeFooterTemplate'] && $footerPolicy['footerTemplate'] !== '') {
 						SandboxedTemplateRenderer::validate($footerPolicy['footerTemplate']);

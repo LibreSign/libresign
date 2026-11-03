@@ -157,14 +157,14 @@ final class FilePolicyApplierTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		], $metadata['policy_snapshot'][SignatureRejectionPolicy::KEY] ?? null);
 	}
 
-	public function testSyncCoreFlowPoliciesSkipsNonCoreProviders(): void {
+	public function testSyncCoreFlowPoliciesPersistsFooterSnapshot(): void {
 		$file = new FileEntity();
 		$file->setUserId('john');
 		$file->setSignatureFlowEnum(SignatureFlow::NONE);
 		$file->setDocmdpLevelEnum(DocMdpLevel::NOT_CERTIFIED);
 
 		$this->policyService
-			->expects($this->exactly(5))
+			->expects($this->exactly(6))
 			->method('resolveForUserId')
 			->willReturnCallback(function (string $policyKey): ResolvedPolicy {
 				return match ($policyKey) {
@@ -176,6 +176,11 @@ final class FilePolicyApplierTest extends \OCA\Libresign\Tests\Unit\TestCase {
 					DocMdpPolicy::KEY => $this->createResolvedPolicy(
 						DocMdpPolicy::KEY,
 						DocMdpLevel::CERTIFIED_FORM_FILLING_AND_ANNOTATIONS->value,
+						'system',
+					),
+					FooterPolicy::KEY => $this->createResolvedPolicy(
+						FooterPolicy::KEY,
+						'{"enabled":false}',
 						'system',
 					),
 					IdentificationDocumentsPolicy::KEY => $this->createResolvedPolicy(
@@ -200,13 +205,13 @@ final class FilePolicyApplierTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			});
 
 		$this->fileService
-			->expects($this->exactly(5))
+			->expects($this->exactly(6))
 			->method('update')
 			->with($this->identicalTo($file));
 
 		$this->getApplier()->syncCoreFlowPolicies($file, []);
 
-		$this->assertArrayNotHasKey(FooterPolicy::KEY, $file->getMetadata()['policy_snapshot']);
+		$this->assertSame('{"enabled":false}', $file->getMetadata()['policy_snapshot'][FooterPolicy::KEY]['effectiveValue']);
 		$this->assertArrayHasKey(IdentificationDocumentsPolicy::KEY, $file->getMetadata()['policy_snapshot']);
 		$this->assertArrayHasKey(SignatureRejectionPolicy::KEY, $file->getMetadata()['policy_snapshot']);
 		$this->assertSame(SignatureFlow::ORDERED_NUMERIC, $file->getSignatureFlowEnum());

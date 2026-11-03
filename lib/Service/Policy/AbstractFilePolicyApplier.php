@@ -9,8 +9,10 @@ declare(strict_types=1);
 namespace OCA\Libresign\Service\Policy;
 
 use OCA\Libresign\Db\File as FileEntity;
+use OCA\Libresign\Db\FileMapper;
 use OCA\Libresign\Exception\LibresignException;
 use OCA\Libresign\Service\FileService;
+use OCA\Libresign\Service\FileStatusService;
 use OCA\Libresign\Service\Policy\Contract\IFilePolicyApplier;
 use OCA\Libresign\Service\Policy\Model\ResolvedPolicy;
 use OCP\IL10N;
@@ -20,6 +22,7 @@ abstract class AbstractFilePolicyApplier implements IFilePolicyApplier {
 		protected readonly PolicyService $policyService,
 		protected readonly FileService $fileService,
 		protected readonly ?IL10N $l10n = null,
+		protected readonly ?FileMapper $snapshotFileMapper = null,
 	) {
 	}
 
@@ -74,6 +77,14 @@ abstract class AbstractFilePolicyApplier implements IFilePolicyApplier {
 			: vsprintf($message, [$blockedBy]);
 
 		throw new LibresignException($translatedMessage, 422);
+	}
+
+	/**
+	 * The request freezes on first send, including legacy sent requests and
+	 * documents of a frozen envelope.
+	 */
+	protected function isPolicySnapshotFrozen(FileEntity $file): bool {
+		return FileStatusService::isPolicySnapshotFrozen($file, $this->snapshotFileMapper?->findEnvelope($file));
 	}
 
 	protected function storePolicySnapshot(FileEntity $file, ResolvedPolicy $resolvedPolicy, mixed $effectiveValue = null): void {
