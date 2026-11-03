@@ -226,4 +226,23 @@ final class SignFileControllerTest extends TestCase {
 			$response->getData()['message'],
 		);
 	}
+	private function prepareSigning(bool $prepareSignature = true): SignRequest {
+		if ($prepareSignature) {
+			$this->emailSignerElementsService->method('prepareSignature')
+				->willReturn(['key' => 'email-key', 'elements' => ['signature' => 'image']]);
+		}
+		$file = new FileEntity();
+		$file->setId(3);
+		$file->setUuid('file-uuid');
+		$signRequest = new SignRequest();
+		$signRequest->setId(7);
+		$signRequest->setFileId(3);
+		$signRequest->setDisplayName('External signer');
+		$this->signFileService->method('getLibresignFile')->willReturn($file);
+		$this->signFileService->method('getSignRequestToSign')->willReturn($signRequest);
+		$this->signFileService->method('setVisibleElements')->willReturnSelf();
+		$this->signFileService->method('storeUserMetadata')->willReturnSelf();
+		return $signRequest;
+	}
+
 }
