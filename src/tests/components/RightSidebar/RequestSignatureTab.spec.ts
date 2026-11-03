@@ -579,7 +579,7 @@ describe('RequestSignatureTab - Critical Business Rules', () => {
 		it('does not offer the footer template choice and sends no footer', async () => {
 			await updateFile({
 				status: FILE_STATUS.DRAFT,
-				policySnapshotFrozen: true,
+				metadata: { policy_snapshot_frozen_at: '2026-01-01T00:00:00+00:00' },
 				signers: [{ email: 'test1@example.com', signed: [] }],
 			})
 			await updateFooterPolicy(twoTemplates)
@@ -592,7 +592,7 @@ describe('RequestSignatureTab - Critical Business Rules', () => {
 		it('keeps the footer template choice while the request is a draft', async () => {
 			await updateFile({
 				status: FILE_STATUS.DRAFT,
-				policySnapshotFrozen: false,
+				metadata: {},
 				signers: [{ email: 'test1@example.com', signed: [] }],
 			})
 			await updateFooterPolicy(twoTemplates)
