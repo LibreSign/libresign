@@ -15,8 +15,10 @@ use OCA\Libresign\Db\SignRequest;
 use OCA\Libresign\Db\SignRequestMapper;
 use OCA\Libresign\Handler\SigningErrorHandler;
 use OCA\Libresign\Service\AsyncSigningService;
+use OCA\Libresign\Service\EmailSignerElementsService;
 use OCA\Libresign\Service\SignatureRejection\SignatureRejectionService;
 use OCA\Libresign\Service\SignFileService;
+use OCA\Libresign\Service\Signing\SigningPreparationService;
 use OCA\Libresign\Service\Validation\SigningRequestValidator;
 use OCA\Libresign\Service\Worker\WorkerConfiguration;
 use OCP\AppFramework\Http;
@@ -36,6 +38,10 @@ final class SignFileControllerTest extends TestCase {
 	private SigningRequestValidator&MockObject $signingRequestValidator;
 	private SignFileService&MockObject $signFileService;
 	private LoggerInterface&MockObject $logger;
+	private EmailSignerElementsService&MockObject $emailSignerElementsService;
+	private SigningPreparationService&MockObject $signingPreparationService;
+	private WorkerConfiguration&MockObject $workerConfiguration;
+	private AsyncSigningService&MockObject $asyncSigningService;
 
 	protected function setUp(): void {
 		$this->request = $this->createMock(IRequest::class);
@@ -46,6 +52,11 @@ final class SignFileControllerTest extends TestCase {
 		$this->signingRequestValidator = $this->createMock(SigningRequestValidator::class);
 		$this->signFileService = $this->createMock(SignFileService::class);
 		$this->logger = $this->createMock(LoggerInterface::class);
+		$this->emailSignerElementsService = $this->createMock(EmailSignerElementsService::class);
+		$this->signingPreparationService = $this->createMock(SigningPreparationService::class);
+		$this->signingPreparationService->method('prepare')->willReturn(['userIdentifier' => 'test-uid', 'metadata' => []]);
+		$this->workerConfiguration = $this->createMock(WorkerConfiguration::class);
+		$this->asyncSigningService = $this->createMock(AsyncSigningService::class);
 	}
 
 	private function getController(): SignFileController {
@@ -56,11 +67,12 @@ final class SignFileControllerTest extends TestCase {
 			$this->userSession,
 			$this->signingRequestValidator,
 			$this->signFileService,
-			$this->createMock(\OCA\Libresign\Service\Signing\SigningPreparationService::class),
-			$this->createMock(WorkerConfiguration::class),
-			$this->createMock(AsyncSigningService::class),
+			$this->signingPreparationService,
+			$this->workerConfiguration,
+			$this->asyncSigningService,
 			$this->createMock(SigningErrorHandler::class),
 			$this->createMock(SignatureRejectionService::class),
+			$this->emailSignerElementsService,
 			$this->logger,
 		);
 	}
@@ -214,5 +226,4 @@ final class SignFileControllerTest extends TestCase {
 			$response->getData()['message'],
 		);
 	}
-
 }
