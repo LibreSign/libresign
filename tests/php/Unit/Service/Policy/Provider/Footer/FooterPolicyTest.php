@@ -178,7 +178,8 @@ final class FooterPolicyTest extends TestCase {
 		]);
 
 		$context = (new PolicyContext())
-			->setActorRole($actorRole);
+			->setActorRole($actorRole)
+			->setRequestOverrides([FooterPolicy::KEY => $value]);
 
 		if ($expectException) {
 			$this->expectException(\InvalidArgumentException::class);
@@ -189,6 +190,45 @@ final class FooterPolicyTest extends TestCase {
 		if (!$expectException) {
 			$this->addToAssertionCount(1);
 		}
+	}
+
+	/** A regular requester must be able to use the URL stored by an administrator. */
+	#[DataProvider('inheritedValidationSiteCases')]
+	public function testInheritedValidationSiteIsAllowedForRegularActors(array $requestOverrides): void {
+		$definition = (new FooterPolicy())->get(FooterPolicy::KEY);
+		$inheritedFooter = $definition->normalizeValue([
+			'enabled' => true,
+			'validationSite' => 'https://admin.example/validate',
+		]);
+		$context = (new PolicyContext())
+			->setActorRole(ActorRole::regularUser())
+			->setRequestOverrides($requestOverrides);
+
+		$definition->validateValue($inheritedFooter, $context);
+
+		$this->addToAssertionCount(1);
+	}
+
+	/** @return iterable<string, array{0: array<string, mixed>}> */
+	public static function inheritedValidationSiteCases(): iterable {
+		yield 'no request override' => [[]];
+		yield 'footer override without validation URL' => [[
+			FooterPolicy::KEY => FooterPolicyValue::encode(['enabled' => false]),
+		]];
+	}
+
+	public function testRegularActorCannotPersistCustomValidationSite(): void {
+		$definition = (new FooterPolicy())->get(FooterPolicy::KEY);
+		$footer = $definition->normalizeValue([
+			'enabled' => true,
+			'validationSite' => 'https://not-allowed.example',
+		]);
+		$context = (new PolicyContext())->setActorRole(ActorRole::regularUser());
+
+		$this->expectException(\InvalidArgumentException::class);
+		$this->expectExceptionMessage('Validation URL override is not allowed for this actor');
+
+		$definition->validateValueForPersistence($footer, $context);
 	}
 
 	#[DataProvider('provideCanCurrentActorManageGroupPolicyCases')]

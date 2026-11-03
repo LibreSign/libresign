@@ -141,4 +141,13 @@ describe('signature-footer model', () => {
 		expect(resolveFooterPolicyPayloadForRequest(false, options, 'effective')).toBeNull()
 		expect(resolveFooterPolicyPayloadForRequest(true, [], 'effective')).toBeNull()
 	})
+
+	it('returns null footer payload once the request is frozen', () => {
+		const options = buildFooterTemplateSourceOptions({
+			effectiveValue: '{"enabled":true,"writeQrcodeOnFooter":true,"validationSite":"","customizeFooterTemplate":true,"footerTemplate":"<p>Personal template</p>","previewWidth":595,"previewHeight":100,"previewZoom":100}',
+			sourceScope: 'user',
+		}, footerTemplateLabels)
+
+		expect(resolveFooterPolicyPayloadForRequest(true, options, 'effective', true)).toBeNull()
+	})
 })

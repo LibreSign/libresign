@@ -662,8 +662,8 @@ const observerProfileEnabled = computed(() => observerProfilePolicy.value?.effec
 const canChooseSigningOrderAtRequestLevel = computed(() => policiesStore.canUseRequestOverride('signature_flow'))
 const canChooseFooterTemplateAtRequestLevel = computed(() => policiesStore.canUseRequestOverride('add_footer'))
 const isAdminFlowForced = computed(() => !canChooseSigningOrderAtRequestLevel.value)
-// Once sent, a request keeps its signature flow even if it returns to draft, so the status alone does not tell.
-const isSignatureFlowFrozen = computed(() => filesStore.getFile()?.policySnapshotFrozen === true)
+// Once sent, a request keeps its signature flow and footer even if it returns to draft, so the status alone does not tell.
+const isPolicySnapshotFrozen = computed(() => filesStore.getFile()?.policySnapshotFrozen === true)
 
 watch(() => policiesStore.getEffectiveValue('identify_methods'), (value) => {
 	methods.value = normalizeIdentifyMethodsPolicy(value)
@@ -675,7 +675,7 @@ const signatureFlow = computed(() => {
 	const fileFlow = file?.signatureFlow
 	const resolvedFileFlow = resolveSignatureFlowMode(fileFlow)
 
-	if (isSignatureFlowFrozen.value) {
+	if (isPolicySnapshotFrozen.value) {
 		return resolvedFileFlow ?? 'none'
 	}
 
@@ -800,7 +800,7 @@ function resetNotificationTracking(): void {
 watch(() => currentFile.value?.id, resetNotificationTracking)
 const shouldLoadDetail = computed(() => totalSigners.value > 0)
 const showSigningOrderOptions = computed(() => !isOriginalFileDeleted.value && isCurrentFileDetailed.value && hasSigners.value && filesStore.canSave() && canChooseSigningOrderAtRequestLevel.value)
-const showPreserveOrder = computed(() => !isOriginalFileDeleted.value && isCurrentFileDetailed.value && signingParticipantCount.value > 1 && filesStore.canSave() && canChooseSigningOrderAtRequestLevel.value && !isSignatureFlowFrozen.value)
+const showPreserveOrder = computed(() => !isOriginalFileDeleted.value && isCurrentFileDetailed.value && signingParticipantCount.value > 1 && filesStore.canSave() && canChooseSigningOrderAtRequestLevel.value && !isPolicySnapshotFrozen.value)
 const showRememberSignatureFlow = computed(() => showPreserveOrder.value && canSaveSignatureFlowPreference.value)
 const footerTemplateSourceOptions = computed<FooterTemplateSourceOption[]>(() => {
 	return buildFooterTemplateSourceOptions(footerPolicy.value, {
@@ -817,6 +817,7 @@ const showFooterTemplateSelector = computed(() => {
 		&& isCurrentFileDetailed.value
 		&& filesStore.canSave()
 		&& canChooseFooterTemplateAtRequestLevel.value
+		&& !isPolicySnapshotFrozen.value
 		&& footerTemplateSourceOptions.value.length > 1
 })
 const showRememberFooterTemplate = computed(() => showFooterTemplateSelector.value && canSaveFooterPreference.value)
@@ -861,7 +862,7 @@ const signingOrderDiagramSigners = computed<SigningOrderDiagramSigner[]>(() => {
 
 function getSignatureFlowPayloadForSave(): SignatureFlowMode | null {
 	const resolvedFlow = resolveSignatureFlowMode(signatureFlow.value)
-	return resolveSignatureFlowPayloadForRequest(canChooseSigningOrderAtRequestLevel.value, resolvedFlow, isSignatureFlowFrozen.value)
+	return resolveSignatureFlowPayloadForRequest(canChooseSigningOrderAtRequestLevel.value, resolvedFlow, isPolicySnapshotFrozen.value)
 }
 
 function getFooterPolicyPayloadForSave(): string | null {
@@ -869,6 +870,7 @@ function getFooterPolicyPayloadForSave(): string | null {
 		canChooseFooterTemplateAtRequestLevel.value,
 		footerTemplateSourceOptions.value,
 		selectedFooterTemplateSource.value,
+		isPolicySnapshotFrozen.value,
 	)
 }
 
@@ -1420,7 +1422,7 @@ function syncPreserveOrderWithFile() {
 
 function syncFileSignatureFlowWithPolicy() {
 	const resolvedPolicy = resolveSignatureFlowMode(signatureFlowPolicy.value?.effectiveValue)
-	if (isSignatureFlowFrozen.value || canChooseSigningOrderAtRequestLevel.value || !resolvedPolicy || resolvedPolicy === 'none') {
+	if (isPolicySnapshotFrozen.value || canChooseSigningOrderAtRequestLevel.value || !resolvedPolicy || resolvedPolicy === 'none') {
 		return
 	}
 

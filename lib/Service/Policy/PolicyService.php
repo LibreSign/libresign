@@ -64,18 +64,6 @@ class PolicyService {
 	 *
 	 * @param array<string, mixed> $storedRequestOverrides
 	 */
-	public function resolveWithStoredRequestOverrides(string|\BackedEnum $policyKey, array $storedRequestOverrides): ResolvedPolicy {
-		return $this->resolver->resolve(
-			$this->registry->get($policyKey),
-			$this->contextFactory->forCurrentUser()->setStoredRequestOverrides($storedRequestOverrides),
-		);
-	}
-
-	/**
-	 * Like resolveWithStoredRequestOverrides(), for the given user.
-	 *
-	 * @param array<string, mixed> $storedRequestOverrides
-	 */
 	public function resolveForUserIdWithStoredRequestOverrides(string|\BackedEnum $policyKey, ?string $userId, array $storedRequestOverrides, ?array $activeContext = null): ResolvedPolicy {
 		return $this->resolver->resolve(
 			$this->registry->get($policyKey),

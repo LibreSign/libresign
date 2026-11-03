@@ -221,7 +221,7 @@ final class AbstractFilePolicyApplierTest extends TestCase {
 			$envelope->setNodeType('envelope');
 			$envelope->setMetadata($envelopeMetadata);
 			$file->setParentFileId(1);
-			$this->fileMapper->method('getById')->with(1)->willReturn($envelope);
+			$this->fileMapper->method('findEnvelope')->with($file)->willReturn($envelope);
 		}
 		$this->fileMapper->expects($this->never())->method('update');
 		$this->fileService->expects($this->never())->method('update');
@@ -258,7 +258,7 @@ final class AbstractFilePolicyApplierTest extends TestCase {
 		$envelope->setStatus(FileStatus::ABLE_TO_SIGN->value);
 		$envelope->setMetadata([]);
 
-		$this->fileMapper->method('getById')->with(1)->willReturn($envelope);
+		$this->fileMapper->method('findEnvelope')->with($file)->willReturn($envelope);
 		$this->fileMapper->expects($this->never())->method('update');
 		$this->fileService->expects($this->never())->method('update');
 

@@ -16,7 +16,6 @@ use OCA\Libresign\Service\FileStatusService;
 use OCA\Libresign\Service\Policy\Contract\IFilePolicyApplier;
 use OCA\Libresign\Service\Policy\Model\PolicySpec;
 use OCA\Libresign\Service\Policy\Model\ResolvedPolicy;
-use OCP\AppFramework\Db\DoesNotExistException;
 use OCP\IL10N;
 
 abstract class AbstractFilePolicyApplier implements IFilePolicyApplier {
@@ -96,20 +95,7 @@ abstract class AbstractFilePolicyApplier implements IFilePolicyApplier {
 			}
 		}
 
-		return FileStatusService::isPolicySnapshotFrozen($file, $this->findEnvelope($file));
-	}
-
-	private function findEnvelope(FileEntity $file): ?FileEntity {
-		$parentId = $file->getParentFileId();
-		if ($parentId === null || $this->fileMapper === null) {
-			return null;
-		}
-
-		try {
-			return $this->fileMapper->getById($parentId);
-		} catch (DoesNotExistException) {
-			return null;
-		}
+		return FileStatusService::isPolicySnapshotFrozen($file, $this->fileMapper?->findEnvelope($file));
 	}
 
 	protected function storePolicySnapshot(FileEntity $file, ResolvedPolicy $resolvedPolicy, mixed $effectiveValue = null): void {
