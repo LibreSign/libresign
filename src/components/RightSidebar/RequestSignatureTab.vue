@@ -1843,8 +1843,8 @@ async function confirmRequestSigner() {
 			return
 		}
 		await saveMissingVisibleSignaturePreference()
-		// TRANSLATORS Success message after the signature request is created or sent.
-		showSuccess(t('libresign', 'Signature requested'))
+		// The updated signer status confirms success in the sidebar. A toast
+		// would cover the action buttons in the mobile request view.
 		closeConfirmRequestSignerDialog()
 	} catch (error: unknown) {
 		// TRANSLATORS Error when creating the signature request for one signer fails.
@@ -1947,8 +1947,8 @@ async function confirmRequest() {
 			return
 		}
 		await saveMissingVisibleSignaturePreference()
-		// TRANSLATORS Success message after the signature request is created or sent.
-		showSuccess(t('libresign', 'Signature requested'))
+		// The updated signer status confirms success in the sidebar. A toast
+		// would cover the action buttons in the mobile request view.
 		closeConfirmRequestDialog()
 	} catch (error: unknown) {
 		// TRANSLATORS Error when creating signature requests for several signers fails.
