@@ -55,7 +55,7 @@ class FooterFilePolicyApplier extends AbstractFilePolicyApplier {
 
 	#[\Override]
 	public function supportsCoreFlowSync(): bool {
-		return false;
+		return true;
 	}
 
 	/** @return array<string, string> */
