@@ -14,7 +14,6 @@ use OCA\Libresign\Exception\LibresignException;
 use OCA\Libresign\Service\FileService;
 use OCA\Libresign\Service\FileStatusService;
 use OCA\Libresign\Service\Policy\Contract\IFilePolicyApplier;
-use OCA\Libresign\Service\Policy\Model\PolicySpec;
 use OCA\Libresign\Service\Policy\Model\ResolvedPolicy;
 use OCP\IL10N;
 
@@ -81,15 +80,10 @@ abstract class AbstractFilePolicyApplier implements IFilePolicyApplier {
 	}
 
 	/**
-	 * Only policies with request-snapshot lifecycle can be frozen.
+	 * The request freezes on first send, including legacy sent requests and
+	 * documents of a frozen envelope.
 	 */
-	protected function isPolicySnapshotFrozen(FileEntity $file, string $policyKey, string ...$otherPolicyKeys): bool {
-		foreach ([$policyKey, ...$otherPolicyKeys] as $key) {
-			if ($this->policyService->getRequestLifecycle($key) !== PolicySpec::LIFECYCLE_REQUEST_SNAPSHOT) {
-				throw new \LogicException(sprintf('The %s policy is not stored on the request, so it cannot be frozen.', $key));
-			}
-		}
-
+	protected function isPolicySnapshotFrozen(FileEntity $file): bool {
 		return FileStatusService::isPolicySnapshotFrozen($file, $this->fileMapper?->findEnvelope($file));
 	}
 

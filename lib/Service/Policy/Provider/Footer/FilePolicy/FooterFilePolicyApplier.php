@@ -34,7 +34,7 @@ class FooterFilePolicyApplier extends AbstractFilePolicyApplier {
 	#[\Override]
 	public function sync(FileEntity $file, array $data): void {
 		$requestOverrides = $this->getOverrides($data);
-		if ($this->isPolicySnapshotFrozen($file, FooterPolicy::KEY)) {
+		if ($this->isPolicySnapshotFrozen($file)) {
 			$this->assertFrozenFooterIsKept($file, $requestOverrides);
 			return;
 		}
