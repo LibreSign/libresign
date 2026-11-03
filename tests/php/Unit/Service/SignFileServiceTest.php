@@ -1423,7 +1423,10 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$originalFile->method('getExtension')->willReturn('pdf');
 		$originalFile->method('getPath')->willReturn('/Documents/source.pdf');
 		$originalFile->method('getOwner')->willReturn($owner);
-		$originalFile->method('getParent')->willReturn($folder);
+		$originalFile->method('getParentId')->willReturn(101);
+		$userFolder = $this->createMock(\OCP\Files\Folder::class);
+		$userFolder->expects($this->once())->method('getFirstNodeById')->with(101)->willReturn($folder);
+		$this->root->expects($this->once())->method('getUserFolder')->with('signer1')->willReturn($userFolder);
 
 		$this->footerHandler->method('getMetadata')->willReturn(['d' => [['w' => 595.0, 'h' => 842.0]]]);
 		$this->footerHandler->method('setTemplateVar')->willReturnSelf();

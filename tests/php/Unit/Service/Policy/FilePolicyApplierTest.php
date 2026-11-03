@@ -164,7 +164,7 @@ final class FilePolicyApplierTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$file->setDocmdpLevelEnum(DocMdpLevel::NOT_CERTIFIED);
 
 		$this->policyService
-			->expects($this->exactly(5))
+			->expects($this->exactly(6))
 			->method('resolveForUserId')
 			->willReturnCallback(function (string $policyKey): ResolvedPolicy {
 				return match ($policyKey) {
@@ -205,7 +205,7 @@ final class FilePolicyApplierTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			});
 
 		$this->fileService
-			->expects($this->exactly(5))
+			->expects($this->exactly(6))
 			->method('update')
 			->with($this->identicalTo($file));
 
