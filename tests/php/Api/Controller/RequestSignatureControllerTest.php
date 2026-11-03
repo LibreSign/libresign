@@ -10,9 +10,9 @@ namespace OCA\Libresign\Tests\Api\Controller;
 
 use OCA\Libresign\AppInfo\Application;
 use OCA\Libresign\Db\FileMapper;
+use OCA\Libresign\Db\SignRequestMapper;
 use OCA\Libresign\Enum\FileStatus;
 use OCA\Libresign\Service\Policy\Provider\Footer\FooterPolicyValue;
-use OCA\Libresign\Db\SignRequestMapper;
 use OCA\Libresign\Service\RequestSignatureService;
 use OCA\Libresign\Tests\Api\ApiTestCase;
 
@@ -300,10 +300,10 @@ final class RequestSignatureControllerTest extends ApiTestCase {
 						'value' => 'person@test.coop',
 					]],
 				]],
-			])
-			->expectStatus(200);
+			]);
 
-		$this->assertRequest();
+		$response = $this->assertRequest();
+		$this->assertSame(200, $response->getStatusCode());
 		$sent = $fileMapper->getById($file->getId())->getMetadata();
 		$this->assertSame($updatedFooter, $sent['policy_snapshot']['add_footer']['effectiveValue']);
 		$this->assertArrayHasKey('policy_snapshot_frozen_at', $sent);
