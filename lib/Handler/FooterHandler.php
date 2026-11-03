@@ -38,6 +38,7 @@ class FooterHandler {
 	private QrCode $qrCode;
 	/** @var array<string, mixed> */
 	private array $requestPolicyOverrides = [];
+	private ?string $policyValue = null;
 	private ?string $templateOverride = null;
 	private ?bool $writeQrcodeOnFooterOverride = null;
 	private const int MIN_QRCODE_SIZE = 100;
@@ -125,6 +126,15 @@ class FooterHandler {
 	/** @param array<string, mixed> $requestPolicyOverrides */
 	public function setRequestPolicyOverrides(array $requestPolicyOverrides): self {
 		$this->requestPolicyOverrides = $requestPolicyOverrides;
+		$this->policyValue = null;
+		return $this;
+	}
+
+	/**
+	 * Render with the exact policy frozen on the request, without re-resolving it.
+	 */
+	public function setPolicyValue(?string $policyValue): self {
+		$this->policyValue = $policyValue;
 		return $this;
 	}
 
@@ -139,14 +149,12 @@ class FooterHandler {
 	}
 
 	public function getEffectiveFooterPolicyAsJson(): string {
-		return (string)$this->policyService->resolve(FooterPolicy::KEY, $this->requestPolicyOverrides)->getEffectiveValue();
+		return (string)$this->getPolicyValue();
 	}
 
 	/** @return array{enabled: bool, writeQrcodeOnFooter: bool, validationSite: string, customizeFooterTemplate: bool, footerTemplate: string, previewWidth: int, previewHeight: int, previewZoom: int} */
 	private function resolveFooterPolicy(): array {
-		return FooterPolicyValue::normalize(
-			$this->policyService->resolve(FooterPolicy::KEY, $this->requestPolicyOverrides)->getEffectiveValue()
-		);
+		return FooterPolicyValue::normalize($this->getPolicyValue());
 	}
 
 	private function prepareTemplateVars(bool $forceEnabled = false): array {
@@ -256,8 +264,11 @@ class FooterHandler {
 	}
 
 	private function isFooterEnabled(): bool {
-		return FooterPolicyValue::isEnabled(
-			$this->policyService->resolve(FooterPolicy::KEY, $this->requestPolicyOverrides)->getEffectiveValue()
-		);
+		return FooterPolicyValue::isEnabled($this->getPolicyValue());
+	}
+
+	private function getPolicyValue(): mixed {
+		return $this->policyValue
+			?? $this->policyService->resolve(FooterPolicy::KEY, $this->requestPolicyOverrides)->getEffectiveValue();
 	}
 }

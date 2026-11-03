@@ -135,6 +135,8 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	private PolicyService&MockObject $policyService;
 	/** @var array<string, mixed> */
 	private array $policyValues = [];
+	/** @var list<string> */
+	private array $resolvedPolicyKeys = [];
 
 	public function setUp(): void {
 		parent::setUp();
@@ -190,6 +192,7 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		);
 		$this->signRequestService = $this->createMock(SignRequestService::class);
 		$this->policyService = $this->createMock(PolicyService::class);
+		$this->resolvedPolicyKeys = [];
 		$this->policyValues = [
 			CollectMetadataPolicy::KEY => false,
 			FooterPolicy::KEY => FooterPolicyValue::encode(FooterPolicyValue::defaults()),

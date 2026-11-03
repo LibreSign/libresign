@@ -9,9 +9,12 @@ declare(strict_types=1);
 namespace OCA\Libresign\Service\Policy;
 
 use OCA\Libresign\Db\File as FileEntity;
+use OCA\Libresign\Db\FileMapper;
 use OCA\Libresign\Exception\LibresignException;
 use OCA\Libresign\Service\FileService;
+use OCA\Libresign\Service\FileStatusService;
 use OCA\Libresign\Service\Policy\Contract\IFilePolicyApplier;
+use OCA\Libresign\Service\Policy\Model\PolicySpec;
 use OCA\Libresign\Service\Policy\Model\ResolvedPolicy;
 use OCP\IL10N;
 
@@ -20,6 +23,7 @@ abstract class AbstractFilePolicyApplier implements IFilePolicyApplier {
 		protected readonly PolicyService $policyService,
 		protected readonly FileService $fileService,
 		protected readonly ?IL10N $l10n = null,
+		protected readonly ?FileMapper $fileMapper = null,
 	) {
 	}
 
@@ -74,6 +78,19 @@ abstract class AbstractFilePolicyApplier implements IFilePolicyApplier {
 			: vsprintf($message, [$blockedBy]);
 
 		throw new LibresignException($translatedMessage, 422);
+	}
+
+	/**
+	 * Only policies with request-snapshot lifecycle can be frozen.
+	 */
+	protected function isPolicySnapshotFrozen(FileEntity $file, string $policyKey, string ...$otherPolicyKeys): bool {
+		foreach ([$policyKey, ...$otherPolicyKeys] as $key) {
+			if ($this->policyService->getRequestLifecycle($key) !== PolicySpec::LIFECYCLE_REQUEST_SNAPSHOT) {
+				throw new \LogicException(sprintf('The %s policy is not stored on the request, so it cannot be frozen.', $key));
+			}
+		}
+
+		return FileStatusService::isPolicySnapshotFrozen($file, $this->fileMapper?->findEnvelope($file));
 	}
 
 	protected function storePolicySnapshot(FileEntity $file, ResolvedPolicy $resolvedPolicy, mixed $effectiveValue = null): void {

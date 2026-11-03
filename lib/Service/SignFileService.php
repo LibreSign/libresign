@@ -87,6 +87,9 @@ class SignFileService {
 	private string $friendlyName = '';
 	private ?IUser $user = null;
 	private ?SignEngineHandler $engine = null;
+	// The stamp and validation URL must share one resolved footer policy.
+	private ?FileEntity $footerPolicyFile = null;
+	private string $footerPolicyValue = '';
 
 	public function __construct(
 		protected IL10N $l10n,
@@ -1390,7 +1393,7 @@ class SignFileService {
 			return $this->createSignedFile($originalFile, $originalContent);
 		}
 		$metadata = $this->footerHandler->getMetadata($originalFile, $this->libreSignFile);
-		$this->footerHandler->setRequestPolicyOverrides($this->resolveFooterPolicyRequestOverridesFromFileMetadata());
+		$this->footerHandler->setPolicyValue($this->getFooterPolicyValue());
 		$footer = $this->footerHandler
 			->setTemplateVar('uuid', $this->libreSignFile->getUuid())
 			->setTemplateVar('signers', array_map(fn (SignRequestEntity $signer) => [
