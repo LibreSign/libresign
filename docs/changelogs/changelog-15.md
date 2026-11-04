@@ -19,6 +19,21 @@ Types of changes:
 <!-- changelog-linker -->
 <!-- changelog-linker -->
 
+## 15.0.12 - 2026-11-04
+
+### Changed
+- Update translations
+- Internal maintenance
+- Update dependencies
+
+### Fixed
+- complete the workflow when the last pending signer rejects
+  [#9331](https://github.com/LibreSign/libresign/pull/9331)
+- preserve frozen signing footer and validation URL
+  [#9337](https://github.com/LibreSign/libresign/pull/9337)
+- preserve envelope child signing-field deletion
+  [#9347](https://github.com/LibreSign/libresign/pull/9347)
+
 ## 15.0.11 - 2026-10-29
 
 ### Added
