@@ -242,6 +242,46 @@ final class VisibleElementValidatorTest extends \OCA\Libresign\Tests\Unit\TestCa
 		];
 	}
 
+	public function testMissingSignRequestIsDenied(): void {
+		$file = new File();
+		$file->setId(22);
+		$this->fileMapper->method('getByUuid')->willReturn($file);
+		$this->signRequestMapper->method('getById')->willThrowException(new DoesNotExistException('Signer not found'));
+
+		$this->expectException(LibresignException::class);
+		$this->validator->validateSignRequestBelongsToFile(45, 'owned-uuid');
+	}
+
+	public function testMissingVisibleElementIsDenied(): void {
+		$file = new File();
+		$file->setId(22);
+		$this->fileMapper->method('getByUuid')->willReturn($file);
+		$this->fileElementMapper->method('getById')->willThrowException(new DoesNotExistException('Element not found'));
+
+		$this->expectException(LibresignException::class);
+		$this->validator->validateVisibleElementBelongsToFile(10, 'owned-uuid');
+	}
+
+	#[DataProvider('relationMethods')]
+	public function testUnexpectedLookupFailurePropagates(string $method): void {
+		$this->fileMapper->method('getByUuid')->willThrowException(new \RuntimeException('Database unavailable'));
+		$this->expectException(\RuntimeException::class);
+		$this->validator->{$method}(10, 'owned-uuid');
+	}
+
+	public static function relationMethods(): array {
+		return [
+			'sign request' => ['validateSignRequestBelongsToFile'],
+			'visible element' => ['validateVisibleElementBelongsToFile'],
+		];
+	}
+
+	public function testUnexpectedOwnerLookupErrorPropagates(): void {
+		$this->fileElementMapper->method('getById')->willThrowException(new \Error('Unexpected internal failure'));
+		$this->expectException(\Error::class);
+		$this->validator->validateAuthenticatedUserIsOwnerOfPdfVisibleElement(10, 'owner');
+	}
+
 	private function configureSignatureRelation(): SignRequest {
 		$signRequest = new SignRequest();
 		$signRequest->setId(47);
