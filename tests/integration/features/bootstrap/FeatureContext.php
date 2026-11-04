@@ -317,7 +317,7 @@ class FeatureContext extends NextcloudApiContext implements OpenedEmailStorageAw
 	private function davRequest(string $user, string $method, string $path, ?string $body = null, array $headers = []): void {
 		$client = new \GuzzleHttp\Client();
 		try {
-			$this->response = $client->request($method, $this->baseUrl . '/remote.php/dav/files/' . $user . '/' . $path, [
+			$this->response = $client->request($method, rtrim($this->baseUrl, '/') . '/remote.php/dav/files/' . $user . '/' . $path, [
 				'auth' => [$user === 'admin' ? 'admin' : $user, $user === 'admin' ? $this->adminPassword : $this->testPassword],
 				'headers' => $headers,
 				'body' => $body,
