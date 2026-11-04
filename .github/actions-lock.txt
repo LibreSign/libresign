@@ -12,7 +12,7 @@
 {"workflow":"lint-php.yml","sha256":"f7049c6cce3f7dda9a4e99845029928631f61fa091ecc0595b1ae5b3b40e97cd","catalog_commit":"ab9c5cd13f86023b749b67af2934647d7371fbde"}
 {"workflow":"lint-stylelint.yml","sha256":"fefbc7b9e21c7a3d5e3ece53d8232c7e3d1f8aa7f76f1c32618b80fd456dd79c","catalog_commit":"ab9c5cd13f86023b749b67af2934647d7371fbde"}
 {"workflow":"lint-typescript.yml","sha256":"43b053d26ce5f5e3eb3486dd908c367da09a3495511ee523494ceae7f12908d9","catalog_commit":"ab9c5cd13f86023b749b67af2934647d7371fbde"}
-{"workflow":"nightly-release.yml","sha256":"e5167ba6cc28ffa13d3824ec87428aca12aaec16c7edcd7ae88caa15da0e2ce6","catalog_commit":"ab9c5cd13f86023b749b67af2934647d7371fbde"}
+{"workflow":"nightly-release.yml","sha256":"38df53a8299b2f2c28c1f4b78df8af1f31356adfce294ba7928a83248a205433","catalog_commit":"88d78b8ad56e56dc9d8d9544994ace0561319ec8"}
 {"workflow":"node-test.yml","sha256":"f5361a5948f22dbd1bdf64fe112dfbbed0710af6e69239e09d0d6eb12c51b68d","catalog_commit":"ab9c5cd13f86023b749b67af2934647d7371fbde"}
 {"workflow":"npm-build.yml","sha256":"e697a4f28b0a433d1db46383158ce3c7e0dd128f6c64118a251cc43653c57afa","catalog_commit":"ab9c5cd13f86023b749b67af2934647d7371fbde"}
 {"workflow":"openapi.yml","sha256":"293316b8e7ebc4f705df2e75df5815a056308936584c3f9dcd0db0580779773a","catalog_commit":"ab9c5cd13f86023b749b67af2934647d7371fbde"}
