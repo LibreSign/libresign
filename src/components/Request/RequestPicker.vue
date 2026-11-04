@@ -153,6 +153,7 @@ import {
 	mdiUpload,
 } from '@mdi/js'
 
+import logger from '../../logger.js'
 import { getCapabilities } from '@nextcloud/capabilities'
 import { loadState } from '@nextcloud/initial-state'
 import { showError } from '@nextcloud/dialogs'
@@ -476,7 +477,13 @@ function signPdfNow() {
 		isDirectSigning.value = true
 		try {
 			const result = await spawnDialog(DirectSignDialog, { name: pdf.name, pdf })
-			if (result === 'prepare') {
+			if (result === true) {
+				try {
+					await useFilesStore().updateAllFiles()
+				} catch (error) {
+					logger.warn('Could not refresh the file list after direct signing', { error })
+				}
+			} else if (result === 'prepare') {
 				const id = await upload([pdf])
 				if (id !== null) {
 					try {

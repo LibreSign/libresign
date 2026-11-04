@@ -38,6 +38,7 @@ import type { Event as NextcloudEvent, EventHandler } from '@nextcloud/event-bus
 import { getClient, getDefaultPropfind, getRootPath, resultToNode } from '@nextcloud/files/dav'
 import { getNavigation } from '@nextcloud/files'
 import { generateRemoteUrl } from '@nextcloud/router'
+import logger from '../../logger.js'
 import { showError } from '@nextcloud/dialogs'
 
 import RequestSignatureTab from '../RightSidebar/RequestSignatureTab.vue'
@@ -131,6 +132,17 @@ async function signPdfNow() {
 		const signed = await spawnDialog(DirectSignDialog, target)
 		if (signed === true) {
 			directlySignedNodeId.value = target.nodeId
+			emit('libresign:file:created', { nodeId: target.nodeId })
+			try {
+				if (String(filesStore.getFile()?.nodeId) === String(target.nodeId)) {
+					const id = await filesStore.selectFileByNodeId(target.nodeId)
+					if (id && Number.isSafeInteger(Number(id))) {
+						await filesStore.fetchFileDetail({ fileId: Number(id), force: true })
+					}
+				}
+			} catch (error) {
+				logger.warn('Could not refresh the sidebar after direct signing', { error })
+			}
 		} else if (signed === 'prepare') {
 			try {
 				await policiesStore.fetchEffectivePolicies()
@@ -374,7 +386,15 @@ const onEnvelopeRenamed = ((payload: NextcloudEvent) => {
 	handleEnvelopeRenamed((payload ?? {}) as EnvelopeRenamedPayload)
 }) as EventHandler<NextcloudEvent>
 
+const onPrepareSelfSign = ((payload: NextcloudEvent) => {
+	const nodeId = (payload as { nodeId?: number | string })?.nodeId
+	if (nodeId !== undefined && String(filesStore.getFile()?.nodeId) === String(nodeId)) {
+		void preparePendingSelfSign(nodeId)
+	}
+}) as EventHandler<NextcloudEvent>
+
 onMounted(() => {
+	subscribe('libresign:prepare-self-sign', onPrepareSelfSign)
 	subscribe('libresign:file:created', onLibreSignFileCreated)
 	subscribe('libresign:file:updated', onLibreSignFileUpdated)
 	subscribe('files:node:deleted', onFilesNodeDeleted)
@@ -382,6 +402,7 @@ onMounted(() => {
 })
 
 onBeforeUnmount(() => {
+	unsubscribe('libresign:prepare-self-sign', onPrepareSelfSign)
 	disconnectTitleObserver()
 	unsubscribe('libresign:file:created', onLibreSignFileCreated)
 	unsubscribe('libresign:file:updated', onLibreSignFileUpdated)
@@ -412,5 +433,6 @@ defineExpose({
 	onLibreSignFileUpdated,
 	onFilesNodeDeleted,
 	onEnvelopeRenamed,
+	onPrepareSelfSign,
 })
 </script>

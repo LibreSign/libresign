@@ -43,10 +43,28 @@ describe('immediate signature confirmation', () => {
 		})
 	}
 
-	type Button = { label: string; disabled: boolean; callback: () => void | Promise<void> }
+	type Button = { label: string; disabled: boolean; callback: () => void | Promise<false | undefined> }
 	function buttons(wrapper: ReturnType<typeof dialog>): Button[] {
 		return wrapper.findComponent({ name: 'NcDialog' }).props('buttons') as Button[]
 	}
+
+	it.each([400, 403, 422, 409, 500])('keeps the real dialog open after HTTP %i', async (status) => {
+		sign.mockRejectedValueOnce({ response: { status } })
+		const wrapper = mount(DirectSignDialog, {
+			props: { name: 'document.pdf', nodeId: 42 },
+			attachTo: document.body,
+			global: { stubs: { NcModal: { template: '<div><slot /></div>' } } },
+		})
+		await nextTick()
+		await wrapper.findAllComponents({ name: 'NcDialogButton' }).find(button => button.props('label') === 'Sign now')!.get('button').trigger('click')
+		await flushPromises()
+		expect(wrapper.emitted('close')).toBeUndefined()
+		expect(document.body.textContent).toContain(status === 409 || status === 500 ? 'signing result is unknown' : 'Could not sign this PDF')
+		if ([400, 403, 422].includes(status)) {
+			expect(document.body.querySelector('button[aria-label="Prepare signing"]')).not.toBeNull()
+		}
+		wrapper.unmount()
+	})
 
 	it('waits for explicit confirmation before calling the API', async () => {
 		const wrapper = dialog()
@@ -135,13 +153,13 @@ describe('immediate signature confirmation', () => {
 		expect(wrapper.text()).toContain('Choose Prepare signing')
 	})
 
-	it('does not offer preparation after an uncertain validation error', async () => {
+	it('offers preparation after a preflight validation error', async () => {
 		const wrapper = dialog()
 		sign.mockRejectedValueOnce({ response: { status: 422 } })
 		await buttons(wrapper).find(button => button.label === 'Sign now')!.callback()
 		await nextTick()
-		expect(buttons(wrapper).find(button => button.label === 'Prepare signing')).toBeUndefined()
-		expect(buttons(wrapper).find(button => button.label === 'Sign now')!.disabled).toBe(true)
+		expect(buttons(wrapper).find(button => button.label === 'Prepare signing')).toBeDefined()
+		expect(buttons(wrapper).find(button => button.label === 'Sign now')!.disabled).toBe(false)
 	})
 
 	it('blocks retries after server errors because the request may have been persisted', async () => {

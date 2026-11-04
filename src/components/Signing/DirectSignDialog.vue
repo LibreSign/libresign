@@ -95,7 +95,7 @@ async function signNow() {
 		const response = error && typeof error === 'object' && 'response' in error
 			? error.response as { status?: number } | undefined
 			: undefined
-		if (response?.status === 400 || response?.status === 403) {
+		if ([400, 403, 422].includes(response?.status ?? 0)) {
 			// TRANSLATORS Failure to sign immediately; the normal request workflow remains available.
 			errorMessage.value = t('libresign', 'Could not sign this PDF. Choose Prepare signing to review the document and its signers.')
 		} else {
@@ -106,6 +106,7 @@ async function signNow() {
 	} finally {
 		signing.value = false
 	}
+	return false
 }
 
 const buttons = computed(() => [
