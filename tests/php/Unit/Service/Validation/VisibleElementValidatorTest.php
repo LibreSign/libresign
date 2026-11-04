@@ -155,6 +155,93 @@ final class VisibleElementValidatorTest extends \OCA\Libresign\Tests\Unit\TestCa
 		$this->assertNull($actual);
 	}
 
+	#[DataProvider('visibleElementFileRelationCases')]
+	public function testVisibleElementRequiresMatchingFile(int $existingFileId, bool $allowed): void {
+		$file = new File();
+		$file->setId(22);
+		$this->fileMapper->method('getByUuid')->with('owned-uuid')->willReturn($file);
+
+		$element = new FileElement();
+		$element->setId(10);
+		$element->setFileId($existingFileId);
+		$this->fileElementMapper->method('getById')->with(10)->willReturn($element);
+
+		if (!$allowed) {
+			$this->expectException(LibresignException::class);
+		}
+		$this->validator->validateVisibleElementBelongsToFile(10, 'owned-uuid');
+		if ($allowed) {
+			$this->addToAssertionCount(1);
+		}
+	}
+
+	public static function visibleElementFileRelationCases(): array {
+		return [
+			'same document' => [22, true],
+			'other document' => [23, false],
+		];
+	}
+
+	#[DataProvider('signRequestFileRelationCases')]
+	public function testSignRequestRequiresMatchingFile(int $signerFileId, bool $allowed): void {
+		$file = new File();
+		$file->setId(22);
+		$this->fileMapper->method('getByUuid')->with('owned-uuid')->willReturn($file);
+
+		$signRequest = new SignRequest();
+		$signRequest->setId(45);
+		$signRequest->setFileId($signerFileId);
+		$this->signRequestMapper->method('getById')->with(45)->willReturn($signRequest);
+
+		if (!$allowed) {
+			$this->expectException(LibresignException::class);
+		}
+		$this->validator->validateSignRequestBelongsToFile(45, 'owned-uuid');
+		if ($allowed) {
+			$this->addToAssertionCount(1);
+		}
+	}
+
+	public static function signRequestFileRelationCases(): array {
+		return [
+			'same document' => [22, true],
+			'other document' => [23, false],
+		];
+	}
+
+	#[DataProvider('ownerCases')]
+	public function testOnlyDocumentOwnerCanModifyVisibleElement(string $fileOwner, bool $allowed): void {
+		$file = new File();
+		$file->setId(22);
+		$file->setUserId($fileOwner);
+		$this->fileMapper->method('getById')->with(22)->willReturn($file);
+
+		$signRequest = new SignRequest();
+		$signRequest->setId(45);
+		$signRequest->setFileId(22);
+		$this->signRequestMapper->method('getById')->with(45)->willReturn($signRequest);
+
+		$element = new FileElement();
+		$element->setId(10);
+		$element->setSignRequestId(45);
+		$this->fileElementMapper->method('getById')->with(10)->willReturn($element);
+
+		if (!$allowed) {
+			$this->expectException(LibresignException::class);
+		}
+		$this->validator->validateAuthenticatedUserIsOwnerOfPdfVisibleElement(10, 'owner');
+		if ($allowed) {
+			$this->addToAssertionCount(1);
+		}
+	}
+
+	public static function ownerCases(): array {
+		return [
+			'owner account' => ['owner', true],
+			'other account' => ['another-user', false],
+		];
+	}
+
 	private function configureSignatureRelation(): SignRequest {
 		$signRequest = new SignRequest();
 		$signRequest->setId(47);

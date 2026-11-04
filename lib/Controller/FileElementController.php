@@ -76,6 +76,11 @@ class FileElementController extends AEnvironmentAwareController {
 				'uuid' => $uuid,
 				'userManager' => $this->userSession->getUser()
 			]);
+			$this->visibleElementValidator->validateSignRequestBelongsToFile($signRequestId, $uuid);
+			if ($elementId !== null) {
+				$this->visibleElementValidator->validateAuthenticatedUserIsOwnerOfPdfVisibleElement($elementId, $this->userSession->getUser()->getUID());
+				$this->visibleElementValidator->validateVisibleElementBelongsToFile($elementId, $uuid);
+			}
 			$fileElement = $this->fileElementService->saveVisibleElement($visibleElement);
 			return new DataResponse([
 				'fileElementId' => $fileElement->getId(),
@@ -137,6 +142,7 @@ class FileElementController extends AEnvironmentAwareController {
 				'userManager' => $this->userSession->getUser()
 			]);
 			$this->visibleElementValidator->validateAuthenticatedUserIsOwnerOfPdfVisibleElement($elementId, $this->userSession->getUser()->getUID());
+			$this->visibleElementValidator->validateVisibleElementBelongsToFile($elementId, $uuid);
 			$this->fileElementService->deleteVisibleElement($elementId);
 			return new DataResponse();
 		} catch (\Throwable $th) {

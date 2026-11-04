@@ -146,6 +146,30 @@ class VisibleElementValidator {
 		$this->validateUserHasNecessaryElements($signRequest, $user, $list, $childSignRequests);
 	}
 
+	public function validateSignRequestBelongsToFile(int $signRequestId, string $uuid): void {
+		try {
+			$file = $this->fileMapper->getByUuid($uuid);
+			$signRequest = $this->signRequestMapper->getById($signRequestId);
+			if ($signRequest->getFileId() !== $file->getId()) {
+				throw new \RuntimeException();
+			}
+		} catch (\Throwable) {
+			throw new LibresignException($this->l10n->t('Signer not associated to this file'));
+		}
+	}
+
+	public function validateVisibleElementBelongsToFile(int $documentElementId, string $uuid): void {
+		try {
+			$file = $this->fileMapper->getByUuid($uuid);
+			$element = $this->fileElementMapper->getById($documentElementId);
+			if ($element->getFileId() !== $file->getId()) {
+				throw new \RuntimeException();
+			}
+		} catch (\Throwable) {
+			throw new LibresignException($this->l10n->t('Field %s does not belong to user', (string)$documentElementId));
+		}
+	}
+
 	public function validateAuthenticatedUserIsOwnerOfPdfVisibleElement(int $documentElementId, string $uid): void {
 		try {
 			$documentElement = $this->fileElementMapper->getById($documentElementId);
