@@ -35,11 +35,11 @@ const APPROVED_TAGS = [
  * @var array<string, int>
  */
 const EXPECTED_UNION_COUNTS = [
-	'appearance' => 16,
+	'appearance' => 17,
 	'certificates' => 12,
 	'documents' => 6,
 	'identity' => 14,
-	'notifications' => 3,
+	'notifications' => 4,
 	'policies' => 17,
 	'requests' => 5,
 	'signing' => 8,
@@ -136,6 +136,7 @@ const EXPECTED_OPERATION_TAGS = [
 	'notify-notification-dismiss' => 'notifications',
 	'notify-signer' => 'notifications',
 	'notify-signers' => 'notifications',
+	'notify-status' => 'notifications',
 	'policy-clear-group' => 'policies',
 	'policy-clear-user-policy-for-user' => 'policies',
 	'policy-clear-user-preference' => 'policies',
@@ -171,6 +172,7 @@ const EXPECTED_OPERATION_TAGS = [
 	'signature_elements-get-signature-elements' => 'appearance',
 	'signature_elements-patch-signature-element' => 'appearance',
 	'signature_elements-preview-signature-element' => 'appearance',
+	'signature_elements-use-saved-signature-elements' => 'appearance',
 	'signature_stamp_preview-preview-pdf' => 'appearance',
 ];
 
