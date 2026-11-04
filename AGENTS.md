@@ -87,7 +87,7 @@ npm run typescript:generate
 composer openapi:check-tags
 ```
 
-New documented endpoints need a method-level `#[OpenAPI(tags: [...])]` using one of the approved functional tags. See the "Classifying OpenAPI endpoints" section in `CONTRIBUTING.md`. Do not derive a tag from the controller class name.
+New documented endpoints need a method-level `#[OpenAPI(tags: [...])]` using one of the approved functional tags. Do not derive a tag from the controller class name.
 
 Every new source file needs the correct SPDX metadata unless the format cannot
 carry it; use `REUSE.toml` only for justified exceptions.
