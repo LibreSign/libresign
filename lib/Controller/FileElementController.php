@@ -144,7 +144,7 @@ class FileElementController extends AEnvironmentAwareController {
 				'userManager' => $this->userSession->getUser()
 			]);
 			$this->visibleElementValidator->validateAuthenticatedUserIsOwnerOfPdfVisibleElement($elementId, $this->userSession->getUser()->getUID());
-			$this->visibleElementValidator->validateVisibleElementBelongsToFile($elementId, $uuid);
+			$this->visibleElementValidator->validateVisibleElementBelongsToFile($elementId, $uuid, true);
 			$this->fileElementService->deleteVisibleElement($elementId);
 			return new DataResponse();
 		} catch (LibresignException|DoesNotExistException $th) {

@@ -116,6 +116,15 @@ final class FileElementControllerTest extends TestCase {
 		$this->assertSame(['fileElementId' => 102], $response->getData());
 	}
 
+	public function testDeletingFieldFromEnvelopeEnablesDirectChildScope(): void {
+		$this->validator->expects($this->once())->method('validateVisibleElementBelongsToFile')
+			->with(101, 'own-uuid', true);
+		$this->service->expects($this->once())->method('deleteVisibleElement')->with(101);
+
+		$response = $this->controller->deleteVisibleElement('own-uuid', 101);
+		$this->assertSame(Http::STATUS_OK, $response->getStatus());
+	}
+
 	public function testCannotDeleteElementFromUnrelatedFile(): void {
 		$this->validator->expects($this->once())->method('validateAuthenticatedUserIsOwnerOfPdfVisibleElement')
 			->with(101, 'owner');
