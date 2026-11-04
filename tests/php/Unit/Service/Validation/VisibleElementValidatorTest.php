@@ -175,6 +175,24 @@ final class VisibleElementValidatorTest extends \OCA\Libresign\Tests\Unit\TestCa
 		}
 	}
 
+	public function testFieldIdIsPassedAsLocalizationParameter(): void {
+		$file = new File();
+		$file->setId(22);
+		$this->fileMapper->method('getByUuid')->with('owned-uuid')->willReturn($file);
+		$element = new FileElement();
+		$element->setId(10);
+		$element->setFileId(23);
+		$this->fileElementMapper->method('getById')->with(10)->willReturn($element);
+
+		$l10n = $this->createMock(IL10N::class);
+		$l10n->expects($this->once())->method('t')
+			->with('Field %s does not belong to user', ['10'])->willReturn('Field denied');
+		(new \ReflectionProperty(VisibleElementValidator::class, 'l10n'))->setValue($this->validator, $l10n);
+
+		$this->expectException(LibresignException::class);
+		$this->validator->validateVisibleElementBelongsToFile(10, 'owned-uuid');
+	}
+
 	public static function visibleElementFileRelationCases(): array {
 		return [
 			'same document' => [22, true],
