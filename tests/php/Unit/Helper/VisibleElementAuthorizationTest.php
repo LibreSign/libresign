@@ -16,6 +16,7 @@ use OCA\Libresign\Db\SignRequest;
 use OCA\Libresign\Db\SignRequestMapper;
 use OCA\Libresign\Exception\LibresignException;
 use OCA\Libresign\Helper\ValidateHelper;
+use OCP\AppFramework\Db\DoesNotExistException;
 use OCP\IL10N;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
@@ -86,7 +87,7 @@ final class VisibleElementAuthorizationTest extends TestCase {
 		if ($allowed) {
 			$lookup->willReturn(new SignRequest());
 		} else {
-			$lookup->willThrowException(new \RuntimeException('No matching signer'));
+			$lookup->willThrowException(new DoesNotExistException('No matching signer'));
 			$this->expectException(LibresignException::class);
 		}
 		$this->validator->validateVisibleElementSignRequestFile(11, 'document-uuid');
@@ -102,11 +103,50 @@ final class VisibleElementAuthorizationTest extends TestCase {
 		];
 	}
 
+	public function testMissingSignRequestIsRejected(): void {
+		$file = new File();
+		$file->setId(100);
+		$this->fileMapper->method('getByUuid')->willReturn($file);
+		$this->signRequestMapper->method('getByFileIdAndSignRequestId')
+			->willThrowException(new DoesNotExistException('Signer not found'));
+
+		$this->expectException(LibresignException::class);
+		$this->validator->validateVisibleElementSignRequestFile(11, 'document-uuid');
+	}
+
+	public function testUnexpectedSignerLookupFailurePropagates(): void {
+		$file = new File();
+		$file->setId(100);
+		$this->fileMapper->method('getByUuid')->willReturn($file);
+		$this->signRequestMapper->method('getByFileIdAndSignRequestId')
+			->willThrowException(new \RuntimeException('Database unavailable'));
+
+		$this->expectException(\RuntimeException::class);
+		$this->validator->validateVisibleElementSignRequestFile(11, 'document-uuid');
+	}
+
+	public function testUnexpectedElementLookupFailurePropagates(): void {
+		$file = new File();
+		$file->setId(100);
+		$this->fileMapper->method('getByUuid')->willReturn($file);
+		$this->elementMapper->method('getById')->willThrowException(new \RuntimeException('Database unavailable'));
+
+		$this->expectException(\RuntimeException::class);
+		$this->validator->validateVisibleElementFile(7, 'document-uuid');
+	}
+
+	public function testUnexpectedOwnerLookupErrorPropagates(): void {
+		$this->elementMapper->method('getById')->willThrowException(new \Error('Unexpected internal failure'));
+
+		$this->expectException(\Error::class);
+		$this->validator->validateAuthenticatedUserIsOwnerOfPdfVisibleElement(7, 'owner');
+	}
+
 	public function testMissingElementIsRejected(): void {
 		$file = new File();
 		$file->setId(100);
 		$this->fileMapper->method('getByUuid')->willReturn($file);
-		$this->elementMapper->method('getById')->willThrowException(new \RuntimeException('not found'));
+		$this->elementMapper->method('getById')->willThrowException(new DoesNotExistException('not found'));
 		$this->expectException(LibresignException::class);
 		$this->validator->validateVisibleElementFile(7, 'document-uuid');
 	}

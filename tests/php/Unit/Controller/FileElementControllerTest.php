@@ -13,6 +13,7 @@ use OCA\Libresign\Db\FileElement;
 use OCA\Libresign\Exception\LibresignException;
 use OCA\Libresign\Helper\ValidateHelper;
 use OCA\Libresign\Service\FileElementService;
+use OCP\AppFramework\Db\DoesNotExistException;
 use OCP\AppFramework\Http;
 use OCP\IRequest;
 use OCP\IUser;
@@ -121,6 +122,33 @@ final class FileElementControllerTest extends TestCase {
 
 		$response = $this->controller->deleteVisibleElement('own-uuid', 101);
 		$this->assertSame(Http::STATUS_NOT_FOUND, $response->getStatus());
+	}
+
+	#[DataProvider('writeOperations')]
+	public function testInternalFailureDuringWriteIsNotReportedAsNotFound(string $method): void {
+		$this->validator->method('validateVisibleElementSignRequestFile')
+			->willThrowException(new \RuntimeException('Unexpected persistence failure'));
+		$this->service->expects($this->never())->method('saveVisibleElement');
+
+		$this->expectException(\RuntimeException::class);
+		$this->controller->{$method}('own-uuid', 20, 101, null, 'signature', [], []);
+	}
+
+	#[DataProvider('writeOperations')]
+	public function testMissingDocumentDuringWriteReturnsNotFound(string $method): void {
+		$this->validator->method('validateExistingFile')
+			->willThrowException(new DoesNotExistException('Not found'));
+		$this->service->expects($this->never())->method('saveVisibleElement');
+
+		$response = $this->controller->{$method}('missing-uuid', 20, 101, null, 'signature', [], []);
+		$this->assertSame(Http::STATUS_NOT_FOUND, $response->getStatus());
+	}
+
+	public function testInternalFailureDuringDeleteIsNotReportedAsNotFound(): void {
+		$this->service->method('deleteVisibleElement')
+			->willThrowException(new \RuntimeException('Unexpected persistence failure'));
+		$this->expectException(\RuntimeException::class);
+		$this->controller->deleteVisibleElement('own-uuid', 101);
 	}
 
 	public static function writeOperations(): array {

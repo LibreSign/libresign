@@ -436,8 +436,8 @@ class ValidateHelper {
 	public function validateVisibleElementSignRequestFile(int $signRequestId, string $uuid): void {
 		try {
 			$file = $this->fileMapper->getByUuid($uuid);
-			$this->validateIsSignerOfFile($signRequestId, $file->getId());
-		} catch (\Throwable) {
+			$this->signRequestMapper->getByFileIdAndSignRequestId($file->getId(), $signRequestId);
+		} catch (DoesNotExistException) {
 			throw new LibresignException($this->l10n->t('Signer not associated to this file'));
 		}
 	}
@@ -446,10 +446,10 @@ class ValidateHelper {
 		try {
 			$file = $this->fileMapper->getByUuid($uuid);
 			$element = $this->fileElementMapper->getById($documentElementId);
-			if ($element->getFileId() !== $file->getId()) {
-				throw new \RuntimeException();
-			}
-		} catch (\Throwable) {
+		} catch (DoesNotExistException) {
+			throw new LibresignException($this->l10n->t('Field %s does not belong to user', (string)$documentElementId));
+		}
+		if ($element->getFileId() !== $file->getId()) {
 			throw new LibresignException($this->l10n->t('Field %s does not belong to user', (string)$documentElementId));
 		}
 	}
@@ -459,12 +459,10 @@ class ValidateHelper {
 			$documentElement = $this->fileElementMapper->getById($documentElementId);
 			$signRequest = $this->signRequestMapper->getById($documentElement->getSignRequestId());
 			$file = $this->fileMapper->getById($signRequest->getFileId());
-			if ($file->getUserId() !== $uid) {
-				// TRANSLATORS Validation error when a visible document element does not belong to the current user. %s is the element id.
-				throw new LibresignException($this->l10n->t('Field %s does not belong to user', (string)$documentElementId));
-			}
-		} catch (\Throwable) {
-			// TRANSLATORS Validation error when a visible document element does not belong to the current user. %s is the element id.
+		} catch (DoesNotExistException) {
+			throw new LibresignException($this->l10n->t('Field %s does not belong to user', (string)$documentElementId));
+		}
+		if ($file->getUserId() !== $uid) {
 			throw new LibresignException($this->l10n->t('Field %s does not belong to user', (string)$documentElementId));
 		}
 	}
