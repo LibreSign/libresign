@@ -20,6 +20,8 @@ use OCP\IConfig;
 use OCP\IDBConnection;
 use OCP\Server;
 use PHPUnit\Framework\Attributes\DataProvider;
+use PHPUnit\Framework\Attributes\PreserveGlobalState;
+use PHPUnit\Framework\Attributes\RunInSeparateProcess;
 
 /**
  * @group DB
@@ -146,6 +148,12 @@ final class Version19004Date20261027180000Test extends \Test\TestCase {
 		self::assertSame($physicalRow, $qb->executeQuery()->fetchAssociative());
 	}
 
+	/**
+	 * Avoid a PolicySource cached with an in-memory AppConfigOverwrite by
+	 * earlier API tests; this exercises the real AppConfig persistence path.
+	 */
+	#[RunInSeparateProcess]
+	#[PreserveGlobalState(false)]
 	public function testLoadsAndSavesPoliciesWithTheirDeclaredTypesAfterRepair(): void {
 		foreach (self::VALUES as $key => $value) {
 			$this->insertRow($key, $value, $key === 'groups_request_sign' ? IAppConfig::VALUE_ARRAY : IAppConfig::VALUE_BOOL, 0);

@@ -15,6 +15,8 @@ use OCA\Libresign\Service\Policy\Runtime\PolicySource;
 use OCP\Exceptions\AppConfigUnknownKeyException;
 use OCP\IAppConfig;
 use PHPUnit\Framework\Attributes\DataProvider;
+use PHPUnit\Framework\Attributes\PreserveGlobalState;
+use PHPUnit\Framework\Attributes\RunInSeparateProcess;
 
 /**
  * The rule counts are read straight from the appconfig table, so these cases
@@ -78,6 +80,9 @@ final class PolicySourceRuleCountTest extends \Test\TestCase {
 	 * Check the actual policy API separately from raw appconfig rule-count
 	 * fixtures: an explicitly saved default must remain an explicit rule.
 	 */
+	// Isolate from a PolicySource cached with an in-memory AppConfigOverwrite.
+	#[RunInSeparateProcess]
+	#[PreserveGlobalState(false)]
 	public function testSavingExplicitDefaultPersistsAndCountsSystemRule(): void {
 		$this->policySource->saveSystemPolicy(SigningModePolicy::KEY_SIGNING_MODE, 'sync', false);
 
