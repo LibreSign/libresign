@@ -15,7 +15,6 @@ use OCA\Libresign\Service\Signing\DirectSigningService;
 use OCP\AppFramework\Http;
 use OCP\AppFramework\Http\Attribute\ApiRoute;
 use OCP\AppFramework\Http\Attribute\NoAdminRequired;
-use OCP\AppFramework\Http\Attribute\NoCSRFRequired;
 use OCP\AppFramework\Http\Attribute\OpenAPI;
 use OCP\AppFramework\Http\DataDownloadResponse;
 use OCP\AppFramework\Http\DataResponse;
@@ -65,7 +64,6 @@ final class DirectSignController extends AEnvironmentAwareController {
 	 * 500: Unexpected signing failure
 	 */
 	#[NoAdminRequired]
-	#[NoCSRFRequired]
 	#[RequireManager]
 	#[OpenAPI(tags: ['signing'])]
 	#[ApiRoute(verb: 'POST', url: '/api/{apiVersion}/sign/direct', requirements: ['apiVersion' => '(v1)'])]
