@@ -19,6 +19,17 @@ Types of changes:
 <!-- changelog-linker -->
 <!-- changelog-linker -->
 
+## 13.4.9 - 2026-11-04
+
+### Changed
+- Update translations
+- Internal maintenance
+- Update dependencies
+
+### Fixed
+- preserve envelope child signing-field deletion
+  [#9345](https://github.com/LibreSign/libresign/pull/9345)
+
 ## 13.4.8 - 2026-10-29
 
 ### Changed
