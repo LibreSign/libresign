@@ -70,6 +70,24 @@ final class VisibleElementAuthorizationTest extends TestCase {
 		}
 	}
 
+	public function testFieldIdIsPassedAsLocalizationParameter(): void {
+		$file = new File();
+		$file->setId(100);
+		$this->fileMapper->method('getByUuid')->with('document-uuid')->willReturn($file);
+		$element = new FileElement();
+		$element->setId(7);
+		$element->setFileId(200);
+		$this->elementMapper->method('getById')->with(7)->willReturn($element);
+
+		$l10n = $this->createMock(IL10N::class);
+		$l10n->expects($this->once())->method('t')
+			->with('Field %s does not belong to user', ['7'])->willReturn('Field denied');
+		(new \ReflectionProperty(ValidateHelper::class, 'l10n'))->setValue($this->validator, $l10n);
+
+		$this->expectException(LibresignException::class);
+		$this->validator->validateVisibleElementFile(7, 'document-uuid');
+	}
+
 	public static function fileRelationCases(): array {
 		return [
 			'same document' => [100, true],
