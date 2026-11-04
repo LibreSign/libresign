@@ -96,6 +96,7 @@ final class FileElementControllerTest extends ApiTestCase {
 			]);
 		$response = $this->assertRequest();
 		$body = json_decode($response->getBody()->getContents(), true);
+		$this->assertSame($fileElementId, $body['ocs']['data']['fileElementId'], 'PATCH should update the existing element');
 		return [
 			'file' => $file,
 			'fileElementId' => $body['ocs']['data']['fileElementId'],
