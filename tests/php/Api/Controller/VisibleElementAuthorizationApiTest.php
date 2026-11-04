@@ -9,10 +9,13 @@ declare(strict_types=1);
 
 namespace OCA\Libresign\Tests\Api\Controller;
 
+use OCA\Libresign\Service\Envelope\EnvelopeService;
 use OCA\Libresign\Service\FileElementService;
 use OCA\Libresign\Tests\Api\ApiTestCase;
 use OCP\IDBConnection;
 use PHPUnit\Framework\Attributes\DataProvider;
+use PHPUnit\Framework\Attributes\PreserveGlobalState;
+use PHPUnit\Framework\Attributes\RunInSeparateProcess;
 
 /**
  * @group DB
@@ -29,9 +32,8 @@ final class VisibleElementAuthorizationApiTest extends ApiTestCase {
 		];
 	}
 
-	/**
-	 * @runInSeparateProcess
-	 */
+	#[RunInSeparateProcess]
+	#[PreserveGlobalState(false)]
 	#[DataProvider('unauthorizedRequests')]
 	public function testUnauthorizedRequestCannotChangePersistedElements(string $scenario): void {
 		$owner = $this->createAccount('element_owner_a', 'password');
@@ -143,5 +145,91 @@ final class VisibleElementAuthorizationApiTest extends ApiTestCase {
 		}
 		$this->assertRequest();
 		$this->assertSame($before, $readRows(), 'Denied operations must not modify persisted records');
+	}
+
+	/** @return array<string, array{bool}> */
+	public static function envelopeFieldDeletionCases(): array {
+		return [
+			'own envelope direct child' => [true],
+			'unrelated envelope of same owner' => [false],
+		];
+	}
+
+	/**
+	 * @runInSeparateProcess
+	 */
+	#[RunInSeparateProcess]
+	#[PreserveGlobalState(false)]
+	#[DataProvider('envelopeFieldDeletionCases')]
+	public function testDeleteFieldViaEnvelopeUuidChecksDirectChild(bool $sameEnvelope): void {
+		$owner = $this->createAccount('envelope-element-owner', 'password');
+		$owner->setEMailAddress('owner@example.invalid');
+
+		$childFile = $this->requestSignFile([
+			'file' => ['base64' => base64_encode(file_get_contents(__DIR__ . '/../../fixtures/pdfs/small_valid.pdf'))],
+			'name' => 'Child document',
+			'signers' => [[
+				'identifyMethods' => [[
+					'method' => 'email',
+					'mandatory' => 0,
+					'value' => 'owner@example.invalid',
+				]],
+			]],
+			'userManager' => $owner,
+		]);
+
+		$envelopes = \OCP\Server::get(EnvelopeService::class);
+		$ownEnvelope = $envelopes->createEnvelope('Owner envelope', $owner->getUID(), 1);
+		$envelopes->addFileToEnvelope($ownEnvelope->getId(), $childFile);
+		$targetEnvelope = $sameEnvelope
+			? $ownEnvelope
+			: $envelopes->createEnvelope('Another envelope', $owner->getUID(), 1);
+		$fileMapper = \OCP\Server::get(\OCA\Libresign\Db\FileMapper::class);
+		$storedChild = $fileMapper->getById($childFile->getId());
+		$storedTarget = $fileMapper->getByUuid($targetEnvelope->getUuid());
+		$this->assertSame($ownEnvelope->getId(), $storedChild->getParentFileId());
+		$this->assertSame($targetEnvelope->getId(), $storedTarget->getId());
+		$this->assertTrue($storedTarget->isEnvelope());
+		if (!$sameEnvelope) {
+			$this->assertNotSame($ownEnvelope->getId(), $targetEnvelope->getId());
+			$this->assertNotSame($ownEnvelope->getUuid(), $targetEnvelope->getUuid());
+			$this->assertNotSame($storedChild->getParentFileId(), $storedTarget->getId());
+		}
+
+		$signRequestId = $this->getSignersFromFileId($childFile->getId())[0]->getId();
+		$element = \OCP\Server::get(FileElementService::class)->saveVisibleElement([
+			'uuid' => $childFile->getUuid(),
+			'fileId' => $childFile->getId(),
+			'signRequestId' => $signRequestId,
+			'type' => 'signature',
+			'coordinates' => ['page' => 1, 'llx' => 10, 'lly' => 10, 'urx' => 110, 'ury' => 60],
+			'metadata' => [],
+		]);
+		$elementId = $element->getId();
+		$db = \OCP\Server::get(IDBConnection::class);
+		$rowExists = static function () use ($db, $elementId): bool {
+			$qb = $db->getQueryBuilder();
+			$qb->select('id')
+				->from('libresign_file_element')
+				->where($qb->expr()->eq('id', $qb->createNamedParameter($elementId)));
+			$result = $qb->executeQuery();
+			try {
+				return (bool)$result->fetch();
+			} finally {
+				$result->closeCursor();
+			}
+		};
+		$this->assertTrue($rowExists());
+
+		$this->request
+			->withPath('/api/v1/file-element/' . $targetEnvelope->getUuid() . '/' . $elementId)
+			->withMethod('DELETE')
+			->withRequestHeader([
+				'Authorization' => 'Basic ' . base64_encode('envelope-element-owner:password'),
+			])
+			->assertResponseCode($sameEnvelope ? 200 : 404);
+
+		$this->assertRequest();
+		$this->assertSame(!$sameEnvelope, $rowExists(), 'Only the owning envelope may delete its direct child field');
 	}
 }
