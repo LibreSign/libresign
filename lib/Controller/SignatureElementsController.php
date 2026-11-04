@@ -183,6 +183,7 @@ class SignatureElementsController extends AEnvironmentAwareController implements
 	#[BruteForceProtection(action: 'libresign_email_signer_elements')]
 	#[RequestHeader(name: 'libresign-sign-request-uuid', description: 'The UUID of the sign request, used to identify the request', indirect: true)]
 	#[RequireSignRequestUuid]
+	#[OpenAPI(tags: ['appearance'])]
 	#[ApiRoute(verb: 'POST', url: '/api/{apiVersion}/signature/elements/saved', requirements: ['apiVersion' => '(v1)'])]
 	public function useSavedSignatureElements(string $token = ''): DataResponse {
 		$signRequest = $this->getSignRequestEntity();

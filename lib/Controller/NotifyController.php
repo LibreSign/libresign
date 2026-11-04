@@ -96,6 +96,7 @@ class NotifyController extends AEnvironmentAwareController {
 	 * 200: Current notification states
 	 */
 	#[NoAdminRequired]
+	#[OpenAPI(tags: ['notifications'])]
 	#[ApiRoute(verb: 'GET', url: '/api/{apiVersion}/notify/status', requirements: ['apiVersion' => '(v1)'])]
 	public function status(int $fileId, int $signRequestId, string $requestId): DataResponse {
 		$response = new DataResponse($this->statusService->status($fileId, $signRequestId, $requestId));
