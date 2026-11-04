@@ -175,6 +175,80 @@ final class VisibleElementValidatorTest extends \OCA\Libresign\Tests\Unit\TestCa
 		}
 	}
 
+	#[DataProvider('envelopeChildRelationCases')]
+	public function testDeletionScopeAllowsOnlyDirectFileChildren(
+		bool $parentIsEnvelope,
+		?int $childParentId,
+		bool $allowEnvelopeChild,
+		bool $childIsEnvelope,
+		bool $allowed,
+	): void {
+		$parent = new File();
+		$parent->setId(22);
+		$parent->setNodeTypeEnum($parentIsEnvelope ? NodeType::ENVELOPE : NodeType::FILE);
+		$this->fileMapper->method('getByUuid')->with('owned-uuid')->willReturn($parent);
+
+		$element = new FileElement();
+		$element->setId(10);
+		$element->setFileId(23);
+		$this->fileElementMapper->method('getById')->with(10)->willReturn($element);
+
+		$child = new File();
+		$child->setId(23);
+		$child->setParentFileId($childParentId);
+		$child->setNodeTypeEnum($childIsEnvelope ? NodeType::ENVELOPE : NodeType::FILE);
+		$this->fileMapper->method('getById')->with(23)->willReturn($child);
+
+		if (!$allowed) {
+			$this->expectException(LibresignException::class);
+		}
+		$this->validator->validateVisibleElementBelongsToFile(10, 'owned-uuid', $allowEnvelopeChild);
+		if ($allowed) {
+			$this->addToAssertionCount(1);
+		}
+	}
+
+	public static function envelopeChildRelationCases(): array {
+		return [
+			'direct child of envelope during deletion' => [true, 22, true, false, true],
+			'direct child not allowed for write operations' => [true, 22, false, false, false],
+			'child linked to another envelope' => [true, 999, true, false, false],
+			'document is not an envelope' => [false, 22, true, false, false],
+			'file has no parent' => [true, null, true, false, false],
+			'envelope cannot be used as a child file' => [true, 22, true, true, false],
+		];
+	}
+
+	public function testMissingEnvelopeChildIsRejected(): void {
+		$parent = new File();
+		$parent->setId(22);
+		$parent->setNodeTypeEnum(NodeType::ENVELOPE);
+		$this->fileMapper->method('getByUuid')->willReturn($parent);
+		$element = new FileElement();
+		$element->setId(10);
+		$element->setFileId(23);
+		$this->fileElementMapper->method('getById')->willReturn($element);
+		$this->fileMapper->method('getById')->willThrowException(new DoesNotExistException('Missing child'));
+
+		$this->expectException(LibresignException::class);
+		$this->validator->validateVisibleElementBelongsToFile(10, 'owned-uuid', true);
+	}
+
+	public function testUnexpectedEnvelopeChildLookupFailurePropagates(): void {
+		$parent = new File();
+		$parent->setId(22);
+		$parent->setNodeTypeEnum(NodeType::ENVELOPE);
+		$this->fileMapper->method('getByUuid')->willReturn($parent);
+		$element = new FileElement();
+		$element->setId(10);
+		$element->setFileId(23);
+		$this->fileElementMapper->method('getById')->willReturn($element);
+		$this->fileMapper->method('getById')->willThrowException(new \RuntimeException('Database unavailable'));
+
+		$this->expectException(\RuntimeException::class);
+		$this->validator->validateVisibleElementBelongsToFile(10, 'owned-uuid', true);
+	}
+
 	public function testFieldIdIsPassedAsLocalizationParameter(): void {
 		$file = new File();
 		$file->setId(22);

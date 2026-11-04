@@ -160,10 +160,16 @@ class VisibleElementValidator {
 		}
 	}
 
-	public function validateVisibleElementBelongsToFile(int $documentElementId, string $uuid): void {
+	public function validateVisibleElementBelongsToFile(int $documentElementId, string $uuid, bool $allowEnvelopeChild = false): void {
 		try {
 			$file = $this->fileMapper->getByUuid($uuid);
 			$element = $this->fileElementMapper->getById($documentElementId);
+			if ($allowEnvelopeChild && $file->isEnvelope() && $element->getFileId() !== $file->getId()) {
+				$childFile = $this->fileMapper->getById($element->getFileId());
+				if (!$childFile->isEnvelope() && $childFile->getParentFileId() === $file->getId()) {
+					return;
+				}
+			}
 		} catch (DoesNotExistException) {
 			// TRANSLATORS Authorization error when a visible signing field is missing or belongs to a different document. %s is the numeric field ID.
 			throw new LibresignException($this->l10n->t('Field %s does not belong to user', [(string)$documentElementId]));
