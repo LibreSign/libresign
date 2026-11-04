@@ -8177,7 +8177,7 @@
                 "operationId": "notify-status",
                 "summary": "Read the status of one manual reminder, including each channel.",
                 "tags": [
-                    "notify"
+                    "notifications"
                 ],
                 "security": [
                     {
@@ -12261,7 +12261,7 @@
                 "summary": "Use the saved signature elements of a signer identified by email",
                 "description": "The saved elements are copied into the current signing session only after the signer satisfies the confirm method configured for the Email identification factor.",
                 "tags": [
-                    "signature_elements"
+                    "appearance"
                 ],
                 "security": [
                     {},
