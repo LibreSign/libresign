@@ -319,6 +319,7 @@ class FeatureContext extends NextcloudApiContext implements OpenedEmailStorageAw
 		try {
 			$this->response = $client->request($method, rtrim($this->baseUrl, '/') . '/remote.php/dav/files/' . $user . '/' . $path, [
 				'auth' => [$user === 'admin' ? 'admin' : $user, $user === 'admin' ? $this->adminPassword : $this->testPassword],
+				'allow_redirects' => false,
 				'headers' => $headers,
 				'body' => $body,
 			]);
