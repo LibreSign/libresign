@@ -9,11 +9,13 @@ declare(strict_types=1);
 namespace OCA\Libresign\Controller;
 
 use OCA\Libresign\AppInfo\Application;
+use OCA\Libresign\Exception\LibresignException;
 use OCA\Libresign\ResponseDefinitions;
 use OCA\Libresign\Service\FileElementService;
 use OCA\Libresign\Service\Validation\FileInputValidator;
 use OCA\Libresign\Service\Validation\SigningRequestValidator;
 use OCA\Libresign\Service\Validation\VisibleElementValidator;
+use OCP\AppFramework\Db\DoesNotExistException;
 use OCP\AppFramework\Http;
 use OCP\AppFramework\Http\Attribute\ApiRoute;
 use OCP\AppFramework\Http\Attribute\NoAdminRequired;
@@ -76,11 +78,16 @@ class FileElementController extends AEnvironmentAwareController {
 				'uuid' => $uuid,
 				'userManager' => $this->userSession->getUser()
 			]);
+			$this->visibleElementValidator->validateSignRequestBelongsToFile($signRequestId, $uuid);
+			if ($elementId !== null) {
+				$this->visibleElementValidator->validateAuthenticatedUserIsOwnerOfPdfVisibleElement($elementId, $this->userSession->getUser()->getUID());
+				$this->visibleElementValidator->validateVisibleElementBelongsToFile($elementId, $uuid);
+			}
 			$fileElement = $this->fileElementService->saveVisibleElement($visibleElement);
 			return new DataResponse([
 				'fileElementId' => $fileElement->getId(),
 			]);
-		} catch (\Throwable $th) {
+		} catch (LibresignException|DoesNotExistException $th) {
 			$this->logger->error($th->getMessage());
 			return new DataResponse(
 				[
@@ -137,9 +144,10 @@ class FileElementController extends AEnvironmentAwareController {
 				'userManager' => $this->userSession->getUser()
 			]);
 			$this->visibleElementValidator->validateAuthenticatedUserIsOwnerOfPdfVisibleElement($elementId, $this->userSession->getUser()->getUID());
+			$this->visibleElementValidator->validateVisibleElementBelongsToFile($elementId, $uuid);
 			$this->fileElementService->deleteVisibleElement($elementId);
 			return new DataResponse();
-		} catch (\Throwable $th) {
+		} catch (LibresignException|DoesNotExistException $th) {
 			$this->logger->error($th->getMessage());
 			return new DataResponse(
 				[
