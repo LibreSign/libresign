@@ -84,7 +84,7 @@ For API contract changes, update the backend source contract and regenerate with
 ```bash
 composer openapi
 npm run typescript:generate
-composer openapi:check-tags
+vendor/bin/phpunit -c tests/php/openapi/phpunit.xml
 ```
 
 New documented endpoints need a method-level `#[OpenAPI(tags: [...])]` using one of the approved functional tags. Do not derive a tag from the controller class name.
