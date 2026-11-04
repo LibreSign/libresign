@@ -9,9 +9,11 @@ declare(strict_types=1);
 namespace OCA\Libresign\Controller;
 
 use OCA\Libresign\AppInfo\Application;
+use OCA\Libresign\Exception\LibresignException;
 use OCA\Libresign\Helper\ValidateHelper;
 use OCA\Libresign\ResponseDefinitions;
 use OCA\Libresign\Service\FileElementService;
+use OCP\AppFramework\Db\DoesNotExistException;
 use OCP\AppFramework\Http;
 use OCP\AppFramework\Http\Attribute\ApiRoute;
 use OCP\AppFramework\Http\Attribute\NoAdminRequired;
@@ -73,11 +75,16 @@ class FileElementController extends AEnvironmentAwareController {
 				'uuid' => $uuid,
 				'userManager' => $this->userSession->getUser()
 			]);
+			$this->validateHelper->validateVisibleElementSignRequestFile($signRequestId, $uuid);
+			if ($elementId !== null) {
+				$this->validateHelper->validateAuthenticatedUserIsOwnerOfPdfVisibleElement($elementId, $this->userSession->getUser()->getUID());
+				$this->validateHelper->validateVisibleElementFile($elementId, $uuid);
+			}
 			$fileElement = $this->fileElementService->saveVisibleElement($visibleElement);
 			return new DataResponse([
 				'fileElementId' => $fileElement->getId(),
 			]);
-		} catch (\Throwable $th) {
+		} catch (LibresignException|DoesNotExistException $th) {
 			$this->logger->error($th->getMessage());
 			return new DataResponse(
 				[
@@ -134,9 +141,10 @@ class FileElementController extends AEnvironmentAwareController {
 				'userManager' => $this->userSession->getUser()
 			]);
 			$this->validateHelper->validateAuthenticatedUserIsOwnerOfPdfVisibleElement($elementId, $this->userSession->getUser()->getUID());
+			$this->validateHelper->validateVisibleElementFile($elementId, $uuid);
 			$this->fileElementService->deleteVisibleElement($elementId);
 			return new DataResponse();
-		} catch (\Throwable $th) {
+		} catch (LibresignException|DoesNotExistException $th) {
 			$this->logger->error($th->getMessage());
 			return new DataResponse(
 				[

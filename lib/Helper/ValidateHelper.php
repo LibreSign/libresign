@@ -433,18 +433,42 @@ class ValidateHelper {
 		throw new LibresignException($this->l10n->t('Invalid data to sign file'), 1);
 	}
 
+	public function validateVisibleElementSignRequestFile(int $signRequestId, string $uuid): void {
+		try {
+			$file = $this->fileMapper->getByUuid($uuid);
+			$this->signRequestMapper->getByFileIdAndSignRequestId($file->getId(), $signRequestId);
+		} catch (DoesNotExistException) {
+			// TRANSLATORS Validation error when a signer is not associated with the requested document.
+			throw new LibresignException($this->l10n->t('Signer not associated to this file'));
+		}
+	}
+
+	public function validateVisibleElementFile(int $documentElementId, string $uuid): void {
+		try {
+			$file = $this->fileMapper->getByUuid($uuid);
+			$element = $this->fileElementMapper->getById($documentElementId);
+		} catch (DoesNotExistException) {
+			// TRANSLATORS Authorization error when a visible signing field is missing or belongs to a different document. %s is the numeric field ID.
+			throw new LibresignException($this->l10n->t('Field %s does not belong to user', [(string)$documentElementId]));
+		}
+		if ($element->getFileId() !== $file->getId()) {
+			// TRANSLATORS Authorization error when a visible signing field is missing or belongs to a different document. %s is the numeric field ID.
+			throw new LibresignException($this->l10n->t('Field %s does not belong to user', [(string)$documentElementId]));
+		}
+	}
+
 	public function validateAuthenticatedUserIsOwnerOfPdfVisibleElement(int $documentElementId, string $uid): void {
 		try {
 			$documentElement = $this->fileElementMapper->getById($documentElementId);
 			$signRequest = $this->signRequestMapper->getById($documentElement->getSignRequestId());
 			$file = $this->fileMapper->getById($signRequest->getFileId());
-			if ($file->getUserId() !== $uid) {
-				// TRANSLATORS Validation error when a visible document element does not belong to the current user. %s is the element id.
-				throw new LibresignException($this->l10n->t('Field %s does not belong to user', (string)$documentElementId));
-			}
-		} catch (\Throwable) {
-			// TRANSLATORS Validation error when a visible document element does not belong to the current user. %s is the element id.
-			throw new LibresignException($this->l10n->t('Field %s does not belong to user', (string)$documentElementId));
+		} catch (DoesNotExistException) {
+			// TRANSLATORS Authorization error when a visible signing field is missing or cannot be changed by this user. %s is the numeric field ID.
+			throw new LibresignException($this->l10n->t('Field %s does not belong to user', [(string)$documentElementId]));
+		}
+		if ($file->getUserId() !== $uid) {
+			// TRANSLATORS Authorization error when a visible signing field is missing or cannot be changed by this user. %s is the numeric field ID.
+			throw new LibresignException($this->l10n->t('Field %s does not belong to user', [(string)$documentElementId]));
 		}
 	}
 
