@@ -12,7 +12,7 @@
 			<NcNoteCard v-if="isApprovalRoute"
 				:heading="t('libresign', 'Document approval')"
 				type="info">
-				<!-- TRANSLATORS: Explanation for a reviewer signing a submitted document to record approval. The review procedure is set by the organization. -->
+				<!-- TRANSLATORS Explanation for a reviewer signing a submitted document to record approval. The review procedure is set by the organization. -->
 				{{ t('libresign', 'Review the document following the procedure set by your organization. By signing it, you record your approval of the document.') }}
 			</NcNoteCard>
 			<NcCheckboxRadioSwitch v-if="signatureElementsStore.emailSigner && hasSignatures && hasVisibleSignatureField"

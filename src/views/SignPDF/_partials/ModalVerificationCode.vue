@@ -73,7 +73,7 @@
 		<div v-else-if="identityVerified" class="step-content">
 			<div class="verification-success">
 				<p class="verification-message">
-					<!-- TRANSLATORS: Success message shown after the signer's identity has been confirmed via a numeric one-time password (OTP) delivered through email, SMS, WhatsApp, Telegram, Signal, or XMPP. "identity" here means the system confirmed the signer is who they claim to be. -->
+					<!-- TRANSLATORS Success message shown after the signer's identity has been confirmed via a numeric one-time password (OTP) delivered through email, SMS, WhatsApp, Telegram, Signal, or XMPP. "identity" here means the system confirmed the signer is who they claim to be. -->
 					{{ t('libresign', 'Your identity has been verified.') }}
 				</p>
 				<p class="signature-ready">
@@ -104,7 +104,7 @@
 					<template #icon>
 						<NcLoadingIcon v-if="loading" :size="20" />
 					</template>
-					<!-- TRANSLATORS: Button label. Sends a new numeric one-time password (OTP) to the signer via email, SMS, WhatsApp, Telegram, Signal, or XMPP. "code" here means a short numeric verification code, not source code. -->
+					<!-- TRANSLATORS Button label. Sends a new numeric one-time password (OTP) to the signer via email, SMS, WhatsApp, Telegram, Signal, or XMPP. "code" here means a short numeric verification code, not source code. -->
 					{{ t('libresign', 'Request new code') }}
 				</NcButton>
 				<NcButton :disabled="!canSendCode"
@@ -114,7 +114,7 @@
 					<template #icon>
 						<NcLoadingIcon v-if="loading" :size="20" />
 					</template>
-					<!-- TRANSLATORS: Button label. Submits the numeric one-time password (OTP) typed by the signer to complete verification. The code was delivered via email, SMS, WhatsApp, Telegram, Signal, or XMPP. "code" here means a short numeric verification code, not source code. -->
+					<!-- TRANSLATORS Button label. Submits the numeric one-time password (OTP) typed by the signer to complete verification. The code was delivered via email, SMS, WhatsApp, Telegram, Signal, or XMPP. "code" here means a short numeric verification code, not source code. -->
 					{{ t('libresign', 'Validate code') }}
 				</NcButton>
 			</template>

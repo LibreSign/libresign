@@ -94,7 +94,7 @@ const canOpenSignDocument = computed(() => Boolean(getSignRequestUuid()))
 const displayedStatusText = computed(() => {
 	if (getRoute()?.path?.startsWith('/f/id-docs/approve/')
 		&& currentDocument.value.status === FILE_STATUS.ABLE_TO_SIGN) {
-		// TRANSLATORS: A document awaiting review by an authorized approver, rather than a normal signer.
+		// TRANSLATORS A document awaiting review by an authorized approver, rather than a normal signer.
 		return t('libresign', 'Ready for approval')
 	}
 	return currentDocument.value.statusText
