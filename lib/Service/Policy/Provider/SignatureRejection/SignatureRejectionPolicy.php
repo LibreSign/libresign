@@ -139,7 +139,6 @@ final class SignatureRejectionPolicy implements IPolicyDefinitionProvider {
 			normalizer: $normalizer,
 			appConfigKey: $key,
 			resolutionMode: PolicySpec::RESOLUTION_MODE_VALUE_CHOICE,
-			// Unlike signature_flow's "none" sentinel, these defaults are real settings.
 			retainDefaultInGroupChoices: true,
 			supportsRequestOverride: true,
 			requestLifecycle: PolicySpec::LIFECYCLE_REQUEST_SNAPSHOT,

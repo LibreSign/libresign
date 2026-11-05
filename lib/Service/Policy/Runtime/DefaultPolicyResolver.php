@@ -411,7 +411,6 @@ final class DefaultPolicyResolver implements IPolicyResolver {
 				return $choices;
 			}
 
-			// Some value-choice policies use their default as a sentinel, not a selectable choice.
 			$defaultValue = $definition->normalizeValue($definition->defaultSystemValue());
 			return array_values(array_filter(
 				$choices,
