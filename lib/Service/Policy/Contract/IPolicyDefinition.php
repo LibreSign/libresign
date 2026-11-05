@@ -16,6 +16,8 @@ interface IPolicyDefinition {
 
 	public function resolutionMode(): string;
 
+	public function retainDefaultInGroupChoices(): bool;
+
 	/** @return list<string> */
 	public function supportedScopes(): array;
 

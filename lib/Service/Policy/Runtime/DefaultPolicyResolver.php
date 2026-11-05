@@ -407,6 +407,10 @@ final class DefaultPolicyResolver implements IPolicyResolver {
 				? $upstreamAllowedValues
 				: array_values(array_intersect($upstreamAllowedValues, $layer->getAllowedValues()));
 
+			if ($definition->retainDefaultInGroupChoices()) {
+				return $choices;
+			}
+
 			$defaultValue = $definition->normalizeValue($definition->defaultSystemValue());
 			return array_values(array_filter(
 				$choices,
