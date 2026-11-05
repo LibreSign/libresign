@@ -19,11 +19,16 @@ class OpenApiFunctionalTagsTest extends TestCase {
 	/**
 	 * @return array{operationId: string, method: string, path: string, tags: list<string>}
 	 */
-	private static function operation(array $tags, string $operationId = 'example-operation'): array {
+	private static function operation(
+		array $tags,
+		string $operationId = 'example-operation',
+		string $method = 'GET',
+		string $path = '/example',
+	): array {
 		return [
 			'operationId' => $operationId,
-			'method' => 'GET',
-			'path' => '/example',
+			'method' => $method,
+			'path' => $path,
 			'tags' => $tags,
 		];
 	}
@@ -43,41 +48,41 @@ class OpenApiFunctionalTagsTest extends TestCase {
 		$this->assertSame([], OpenApiFunctionalTags::collectErrors($file, $operations));
 	}
 
-	public function testScopedSpecificationsDoNotShareOperationIds(): void {
-		$default = OpenApiFunctionalTags::indexById(OpenApiFunctionalTags::loadOperations(self::root() . '/openapi.json'));
-		$administration = OpenApiFunctionalTags::indexById(OpenApiFunctionalTags::loadOperations(self::root() . '/openapi-administration.json'));
+	public function testScopedSpecificationsDoNotOverlap(): void {
+		$default = OpenApiFunctionalTags::indexOperations(
+			'openapi.json',
+			OpenApiFunctionalTags::loadOperations(self::root() . '/openapi.json'),
+		);
+		$administration = OpenApiFunctionalTags::indexOperations(
+			'openapi-administration.json',
+			OpenApiFunctionalTags::loadOperations(self::root() . '/openapi-administration.json'),
+		);
 
-		$this->assertSame([], array_keys(array_intersect_key($default, $administration)));
-	}
-
-	public function testUnionMatchesGoldenOperationMap(): void {
-		$default = OpenApiFunctionalTags::indexById(OpenApiFunctionalTags::loadOperations(self::root() . '/openapi.json'));
-		$administration = OpenApiFunctionalTags::indexById(OpenApiFunctionalTags::loadOperations(self::root() . '/openapi-administration.json'));
-		$union = $default + $administration;
-		ksort($union);
-
-		$this->assertSame([], OpenApiFunctionalTags::collectGoldenMapErrors($union));
-	}
-
-	public function testUnionCountsMatchApprovedTaxonomy(): void {
-		$default = OpenApiFunctionalTags::indexById(OpenApiFunctionalTags::loadOperations(self::root() . '/openapi.json'));
-		$administration = OpenApiFunctionalTags::indexById(OpenApiFunctionalTags::loadOperations(self::root() . '/openapi-administration.json'));
-		$counts = OpenApiFunctionalTags::countTags(array_values($default + $administration));
-		$expected = OpenApiFunctionalTags::EXPECTED_UNION_COUNTS;
-		ksort($expected);
-
-		$this->assertSame($expected, $counts);
-		$this->assertSame(array_sum($expected), array_sum($counts));
+		$this->assertSame([], $default['errors']);
+		$this->assertSame([], $administration['errors']);
+		$this->assertSame([], OpenApiFunctionalTags::collectScopeOverlapErrors($default, $administration));
 	}
 
 	public function testFullSpecificationOnlyOmitsKnownOperations(): void {
-		$default = OpenApiFunctionalTags::indexById(OpenApiFunctionalTags::loadOperations(self::root() . '/openapi.json'));
-		$administration = OpenApiFunctionalTags::indexById(OpenApiFunctionalTags::loadOperations(self::root() . '/openapi-administration.json'));
-		$full = OpenApiFunctionalTags::indexById(OpenApiFunctionalTags::loadOperations(self::root() . '/openapi-full.json'));
+		$default = OpenApiFunctionalTags::indexOperations(
+			'openapi.json',
+			OpenApiFunctionalTags::loadOperations(self::root() . '/openapi.json'),
+		);
+		$administration = OpenApiFunctionalTags::indexOperations(
+			'openapi-administration.json',
+			OpenApiFunctionalTags::loadOperations(self::root() . '/openapi-administration.json'),
+		);
+		$full = OpenApiFunctionalTags::indexOperations(
+			'openapi-full.json',
+			OpenApiFunctionalTags::loadOperations(self::root() . '/openapi-full.json'),
+		);
 
 		$this->assertSame(
 			[],
-			OpenApiFunctionalTags::collectFullSpecOmissions(array_keys($default + $administration), array_keys($full)),
+			OpenApiFunctionalTags::collectFullSpecOmissions(
+				array_keys($default['byId'] + $administration['byId']),
+				array_keys($full['byId']),
+			),
 		);
 	}
 
@@ -105,22 +110,49 @@ class OpenApiFunctionalTagsTest extends TestCase {
 		$this->assertStringContainsString($needle, implode("\n", $errors));
 	}
 
-	public function testDuplicateOperationIdIsReported(): void {
-		$errors = OpenApiFunctionalTags::collectErrors('fixture', [
-			self::operation(['signing'], 'example-operation'),
-			self::operation(['signing'], 'example-operation'),
-		]);
+	public function testDuplicateOperationIdIsReportedWithoutOverwriting(): void {
+		$first = self::operation(['signing'], 'example-operation', 'GET', '/one');
+		$second = self::operation(['requests'], 'example-operation', 'POST', '/two');
+		$indexed = OpenApiFunctionalTags::indexOperations('fixture', [$first, $second]);
 
-		$this->assertNotSame([], $errors);
-		$this->assertStringContainsString('Duplicate operationId example-operation', implode("\n", $errors));
+		$this->assertNotSame([], $indexed['errors']);
+		$this->assertStringContainsString('Duplicate operationId example-operation', implode("\n", $indexed['errors']));
+		$this->assertSame($first, $indexed['byId']['example-operation']);
 	}
 
-	public function testGoldenMapRejectsUnknownOperation(): void {
-		$errors = OpenApiFunctionalTags::collectGoldenMapErrors([
-			'not-a-real-operation' => self::operation(['signing'], 'not-a-real-operation'),
+	public function testDuplicateMethodAndPathIsReported(): void {
+		$errors = OpenApiFunctionalTags::collectErrors('fixture', [
+			self::operation(['signing'], 'first-operation', 'POST', '/same'),
+			self::operation(['requests'], 'second-operation', 'POST', '/same'),
 		]);
 
 		$this->assertNotSame([], $errors);
-		$this->assertStringContainsString('not-a-real-operation', implode("\n", $errors));
+		$this->assertStringContainsString('Duplicate POST /same', implode("\n", $errors));
+	}
+
+	public function testScopedSpecificationsSharingOperationIdAreReported(): void {
+		$default = OpenApiFunctionalTags::indexOperations('openapi.json', [
+			self::operation(['signing'], 'shared-id', 'GET', '/default'),
+		]);
+		$administration = OpenApiFunctionalTags::indexOperations('openapi-administration.json', [
+			self::operation(['system'], 'shared-id', 'GET', '/admin'),
+		]);
+
+		$errors = OpenApiFunctionalTags::collectScopeOverlapErrors($default, $administration);
+		$this->assertNotSame([], $errors);
+		$this->assertStringContainsString('share operationId shared-id', implode("\n", $errors));
+	}
+
+	public function testScopedSpecificationsSharingMethodAndPathAreReported(): void {
+		$default = OpenApiFunctionalTags::indexOperations('openapi.json', [
+			self::operation(['signing'], 'default-id', 'GET', '/same'),
+		]);
+		$administration = OpenApiFunctionalTags::indexOperations('openapi-administration.json', [
+			self::operation(['system'], 'admin-id', 'GET', '/same'),
+		]);
+
+		$errors = OpenApiFunctionalTags::collectScopeOverlapErrors($default, $administration);
+		$this->assertNotSame([], $errors);
+		$this->assertStringContainsString('share GET /same', implode("\n", $errors));
 	}
 }

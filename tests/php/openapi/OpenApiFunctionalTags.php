@@ -29,19 +29,6 @@ final class OpenApiFunctionalTags {
 		'verification',
 	];
 
-	public const EXPECTED_UNION_COUNTS = [
-		'appearance' => 17,
-		'certificates' => 12,
-		'documents' => 6,
-		'identity' => 14,
-		'notifications' => 4,
-		'policies' => 17,
-		'requests' => 5,
-		'signing' => 8,
-		'system' => 3,
-		'verification' => 4,
-	];
-
 	public const LEGACY_TAGS = [
 		'account',
 		'admin',
@@ -60,101 +47,14 @@ final class OpenApiFunctionalTags {
 		'signature_stamp_preview',
 	];
 
+	/**
+	 * Operation present in openapi.json but omitted from openapi-full.json by the
+	 * current extractor merge of the same path across scopes.
+	 *
+	 * @var list<string>
+	 */
 	public const KNOWN_FULL_SPEC_OMISSIONS = [
 		'footer_template-get-footer-template',
-	];
-
-	public const EXPECTED_OPERATION_TAGS = [
-		'account-create-to-sign' => 'identity',
-		'account-delete-pfx' => 'identity',
-		'account-me' => 'identity',
-		'account-read-pfx-data' => 'identity',
-		'account-set-config' => 'identity',
-		'account-signature-generate' => 'identity',
-		'account-update-pfx-password' => 'identity',
-		'account-update-settings' => 'identity',
-		'account-upload-pfx' => 'identity',
-		'admin-configure-check' => 'system',
-		'admin-delete-certificate-policy' => 'certificates',
-		'admin-generate-certificate-cfssl' => 'certificates',
-		'admin-generate-certificate-open-ssl' => 'certificates',
-		'admin-get-active-signings' => 'requests',
-		'admin-get-geo-ip-config' => 'system',
-		'admin-load-certificate' => 'certificates',
-		'admin-save-certificate-policy' => 'certificates',
-		'admin-save-geo-ip-config' => 'system',
-		'admin-set-certificate-engine' => 'certificates',
-		'admin-signature-background-delete' => 'appearance',
-		'admin-signature-background-get' => 'appearance',
-		'admin-signature-background-save' => 'appearance',
-		'admin-update-oid' => 'certificates',
-		'certificate_policy-get-certificate-policy' => 'certificates',
-		'crl-check-certificate-status' => 'verification',
-		'crl-get-revocation-list' => 'certificates',
-		'crl_api-list' => 'certificates',
-		'crl_api-revoke' => 'certificates',
-		'file-add-file-to-envelope' => 'documents',
-		'file-delete-file' => 'documents',
-		'file-get-thumbnail' => 'documents',
-		'file-get-thumbnail-by-file-id' => 'documents',
-		'file-list' => 'documents',
-		'file-save' => 'documents',
-		'file-validate-binary' => 'verification',
-		'file-validate-file-id' => 'verification',
-		'file-validate-uuid' => 'verification',
-		'file_element-create-visible-element' => 'appearance',
-		'file_element-delete-visible-element' => 'appearance',
-		'file_element-update-visible-element' => 'appearance',
-		'file_progress-check-progress-by-uuid' => 'signing',
-		'footer_template-get-footer-template' => 'appearance',
-		'footer_template-preview-pdf' => 'appearance',
-		'footer_template-save-footer-template' => 'appearance',
-		'id_docs-add-files' => 'identity',
-		'id_docs-delete' => 'identity',
-		'id_docs-list-to-approval' => 'identity',
-		'id_docs-list-unauthenticated-signer-documents' => 'identity',
-		'identify-search' => 'identity',
-		'notify-notification-dismiss' => 'notifications',
-		'notify-signer' => 'notifications',
-		'notify-signers' => 'notifications',
-		'notify-status' => 'notifications',
-		'policy-clear-group' => 'policies',
-		'policy-clear-user-policy-for-user' => 'policies',
-		'policy-clear-user-preference' => 'policies',
-		'policy-effective' => 'policies',
-		'policy-get-group' => 'policies',
-		'policy-get-system' => 'policies',
-		'policy-get-user-policy-for-user' => 'policies',
-		'policy-list-group-policies' => 'policies',
-		'policy-list-user-policies' => 'policies',
-		'policy-set-group' => 'policies',
-		'policy-set-group-compound' => 'policies',
-		'policy-set-system' => 'policies',
-		'policy-set-system-compound' => 'policies',
-		'policy-set-user-policy-for-user' => 'policies',
-		'policy-set-user-policy-for-user-compound' => 'policies',
-		'policy-set-user-preference' => 'policies',
-		'policy-set-user-preference-compound' => 'policies',
-		'request_signature-delete-signature-request' => 'requests',
-		'request_signature-remove-signer' => 'requests',
-		'request_signature-request-signature' => 'requests',
-		'request_signature-update-signature-request' => 'requests',
-		'setting-has-root-cert' => 'certificates',
-		'sign_file-reject-by-file-id' => 'signing',
-		'sign_file-reject-by-signer-uuid' => 'signing',
-		'sign_file-request-code-by-file-id' => 'signing',
-		'sign_file-request-code-by-signer-uuid' => 'signing',
-		'sign_file-sign-by-file-id' => 'signing',
-		'sign_file-sign-by-signer-uuid' => 'signing',
-		'sign_file-sign-renew' => 'signing',
-		'signature_elements-create-signature-element' => 'appearance',
-		'signature_elements-delete-signature-element' => 'appearance',
-		'signature_elements-get-signature-element' => 'appearance',
-		'signature_elements-get-signature-elements' => 'appearance',
-		'signature_elements-patch-signature-element' => 'appearance',
-		'signature_elements-preview-signature-element' => 'appearance',
-		'signature_elements-use-saved-signature-elements' => 'appearance',
-		'signature_stamp_preview-preview-pdf' => 'appearance',
 	];
 
 	private const HTTP_METHODS = ['get', 'post', 'put', 'patch', 'delete', 'head', 'options', 'trace'];
@@ -200,22 +100,61 @@ final class OpenApiFunctionalTags {
 		return $operations;
 	}
 
+	public static function routeKey(array $operation): string {
+		return $operation['method'] . ' ' . $operation['path'];
+	}
+
+	/**
+	 * @param list<array{operationId: string, method: string, path: string, tags: list<string>}> $operations
+	 * @return array{
+	 *   errors: list<string>,
+	 *   byId: array<string, array{operationId: string, method: string, path: string, tags: list<string>}>,
+	 *   byRoute: array<string, array{operationId: string, method: string, path: string, tags: list<string>}>
+	 * }
+	 */
+	public static function indexOperations(string $label, array $operations): array {
+		$errors = [];
+		$byId = [];
+		$byRoute = [];
+
+		foreach ($operations as $operation) {
+			$id = $operation['operationId'];
+			$route = self::routeKey($operation);
+
+			if (isset($byId[$id])) {
+				$previous = $byId[$id];
+				$errors[] = "Duplicate operationId {$id} in {$label}: "
+					. self::routeKey($previous) . " and {$route}";
+			} else {
+				$byId[$id] = $operation;
+			}
+
+			if (isset($byRoute[$route])) {
+				$previous = $byRoute[$route];
+				$errors[] = "Duplicate {$route} in {$label}: {$previous['operationId']} and {$id}";
+			} else {
+				$byRoute[$route] = $operation;
+			}
+		}
+
+		return [
+			'errors' => $errors,
+			'byId' => $byId,
+			'byRoute' => $byRoute,
+		];
+	}
+
 	/**
 	 * @param list<array{operationId: string, method: string, path: string, tags: list<string>}> $operations
 	 * @return list<string>
 	 */
 	public static function collectErrors(string $label, array $operations): array {
-		$errors = [];
-		$seenIds = [];
+		$indexed = self::indexOperations($label, $operations);
+		$errors = $indexed['errors'];
 
 		foreach ($operations as $operation) {
 			$id = $operation['operationId'];
-			$location = "{$label} {$operation['method']} {$operation['path']} ({$id})";
-
-			if (isset($seenIds[$id])) {
-				$errors[] = "Duplicate operationId {$id} in {$label}";
-			}
-			$seenIds[$id] = true;
+			$location = "{$label} " . self::routeKey($operation) . " ({$id})";
 
 			if (count($operation['tags']) !== 1) {
 				$errors[] = "{$location} must have exactly one functional tag, got: "
@@ -237,90 +176,32 @@ final class OpenApiFunctionalTags {
 	}
 
 	/**
-	 * @param list<array{operationId: string, method: string, path: string, tags: list<string>}> $operations
-	 * @return array<string, int>
-	 */
-	public static function countTags(array $operations): array {
-		$counts = array_fill_keys(self::APPROVED_TAGS, 0);
-		foreach ($operations as $operation) {
-			if (count($operation['tags']) !== 1) {
-				continue;
-			}
-			$tag = $operation['tags'][0];
-			if (!isset($counts[$tag])) {
-				$counts[$tag] = 0;
-			}
-			$counts[$tag]++;
-		}
-		ksort($counts);
-		return $counts;
-	}
-
-	/**
-	 * @param list<array{operationId: string, method: string, path: string, tags: list<string>}> $operations
-	 * @return array<string, array{operationId: string, method: string, path: string, tags: list<string>}>
-	 */
-	public static function indexById(array $operations): array {
-		$indexed = [];
-		foreach ($operations as $operation) {
-			$indexed[$operation['operationId']] = $operation;
-		}
-		return $indexed;
-	}
-
-	/**
-	 * @param array<string, array{operationId: string, method: string, path: string, tags: list<string>}> $union
+	 * @param array{
+	 *   byId: array<string, array{operationId: string, method: string, path: string, tags: list<string>}>,
+	 *   byRoute: array<string, array{operationId: string, method: string, path: string, tags: list<string>}>
+	 * } $default
+	 * @param array{
+	 *   byId: array<string, array{operationId: string, method: string, path: string, tags: list<string>}>,
+	 *   byRoute: array<string, array{operationId: string, method: string, path: string, tags: list<string>}>
+	 * } $administration
 	 * @return list<string>
 	 */
-	public static function collectGoldenMapErrors(array $union): array {
+	public static function collectScopeOverlapErrors(array $default, array $administration): array {
 		$errors = [];
-		$expected = self::EXPECTED_OPERATION_TAGS;
-		ksort($expected);
-
-		$mapCounts = array_fill_keys(self::APPROVED_TAGS, 0);
-		foreach ($expected as $tag) {
-			if (!isset($mapCounts[$tag])) {
-				$mapCounts[$tag] = 0;
-			}
-			$mapCounts[$tag]++;
+		foreach (array_intersect_key($default['byId'], $administration['byId']) as $id => $operation) {
+			$errors[] = 'openapi.json and openapi-administration.json share operationId '
+				. $id . ' (' . self::routeKey($operation) . ')';
 		}
-		ksort($mapCounts);
-		$expectedCounts = self::EXPECTED_UNION_COUNTS;
-		ksort($expectedCounts);
-		if ($mapCounts !== $expectedCounts) {
-			$errors[] = 'EXPECTED_OPERATION_TAGS counts do not match EXPECTED_UNION_COUNTS: map '
-				. json_encode($mapCounts) . ', counts ' . json_encode($expectedCounts);
+		foreach (array_intersect_key($default['byRoute'], $administration['byRoute']) as $route => $operation) {
+			$errors[] = 'openapi.json and openapi-administration.json share '
+				. $route . ' (' . $operation['operationId'] . ')';
 		}
-
-		$expectedTotal = array_sum($expectedCounts);
-		if (count($expected) !== $expectedTotal) {
-			$errors[] = 'EXPECTED_OPERATION_TAGS must list ' . $expectedTotal
-				. ' operations, got ' . count($expected);
-		}
-
-		$missing = array_values(array_diff(array_keys($expected), array_keys($union)));
-		$extra = array_values(array_diff(array_keys($union), array_keys($expected)));
-		if ($missing !== []) {
-			$errors[] = 'Union is missing operationIds from the golden map: ' . implode(', ', $missing);
-		}
-		if ($extra !== []) {
-			$errors[] = 'Union has operationIds that are not in the golden map: ' . implode(', ', $extra);
-		}
-
-		foreach ($union as $id => $operation) {
-			if (!isset($expected[$id])) {
-				continue;
-			}
-			$actualTag = $operation['tags'][0] ?? '';
-			if ($actualTag !== $expected[$id]) {
-				$errors[] = "{$operation['method']} {$operation['path']} ({$id}) expected tag '{$expected[$id]}', got '{$actualTag}'";
-			}
-		}
-
 		return $errors;
 	}
 
 	/**
+	 * @param list<string> $unionIds
+	 * @param list<string> $fullIds
 	 * @return list<string>
 	 */
 	public static function collectFullSpecOmissions(array $unionIds, array $fullIds): array {
