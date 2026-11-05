@@ -655,6 +655,11 @@ function getValidityStatusAtSigning(signer: ValidationDisplaySigner) {
 	return 'valid'
 }
 
+function unknownValidationStatusLabel() {
+	// TRANSLATORS Fallback value when the certificate or signature verification result has no label.
+	return t('libresign', 'Unknown')
+}
+
 function getSignatureValidationMessage(signer: ValidationDisplaySigner) {
 	if (!signer.signature_validation) {
 		return t('libresign', 'Signature: Unknown')
@@ -662,7 +667,9 @@ function getSignatureValidationMessage(signer: ValidationDisplaySigner) {
 	if (signer.signature_validation.id === 1) {
 		return t('libresign', 'Document integrity verified')
 	}
-	return t('libresign', 'Signature: {validationStatus}', { validationStatus: signer.signature_validation.label ?? t('libresign', 'Unknown') })
+	const validationStatus = signer.signature_validation.label ?? unknownValidationStatusLabel()
+	// TRANSLATORS {validationStatus} is the result of verifying the document's cryptographic signature.
+	return t('libresign', 'Signature: {validationStatus}', { validationStatus })
 }
 
 function getCertificateTrustMessage(signer: ValidationDisplaySigner) {
@@ -677,7 +684,9 @@ function getCertificateTrustMessage(signer: ValidationDisplaySigner) {
 		return t('libresign', 'Trust Chain: Trusted')
 	}
 
-	return t('libresign', 'Trust chain: {validationStatus}', { validationStatus: signer.certificate_validation.label ?? t('libresign', 'Unknown') })
+	const validationStatus = signer.certificate_validation.label ?? unknownValidationStatusLabel()
+	// TRANSLATORS {validationStatus} is the certificate trust-chain verification result.
+	return t('libresign', 'Trust chain: {validationStatus}', { validationStatus })
 }
 
 function getCrlValidationIconClass(signer: ValidationDisplaySigner) {

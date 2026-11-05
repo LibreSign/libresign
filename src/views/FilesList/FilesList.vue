@@ -3,8 +3,9 @@
   - SPDX-License-Identifier: AGPL-3.0-or-later
 -->
 <template>
+	<!-- TRANSLATORS Browser title for the LibreSign file list. Translate it as one complete phrase. -->
 	<NcAppContent :page-heading="t('libresign', 'Files')"
-		:page-title="t('libresign', 'Files') + ' - ' + t('libresign', 'LibreSign')">
+		:page-title="t('libresign', 'Files - LibreSign')">
 		<div class="files-list__dropzone"
 			@dragenter="onDragEnter"
 			@dragover="onDragOver"

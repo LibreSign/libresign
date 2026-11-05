@@ -76,7 +76,7 @@
 			<template #name>
 				<!-- TRANSLATORS Whether this signer has a visible signature on this document. -->
 				<strong>{{ t('libresign', 'Visible signature:') }}</strong>
-				{{ Array.isArray(signer.visibleElements) && signer.visibleElements.length > 0 ? t('libresign', 'Yes') : t('libresign', 'No') }}
+				{{ visibleSignatureLabel(signer) }}
 			</template>
 		</NcListItem>
 
@@ -112,7 +112,7 @@
 			</template>
 			<template #extra-actions>
 				<NcButton variant="tertiary"
-					:aria-label="validationStatusOpen ? t('libresign', 'Collapse validation status') : t('libresign', 'Expand validation status')"
+					:aria-label="validationStatusToggleLabel"
 					@click.stop="validationStatusOpen = !validationStatusOpen">
 					<template #icon>
 						<NcIconSvgWrapper v-if="validationStatusOpen"
@@ -158,7 +158,7 @@
 						:class="getValidityStatusAtSigning(signer) === 'valid' ? 'validation-icon--success' : 'validation-icon--error'" />
 				</template>
 				<template #name>
-					{{ getValidityStatusAtSigning(signer) === 'valid' ? t('libresign', 'Valid at signing time') : t('libresign', 'NOT valid at signing time') }}
+					{{ validityAtSigningLabel(signer) }}
 				</template>
 			</NcListItem>
 			<NcListItem v-if="signer.crl_validation" class="extra-chain" compact>
@@ -185,7 +185,7 @@
 			</template>
 			<template #extra-actions>
 				<NcButton variant="tertiary"
-					:aria-label="docMdpOpen ? t('libresign', 'Collapse document certification') : t('libresign', 'Expand document certification')"
+					:aria-label="documentCertificationToggleLabel"
 					@click.stop="docMdpOpen = !docMdpOpen">
 					<template #icon>
 						<NcIconSvgWrapper v-if="docMdpOpen"
@@ -421,6 +421,38 @@ const privateCommentLabel = t('libresign', 'Private')
 const isOpen = ref(props.initiallyOpen)
 const validationStatusOpen = ref(false)
 const docMdpOpen = ref(false)
+const validationStatusToggleLabel = computed(() => {
+	if (validationStatusOpen.value) {
+		// TRANSLATORS Accessibility label for collapsing the signature validation details.
+		return t('libresign', 'Collapse validation status')
+	}
+	// TRANSLATORS Accessibility label for expanding the signature validation details.
+	return t('libresign', 'Expand validation status')
+})
+const documentCertificationToggleLabel = computed(() => {
+	if (docMdpOpen.value) {
+		// TRANSLATORS Accessibility label for collapsing the document certification details.
+		return t('libresign', 'Collapse document certification')
+	}
+	// TRANSLATORS Accessibility label for expanding the document certification details.
+	return t('libresign', 'Expand document certification')
+})
+function visibleSignatureLabel(signer: SignerModel) {
+	if (Array.isArray(signer.visibleElements) && signer.visibleElements.length > 0) {
+		// TRANSLATORS Indicates that a signer has a visible signature field.
+		return t('libresign', 'Yes')
+	}
+	// TRANSLATORS Indicates that a signer has no visible signature field.
+	return t('libresign', 'No')
+}
+function validityAtSigningLabel(signer: SignerModel) {
+	if (getValidityStatusAtSigning(signer) === 'valid') {
+		// TRANSLATORS Signing certificate was valid when the document was signed.
+		return t('libresign', 'Valid at signing time')
+	}
+	// TRANSLATORS Signing certificate was invalid when the document was signed.
+	return t('libresign', 'NOT valid at signing time')
+}
 const chainOpen = ref(false)
 const MODIFICATION_UNMODIFIED = 1
 const MODIFICATION_ALLOWED = 2
