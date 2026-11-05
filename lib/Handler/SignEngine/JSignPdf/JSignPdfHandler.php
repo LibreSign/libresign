@@ -194,11 +194,12 @@ class JSignPdfHandler extends Pkcs12Handler {
 	}
 
 	private function getCertificationLevel(): ?string {
-		if (!$this->docMdpConfigService->isEnabled()) {
-			return null;
+		$level = $this->getDocMdpLevel();
+		if ($level === null && $this->docMdpConfigService->isEnabled()) {
+			$level = $this->docMdpConfigService->getLevel();
 		}
 
-		return $this->docMdpConfigService->getLevel()->name;
+		return $level !== null && $level->isCertifying() ? $level->name : null;
 	}
 
 	#[\Override]

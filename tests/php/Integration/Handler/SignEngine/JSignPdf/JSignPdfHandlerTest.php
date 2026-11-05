@@ -1189,6 +1189,27 @@ final class JSignPdfHandlerTest extends \OCA\Libresign\Tests\Integration\AppData
 		];
 	}
 
+	#[DataProvider('providerTheGivenLevelWinsOverTheCurrentLevel')]
+	public function testTheGivenLevelWinsOverTheCurrentLevel(?DocMdpLevel $givenLevel, DocMdpLevel $currentLevel, ?string $expected): void {
+		$docMdpConfigService = $this->createMock(DocMdpConfigService::class);
+		$docMdpConfigService->method('isEnabled')->willReturn($currentLevel->isCertifying());
+		$docMdpConfigService->method('getLevel')->willReturn($currentLevel);
+		$jSignPdfHandler = $this->getInstance();
+		$this->setDocMdpConfigService($jSignPdfHandler, $docMdpConfigService);
+		$jSignPdfHandler->setDocMdpLevel($givenLevel);
+
+		$this->assertSame($expected, self::invokePrivate($jSignPdfHandler, 'getCertificationLevel'));
+	}
+
+	public static function providerTheGivenLevelWinsOverTheCurrentLevel(): array {
+		return [
+			'another certifying level' => [DocMdpLevel::CERTIFIED_FORM_FILLING_AND_ANNOTATIONS, DocMdpLevel::CERTIFIED_NO_CHANGES_ALLOWED, DocMdpLevel::CERTIFIED_FORM_FILLING_AND_ANNOTATIONS->name],
+			'not certified while the current level certifies' => [DocMdpLevel::NOT_CERTIFIED, DocMdpLevel::CERTIFIED_FORM_FILLING, null],
+			'certified while the current level does not' => [DocMdpLevel::CERTIFIED_NO_CHANGES_ALLOWED, DocMdpLevel::NOT_CERTIFIED, DocMdpLevel::CERTIFIED_NO_CHANGES_ALLOWED->name],
+			'no level given falls back to the current level' => [null, DocMdpLevel::CERTIFIED_FORM_FILLING, DocMdpLevel::CERTIFIED_FORM_FILLING->name],
+		];
+	}
+
 	#[DataProvider('providerCertificationLevelWithoutVisibleElements')]
 	public function testCertificationLevelWithoutVisibleElements(bool $docMdpEnabled, array $visibleElements, string $pdfContent, array $tsaSettings, array $expectedParameters): void {
 		if (self::$certificateEngineFactory === null || empty(self::$certificateContent)) {
