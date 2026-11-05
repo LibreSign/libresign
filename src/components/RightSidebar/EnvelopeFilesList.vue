@@ -49,7 +49,7 @@
 				<div v-if="canDelete" class="files-list__header">
 					<NcCheckboxRadioSwitch :modelValue="allSelected"
 						@update:modelValue="toggleSelectAll">
-						{{ selectedCount > 0 ? t('libresign', '{count} selected', { count: selectedCount }) : t('libresign', 'Select all') }}
+						{{ selectionLabel }}
 					</NcCheckboxRadioSwitch>
 					<NcButton v-if="selectedCount > 0"
 						variant="error"
@@ -293,6 +293,14 @@ const deleteDialogButtons = computed(() => [
 	},
 ])
 const selectedCount = computed(() => selectedFiles.value.length)
+const selectionLabel = computed(() => {
+	if (selectedCount.value > 0) {
+		// TRANSLATORS {count} is the number of selected PDF files in an envelope.
+		return t('libresign', '{count} selected', { count: selectedCount.value })
+	}
+	// TRANSLATORS Action to select all PDF files in an envelope.
+	return t('libresign', 'Select all')
+})
 const allSelected = computed(() => files.value.length > 0 && selectedFiles.value.length === files.value.length)
 
 watch(() => props.open, (newVal) => {
