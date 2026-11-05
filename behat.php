@@ -17,17 +17,17 @@ use PhpBuiltin\Server;
 return (new Config())
 	->withProfile((new Profile('default', [
 		'autoload' => [
-			'' => '%paths.base%/features/bootstrap',
+			'' => '%paths.base%/tests/integration/features/bootstrap',
 		],
 	]))
 		->withSuite((new Suite('default'))
 			->withContexts(MailpitContext::class, FeatureContext::class)
-			->withPaths('%paths.base%/features'))
+			->withPaths('%paths.base%/tests/integration/features'))
 		->withExtension(new Extension(MailpitExtension::class, [
 			'base_url' => 'http://mailpit:8025',
 		]))
 		->withExtension(new Extension(Server::class, [
-			'rootDir' => dirname(__DIR__, 4),
+			'rootDir' => dirname(__DIR__, 2),
 			'runAs' => 'www-data',
 			'workers' => 2,
 		]))

@@ -60,10 +60,10 @@ Steps live in one of two places:
 Before adding a LibreSign step for generic Nextcloud behavior, check whether
 `nextcloud-behat` already has it or whether it belongs there. Do not move a step
 to `nextcloud-behat` only to shrink LibreSign code when its wording or behavior
-is specific to LibreSign. To list the available steps:
+is specific to LibreSign. From the repository root, list the available steps:
 
 ```bash
-../../vendor-bin/behat/vendor/bin/behat -dl
+vendor-bin/behat/vendor/bin/behat -dl
 ```
 
 ## Writing steps
