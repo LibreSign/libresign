@@ -21,7 +21,7 @@
 					<span data-test="signer-status">{{ statusLabel }}</span>
 				</template>
 				<template v-else-if="signer.signed">
-					<!-- TRANSLATORS: Date on which this signer signed the document, not the certificate expiry date. -->
+					<!-- TRANSLATORS Date on which this signer signed the document, not the certificate expiry date. -->
 					<strong>{{ t('libresign', 'Signed on:') }}</strong>
 					<span class="signer-signed-at">{{ dateFromSqlAnsi(signer.signed) }}</span>
 				</template>
@@ -92,7 +92,7 @@
 			</template>
 		</NcListItem>
 		<p v-if="isOpen && getCertificateExpirationLabel(signer)" class="certificate-validity-explanation">
-			<!-- TRANSLATORS: Certificate expiry by itself does not set the document expiry or invalidate an already-made signature. -->
+			<!-- TRANSLATORS Certificate expiry by itself does not set the document expiry or invalidate an already-made signature. -->
 			{{ t('libresign', 'The certificate expiry date is not the document expiry date. Expiration after signing does not, by itself, invalidate the signature.') }}
 		</p>
 
@@ -584,10 +584,10 @@ function getCertificateExpirationLabel(signer: SignerModel): string {
 		return ''
 	}
 	if (status === 'expired') {
-		// TRANSLATORS: Label for the date on which the signing certificate expired, not the document.
+		// TRANSLATORS Label for the date on which the signing certificate expired, not the document.
 		return t('libresign', 'Certificate expired on:')
 	}
-	// TRANSLATORS: Label for the future expiration date of the signing certificate, not the document.
+	// TRANSLATORS Label for the future expiration date of the signing certificate, not the document.
 	return t('libresign', 'Certificate expires on:')
 }
 
