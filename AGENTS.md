@@ -104,6 +104,13 @@ the application/web-server user for intentional Nextcloud runtime writes.
 Some tests can alter Nextcloud state, generated certificates, app data or
 runtime files. Prefer focused commands while diagnosing a small change.
 
+## Translator context hints
+
+Follow [CONTRIBUTING.md](CONTRIBUTING.md#translation-strings-and-translator-context)
+and Nextcloud's translation guide. Keep one `t()`/`n()` per source line and
+attach each `TRANSLATORS` hint to its specific string; `TRANSLATORS:` is
+also supported. The `npm run lint` check blocks ambiguous same-line calls.
+
 ## Command discovery and testing map
 
 Use `make help` to discover the project's high-level development tasks. The
