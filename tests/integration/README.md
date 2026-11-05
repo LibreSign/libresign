@@ -63,7 +63,7 @@ to `nextcloud-behat` only to shrink LibreSign code when its wording or behavior
 is specific to LibreSign. To list the available steps:
 
 ```bash
-vendor/bin/behat -dl
+../../vendor-bin/behat/vendor/bin/behat -dl
 ```
 
 ## Writing steps
@@ -74,7 +74,7 @@ New or refactored steps should:
 - keep `Given` for state, `When` for the action and `Then` for the outcome;
 - not mix unrelated actions and assertions in one step;
 - declare explicit parameter types compatible with Behat 4;
-- take a `TableNode` or a `PyStringNode` when structured input reads better than
+- take a `DataTable` or a `DocString` when structured input reads better than
   several positional parameters;
 - not pass state from one scenario to another;
 - keep the existing wording of a step when its meaning is already clear.

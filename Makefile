@@ -140,7 +140,7 @@ test-frontend:
 	npm test $(if $(VITEST_ARGS),-- $(VITEST_ARGS),)
 
 test-behat:
-	cd tests/integration && vendor/bin/behat $(BEHAT_ARGS)
+	cd tests/integration && ../../vendor-bin/behat/vendor/bin/behat $(BEHAT_ARGS)
 
 test-e2e:
 	npm run test:e2e $(if $(PLAYWRIGHT_ARGS),-- $(PLAYWRIGHT_ARGS),)
