@@ -100,12 +100,18 @@ for the selected feature files using the current Behat configuration; it
 does not enable concurrency. If a shard receives no files, Behat is not
 started, to avoid accidentally executing the entire suite.
 
+**Do not run multiple shards concurrently against one Nextcloud installation.**
+Selection does not isolate the database, data directory, cache, users, mail,
+mock services or test reports. Worker isolation and parallel CI belong to #8975.
+
 The algorithm sorts repository-relative feature paths and assigns each file
 by its position modulo `SHARD_TOTAL`. Discovery order therefore cannot change
 assignment for the same revision and shard count. Adding or deleting features
 can change other assignments; duration-based balancing remains future work.
 
-The selector has isolated PHPUnit tests (no Nextcloud runtime required):
+The selector's PHPUnit tests do not need a running Nextcloud instance, but
+the project's standard unit command uses the Nextcloud test bootstrap. Run it
+from the LibreSign repository root in a configured development environment:
 
 ```bash
 composer test:unit -- --filter FeatureShardSelectorTest
