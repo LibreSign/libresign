@@ -106,11 +106,9 @@ runtime files. Prefer focused commands while diagnosing a small change.
 
 ## Translator context hints
 
-Follow [CONTRIBUTING.md](CONTRIBUTING.md#translation-strings-and-translator-context)
-and Nextcloud's translation guide. Keep one `t()`/`n()` per source line and
-attach one `TRANSLATORS` hint to each specific string, without a colon
-after the marker. Do not repeat consecutive hints. The `npm run lint` check
-blocks ambiguous same-line calls, colon-prefixed hints and repeated hints.
+Follow the [LibreSign translation guide](https://docs.libresign.coop/developer_manual/translation.html)
+for the code conventions and the maintained contributor examples.
+The `npm run lint:translator-hints` check enforces the source structure.
 
 ## Command discovery and testing map
 
