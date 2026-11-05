@@ -26,7 +26,7 @@
 							<template #icon>
 								<NcIconSvgWrapper :path="mdiCheckCircle" :size="20" />
 							</template>
-							{{ t('libresign', 'Signed') }}
+							{{ t('libresign', 'Approved') }}
 						</NcActionButton>
 
 						<NcActionButton type="radio"
@@ -143,12 +143,12 @@
 										</NcActionButton>
 									</template>
 									<NcActionButton v-if="doc.file?.status === FILE_STATUS.ABLE_TO_SIGN"
-										:aria-label="t('libresign', 'Sign')"
+										:aria-label="t('libresign', 'Review and approve')"
 										@click="openApprove(doc)">
 										<template #icon>
 											<NcIconSvgWrapper :path="mdiPencil" :size="20" />
 										</template>
-										{{ t('libresign', 'Sign') }}
+										{{ t('libresign', 'Review and approve') }}
 									</NcActionButton>
 									<NcActionButton @click="deleteDocument(doc)">
 										<template #icon>
@@ -245,7 +245,7 @@ defineOptions({
 const SORT_FIELDS: readonly SortField[] = ['owner', 'file_type', 'status']
 const STATUS_OPTIONS: StatusOption[] = [
 	// TRANSLATORS Filter status label meaning the document already has the required signature approval result.
-	{ value: 'signed', label: t('libresign', 'Signed') },
+	{ value: 'signed', label: t('libresign', 'Approved') },
 	// TRANSLATORS Filter status label meaning the document is still waiting for validation or approval.
 	{ value: 'pending', label: t('libresign', 'Pending') },
 ]

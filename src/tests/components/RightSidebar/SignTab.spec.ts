@@ -152,6 +152,19 @@ describe('SignTab', () => {
 			expect(wrapper.find('.document-status').text()).toContain('Draft')
 		})
 
+		it('shows approval-specific status only in the document approval route', async () => {
+			signStore.document = createDocument({
+				status: FILE_STATUS.ABLE_TO_SIGN,
+				statusText: 'Ready to sign',
+			})
+			wrapper = await createWrapper('/f/id-docs/approve/file-uuid')
+			expect(wrapper.find('.document-status__text').text()).toBe('Ready for approval')
+
+			wrapper.unmount()
+			wrapper = await createWrapper('/f/sign/file-uuid')
+			expect(wrapper.find('.document-status__text').text()).toBe('Ready to sign')
+		})
+
 		it('returns true for ABLE_TO_SIGN status', async () => {
 			signStore.document = createDocument({ status: FILE_STATUS.ABLE_TO_SIGN })
 			wrapper = await createWrapper()
