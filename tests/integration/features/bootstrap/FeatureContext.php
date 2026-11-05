@@ -6,16 +6,16 @@ declare(strict_types=1);
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
 
-use Behat\Gherkin\Node\TableNode;
 use Behat\Hook\AfterSuite;
 use Behat\Hook\BeforeScenario;
 use Behat\Hook\BeforeSuite;
+use Behat\Step\DataTable;
 use Behat\Step\Given;
 use Behat\Testwork\Hook\Scope\BeforeSuiteScope;
 use LibreSign\Behat\MailpitExtension\Context\OpenedEmailStorageAwareContext;
 use LibreSign\Behat\MailpitExtension\Service\OpenedEmailStorage;
 use Libresign\NextcloudBehat\NextcloudApiContext;
-use PHPUnit\Framework\Assert;
+use Webmozart\Assert\Assert;
 
 /**
  * Defines application features from the specific context.
@@ -83,7 +83,7 @@ class FeatureContext extends NextcloudApiContext implements OpenedEmailStorageAw
 	private function getSmallValidPdfBase64(): string {
 		$pdfPath = __DIR__ . '/../../../php/fixtures/pdfs/small_valid.pdf';
 		$contents = file_get_contents($pdfPath);
-		Assert::assertNotFalse($contents, 'Demo PDF fixture missing: ' . $pdfPath);
+		Assert::notSame($contents, false, 'Demo PDF fixture missing: ' . $pdfPath);
 		return 'data:application/pdf;base64,' . base64_encode($contents);
 	}
 
@@ -96,12 +96,12 @@ class FeatureContext extends NextcloudApiContext implements OpenedEmailStorageAw
 		/** @var \rpkamp\Mailhog\Message\Message $openedEmail */
 		$openedEmail = $this->openedEmailStorage->getOpenedEmail();
 		preg_match('/p\/sign\/(?<uuid>[\w-]+)"/', $openedEmail->body, $matches);
-		Assert::assertArrayHasKey('uuid', $matches, 'UUID not found on email');
+		Assert::keyExists($matches, 'uuid', 'UUID not found on email');
 		$this->fields['SIGN_REQUEST_UUID'] = $matches['uuid'];
 	}
 
 	#[Given('I send a file to be signed')]
-	public function iSendAFileToBeSigned(TableNode $body): void {
+	public function iSendAFileToBeSigned(DataTable $body): void {
 		$this->sendOCSRequest('post', '/apps/libresign/api/v1/request-signature', $body);
 	}
 
@@ -143,7 +143,7 @@ class FeatureContext extends NextcloudApiContext implements OpenedEmailStorageAw
 	}
 
 	#[Given('user :user has the following notifications')]
-	public function userNotifications(string $user, ?TableNode $body = null): void {
+	public function userNotifications(string $user, ?DataTable $body = null): void {
 		$this->setCurrentUser($user);
 		$this->sendOCSRequest(
 			'GET', '/apps/notifications/api/v2/notifications'
@@ -156,10 +156,10 @@ class FeatureContext extends NextcloudApiContext implements OpenedEmailStorageAw
 		$data = $jsonBody['ocs']['data'];
 
 		if ($body === null) {
-			Assert::assertCount(0, $data);
+			Assert::count($data, 0);
 			return;
 		}
-		$expectedValues = $body->getColumnsHash();
+		$expectedValues = $body->asMaps();
 		foreach ($expectedValues as $expected) {
 			ksort($expected);
 			$found = false;
@@ -204,7 +204,7 @@ class FeatureContext extends NextcloudApiContext implements OpenedEmailStorageAw
 		$found = current($found);
 
 		preg_match('/f\/sign\/(?<uuid>[\w-]+)\/pdf$/', $found['link'], $matches);
-		Assert::assertArrayHasKey('uuid', $matches, 'UUID not found on email');
+		Assert::keyExists($matches, 'uuid', 'UUID not found on email');
 		$this->fields['SIGN_REQUEST_UUID'] = $matches['uuid'];
 	}
 
@@ -213,7 +213,7 @@ class FeatureContext extends NextcloudApiContext implements OpenedEmailStorageAw
 		$filePath = __DIR__ . '/../assets/' . $source;
 		$content = file_exists($filePath) ? file_get_contents($filePath) : "%PDF-1.4\n1 0 obj<</Type/Catalog/Pages 2 0 R>>endobj 2 0 obj<</Type/Pages/Kids[3 0 R]/Count 1>>endobj 3 0 obj<</Type/Page/MediaBox[0 0 612 792]/Parent 2 0 R/Resources<<>>>>endobj\nxref\n0 4\n0000000000 65535 f\n0000000009 00000 n\n0000000052 00000 n\n0000000101 00000 n\ntrailer<</Size 4/Root 1 0 R>>\nstartxref\n178\n%%EOF";
 		$this->sendWebDavRequest($user, 'PUT', $path, $content);
-		Assert::assertContains($this->response->getStatusCode(), [201, 204], 'Failed to upload file');
+		Assert::inArray($this->response->getStatusCode(), [201, 204], 'Failed to upload file');
 	}
 
 	#[Given('user :user gets WebDAV properties for :path')]
