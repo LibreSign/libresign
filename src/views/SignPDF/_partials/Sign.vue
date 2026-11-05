@@ -8,6 +8,7 @@
 			<Signatures v-if="hasSignatures" />
 		</div>
 		<div v-if="!loading" class="button-wrapper">
+			<!-- TRANSLATORS Heading for a reviewer signing a submitted document to record organizational approval. -->
 			<NcNoteCard v-if="isApprovalRoute"
 				:heading="t('libresign', 'Document approval')"
 				type="info">
@@ -92,19 +93,13 @@
 			</div>
 			<div v-else-if="signMethodsStore.needCreatePassword()">
 				<p>
-					<!-- TRANSLATORS The approver must create a signing password before recording approval with a digital signature. -->
-					{{ isApprovalRoute
-						? t('libresign', 'Define your signature password before approving this document.')
-						: t('libresign', 'Please define your sign password') }}
+					{{ passwordSetupInstructionText }}
 				</p>
 				<NcButton :wide="true"
 					:disabled="loading"
 					variant="primary"
 					@click="openModal('createPassword')">
-					<!-- TRANSLATORS Creating the signature password is the first step before signing a document to record approval. -->
-					{{ isApprovalRoute
-						? t('libresign', 'Define a password and sign to approve')
-						: t('libresign', 'Define a password and sign the document.') }}
+					{{ passwordSetupActionLabel }}
 				</NcButton>
 			</div>
 			<div v-else-if="needIdentificationDocuments" class="no-identification-warning">
@@ -130,7 +125,6 @@
 				<template #icon>
 					<NcLoadingIcon v-if="loading" :size="20" />
 				</template>
-				<!-- TRANSLATORS An authorized reviewer signs the submitted document to record approval. -->
 				{{ signActionLabel }}
 			</NcButton>
 			<div v-else>
@@ -155,9 +149,7 @@
 			</NcNoteCard>
 
 			<p class="confirmation-text">
-				{{ isApprovalRoute
-					? t('libresign', 'Confirm that you have reviewed this document and want to sign it to record your approval.')
-					: t('libresign', 'Confirm that you want to sign this document.') }}
+				{{ signConfirmationText }}
 			</p>
 
 			<template #actions>
@@ -172,7 +164,6 @@
 					<template #icon>
 						<NcLoadingIcon v-if="loading" :size="20" />
 					</template>
-					<!-- TRANSLATORS Dialog action button that confirms signing the current document. -->
 					{{ signActionLabel }}
 				</NcButton>
 			</template>
@@ -192,9 +183,7 @@
 			</NcNoteCard>
 
 			<p class="confirmation-text">
-				{{ isApprovalRoute
-					? t('libresign', 'Enter your signature password to sign and approve the document.')
-					: t('libresign', 'Enter your signature password to sign the document.') }}
+				{{ signPasswordInstructionText }}
 			</p>
 
 			<form @submit.prevent="signWithPassword()">
@@ -216,7 +205,6 @@
 					<template #icon>
 						<NcLoadingIcon v-if="loading" :size="20" />
 					</template>
-					<!-- TRANSLATORS Dialog action button that signs the current document after password entry. -->
 					{{ signActionLabel }}
 				</NcButton>
 			</template>
@@ -548,13 +536,54 @@ const signaturePasswordLabel = t('libresign', 'Signature password')
 
 const route = useRoute()
 const isApprovalRoute = computed(() => route.name === 'IdDocsApprove')
-// TRANSLATORS Button and dialog action for an authorized reviewer to record approval through a digital signature.
-const signActionLabel = computed(() => isApprovalRoute.value
-	? t('libresign', 'Sign and approve document')
-	: t('libresign', 'Sign document'))
-const signDocumentDialogTitle = computed(() => isApprovalRoute.value
-	? t('libresign', 'Document approval')
-	: t('libresign', 'Sign document'))
+const signActionLabel = computed(() => {
+	if (isApprovalRoute.value) {
+		// TRANSLATORS Action to sign a reviewed document and record its approval by the authorized reviewer.
+		return t('libresign', 'Sign and approve document')
+	}
+	// TRANSLATORS Action to digitally sign a document as an ordinary signer, without approving a submitted document.
+	return t('libresign', 'Sign document')
+})
+const signDocumentDialogTitle = computed(() => {
+	if (isApprovalRoute.value) {
+		// TRANSLATORS Title of the dialog used by a reviewer who is approving a submitted document.
+		return t('libresign', 'Document approval')
+	}
+	// TRANSLATORS Title of the confirmation dialog shown during ordinary document signing.
+	return t('libresign', 'Sign document')
+})
+const passwordSetupInstructionText = computed(() => {
+	if (isApprovalRoute.value) {
+		// TRANSLATORS Asks a reviewer to create their own signature password before approving a submitted document.
+		return t('libresign', 'Define your signature password before approving this document.')
+	}
+	// TRANSLATORS Asks an ordinary signer to create a password before signing a document.
+	return t('libresign', 'Please define your sign password')
+})
+const passwordSetupActionLabel = computed(() => {
+	if (isApprovalRoute.value) {
+		// TRANSLATORS Action to set up a signature password, then digitally sign a submitted document to record approval.
+		return t('libresign', 'Define a password and sign to approve')
+	}
+	// TRANSLATORS Action to create a signature password and then sign a document as an ordinary signer.
+	return t('libresign', 'Define a password and sign the document.')
+})
+const signConfirmationText = computed(() => {
+	if (isApprovalRoute.value) {
+		// TRANSLATORS Confirms the reviewer has examined the submitted document and wants to sign it to record approval.
+		return t('libresign', 'Confirm that you have reviewed this document and want to sign it to record your approval.')
+	}
+	// TRANSLATORS Confirmation prompt for an ordinary signer before applying a digital signature.
+	return t('libresign', 'Confirm that you want to sign this document.')
+})
+const signPasswordInstructionText = computed(() => {
+	if (isApprovalRoute.value) {
+		// TRANSLATORS Asks the reviewer for their signature password to record approval of a submitted document.
+		return t('libresign', 'Enter your signature password to sign and approve the document.')
+	}
+	// TRANSLATORS Asks an ordinary signer for their signature password to sign the current document.
+	return t('libresign', 'Enter your signature password to sign the document.')
+})
 const signStore = useSignStore() as SignStoreContract
 const signMethodsStore = useSignMethodsStore() as SignMethodsStoreContract
 const signatureElementsStore = useSignatureElementsStore() as SignatureElementsStoreContract
