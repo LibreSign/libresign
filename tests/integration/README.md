@@ -78,3 +78,35 @@ New or refactored steps should:
   several positional parameters;
 - not pass state from one scenario to another;
 - keep the existing wording of a step when its meaning is already clear.
+
+## Deterministic feature sharding
+
+The optional feature selector partitions complete `.feature` files; it does not
+split scenarios, change semantic tags or launch parallel workers. Shards are
+zero-based, and **both** `SHARD_INDEX` and `SHARD_TOTAL` are required.
+
+From `tests/integration`:
+
+```bash
+SHARD_INDEX=0 SHARD_TOTAL=4 php sharding/behat-shard.php --list
+SHARD_INDEX=0 SHARD_TOTAL=4 php sharding/behat-shard.php --verify
+SHARD_INDEX=0 SHARD_TOTAL=4 php sharding/behat-shard.php --run -- -f pretty
+```
+
+`--list` prints only the selected paths and never starts Behat or Nextcloud.
+`--verify` checks the complete union and absence of overlap for every shard,
+also without a Nextcloud installation. `--run` starts **one** Behat process
+for the selected feature files using the current Behat configuration; it
+does not enable concurrency. If a shard receives no files, Behat is not
+started, to avoid accidentally executing the entire suite.
+
+The algorithm sorts repository-relative feature paths and assigns each file
+by its position modulo `SHARD_TOTAL`. Discovery order therefore cannot change
+assignment for the same revision and shard count. Adding or deleting features
+can change other assignments; duration-based balancing remains future work.
+
+The selector has isolated PHPUnit tests (no Nextcloud runtime required):
+
+```bash
+vendor/bin/phpunit --no-coverage sharding/FeatureShardSelectorTest.php
+```
