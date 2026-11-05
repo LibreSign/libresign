@@ -15,7 +15,7 @@
 		<!-- Step 1: Email mode -->
 		<div v-if="mode === 'email' && step1Active" class="step-content">
 			<p class="step-explanation">
-				{{ t('libresign', 'To verify your identity, enter the same email address where you received the signature request. We will send a verification code to this address.') }}
+				{{ emailInstructionText }}
 			</p>
 			<div v-if="signMethodsStore.blurredEmail().length > 0" class="email">
 				{{ signMethodsStore.blurredEmail() }}
@@ -38,7 +38,7 @@
 		<div v-else-if="mode === 'token' && step1Active" class="step-content">
 			<p class="step-explanation">
 				<!-- TRANSLATORS: Instruction shown when the signer must verify via a messaging channel. "contact information" here means a phone number used for SMS, WhatsApp, Telegram, Signal, or XMPP. -->
-				{{ t('libresign', 'To sign this document, we must verify your identity. Enter your contact information to receive a verification code.') }}
+				{{ tokenInstructionText }}
 			</p>
 			<!-- TRANSLATORS: Label and placeholder for the phone number input field used to receive a verification code via SMS, WhatsApp, Telegram, Signal, or XMPP. "Contact information" here means a phone number, not a generic address book entry. -->
 			<NcTextField v-model="newPhoneNumber"
@@ -81,7 +81,9 @@
 				</p>
 				<p class="signature-ready">
 					<!-- TRANSLATORS: Follow-up message shown right after identity verification succeeds, inviting the signer to proceed with signing the document. -->
-					{{ t('libresign', 'You can now sign the document.') }}
+					{{ isApprovalContext
+						? t('libresign', 'You can now sign to record your approval of the document.')
+						: t('libresign', 'You can now sign the document.') }}
 				</p>
 			</div>
 		</div>
@@ -131,7 +133,7 @@
 				<template #icon>
 					<NcLoadingIcon v-if="loading" :size="20" />
 				</template>
-				{{ t('libresign', 'Sign document') }}
+				{{ isApprovalContext ? t('libresign', 'Sign and approve document') : t('libresign', 'Sign document') }}
 			</NcButton>
 		</template>
 	</NcDialog>Step 1
@@ -172,9 +174,11 @@ const props = withDefaults(defineProps<{
 	mode: Mode
 	phoneNumber?: string
 	purpose?: Purpose
+	approvalContext?: boolean
 }>(), {
 	phoneNumber: '',
 	purpose: 'sign',
+	approvalContext: false,
 })
 
 const emit = defineEmits<{
@@ -252,6 +256,14 @@ type RequestCodeError = {
 	}
 	message?: string
 }
+
+const isApprovalContext = computed(() => props.approvalContext && props.purpose === 'sign')
+const emailInstructionText = computed(() => isApprovalContext.value
+	? t('libresign', 'Confirm the email address associated with your own account. We will send a verification code to verify you as the approver.')
+	: t('libresign', 'To verify your identity, enter the same email address where you received the signature request. We will send a verification code to this address.'))
+const tokenInstructionText = computed(() => isApprovalContext.value
+	? t('libresign', 'To sign and approve this document, verify your own account using a confirmation code sent to your contact information.')
+	: t('libresign', 'To sign this document, we must verify your identity. Enter your contact information to receive a verification code.'))
 
 const signStore = useSignStore() as SignStore
 const signMethodsStore = useSignMethodsStore() as SignMethodsStore
@@ -494,6 +506,9 @@ defineExpose({
 	step1Active,
 	step2Active,
 	dialogTitle,
+	isApprovalContext,
+	emailInstructionText,
+	tokenInstructionText,
 	progressText,
 	codeExplanationText,
 	displayContact,
