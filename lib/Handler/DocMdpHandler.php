@@ -55,7 +55,7 @@ class DocMdpHandler {
 		if ($docmdpLevel->isCertifying() && $this->isOnlySingleDocMdpViolation($isoStatus)) {
 			$result['docmdp_validation'] = [
 				'valid' => false,
-				// TRANSLATORS: Validation message shown for a PDF with more than one DocMDP (document modification policy) certifying signature. Only the first certifying signature defines the document permission level.
+				// TRANSLATORS Validation message shown for a PDF with more than one DocMDP (document modification policy) certifying signature. Only the first certifying signature defines the document permission level.
 				'message' => $this->l10n->t('Multiple DocMDP signatures detected. The first certifying signature determines the document\'s permission level.'),
 			];
 		}
@@ -284,7 +284,7 @@ class DocMdpHandler {
 	 */
 	private function validateModifications(DocMdpLevel $docmdpLevel, array $modificationInfo, $pdfResource): array {
 		if (!$modificationInfo['modified']) {
-			// TRANSLATORS: Validation result for a signed PDF that was not changed after the signature was applied.
+			// TRANSLATORS Validation result for a signed PDF that was not changed after the signature was applied.
 			return $this->buildValidationResult(
 				true,
 				File::MODIFICATION_UNMODIFIED,
@@ -293,7 +293,7 @@ class DocMdpHandler {
 		}
 
 		if ($docmdpLevel === DocMdpLevel::NOT_CERTIFIED) {
-			// TRANSLATORS: Validation result for a signed PDF that was modified, but the document has no DocMDP certification restrictions.
+			// TRANSLATORS Validation result for a signed PDF that was modified, but the document has no DocMDP certification restrictions.
 			return $this->buildValidationResult(
 				true,
 				File::MODIFICATION_ALLOWED,
@@ -305,7 +305,7 @@ class DocMdpHandler {
 		$allowedTypes = self::ALLOWED_MODIFICATIONS[$docmdpLevel->name] ?? null;
 
 		if ($allowedTypes === null) {
-			// TRANSLATORS: Validation error for a signed PDF modified in a way that violates its DocMDP (document modification policy) certification rules.
+			// TRANSLATORS Validation error for a signed PDF modified in a way that violates its DocMDP (document modification policy) certification rules.
 			return $this->buildValidationResult(
 				false,
 				File::MODIFICATION_VIOLATION,
@@ -352,13 +352,13 @@ class DocMdpHandler {
 	 */
 	private function getAllowedModificationMessage(DocMdpLevel $level): string {
 		return match ($level) {
-			// TRANSLATORS: Validation error for a certified PDF with DocMDP level P=1, which does not allow any change after signing.
+			// TRANSLATORS Validation error for a certified PDF with DocMDP level P=1, which does not allow any change after signing.
 			DocMdpLevel::CERTIFIED_NO_CHANGES_ALLOWED => $this->l10n->t('Invalid: Document was modified after signing (DocMDP violation - no changes allowed)'),
-			// TRANSLATORS: Validation result for a certified PDF with DocMDP level P=2. Only form field completion is allowed after signing.
+			// TRANSLATORS Validation result for a certified PDF with DocMDP level P=2. Only form field completion is allowed after signing.
 			DocMdpLevel::CERTIFIED_FORM_FILLING => $this->l10n->t('Document form fields were modified (allowed by DocMDP P=2)'),
-			// TRANSLATORS: Validation result for a certified PDF with DocMDP level P=3. Form field completion and annotations are allowed after signing.
+			// TRANSLATORS Validation result for a certified PDF with DocMDP level P=3. Form field completion and annotations are allowed after signing.
 			DocMdpLevel::CERTIFIED_FORM_FILLING_AND_ANNOTATIONS => $this->l10n->t('Document form fields or annotations were modified (allowed by DocMDP P=3)'),
-			// TRANSLATORS: Generic validation result for a signed PDF that was modified after signing.
+			// TRANSLATORS Generic validation result for a signed PDF that was modified after signing.
 			default => $this->l10n->t('Document was modified after signing'),
 		};
 	}
@@ -371,13 +371,13 @@ class DocMdpHandler {
 	 */
 	private function getViolationMessage(DocMdpLevel $level): string {
 		return match ($level) {
-			// TRANSLATORS: Validation error for a certified PDF with DocMDP level P=1, which does not allow any change after signing.
+			// TRANSLATORS Validation error for a certified PDF with DocMDP level P=1, which does not allow any change after signing.
 			DocMdpLevel::CERTIFIED_NO_CHANGES_ALLOWED => $this->l10n->t('Invalid: Document was modified after signing (DocMDP violation - no changes allowed)'),
-			// TRANSLATORS: Validation error for a certified PDF with DocMDP level P=2. Only form field completion is allowed after signing.
+			// TRANSLATORS Validation error for a certified PDF with DocMDP level P=2. Only form field completion is allowed after signing.
 			DocMdpLevel::CERTIFIED_FORM_FILLING => $this->l10n->t('Invalid: Document was modified after signing (DocMDP P=2 only allows form field changes)'),
-			// TRANSLATORS: Validation error for a certified PDF with DocMDP level P=3. Only form field completion and annotations are allowed after signing.
+			// TRANSLATORS Validation error for a certified PDF with DocMDP level P=3. Only form field completion and annotations are allowed after signing.
 			DocMdpLevel::CERTIFIED_FORM_FILLING_AND_ANNOTATIONS => $this->l10n->t('Invalid: Document was modified after signing (DocMDP P=3 only allows form fields and annotations)'),
-			// TRANSLATORS: Generic validation error for a signed PDF modified in a way that violates DocMDP (document modification policy) certification rules.
+			// TRANSLATORS Generic validation error for a signed PDF modified in a way that violates DocMDP (document modification policy) certification rules.
 			default => $this->l10n->t('Invalid: Document was modified after signing (DocMDP violation)'),
 		};
 	}

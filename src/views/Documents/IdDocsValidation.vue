@@ -26,8 +26,6 @@
 								<NcIconSvgWrapper :path="mdiCheckCircle" :size="20" />
 							</template>
 							<!-- TRANSLATORS Filter for documents that have already been approved by an authorized reviewer. -->
-							<!-- TRANSLATORS Filter for documents that have already been approved by an authorized reviewer. -->
-							<!-- TRANSLATORS Filter for documents that have already been approved by an authorized reviewer. -->
 							{{ t('libresign', 'Approved') }}
 						</NcActionButton>
 
@@ -37,8 +35,6 @@
 							<template #icon>
 								<NcIconSvgWrapper :path="mdiClockAlert" :size="20" />
 							</template>
-							<!-- TRANSLATORS Filter for documents that have not yet completed the approval workflow. -->
-							<!-- TRANSLATORS Filter for documents that have not yet completed the approval workflow. -->
 							<!-- TRANSLATORS Filter for documents that have not yet completed the approval workflow. -->
 							{{ t('libresign', 'Pending') }}
 						</NcActionButton>
@@ -135,7 +131,7 @@
 											<template #icon>
 												<NcIconSvgWrapper :path="mdiEye" :size="20" />
 											</template>
-											<!-- TRANSLATORS: "Validate" here is a technical process: checking the cryptographic integrity of the signatures, the certificate chain and revocation status. It does NOT mean approving or authorizing something. -->
+											<!-- TRANSLATORS "Validate" here is a technical process: checking the cryptographic integrity of the signatures, the certificate chain and revocation status. It does NOT mean approving or authorizing something. -->
 											{{ t('libresign', 'Validate') }}
 										</NcActionButton>
 									</template>
