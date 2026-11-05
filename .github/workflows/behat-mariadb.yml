@@ -168,14 +168,14 @@ jobs:
           ./occ config:app:set dav enableDefaultContact --value false --type boolean
 
       - name: Run behat
-        working-directory: apps/${{ env.APP_NAME }}/tests/integration
+        working-directory: apps/${{ env.APP_NAME }}
         env:
-          BEHAT_ROOT_DIR: ../../../../
+          BEHAT_ROOT_DIR: ${{ github.workspace }}
         run: |
           export BEHAT_RUN_AS=runner
           export BEHAT_VERBOSE="$RUNNER_DEBUG"
-          mkdir -p output
-          ../../vendor-bin/behat/vendor/bin/behat -f junit -o output -f pretty -o std --colors
+          mkdir -p tests/integration/output
+          vendor-bin/behat/vendor/bin/behat -f junit -o tests/integration/output -f pretty -o std --colors
 
       - name: Print logs
         if: always()
