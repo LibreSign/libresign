@@ -58,6 +58,7 @@ final class PolicySpec implements IPolicyDefinition {
 	 * @param Closure(PolicyContext, ?PolicyLayer, PolicyLayer): bool|null $systemCreatedGroupRuleEditor
 	 * @param list<string> $supportedScopes
 	 * @param list<string> $compositeChildren
+	 * @param bool $retainDefaultInGroupChoices Keep valid defaults in delegated value-choice group options; false preserves sentinel semantics
 	 */
 	public function __construct(
 		private string $key,
@@ -83,6 +84,7 @@ final class PolicySpec implements IPolicyDefinition {
 		private array $compositeChildren = [],
 		?Closure $persistenceValidator = null,
 		?Closure $compositeValidator = null,
+		private bool $retainDefaultInGroupChoices = false,
 	) {
 		$this->allowedValuesResolver = $allowedValues;
 		$this->normalizer = $normalizer;
@@ -104,6 +106,11 @@ final class PolicySpec implements IPolicyDefinition {
 	#[\Override]
 	public function resolutionMode(): string {
 		return $this->resolutionMode;
+	}
+
+	#[\Override]
+	public function retainDefaultInGroupChoices(): bool {
+		return $this->retainDefaultInGroupChoices;
 	}
 
 	/** @return list<string> */

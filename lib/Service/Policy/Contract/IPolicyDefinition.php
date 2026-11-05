@@ -16,6 +16,9 @@ interface IPolicyDefinition {
 
 	public function resolutionMode(): string;
 
+	/** Whether the default value remains a valid group choice in value_choice mode. */
+	public function retainDefaultInGroupChoices(): bool;
+
 	/** @return list<string> */
 	public function supportedScopes(): array;
 

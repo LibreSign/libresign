@@ -18,6 +18,8 @@ use OCA\Libresign\Service\Policy\Model\PolicyLayer;
 use OCA\Libresign\Service\Policy\Model\PolicySpec;
 use OCA\Libresign\Service\Policy\Provider\RequestSignGroups\RequestSignGroupsPolicy;
 use OCA\Libresign\Service\Policy\Provider\RequestSignGroups\RequestSignGroupsPolicyValue;
+use OCA\Libresign\Service\Policy\Provider\SignatureRejection\SignatureRejectionPolicy;
+use OCA\Libresign\Service\Policy\Provider\SignatureRejection\SignatureRejectionPolicyValidator;
 use OCA\Libresign\Service\Policy\Runtime\DefaultPolicyResolver;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
@@ -380,6 +382,78 @@ final class DefaultPolicyResolverTest extends TestCase {
 		$this->assertSame('ordered_numeric', $resolved->getEffectiveValue());
 		$this->assertSame(['parallel', 'ordered_numeric'], $resolved->getAllowedValues());
 		$this->assertTrue($resolved->canUseAsRequestOverride());
+	}
+
+	#[DataProvider('provideSignatureRejectionGroupDefaults')]
+	public function testValueChoicePreservesExplicitSignatureRejectionGroupDefault(
+		string $policyKey,
+		mixed $groupValue,
+		bool $allowChildOverride,
+	): void {
+		$definition = (new SignatureRejectionPolicy(new SignatureRejectionPolicyValidator()))->get($policyKey);
+		$source = new InMemoryPolicySource();
+		$source->systemLayer = (new PolicyLayer())
+			->setScope('global')
+			->setValue($definition->defaultSystemValue())
+			->setAllowChildOverride(true)
+			->setVisibleToChild(true);
+		$source->groupLayers = [
+			(new PolicyLayer())
+				->setScope('group')
+				->setValue($groupValue)
+				->setAllowChildOverride($allowChildOverride)
+				->setVisibleToChild(true)
+				->setAllowedValues($allowChildOverride ? [] : [$groupValue]),
+		];
+
+		$resolved = (new DefaultPolicyResolver($source))->resolve(
+			$definition,
+			PolicyContext::fromUserId('requester'),
+		);
+
+		$this->assertSame($groupValue, $resolved->getEffectiveValue());
+		$this->assertSame('group', $resolved->getSourceScope());
+	}
+
+	/** @return iterable<string, array{0: string, 1: mixed, 2: bool}> */
+	public static function provideSignatureRejectionGroupDefaults(): iterable {
+		$defaults = [
+			SignatureRejectionPolicy::KEY_ENABLED => false,
+			SignatureRejectionPolicy::KEY_BEHAVIOR => 'cancel',
+			SignatureRejectionPolicy::KEY_COMMENT_MODE => 'disabled',
+			SignatureRejectionPolicy::KEY_VISIBILITY => 'requester',
+			SignatureRejectionPolicy::KEY_COMMENT_VISIBILITY => 'requester',
+		];
+
+		foreach ($defaults as $policyKey => $value) {
+			yield $policyKey . ' allows descendants' => [$policyKey, $value, true];
+			yield $policyKey . ' locks descendants' => [$policyKey, $value, false];
+		}
+	}
+
+	public function testValueChoicePreservesSignatureFlowDefaultSentinelBehavior(): void {
+		$source = new InMemoryPolicySource();
+		$source->systemLayer = (new PolicyLayer())
+			->setScope('global')
+			->setValue('none')
+			->setAllowChildOverride(true)
+			->setVisibleToChild(true);
+		$source->groupLayers = [
+			(new PolicyLayer())
+				->setScope('group')
+				->setValue('none')
+				->setAllowChildOverride(true)
+				->setVisibleToChild(true)
+				->setAllowedValues([]),
+		];
+
+		$resolved = (new DefaultPolicyResolver($source))->resolve(
+			$this->getValueChoiceDefinition(),
+			PolicyContext::fromUserId('requester'),
+		);
+
+		$this->assertSame('parallel', $resolved->getEffectiveValue());
+		$this->assertSame(['parallel', 'ordered_numeric'], $resolved->getAllowedValues());
 	}
 
 	public function testResolveDoesNotApplyGroupValueWhenSystemBlocksOverride(): void {
