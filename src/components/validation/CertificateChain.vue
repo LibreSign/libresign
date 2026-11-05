@@ -11,7 +11,7 @@
 			:aria-expanded="chainOpen ? 'true' : 'false'"
 			@click="chainOpen = !chainOpen">
 			<template #name>
-				<!-- TRANSLATORS: "Certificate chain" is the sequence of digital identity cards that prove who signed the document — starting with the signer's own certificate and going up to the authority that vouches for everyone (the root CA). Like a chain of trust: "I trust you because this institution trusts you." -->
+				<!-- TRANSLATORS "Certificate chain" is the sequence of digital identity cards that prove who signed the document — starting with the signer's own certificate and going up to the authority that vouches for everyone (the root CA). Like a chain of trust: "I trust you because this institution trusts you." -->
 				<strong>{{ t('libresign', 'Certificate chain') }}</strong>
 			</template>
 			<template #extra-actions>
@@ -28,7 +28,7 @@
 			</template>
 		</NcListItem>
 
-		<!-- TRANSLATORS: Label read aloud by screen readers (for blind users) when they navigate into this section. It is not visible on screen. Describes the area that shows the certificate chain (the sequence of digital identity cards behind the signature) -->
+		<!-- TRANSLATORS Label read aloud by screen readers (for blind users) when they navigate into this section. It is not visible on screen. Describes the area that shows the certificate chain (the sequence of digital identity cards behind the signature) -->
 		<div v-if="chainOpen" class="chain-wrapper" role="region" :aria-label="t('libresign', 'Certificate chain details')">
 			<div v-for="(cert, certIndex) in chain"
 				:key="certIndex"
@@ -40,12 +40,12 @@
 						<dd>{{ cert.subject?.CN || cert.name || cert.displayName }}</dd>
 					</div>
 					<div v-if="cert.issuer?.CN" class="cert-field cert-issuer">
-						<!-- TRANSLATORS: Label shown next to the name of the organization or authority (Certificate Authority, CA) that issued and digitally signed the certificate, vouching for authenticity. Like the government agency that issues a passport. -->
+						<!-- TRANSLATORS Label shown next to the name of the organization or authority (Certificate Authority, CA) that issued and digitally signed the certificate, vouching for authenticity. Like the government agency that issues a passport. -->
 						<dt>{{ t('libresign', 'Issued by:') }}</dt>
 						<dd>{{ cert.issuer.CN }}</dd>
 					</div>
 					<div v-if="cert.serialNumber" class="cert-field">
-						<!-- TRANSLATORS: Label shown next to the unique number assigned to a certificate by the issuing authority (CA), used to identify and, if necessary, revoke it. Like a passport number — every certificate has a different one. -->
+						<!-- TRANSLATORS Label shown next to the unique number assigned to a certificate by the issuing authority (CA), used to identify and, if necessary, revoke it. Like a passport number — every certificate has a different one. -->
 						<dt>{{ t('libresign', 'Serial Number:') }}</dt>
 						<dd>
 							{{ cert.serialNumber }}
@@ -55,12 +55,12 @@
 						</dd>
 					</div>
 					<div v-if="cert.validFrom_time_t" class="cert-field">
-						<!-- TRANSLATORS: Label shown next to the date and time from which a certificate becomes valid. Before that date the certificate cannot be trusted, even if it looks genuine. -->
+						<!-- TRANSLATORS Label shown next to the date and time from which a certificate becomes valid. Before that date the certificate cannot be trusted, even if it looks genuine. -->
 						<dt>{{ t('libresign', 'Certificate valid from:') }}</dt>
 						<dd>{{ formatTimestamp(cert.validFrom_time_t) }}</dd>
 					</div>
 					<div v-if="cert.validTo_time_t" class="cert-field">
-						<!-- TRANSLATORS: The date and time after which this certificate expires and can no longer be trusted. Like an expiry date on an ID card. -->
+						<!-- TRANSLATORS The date and time after which this certificate expires and can no longer be trusted. Like an expiry date on an ID card. -->
 						<dt>{{ t('libresign', 'Certificate valid until:') }}</dt>
 						<dd>{{ formatTimestamp(cert.validTo_time_t) }}</dd>
 					</div>

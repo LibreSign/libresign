@@ -35,7 +35,7 @@ class MessagesLoader {
 		if (isset($fileData->settings['canSign']) && $fileData->settings['canSign']) {
 			$messages[] = [
 				'type' => 'info',
-				// TRANSLATORS: Informational message shown in the file details UI when the current user is one of the required signers and still needs to sign the document.
+				// TRANSLATORS Informational message shown in the file details UI when the current user is one of the required signers and still needs to sign the document.
 				'message' => $this->l10n->t('You need to sign this document')
 			];
 		}
@@ -50,7 +50,7 @@ class MessagesLoader {
 			if (empty($fileData->signers)) {
 				$messages[] = [
 					'type' => 'info',
-					// TRANSLATORS: Informational message shown when the current user can request signatures in general, but no eligible signer can be added for this specific document.
+					// TRANSLATORS Informational message shown when the current user can request signatures in general, but no eligible signer can be added for this specific document.
 					'message' => $this->l10n->t('You cannot create a signature request for this document. Please contact your administrator.')
 				];
 			}

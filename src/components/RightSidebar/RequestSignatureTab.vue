@@ -746,12 +746,12 @@ function notificationIssueFromStatus(status: NotificationStatus | null): Notific
 	return {
 		type: allFailed ? 'error' : 'warning',
 		message: allFailed
-			// TRANSLATORS: Every delivery method failed or was canceled.
+			// TRANSLATORS Every delivery method failed or was canceled.
 			? t('libresign', 'Could not send the notification. Check the request before trying again.')
 			: status?.status === 'attention_required'
-				// TRANSLATORS: At least one delivery method has an uncertain or failed result. Retrying may cause duplicates.
+				// TRANSLATORS At least one delivery method has an uncertain or failed result. Retrying may cause duplicates.
 				? t('libresign', 'Some notifications may not have been sent. Check with the signer before trying again.')
-				// TRANSLATORS: The result of the sending request is unknown. Retrying may send a duplicate.
+				// TRANSLATORS The result of the sending request is unknown. Retrying may send a duplicate.
 				: t('libresign', 'Could not check whether the notification was sent. Ask the signer before trying again.'),
 		channels,
 	}
@@ -1705,7 +1705,7 @@ async function sendNotify(signer: EditableRequestSigner): Promise<void> {
 			// Keep actionable validation errors from the server; no duplicate status card.
 			showRequestError(result.error, t('libresign', 'Could not send the notification'))
 		} else if (result.kind === 'accepted') {
-			// TRANSLATORS: A delivery service accepted the message, but the recipient's receipt is not known.
+			// TRANSLATORS A delivery service accepted the message, but the recipient's receipt is not known.
 			showSuccess(t('libresign', 'Notification sent for delivery'))
 		} else {
 			notificationIssues.value[signerId] = notificationIssueFromStatus(latestStatus)
