@@ -116,6 +116,12 @@ async function clickRuleMenuAction(page: Page, actionName: 'Edit'): Promise<bool
 	return actionItem.click({ timeout: 1500 }).then(() => true).catch(() => false)
 }
 
+async function openEveryoneRuleActions(dialog: Locator): Promise<void> {
+	const everyoneRow = dialog.locator('tbody tr').filter({ hasText: /\bEveryone\b/i }).first()
+	await expect(everyoneRow).toBeVisible({ timeout: 8000 })
+	await everyoneRow.getByRole('button', { name: 'Rule actions' }).first().click()
+}
+
 async function openExistingEveryoneRuleEditor(dialog: Locator): Promise<void> {
 	const page = dialog.page()
 	const changeButton = dialog.getByRole('button', { name: /^Change$/i }).first()
@@ -124,9 +130,7 @@ async function openExistingEveryoneRuleEditor(dialog: Locator): Promise<void> {
 		return
 	}
 
-	const everyoneRow = dialog.locator('tbody tr').filter({ hasText: /^Everyone\b/i }).first()
-	await expect(everyoneRow).toBeVisible({ timeout: 8000 })
-	await everyoneRow.getByRole('button', { name: 'Rule actions' }).first().click()
+	await openEveryoneRuleActions(dialog)
 	const edited = await clickRuleMenuAction(page, 'Edit')
 	expect(edited, 'Expected Edit action for existing Everyone rule').toBe(true)
 }
@@ -165,6 +169,18 @@ async function selectEveryoneScopeOrEditExisting(
 	}
 	await createScopeDialog.waitFor({ state: 'hidden', timeout: 5000 }).catch(() => {})
 	await openExistingEveryoneRuleEditor(dialog)
+}
+
+/**
+ * Opens the Edit action of the Everyone row, not the Change shortcut of the
+ * default summary, which starts a new draft instead of editing the saved rule.
+ */
+export async function openEveryoneRuleFromRowAction(dialog: Locator): Promise<void> {
+	await openEveryoneRuleActions(dialog)
+
+	const editAction = dialog.page().getByRole('menuitem', { name: /^Edit$/i })
+	await expect(editAction).toBeVisible({ timeout: 5000 })
+	await editAction.click()
 }
 
 export async function openPolicyWorkbenchSystemRuleEditor(

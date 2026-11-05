@@ -4,7 +4,7 @@
  */
 
 import { beforeEach, describe, expect, it, vi } from 'vitest'
-import { mount } from '@vue/test-utils'
+import { flushPromises, mount } from '@vue/test-utils'
 import { defineComponent, nextTick } from 'vue'
 
 import type { EffectivePolicyState, SignatureFlowMode } from '../../../types/index'
@@ -12,6 +12,7 @@ import { createL10nMock } from '../../testHelpers/l10n.js'
 
 const fetchEffectivePoliciesMock = vi.fn()
 const saveUserPreferenceMock = vi.fn()
+const saveUserPreferenceCompoundMock = vi.fn()
 const clearUserPreferenceMock = vi.fn()
 const getPolicyMock = vi.fn<(policyKey: string) => EffectivePolicyState | null>()
 const loadStateMock = vi.fn()
@@ -39,6 +40,7 @@ vi.mock('../../../store/policies', () => ({
 	usePoliciesStore: () => ({
 		fetchEffectivePolicies: fetchEffectivePoliciesMock,
 		saveUserPreference: saveUserPreferenceMock,
+		saveUserPreferenceCompound: saveUserPreferenceCompoundMock,
 		clearUserPreference: clearUserPreferenceMock,
 		getPolicy: getPolicyMock,
 	}),
@@ -185,6 +187,7 @@ describe('Preferences view', () => {
 		userConfigOnUpdateMock.mockReset()
 		delete userConfigState.warn_without_visible_signature_fields
 		saveUserPreferenceMock.mockReset().mockResolvedValue(undefined)
+		saveUserPreferenceCompoundMock.mockReset().mockResolvedValue(null)
 		clearUserPreferenceMock.mockReset().mockResolvedValue(undefined)
 		getPolicyMock.mockReset().mockReturnValue({
 			policyKey: 'signature_flow',
@@ -710,6 +713,49 @@ describe('Preferences view', () => {
 		expect(wrapper.text()).not.toContain('Collect signer metadata')
 		expect(wrapper.vm.preferenceEntries.some((entry: { definition: { key: string } }) => entry.definition.key === 'signature_stamp')).toBe(false)
 		expect(wrapper.findComponent({ name: 'SignatureTextRuleEditor' }).exists()).toBe(false)
+	})
+
+	it('saves signature rejection as the five values instead of an object on the parent key', async () => {
+		const effectiveValues: Record<string, unknown> = {
+			rejection_enabled: false,
+			rejection_behavior: 'cancel',
+			rejection_comment_mode: 'optional',
+			rejection_visibility: 'participants',
+			rejection_comment_visibility: 'requester',
+		}
+		getPolicyMock.mockImplementation((key: string) => key in effectiveValues
+			? createPolicyState({ policyKey: key, effectiveValue: effectiveValues[key] as string, allowedValues: [] })
+			: null)
+
+		const wrapper = await createWrapper()
+		await nextTick()
+		await flushPromises()
+
+		await wrapper.vm.onPreferenceChange('rejection_enabled', {
+			enabled: true,
+			behavior: 'cancel',
+			commentMode: 'optional',
+			visibility: 'participants',
+			commentVisibility: 'requester',
+		})
+		await flushPromises()
+
+		expect(saveUserPreferenceCompoundMock).toHaveBeenCalledWith('rejection_enabled', { ...effectiveValues, rejection_enabled: true })
+		expect(saveUserPreferenceMock).not.toHaveBeenCalled()
+	})
+
+	it('clears the signature rejection preference of the five keys', async () => {
+		const keys = ['rejection_enabled', 'rejection_behavior', 'rejection_comment_mode', 'rejection_visibility', 'rejection_comment_visibility']
+		getPolicyMock.mockImplementation((key: string) => keys.includes(key)
+			? createPolicyState({ policyKey: key, effectiveValue: true, sourceScope: 'user', allowedValues: [] })
+			: null)
+
+		const wrapper = await createWrapper()
+		await flushPromises()
+
+		await (wrapper.vm as unknown as { clearPreferenceByKey: (key: string) => Promise<void> }).clearPreferenceByKey('rejection_enabled')
+
+		expect(clearUserPreferenceMock.mock.calls.map(([key]) => key)).toEqual(keys)
 	})
 
 	it('saves collect metadata changes through the merged signature stamp preference', async () => {

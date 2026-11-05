@@ -31,7 +31,7 @@ const configured = {
 	behavior: 'continue',
 	commentMode: 'required',
 	visibility: 'participants',
-	commentVisibility: 'requester',
+	commentVisibility: 'participants',
 }
 
 const defaults = {
@@ -47,7 +47,7 @@ const configuredKeys = {
 	rejection_behavior: 'continue',
 	rejection_comment_mode: 'required',
 	rejection_visibility: 'participants',
-	rejection_comment_visibility: 'requester',
+	rejection_comment_visibility: 'participants',
 }
 
 /** Persisted layers, written by the compound save mocks and read back on hydration. */
@@ -193,6 +193,36 @@ describe('signature rejection workbench', () => {
 		await vi.waitFor(() => {
 			expect(reloaded.visibleGroupRules).toHaveLength(0)
 		})
+	})
+
+	it.each([
+		{ name: 'enabled', effectiveValue: true, summary: 'Let the others keep signing · Required comment' },
+		{ name: 'disabled', effectiveValue: false, summary: 'Disabled' },
+	])('keeps the $name system value in the fallback and in the current summary', async ({ effectiveValue, summary }) => {
+		getPolicy.mockImplementation((key: string) => {
+			if (key === PARENT_KEY) {
+				return {
+					effectiveValue,
+					sourceScope: 'system',
+					editableByCurrentActor: true,
+					allowedValues: [false, true],
+					meta: { compositeChildren: HELPER_KEYS },
+				}
+			}
+
+			return { effectiveValue: configuredKeys[key as keyof typeof configuredKeys], sourceScope: 'system', editableByCurrentActor: true }
+		})
+
+		const state = createRealPolicyWorkbenchState()
+		state.openSetting(PARENT_KEY)
+		await vi.waitFor(() => {
+			expect(state.rulesLoading).toBe(false)
+		})
+
+		expect(state.systemDefaultRule?.value).toEqual({ ...configured, enabled: effectiveValue })
+		expect(state.inheritedSystemRule?.value).toEqual({ ...configured, enabled: effectiveValue })
+		expect(state.summary?.platformFallback).toBe(summary)
+		expect(state.summary?.currentBaseValue).toBe(summary)
 	})
 
 	it('shows a backend validation error instead of reporting a successful save', async () => {
