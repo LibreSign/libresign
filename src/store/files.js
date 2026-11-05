@@ -433,13 +433,17 @@ const _filesStore = defineStore('files', () => {
 			})
 
 			for (const [, file] of Object.entries(allFiles)) {
+				if (String(file.nodeId) !== String(nodeId)) {
+					continue
+				}
 				store.addFile(file)
 				fileId = file.id
 				break
 			}
 		}
 
-		if (!fileId) {
+		// A forced refresh can remove a temporary negative-id entry.
+		if (!fileId || !files.value[fileId]) {
 			return null
 		}
 

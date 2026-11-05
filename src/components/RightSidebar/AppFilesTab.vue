@@ -122,6 +122,12 @@ const canSignImmediately = computed(() => {
 	return canSignDirectly(policies?.policies?.identify_methods?.effectiveValue ?? null)
 })
 
+function isSelectedNode(nodeId: number | string): boolean {
+	const selectedNodeId = filesStore.getFile()?.nodeId
+	return selectedNodeId !== undefined && selectedNodeId !== null
+		&& String(selectedNodeId) === String(nodeId)
+}
+
 async function signPdfNow() {
 	if (!canSignImmediately.value || !directSignTarget.value) {
 		return
@@ -146,6 +152,9 @@ async function signPdfNow() {
 		} else if (signed === 'prepare') {
 			try {
 				await policiesStore.fetchEffectivePolicies()
+				if (!isSelectedNode(target.nodeId)) {
+					return
+				}
 				const response = await addCurrentAccountAsSigner(
 					filesStore,
 					policiesStore.getEffectiveValue('identify_methods'),
@@ -233,6 +242,9 @@ async function preparePendingSelfSign(nodeId: number | string): Promise<void> {
 	delete window.OCA.Libresign.pendingSelfSignNodeId
 	try {
 		await policiesStore.fetchEffectivePolicies()
+		if (!isSelectedNode(nodeId)) {
+			return
+		}
 		const response = await addCurrentAccountAsSigner(
 			filesStore,
 			policiesStore.getEffectiveValue('identify_methods'),
@@ -388,7 +400,7 @@ const onEnvelopeRenamed = ((payload: NextcloudEvent) => {
 
 const onPrepareSelfSign = ((payload: NextcloudEvent) => {
 	const nodeId = (payload as { nodeId?: number | string })?.nodeId
-	if (nodeId !== undefined && String(filesStore.getFile()?.nodeId) === String(nodeId)) {
+	if (nodeId !== undefined && isSelectedNode(nodeId)) {
 		void preparePendingSelfSign(nodeId)
 	}
 }) as EventHandler<NextcloudEvent>

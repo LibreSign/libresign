@@ -1186,6 +1186,28 @@ describe('files store - critical business rules', () => {
 			expect(store.selectedFileId).toBe(10)
 		})
 
+		it('does not reuse a temporary ID removed by a forced refresh', async () => {
+			const store = useFilesStore()
+			store.files[-222] = { id: -222, nodeId: 222, name: 'temporary.pdf' }
+			vi.spyOn(store, 'getAllFiles').mockImplementation(async () => {
+				delete store.files[-222]
+				return {}
+			})
+
+			expect(await store.selectFileByNodeId(222)).toBeNull()
+			expect(store.selectedFileId).toBe(0)
+		})
+
+		it('does not select a different file returned by a filtered refresh', async () => {
+			const store = useFilesStore()
+			vi.spyOn(store, 'getAllFiles').mockResolvedValue({
+				91: { id: 91, nodeId: 999, name: 'other.pdf' },
+			})
+
+			expect(await store.selectFileByNodeId(222)).toBeNull()
+			expect(store.selectedFileId).toBe(0)
+		})
+
 		it('fetches file when nodeId missing', async () => {
 			const store = useFilesStore()
 			const addFileSpy = vi.spyOn(store, 'addFile')

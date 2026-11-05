@@ -202,6 +202,20 @@ describe('AppFilesTab', () => {
 		vi.mocked(loadState).mockImplementation((_app, _key, fallback) => fallback)
 	})
 
+	it('does not add the account to another PDF if selection changes during policy loading', async () => {
+		let releasePolicy: (() => void) | undefined
+		const pendingPolicy = new Promise<void>((resolve) => { releasePolicy = resolve })
+		vi.spyOn(usePoliciesStore(), 'fetchEffectivePolicies').mockReturnValue(pendingPolicy)
+		vi.spyOn(filesStore, 'getFile').mockReturnValue({ id: -456, nodeId: 456, signers: [] } as ReturnType<typeof filesStore.getFile>)
+		window.OCA = { Libresign: { pendingSelfSignNodeId: 456 } }
+		wrapper = createWrapper()
+		const pending = wrapper.vm.preparePendingSelfSign(456)
+		vi.spyOn(filesStore, 'getFile').mockReturnValue({ id: 789, nodeId: 789, signers: [] } as ReturnType<typeof filesStore.getFile>)
+		releasePolicy?.()
+		await pending
+		expect(addSelfMock).not.toHaveBeenCalled()
+	})
+
 	it('consumes a new self-sign click for an already active node without deferring another request', async () => {
 		wrapper = createWrapper()
 		vi.spyOn(filesStore, 'getFile').mockReturnValue({ id: -456, nodeId: 456, name: 'document.pdf', signers: [] } as ReturnType<typeof filesStore.getFile>)
@@ -223,6 +237,7 @@ describe('AppFilesTab', () => {
 			vi.spyOn(policiesStore, 'fetchEffectivePolicies').mockResolvedValue()
 			vi.spyOn(policiesStore, 'getEffectiveValue').mockReturnValue([{ name: 'account', enabled: true }] as never)
 			addSelfMock.mockClear()
+			vi.spyOn(filesStore, 'getFile').mockReturnValue({ id: -456, nodeId: 456, signers: [] } as ReturnType<typeof filesStore.getFile>)
 			window.OCA = { Libresign: { pendingSelfSignNodeId: 456 } }
 			wrapper = createWrapper()
 			await wrapper.vm.preparePendingSelfSign(123)
@@ -239,6 +254,7 @@ describe('AppFilesTab', () => {
 		it('matches string node identifiers without integer precision loss', async () => {
 			vi.spyOn(usePoliciesStore(), 'fetchEffectivePolicies').mockResolvedValue()
 			addSelfMock.mockClear()
+			vi.spyOn(filesStore, 'getFile').mockReturnValue({ id: -1, nodeId: '9007199254740993', signers: [] } as ReturnType<typeof filesStore.getFile>)
 			window.OCA = { Libresign: { pendingSelfSignNodeId: '9007199254740993' } }
 			wrapper = createWrapper()
 			await wrapper.vm.preparePendingSelfSign('9007199254740993')

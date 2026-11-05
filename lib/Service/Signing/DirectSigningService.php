@@ -8,17 +8,22 @@ declare(strict_types=1);
 
 namespace OCA\Libresign\Service\Signing;
 
+use OCA\Libresign\Db\FileMapper;
 use OCA\Libresign\Enum\FileStatus;
 use OCA\Libresign\Exception\LibresignException;
 use OCA\Libresign\Service\FileService;
+use OCA\Libresign\Service\FolderService;
 use OCA\Libresign\Service\IdentifyMethodService;
 use OCA\Libresign\Service\Policy\PolicyService;
 use OCA\Libresign\Service\Policy\Provider\IdentifyMethods\IdentifyMethodsPolicy;
 use OCA\Libresign\Service\Policy\Provider\IdentifyMethods\IdentifyMethodsPolicyValue;
 use OCA\Libresign\Service\RequestSignatureWorkflowService;
 use OCA\Libresign\Service\SignFileService;
+use OCA\Libresign\Service\Validation\FileInputValidator;
 use OCA\Libresign\Service\Validation\SignerValidator;
 use OCP\AppFramework\Http;
+use OCP\AppFramework\Db\DoesNotExistException;
+use OCP\Files\File;
 use OCP\IUser;
 
 /**
@@ -34,6 +39,9 @@ class DirectSigningService {
 		private SignedPdfProvider $signedPdfProvider,
 		private PolicyService $policyService,
 		private FileService $fileService,
+		private FolderService $folderService,
+		private FileMapper $fileMapper,
+		private FileInputValidator $fileInputValidator,
 	) {
 	}
 
@@ -56,6 +64,7 @@ class DirectSigningService {
 	): array {
 		$this->validateInput($file, $name, $method, $token);
 		$this->assertAccountSigningEnabled($user, $method);
+		$file = $this->resolveDirectSigningSource($user, $file);
 
 		$result = $this->requestWorkflow->createRequest(
 			$user,
@@ -113,6 +122,41 @@ class DirectSigningService {
 			// Once signing starts, a domain error must not invite a duplicate request.
 			throw new LibresignException($e->getMessage(), Http::STATUS_CONFLICT, $e);
 		}
+	}
+
+	/**
+	 * Resolve a user file once, before any LibreSign request can be reused or
+	 * created. Shared documents remain available through the normal request flow.
+	 *
+	 * @param array<string, mixed> $source
+	 * @return array<string, mixed>
+	 */
+	private function resolveDirectSigningSource(IUser $user, array $source): array {
+		if (isset($source['base64'])) {
+			return $source;
+		}
+
+		$source = $this->fileInputValidator->normalizeNodeId($source);
+		$node = isset($source['nodeId'])
+			? $this->folderService->getReadableNodeById($user->getUID(), $source['nodeId'])
+			: $this->folderService->getFileByPath((string)$source['path'], $user->getUID());
+
+		if (!$node instanceof File) {
+			throw new LibresignException('Direct signing requires an accessible PDF file.', Http::STATUS_UNPROCESSABLE_ENTITY);
+		}
+		if ($node->getOwner()?->getUID() !== $user->getUID()) {
+			throw new LibresignException('Direct signing is only available for your own files.', Http::STATUS_FORBIDDEN);
+		}
+		if ($node->getMimeType() !== 'application/pdf') {
+			throw new LibresignException('Direct signing requires a PDF file.', Http::STATUS_UNPROCESSABLE_ENTITY);
+		}
+
+		try {
+			$this->fileMapper->getByNodeId($node->getId());
+		} catch (DoesNotExistException) {
+			return ['nodeId' => $node->getId()];
+		}
+		throw new LibresignException('This document already has a signature request.', Http::STATUS_UNPROCESSABLE_ENTITY);
 	}
 
 	/** @param array<string, mixed> $file */

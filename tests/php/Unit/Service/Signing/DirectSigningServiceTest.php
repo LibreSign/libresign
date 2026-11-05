@@ -14,6 +14,7 @@ use OCA\Libresign\Db\SignRequest;
 use OCA\Libresign\Enum\FileStatus;
 use OCA\Libresign\Exception\LibresignException;
 use OCA\Libresign\Service\FileService;
+use OCA\Libresign\Service\FolderService;
 use OCA\Libresign\Service\IdentifyMethodService;
 use OCA\Libresign\Service\Policy\Model\ResolvedPolicy;
 use OCA\Libresign\Service\Policy\PolicyService;
@@ -27,7 +28,9 @@ use OCA\Libresign\Service\Validation\FileInputValidator;
 use OCA\Libresign\Service\Validation\SignerValidator;
 use OCA\Libresign\Service\Validation\SigningRequestValidator;
 use OCA\Libresign\Service\Validation\VisibleElementValidator;
+use OCP\AppFramework\Db\DoesNotExistException;
 use OCP\AppFramework\Http;
+use OCP\Files\File as NextcloudFile;
 use OCP\IL10N;
 use OCP\IUser;
 use PHPUnit\Framework\Attributes\DataProvider;
@@ -36,6 +39,9 @@ use PHPUnit\Framework\TestCase;
 
 final class DirectSigningServiceTest extends TestCase {
 	private string $displayName = 'Account A';
+	private string $sourceOwnerId = 'account-a';
+	private string $sourceMime = 'application/pdf';
+	private bool $sourceHasRequest = false;
 	private IUser&MockObject $user;
 	private RequestSignatureService&MockObject $requests;
 	private SignFileService&MockObject $signing;
@@ -45,6 +51,10 @@ final class DirectSigningServiceTest extends TestCase {
 	private SignedPdfProvider&MockObject $pdf;
 	private PolicyService&MockObject $policies;
 	private FileService&MockObject $files;
+	private FolderService&MockObject $folder;
+	private FileMapper&MockObject $mapper;
+	private FileInputValidator&MockObject $fileInput;
+	private NextcloudFile&MockObject $sourceNode;
 	private DirectSigningService $service;
 
 	protected function setUp(): void {
@@ -60,16 +70,34 @@ final class DirectSigningServiceTest extends TestCase {
 		$this->files = $this->createMock(FileService::class);
 		$this->policies = $this->createMock(PolicyService::class);
 
-		$fileInput = $this->createMock(FileInputValidator::class);
-		$fileInput->method('normalizeNodeId')->willReturnArgument(0);
+		$this->fileInput = $this->createMock(FileInputValidator::class);
+		$this->fileInput->method('normalizeNodeId')->willReturnArgument(0);
+		$this->folder = $this->createMock(FolderService::class);
+		$this->mapper = $this->createMock(FileMapper::class);
+		$this->sourceNode = $this->createMock(NextcloudFile::class);
+		$this->sourceNode->method('getId')->willReturn(4);
+		$this->sourceNode->method('getMimeType')->willReturnCallback(fn (): string => $this->sourceMime);
+		$owner = $this->createMock(IUser::class);
+		$owner->method('getUID')->willReturnCallback(fn (): string => $this->sourceOwnerId);
+		$this->sourceNode->method('getOwner')->willReturn($owner);
+		$this->folder->method('getReadableNodeById')->willReturn($this->sourceNode);
+		$this->folder->method('getFileByPath')->willReturn($this->sourceNode);
+		$this->mapper->method('getByNodeId')->willReturnCallback(function (): File {
+			if (!$this->sourceHasRequest) {
+				throw new DoesNotExistException('No request');
+			}
+			$file = new File();
+			$file->setId(100);
+			return $file;
+		});
 		$workflow = new RequestSignatureWorkflowService(
 			$this->createMock(IL10N::class),
 			$this->requests,
 			$this->createMock(SigningRequestValidator::class),
 			$this->signerValidator,
 			$this->createMock(VisibleElementValidator::class),
-			$this->createMock(FileMapper::class),
-			$fileInput,
+			$this->mapper,
+			$this->fileInput,
 		);
 		$this->service = new DirectSigningService(
 			$workflow,
@@ -80,7 +108,36 @@ final class DirectSigningServiceTest extends TestCase {
 			$this->pdf,
 			$this->policies,
 			$this->files,
+			$this->folder,
+			$this->mapper,
+			$this->fileInput,
 		);
+	}
+
+	#[DataProvider('protectedSourceCases')]
+	public function testDirectSigningRejectsUnsafeSourceBeforeCreatingARequest(
+		array $source, string $ownerId, string $mimeType, bool $hasRequest, int $status,
+	): void {
+		$this->setIdentificationPolicy([['name' => 'account', 'enabled' => true, 'signatureMethods' => ['clickToSign' => ['enabled' => true]]]]);
+		$this->sourceOwnerId = $ownerId;
+		$this->sourceMime = $mimeType;
+		$this->sourceHasRequest = $hasRequest;
+		$this->requests->expects(self::never())->method('save');
+		$this->signing->expects(self::never())->method('sign');
+		$this->files->expects(self::never())->method('delete');
+
+		$this->expectException(LibresignException::class);
+		$this->expectExceptionCode($status);
+		$this->service->sign($this->user, $source, 'contract.pdf');
+	}
+
+	public static function protectedSourceCases(): iterable {
+		yield 'shared PDF by node ID' => [['nodeId' => 4], 'account-b', 'application/pdf', false, Http::STATUS_FORBIDDEN];
+		yield 'shared PDF by path' => [['path' => '/contract.pdf'], 'account-b', 'application/pdf', false, Http::STATUS_FORBIDDEN];
+		yield 'own draft by node ID' => [['nodeId' => 4], 'account-a', 'application/pdf', true, Http::STATUS_UNPROCESSABLE_ENTITY];
+		yield 'own draft by path' => [['path' => '/contract.pdf'], 'account-a', 'application/pdf', true, Http::STATUS_UNPROCESSABLE_ENTITY];
+		yield 'wrong MIME by node ID' => [['nodeId' => 4], 'account-a', 'text/plain', false, Http::STATUS_UNPROCESSABLE_ENTITY];
+		yield 'wrong MIME by path' => [['path' => '/contract.pdf'], 'account-a', 'text/plain', false, Http::STATUS_UNPROCESSABLE_ENTITY];
 	}
 
 	#[DataProvider('invalidInputCases')]
