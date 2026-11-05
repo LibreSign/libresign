@@ -3,7 +3,7 @@
 
 # workflow-lock-schema: 3
 
-{"workflow":"appstore-build-publish.yml","sha256":"1117edf2be41ba16b031d5aab462ab557c7c664d3cb904e6ed7a2e816f1f7dc4","catalog_commit":"17d9c0eb7b1beb69e3aaab996dd1ac133e805c75"}
+{"workflow":"appstore-build-publish.yml","sha256":"d5eb954abc410131cad32150ce24fa407dac0781d6b41c666b4a6655398e48d6","catalog_commit":"93e0ee486717b2a90f443f4ccac36640801a1a39"}
 {"workflow":"block-unconventional-commits.yml","sha256":"682899d221aa96cd1ad93c3cf46970205a083e49e45d9405b86f4b732a350cea","catalog_commit":"ab9c5cd13f86023b749b67af2934647d7371fbde"}
 {"workflow":"first-merged-pr-comment.yml","sha256":"31225cc5fc20b0ec7d77aa35fb795a4bcbea078701b805f5e581d475951689a9","catalog_commit":"ab9c5cd13f86023b749b67af2934647d7371fbde"}
 {"workflow":"lint-eslint.yml","sha256":"4c4dd7a4aa128713a3c6765fc078fb7bb97ffbecec1e8ce1a86a146753be74e0","catalog_commit":"ab9c5cd13f86023b749b67af2934647d7371fbde"}
@@ -12,11 +12,11 @@
 {"workflow":"lint-php.yml","sha256":"f7049c6cce3f7dda9a4e99845029928631f61fa091ecc0595b1ae5b3b40e97cd","catalog_commit":"ab9c5cd13f86023b749b67af2934647d7371fbde"}
 {"workflow":"lint-stylelint.yml","sha256":"fefbc7b9e21c7a3d5e3ece53d8232c7e3d1f8aa7f76f1c32618b80fd456dd79c","catalog_commit":"ab9c5cd13f86023b749b67af2934647d7371fbde"}
 {"workflow":"lint-typescript.yml","sha256":"43b053d26ce5f5e3eb3486dd908c367da09a3495511ee523494ceae7f12908d9","catalog_commit":"ab9c5cd13f86023b749b67af2934647d7371fbde"}
-{"workflow":"nightly-release.yml","sha256":"38df53a8299b2f2c28c1f4b78df8af1f31356adfce294ba7928a83248a205433","catalog_commit":"88d78b8ad56e56dc9d8d9544994ace0561319ec8"}
+{"workflow":"nightly-release.yml","sha256":"c8d46f4917ffad7d1e0dce740d696aa2cf882ac49cdc32b182a6c131d2b38e0d","catalog_commit":"93e0ee486717b2a90f443f4ccac36640801a1a39"}
 {"workflow":"node-test.yml","sha256":"f5361a5948f22dbd1bdf64fe112dfbbed0710af6e69239e09d0d6eb12c51b68d","catalog_commit":"ab9c5cd13f86023b749b67af2934647d7371fbde"}
 {"workflow":"npm-build.yml","sha256":"e697a4f28b0a433d1db46383158ce3c7e0dd128f6c64118a251cc43653c57afa","catalog_commit":"ab9c5cd13f86023b749b67af2934647d7371fbde"}
 {"workflow":"openapi.yml","sha256":"293316b8e7ebc4f705df2e75df5815a056308936584c3f9dcd0db0580779773a","catalog_commit":"ab9c5cd13f86023b749b67af2934647d7371fbde"}
-{"workflow":"prepare-release.yml","sha256":"02343393c3a59dc125bd640e00e73bae97b8981678dde658535aa0dc85347d2e","catalog_commit":"ab9c5cd13f86023b749b67af2934647d7371fbde"}
+{"workflow":"prepare-release.yml","sha256":"cf0be036dcb62669e489bcefea915564bebd737c513c6c9aa843bf46f06c4cd8","catalog_commit":"93e0ee486717b2a90f443f4ccac36640801a1a39"}
 {"workflow":"psalm.yml","sha256":"96e71e6140d9d8b8684d95c5cfbd9038005eb21e6ef9a6dad5d83dc755af3637","catalog_commit":"ab9c5cd13f86023b749b67af2934647d7371fbde"}
 {"workflow":"reuse.yml","sha256":"f563735e1a573cca3acb2975321ee760e5d52cb6ca64bfcc11a5da4ae0f9bf73","catalog_commit":"ab9c5cd13f86023b749b67af2934647d7371fbde"}
-{"workflow":"sync-workflow-templates.yml","sha256":"be4a15cf5b8ec4a50526c03b44c67a03bab5e1265ebdc9afd5e3cb8c3825a6e5","catalog_commit":"17d9c0eb7b1beb69e3aaab996dd1ac133e805c75"}
+{"workflow":"sync-workflow-templates.yml","sha256":"be4a15cf5b8ec4a50526c03b44c67a03bab5e1265ebdc9afd5e3cb8c3825a6e5","catalog_commit":"93e0ee486717b2a90f443f4ccac36640801a1a39"}
