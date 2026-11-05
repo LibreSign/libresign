@@ -102,6 +102,25 @@ try {
 	if (($arguments[0] ?? null) === '--') {
 		array_shift($arguments);
 	}
+	// Only presentation options are permitted: extra paths or suite/config
+	// selectors could execute features belonging to another shard.
+	foreach ($arguments as $position => $argument) {
+		if (in_array($argument, ['-f', '--format'], true)) {
+			if (!isset($arguments[$position + 1]) || str_starts_with($arguments[$position + 1], '-')) {
+				throw new InvalidArgumentException('Missing value for Behat format option: ' . $argument);
+			}
+			continue;
+		}
+		if ($position > 0 && in_array($arguments[$position - 1], ['-f', '--format'], true)) {
+			continue;
+		}
+		if (str_starts_with($argument, '--format=') && strlen($argument) > strlen('--format=')) {
+			continue;
+		}
+		if (!in_array($argument, ['--colors', '--no-colors', '-v', '-vv', '-vvv', '--verbose'], true)) {
+			throw new InvalidArgumentException('Unsupported Behat argument: ' . $argument);
+		}
+	}
 	$command = array_merge([$behat], $arguments, $selected);
 	$process = proc_open($command, [STDIN, STDOUT, STDERR], $pipes, $integrationRoot);
 	if (!is_resource($process)) {

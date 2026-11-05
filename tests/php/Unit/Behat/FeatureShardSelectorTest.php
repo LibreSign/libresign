@@ -207,6 +207,15 @@ final class FeatureShardSelectorTest extends TestCase {
 			);
 			self::assertSame(7, $exitCode, $stderr);
 			self::assertSame("--format\npretty\nfeatures/b.feature\n", $stdout);
+
+			foreach (['features/a.feature', '--config', '--suite'] as $unsafeArgument) {
+				[$exitCode, $stdout, $stderr] = self::runCli(
+					'1', '2', '--run', $cli, ['--', $unsafeArgument],
+				);
+				self::assertSame(2, $exitCode, $unsafeArgument);
+				self::assertSame('', $stdout, $unsafeArgument);
+				self::assertStringContainsString('Unsupported Behat argument', $stderr);
+			}
 		} finally {
 			foreach (['a', 'b', 'c'] as $feature) {
 				@unlink($root . '/features/' . $feature . '.feature');

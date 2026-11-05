@@ -103,6 +103,9 @@ started, to avoid accidentally executing the entire suite.
 **Do not run multiple shards concurrently against one Nextcloud installation.**
 Selection does not isolate the database, data directory, cache, users, mail,
 mock services or test reports. Worker isolation and parallel CI belong to #8975.
+Only Behat output-format and color/verbosity options can be forwarded with
+`--run --`; extra paths and suite/configuration selectors are rejected to
+preserve shard exclusivity.
 
 The algorithm sorts repository-relative feature paths and assigns each file
 by its position modulo `SHARD_TOTAL`. Discovery order therefore cannot change
