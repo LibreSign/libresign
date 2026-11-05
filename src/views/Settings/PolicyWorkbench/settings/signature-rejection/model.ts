@@ -15,6 +15,13 @@ export const SIGNATURE_REJECTION_BEHAVIOR_KEY = 'rejection_behavior'
 export const SIGNATURE_REJECTION_COMMENT_MODE_KEY = 'rejection_comment_mode'
 export const SIGNATURE_REJECTION_VISIBILITY_KEY = 'rejection_visibility'
 export const SIGNATURE_REJECTION_COMMENT_VISIBILITY_KEY = 'rejection_comment_visibility'
+export const SIGNATURE_REJECTION_POLICY_KEYS = [
+	SIGNATURE_REJECTION_ENABLED_KEY,
+	SIGNATURE_REJECTION_BEHAVIOR_KEY,
+	SIGNATURE_REJECTION_COMMENT_MODE_KEY,
+	SIGNATURE_REJECTION_VISIBILITY_KEY,
+	SIGNATURE_REJECTION_COMMENT_VISIBILITY_KEY,
+] as const
 
 export const SIGNATURE_REJECTION_BEHAVIORS: readonly SignatureRejectionBehavior[] = ['cancel', 'continue']
 export const SIGNATURE_REJECTION_COMMENT_MODES: readonly SignatureRejectionCommentMode[] = ['disabled', 'optional', 'required']
@@ -36,7 +43,7 @@ export const DEFAULT_SIGNATURE_REJECTION: Readonly<SignatureRejectionDraftValue>
 	commentVisibility: 'requester',
 }
 
-type Translate = (app: string, text: string, vars?: Record<string, string>) => string
+type Translate = (app: string, text: string, vars?: Record<string, string>, options?: { escape?: boolean }) => string
 
 function pickOption<T extends string>(options: readonly T[], value: unknown, fallback: T): T {
 	return typeof value === 'string' && (options as readonly string[]).includes(value.trim())
@@ -167,5 +174,5 @@ export function summarizeSignatureRejectionDraftValue(value: EffectivePolicyValu
 	return tFn('libresign', '{behavior} · {comment}', {
 		behavior: getSignatureRejectionBehaviorLabel(normalized.behavior, tFn),
 		comment: getSignatureRejectionCommentModeLabel(normalized.commentMode, tFn),
-	})
+	}, { escape: false })
 }

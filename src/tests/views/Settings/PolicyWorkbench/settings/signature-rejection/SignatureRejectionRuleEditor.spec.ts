@@ -127,4 +127,26 @@ describe('SignatureRejectionRuleEditor.vue', () => {
 		expect(mountEditor({ allowedEnabledValues: [false, true] }).find('.switch-stub--switch').attributes('disabled')).toBeUndefined()
 		expect(mountEditor().find('.switch-stub--switch').attributes('disabled')).toBeUndefined()
 	})
+
+	it.each([
+		{ name: 'turning on a locked system rule', editorScope: 'system', current: false, canToggle: true },
+		{ name: 'turning off a locked system rule', editorScope: 'system', current: true, canToggle: true },
+		{ name: 'editing a group rule while the current actor has a one-value limit', editorScope: 'group', current: true, canToggle: true },
+		{ name: 'editing a user rule or preference inside a one-value limit', editorScope: 'user', current: true, canToggle: false },
+	])('resolves the switch for $name', async ({ editorScope, current, canToggle }) => {
+		const wrapper = mountEditor({
+			modelValue: { ...prepared, enabled: current },
+			allowedEnabledValues: [current],
+			editorScope,
+		})
+		const enabledSwitch = wrapper.find('.switch-stub--switch')
+
+		expect(enabledSwitch.attributes('disabled') === undefined).toBe(canToggle)
+
+		await enabledSwitch.trigger('click')
+
+		expect(wrapper.emitted('update:modelValue')?.[0]?.[0]).toEqual(
+			canToggle ? { ...prepared, enabled: !current } : undefined,
+		)
+	})
 })

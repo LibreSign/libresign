@@ -7,12 +7,14 @@ import { t } from '@nextcloud/l10n'
 
 import SignatureRejectionRuleEditor from './SignatureRejectionRuleEditor.vue'
 import type { EffectivePolicyState, EffectivePolicyValue } from '../../../../../types/index'
+import { signatureRejectionPersonalPreferenceBehavior } from './personalPreferenceBehavior'
 import type { RealPolicySettingDefinition } from '../realTypes'
 import {
 	composeSignatureRejectionValue,
 	decomposeSignatureRejectionValue,
 	DEFAULT_SIGNATURE_REJECTION,
 	normalizeSignatureRejectionDraftValue,
+	normalizeSignatureRejectionEnabled,
 	SIGNATURE_REJECTION_ENABLED_KEY,
 	summarizeSignatureRejectionDraftValue,
 } from './model'
@@ -26,6 +28,7 @@ export const signatureRejectionRealDefinition: RealPolicySettingDefinition = {
 	groupAdminBehavior: {
 		allowGroupRuleCreationFromDescendantDelegation: true,
 	},
+	personalPreferenceBehavior: signatureRejectionPersonalPreferenceBehavior,
 	editor: SignatureRejectionRuleEditor,
 	supportedScopes: ['system', 'group', 'user'],
 	compound: {
@@ -47,10 +50,10 @@ export const signatureRejectionRealDefinition: RealPolicySettingDefinition = {
 	normalizeAllowChildOverride: (_scope, allowChildOverride: boolean) => allowChildOverride,
 	getFallbackSystemDefault: (policyValue: EffectivePolicyValue | null | undefined, sourceScope?: string | null) => {
 		if (sourceScope === 'system' && policyValue !== null && policyValue !== undefined) {
-			return normalizeSignatureRejectionDraftValue(policyValue)
+			return normalizeSignatureRejectionEnabled(policyValue)
 		}
 
-		return { ...DEFAULT_SIGNATURE_REJECTION }
+		return DEFAULT_SIGNATURE_REJECTION.enabled
 	},
 	summarizeValue: (value: EffectivePolicyValue) => summarizeSignatureRejectionDraftValue(value, t),
 	formatAllowOverride: (allowChildOverride: boolean) =>

@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
 
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 
 import {
 	composeSignatureRejectionValue,
@@ -113,5 +113,13 @@ describe('signature rejection model', () => {
 		expect(summarizeSignatureRejectionDraftValue(configured, tFn)).toBe('Let the others keep signing · Required comment')
 		expect(summarizeSignatureRejectionDraftValue({ ...configured, behavior: 'cancel', commentMode: 'disabled' }, tFn))
 			.toBe('Cancel the signing request · No comment')
+	})
+
+	it('does not escape translated labels twice in the summary', () => {
+		const spy = vi.fn(tFn)
+
+		summarizeSignatureRejectionDraftValue(configured, spy)
+
+		expect(spy).toHaveBeenLastCalledWith('libresign', '{behavior} · {comment}', expect.any(Object), { escape: false })
 	})
 })

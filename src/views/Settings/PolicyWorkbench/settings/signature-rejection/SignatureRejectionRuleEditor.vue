@@ -62,6 +62,7 @@ defineOptions({
 const props = defineProps<{
 	modelValue: EffectivePolicyValue
 	allowedEnabledValues?: boolean[]
+	editorScope?: 'system' | 'group' | 'user'
 }>()
 
 const emit = defineEmits<{
@@ -78,6 +79,13 @@ const disabledHint = t('libresign', 'The options below take effect once signatur
 const normalizedValue = computed(() => normalizeSignatureRejectionDraftValue(props.modelValue))
 
 const canToggleEnabled = computed(() => {
+	// The allowed values describe what the rules above leave to the current
+	// actor as a user, not to the system or group rule being edited. Whether
+	// the actor may write that rule is decided by the backend when saving.
+	if (props.editorScope === 'system' || props.editorScope === 'group') {
+		return true
+	}
+
 	const allowed = props.allowedEnabledValues
 	if (!allowed || allowed.length === 0) {
 		return true
@@ -122,7 +130,7 @@ function onEnabledChange(enabled: boolean) {
 }
 
 function onOptionChange(name: OptionFieldName, value: unknown) {
-	emitValue(normalizeSignatureRejectionDraftValue({ ...normalizedValue.value, [name]: value }))
+	emit('update:modelValue', normalizeSignatureRejectionDraftValue({ ...normalizedValue.value, [name]: value }))
 }
 </script>
 

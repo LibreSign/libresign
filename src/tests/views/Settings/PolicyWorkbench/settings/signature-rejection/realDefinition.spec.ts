@@ -55,10 +55,29 @@ describe('signatureRejectionRealDefinition', () => {
 		expect(first).not.toBe(second)
 	})
 
-	it('falls back to the persisted system value or to the defaults', () => {
-		expect(signatureRejectionRealDefinition.getFallbackSystemDefault(true, 'system')).toEqual({ ...defaults, enabled: true })
-		expect(signatureRejectionRealDefinition.getFallbackSystemDefault(true, 'group')).toEqual(defaults)
-		expect(signatureRejectionRealDefinition.getFallbackSystemDefault(null, 'system')).toEqual(defaults)
+	it.each([
+		{ name: 'a system value that enables rejection', policyValue: true, sourceScope: 'system', expected: true },
+		{ name: 'a system value that disables rejection', policyValue: false, sourceScope: 'system', expected: false },
+		{ name: 'a value from another scope', policyValue: true, sourceScope: 'group', expected: false },
+		{ name: 'no value', policyValue: null, sourceScope: 'system', expected: false },
+	])('falls back to the parent policy value with $name', ({ policyValue, sourceScope, expected }) => {
+		expect(signatureRejectionRealDefinition.getFallbackSystemDefault(policyValue, sourceScope)).toBe(expected)
+	})
+
+	it.each([
+		{ name: 'enabled', effectiveValue: true, summary: 'Let the others keep signing · Required comment' },
+		{ name: 'disabled', effectiveValue: false, summary: 'Disabled' },
+	])('keeps the $name system value when the fallback is composed with its children', ({ effectiveValue, summary }) => {
+		const composed = signatureRejectionRealDefinition.compound!.compose({
+			rejection_enabled: signatureRejectionRealDefinition.getFallbackSystemDefault(effectiveValue, 'system'),
+			rejection_behavior: 'continue',
+			rejection_comment_mode: 'required',
+			rejection_visibility: 'participants',
+			rejection_comment_visibility: 'requester',
+		})
+
+		expect(composed).toMatchObject({ enabled: effectiveValue, behavior: 'continue', commentMode: 'required' })
+		expect(signatureRejectionRealDefinition.summarizeValue(composed)).toBe(summary)
 	})
 
 	it('passes the allowChildOverride choice through unchanged', () => {
