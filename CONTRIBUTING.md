@@ -66,6 +66,46 @@ AI-assisted contributions are welcome. You may use AI for any part of the contri
 
 When updating your branch with changes from `main`, rebasing is preferred when practical because it avoids unnecessary merge commits and keeps the pull request history easier to review.
 
+### Translation strings and translator context
+
+LibreSign follows the [Nextcloud developer translation guide](https://docs.nextcloud.com/server/stable/developer_manual/basics/front-end/l10n.html)
+and [writing guide](https://docs.nextcloud.com/server/stable/developer_manual/design/writing.html).
+
+- Keep each complete user-facing message inside its own `t()` or `n()` call.
+  Do not concatenate translated fragments or put two translation calls on the same
+  physical source line. When choosing between messages, use separate branches,
+  each with its own translation call and context hint.
+- Add a factual `TRANSLATORS` hint for ambiguous terms, placeholders, and
+  workflow-specific actions. Place it directly before the corresponding call:
+  `// TRANSLATORS ...` in scripts, or `<!-- TRANSLATORS: ... -->` before the
+  translated element in Vue templates. Nextcloud accepts both
+  `TRANSLATORS` and `TRANSLATORS:`; the colon is not the issue.
+- Put hints on the actual `t()` calls, not on template references such as
+  `{{ actionLabel }}`, whose translations are defined elsewhere.
+- Do not edit generated translations under `l10n/`; they are synchronized.
+
+**Good (one hint per message):**
+
+```ts
+if (isApprover) {
+    // TRANSLATORS Action for a reviewer who approves a submitted document through their signature.
+    return t('libresign', 'Sign and approve document')
+}
+// TRANSLATORS Action for an ordinary signer of a document.
+return t('libresign', 'Sign document')
+```
+
+**Bad (second string loses its own translator context):**
+
+```ts
+// TRANSLATORS Ambiguous: one comment cannot explain both alternatives.
+return isApprover ? t('libresign', 'Approve') : t('libresign', 'Sign')
+```
+
+The `npm run lint` CI job invokes `npm run lint:translator-hints` and blocks
+multiple translation calls on the same source line. The Node test suite for
+this check is `npm run test:translator-hints`.
+
 ### Front and backend development environment
 
 More information [here](https://docs.libresign.coop/developer_manual/getting-started/development-environment/setup), at the [official documentation](https://docs.libresign.coop/developer_manual/getting-started/development-environment/setup)
