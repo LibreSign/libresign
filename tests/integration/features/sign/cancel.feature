@@ -1,3 +1,4 @@
+@api
 Feature: sign-request-cancel
   Scenario: Delete pending signature request sends cancellation notification
     Given as user "admin"
@@ -82,6 +83,7 @@ Feature: sign-request-cancel
       | key                   | value |
       | (jq).ocs.data.data[0].status | 0 |
 
+  @external
   Scenario: Delete envelope signer removes only that signer from both documents
     Given as user "admin"
     And user "signer1" exists
@@ -151,6 +153,7 @@ Feature: sign-request-cancel
       | key | value |
       | (jq).ocs.data \| length | 1 |
 
+  @external
   Scenario: Delete last envelope signer reverts both documents to draft without orphan requests
     Given as user "admin"
     And user "signer1" exists

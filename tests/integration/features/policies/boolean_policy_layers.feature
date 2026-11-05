@@ -1,3 +1,4 @@
+@api
 Feature: policies/boolean_policy_layers
   Scenario Outline: Manage boolean policy layers through API
     Given as user "admin"

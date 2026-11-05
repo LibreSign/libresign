@@ -1,3 +1,4 @@
+@api
 Feature: settings/user-config
   Background: Create users
     Given user "signer1" exists

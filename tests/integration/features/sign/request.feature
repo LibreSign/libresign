@@ -1,3 +1,4 @@
+@api
 Feature: request-signature
   Scenario: Get error when trying to create a signature request as non-manager
     Given user "signer1" exists
@@ -28,6 +29,7 @@ Feature: request-signature
       | key                   | value                 |
       | (jq).ocs.data.message | File name is required |
 
+  @external
   Scenario: Create signature request from a remote PDF URL
     Given as user "admin"
     And sending "post" to ocs "/apps/libresign/api/v1/admin/certificate/openssl"
@@ -41,6 +43,7 @@ Feature: request-signature
       | key                | value              |
       | (jq).ocs.data.name | document-from-url  |
 
+  @external @web
   Scenario: Create signature request with error using different authenticated account
     Given as user "admin"
     And user "signer1" exists
@@ -77,6 +80,7 @@ Feature: request-signature
       | action | 2000             |
       | errors | [{"message":"Invalid user"}] |
 
+  @external @web
   Scenario: Create signature request with two accounts with same email
     Given as user "admin"
     And user "signer1" exists
@@ -114,6 +118,7 @@ Feature: request-signature
       | action | 2000             |
       | errors | [{"message":"Invalid user"}] |
 
+  @external @web
   Scenario: Create signature request with error when the user is not authenticated
     Given as user "admin"
     And user "signer1" exists
@@ -136,6 +141,7 @@ Feature: request-signature
       | action | 1000                                      |
       | errors | ["You are not logged in. Please log in."] |
 
+  @external @web
   Scenario: Create signature request with error when the authenticated user have an email different of signer
     Given as user "admin"
     And user "signer1" exists
@@ -162,6 +168,7 @@ Feature: request-signature
       | action | 1000                                                           |
       | errors | ["User already exists. Please login.","This is not your file"] |
 
+  @external @web
   Scenario: Create signature request with error when the link was expired
     Given as user "admin"
     And my inbox is empty
@@ -185,6 +192,7 @@ Feature: request-signature
       | action | 2000              |
       | errors | [{"message":"This signing request has expired and can no longer be used."}] |
 
+  @external @web
   Scenario: Create signature request with success when is necessary to renew the link
     Given as user "admin"
     And my inbox is empty
@@ -252,6 +260,7 @@ Feature: request-signature
       | key                   | value        |
       | (jq).ocs.data.message | Invalid user |
 
+  @external
   Scenario: Create signature request with success using account as identifier
     Given as user "admin"
     And user "signer1" exists
@@ -305,6 +314,7 @@ Feature: request-signature
       | key                   | value        |
       | (jq).ocs.data.message | Invalid user |
 
+  @external
   Scenario: Create signature request with success using email as identifier and URL as file
     Given as user "admin"
     And as user "admin"
@@ -319,6 +329,7 @@ Feature: request-signature
     And there should be 1 emails in my inbox
     And I open the latest email to "signer2@domain.test" with subject "LibreSign: A document is ready for your signature"
 
+  @external
   Scenario: Create signature request with success using account as identifier and URL as file
     Given as user "admin"
     And user "signer1" exists
@@ -334,6 +345,7 @@ Feature: request-signature
     Then the response should have a status code 200
     And there should be 0 emails in my inbox
 
+  @external
   Scenario: Create signature request with success using email as identifier
     Given as user "admin"
     And sending "post" to ocs "/apps/libresign/api/v1/admin/certificate/openssl"
@@ -377,6 +389,7 @@ Feature: request-signature
       | type | signature |
     Then the response should have a status code 200
 
+  @external
   Scenario: Create signature request with success using multiple users
     Given as user "admin"
     And user "signer1" exists
@@ -397,6 +410,7 @@ Feature: request-signature
     And there should be 1 emails in my inbox
     And I open the latest email to "signer1@domain.test" with subject "LibreSign: A document is ready for your signature"
 
+  @external @web
   Scenario: Create signature request with success using multiple emails
     Given run the command "libresign:configure:openssl --cn test" with result code 0
     And as user "admin"
@@ -435,6 +449,7 @@ Feature: request-signature
       | (jq).[] \| select(.signatureMethods != null) \| .signatureMethods.emailToken.blurredEmail   | 222***@***.test                  |
       | (jq).[] \| select(.signatureMethods != null) \| .signatureMethods.emailToken.hashOfEmail    | d3ab1426f412df8b8bbb9cb2405fb39d |
 
+  @external @web
   Scenario: Failed to sign with invalid method
     Given run the command "config:app:set libresign signing_mode --value=sync --type=string" with result code 0
     And run the command "libresign:install --use-local-cert --java" with result code 0
@@ -480,6 +495,7 @@ Feature: request-signature
       | (jq).ocs.data.action            | 2000          |
       | (jq).ocs.data.errors[0].message | Invalid code. |
 
+  @external @web
   Scenario: Failed to sign with invalid code
     Given run the command "config:app:set libresign signing_mode --value=sync --type=string" with result code 0
     And run the command "libresign:install --use-local-cert --java" with result code 0
@@ -562,6 +578,7 @@ Feature: request-signature
       | (jq).ocs.data.data[0].signers[0].email         | signer1@domain.test |
       | (jq).ocs.data.data[0].signers[0].me            | false               |
 
+  @external
   Scenario: Not notify with status 0 and notify with status 1
     Given run the command "libresign:configure:openssl --cn test" with result code 0
     And user "signer1" exists

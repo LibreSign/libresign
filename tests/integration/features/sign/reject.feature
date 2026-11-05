@@ -1,3 +1,4 @@
+@api
 Feature: sign-signature-rejection
   Scenario: Rejection is refused while the policy is disabled
     Given as user "admin"

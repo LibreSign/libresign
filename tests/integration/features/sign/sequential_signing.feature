@@ -1,3 +1,4 @@
+@api
 Feature: sequential-signing
   Background:
     Given as user "admin"

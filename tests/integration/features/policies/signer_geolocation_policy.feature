@@ -1,3 +1,4 @@
+@api
 Feature: policies/signer_geolocation_policy
   Scenario: Manage signer_device_geolocation policy layers through API
     Given as user "admin"

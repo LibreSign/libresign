@@ -1,3 +1,4 @@
+@api
 Feature: policies/signature_rejection_authorization
   Background:
     Given as user "admin"

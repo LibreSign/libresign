@@ -1,3 +1,4 @@
+@api
 Feature: Preserve completed signer records
 
   Background:

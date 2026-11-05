@@ -1,3 +1,4 @@
+@api
 Feature: policies/signature_text_policy
   Scenario: Manage consolidated signature_stamp policy layers through API
     Given as user "admin"

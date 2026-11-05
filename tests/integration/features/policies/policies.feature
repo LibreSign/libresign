@@ -1,3 +1,4 @@
+@api
 Feature: policies/policies
   Scenario: Manage signature_flow policy layers through API
     Given as user "admin"

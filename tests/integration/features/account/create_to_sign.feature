@@ -1,3 +1,4 @@
+@api
 Feature: account/create_to_sign
   Background:
     Given as user "admin"
@@ -12,6 +13,7 @@ Feature: account/create_to_sign
     Then the response should have a status code 200
     And there should be 1 emails in my inbox
 
+  @external
   Scenario: Try to create with invalid data
     Given as user ""
     And run the command "user:delete signer1@domain.test" with result code 0
@@ -34,6 +36,7 @@ Feature: account/create_to_sign
       | (jq).ocs.data.action  | 2000                  |
 
 
+  @external
   Scenario: Create with valid data
     Given as user ""
     And run the command "user:delete signer1@domain.test" with result code 0

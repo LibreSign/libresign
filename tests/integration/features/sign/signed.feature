@@ -1,4 +1,6 @@
+@api
 Feature: signed
+  @external
   Scenario: Sign file using password
     Given as user "admin"
     And user "signer1" exists
@@ -44,6 +46,7 @@ Feature: signed
       | (jq).ocs.data.data[0].name   | Document Name |
       | (jq).ocs.data.data[0].status | 3             |
 
+  @external
   Scenario: Signing a file sends an email and notification
     Given as user "admin"
     And user "signer1" exists
@@ -109,6 +112,7 @@ Feature: signed
       | key | value                                                          |
       | ocs | (jq).data\|any(.subject == "Signer Name signed Document Name") |
 
+  @external
   Scenario: Signing a file doesn't send an email or notification
     Given as user "admin"
     And user "signer1" exists
@@ -171,6 +175,7 @@ Feature: signed
       | key | value                                                          |
       | ocs | (jq).data\|any(.subject == "Signer Name signed Document Name") |
 
+  @external
   Scenario: Signing a file using unauthenticatd signer with click to sign
     Given as user "admin"
     And run the command "config:app:set libresign signing_mode --value=sync --type=string" with result code 0

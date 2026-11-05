@@ -1,3 +1,4 @@
+@api
 Feature: account/signature
   Scenario: Create root certificate with OpenSSL engine using API
     Given as user "admin"
@@ -254,6 +255,7 @@ Feature: account/signature
     When sending "delete" to ocs "/apps/libresign/api/v1/signature/elements/<NODE_ID>"
     Then the response should have a status code 200
 
+  @external
   Scenario: CRUD of signature element to signer by email without account
     Given run the command "config:app:set guests whitelist --value=libresign" with result code 0
     And run the command "libresign:configure:openssl --cn test" with result code 0

@@ -1,3 +1,4 @@
+@api
 Feature: file-list
   Scenario: Return a list with two signers
     Given as user "admin"

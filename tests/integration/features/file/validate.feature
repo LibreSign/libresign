@@ -1,3 +1,4 @@
+@api
 Feature: validate
   Scenario: Validation assigns visible elements only to their signer
     Given as user "admin"
@@ -161,6 +162,7 @@ Feature: validate
       | (jq)(.ocs.data.effective_policies.policies.legal_information \| keys)         | ["effectiveValue","policyKey"] |
       | (jq)([.. \| objects \| select(has("policy_snapshot"))] \| length)            | 0                              |
 
+  @web
   Scenario: Validation page bootstraps requester group legal information policy
     Given as user "admin"
     And sending "put" to ocs "/apps/libresign/api/v1/policies/group/admin/legal_information"

@@ -1,3 +1,4 @@
+@api
 Feature: policies/footer_template_preview
   Scenario: Saving footer template returns a non-empty PDF preview
     Given as user "admin"

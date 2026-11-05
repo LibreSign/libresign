@@ -1,3 +1,4 @@
+@api
 Feature: policies/identification_documents_policy
   Scenario: Manage identification_documents policy layers through API
     Given as user "admin"

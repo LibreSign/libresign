@@ -1,3 +1,4 @@
+@api
 Feature: policies/docmdp_policy
   Scenario: Manage docmdp policy lifecycle through API
     Given as user "admin"

@@ -1,3 +1,4 @@
+@api
 Feature: admin/certificate_engine_switch
   Background:
     Given as user "admin"

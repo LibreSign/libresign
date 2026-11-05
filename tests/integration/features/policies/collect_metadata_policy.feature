@@ -1,3 +1,4 @@
+@api
 Feature: policies/collect_metadata_policy
   Scenario: Manage collect_metadata policy layers through API
     Given as user "admin"
