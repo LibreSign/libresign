@@ -1,4 +1,5 @@
 <?php
+
 // SPDX-FileCopyrightText: 2026 LibreCode coop and contributors
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
@@ -51,7 +52,7 @@ try {
 	if ($mode === '--verify') {
 		$seen = [];
 		$counts = [];
-		for ($worker = 0; $worker < (int)$total; $worker++) {
+		for ($worker = 0; $worker < min((int)$total, count($features)); $worker++) {
 			$assigned = (new FeatureShardSelector($worker, (int)$total))->select($features);
 			$counts[$worker] = count($assigned);
 			foreach ($assigned as $file) {
@@ -67,6 +68,9 @@ try {
 		printf("Verified %d unique features across %d shard(s), with no omissions or overlaps.\n", count($features), (int)$total);
 		foreach ($counts as $worker => $count) {
 			printf("Shard %d: %d features\n", $worker, $count);
+		}
+		if ((int)$total > count($features)) {
+			printf("%d additional empty shard(s)\n", (int)$total - count($features));
 		}
 		exit(0);
 	}
@@ -98,13 +102,13 @@ try {
 	if (($arguments[0] ?? null) === '--') {
 		array_shift($arguments);
 	}
-	$command = array_merge([$behat, '--config', 'config/behat.yml'], $arguments, $selected);
+	$command = array_merge([$behat], $arguments, $selected);
 	$process = proc_open($command, [STDIN, STDOUT, STDERR], $pipes, $integrationRoot);
 	if (!is_resource($process)) {
 		throw new RuntimeException('Unable to start Behat.');
 	}
 	exit(proc_close($process));
-} catch (InvalidArgumentException | RuntimeException $e) {
+} catch (InvalidArgumentException|RuntimeException $e) {
 	fwrite(STDERR, "Shard selection error: {$e->getMessage()}\n");
 	exit(2);
 }

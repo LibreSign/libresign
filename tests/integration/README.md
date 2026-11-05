@@ -108,5 +108,5 @@ can change other assignments; duration-based balancing remains future work.
 The selector has isolated PHPUnit tests (no Nextcloud runtime required):
 
 ```bash
-vendor/bin/phpunit --no-coverage sharding/FeatureShardSelectorTest.php
+composer test:unit -- --filter FeatureShardSelectorTest
 ```

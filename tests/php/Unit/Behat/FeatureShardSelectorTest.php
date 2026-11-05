@@ -1,12 +1,13 @@
 <?php
+
 // SPDX-FileCopyrightText: 2026 LibreCode coop and contributors
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
 declare(strict_types=1);
 
-namespace LibreSign\Behat\Sharding\Tests;
+namespace OCA\Libresign\Tests\Unit\Behat;
 
-require_once __DIR__ . '/FeatureShardSelector.php';
+require_once __DIR__ . '/../../../integration/sharding/FeatureShardSelector.php';
 
 use LibreSign\Behat\Sharding\FeatureShardSelector;
 use PHPUnit\Framework\Attributes\DataProvider;
@@ -43,7 +44,7 @@ final class FeatureShardSelectorTest extends TestCase {
 
 	#[DataProvider('shardTotals')]
 	public function testActualFeatureTreeHasCompleteDisjointUnion(int $total): void {
-		$all = FeatureShardSelector::discover(dirname(__DIR__) . '/features');
+		$all = FeatureShardSelector::discover(dirname(__DIR__, 3) . '/integration/features');
 		self::assertNotEmpty($all);
 		self::assertSame(array_values(array_unique($all)), $all);
 
@@ -136,7 +137,7 @@ final class FeatureShardSelectorTest extends TestCase {
 	}
 
 	public function testCliListsOnlyAssignedFeatures(): void {
-		$all = FeatureShardSelector::discover(dirname(__DIR__) . '/features');
+		$all = FeatureShardSelector::discover(dirname(__DIR__, 3) . '/integration/features');
 		$expected = array_map(
 			static fn (string $file): string => 'features/' . $file,
 			(new FeatureShardSelector(1, 2))->select($all),
@@ -148,7 +149,7 @@ final class FeatureShardSelectorTest extends TestCase {
 	}
 
 	public function testCliVerifiesCompletePartitionWithoutNextcloud(): void {
-		$count = count(FeatureShardSelector::discover(dirname(__DIR__) . '/features'));
+		$count = count(FeatureShardSelector::discover(dirname(__DIR__, 3) . '/integration/features'));
 		[$exitCode, $stdout, $stderr] = self::runCli('0', '4', '--verify');
 
 		self::assertSame(0, $exitCode, $stderr);
@@ -156,7 +157,7 @@ final class FeatureShardSelectorTest extends TestCase {
 	}
 
 	public function testEmptyShardDoesNotStartBehat(): void {
-		$count = count(FeatureShardSelector::discover(dirname(__DIR__) . '/features'));
+		$count = count(FeatureShardSelector::discover(dirname(__DIR__, 3) . '/integration/features'));
 		[$exitCode, $stdout, $stderr] = self::runCli((string)$count, (string)($count + 1), '--run');
 
 		self::assertSame(0, $exitCode, $stderr);
@@ -172,15 +173,72 @@ final class FeatureShardSelectorTest extends TestCase {
 		self::assertStringContainsString('SHARD_INDEX', $stderr);
 	}
 
+	public function testHugeShardCountCanBeVerifiedWithoutIteratingEmptyShards(): void {
+		$features = FeatureShardSelector::discover(dirname(__DIR__, 3) . '/integration/features');
+		[$exitCode, $stdout, $stderr] = self::runCli('0', '1000000', '--verify');
+
+		self::assertSame(0, $exitCode, $stderr);
+		self::assertStringContainsString('Verified ' . count($features) . ' unique features across 1000000 shard(s)', $stdout);
+		self::assertStringContainsString((1000000 - count($features)) . ' additional empty shard(s)', $stdout);
+	}
+
+	public function testRunPassesOnlyTheAssignedFeaturesToBehatAndPropagatesItsExitCode(): void {
+		$root = sys_get_temp_dir() . '/libresign-shard-run-' . bin2hex(random_bytes(8));
+		self::assertTrue(mkdir($root . '/features', 0700, true));
+		self::assertTrue(mkdir($root . '/sharding', 0700, true));
+		self::assertTrue(mkdir($root . '/vendor/bin', 0700, true));
+
+		$selector = $root . '/sharding/FeatureShardSelector.php';
+		$cli = $root . '/sharding/behat-shard.php';
+		$behat = $root . '/vendor/bin/behat';
+
+		try {
+			$source = dirname(__DIR__, 3) . '/integration/sharding/';
+			self::assertTrue(copy($source . 'FeatureShardSelector.php', $selector));
+			self::assertTrue(copy($source . 'behat-shard.php', $cli));
+			foreach (['a', 'b', 'c'] as $feature) {
+				file_put_contents($root . '/features/' . $feature . '.feature', 'Feature: Fixture');
+			}
+			file_put_contents($behat, "#!/bin/sh\n" . 'printf "%s\n" "$@"' . "\nexit 7\n");
+			self::assertTrue(chmod($behat, 0700));
+
+			[$exitCode, $stdout, $stderr] = self::runCli(
+				'1', '2', '--run', $cli, ['--', '--format', 'pretty'],
+			);
+			self::assertSame(7, $exitCode, $stderr);
+			self::assertSame("--format\npretty\nfeatures/b.feature\n", $stdout);
+		} finally {
+			foreach (['a', 'b', 'c'] as $feature) {
+				@unlink($root . '/features/' . $feature . '.feature');
+			}
+			@unlink($selector);
+			@unlink($cli);
+			@unlink($behat);
+			rmdir($root . '/vendor/bin');
+			rmdir($root . '/vendor');
+			rmdir($root . '/sharding');
+			rmdir($root . '/features');
+			rmdir($root);
+		}
+	}
+
 	/**
+	 * @param list<string> $extraArgs
 	 * @return array{int, string, string}
 	 */
-	private static function runCli(string $index, string $total, string $mode): array {
+	private static function runCli(
+		string $index,
+		string $total,
+		string $mode,
+		?string $script = null,
+		array $extraArgs = [],
+	): array {
+		$script ??= __DIR__ . '/../../../integration/sharding/behat-shard.php';
 		$process = proc_open(
-			[PHP_BINARY, '-d', 'memory_limit=128M', __DIR__ . '/behat-shard.php', $mode],
+			array_merge([PHP_BINARY, '-d', 'memory_limit=128M', $script, $mode], $extraArgs),
 			[['pipe', 'r'], ['pipe', 'w'], ['pipe', 'w']],
 			$pipes,
-			dirname(__DIR__),
+			dirname(__DIR__, 3) . '/integration',
 			['SHARD_INDEX' => $index, 'SHARD_TOTAL' => $total],
 		);
 		self::assertIsResource($process);
