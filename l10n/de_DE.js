@@ -1140,6 +1140,7 @@ OC.L10N.register(
     "After signing, only form filling is allowed." : "Nach dem Signieren ist nur das Ausfüllen des Formulars zugelassen.",
     "Form filling and annotations" : "Ausfüllen und kommentieren von Formularen",
     "After signing, form filling and annotations are allowed." : "Nach dem Signieren sind das Ausfüllen des Formulars sowie Anmerkungen zulässig.",
+    "Remember signatures of email signers" : "Signaturen von Unterzeichnern von E-Mails speichern",
     "Signing envelopes" : "Umschläge signieren",
     "Allow accounts to group multiple files into envelopes for signing." : "Es Benutzerkonten ermöglichen, mehrere Dateien zum Signieren in Umschlägen zu gruppieren.",
     "Certificate validity (days)" : "Zertifikatsgültigkeit (Tage)",
