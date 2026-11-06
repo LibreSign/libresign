@@ -63,11 +63,11 @@ jobs:
         php-versions: ${{ fromJson(needs.matrix.outputs.php-version) }}
         server-versions: ${{ fromJson(needs.matrix.outputs.server-max) }}
 
-    name: PostgreSQL PHP ${{ matrix.mysql-versions }} PHP ${{ matrix.php-versions }} Nextcloud ${{ matrix.server-versions }}
+    name: PostgreSQL 18 PHP ${{ matrix.php-versions }} Nextcloud ${{ matrix.server-versions }}
 
     services:
       postgres:
-        image: ghcr.io/nextcloud/continuous-integration-postgres-14:latest
+        image: postgres:18 # zizmor: ignore[unpinned-images]
         ports:
           - 4444:5432/tcp
         env:
