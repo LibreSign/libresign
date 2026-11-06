@@ -74,7 +74,7 @@ jobs:
           POSTGRES_USER: root
           POSTGRES_PASSWORD: rootpassword
           POSTGRES_DB: nextcloud
-        options: --health-cmd pg_isready --health-interval 5s --health-timeout 2s --health-retries 5
+        options: --mount type=tmpfs,destination=/var/lib/postgresql --health-cmd pg_isready --health-interval 5s --health-timeout 2s --health-retries 5
       mailpit:
         image: axllent/mailpit
         ports:
