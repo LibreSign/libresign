@@ -60,11 +60,21 @@ Steps live in one of two places:
 Before adding a LibreSign step for generic Nextcloud behavior, check whether
 `nextcloud-behat` already has it or whether it belongs there. Do not move a step
 to `nextcloud-behat` only to shrink LibreSign code when its wording or behavior
-is specific to LibreSign. To list the available steps:
+is specific to LibreSign. From the repository root, list the available steps:
 
 ```bash
-vendor/bin/behat -dl
+vendor-bin/behat/vendor/bin/behat -dl
 ```
+
+The `ci` profile in the root `behat.php` enables the console output and writes
+JUnit reports to `tests/integration/output`:
+
+```bash
+vendor-bin/behat/vendor/bin/behat --profile=ci
+```
+
+Behat creates the report directory automatically. Set `BEHAT_JUNIT_OUTPUT_DIR`
+to a different directory when running independent shards in parallel.
 
 ## Writing steps
 
@@ -74,7 +84,7 @@ New or refactored steps should:
 - keep `Given` for state, `When` for the action and `Then` for the outcome;
 - not mix unrelated actions and assertions in one step;
 - declare explicit parameter types compatible with Behat 4;
-- take a `TableNode` or a `PyStringNode` when structured input reads better than
+- take a `DataTable` or a `DocString` when structured input reads better than
   several positional parameters;
 - not pass state from one scenario to another;
 - keep the existing wording of a step when its meaning is already clear.

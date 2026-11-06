@@ -1,0 +1,14 @@
+{
+    "config": {
+        "platform": {
+            "php": "8.3"
+        },
+        "sort-packages": true
+    },
+    "require-dev": {
+        "behat/behat": "^4.0",
+        "libresign/behat-tsa-extension": "^1.0",
+        "libresign/mailpit-behat-extension": "^1.0",
+        "libresign/nextcloud-behat": "^2.0.2"
+    }
+}

@@ -153,9 +153,8 @@ requirements such as `AppData`, database services or a configured server.
 Run the relevant feature/scenario and discover steps before inventing new ones:
 
 ```bash
-cd tests/integration
-vendor/bin/behat -dl
-vendor/bin/behat features/<path>.feature -v
+vendor-bin/behat/vendor/bin/behat -dl
+vendor-bin/behat/vendor/bin/behat tests/integration/features/<path>.feature -v
 ```
 
 ### Frontend
