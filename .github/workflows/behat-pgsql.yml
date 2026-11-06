@@ -180,8 +180,7 @@ jobs:
         run: |
           export BEHAT_RUN_AS=runner
           export BEHAT_VERBOSE="$RUNNER_DEBUG"
-          mkdir -p tests/integration/output
-          vendor-bin/behat/vendor/bin/behat -f junit -o tests/integration/output -f pretty -o std --colors
+          vendor-bin/behat/vendor/bin/behat --profile=ci --colors
 
       - name: Print logs
         if: always()

@@ -7,6 +7,8 @@
 
 use Behat\Config\Config;
 use Behat\Config\Extension;
+use Behat\Config\Formatter\JUnitFormatter;
+use Behat\Config\Formatter\PrettyFormatter;
 use Behat\Config\Profile;
 use Behat\Config\Suite;
 use LibreSign\Behat\MailpitExtension\Context\MailpitContext;
@@ -32,4 +34,9 @@ return (new Config())
 			'workers' => 2,
 		]))
 		->withExtension(new Extension(TsaExtension::class)))
+	->withProfile((new Profile('ci'))
+		->withFormatter(new PrettyFormatter())
+		->withFormatter((new JUnitFormatter())->withOutputPath(
+			getenv('BEHAT_JUNIT_OUTPUT_DIR') ?: 'tests/integration/output',
+		)))
 ;

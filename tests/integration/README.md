@@ -66,6 +66,16 @@ is specific to LibreSign. From the repository root, list the available steps:
 vendor-bin/behat/vendor/bin/behat -dl
 ```
 
+The `ci` profile in the root `behat.php` enables the console output and writes
+JUnit reports to `tests/integration/output`:
+
+```bash
+vendor-bin/behat/vendor/bin/behat --profile=ci
+```
+
+Behat creates the report directory automatically. Set `BEHAT_JUNIT_OUTPUT_DIR`
+to a different directory when running independent shards in parallel.
+
 ## Writing steps
 
 New or refactored steps should:
