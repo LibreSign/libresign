@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "993ffc0957c5e9206182a58b4a33889f",
+    "content-hash": "f0936e158769ab4fb60d795e46058533",
     "packages": [],
     "packages-dev": [
         {
@@ -1019,16 +1019,16 @@
         },
         {
             "name": "libresign/nextcloud-behat",
-            "version": "v2.0.0",
+            "version": "v2.0.1",
             "source": {
                 "type": "git",
                 "url": "https://github.com/LibreSign/nextcloud-behat.git",
-                "reference": "366c4718f1dd78df6137b11e65b62427e8670bd4"
+                "reference": "ed31fdcb640c1516b0ffa328bf7060948b7464e2"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/LibreSign/nextcloud-behat/zipball/366c4718f1dd78df6137b11e65b62427e8670bd4",
-                "reference": "366c4718f1dd78df6137b11e65b62427e8670bd4",
+                "url": "https://api.github.com/repos/LibreSign/nextcloud-behat/zipball/ed31fdcb640c1516b0ffa328bf7060948b7464e2",
+                "reference": "ed31fdcb640c1516b0ffa328bf7060948b7464e2",
                 "shasum": ""
             },
             "require": {
@@ -1073,9 +1073,9 @@
             ],
             "support": {
                 "issues": "https://github.com/LibreSign/nextcloud-behat/issues",
-                "source": "https://github.com/LibreSign/nextcloud-behat/tree/v2.0.0"
+                "source": "https://github.com/LibreSign/nextcloud-behat/tree/v2.0.1"
             },
-            "time": "2026-11-05T22:35:25+00:00"
+            "time": "2026-11-06T01:44:26+00:00"
         },
         {
             "name": "nyholm/psr7",
