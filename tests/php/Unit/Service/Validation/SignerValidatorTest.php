@@ -122,15 +122,31 @@ final class SignerValidatorTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$this->validator->validateIdentifySigners(['signers' => 'invalid']);
 	}
 
-	public function testRejectsDisplayNameLongerThan64Characters(): void {
-		$this->expectException(LibresignException::class);
-		$this->expectExceptionMessage('Display name must not be longer than 64 characters');
+	#[DataProvider('displayNameCases')]
+	public function testValidatesDisplayNameLengthInCharacters(string $name, bool $valid): void {
+		if (!$valid) {
+			$this->expectException(LibresignException::class);
+			$this->expectExceptionMessage('Display name must not be longer than 64 characters');
+		} else {
+			$method = $this->createMock(IIdentifyMethod::class);
+			$method->method('getSignatureMethods')->willReturn([$this->createMock(ISignatureMethod::class)]);
+			$this->identifyMethodService->method('getInstanceOfIdentifyMethod')->willReturn($method);
+			$method->expects($this->once())->method('validateToRequest');
+		}
 		$this->validator->validateIdentifySigners([
 			'signers' => [[
-				'displayName' => str_repeat('A', 65),
+				'displayName' => $name,
 				'identifyMethods' => [['method' => 'email', 'value' => 'alice@example.com']],
 			]],
 		]);
+	}
+
+	public static function displayNameCases(): iterable {
+		yield 'ASCII at limit' => [str_repeat('A', 64), true];
+		yield 'accented at limit' => [str_repeat('é', 64), true];
+		yield 'multibyte at limit' => [str_repeat('界', 64), true];
+		yield 'ASCII above limit' => [str_repeat('A', 65), false];
+		yield 'accented above limit' => [str_repeat('é', 65), false];
 	}
 
 	public function testIdentifySignerChecksDocMdpAndIdentifyMethod(): void {

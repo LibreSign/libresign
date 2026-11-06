@@ -9,6 +9,7 @@
 			:placeholder="placeholder"
 			:method="method"
 			:participant-role="props.participantRole"
+			:allow-self="props.allowSelf"
 			@update:signer="applySelectedSigner" />
 		<NcNoteCard v-else type="info">
 			<template #icon>
@@ -18,6 +19,7 @@
 		</NcNoteCard>
 
 		<NcNoteCard v-if="disabled" type="warning" class="disabled-warning">
+			<!-- TRANSLATORS Warning when the selected signing identity method is disabled; {method} is its display name. -->
 			{{ t('libresign', 'This signer cannot be used because the identification method "{method}" has been disabled by the administrator.', { method: identifyMethodLabel }) }}
 		</NcNoteCard>
 
@@ -114,6 +116,7 @@ const props = withDefaults(defineProps<{
 	methods?: IdentifyMethodConfig[]
 	disabled?: boolean
 	participantRole?: ParticipantRole
+	allowSelf?: boolean
 }>(), {
 	signerToEdit: () => ({
 		displayName: '',
@@ -125,6 +128,7 @@ const props = withDefaults(defineProps<{
 	methods: () => [],
 	disabled: false,
 	participantRole: PARTICIPANT_ROLE.SIGNER,
+	allowSelf: false,
 })
 
 const iconMap = {

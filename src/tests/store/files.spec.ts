@@ -268,6 +268,113 @@ describe('files store - critical business rules', () => {
 		})
 	})
 
+	describe('RULE: validation refreshes authorization after a signing request activates', () => {
+		it.each([
+			{ listCanSign: false, detailCanSign: true },
+			{ listCanSign: true, detailCanSign: false },
+		])('overrides a stale list permission from $listCanSign to $detailCanSign', async ({ listCanSign, detailCanSign }) => {
+			const store = useFilesStore()
+			store.files[123] = {
+				id: 123,
+				uuid: 'file-uuid',
+				status: 1,
+				canSign: listCanSign,
+				signers: [{ me: true, sign_request_uuid: 'current-signer-uuid', status: 1 }],
+			}
+			store.selectedFileId = 123
+			axiosMock.get.mockResolvedValue(generateOCSResponse({
+				payload: {
+					id: 123,
+					uuid: 'file-uuid',
+					status: 1,
+					settings: { canSign: detailCanSign },
+					signers: [{ me: true, sign_request_uuid: 'current-signer-uuid', status: 1 }],
+				},
+			}))
+			const detailed = await store.fetchFileDetail({ fileId: 123, force: true })
+			expect(detailed?.canSign).toBe(detailCanSign)
+			expect(store.canSign()).toBe(detailCanSign)
+		})
+	})
+
+	describe('RULE: activating an existing request reloads signing authorization', () => {
+		it.each([
+			{ granted: true },
+			{ granted: false },
+		])('uses validated canSign=$granted instead of an earlier draft permission', async ({ granted }) => {
+			const store = useFilesStore()
+			store.files[123] = {
+				id: 123,
+				uuid: 'file-uuid',
+				name: 'contract.pdf',
+				status: 0,
+				canSign: false,
+				signers: [{ identifyMethods: [{ method: 'account', value: 'testuser', requirement: 'required' }] }],
+			}
+			store.selectedFileId = 123
+			axiosMock.mockResolvedValue({
+				data: { ocs: { data: {
+					id: 123, uuid: 'file-uuid', status: 1,
+					signers: [{ status: 1, identifyMethods: [{ method: 'account', value: 'testuser', requirement: 'required' }] }],
+				} } },
+			})
+			axiosMock.get.mockResolvedValue(generateOCSResponse({
+				payload: {
+					id: 123, uuid: 'file-uuid', status: 1,
+					settings: { canSign: granted },
+					signers: [{ me: granted, status: 1, sign_request_uuid: 'signer-uuid' }],
+				},
+			}))
+
+			await store.saveOrUpdateSignatureRequest({ status: 1 })
+
+			expect(axiosMock.get).toHaveBeenCalledWith(
+				expect.stringContaining('/file/validate/file_id/123'),
+				expect.objectContaining({ params: expect.objectContaining({ showValidateFile: false }) }),
+			)
+			expect(store.getFile()?.canSign).toBe(granted)
+			expect(store.canSign()).toBe(granted)
+		})
+
+		it('does not resubmit an activated request if authorization refresh fails', async () => {
+			const store = useFilesStore()
+			store.files[123] = {
+				id: 123,
+				uuid: 'file-uuid',
+				name: 'contract.pdf',
+				status: 0,
+				canSign: false,
+				signers: [{ identifyMethods: [{ method: 'account', value: 'testuser', requirement: 'required' }] }],
+			}
+			store.selectedFileId = 123
+			axiosMock.mockResolvedValue({
+				data: { ocs: { data: {
+					id: 123, uuid: 'file-uuid', status: 1,
+					signers: [{ status: 1, identifyMethods: [{ method: 'account', value: 'testuser', requirement: 'required' }] }],
+				} } },
+			})
+			axiosMock.get.mockRejectedValue(new Error('Authorization detail temporarily unavailable'))
+
+			const result = await store.saveOrUpdateSignatureRequest({ status: 1 })
+
+			expect(result).toMatchObject({ id: 123, status: 1 })
+			expect(axiosMock).toHaveBeenCalledTimes(1)
+			expect(axiosMock.get).toHaveBeenCalledTimes(1)
+			expect(store.canSign()).toBe(false)
+		})
+
+		it('does not refresh an active request when saving a draft', async () => {
+			const store = useFilesStore()
+			store.files[123] = { id: 123, status: 0, signers: [] }
+			store.selectedFileId = 123
+			axiosMock.mockResolvedValue({ data: { ocs: { data: { id: 123, status: 0, signers: [] } } } })
+
+			await store.saveOrUpdateSignatureRequest({ status: 0 })
+
+			expect(axiosMock.get).not.toHaveBeenCalled()
+		})
+	})
+
 	describe('RULE: the detail reload is the source of the policy snapshot freeze', () => {
 		it('replaces the flag loaded with the list', async () => {
 			const store = useFilesStore()
@@ -1077,6 +1184,28 @@ describe('files store - critical business rules', () => {
 			const result = await store.selectFileByNodeId(111)
 			expect(result).toBe(10)
 			expect(store.selectedFileId).toBe(10)
+		})
+
+		it('does not reuse a temporary ID removed by a forced refresh', async () => {
+			const store = useFilesStore()
+			store.files[-222] = { id: -222, nodeId: 222, name: 'temporary.pdf' }
+			vi.spyOn(store, 'getAllFiles').mockImplementation(async () => {
+				delete store.files[-222]
+				return {}
+			})
+
+			expect(await store.selectFileByNodeId(222)).toBeNull()
+			expect(store.selectedFileId).toBe(0)
+		})
+
+		it('does not select a different file returned by a filtered refresh', async () => {
+			const store = useFilesStore()
+			vi.spyOn(store, 'getAllFiles').mockResolvedValue({
+				91: { id: 91, nodeId: 999, name: 'other.pdf' },
+			})
+
+			expect(await store.selectFileByNodeId(222)).toBeNull()
+			expect(store.selectedFileId).toBe(0)
 		})
 
 		it('fetches file when nodeId missing', async () => {

@@ -31,6 +31,7 @@ import { generateOcsUrl } from '@nextcloud/router'
  * 	id_docs_filters?: { owner?: string, status?: string | null }
  * 	id_docs_sort?: { sortBy?: string | null, sortOrder?: string | null }
  * 	warn_without_visible_signature_fields?: boolean
+ * 	skip_direct_sign_confirmation?: boolean
  * }} UserConfigState
  */
 

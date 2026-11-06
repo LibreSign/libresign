@@ -7,6 +7,7 @@ import { describe, expect, it, vi, beforeEach } from 'vitest'
 import { mount } from '@vue/test-utils'
 import SignerSelect from '../../../components/Request/SignerSelect.vue'
 import { PARTICIPANT_ROLE } from '../../../utils/participantRole.ts'
+import { getCurrentUser } from '@nextcloud/auth'
 
 const supportedIconNames = [
 	'account',
@@ -20,6 +21,10 @@ const supportedIconNames = [
 
 const { axiosGetMock } = vi.hoisted(() => ({
 	axiosGetMock: vi.fn(),
+}))
+
+vi.mock('@nextcloud/auth', () => ({
+	getCurrentUser: vi.fn(() => ({ uid: 'admin', displayName: 'Administrator' })),
 }))
 
 vi.mock('@nextcloud/axios', () => ({
@@ -72,6 +77,38 @@ describe('SignerSelect.vue', () => {
 		expect(result[0].iconName).toBe('account')
 		expect(result[1].iconName).toBe('email')
 		expect(result[2].iconName).toBeUndefined()
+	})
+
+	it('offers the current account as a quiet action only for permitted account signers', () => {
+		const signer = createWrapper({ method: 'account', allowSelf: true })
+		expect(signer.vm.canUseMyAccount).toBe(true)
+		expect(signer.vm.selectedSigner).toBeNull()
+		expect(createWrapper({ method: 'email', allowSelf: true }).vm.canUseMyAccount).toBe(false)
+		expect(createWrapper({ method: 'account' }).vm.canUseMyAccount).toBe(false)
+		expect(createWrapper({ method: 'account', allowSelf: true, participantRole: PARTICIPANT_ROLE.OBSERVER }).vm.canUseMyAccount).toBe(false)
+	})
+
+	it('uses the current account with one click and emits a normal signer identity', () => {
+		const wrapper = createWrapper({ method: 'account', allowSelf: true })
+		wrapper.vm.useMyAccount()
+		expect(wrapper.vm.selectedSigner).toMatchObject({
+			identify: 'admin',
+			displayName: 'Administrator',
+			method: 'account',
+			subname: 'Your account',
+		})
+		expect(wrapper.emitted('update:signer')?.at(-1)?.[0]).toMatchObject({
+			identify: vi.mocked(getCurrentUser)()?.uid,
+			method: 'account',
+		})
+		wrapper.vm.useMyAccount()
+		expect(wrapper.emitted('update:signer')).toHaveLength(1)
+	})
+
+	it('does not let restricted identification methods preselect the current account', () => {
+		const wrapper = createWrapper({ method: 'email', allowSelf: true })
+		wrapper.vm.useMyAccount()
+		expect(wrapper.emitted('update:signer')).toBeUndefined()
 	})
 
 	it('onSelectedSignerChange emits a plain OpenAPI signer object', () => {

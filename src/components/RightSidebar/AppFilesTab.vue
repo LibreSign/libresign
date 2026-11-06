@@ -7,25 +7,48 @@
 		<h3 v-if="filesStore.getSubtitle()">
 			{{ filesStore.getSubtitle() }}
 		</h3>
+		<NcButton v-if="canSignImmediately || isDirectSigning"
+			variant="tertiary"
+			:disabled="isDirectSigning"
+			@click="signPdfNow">
+			<template #icon>
+				<NcLoadingIcon v-if="isDirectSigning" :size="20" />
+				<NcIconSvgWrapper v-else :path="mdiSignature" :size="20" />
+			</template>
+			<!-- TRANSLATORS One-time signing action in the LibreSign sidebar for an unsigned PDF. -->
+			{{ t('libresign', 'Sign PDF now') }}
+		</NcButton>
 		<RequestSignatureTab :use-modal="true" />
 	</div>
 </template>
 
 <script setup lang="ts">
 import { t } from '@nextcloud/l10n'
-import { nextTick, onBeforeUnmount, onMounted, ref } from 'vue'
+import { computed, nextTick, onBeforeUnmount, onMounted, ref } from 'vue'
 
 import { getCurrentUser } from '@nextcloud/auth'
+import { loadState } from '@nextcloud/initial-state'
+import { spawnDialog } from '@nextcloud/vue/functions/dialog'
+import { mdiSignature } from '@mdi/js'
+import NcButton from '@nextcloud/vue/components/NcButton'
+import NcLoadingIcon from '@nextcloud/vue/components/NcLoadingIcon'
+import NcIconSvgWrapper from '@nextcloud/vue/components/NcIconSvgWrapper'
 import { emit, subscribe, unsubscribe } from '@nextcloud/event-bus'
 import type { Event as NextcloudEvent, EventHandler } from '@nextcloud/event-bus'
 import { getClient, getDefaultPropfind, getRootPath, resultToNode } from '@nextcloud/files/dav'
 import { getNavigation } from '@nextcloud/files'
 import { generateRemoteUrl } from '@nextcloud/router'
+import logger from '../../logger.js'
+import { showError } from '@nextcloud/dialogs'
 
 import RequestSignatureTab from '../RightSidebar/RequestSignatureTab.vue'
+import DirectSignDialog from '../Signing/DirectSignDialog.vue'
+import { canSignDirectly } from '../../services/directSigning.ts'
 
 import { useFilesStore } from '../../store/files.js'
 import { useSidebarStore } from '../../store/sidebar.js'
+import { usePoliciesStore } from '../../store/policies.ts'
+import { addCurrentAccountAsSigner } from '../../services/selfSigning.ts'
 import type {
 	EditableFileSettingsDraft,
 	FileListItemRecord,
@@ -75,8 +98,81 @@ type EnvelopeRenamedPayload = {
 
 const filesStore = useFilesStore()
 const sidebarStore = useSidebarStore()
+const policiesStore = usePoliciesStore()
 
 const sidebarTitleObserver = ref<MutationObserver | null>(null)
+
+type DirectSignTarget = { nodeId: number; name: string }
+const directSignTarget = ref<DirectSignTarget | null>(null)
+const isDirectSigning = ref(false)
+const directlySignedNodeId = ref<number | null>(null)
+const canSignImmediately = computed(() => {
+	const target = directSignTarget.value
+	const file = filesStore.getFile()
+	if (!target || isDirectSigning.value || directlySignedNodeId.value === target.nodeId || filesStore.hasSigners(file)) {
+		return false
+	}
+	if (!loadState('libresign', 'certificate_ok', false)
+		|| !loadState('libresign', 'can_request_sign', false)) {
+		return false
+	}
+	const policies = loadState<{ policies?: { identify_methods?: { effectiveValue?: import('../../types/index').EffectivePolicyValue } } }>(
+		'libresign', 'effective_policies', { policies: {} },
+	)
+	return canSignDirectly(policies?.policies?.identify_methods?.effectiveValue ?? null)
+})
+
+function isSelectedNode(nodeId: number | string): boolean {
+	const selectedNodeId = filesStore.getFile()?.nodeId
+	return selectedNodeId !== undefined && selectedNodeId !== null
+		&& String(selectedNodeId) === String(nodeId)
+}
+
+async function signPdfNow() {
+	if (!canSignImmediately.value || !directSignTarget.value) {
+		return
+	}
+	const target = directSignTarget.value
+	isDirectSigning.value = true
+	try {
+		const signed = await spawnDialog(DirectSignDialog, target)
+		if (signed === true) {
+			directlySignedNodeId.value = target.nodeId
+			emit('libresign:file:created', { nodeId: target.nodeId })
+			try {
+				if (String(filesStore.getFile()?.nodeId) === String(target.nodeId)) {
+					const id = await filesStore.selectFileByNodeId(target.nodeId)
+					if (id && Number.isSafeInteger(Number(id))) {
+						await filesStore.fetchFileDetail({ fileId: Number(id), force: true })
+					}
+				}
+			} catch (error) {
+				logger.warn('Could not refresh the sidebar after direct signing', { error })
+			}
+		} else if (signed === 'prepare') {
+			try {
+				await policiesStore.fetchEffectivePolicies()
+				if (!isSelectedNode(target.nodeId)) {
+					return
+				}
+				const response = await addCurrentAccountAsSigner(
+					filesStore,
+					policiesStore.getEffectiveValue('identify_methods'),
+					{ readyToSign: true },
+				)
+				if (response && 'success' in response && response.success === false) {
+					// TRANSLATORS Error when the signed-in account cannot be added as a signer from the Nextcloud Files sidebar.
+					showError(('message' in response && response.message) || t('libresign', 'Cannot add your account as signer'))
+				}
+			} catch {
+				// TRANSLATORS Error shown if preparing the current account as signer in the Nextcloud Files sidebar fails.
+				showError(t('libresign', 'Failed to add signer'))
+			}
+		}
+	} finally {
+		isDirectSigning.value = false
+	}
+}
 
 function handleEnvelopeRenamed({ uuid, name }: EnvelopeRenamedPayload) {
 	const current = filesStore.getFile()
@@ -138,7 +234,40 @@ function disconnectTitleObserver() {
 	}
 }
 
+async function preparePendingSelfSign(nodeId: number | string): Promise<void> {
+	const pendingNodeId = window.OCA?.Libresign?.pendingSelfSignNodeId
+	if (pendingNodeId === undefined || String(pendingNodeId) !== String(nodeId)) {
+		return
+	}
+	delete window.OCA.Libresign.pendingSelfSignNodeId
+	try {
+		await policiesStore.fetchEffectivePolicies()
+		if (!isSelectedNode(nodeId)) {
+			return
+		}
+		const response = await addCurrentAccountAsSigner(
+			filesStore,
+			policiesStore.getEffectiveValue('identify_methods'),
+			{ readyToSign: true },
+		)
+		if (response && 'success' in response && response.success === false) {
+			// TRANSLATORS Error shown when the signed-in account cannot join a signature request.
+			showError(('message' in response && response.message) || t('libresign', 'Cannot add your account as signer'))
+		}
+	} catch {
+		// TRANSLATORS Error shown when adding the current account to a signature request fails.
+		showError(t('libresign', 'Failed to add signer'))
+	}
+}
+
 async function update(fileInfo: FileInfo) {
+	const nodeId = Number(fileInfo.id)
+	directSignTarget.value = Number.isSafeInteger(nodeId) && nodeId > 0
+		&& fileInfo.type !== 'folder'
+		&& fileInfo.name?.toLowerCase().endsWith('.pdf')
+		&& fileInfo.attributes?.['libresign-signature-status'] === undefined
+		? { nodeId, name: fileInfo.name }
+		: null
 	if (await checkAndLoadPendingEnvelope()) {
 		return
 	}
@@ -158,6 +287,7 @@ async function update(fileInfo: FileInfo) {
 	const fileId = await filesStore.selectFileByNodeId(fileInfo.id)
 	if (fileId) {
 		const displayName = filesStore.getSelectedFileView()?.name || fileInfo.name
+		await preparePendingSelfSign(fileInfo.id)
 
 		nextTick(() => {
 			const titleElement = document.querySelector('.app-sidebar-header__mainname')
@@ -181,6 +311,7 @@ async function update(fileInfo: FileInfo) {
 	})
 	filesStore.selectFile(-fileInfo.id)
 	sidebarStore.activeRequestSignatureTab()
+	await preparePendingSelfSign(fileInfo.id)
 
 	nextTick(() => {
 		const titleElement = document.querySelector('.app-sidebar-header__mainname')
@@ -267,7 +398,15 @@ const onEnvelopeRenamed = ((payload: NextcloudEvent) => {
 	handleEnvelopeRenamed((payload ?? {}) as EnvelopeRenamedPayload)
 }) as EventHandler<NextcloudEvent>
 
+const onPrepareSelfSign = ((payload: NextcloudEvent) => {
+	const nodeId = (payload as { nodeId?: number | string })?.nodeId
+	if (nodeId !== undefined && isSelectedNode(nodeId)) {
+		void preparePendingSelfSign(nodeId)
+	}
+}) as EventHandler<NextcloudEvent>
+
 onMounted(() => {
+	subscribe('libresign:prepare-self-sign', onPrepareSelfSign)
 	subscribe('libresign:file:created', onLibreSignFileCreated)
 	subscribe('libresign:file:updated', onLibreSignFileUpdated)
 	subscribe('files:node:deleted', onFilesNodeDeleted)
@@ -275,6 +414,7 @@ onMounted(() => {
 })
 
 onBeforeUnmount(() => {
+	unsubscribe('libresign:prepare-self-sign', onPrepareSelfSign)
 	disconnectTitleObserver()
 	unsubscribe('libresign:file:created', onLibreSignFileCreated)
 	unsubscribe('libresign:file:updated', onLibreSignFileUpdated)
@@ -291,7 +431,10 @@ defineExpose({
 	checkAndLoadPendingEnvelope,
 	updateSidebarTitle,
 	disconnectTitleObserver,
+	preparePendingSelfSign,
 	update,
+	canSignImmediately,
+	signPdfNow,
 	handleLibreSignFileChangeWithPath,
 	handleLibreSignFileChangeAtCurretntFolder,
 	handleLibreSignFileChange,
@@ -302,5 +445,6 @@ defineExpose({
 	onLibreSignFileUpdated,
 	onFilesNodeDeleted,
 	onEnvelopeRenamed,
+	onPrepareSelfSign,
 })
 </script>

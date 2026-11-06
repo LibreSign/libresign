@@ -44,10 +44,14 @@ const tWithMaxUploads: TranslationFn = (_domain, key, params) => {
 let filePickerBuilder: FilePickerBuilder
 const filePickerPick = vi.fn()
 
+const spawnDialogMock = vi.hoisted(() => vi.fn<(...args: unknown[]) => Promise<boolean | 'prepare' | undefined>>())
+vi.mock('@nextcloud/vue/functions/dialog', () => ({ spawnDialog: spawnDialogMock }))
+
 vi.mock('@nextcloud/initial-state')
 vi.mock('@nextcloud/capabilities')
 vi.mock('@nextcloud/dialogs', () => ({
 	showError: vi.fn(),
+	showSuccess: vi.fn(),
 	getFilePickerBuilder: vi.fn(() => filePickerBuilder),
 }))
 
@@ -68,6 +72,7 @@ describe('RequestPicker component rules', () => {
 			config?: { onUploadProgress?: (event: { loaded: number; total: number }) => void },
 		) => Promise<number>>
 		selectFile: MockedFunction<(id?: number) => void>
+		updateAllFiles: MockedFunction<() => Promise<unknown>>
 	}
 
 	type SidebarStoreMock = {
@@ -108,6 +113,7 @@ describe('RequestPicker component rules', () => {
 		filesStore = {
 			upload: vi.fn(),
 			selectFile: vi.fn(),
+			updateAllFiles: vi.fn(),
 		}
 
 		sidebarStore = {
@@ -174,6 +180,27 @@ describe('RequestPicker component rules', () => {
 				},
 			}) as RequestPickerWrapper
 			expect(newWrapper.find('div').exists()).toBe(false)
+		})
+	})
+
+	describe('immediate signing availability', () => {
+		it('offers a one-time action only with an allowed account click-to-sign method', () => {
+			loadStateMock.mockImplementation((_app, key) => key === 'effective_policies'
+				? { policies: { identify_methods: { effectiveValue: { factors: [
+					{ name: 'account', enabled: true, signatureMethods: { clickToSign: { enabled: true } } },
+				] } } } }
+				: true)
+			const withPolicy = mount(RequestPicker, {
+				props: { inline: true },
+				global: { stubs: {
+					NcActions: true, NcActionButton: true, NcButton: true, NcDialog: true,
+					NcLoadingIcon: true, NcNoteCard: true, NcTextField: true,
+					UploadProgress: true,
+				} },
+			})
+			expect((withPolicy.vm as unknown as { canDirectSign: boolean }).canDirectSign).toBe(true)
+			withPolicy.unmount()
+			expect((wrapper.vm as unknown as { canDirectSign: boolean }).canDirectSign).toBe(false)
 		})
 	})
 
@@ -782,6 +809,19 @@ describe('RequestPicker component rules', () => {
 			wrapper.vm.uploadAbortController = null
 			expect(() => wrapper.vm.cancelUpload()).not.toThrow()
 		})
+	})
+
+	it('refreshes the file list after direct signing without uploading a second request', async () => {
+		spawnDialogMock.mockResolvedValueOnce(true)
+		const createElement = vi.spyOn(document, 'createElement')
+		wrapper.vm.signPdfNow()
+		const input = createElement.mock.results.find(result => result.value?.type === 'file')!.value as HTMLInputElement
+		Object.defineProperty(input, 'files', { value: { item: () => new File(['%PDF-'], 'signed.pdf', { type: 'application/pdf' }) } })
+		input.dispatchEvent(new Event('change'))
+		await flushPromises()
+		expect(filesStore.updateAllFiles).toHaveBeenCalledExactlyOnceWith()
+		expect(filesStore.upload).not.toHaveBeenCalled()
+		createElement.mockRestore()
 	})
 
 	describe('direct file upload dialog', () => {
