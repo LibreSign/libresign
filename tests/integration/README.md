@@ -88,3 +88,44 @@ New or refactored steps should:
   several positional parameters;
 - not pass state from one scenario to another;
 - keep the existing wording of a step when its meaning is already clear.
+
+## Deterministic feature sharding
+
+The optional feature selector partitions complete `.feature` files; it does not
+split scenarios, change semantic tags or launch parallel workers. Shards are
+zero-based, and **both** `SHARD_INDEX` and `SHARD_TOTAL` are required.
+
+From `tests/integration`:
+
+```bash
+SHARD_INDEX=0 SHARD_TOTAL=4 php sharding/behat-shard.php --list
+SHARD_INDEX=0 SHARD_TOTAL=4 php sharding/behat-shard.php --verify
+SHARD_INDEX=0 SHARD_TOTAL=4 php sharding/behat-shard.php --run -- -f pretty
+```
+
+`--list` prints only the selected paths and never starts Behat or Nextcloud.
+`--verify` checks the complete union and absence of overlap for every shard,
+also without a Nextcloud installation. `--run` starts **one** Behat process
+for the selected feature files using the current Behat configuration; it
+does not enable concurrency. If a shard receives no files, Behat is not
+started, to avoid accidentally executing the entire suite.
+
+**Do not run multiple shards concurrently against one Nextcloud installation.**
+Selection does not isolate the database, data directory, cache, users, mail,
+mock services or test reports. Worker isolation and parallel CI belong to #8975.
+Only Behat output-format and color/verbosity options can be forwarded with
+`--run --`; extra paths and suite/configuration selectors are rejected to
+preserve shard exclusivity.
+
+The algorithm sorts repository-relative feature paths and assigns each file
+by its position modulo `SHARD_TOTAL`. Discovery order therefore cannot change
+assignment for the same revision and shard count. Adding or deleting features
+can change other assignments; duration-based balancing remains future work.
+
+The selector's PHPUnit tests do not need a running Nextcloud instance, but
+the project's standard unit command uses the Nextcloud test bootstrap. Run it
+from the LibreSign repository root in a configured development environment:
+
+```bash
+composer test:unit -- --filter FeatureShardSelectorTest
+```
