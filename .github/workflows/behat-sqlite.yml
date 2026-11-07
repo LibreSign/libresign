@@ -108,12 +108,12 @@ jobs:
           php-version: ${{ matrix.php-versions }}
           tools: phpunit
           # https://docs.nextcloud.com/server/stable/admin_manual/installation/source_installation.html#prerequisites-for-manual-installation
-          extensions: bz2, ctype, curl, dom, fileinfo, gd, iconv, intl, json, libxml, mbstring, openssl, pcntl, posix, session, simplexml, xmlreader, xmlwriter, zip, zlib, sqlite, pdo_sqlite, imagick
+          extensions: apcu, bz2, ctype, curl, dom, fileinfo, gd, iconv, intl, json, libxml, mbstring, openssl, pcntl, posix, session, simplexml, xmlreader, xmlwriter, zip, zlib, sqlite, pdo_sqlite, imagick
           coverage: none
           ini-file: development
           # disable_functions: re-enable pcntl_* functions
           # opcache.jit: PHP 8.3 function JIT corrupts OPcache SHM with first-class callables (fixed in 8.4+)
-          ini-values: disable_functions=, opcache.jit=${{ matrix.php-versions == '8.3' && 'disable' || '1235' }}
+          ini-values: apc.enable_cli=on, disable_functions=, opcache.jit=${{ matrix.php-versions == '8.3' && 'disable' || '1235' }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
@@ -152,6 +152,8 @@ jobs:
           # CI-only: use fast password hashing for disposable Behat users.
           ./occ config:system:set hashing_default_password --value=true --type=boolean
           ./occ config:system:set hashingCost --value=4 --type=integer
+          # CI-only: exercise Behat requests with Nextcloud APCu local cache.
+          ./occ config:system:set memcache.local --value="\\OC\\Memcache\\APCu"
           ./occ app:enable --force ${{ env.APP_NAME }}
           git clone --depth 1 -b ${{ matrix.server-versions }} https://github.com/nextcloud/notifications apps/notifications
           composer --working-dir=apps/notifications install --no-dev
