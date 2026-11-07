@@ -65,7 +65,7 @@ jobs:
       matrix:
         php-versions: ${{ fromJson(needs.matrix.outputs.php-version) }}
         server-versions: ${{ fromJson(needs.matrix.outputs.server-max) }}
-        shard: [0, 1]
+        shard: [0, 1, 2, 3]
         mysql-versions: ['9.7']
 
     name: MySQL ${{ matrix.mysql-versions }} PHP ${{ matrix.php-versions }} Nextcloud ${{ matrix.server-versions }} Shard ${{ matrix.shard }}
@@ -192,7 +192,7 @@ jobs:
         env:
           BEHAT_ROOT_DIR: ${{ github.workspace }}
           SHARD_INDEX: ${{ matrix.shard }}
-          SHARD_TOTAL: '2'
+          SHARD_TOTAL: '4'
         run: |
           export BEHAT_RUN_AS=runner
           export BEHAT_VERBOSE="$RUNNER_DEBUG"
