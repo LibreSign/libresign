@@ -85,7 +85,7 @@ jobs:
           POSTGRES_DB: nextcloud
         options: >-
           --mount type=tmpfs,destination=/var/lib/postgresql
-          --health-cmd pg_isready
+          --health-cmd="pg_isready -U root -d nextcloud"
           --health-interval 5s
           --health-timeout 2s
           --health-retries 5
