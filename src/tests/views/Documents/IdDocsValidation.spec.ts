@@ -277,6 +277,15 @@ describe('IdDocsValidation.vue', () => {
 		})
 	})
 
+	it('presents approval rather than a generic signing action', async () => {
+		const wrapper = createWrapper()
+		await flushPromises()
+
+		expect(wrapper.text()).toContain('Review and approve')
+		expect(wrapper.text()).toContain('Approved')
+		expect(wrapper.text()).not.toContain('Sign document')
+	})
+
 	it('routes to approve and validation pages using document uuid', async () => {
 		const wrapper = createWrapper()
 		await flushPromises()

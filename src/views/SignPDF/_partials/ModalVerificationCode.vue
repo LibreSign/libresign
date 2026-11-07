@@ -15,7 +15,7 @@
 		<!-- Step 1: Email mode -->
 		<div v-if="mode === 'email' && step1Active" class="step-content">
 			<p class="step-explanation">
-				{{ t('libresign', 'To verify your identity, enter the same email address where you received the signature request. We will send a verification code to this address.') }}
+				{{ emailInstructionText }}
 			</p>
 			<div v-if="signMethodsStore.blurredEmail().length > 0" class="email">
 				{{ signMethodsStore.blurredEmail() }}
@@ -23,8 +23,8 @@
 			<NcTextField v-model="sendTo"
 				autofocus
 				:disabled="loading"
-				:label="t('libresign', 'Email')"
-				:placeholder="t('libresign', 'Email')"
+				:label="emailFieldLabel"
+				:placeholder="emailFieldLabel"
 				:helper-text="emailIsValid ? '' : errorMessage"
 				:error="!emailIsValid && errorMessage.length > 0"
 				:success="emailIsValid"
@@ -37,16 +37,14 @@
 		<!-- Step 1: Token mode -->
 		<div v-else-if="mode === 'token' && step1Active" class="step-content">
 			<p class="step-explanation">
-				<!-- TRANSLATORS: Instruction shown when the signer must verify via a messaging channel. "contact information" here means a phone number used for SMS, WhatsApp, Telegram, Signal, or XMPP. -->
-				{{ t('libresign', 'To sign this document, we must verify your identity. Enter your contact information to receive a verification code.') }}
+				{{ tokenInstructionText }}
 			</p>
-			<!-- TRANSLATORS: Label and placeholder for the phone number input field used to receive a verification code via SMS, WhatsApp, Telegram, Signal, or XMPP. "Contact information" here means a phone number, not a generic address book entry. -->
 			<NcTextField v-model="newPhoneNumber"
 				autofocus
 				:disabled="loading"
 				name="cellphone"
-				:label="t('libresign', 'Contact information')"
-				:placeholder="t('libresign', 'Enter your contact information')"
+				:label="contactFieldLabel"
+				:placeholder="contactFieldPlaceholder"
 				type="tel"
 				@change="sanitizeNumber" />
 		</div>
@@ -59,12 +57,11 @@
 			<div class="contact-display">
 				{{ displayContact }}
 			</div>
-			<!-- TRANSLATORS: Label and placeholder for the input field where the signer types the numeric one-time password (OTP) delivered via email, SMS, WhatsApp, Telegram, Signal, or XMPP. "code" here means a short numeric verification code, not source code. -->
 			<NcTextField v-model="token"
 				autofocus
 				:disabled="loading"
-				:label="t('libresign', 'Enter your code')"
-				:placeholder="t('libresign', 'Enter your code')"
+				:label="verificationCodeFieldLabel"
+				:placeholder="verificationCodeFieldLabel"
 				name="code"
 				type="text"
 				@keyup.enter="sendCode">
@@ -76,12 +73,11 @@
 		<div v-else-if="identityVerified" class="step-content">
 			<div class="verification-success">
 				<p class="verification-message">
-					<!-- TRANSLATORS: Success message shown after the signer's identity has been confirmed via a numeric one-time password (OTP) delivered through email, SMS, WhatsApp, Telegram, Signal, or XMPP. "identity" here means the system confirmed the signer is who they claim to be. -->
+					<!-- TRANSLATORS Success message shown after the signer's identity has been confirmed via a numeric one-time password (OTP) delivered through email, SMS, WhatsApp, Telegram, Signal, or XMPP. "identity" here means the system confirmed the signer is who they claim to be. -->
 					{{ t('libresign', 'Your identity has been verified.') }}
 				</p>
 				<p class="signature-ready">
-					<!-- TRANSLATORS: Follow-up message shown right after identity verification succeeds, inviting the signer to proceed with signing the document. -->
-					{{ t('libresign', 'You can now sign the document.') }}
+					{{ signatureReadyText }}
 				</p>
 			</div>
 		</div>
@@ -96,6 +92,7 @@
 				<template #icon>
 					<NcLoadingIcon v-if="loading" :size="20" />
 				</template>
+				<!-- TRANSLATORS Button sends a one-time code to the signer's or approver's confirmed contact method. -->
 				{{ t('libresign', 'Send verification code') }}
 			</NcButton>
 
@@ -107,7 +104,7 @@
 					<template #icon>
 						<NcLoadingIcon v-if="loading" :size="20" />
 					</template>
-					<!-- TRANSLATORS: Button label. Sends a new numeric one-time password (OTP) to the signer via email, SMS, WhatsApp, Telegram, Signal, or XMPP. "code" here means a short numeric verification code, not source code. -->
+					<!-- TRANSLATORS Button label. Sends a new numeric one-time password (OTP) to the signer via email, SMS, WhatsApp, Telegram, Signal, or XMPP. "code" here means a short numeric verification code, not source code. -->
 					{{ t('libresign', 'Request new code') }}
 				</NcButton>
 				<NcButton :disabled="!canSendCode"
@@ -117,7 +114,7 @@
 					<template #icon>
 						<NcLoadingIcon v-if="loading" :size="20" />
 					</template>
-					<!-- TRANSLATORS: Button label. Submits the numeric one-time password (OTP) typed by the signer to complete verification. The code was delivered via email, SMS, WhatsApp, Telegram, Signal, or XMPP. "code" here means a short numeric verification code, not source code. -->
+					<!-- TRANSLATORS Button label. Submits the numeric one-time password (OTP) typed by the signer to complete verification. The code was delivered via email, SMS, WhatsApp, Telegram, Signal, or XMPP. "code" here means a short numeric verification code, not source code. -->
 					{{ t('libresign', 'Validate code') }}
 				</NcButton>
 			</template>
@@ -131,7 +128,7 @@
 				<template #icon>
 					<NcLoadingIcon v-if="loading" :size="20" />
 				</template>
-				{{ t('libresign', 'Sign document') }}
+				{{ signActionLabel }}
 			</NcButton>
 		</template>
 	</NcDialog>Step 1
@@ -172,9 +169,11 @@ const props = withDefaults(defineProps<{
 	mode: Mode
 	phoneNumber?: string
 	purpose?: Purpose
+	approvalContext?: boolean
 }>(), {
 	phoneNumber: '',
 	purpose: 'sign',
+	approvalContext: false,
 })
 
 const emit = defineEmits<{
@@ -253,6 +252,49 @@ type RequestCodeError = {
 	message?: string
 }
 
+// TRANSLATORS Label of the email address field used for account verification.
+const emailFieldLabel = t('libresign', 'Email')
+// TRANSLATORS Label for the phone number used to receive an SMS or messaging verification code.
+const contactFieldLabel = t('libresign', 'Contact information')
+// TRANSLATORS Placeholder requesting the phone number for a verification code, not a postal address.
+const contactFieldPlaceholder = t('libresign', 'Enter your contact information')
+// TRANSLATORS Label of the input field for a numeric one-time verification code.
+const verificationCodeFieldLabel = t('libresign', 'Enter your code')
+
+const isApprovalContext = computed(() => props.approvalContext && props.purpose === 'sign')
+const emailInstructionText = computed(() => {
+	if (isApprovalContext.value) {
+		// TRANSLATORS Email verification instructions for an approver; use their own Nextcloud account address, not the external signer's.
+		return t('libresign', 'Confirm the email address associated with your own account. We will send a verification code to verify you as the approver.')
+	}
+	// TRANSLATORS Email verification instructions for an ordinary signer who received a signature request.
+	return t('libresign', 'To verify your identity, enter the same email address where you received the signature request. We will send a verification code to this address.')
+})
+const tokenInstructionText = computed(() => {
+	if (isApprovalContext.value) {
+		// TRANSLATORS Phone-based verification for the approver's own account before recording document approval.
+		return t('libresign', 'To sign and approve this document, verify your own account using a confirmation code sent to your contact information.')
+	}
+	// TRANSLATORS Phone-based verification for an ordinary signer before signing their document.
+	return t('libresign', 'To sign this document, we must verify your identity. Enter your contact information to receive a verification code.')
+})
+const signatureReadyText = computed(() => {
+	if (isApprovalContext.value) {
+		// TRANSLATORS After the approver's verification code is accepted, invites them to sign the submitted document to record approval.
+		return t('libresign', 'You can now sign to record your approval of the document.')
+	}
+	// TRANSLATORS After an ordinary signer's verification code is accepted, invites them to sign their document.
+	return t('libresign', 'You can now sign the document.')
+})
+const signActionLabel = computed(() => {
+	if (isApprovalContext.value) {
+		// TRANSLATORS Final action for an approved reviewer to sign the submitted document to record approval.
+		return t('libresign', 'Sign and approve document')
+	}
+	// TRANSLATORS Final action for an ordinary signer after entering their verification code.
+	return t('libresign', 'Sign document')
+})
+
 const signStore = useSignStore() as SignStore
 const signMethodsStore = useSignMethodsStore() as SignMethodsStore
 
@@ -277,32 +319,43 @@ const step2Active = computed(() => !step1Active.value && !identityVerified.value
 
 const dialogTitle = computed(() => {
 	if (step1Active.value) {
-		return props.mode === 'email'
-			? t('libresign', 'Email verification')
-			: t('libresign', 'Identity verification')
+		if (props.mode === 'email') {
+			// TRANSLATORS Dialog title for verifying the signer's or approver's email address with a code.
+			return t('libresign', 'Email verification')
+		}
+		// TRANSLATORS Dialog title for verifying a signer's or approver's phone contact with a code.
+		return t('libresign', 'Identity verification')
 	}
 	if (!identityVerified.value) {
+		// TRANSLATORS Dialog title while the signer or approver enters a received verification code.
 		return t('libresign', 'Code validation')
 	}
+	// TRANSLATORS Dialog title after a verification code has been accepted and the user can proceed to sign.
 	return t('libresign', 'Signature confirmation')
 })
 
 const progressText = computed(() => {
 	if (props.purpose === 'savedSignature') {
-		return step1Active.value
-			// TRANSLATORS Progress shown while a signer identified by email requests a code to reuse their saved signature.
-			? t('libresign', 'Step 1 of 2 - Email verification')
-			// TRANSLATORS Progress shown while a signer identified by email types the code to reuse their saved signature.
-			: t('libresign', 'Step 2 of 2 - Code validation')
+		if (step1Active.value) {
+			// TRANSLATORS First of two steps when an email signer requests a code to reuse their saved signature.
+			return t('libresign', 'Step 1 of 2 - Email verification')
+		}
+		// TRANSLATORS Second of two steps when an email signer enters the code to reuse their saved signature.
+		return t('libresign', 'Step 2 of 2 - Code validation')
 	}
 	if (step1Active.value) {
-		return props.mode === 'email'
-			? t('libresign', 'Step 1 of 3 - Email verification')
-			: t('libresign', 'Step 1 of 3 - Identity verification')
+		if (props.mode === 'email') {
+			// TRANSLATORS First of three signing steps: the signer's or approver's email address is verified.
+			return t('libresign', 'Step 1 of 3 - Email verification')
+		}
+		// TRANSLATORS First of three signing steps: the signer's or approver's phone contact is verified.
+		return t('libresign', 'Step 1 of 3 - Identity verification')
 	}
 	if (!identityVerified.value) {
+		// TRANSLATORS Second of three signing steps: enter the one-time code received by email or messaging.
 		return t('libresign', 'Step 2 of 3 - Code validation')
 	}
+	// TRANSLATORS Third of three signing steps: confirm the digital signature or document approval.
 	return t('libresign', 'Step 3 of 3 - Signature confirmation')
 })
 
@@ -316,8 +369,10 @@ const displayContact = computed(() => {
 const codeExplanationText = computed(() => {
 	const contact = displayContact.value
 	if (props.mode === 'email') {
+		// TRANSLATORS {contact} is the masked destination email address that received the six-digit one-time code.
 		return t('libresign', 'A verification code has been sent to: {contact}. Check your email and enter the 6-digit verification code.', { contact })
 	}
+	// TRANSLATORS {contact} is the phone number receiving the one-time verification code.
 	return t('libresign', 'A verification code has been sent to: {contact}. Please enter the code to continue.', { contact })
 })
 
@@ -361,6 +416,7 @@ function onChangeEmail() {
 		errorMessage.value = ''
 		return
 	}
+	// TRANSLATORS Error when the entered email address does not match the email expected for verification.
 	errorMessage.value = emailIsValid.value ? '' : t('libresign', 'Invalid email')
 }
 
@@ -420,6 +476,7 @@ async function requestCode() {
 			// Same route/context decision as signing (Sign.vue).
 			const signRequestUuid = getSigningRouteUuid(signStore.document)
 			if (!signRequestUuid) {
+				// TRANSLATORS Error when a submitted document cannot be found while requesting a verification code.
 				throw new Error(t('libresign', 'Document not found'))
 			}
 			await axios.post(signStore.buildRequestCodeUrl(signRequestUuid), params)
@@ -434,6 +491,7 @@ async function requestCode() {
 	} catch (error) {
 		const err = error as RequestCodeError
 		const msg = err.response?.data?.ocs?.data?.message || err.response?.data?.message || err.message
+		// TRANSLATORS Error if the verification code cannot be sent to the email or phone contact.
 		showError(msg || t('libresign', 'Unable to send verification code.'))
 	} finally {
 		loading.value = false
@@ -494,6 +552,11 @@ defineExpose({
 	step1Active,
 	step2Active,
 	dialogTitle,
+	isApprovalContext,
+	emailInstructionText,
+	tokenInstructionText,
+	signatureReadyText,
+	signActionLabel,
 	progressText,
 	codeExplanationText,
 	displayContact,

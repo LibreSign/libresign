@@ -5,7 +5,7 @@
 
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { setActivePinia, createPinia } from 'pinia'
-import { mount } from '@vue/test-utils'
+import { mount, shallowMount } from '@vue/test-utils'
 import type { VueWrapper } from '@vue/test-utils'
 import ModalVerificationCode from '@/views/SignPDF/_partials/ModalVerificationCode.vue'
 import axios from '@nextcloud/axios'
@@ -186,6 +186,21 @@ describe('ModalVerificationCode (email mode)', () => {
 		expect(explanation.exists()).toBe(true)
 		expect(explanation.text()).toContain('verify your identity')
 		expect(explanation.text()).toContain('verification code')
+	})
+
+	it('instructs the approver to verify their own account rather than the original signer', async () => {
+		wrapper = shallowMount(ModalVerificationCode, {
+			props: { mode: 'email', approvalContext: true },
+		}) as ModalVerificationCodeWrapper
+
+		expect(wrapper.vm.isApprovalContext).toBe(true)
+		expect(wrapper.vm.emailInstructionText).toContain('your own account')
+		expect(wrapper.vm.emailInstructionText).toContain('as the approver')
+		expect(wrapper.vm.emailInstructionText).not.toContain('where you received the signature request')
+
+		await wrapper.setProps({ approvalContext: false })
+		expect(wrapper.vm.isApprovalContext).toBe(false)
+		expect(wrapper.vm.emailInstructionText).toContain('where you received the signature request')
 	})
 
 	it('shows correct dialog title for step 1 in email mode', async () => {
