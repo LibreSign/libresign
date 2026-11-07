@@ -11,9 +11,9 @@ use Behat\Config\Formatter\JUnitFormatter;
 use Behat\Config\Formatter\PrettyFormatter;
 use Behat\Config\Profile;
 use Behat\Config\Suite;
-use LibreSign\Behat\Sharding\FeatureShardSelector;
 use LibreSign\Behat\MailpitExtension\Context\MailpitContext;
 use LibreSign\Behat\MailpitExtension\ServiceContainer\MailpitExtension;
+use LibreSign\Behat\Sharding\FeatureShardSelector;
 use LibreSign\Behat\TsaExtension\ServiceContainer\TsaExtension;
 use PhpBuiltin\Server;
 
