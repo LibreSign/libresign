@@ -13,6 +13,7 @@ use OC\IntegrityCheck\Helpers\EnvironmentHelper;
 use OC\IntegrityCheck\Helpers\FileAccessHelper;
 use OCA\Libresign\AppInfo\Application;
 use OCA\Libresign\Service\Install\DependencyStorage;
+use OCA\Libresign\Service\Install\InstallService;
 use OCA\Libresign\Service\Install\SetupInstallPathResolver;
 use OCA\Libresign\Service\Install\SetupSignatureVerifier;
 use OCA\Libresign\Service\Install\SignSetupService;
@@ -25,6 +26,7 @@ use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\MockObject\MockObject;
 
 final class SignSetupServiceTest extends \OCA\Libresign\Tests\Integration\AppDataTestCase {
+	private const JAVA_RELEASE_DIR = 'jdk-' . InstallService::JAVA_URL_PATH_NAME . '-jre';
 	private EnvironmentHelper&MockObject $environmentHelper;
 	private FileAccessHelper $fileAccessHelper;
 	private IConfig&MockObject $config;
@@ -94,7 +96,7 @@ final class SignSetupServiceTest extends \OCA\Libresign\Tests\Integration\AppDat
 
 	private function writeAppSignature(string $architecture, $resource): SignSetupService {
 		$this->environmentHelper->method('getServerRoot')->willReturn('vfs://home');
-		$this->appConfig->setValueString(Application::APP_ID, 'java_path', 'vfs://home/data/appdata_1/libresign/' . $architecture . '/linux/java/jdk-21.0.2+13-jre/bin/java');
+		$this->appConfig->setValueString(Application::APP_ID, 'java_path', 'vfs://home/data/appdata_1/libresign/' . $architecture . '/linux/java/' . self::JAVA_RELEASE_DIR . '/bin/java');
 		$signSetupService = $this->getInstance([
 			'getAppInfoDirectory',
 		]);
@@ -114,7 +116,7 @@ final class SignSetupServiceTest extends \OCA\Libresign\Tests\Integration\AppDat
 						$architecture => [
 							'linux' => [
 								'java' => [
-									'jdk-21.0.2+13-jre' => [
+									self::JAVA_RELEASE_DIR => [
 										'fakeFile01' => 'content',
 										'fakeFile02' => 'content',
 									],
@@ -143,7 +145,7 @@ final class SignSetupServiceTest extends \OCA\Libresign\Tests\Integration\AppDat
 		$signatureContent = json_decode($json, true);
 		$this->assertArrayHasKey('hashes', $signatureContent);
 		$this->assertCount(2, $signatureContent['hashes']);
-		$expected = hash('sha512', $structure['data']['appdata_1']['libresign'][$architecture]['linux'][$resource]['jdk-21.0.2+13-jre']['fakeFile01']);
+		$expected = hash('sha512', $structure['data']['appdata_1']['libresign'][$architecture]['linux'][$resource][self::JAVA_RELEASE_DIR]['fakeFile01']);
 		$this->assertArrayHasKey('fakeFile01', $signatureContent['hashes']);
 		$actual = $signatureContent['hashes']['fakeFile01'];
 		$this->assertEquals($expected, $actual);
@@ -166,12 +168,35 @@ final class SignSetupServiceTest extends \OCA\Libresign\Tests\Integration\AppDat
 		];
 	}
 
+
+	#[DataProvider('dataWriteAppSignature')]
+	public function testVerifyJavaAfterAppConfigResetStillChecksIntegrity(string $architecture, string $resource): void {
+		$signSetupService = $this->writeAppSignature($architecture, $resource);
+		$this->appConfig->deleteKey(Application::APP_ID, 'java_path');
+		$this->assertSame('', $this->appConfig->getValueString(Application::APP_ID, 'java_path'));
+
+		// The installed release is still valid after the per-scenario config reset.
+		$this->assertSame([], $signSetupService->verify($architecture, $resource));
+
+		$installRoot = 'vfs://home/data/appdata_1/libresign/' . $architecture
+			. '/linux/java/' . self::JAVA_RELEASE_DIR;
+		file_put_contents($installRoot . '/fakeFile02', 'tampered');
+		$invalid = $signSetupService->verify($architecture, $resource);
+		$this->assertArrayHasKey('INVALID_HASH', $invalid);
+		$this->assertArrayHasKey('fakeFile02', $invalid['INVALID_HASH']);
+
+		unlink($installRoot . '/fakeFile01');
+		$missing = $signSetupService->verify($architecture, $resource);
+		$this->assertArrayHasKey('FILE_MISSING', $missing);
+		$this->assertArrayHasKey('fakeFile01', $missing['FILE_MISSING']);
+	}
+
 	public function testVerify(): void {
 		$architecture = 'x86_64';
 		$signSetupService = $this->writeAppSignature($architecture, 'java');
-		unlink('vfs://home/data/appdata_1/libresign/' . $architecture . '/linux/java/jdk-21.0.2+13-jre/fakeFile01');
-		file_put_contents('vfs://home/data/appdata_1/libresign/' . $architecture . '/linux/java/jdk-21.0.2+13-jre/fakeFile02', 'invalidContent');
-		file_put_contents('vfs://home/data/appdata_1/libresign/' . $architecture . '/linux/java/jdk-21.0.2+13-jre/fakeFile03', 'invalidContent');
+		unlink('vfs://home/data/appdata_1/libresign/' . $architecture . '/linux/java/' . self::JAVA_RELEASE_DIR . '/fakeFile01');
+		file_put_contents('vfs://home/data/appdata_1/libresign/' . $architecture . '/linux/java/' . self::JAVA_RELEASE_DIR . '/fakeFile02', 'invalidContent');
+		file_put_contents('vfs://home/data/appdata_1/libresign/' . $architecture . '/linux/java/' . self::JAVA_RELEASE_DIR . '/fakeFile03', 'invalidContent');
 		$expected = json_encode([
 			'FILE_MISSING' => [
 				'fakeFile01' => [
@@ -204,7 +229,7 @@ final class SignSetupServiceTest extends \OCA\Libresign\Tests\Integration\AppDat
 		unlink(
 			'vfs://home/data/appdata_1/libresign/'
 			. $architecture
-			. '/linux/java/jdk-21.0.2+13-jre/fakeFile01'
+			. '/linux/java/' . self::JAVA_RELEASE_DIR . '/fakeFile01'
 		);
 
 		$result = $signSetupService->verify($architecture, 'java');

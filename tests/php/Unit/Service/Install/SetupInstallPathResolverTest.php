@@ -11,9 +11,12 @@ namespace OCA\Libresign\Tests\Unit\Service\Install;
 use OCA\Libresign\AppInfo\Application;
 use OCA\Libresign\Exception\InvalidSignatureException;
 use OCA\Libresign\Service\Install\DependencyStorage;
+use OCA\Libresign\Service\Install\InstallService;
 use OCA\Libresign\Service\Install\InstallTarget;
 use OCA\Libresign\Service\Install\JSignPdfRelease;
 use OCA\Libresign\Service\Install\SetupInstallPathResolver;
+use OCP\Files\NotFoundException;
+use OCP\Files\SimpleFS\ISimpleFolder;
 use OCP\IAppConfig;
 use OCP\IConfig;
 use PHPUnit\Framework\Attributes\DataProvider;
@@ -87,6 +90,57 @@ final class SetupInstallPathResolverTest extends TestCase {
 			'cfssl arm linux' => ['aarch64', 'linux', 'cfssl', 'vfs://home/data/appdata_1/libresign/aarch64/cfssl'],
 			'cfssl arm alpine' => ['aarch64', 'alpine-linux', 'cfssl', 'vfs://home/data/appdata_1/libresign/aarch64/cfssl'],
 		];
+	}
+
+
+	#[DataProvider('javaTargetProvider')]
+	public function testResolveInstalledJavaWithoutConfiguredPath(string $architecture, string $distro): void {
+		$relativePath = $architecture . '/' . $distro . '/java/jdk-' . InstallService::JAVA_URL_PATH_NAME . '-jre';
+		$root = $this->createMock(ISimpleFolder::class);
+		$release = $this->createMock(ISimpleFolder::class);
+
+		$this->appConfig->expects($this->once())
+			->method('getValueString')
+			->with(Application::APP_ID, 'java_path')
+			->willReturn('');
+		$this->storage->expects($this->once())
+			->method('rootFolder')
+			->willReturn($root);
+		$root->expects($this->once())
+			->method('getFolder')
+			->with($relativePath)
+			->willReturn($release);
+		$this->storage->expects($this->once())
+			->method('pathOfFolder')
+			->with($release)
+			->willReturn(sys_get_temp_dir());
+
+		$this->assertSame(
+			sys_get_temp_dir(),
+			$this->resolver->resolve(InstallTarget::from($architecture, $distro), 'java'),
+		);
+	}
+
+	public static function javaTargetProvider(): array {
+		return [
+			'x86_64 linux' => ['x86_64', 'linux'],
+			'x86_64 alpine-linux' => ['x86_64', 'alpine-linux'],
+			'aarch64 linux' => ['aarch64', 'linux'],
+			'aarch64 alpine-linux' => ['aarch64', 'alpine-linux'],
+		];
+	}
+
+	public function testResolveJavaWithoutConfigRejectsMissingRelease(): void {
+		$root = $this->createMock(ISimpleFolder::class);
+		$this->appConfig->method('getValueString')->willReturn('');
+		$this->storage->method('rootFolder')->willReturn($root);
+		$root->expects($this->once())
+			->method('getFolder')
+			->with('x86_64/linux/java/jdk-' . InstallService::JAVA_URL_PATH_NAME . '-jre')
+			->willThrowException(new NotFoundException('Missing Java release'));
+
+		$this->expectException(InvalidSignatureException::class);
+		$this->resolver->resolve(InstallTarget::from('x86_64', 'linux'), 'java');
 	}
 
 	public function testRejectsUnsupportedResource(): void {
