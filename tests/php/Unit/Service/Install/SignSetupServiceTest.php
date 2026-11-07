@@ -174,7 +174,6 @@ final class SignSetupServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		];
 	}
 
-
 	private function mockInstalledJavaAppData(string $architecture, string $distro): void {
 		$relativePath = $architecture . '/' . $distro . '/java/' . self::JAVA_RELEASE_DIR;
 		$releaseFolder = $this->createMock(Folder::class);
