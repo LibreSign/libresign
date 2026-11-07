@@ -176,7 +176,7 @@ class SignSetupService {
 					// fallback
 					try {
 						$folder = $this->appData->getFolder('/');
-						$path = $this->architecture . '/' . $this->getLinuxDistributionToDownloadJava() . '/java';
+						$path = $this->architecture . '/' . $this->getLinuxDistributionToDownloadJava() . '/java/jdk-' . InstallService::JAVA_URL_PATH_NAME . '-jre';
 						$folder = $folder->getFolder($path);
 						$path = $this->getDataDir() . '/' . $this->getInternalPathOfFolder($folder);
 						if (is_dir($path)) {
