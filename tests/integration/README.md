@@ -88,3 +88,26 @@ New or refactored steps should:
   several positional parameters;
 - not pass state from one scenario to another;
 - keep the existing wording of a step when its meaning is already clear.
+
+
+## Parallel Behat features
+
+The GitHub Actions matrix uses two independent jobs for each supported
+PHP/Nextcloud/database combination. Each job creates its own Nextcloud,
+database, app data, and reports. No two shards share mutable test state.
+
+`behat.php` is the single source of Behat suite configuration. It selects whole
+feature paths via the native Behat 4 `Suite::withPaths()` interface. No
+additional runner, subprocess wrapper, or custom Behat extension is needed.
+The normal Behat command remains unchanged:
+
+```bash
+SHARD_INDEX=0 SHARD_TOTAL=2 vendor-bin/behat/vendor/bin/behat --profile=ci --colors
+SHARD_INDEX=1 SHARD_TOTAL=2 vendor-bin/behat/vendor/bin/behat --profile=ci --colors
+```
+
+Without `SHARD_INDEX` and `SHARD_TOTAL`, the entire suite is executed. Shards
+are deterministic for a fixed commit and shard count. Invalid or empty shard
+configuration fails without falling back to the full suite. The initial rollout
+uses two runners per database; do not assume more runners are faster before
+measuring actual wall-clock times and CPU usage.

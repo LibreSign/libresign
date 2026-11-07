@@ -62,8 +62,9 @@ jobs:
       matrix:
         php-versions: ${{ fromJson(needs.matrix.outputs.php-version) }}
         server-versions: ${{ fromJson(needs.matrix.outputs.server-max) }}
+        shard: [0, 1]
 
-    name: SQLite PHP ${{ matrix.mysql-versions }} PHP ${{ matrix.php-versions }} Nextcloud ${{ matrix.server-versions }}
+    name: SQLite PHP ${{ matrix.php-versions }} Nextcloud ${{ matrix.server-versions }} Shard ${{ matrix.shard }}
 
     services:
       mailpit:
@@ -168,6 +169,8 @@ jobs:
         working-directory: apps/${{ env.APP_NAME }}
         env:
           BEHAT_ROOT_DIR: ${{ github.workspace }}
+          SHARD_INDEX: ${{ matrix.shard }}
+          SHARD_TOTAL: '2'
         run: |
           export BEHAT_RUN_AS=runner
           export BEHAT_VERBOSE="$RUNNER_DEBUG"
