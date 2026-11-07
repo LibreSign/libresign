@@ -59,7 +59,7 @@ class SetupInstallPathResolver {
 		$path = $this->appConfig->getValueString(Application::APP_ID, 'java_path');
 		if ($path === '') {
 			return $this->resolveAppDataFolder(
-				$target->architecture() . '/' . $target->distro() . '/java',
+				$target->architecture() . '/' . $target->distro() . '/java/jdk-' . InstallService::JAVA_URL_PATH_NAME . '-jre',
 				'Java',
 			);
 		}
