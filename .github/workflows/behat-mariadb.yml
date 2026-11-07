@@ -60,18 +60,24 @@ jobs:
       matrix:
         php-versions: ${{ fromJson(needs.matrix.outputs.php-version) }}
         server-versions: ${{ fromJson(needs.matrix.outputs.server-max) }}
-        mariadb-versions: ['10.6', '10.11']
+        mariadb-versions: ['12.3']
 
     name: MariaDB ${{ matrix.mariadb-versions }} PHP ${{ matrix.php-versions }} Nextcloud ${{ matrix.server-versions }}
 
     services:
       mariadb:
-        image: ghcr.io/nextcloud/continuous-integration-mariadb-${{ matrix.mariadb-versions }}:latest
+        image: mariadb:${{ matrix.mariadb-versions }} # zizmor: ignore[unpinned-images]
         ports:
           - 4444:3306/tcp
         env:
-          MYSQL_ROOT_PASSWORD: rootpassword
-        options: --health-cmd="mysqladmin ping" --health-interval 5s --health-timeout 2s --health-retries 5
+          MARIADB_ROOT_PASSWORD: rootpassword
+        options: >-
+          --tmpfs /var/lib/mysql
+          --health-cmd="healthcheck.sh --connect --innodb_initialized"
+          --health-start-period 60s
+          --health-interval 5s
+          --health-timeout 2s
+          --health-retries 10
       mailpit:
         image: axllent/mailpit
         ports:

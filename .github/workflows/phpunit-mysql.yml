@@ -32,7 +32,7 @@ jobs:
         id: versions
         uses: icewind1991/nextcloud-version-matrix@cd0211ffcef1065e2020cd579e4843b8746e7a58 # v1.3.3
         with:
-          matrix: '{"mysql-versions": ["8.4"]}'
+          matrix: '{"mysql-versions": ["9.7"]}'
 
   changes:
     runs-on: ubuntu-latest
@@ -75,12 +75,18 @@ jobs:
 
     services:
       mysql:
-        image: ghcr.io/nextcloud/continuous-integration-mysql-${{ matrix.mysql-versions }}:latest # zizmor: ignore[unpinned-images]
+        image: mysql:${{ matrix.mysql-versions }} # zizmor: ignore[unpinned-images]
         ports:
           - 4444:3306/tcp
         env:
           MYSQL_ROOT_PASSWORD: rootpassword
-        options: --health-cmd="mysqladmin ping" --health-interval 5s --health-timeout 2s --health-retries 10
+        options: >-
+          --tmpfs /var/lib/mysql
+          --health-cmd="mysqladmin ping --protocol=tcp -h 127.0.0.1 -uroot -prootpassword"
+          --health-start-period 60s
+          --health-interval 5s
+          --health-timeout 2s
+          --health-retries 10
 
     steps:
       - name: Set app env

@@ -63,18 +63,23 @@ jobs:
         php-versions: ${{ fromJson(needs.matrix.outputs.php-version) }}
         server-versions: ${{ fromJson(needs.matrix.outputs.server-max) }}
 
-    name: PostgreSQL PHP ${{ matrix.mysql-versions }} PHP ${{ matrix.php-versions }} Nextcloud ${{ matrix.server-versions }}
+    name: PostgreSQL 18 PHP ${{ matrix.php-versions }} Nextcloud ${{ matrix.server-versions }}
 
     services:
       postgres:
-        image: ghcr.io/nextcloud/continuous-integration-postgres-14:latest
+        image: postgres:18 # zizmor: ignore[unpinned-images]
         ports:
           - 4444:5432/tcp
         env:
           POSTGRES_USER: root
           POSTGRES_PASSWORD: rootpassword
           POSTGRES_DB: nextcloud
-        options: --health-cmd pg_isready --health-interval 5s --health-timeout 2s --health-retries 5
+        options: >-
+          --mount type=tmpfs,destination=/var/lib/postgresql
+          --health-cmd="pg_isready -U root -d nextcloud"
+          --health-interval 5s
+          --health-timeout 2s
+          --health-retries 5
       mailpit:
         image: axllent/mailpit
         ports:

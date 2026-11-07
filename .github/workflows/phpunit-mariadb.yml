@@ -71,18 +71,24 @@ jobs:
       matrix:
         php-versions: ${{ fromJson(needs.matrix.outputs.php-version) }}
         server-versions: ${{ fromJson(needs.matrix.outputs.server-max) }}
-        mariadb-versions: ['10.6', '11.4']
+        mariadb-versions: ['12.3']
 
     name: MariaDB ${{ matrix.mariadb-versions }} PHP ${{ matrix.php-versions }} Nextcloud ${{ matrix.server-versions }}
 
     services:
       mariadb:
-        image: ghcr.io/nextcloud/continuous-integration-mariadb-${{ matrix.mariadb-versions }}:latest # zizmor: ignore[unpinned-images]
+        image: mariadb:${{ matrix.mariadb-versions }} # zizmor: ignore[unpinned-images]
         ports:
           - 4444:3306/tcp
         env:
           MARIADB_ROOT_PASSWORD: rootpassword
-        options: --health-cmd="mariadb-admin ping" --health-interval 5s --health-timeout 2s --health-retries 5
+        options: >-
+          --tmpfs /var/lib/mysql
+          --health-cmd="healthcheck.sh --connect --innodb_initialized"
+          --health-start-period 60s
+          --health-interval 5s
+          --health-timeout 2s
+          --health-retries 10
 
     steps:
       - name: Set app env
