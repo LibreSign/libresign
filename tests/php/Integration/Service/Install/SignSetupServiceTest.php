@@ -168,7 +168,6 @@ final class SignSetupServiceTest extends \OCA\Libresign\Tests\Integration\AppDat
 		];
 	}
 
-
 	#[DataProvider('dataWriteAppSignature')]
 	public function testVerifyJavaAfterAppConfigResetStillChecksIntegrity(string $architecture, string $resource): void {
 		$signSetupService = $this->writeAppSignature($architecture, $resource);

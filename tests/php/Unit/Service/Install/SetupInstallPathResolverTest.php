@@ -92,7 +92,6 @@ final class SetupInstallPathResolverTest extends TestCase {
 		];
 	}
 
-
 	#[DataProvider('javaTargetProvider')]
 	public function testResolveInstalledJavaWithoutConfiguredPath(string $architecture, string $distro): void {
 		$relativePath = $architecture . '/' . $distro . '/java/jdk-' . InstallService::JAVA_URL_PATH_NAME . '-jre';
