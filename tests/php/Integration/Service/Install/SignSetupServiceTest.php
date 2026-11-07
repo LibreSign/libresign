@@ -19,6 +19,7 @@ use OCA\Libresign\Service\Install\SetupSignatureVerifier;
 use OCA\Libresign\Service\Install\SignSetupService;
 use OCP\App\IAppManager;
 use OCP\Files\AppData\IAppDataFactory;
+use OCP\Files\SimpleFS\ISimpleFolder;
 use OCP\IAppConfig;
 use OCP\IConfig;
 use OCP\ITempManager;
@@ -170,6 +171,20 @@ final class SignSetupServiceTest extends \OCA\Libresign\Tests\Integration\AppDat
 
 	#[DataProvider('dataWriteAppSignature')]
 	public function testVerifyJavaAfterAppConfigResetStillChecksIntegrity(string $architecture, string $resource): void {
+		$installRoot = 'vfs://home/data/appdata_1/libresign/' . $architecture
+			. '/linux/java/' . self::JAVA_RELEASE_DIR;
+		// The signature fixture lives in vfsStream, not Nextcloud's real AppData.
+		$rootFolder = $this->createMock(ISimpleFolder::class);
+		$releaseFolder = $this->createMock(ISimpleFolder::class);
+		$rootFolder->method('getFolder')
+			->with($architecture . '/linux/java/' . self::JAVA_RELEASE_DIR)
+			->willReturn($releaseFolder);
+		$this->dependencyStorage = $this->createMock(DependencyStorage::class);
+		$this->dependencyStorage->method('rootFolder')->willReturn($rootFolder);
+		$this->dependencyStorage->method('pathOfFolder')
+			->with($releaseFolder)
+			->willReturn($installRoot);
+
 		$signSetupService = $this->writeAppSignature($architecture, $resource);
 		$this->appConfig->deleteKey(Application::APP_ID, 'java_path');
 		$this->assertSame('', $this->appConfig->getValueString(Application::APP_ID, 'java_path'));
@@ -177,8 +192,6 @@ final class SignSetupServiceTest extends \OCA\Libresign\Tests\Integration\AppDat
 		// The installed release is still valid after the per-scenario config reset.
 		$this->assertSame([], $signSetupService->verify($architecture, $resource));
 
-		$installRoot = 'vfs://home/data/appdata_1/libresign/' . $architecture
-			. '/linux/java/' . self::JAVA_RELEASE_DIR;
 		file_put_contents($installRoot . '/fakeFile02', 'tampered');
 		$invalid = $signSetupService->verify($architecture, $resource);
 		$this->assertArrayHasKey('INVALID_HASH', $invalid);
