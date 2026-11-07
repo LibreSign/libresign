@@ -44,6 +44,7 @@ jobs:
           filters: |
             src:
               - '.github/workflows/behat*'
+              - 'behat.php'
               - 'appinfo/**'
               - 'lib/**'
               - 'templates/**'
@@ -211,7 +212,7 @@ jobs:
         if: failure() && runner.debug == '1'
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
-          name: behat-mysql-server-diagnostics-php${{ matrix.php-versions }}-nc${{ matrix.server-versions }}
+          name: behat-mysql-server-diagnostics-php${{ matrix.php-versions }}-nc${{ matrix.server-versions }}-shard-${{ matrix.shard }}
           path: /tmp/behat-php-server-*
           if-no-files-found: ignore
 
