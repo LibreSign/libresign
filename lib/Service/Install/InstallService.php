@@ -87,13 +87,6 @@ class InstallService {
 		$this->saveErrorMessage($message);
 	}
 
-	private function progressToDatabase(string $resource, int $downloadSize, int $downloaded): void {
-		$data = $this->progressStore->get($this->target, $resource);
-		$data['download_size'] = $downloadSize;
-		$data['downloaded'] = $downloaded;
-		$this->progressStore->set($this->target, $resource, $data);
-	}
-
 	private function getProgressData(string $resource): array {
 		return $this->progressStore->get($this->target, $resource);
 	}
@@ -513,41 +506,40 @@ class InstallService {
 	): void {
 		$hash ??= '';
 		$hash_algo ??= 'md5';
-
+		$progress = new DownloadProgressReporter($this->progressStore, $this->target, $this->resource);
+		$progressBar = null;
 		if (php_sapi_name() === 'cli' && $this->output instanceof OutputInterface) {
 			$progressBar = new ProgressBar($this->output);
 			$this->output->writeln('Downloading ' . $dependencyName . '...');
 			$progressBar->start();
-			try {
-				$this->dependencyDownloader->download(
-					$url,
-					$dependencyName,
-					$path,
-					$hash,
-					$hash_algo,
-					function (int $downloadSize, int $downloaded) use ($progressBar): void {
-						$progressBar->setMaxSteps($downloadSize);
-						$progressBar->setProgress($downloaded);
-						$this->progressToDatabase($this->resource, $downloadSize, $downloaded);
-					},
-				);
-			} finally {
-				$progressBar->finish();
-				$this->output->writeln('');
-			}
-			return;
 		}
 
-		$this->dependencyDownloader->download(
-			$url,
-			$dependencyName,
-			$path,
-			$hash,
-			$hash_algo,
-			function (int $downloadSize, int $downloaded): void {
-				$this->progressToDatabase($this->resource, $downloadSize, $downloaded);
-			},
-		);
+		try {
+			$this->dependencyDownloader->download(
+				$url,
+				$dependencyName,
+				$path,
+				$hash,
+				$hash_algo,
+				static function (int $downloadSize, int $downloaded) use ($progress, $progressBar): void {
+					if ($progressBar !== null) {
+						$progressBar->setMaxSteps($downloadSize);
+						$progressBar->setProgress($downloaded);
+					}
+					$progress->report($downloadSize, $downloaded);
+				},
+			);
+		} finally {
+			// Preserve the last observed transfer status even when the download fails.
+			try {
+				$progress->flush();
+			} finally {
+				if ($progressBar !== null) {
+					$progressBar->finish();
+					$this->output->writeln('');
+				}
+			}
+		}
 	}
 
 	private function populateNamesWithInstanceId(array $names, string $engineName): array {
