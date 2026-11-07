@@ -8,13 +8,17 @@
 
 name: PHPUnit SQLite
 
-on: pull_request
+on:
+  pull_request:
+  push:
+    branches:
+      - main
 
 permissions:
   contents: read
 
 concurrency:
-  group: phpunit-sqlite-${{ github.head_ref || github.run_id }}
+  group: phpunit-sqlite-${{ github.head_ref || github.ref }}
   cancel-in-progress: true
 
 jobs:
@@ -43,6 +47,12 @@ jobs:
       src: ${{ steps.changes.outputs.src}}
 
     steps:
+      - name: Checkout app for push change detection
+        if: github.event_name == 'push'
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
       - uses: dorny/paths-filter@ceb8a2b8f2d89434be7ff52d3de7ec3738c5cc9d # v4.0.3
         id: changes
         continue-on-error: true
@@ -153,8 +163,8 @@ jobs:
         run: composer run test:coverage
 
       - name: Upload coverage results to Coveralls
-        if: steps.check_phpunit.outcome == 'success' && github.event.pull_request.head.repo.full_name == github.repository
-        uses: coverallsapp/github-action@v2.3.8
+        if: steps.check_phpunit.outcome == 'success' && (github.event_name == 'push' || (github.event_name == 'pull_request' && github.event.pull_request.base.ref == 'main' && github.event.pull_request.head.repo.full_name == github.repository))
+        uses: coverallsapp/github-action@8d6379e14d29928660c4ba802d8e85393440b329 # v2.3.8
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           file: apps/${{ env.APP_NAME }}/build/logs/cobertura.xml
@@ -190,12 +200,12 @@ jobs:
         run: if ${{ needs.changes.outputs.src != 'false' && needs.phpunit-sqlite.result != 'success' }}; then exit 1; fi
 
   finish-coverage:
-    if: ${{ github.event.pull_request.base.ref == 'main' && github.event.pull_request.head.repo.full_name == github.repository }}
+    if: ${{ github.event_name == 'push' || (github.event_name == 'pull_request' && github.event.pull_request.base.ref == 'main' && github.event.pull_request.head.repo.full_name == github.repository) }}
     needs: phpunit-sqlite
     runs-on: ubuntu-latest
     steps:
       - name: Let Coveralls know that all tests have finished
-        uses: coverallsapp/github-action@v2.3.8
+        uses: coverallsapp/github-action@8d6379e14d29928660c4ba802d8e85393440b329 # v2.3.8
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           parallel-finished: true
