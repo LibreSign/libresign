@@ -63,7 +63,9 @@ final class DownloadProgressReporterTest extends TestCase {
 			$store,
 			InstallTarget::from('aarch64', 'linux'),
 			'cfssl',
-			static function () use (&$now): float { return $now; },
+			static function () use (&$now): float {
+				return $now;
+			},
 		);
 		$reporter->report(0, 0);
 		$now = 1.05;
