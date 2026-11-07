@@ -162,6 +162,17 @@ jobs:
         working-directory: apps/${{ env.APP_NAME }}
         run: composer run test:coverage
 
+      - name: Preserve coverage reports for LibreSign coverage
+        if: steps.check_phpunit.outcome == 'success'
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: phpunit-coverage-php-${{ matrix.php-versions }}-nextcloud-${{ matrix.server-versions }}
+          path: |
+            apps/${{ env.APP_NAME }}/build/logs/clover.xml
+            apps/${{ env.APP_NAME }}/build/logs/html-coverage/
+          if-no-files-found: error
+          retention-days: 30
+
       - name: Upload coverage results to Coveralls
         if: steps.check_phpunit.outcome == 'success' && (github.event_name == 'push' || (github.event_name == 'pull_request' && github.event.pull_request.base.ref == 'main' && github.event.pull_request.head.repo.full_name == github.repository))
         uses: coverallsapp/github-action@8d6379e14d29928660c4ba802d8e85393440b329 # v2.3.8
