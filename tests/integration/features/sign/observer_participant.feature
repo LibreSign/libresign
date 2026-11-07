@@ -1,3 +1,4 @@
+@api
 Feature: sign/observer_participant
   Background: Make setup ok
     Given run the command "libresign:configure:openssl --cn test" with result code 0
@@ -206,6 +207,7 @@ Feature: sign/observer_participant
       | key                   | value                                  |
       | (jq).ocs.data.message | Observer participants are not enabled  |
 
+  @external
   Scenario: Mixed account signer and email observer creates the observer with a notification
     Given as user "admin"
     And user "signer1" exists
@@ -239,6 +241,7 @@ Feature: sign/observer_participant
     Then I should see "Please review the annex" in the opened email
     And I should see "A document is ready to view" in the opened email
 
+  @external
   Scenario: Email observer receives a validation link but cannot open it when validation is private
     Given as user "admin"
     And user "signer1" exists
@@ -306,6 +309,7 @@ Feature: sign/observer_participant
       | (jq).ocs.meta.message             | OK     |
       | (jq).ocs.data.fileElementId\|type | number |
 
+  @external
   Scenario: Sending a notification to an observer uses the validation email
     Given as user "admin"
     And sending "post" to ocs "/apps/libresign/api/v1/policies/system/enable_observer_profile"

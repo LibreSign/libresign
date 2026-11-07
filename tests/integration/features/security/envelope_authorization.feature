@@ -1,3 +1,4 @@
+@api
 Feature: envelope authorization
   Background:
     Given as user "admin"

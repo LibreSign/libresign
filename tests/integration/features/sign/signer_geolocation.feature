@@ -1,3 +1,4 @@
+@api
 Feature: sign/signer_device_geolocation
   Scenario: Required geolocation is enforced server-side and stored independently of collect_metadata
     Given as user "admin"

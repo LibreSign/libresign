@@ -1,3 +1,4 @@
+@api
 Feature: policies/identify_methods_policy
   Scenario: Manage identify_methods policy layers through API
     # Reset previous user-level state before building a fresh precedence chain.

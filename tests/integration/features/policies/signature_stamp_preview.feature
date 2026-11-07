@@ -1,3 +1,4 @@
+@api
 Feature: policies/signature_stamp_preview
   Scenario: Signature stamp PDF preview requires policy editor permissions
     Given as user "admin"

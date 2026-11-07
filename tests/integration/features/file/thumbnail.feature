@@ -1,3 +1,4 @@
+@api
 Feature: file-thumbnail
   Scenario: Thumbnail endpoint access by file_id should enforce signer authorization
     Given as user "admin"

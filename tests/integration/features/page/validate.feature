@@ -1,3 +1,4 @@
+@web
 Feature: page/validate
   Background: Make setup ok
     Given run the command "libresign:configure:openssl --cn test" with result code 0
@@ -72,6 +73,7 @@ Feature: page/validate
       | action | 2000                         |
       | errors | [{"message":"Invalid UUID"}] |
 
+  @external
   Scenario: Unauthenticated email signer can fetch PDF and gets controlled error after source deletion
     Given as user "admin"
     And sending "post" to ocs "/apps/libresign/api/v1/policies/system/identify_methods"

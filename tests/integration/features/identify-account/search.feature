@@ -1,3 +1,4 @@
+@api
 Feature: search
   Scenario: Search account by specific user
     Given as user "admin"

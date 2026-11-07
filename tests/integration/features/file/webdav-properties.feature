@@ -1,3 +1,4 @@
+@api
 Feature: webdav-properties
   Background:
     Given as user "admin"

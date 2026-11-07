@@ -1,3 +1,4 @@
+@api
 Feature: account/me
   Background: Create users
     Given user "signer1" exists

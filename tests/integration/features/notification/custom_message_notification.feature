@@ -1,3 +1,4 @@
+@api
 Feature: Custom message for signers
   In order to provide personalized instructions to signers
   As a document owner
@@ -13,6 +14,7 @@ Feature: Custom message for signers
     And run the command "config:app:set activity notify_email_libresign_file_to_sign --value=1" with result code 0
     And activity preference "notify_email_libresign_file_to_sign" for user "signer1" is set to "1"
 
+  @external
   Scenario: Account method - default message without custom description
     When sending "post" to ocs "/apps/libresign/api/v1/request-signature"
       | file | {"base64":"<SMALL_VALID_PDF_BASE64>"} |
@@ -23,6 +25,7 @@ Feature: Custom message for signers
     When I open the latest email to "signer1@test.com" with subject "LibreSign: A document is ready for your signature"
     Then I should see "A document is ready for your signature" in the opened email
 
+  @external
   Scenario: Account method - custom description in email
     When sending "post" to ocs "/apps/libresign/api/v1/request-signature"
       | file | {"base64":"<SMALL_VALID_PDF_BASE64>"} |
@@ -34,6 +37,7 @@ Feature: Custom message for signers
     Then I should see "Please review section 3 and the appendix before signing" in the opened email
     And I should see "A document is ready for your signature" in the opened email
 
+  @external
   Scenario: Email method - default notification
     When sending "post" to ocs "/apps/libresign/api/v1/request-signature"
       | file | {"base64":"<SMALL_VALID_PDF_BASE64>"} |
@@ -41,6 +45,7 @@ Feature: Custom message for signers
       | signers | [{"identifyMethods":[{"method":"email","value":"external@domain.test"}],"displayName":"External Signer"}] |
     Then the response should have a status code 200
 
+  @external
   Scenario: Email method - custom description via reminder
     Given sending "post" to ocs "/apps/libresign/api/v1/request-signature"
       | file | {"base64":"<SMALL_VALID_PDF_BASE64>"} |

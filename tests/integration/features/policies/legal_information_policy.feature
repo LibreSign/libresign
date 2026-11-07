@@ -1,3 +1,4 @@
+@api
 Feature: policies/legal_information_policy
   Scenario: Manage legal_information policy layers through API
     Given as user "admin"

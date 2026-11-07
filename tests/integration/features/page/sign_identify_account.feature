@@ -1,7 +1,9 @@
+@web
 Feature: page/sign_identify_account
   Background: Make setup ok
     Given run the command "libresign:configure:openssl --cn test" with result code 0
 
+  @external
   Scenario: Open sign file with invalid account data
     Given user "signer1" exists
     And as user "admin"
@@ -56,6 +58,7 @@ Feature: page/sign_identify_account
       | action | 1000                                      |
       | errors | ["You are not logged in. Please log in."] |
 
+  @external
   Scenario: Open sign file with all data valid
     Given user "signer1" exists
     And as user "admin"

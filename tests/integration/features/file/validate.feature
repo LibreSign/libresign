@@ -1,4 +1,5 @@
 Feature: validate
+  @api
   Scenario: Validation assigns visible elements only to their signer
     Given as user "admin"
     And user "signer1" exists
@@ -29,6 +30,7 @@ Feature: validate
       | (jq)(.ocs.data.files[0].signers[0].visibleElements == .ocs.data.signers[0].visibleElements) | true |
       | (jq)(.ocs.data.files[0].signers[1].visibleElements == .ocs.data.signers[1].visibleElements) | true |
 
+  @api
   Scenario: Envelope validation keeps visible elements scoped to each document signer
     Given as user "admin"
     And sending "post" to ocs "/apps/libresign/api/v1/admin/certificate/openssl"
@@ -59,6 +61,7 @@ Feature: validate
       | (jq).ocs.data.files[1].visibleElements | [] |
       | (jq).ocs.data.files[1].signers[0].visibleElements | [] |
 
+  @api
   Scenario: Sign with account, delete the account and validate
     Given as user "admin"
     And sending "post" to ocs "/apps/libresign/api/v1/policies/system/identification_documents"
@@ -115,6 +118,7 @@ Feature: validate
       | (jq)(.ocs.data.signers[0].valid_from \| test("^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}[+-][0-9]{2}:[0-9]{2}$")) | true   |
       | (jq)(.ocs.data.signers[0].valid_to \| test("^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}[+-][0-9]{2}:[0-9]{2}$"))   | true   |
 
+  @api
   Scenario Outline: Unauthenticated user can fetch the validation ednpoint
     Given as user "admin"
     And sending "post" to ocs "/apps/libresign/api/v1/policies/system/make_validation_url_private"
@@ -137,6 +141,7 @@ Feature: validate
       | /apps/libresign/api/v1/file/validate/file_id/171      | get    | 404        |
       | /apps/libresign/api/v1/file/validate/                 | post   | 404        |
 
+  @api
   Scenario: Public validation endpoint exposes only request legal information
     Given as user "admin"
     And sending "put" to ocs "/apps/libresign/api/v1/policies/user/admin/legal_information"
@@ -161,6 +166,7 @@ Feature: validate
       | (jq)(.ocs.data.effective_policies.policies.legal_information \| keys)         | ["effectiveValue","policyKey"] |
       | (jq)([.. \| objects \| select(has("policy_snapshot"))] \| length)            | 0                              |
 
+  @web
   Scenario: Validation page bootstraps requester group legal information policy
     Given as user "admin"
     And sending "put" to ocs "/apps/libresign/api/v1/policies/group/admin/legal_information"
@@ -187,6 +193,7 @@ Feature: validate
       | key                                                               | value |
       | (jq)([.. \| objects \| select(has("policy_snapshot"))] \| length) | 0     |
 
+  @api
   Scenario Outline: Unauthenticated user can not fetch the validation ednpoint
     Given as user "admin"
     Given sending "post" to ocs "/apps/libresign/api/v1/policies/system/make_validation_url_private"

@@ -1,3 +1,4 @@
+@api
 Feature: TSA Integration - End-to-End Workflow
 
   Background:
@@ -8,6 +9,7 @@ Feature: TSA Integration - End-to-End Workflow
     And run the command "libresign:install --use-local-cert --pdftk" with result code 0
     And run the command "libresign:configure:openssl --cn=Common\ Name --c=BR --o=Organization --st=State\ of\ Company --l=City\ Name --ou=Organization\ Unit" with result code 0
 
+  @external
   Scenario: TSA workflow - Successfully signs document with timestamp
     Given run the command "config:app:set libresign signing_mode --value=sync --type=string" with result code 0
     And sending "post" to ocs "/apps/libresign/api/v1/policies/system/tsa_settings"

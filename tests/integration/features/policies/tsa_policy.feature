@@ -1,3 +1,4 @@
+@api
 Feature: policies/tsa_policy
 
   Scenario: Configure and manage TSA configuration lifecycle

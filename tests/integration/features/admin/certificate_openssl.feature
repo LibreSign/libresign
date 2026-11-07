@@ -1,3 +1,4 @@
+@api
 Feature: admin/certificate_openssl
   Scenario: Generate root cert with success using only required values
     Given as user "admin"

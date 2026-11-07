@@ -1,3 +1,4 @@
+@web
 Feature: page/sign_identify_default
   Background: Make setup ok
     Given run the command "libresign:configure:openssl --cn test" with result code 0

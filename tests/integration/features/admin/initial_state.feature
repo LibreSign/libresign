@@ -1,3 +1,4 @@
+@web
 Feature: admin/initial_state
   Scenario: Default identify methods are exposed in admin initial state
     Given as user "admin"

@@ -1,3 +1,4 @@
+@occ
 Feature: sign
   Scenario: Sign setup proccess with success
     And run the command "libresign:install --all --architecture=aarch64 --all-distros --use-local-cert" with result code 0

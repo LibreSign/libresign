@@ -1,3 +1,4 @@
+@api
 Feature: file id authorization
   Background:
     Given as user "admin"

@@ -1,3 +1,4 @@
+@api
 Feature: envelope
   Scenario: Cannot save envelope when feature is disabled
     Given as user "admin"

@@ -1,3 +1,4 @@
+@api
 Feature: policies/reminder_policy_settings
   Scenario: Manage reminder_settings policy layers through API
     Given as user "admin"

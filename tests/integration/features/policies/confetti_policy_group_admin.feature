@@ -1,3 +1,4 @@
+@api
 Feature: policies/confetti_policy_group_admin
   Scenario: Group admin can create group and user overrides while sysadmin seed remains hidden in listings
     # Bootstrap actors and managed group for delegated policy management.

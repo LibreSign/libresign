@@ -1,3 +1,4 @@
+@api
 Feature: policies/groups_request_sign_policy
   Scenario: Manage groups_request_sign policy with group scope and guard restrictions
     Given as user "admin"
