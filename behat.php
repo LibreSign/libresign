@@ -28,8 +28,13 @@ if ($index !== false || $total !== false) {
 		'SHARD_INDEX' => $index,
 		'SHARD_TOTAL' => $total,
 	]);
-	$features = FeatureShardSelector::discover(__DIR__ . '/tests/integration/features');
-	$selected = $selector->select($features);
+	$featureDirectory = __DIR__ . '/tests/integration/features';
+	$features = FeatureShardSelector::discover($featureDirectory);
+	$weights = [];
+	foreach ($features as $feature) {
+		$weights[$feature] = FeatureShardSelector::countScenarios($featureDirectory . '/' . $feature);
+	}
+	$selected = $selector->select($features, $weights);
 	if ($selected === []) {
 		throw new RuntimeException('Behat shard is empty; refusing to run the full suite.');
 	}
