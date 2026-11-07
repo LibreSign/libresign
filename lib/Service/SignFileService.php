@@ -27,6 +27,7 @@ use OCA\Libresign\Db\NotificationDeliveryMapper;
 use OCA\Libresign\Db\SignRequest as SignRequestEntity;
 use OCA\Libresign\Db\SignRequestMapper;
 use OCA\Libresign\Db\UserElementMapper;
+use OCA\Libresign\Enum\DocMdpLevel;
 use OCA\Libresign\Enum\FileStatus;
 use OCA\Libresign\Enum\IdentifyMethodRequirement;
 use OCA\Libresign\Enum\SignRequestStatus;
@@ -48,6 +49,7 @@ use OCA\Libresign\Service\IdentifyMethod\IIdentifyMethod;
 use OCA\Libresign\Service\IdentifyMethod\SignatureMethod\IToken;
 use OCA\Libresign\Service\Policy\PolicyService;
 use OCA\Libresign\Service\Policy\Provider\CollectMetadata\CollectMetadataPolicy;
+use OCA\Libresign\Service\Policy\Provider\DocMdp\DocMdpPolicy;
 use OCA\Libresign\Service\Policy\Provider\Footer\FooterPolicy;
 use OCA\Libresign\Service\Policy\Provider\Footer\FooterPolicyValue;
 use OCA\Libresign\Service\SignRequest\SignRequestService;
@@ -1248,7 +1250,8 @@ class SignFileService {
 			$this->restoreMissingVisibleElementImages();
 			$this->engine
 				->setVisibleElements($this->getVisibleElements())
-				->setSignatureParams($this->getSignatureParams());
+				->setSignatureParams($this->getSignatureParams())
+				->setDocMdpLevel($this->getDocMdpLevel());
 		}
 	}
 
@@ -1492,6 +1495,21 @@ class SignFileService {
 		}
 
 		return $this->footerPolicyValue;
+	}
+
+	/**
+	 * Once frozen, the request certifies with the level it stores, whatever the
+	 * current level. Without a stored level, the current one applies.
+	 */
+	private function getDocMdpLevel(): ?DocMdpLevel {
+		$policySnapshot = ($this->libreSignFile->getMetadata() ?? [])['policy_snapshot'] ?? null;
+		if (!is_array($policySnapshot) || !array_key_exists(DocMdpPolicy::KEY, $policySnapshot)) {
+			return null;
+		}
+
+		return FileStatusService::isPolicySnapshotFrozen($this->libreSignFile, $this->fileMapper->findEnvelope($this->libreSignFile))
+			? $this->libreSignFile->getDocmdpLevelEnum()
+			: null;
 	}
 
 	protected function getSignedFile(): ?File {

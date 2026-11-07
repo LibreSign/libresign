@@ -10,6 +10,7 @@ namespace OCA\Libresign\Handler\SignEngine;
 
 use InvalidArgumentException;
 use OCA\Libresign\DataObjects\VisibleElementAssoc;
+use OCA\Libresign\Enum\DocMdpLevel;
 use OCA\Libresign\Exception\EmptyCertificateException;
 use OCA\Libresign\Exception\LibresignException;
 use OCA\Libresign\Exception\PasswordToSignNotDefinedException;
@@ -31,6 +32,7 @@ abstract class SignEngineHandler implements IPkcs12SignEngineHandler {
 	/** @var VisibleElementAssoc[] */
 	private array $visibleElements = [];
 	private array $signatureParams = [];
+	private ?DocMdpLevel $docMdpLevel = null;
 
 	public function __construct(
 		private IL10N $l10n,
@@ -117,6 +119,19 @@ abstract class SignEngineHandler implements IPkcs12SignEngineHandler {
 	public function setSignatureParams(array $params): self {
 		$this->signatureParams = $params;
 		return $this;
+	}
+
+	/**
+	 * The certification level to sign with, used as is. Without one, the
+	 * current level applies.
+	 */
+	public function setDocMdpLevel(?DocMdpLevel $docMdpLevel): self {
+		$this->docMdpLevel = $docMdpLevel;
+		return $this;
+	}
+
+	public function getDocMdpLevel(): ?DocMdpLevel {
+		return $this->docMdpLevel;
 	}
 
 	public function setLeafExpiryOverrideInDays(?int $days): self {
