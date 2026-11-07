@@ -24,7 +24,6 @@
   <coverage>
     <report>
       <clover outputFile="../../build/logs/clover.xml"/>
-      <cobertura outputFile="../../build/logs/coverage.xml"/>
       <html outputDirectory="../../build/logs/html-coverage" lowUpperBound="50" highLowerBound="90"/>
     </report>
   </coverage>
