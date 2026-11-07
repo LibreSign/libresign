@@ -196,6 +196,49 @@ jobs:
           echo 'The PHPUnit coverage script is not defined in composer.json'
           exit 1
 
+  octocov:
+    name: Publish octocov metrics
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    needs: phpunit-sqlite
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      actions: write
+    steps:
+      - name: Checkout app
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Download PHPUnit Clover artifacts
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
+        with:
+          pattern: phpunit-coverage-*
+          path: coverage-artifacts
+
+      - name: Select reference Clover from the PHPUnit matrix
+        shell: bash
+        run: |
+          set -euo pipefail
+          mapfile -t reports < <(find coverage-artifacts -type f -name clover.xml | sort -Vr)
+          [[ "${#reports[@]}" -gt 0 ]] || { echo '::error::Clover artifact missing'; exit 1; }
+          selected=''
+          for candidate in "${reports[@]}"; do
+            if [[ "${candidate}" == *-nextcloud-master/* ]]; then
+              selected="${candidate}"
+              break
+            fi
+          done
+          selected="${selected:-${reports[0]}}"
+          mkdir -p .octocov-coverage
+          cp "${selected}" .octocov-coverage/clover.xml
+          test -s .octocov-coverage/clover.xml
+
+      - name: Save native octocov report in GitHub Actions artifacts
+        uses: k1LoW/octocov-action@a167dc0dee441b7ffc45e1b862ab55ec0d87f278 # v1.5.2
+        with:
+          version: v0.83.5
+
   summary:
     permissions:
       contents: none
