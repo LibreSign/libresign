@@ -15,6 +15,7 @@ use OCP\AppFramework\Http;
 use OCP\AppFramework\Http\Attribute\FrontpageRoute;
 use OCP\AppFramework\Http\Attribute\NoAdminRequired;
 use OCP\AppFramework\Http\Attribute\NoCSRFRequired;
+use OCP\AppFramework\Http\Attribute\OpenAPI;
 use OCP\AppFramework\Http\Attribute\PublicPage;
 use OCP\AppFramework\Http\DataDownloadResponse;
 use OCP\AppFramework\Http\DataResponse;
@@ -49,6 +50,7 @@ class CrlController extends Controller {
 	#[NoAdminRequired]
 	#[NoCSRFRequired]
 	#[PublicPage]
+	#[OpenAPI(tags: ['certificates'])]
 	#[FrontpageRoute(verb: 'GET', url: '/crl/libresign_{instanceId}_{generation}_{engineType}.crl')]
 	public function getRevocationList(string $instanceId, int $generation, string $engineType): DataDownloadResponse|DataResponse {
 		try {
@@ -81,6 +83,7 @@ class CrlController extends Controller {
 	#[NoAdminRequired]
 	#[NoCSRFRequired]
 	#[PublicPage]
+	#[OpenAPI(tags: ['verification'])]
 	#[FrontpageRoute(verb: 'GET', url: '/crl/check/{serialNumber}')]
 	public function checkCertificateStatus(string $serialNumber): DataResponse {
 		if (!$this->isValidSerial($serialNumber)) {

@@ -17,6 +17,7 @@ use OCP\AppFramework\Http;
 use OCP\AppFramework\Http\Attribute\ApiRoute;
 use OCP\AppFramework\Http\Attribute\NoAdminRequired;
 use OCP\AppFramework\Http\Attribute\NoCSRFRequired;
+use OCP\AppFramework\Http\Attribute\OpenAPI;
 use OCP\AppFramework\Http\DataResponse;
 use OCP\IL10N;
 use OCP\IRequest;
@@ -57,6 +58,7 @@ final class PolicyController extends AEnvironmentAwareController {
 	 */
 	#[NoAdminRequired]
 	#[NoCSRFRequired]
+	#[OpenAPI(tags: ['policies'])]
 	#[ApiRoute(verb: 'GET', url: '/api/{apiVersion}/policies/effective', requirements: ['apiVersion' => '(v1)'])]
 	public function effective(): DataResponse {
 		$ruleCounts = $this->policyManagementScopeService->resolveVisibleRuleCountsForCurrentActor();
@@ -80,6 +82,7 @@ final class PolicyController extends AEnvironmentAwareController {
 	 *
 	 * 200: OK
 	 */
+	#[OpenAPI(tags: ['policies'])]
 	#[ApiRoute(verb: 'GET', url: '/api/{apiVersion}/policies/system/{policyKey}', requirements: ['apiVersion' => '(v1)', 'policyKey' => '[a-z0-9_]+'])]
 	public function getSystem(string $policyKey): DataResponse {
 		$policy = $this->policyService->getSystemPolicy($policyKey);
@@ -117,6 +120,7 @@ final class PolicyController extends AEnvironmentAwareController {
 	 * 403: Forbidden
 	 */
 	#[NoAdminRequired]
+	#[OpenAPI(tags: ['policies'])]
 	#[ApiRoute(verb: 'GET', url: '/api/{apiVersion}/policies/group/{groupId}/{policyKey}', requirements: ['apiVersion' => '(v1)', 'groupId' => '[^/]+', 'policyKey' => '[a-z0-9_]+'])]
 	public function getGroup(string $groupId, string $policyKey): DataResponse {
 		if (!$this->policyManagementScopeService->canCurrentActorManageGroupPolicy($groupId, $policyKey)) {
@@ -145,6 +149,7 @@ final class PolicyController extends AEnvironmentAwareController {
 	 * 200: OK
 	 */
 	#[NoAdminRequired]
+	#[OpenAPI(tags: ['policies'])]
 	#[ApiRoute(verb: 'GET', url: '/api/{apiVersion}/policies/by-policy/group/{policyKey}', requirements: ['apiVersion' => '(v1)', 'policyKey' => '[a-z0-9_]+'])]
 	public function listGroupPolicies(string $policyKey): DataResponse {
 		$manageableGroupIds = $this->policyManagementScopeService->resolveCurrentActorManageableGroupIdsForPolicy($policyKey);
@@ -191,6 +196,7 @@ final class PolicyController extends AEnvironmentAwareController {
 	 * 403: Forbidden
 	 */
 	#[NoAdminRequired]
+	#[OpenAPI(tags: ['policies'])]
 	#[ApiRoute(verb: 'GET', url: '/api/{apiVersion}/policies/user/{userId}/{policyKey}', requirements: ['apiVersion' => '(v1)', 'userId' => '[^/]+', 'policyKey' => '[a-z0-9_]+'])]
 	public function getUserPolicyForUser(string $userId, string $policyKey): DataResponse {
 		if (!$this->policyManagementScopeService->canCurrentActorManageScopedUserPolicy($userId, $policyKey)) {
@@ -216,6 +222,7 @@ final class PolicyController extends AEnvironmentAwareController {
 	 * 200: OK
 	 */
 	#[NoAdminRequired]
+	#[OpenAPI(tags: ['policies'])]
 	#[ApiRoute(verb: 'GET', url: '/api/{apiVersion}/policies/by-policy/user/{policyKey}', requirements: ['apiVersion' => '(v1)', 'policyKey' => '[a-z0-9_]+'])]
 	public function listUserPolicies(string $policyKey): DataResponse {
 		$records = $this->policyService->listUserPolicies($policyKey);
@@ -251,6 +258,7 @@ final class PolicyController extends AEnvironmentAwareController {
 	 * 200: OK
 	 * 400: Invalid policy value
 	 */
+	#[OpenAPI(tags: ['policies'])]
 	#[ApiRoute(verb: 'POST', url: '/api/{apiVersion}/policies/system/{policyKey}', requirements: ['apiVersion' => '(v1)', 'policyKey' => '[a-z0-9_]+'])]
 	public function setSystem(string $policyKey, null|bool|int|float|string|array $value = null, bool $allowChildOverride = false): DataResponse {
 		$value = $this->readPolicyValueParam('value', $value);
@@ -291,6 +299,7 @@ final class PolicyController extends AEnvironmentAwareController {
 	 * 403: Forbidden
 	 */
 	#[NoAdminRequired]
+	#[OpenAPI(tags: ['policies'])]
 	#[ApiRoute(verb: 'PUT', url: '/api/{apiVersion}/policies/group/{groupId}/{policyKey}', requirements: ['apiVersion' => '(v1)', 'groupId' => '[^/]+', 'policyKey' => '[a-z0-9_]+'])]
 	public function setGroup(string $groupId, string $policyKey, null|bool|int|float|string|array $value = null, bool $allowChildOverride = false): DataResponse {
 		if (!$this->policyManagementScopeService->canCurrentActorManageGroupPolicy($groupId, $policyKey)) {
@@ -343,6 +352,7 @@ final class PolicyController extends AEnvironmentAwareController {
 	 * 200: OK
 	 * 400: Invalid policy value
 	 */
+	#[OpenAPI(tags: ['policies'])]
 	#[ApiRoute(verb: 'POST', url: '/api/{apiVersion}/policies/compound/system/{parentPolicyKey}', requirements: ['apiVersion' => '(v1)', 'parentPolicyKey' => '[a-z0-9_]+'])]
 	public function setSystemCompound(string $parentPolicyKey, array $values = [], array $allowChildOverride = []): DataResponse {
 		$values = $this->readPolicyValueMapParam('values', $values);
@@ -390,6 +400,7 @@ final class PolicyController extends AEnvironmentAwareController {
 	 * 403: Forbidden
 	 */
 	#[NoAdminRequired]
+	#[OpenAPI(tags: ['policies'])]
 	#[ApiRoute(verb: 'PUT', url: '/api/{apiVersion}/policies/compound/group/{groupId}/{parentPolicyKey}', requirements: ['apiVersion' => '(v1)', 'groupId' => '[^/]+', 'parentPolicyKey' => '[a-z0-9_]+'])]
 	public function setGroupCompound(string $groupId, string $parentPolicyKey, array $values = [], array $allowChildOverride = []): DataResponse {
 		$values = $this->readPolicyValueMapParam('values', $values);
@@ -447,6 +458,7 @@ final class PolicyController extends AEnvironmentAwareController {
 	 * 400: Invalid policy value
 	 */
 	#[NoAdminRequired]
+	#[OpenAPI(tags: ['policies'])]
 	#[ApiRoute(verb: 'PUT', url: '/api/{apiVersion}/policies/compound/user/{parentPolicyKey}', requirements: ['apiVersion' => '(v1)', 'parentPolicyKey' => '[a-z0-9_]+'])]
 	public function setUserPreferenceCompound(string $parentPolicyKey, array $values = []): DataResponse {
 		$values = $this->readPolicyValueMapParam('values', $values);
@@ -493,6 +505,7 @@ final class PolicyController extends AEnvironmentAwareController {
 	 * 403: Forbidden
 	 */
 	#[NoAdminRequired]
+	#[OpenAPI(tags: ['policies'])]
 	#[ApiRoute(verb: 'PUT', url: '/api/{apiVersion}/policies/compound/user/{userId}/{parentPolicyKey}', requirements: ['apiVersion' => '(v1)', 'userId' => '[^/]+', 'parentPolicyKey' => '[a-z0-9_]+'])]
 	public function setUserPolicyForUserCompound(string $userId, string $parentPolicyKey, array $values = [], array $allowChildOverride = []): DataResponse {
 		if (!$this->policyManagementScopeService->canCurrentActorManageUserPolicy($userId)) {
@@ -548,6 +561,7 @@ final class PolicyController extends AEnvironmentAwareController {
 	 * 403: Forbidden
 	 */
 	#[NoAdminRequired]
+	#[OpenAPI(tags: ['policies'])]
 	#[ApiRoute(verb: 'DELETE', url: '/api/{apiVersion}/policies/group/{groupId}/{policyKey}', requirements: ['apiVersion' => '(v1)', 'groupId' => '[^/]+', 'policyKey' => '[a-z0-9_]+'])]
 	public function clearGroup(string $groupId, string $policyKey): DataResponse {
 		if (!$this->policyManagementScopeService->canCurrentActorManageGroupPolicy($groupId, $policyKey)) {
@@ -592,6 +606,7 @@ final class PolicyController extends AEnvironmentAwareController {
 	 * 400: Invalid policy value
 	 */
 	#[NoAdminRequired]
+	#[OpenAPI(tags: ['policies'])]
 	#[ApiRoute(verb: 'PUT', url: '/api/{apiVersion}/policies/user/{policyKey}', requirements: ['apiVersion' => '(v1)', 'policyKey' => '[a-z0-9_]+'])]
 	public function setUserPreference(string $policyKey, null|bool|int|float|string|array $value = null): DataResponse {
 		$value = $this->readPolicyValueParam('value', $value);
@@ -631,6 +646,7 @@ final class PolicyController extends AEnvironmentAwareController {
 	 * 403: Forbidden
 	 */
 	#[NoAdminRequired]
+	#[OpenAPI(tags: ['policies'])]
 	#[ApiRoute(verb: 'PUT', url: '/api/{apiVersion}/policies/user/{userId}/{policyKey}', requirements: ['apiVersion' => '(v1)', 'userId' => '[^/]+', 'policyKey' => '[a-z0-9_]+'])]
 	public function setUserPolicyForUser(string $userId, string $policyKey, null|bool|int|float|string|array $value = null, bool $allowChildOverride = false): DataResponse {
 		if (!$this->policyManagementScopeService->canCurrentActorManageUserPolicy($userId)) {
@@ -674,6 +690,7 @@ final class PolicyController extends AEnvironmentAwareController {
 	 * 400: User-scope not supported
 	 */
 	#[NoAdminRequired]
+	#[OpenAPI(tags: ['policies'])]
 	#[ApiRoute(verb: 'DELETE', url: '/api/{apiVersion}/policies/user/{policyKey}', requirements: ['apiVersion' => '(v1)', 'policyKey' => '[a-z0-9_]+'])]
 	public function clearUserPreference(string $policyKey): DataResponse {
 		try {
@@ -709,6 +726,7 @@ final class PolicyController extends AEnvironmentAwareController {
 	 * 403: Forbidden
 	 */
 	#[NoAdminRequired]
+	#[OpenAPI(tags: ['policies'])]
 	#[ApiRoute(verb: 'DELETE', url: '/api/{apiVersion}/policies/user/{userId}/{policyKey}', requirements: ['apiVersion' => '(v1)', 'userId' => '[^/]+', 'policyKey' => '[a-z0-9_]+'])]
 	public function clearUserPolicyForUser(string $userId, string $policyKey): DataResponse {
 		if (!$this->policyManagementScopeService->canCurrentActorManageUserPolicy($userId)) {

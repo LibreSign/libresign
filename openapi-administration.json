@@ -941,7 +941,7 @@
                 "summary": "Generate certificate using CFSSL engine",
                 "description": "This endpoint requires admin access",
                 "tags": [
-                    "admin"
+                    "certificates"
                 ],
                 "security": [
                     {
@@ -1107,7 +1107,7 @@
                 "summary": "Generate certificate using OpenSSL engine",
                 "description": "This endpoint requires admin access",
                 "tags": [
-                    "admin"
+                    "certificates"
                 ],
                 "security": [
                     {
@@ -1268,7 +1268,7 @@
                 "summary": "Set certificate engine",
                 "description": "Sets the certificate engine (openssl, cfssl, or none) and automatically configures identify_methods when needed\nThis endpoint requires admin access",
                 "tags": [
-                    "admin"
+                    "certificates"
                 ],
                 "security": [
                     {
@@ -1391,7 +1391,7 @@
                 "summary": "Load certificate data",
                 "description": "Return all data of root certificate and a field called `generated` with a boolean value.\nThis endpoint requires admin access",
                 "tags": [
-                    "admin"
+                    "certificates"
                 ],
                 "security": [
                     {
@@ -1465,7 +1465,7 @@
                 "summary": "Check the configuration of LibreSign",
                 "description": "Return the status of necessary configuration and tips to fix the problems.\nThis endpoint requires admin access",
                 "tags": [
-                    "admin"
+                    "system"
                 ],
                 "security": [
                     {
@@ -1539,7 +1539,7 @@
                 "summary": "Add custom background image",
                 "description": "This endpoint requires admin access",
                 "tags": [
-                    "admin"
+                    "appearance"
                 ],
                 "security": [
                     {
@@ -1641,7 +1641,7 @@
                 "summary": "Get custom background image",
                 "description": "This endpoint requires admin access",
                 "tags": [
-                    "admin"
+                    "appearance"
                 ],
                 "security": [
                     {
@@ -1694,7 +1694,7 @@
                 "summary": "Delete background image",
                 "description": "This endpoint requires admin access",
                 "tags": [
-                    "admin"
+                    "appearance"
                 ],
                 "security": [
                     {
@@ -1768,7 +1768,7 @@
                 "summary": "Upload new certificate policy PDF for this instance",
                 "description": "This endpoint requires admin access",
                 "tags": [
-                    "admin"
+                    "certificates"
                 ],
                 "security": [
                     {
@@ -1870,7 +1870,7 @@
                 "summary": "Delete certificate policy of this instance",
                 "description": "This endpoint requires admin access",
                 "tags": [
-                    "admin"
+                    "certificates"
                 ],
                 "security": [
                     {
@@ -1985,7 +1985,7 @@
                 "summary": "Update OID",
                 "description": "This endpoint requires admin access",
                 "tags": [
-                    "admin"
+                    "certificates"
                 ],
                 "security": [
                     {
@@ -2108,7 +2108,7 @@
                 "summary": "Get list of files currently being signed (status = SIGNING_IN_PROGRESS)",
                 "description": "This endpoint requires admin access",
                 "tags": [
-                    "admin"
+                    "requests"
                 ],
                 "security": [
                     {
@@ -2212,7 +2212,7 @@
                 "summary": "Get GeoIP database configuration and status",
                 "description": "This endpoint requires admin access",
                 "tags": [
-                    "admin"
+                    "system"
                 ],
                 "security": [
                     {
@@ -2284,7 +2284,7 @@
                 "summary": "Save GeoIP database path",
                 "description": "An empty path clears the configuration. The path may be saved even when the database file is not available yet; the returned status describes the current filesystem state.\nThis endpoint requires admin access",
                 "tags": [
-                    "admin"
+                    "system"
                 ],
                 "security": [
                     {
@@ -2375,7 +2375,7 @@
                 "summary": "List CRL entries with pagination and filters",
                 "description": "This endpoint requires admin access",
                 "tags": [
-                    "crl"
+                    "certificates"
                 ],
                 "security": [
                     {
@@ -2551,7 +2551,7 @@
                 "summary": "Revoke a certificate by serial number",
                 "description": "This endpoint requires admin access",
                 "tags": [
-                    "crl"
+                    "certificates"
                 ],
                 "security": [
                     {
@@ -2715,7 +2715,7 @@
                 "summary": "Save footer template and render preview",
                 "description": "Saves the footer template and returns the rendered PDF preview.\nThis endpoint requires admin access",
                 "tags": [
-                    "footer_template"
+                    "appearance"
                 ],
                 "security": [
                     {
@@ -2859,7 +2859,7 @@
                 "summary": "Read explicit system policy configuration",
                 "description": "This endpoint requires admin access",
                 "tags": [
-                    "policy"
+                    "policies"
                 ],
                 "security": [
                     {
@@ -2941,7 +2941,7 @@
                 "summary": "Save a system-level policy value",
                 "description": "This endpoint requires admin access",
                 "tags": [
-                    "policy"
+                    "policies"
                 ],
                 "security": [
                     {
@@ -3098,7 +3098,7 @@
                 "summary": "Save several system-level values of the same composite policy at once",
                 "description": "Settings that only make sense together are written as one operation: the policy they belong to validates the resulting configuration before any of them is stored, so the result does not depend on the order of the values.\nThis endpoint requires admin access",
                 "tags": [
-                    "policy"
+                    "policies"
                 ],
                 "security": [
                     {
@@ -3262,7 +3262,7 @@
                 "summary": "Has root certificate",
                 "description": "Checks whether the root certificate has been configured by checking the Nextcloud configuration table to see if the root certificate settings have",
                 "tags": [
-                    "setting"
+                    "certificates"
                 ],
                 "security": [
                     {

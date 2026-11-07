@@ -4248,7 +4248,7 @@
                 "operationId": "certificate_policy-get-certificate-policy",
                 "summary": "Certificate policy of this instance",
                 "tags": [
-                    "certificate_policy"
+                    "certificates"
                 ],
                 "security": [
                     {},
@@ -4297,7 +4297,7 @@
                 "operationId": "crl-get-revocation-list",
                 "summary": "Get Certificate Revocation List in DER format (RFC 5280 compliant)",
                 "tags": [
-                    "crl"
+                    "certificates"
                 ],
                 "security": [
                     {},
@@ -4368,7 +4368,7 @@
                 "operationId": "crl-check-certificate-status",
                 "summary": "Check certificate revocation status",
                 "tags": [
-                    "crl"
+                    "verification"
                 ],
                 "security": [
                     {},
@@ -4419,7 +4419,7 @@
                 "operationId": "account-create-to-sign",
                 "summary": "Create account to sign a document",
                 "tags": [
-                    "account"
+                    "identity"
                 ],
                 "security": [
                     {},
@@ -4558,7 +4558,7 @@
                 "operationId": "account-signature-generate",
                 "summary": "Create PFX file using self-signed certificate",
                 "tags": [
-                    "account"
+                    "identity"
                 ],
                 "security": [
                     {
@@ -4681,7 +4681,7 @@
                 "summary": "Who am I",
                 "description": "Validates API access data and returns the authenticated user's data.",
                 "tags": [
-                    "account"
+                    "identity"
                 ],
                 "security": [
                     {},
@@ -4782,7 +4782,7 @@
                 "operationId": "account-update-settings",
                 "summary": "Update the account phone number",
                 "tags": [
-                    "account"
+                    "identity"
                 ],
                 "security": [
                     {
@@ -4902,7 +4902,7 @@
                 "operationId": "account-delete-pfx",
                 "summary": "Delete PFX file",
                 "tags": [
-                    "account"
+                    "identity"
                 ],
                 "security": [
                     {
@@ -4973,7 +4973,7 @@
                 "operationId": "account-upload-pfx",
                 "summary": "Upload PFX file",
                 "tags": [
-                    "account"
+                    "identity"
                 ],
                 "security": [
                     {
@@ -5075,7 +5075,7 @@
                 "summary": "Update PFX file",
                 "description": "Used to change the password of PFX file",
                 "tags": [
-                    "account"
+                    "identity"
                 ],
                 "security": [
                     {
@@ -5202,7 +5202,7 @@
                 "operationId": "account-read-pfx-data",
                 "summary": "Read content of PFX file",
                 "tags": [
-                    "account"
+                    "identity"
                 ],
                 "security": [
                     {
@@ -5324,7 +5324,7 @@
                 "operationId": "account-set-config",
                 "summary": "Set user config value",
                 "tags": [
-                    "account"
+                    "identity"
                 ],
                 "security": [
                     {
@@ -5437,7 +5437,7 @@
                 "summary": "Validate a file using Uuid",
                 "description": "Validate a file returning file data. The response always includes `filesCount` and `files`. For `nodeType=file`, `filesCount=1` and `files` contains the current file. For `nodeType=envelope`, `files` contains envelope child files.",
                 "tags": [
-                    "file"
+                    "verification"
                 ],
                 "security": [
                     {},
@@ -5590,7 +5590,7 @@
                 "summary": "Validate a file using FileId",
                 "description": "Validate a file returning file data. The response always includes `filesCount` and `files`. For `nodeType=file`, `filesCount=1` and `files` contains the current file. For `nodeType=envelope`, `files` contains envelope child files.",
                 "tags": [
-                    "file"
+                    "verification"
                 ],
                 "security": [
                     {},
@@ -5772,7 +5772,7 @@
                 "summary": "Validate a binary file",
                 "description": "Validate a binary file returning file data. Use field 'file' for the file upload. The response always includes `filesCount` and `files`. For `nodeType=file`, `filesCount=1` and `files` contains the current file. For `nodeType=envelope`, `files` contains envelope child files.",
                 "tags": [
-                    "file"
+                    "verification"
                 ],
                 "security": [
                     {},
@@ -5906,7 +5906,7 @@
                 "operationId": "file-list",
                 "summary": "List identification documents that need to be approved",
                 "tags": [
-                    "file"
+                    "documents"
                 ],
                 "security": [
                     {
@@ -6108,7 +6108,7 @@
                 "operationId": "file-get-thumbnail",
                 "summary": "Return the thumbnail of a LibreSign file",
                 "tags": [
-                    "file"
+                    "documents"
                 ],
                 "security": [
                     {
@@ -6335,7 +6335,7 @@
                 "operationId": "file-get-thumbnail-by-file-id",
                 "summary": "Return the thumbnail of a LibreSign file by fileId",
                 "tags": [
-                    "file"
+                    "documents"
                 ],
                 "security": [
                     {
@@ -6563,7 +6563,7 @@
                 "summary": "Send a file",
                 "description": "Send a new file to Nextcloud and return the fileId used to create a signature request. Files must be uploaded as multipart/form-data with field name 'file[]' or 'files[]'.\n**Note on multiple file uploads:** PHP has a limit on the number of files that can be uploaded in a single request (max_file_uploads directive, default 20). When uploading many files (more than 20), consider uploading them sequentially in multiple requests or use individual file uploads like the Files app does.",
                 "tags": [
-                    "file"
+                    "documents"
                 ],
                 "security": [
                     {
@@ -6702,7 +6702,7 @@
                 "summary": "Add file to envelope",
                 "description": "Add one or more files to an existing envelope that is in DRAFT status. Files must be uploaded as multipart/form-data with field name 'files[]'.",
                 "tags": [
-                    "file"
+                    "documents"
                 ],
                 "security": [
                     {
@@ -6875,7 +6875,7 @@
                 "summary": "Delete File",
                 "description": "This will delete the file and all data",
                 "tags": [
-                    "file"
+                    "documents"
                 ],
                 "security": [
                     {
@@ -7032,7 +7032,7 @@
                 "summary": "Create visible element",
                 "description": "Create visible element of a specific file",
                 "tags": [
-                    "file_element"
+                    "appearance"
                 ],
                 "security": [
                     {
@@ -7192,7 +7192,7 @@
                 "summary": "Update visible element",
                 "description": "Update visible element of a specific file",
                 "tags": [
-                    "file_element"
+                    "appearance"
                 ],
                 "security": [
                     {
@@ -7355,7 +7355,7 @@
                 "summary": "Delete visible element",
                 "description": "Delete visible element of a specific file",
                 "tags": [
-                    "file_element"
+                    "appearance"
                 ],
                 "security": [
                     {
@@ -7476,7 +7476,7 @@
                 "summary": "Check file progress by sign request UUID with long-polling (similar to Talk)",
                 "description": "Waits up to 30 seconds for status change using cache for efficiency. Returns progress for the specific sign request, not the global file status.",
                 "tags": [
-                    "file_progress"
+                    "signing"
                 ],
                 "security": [
                     {},
@@ -7600,7 +7600,7 @@
                 "summary": "Save footer template and render preview",
                 "description": "Saves the footer template and returns the rendered PDF preview.\nThis endpoint requires admin access",
                 "tags": [
-                    "footer_template"
+                    "appearance"
                 ],
                 "security": [
                     {
@@ -7743,7 +7743,7 @@
                 "operationId": "footer_template-preview-pdf",
                 "summary": "Preview footer template as PDF",
                 "tags": [
-                    "footer_template"
+                    "appearance"
                 ],
                 "security": [
                     {
@@ -7891,7 +7891,7 @@
                 "operationId": "id_docs-add-files",
                 "summary": "Add identification documents to user profile",
                 "tags": [
-                    "id_docs"
+                    "identity"
                 ],
                 "security": [
                     {},
@@ -8013,7 +8013,7 @@
                 "operationId": "id_docs-list-unauthenticated-signer-documents",
                 "summary": "List files of unauthenticated account",
                 "tags": [
-                    "id_docs"
+                    "identity"
                 ],
                 "security": [
                     {},
@@ -8156,7 +8156,7 @@
                 "operationId": "id_docs-delete",
                 "summary": "Delete file from account",
                 "tags": [
-                    "id_docs"
+                    "identity"
                 ],
                 "security": [
                     {},
@@ -8277,7 +8277,7 @@
                 "operationId": "id_docs-list-to-approval",
                 "summary": "List files that need to be approved",
                 "tags": [
-                    "id_docs"
+                    "identity"
                 ],
                 "security": [
                     {
@@ -8438,7 +8438,7 @@
                 "summary": "List possible signers",
                 "description": "Used to identify who can be invited to sign a document. The response follows Administration Settings > LibreSign > Identify method.",
                 "tags": [
-                    "identify"
+                    "identity"
                 ],
                 "security": [
                     {
@@ -8549,7 +8549,7 @@
                 "operationId": "notify-signers",
                 "summary": "Notify signers of a file",
                 "tags": [
-                    "notify"
+                    "notifications"
                 ],
                 "security": [
                     {
@@ -8755,7 +8755,7 @@
                 "operationId": "notify-signer",
                 "summary": "Notify a signer of a file",
                 "tags": [
-                    "notify"
+                    "notifications"
                 ],
                 "security": [
                     {
@@ -8956,7 +8956,7 @@
                 "operationId": "notify-status",
                 "summary": "Read the status of one manual reminder, including each channel.",
                 "tags": [
-                    "notify"
+                    "notifications"
                 ],
                 "security": [
                     {
@@ -9058,7 +9058,7 @@
                 "operationId": "notify-notification-dismiss",
                 "summary": "Dismiss a specific notification",
                 "tags": [
-                    "notify"
+                    "notifications"
                 ],
                 "security": [
                     {
@@ -9169,7 +9169,7 @@
                 "operationId": "policy-effective",
                 "summary": "Effective policies bootstrap",
                 "tags": [
-                    "policy"
+                    "policies"
                 ],
                 "security": [
                     {
@@ -9242,7 +9242,7 @@
                 "operationId": "policy-get-group",
                 "summary": "Read a group-level policy value",
                 "tags": [
-                    "policy"
+                    "policies"
                 ],
                 "security": [
                     {
@@ -9363,7 +9363,7 @@
                 "operationId": "policy-set-group",
                 "summary": "Save a group-level policy value",
                 "tags": [
-                    "policy"
+                    "policies"
                 ],
                 "security": [
                     {
@@ -9557,7 +9557,7 @@
                 "operationId": "policy-clear-group",
                 "summary": "Clear a group-level policy value",
                 "tags": [
-                    "policy"
+                    "policies"
                 ],
                 "security": [
                     {
@@ -9710,7 +9710,7 @@
                 "operationId": "policy-list-group-policies",
                 "summary": "List all explicit group-level policy values for a policy key",
                 "tags": [
-                    "policy"
+                    "policies"
                 ],
                 "security": [
                     {
@@ -9804,7 +9804,7 @@
                 "operationId": "policy-get-user-policy-for-user",
                 "summary": "Read an explicit user-level policy for a target user (admin scope)",
                 "tags": [
-                    "policy"
+                    "policies"
                 ],
                 "security": [
                     {
@@ -9925,7 +9925,7 @@
                 "operationId": "policy-set-user-policy-for-user",
                 "summary": "Save an explicit user policy for a target user (admin scope)",
                 "tags": [
-                    "policy"
+                    "policies"
                 ],
                 "security": [
                     {
@@ -10119,7 +10119,7 @@
                 "operationId": "policy-clear-user-policy-for-user",
                 "summary": "Clear an explicit user policy for a target user (admin scope)",
                 "tags": [
-                    "policy"
+                    "policies"
                 ],
                 "security": [
                     {
@@ -10272,7 +10272,7 @@
                 "operationId": "policy-list-user-policies",
                 "summary": "List all explicit user-level policy values for a policy key",
                 "tags": [
-                    "policy"
+                    "policies"
                 ],
                 "security": [
                     {
@@ -10366,7 +10366,7 @@
                 "operationId": "policy-set-group-compound",
                 "summary": "Save several group-level values of the same composite policy at once",
                 "tags": [
-                    "policy"
+                    "policies"
                 ],
                 "security": [
                     {
@@ -10569,7 +10569,7 @@
                 "operationId": "policy-set-user-preference-compound",
                 "summary": "Save several values of the same composite policy as user preferences",
                 "tags": [
-                    "policy"
+                    "policies"
                 ],
                 "security": [
                     {
@@ -10724,7 +10724,7 @@
                 "operationId": "policy-set-user-policy-for-user-compound",
                 "summary": "Save several values of the same composite policy for a target user (admin scope)",
                 "tags": [
-                    "policy"
+                    "policies"
                 ],
                 "security": [
                     {
@@ -10927,7 +10927,7 @@
                 "operationId": "policy-set-user-preference",
                 "summary": "Save a user policy preference",
                 "tags": [
-                    "policy"
+                    "policies"
                 ],
                 "security": [
                     {
@@ -11076,7 +11076,7 @@
                 "operationId": "policy-clear-user-preference",
                 "summary": "Clear a user policy preference",
                 "tags": [
-                    "policy"
+                    "policies"
                 ],
                 "security": [
                     {
@@ -11190,7 +11190,7 @@
                 "summary": "Request signature",
                 "description": "Request that a file be signed by a list of signers. Each signer in the signers array can optionally include a 'signingOrder' field to control the order of signatures when ordered signing flow is enabled. The returned `data` always includes `filesCount` and `files`. For `nodeType=file`, `filesCount=1` and `files` contains the current file. For `nodeType=envelope`, `files` contains envelope child files.",
                 "tags": [
-                    "signing"
+                    "requests"
                 ],
                 "security": [
                     {
@@ -11362,7 +11362,7 @@
                 "summary": "Updates signatures data",
                 "description": "It is necessary to inform the UUID of the file and a list of signers.",
                 "tags": [
-                    "signing"
+                    "requests"
                 ],
                 "security": [
                     {
@@ -11544,7 +11544,7 @@
                 "summary": "Delete sign request",
                 "description": "You can only request exclusion as any sign",
                 "tags": [
-                    "signing"
+                    "requests"
                 ],
                 "security": [
                     {
@@ -11698,7 +11698,7 @@
                 "summary": "Delete sign request",
                 "description": "You can only request exclusion as any sign",
                 "tags": [
-                    "signing"
+                    "requests"
                 ],
                 "security": [
                     {
@@ -12811,7 +12811,7 @@
                 "operationId": "signature_elements-create-signature-element",
                 "summary": "Create signature element",
                 "tags": [
-                    "signature_elements"
+                    "appearance"
                 ],
                 "security": [
                     {},
@@ -12935,7 +12935,7 @@
                 "operationId": "signature_elements-get-signature-elements",
                 "summary": "Get signature elements",
                 "tags": [
-                    "signature_elements"
+                    "appearance"
                 ],
                 "security": [
                     {},
@@ -13040,7 +13040,7 @@
                 "summary": "Use the saved signature elements of a signer identified by email",
                 "description": "The saved elements are copied into the current signing session only after the signer satisfies the confirm method configured for the Email identification factor.",
                 "tags": [
-                    "signature_elements"
+                    "appearance"
                 ],
                 "security": [
                     {},
@@ -13161,7 +13161,7 @@
                 "operationId": "signature_elements-preview-signature-element",
                 "summary": "Get preview of signature elements of",
                 "tags": [
-                    "signature_elements"
+                    "appearance"
                 ],
                 "security": [
                     {},
@@ -13256,7 +13256,7 @@
                 "operationId": "signature_elements-get-signature-element",
                 "summary": "Get signature element of signer",
                 "tags": [
-                    "signature_elements"
+                    "appearance"
                 ],
                 "security": [
                     {
@@ -13367,7 +13367,7 @@
                 "operationId": "signature_elements-patch-signature-element",
                 "summary": "Update signature element",
                 "tags": [
-                    "signature_elements"
+                    "appearance"
                 ],
                 "security": [
                     {},
@@ -13504,7 +13504,7 @@
                 "operationId": "signature_elements-delete-signature-element",
                 "summary": "Delete signature element",
                 "tags": [
-                    "signature_elements"
+                    "appearance"
                 ],
                 "security": [
                     {},
@@ -13618,7 +13618,7 @@
                 "operationId": "signature_stamp_preview-preview-pdf",
                 "summary": "Render a preview PDF of the signature stamp with the provided configuration",
                 "tags": [
-                    "signature_stamp_preview"
+                    "appearance"
                 ],
                 "security": [
                     {
@@ -13778,7 +13778,7 @@
                 "summary": "Generate certificate using CFSSL engine",
                 "description": "This endpoint requires admin access",
                 "tags": [
-                    "admin"
+                    "certificates"
                 ],
                 "security": [
                     {
@@ -13944,7 +13944,7 @@
                 "summary": "Generate certificate using OpenSSL engine",
                 "description": "This endpoint requires admin access",
                 "tags": [
-                    "admin"
+                    "certificates"
                 ],
                 "security": [
                     {
@@ -14105,7 +14105,7 @@
                 "summary": "Set certificate engine",
                 "description": "Sets the certificate engine (openssl, cfssl, or none) and automatically configures identify_methods when needed\nThis endpoint requires admin access",
                 "tags": [
-                    "admin"
+                    "certificates"
                 ],
                 "security": [
                     {
@@ -14228,7 +14228,7 @@
                 "summary": "Load certificate data",
                 "description": "Return all data of root certificate and a field called `generated` with a boolean value.\nThis endpoint requires admin access",
                 "tags": [
-                    "admin"
+                    "certificates"
                 ],
                 "security": [
                     {
@@ -14302,7 +14302,7 @@
                 "summary": "Check the configuration of LibreSign",
                 "description": "Return the status of necessary configuration and tips to fix the problems.\nThis endpoint requires admin access",
                 "tags": [
-                    "admin"
+                    "system"
                 ],
                 "security": [
                     {
@@ -14376,7 +14376,7 @@
                 "summary": "Add custom background image",
                 "description": "This endpoint requires admin access",
                 "tags": [
-                    "admin"
+                    "appearance"
                 ],
                 "security": [
                     {
@@ -14478,7 +14478,7 @@
                 "summary": "Get custom background image",
                 "description": "This endpoint requires admin access",
                 "tags": [
-                    "admin"
+                    "appearance"
                 ],
                 "security": [
                     {
@@ -14531,7 +14531,7 @@
                 "summary": "Delete background image",
                 "description": "This endpoint requires admin access",
                 "tags": [
-                    "admin"
+                    "appearance"
                 ],
                 "security": [
                     {
@@ -14605,7 +14605,7 @@
                 "summary": "Upload new certificate policy PDF for this instance",
                 "description": "This endpoint requires admin access",
                 "tags": [
-                    "admin"
+                    "certificates"
                 ],
                 "security": [
                     {
@@ -14707,7 +14707,7 @@
                 "summary": "Delete certificate policy of this instance",
                 "description": "This endpoint requires admin access",
                 "tags": [
-                    "admin"
+                    "certificates"
                 ],
                 "security": [
                     {
@@ -14822,7 +14822,7 @@
                 "summary": "Update OID",
                 "description": "This endpoint requires admin access",
                 "tags": [
-                    "admin"
+                    "certificates"
                 ],
                 "security": [
                     {
@@ -14945,7 +14945,7 @@
                 "summary": "Get list of files currently being signed (status = SIGNING_IN_PROGRESS)",
                 "description": "This endpoint requires admin access",
                 "tags": [
-                    "admin"
+                    "requests"
                 ],
                 "security": [
                     {
@@ -15049,7 +15049,7 @@
                 "summary": "Get GeoIP database configuration and status",
                 "description": "This endpoint requires admin access",
                 "tags": [
-                    "admin"
+                    "system"
                 ],
                 "security": [
                     {
@@ -15121,7 +15121,7 @@
                 "summary": "Save GeoIP database path",
                 "description": "An empty path clears the configuration. The path may be saved even when the database file is not available yet; the returned status describes the current filesystem state.\nThis endpoint requires admin access",
                 "tags": [
-                    "admin"
+                    "system"
                 ],
                 "security": [
                     {
@@ -15212,7 +15212,7 @@
                 "summary": "List CRL entries with pagination and filters",
                 "description": "This endpoint requires admin access",
                 "tags": [
-                    "crl"
+                    "certificates"
                 ],
                 "security": [
                     {
@@ -15388,7 +15388,7 @@
                 "summary": "Revoke a certificate by serial number",
                 "description": "This endpoint requires admin access",
                 "tags": [
-                    "crl"
+                    "certificates"
                 ],
                 "security": [
                     {
@@ -15552,7 +15552,7 @@
                 "summary": "Read explicit system policy configuration",
                 "description": "This endpoint requires admin access",
                 "tags": [
-                    "policy"
+                    "policies"
                 ],
                 "security": [
                     {
@@ -15634,7 +15634,7 @@
                 "summary": "Save a system-level policy value",
                 "description": "This endpoint requires admin access",
                 "tags": [
-                    "policy"
+                    "policies"
                 ],
                 "security": [
                     {
@@ -15791,7 +15791,7 @@
                 "summary": "Save several system-level values of the same composite policy at once",
                 "description": "Settings that only make sense together are written as one operation: the policy they belong to validates the resulting configuration before any of them is stored, so the result does not depend on the order of the values.\nThis endpoint requires admin access",
                 "tags": [
-                    "policy"
+                    "policies"
                 ],
                 "security": [
                     {
@@ -15955,7 +15955,7 @@
                 "summary": "Has root certificate",
                 "description": "Checks whether the root certificate has been configured by checking the Nextcloud configuration table to see if the root certificate settings have",
                 "tags": [
-                    "setting"
+                    "certificates"
                 ],
                 "security": [
                     {

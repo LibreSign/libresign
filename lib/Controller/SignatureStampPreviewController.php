@@ -18,6 +18,7 @@ use OCP\AppFramework\Http;
 use OCP\AppFramework\Http\Attribute\ApiRoute;
 use OCP\AppFramework\Http\Attribute\NoAdminRequired;
 use OCP\AppFramework\Http\Attribute\NoCSRFRequired;
+use OCP\AppFramework\Http\Attribute\OpenAPI;
 use OCP\AppFramework\Http\DataDownloadResponse;
 use OCP\AppFramework\Http\DataResponse;
 use OCP\IRequest;
@@ -53,6 +54,7 @@ final class SignatureStampPreviewController extends AEnvironmentAwareController 
 	 */
 	#[NoAdminRequired]
 	#[NoCSRFRequired]
+	#[OpenAPI(tags: ['appearance'])]
 	#[ApiRoute(verb: 'POST', url: '/api/{apiVersion}/signature-stamp/preview-pdf', requirements: ['apiVersion' => '(v1)'])]
 	public function previewPdf(
 		string $template = '',

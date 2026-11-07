@@ -84,7 +84,10 @@ For API contract changes, update the backend source contract and regenerate with
 ```bash
 composer openapi
 npm run typescript:generate
+vendor/bin/phpunit -c tests/php/openapi/phpunit.xml
 ```
+
+New documented endpoints need a method-level `#[OpenAPI(tags: [...])]` using one of the approved functional tags. Do not derive a tag from the controller class name.
 
 Every new source file needs the correct SPDX metadata unless the format cannot
 carry it; use `REUSE.toml` only for justified exceptions.

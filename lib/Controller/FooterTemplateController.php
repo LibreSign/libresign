@@ -14,6 +14,7 @@ use OCP\AppFramework\Http;
 use OCP\AppFramework\Http\Attribute\ApiRoute;
 use OCP\AppFramework\Http\Attribute\NoAdminRequired;
 use OCP\AppFramework\Http\Attribute\NoCSRFRequired;
+use OCP\AppFramework\Http\Attribute\OpenAPI;
 use OCP\AppFramework\Http\DataDownloadResponse;
 use OCP\AppFramework\Http\DataResponse;
 use OCP\IRequest;
@@ -41,6 +42,7 @@ final class FooterTemplateController extends AEnvironmentAwareController {
 	 * 403: Forbidden
 	 */
 	#[NoAdminRequired]
+	#[OpenAPI(tags: ['appearance'])]
 	#[ApiRoute(verb: 'GET', url: '/api/{apiVersion}/footer-template', requirements: ['apiVersion' => '(v1)'])]
 	public function getFooterTemplate(): DataResponse {
 		if (!$this->footerService->isPreviewAllowed()) {
@@ -75,6 +77,7 @@ final class FooterTemplateController extends AEnvironmentAwareController {
 	 * 400: Bad request
 	 * 403: Forbidden
 	 */
+	#[OpenAPI(tags: ['appearance'])]
 	#[ApiRoute(verb: 'POST', url: '/api/{apiVersion}/footer-template', requirements: ['apiVersion' => '(v1)'])]
 	public function saveFooterTemplate(string $template = '', int $width = 595, int $height = 50) {
 		if (!$this->footerService->isPreviewAllowed()) {
@@ -116,6 +119,7 @@ final class FooterTemplateController extends AEnvironmentAwareController {
 	 */
 	#[NoAdminRequired]
 	#[NoCSRFRequired]
+	#[OpenAPI(tags: ['appearance'])]
 	#[ApiRoute(verb: 'POST', url: '/api/{apiVersion}/footer-template/preview-pdf', requirements: ['apiVersion' => '(v1)'])]
 	public function previewPdf(string $template = '', int $width = 595, int $height = 50, ?bool $writeQrcodeOnFooter = null) {
 		if (!$this->footerService->isPreviewAllowed()) {

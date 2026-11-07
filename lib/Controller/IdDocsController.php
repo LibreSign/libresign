@@ -19,6 +19,7 @@ use OCP\AppFramework\Http\Attribute\AnonRateLimit;
 use OCP\AppFramework\Http\Attribute\ApiRoute;
 use OCP\AppFramework\Http\Attribute\NoAdminRequired;
 use OCP\AppFramework\Http\Attribute\NoCSRFRequired;
+use OCP\AppFramework\Http\Attribute\OpenAPI;
 use OCP\AppFramework\Http\Attribute\PublicPage;
 use OCP\AppFramework\Http\DataResponse;
 use OCP\IL10N;
@@ -63,6 +64,7 @@ class IdDocsController extends AEnvironmentAwareController implements ISignature
 	#[NoAdminRequired]
 	#[NoCSRFRequired]
 	#[RequireSignRequestUuid(skipIfAuthenticated: true)]
+	#[OpenAPI(tags: ['identity'])]
 	#[ApiRoute(verb: 'POST', url: '/api/{apiVersion}/id-docs', requirements: ['apiVersion' => '(v1)'])]
 	public function addFiles(array $files): DataResponse {
 		try {
@@ -112,6 +114,7 @@ class IdDocsController extends AEnvironmentAwareController implements ISignature
 	#[NoAdminRequired]
 	#[NoCSRFRequired]
 	#[RequireSignRequestUuid(skipIfAuthenticated: true)]
+	#[OpenAPI(tags: ['identity'])]
 	#[ApiRoute(verb: 'DELETE', url: '/api/{apiVersion}/id-docs/{nodeId}', requirements: ['apiVersion' => '(v1)'])]
 	public function delete(int $nodeId, ?string $uuid = null): DataResponse {
 		try {
@@ -151,6 +154,7 @@ class IdDocsController extends AEnvironmentAwareController implements ISignature
 	#[AnonRateLimit(limit: 30, period: 60)]
 	#[NoCSRFRequired]
 	#[RequireSignRequestUuid(skipIfAuthenticated: true)]
+	#[OpenAPI(tags: ['identity'])]
 	#[ApiRoute(verb: 'GET', url: '/api/{apiVersion}/id-docs', requirements: ['apiVersion' => '(v1)'])]
 	public function listUnauthenticatedSignerDocuments(
 		?string $userId = null,
@@ -200,6 +204,7 @@ class IdDocsController extends AEnvironmentAwareController implements ISignature
 	 */
 	#[NoAdminRequired]
 	#[NoCSRFRequired]
+	#[OpenAPI(tags: ['identity'])]
 	#[ApiRoute(verb: 'GET', url: '/api/{apiVersion}/id-docs/approval/list', requirements: ['apiVersion' => '(v1)'])]
 	public function listToApproval(
 		?string $userId = null,
