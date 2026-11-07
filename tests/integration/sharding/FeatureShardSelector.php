@@ -14,22 +14,12 @@ use RuntimeException;
 use SplFileInfo;
 
 /**
- * Partitions whole feature files using their sorted, repository-relative paths.
+ * Partitions whole feature files using deterministic, weighted assignment.
  *
  * Indexes are zero-based. Assignment is independent of discovery order and
  * does not require Behat, a Nextcloud instance, or worker-specific tags.
  */
 final class FeatureShardSelector {
-	/**
-	 * Measured slow features: distributing these first avoids placing both of the
-	 * longest-running Behat features on the same runner. Keep the list small and
-	 * update it only when CI measurements justify a different assignment.
-	 */
-	private const LONG_RUNNING_FEATURES = [
-		'sign/reject.feature',
-		'build/sign.feature',
-	];
-
 	public function __construct(
 		private readonly int $index,
 		private readonly int $total,
@@ -98,31 +88,93 @@ final class FeatureShardSelector {
 	}
 
 	/**
+	 * Estimate the number of executed scenarios. Each Scenario Outline example
+	 * row counts once, while its table header does not. This is only a scheduling
+	 * weight: Behat remains responsible for parsing and running the feature.
+	 */
+	public static function countScenarios(string $featureFile): int {
+		$lines = @file($featureFile, FILE_IGNORE_NEW_LINES);
+		if ($lines === false) {
+			throw new RuntimeException('Unable to read Behat feature: ' . $featureFile);
+		}
+
+		$count = 0;
+		$isOutline = false;
+		$inExamples = false;
+		$hasExamplesHeader = false;
+		$docStringDelimiter = null;
+		foreach ($lines as $line) {
+			if (preg_match('/^\s*("""|```)/', $line, $matches)) {
+				if ($docStringDelimiter === null) {
+					$docStringDelimiter = $matches[1];
+				} elseif ($docStringDelimiter === $matches[1]) {
+					$docStringDelimiter = null;
+				}
+				continue;
+			}
+			if ($docStringDelimiter !== null) {
+				continue;
+			}
+			if (preg_match('/^\s*Scenario:\s*/', $line)) {
+				$count++;
+				$isOutline = false;
+				$inExamples = false;
+			} elseif (preg_match('/^\s*Scenario Outline:\s*/', $line)) {
+				$isOutline = true;
+				$inExamples = false;
+			} elseif ($isOutline && preg_match('/^\s*Examples:\s*/', $line)) {
+				$inExamples = true;
+				$hasExamplesHeader = false;
+			} elseif ($inExamples && preg_match('/^\s*\|/', $line)) {
+				if ($hasExamplesHeader) {
+					$count++;
+				} else {
+					$hasExamplesHeader = true;
+				}
+			}
+		}
+
+		return $count;
+	}
+
+	/**
 	 * @param list<string> $features
+	 * @param array<string, int> $weights Estimated scenarios per feature
 	 * @return list<string>
 	 */
-	public function select(array $features): array {
+	public function select(array $features, array $weights = []): array {
 		foreach ($features as $feature) {
 			if (!is_string($feature) || $feature === '') {
 				throw new InvalidArgumentException('Feature paths must be non-empty strings.');
 			}
-		}
-
-		$features = array_values(array_unique($features));
-		sort($features, SORT_STRING);
-
-		// Prioritize the two measured hotspots. Remaining features retain sorted,
-		// deterministic round-robin assignment, regardless of discovery order.
-		$priority = array_values(array_intersect(self::LONG_RUNNING_FEATURES, $features));
-		$ordered = array_merge($priority, array_values(array_diff($features, $priority)));
-
-		$selected = [];
-		foreach ($ordered as $position => $feature) {
-			if ($position % $this->total === $this->index) {
-				$selected[] = $feature;
+			$weight = $weights[$feature] ?? 1;
+			if (!is_int($weight) || $weight < 0) {
+				throw new InvalidArgumentException('Feature weights must be non-negative integers.');
 			}
 		}
 
+		$features = array_values(array_unique($features));
+		// Largest features first; path name is the stable tie-breaker.
+		usort($features, static function (string $left, string $right) use ($weights): int {
+			$byWeight = ($weights[$right] ?? 1) <=> ($weights[$left] ?? 1);
+			return $byWeight !== 0 ? $byWeight : strcmp($left, $right);
+		});
+
+		$loads = array_fill(0, $this->total, 0);
+		$shards = array_fill(0, $this->total, []);
+		foreach ($features as $feature) {
+			// Choose the lowest estimated load, preferring the lowest index on ties.
+			$index = 0;
+			for ($candidate = 1; $candidate < $this->total; $candidate++) {
+				if ($loads[$candidate] < $loads[$index]) {
+					$index = $candidate;
+				}
+			}
+			$shards[$index][] = $feature;
+			$loads[$index] += max(1, $weights[$feature] ?? 1);
+		}
+
+		$selected = $shards[$this->index];
 		sort($selected, SORT_STRING);
 		return $selected;
 	}

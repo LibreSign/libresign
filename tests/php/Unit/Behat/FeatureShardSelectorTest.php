@@ -44,21 +44,31 @@ final class FeatureShardSelectorTest extends TestCase {
 
 	#[DataProvider('shardTotals')]
 	public function testActualFeatureTreeHasCompleteDisjointUnion(int $total): void {
-		$all = FeatureShardSelector::discover(dirname(__DIR__, 3) . '/integration/features');
+		$directory = dirname(__DIR__, 3) . '/integration/features';
+		$all = FeatureShardSelector::discover($directory);
 		self::assertNotEmpty($all);
 		self::assertSame(array_values(array_unique($all)), $all);
+		$weights = [];
+		foreach ($all as $feature) {
+			$weights[$feature] = FeatureShardSelector::countScenarios($directory . '/' . $feature);
+		}
 
 		$union = [];
 		$seen = [];
+		$scenarioTotal = 0;
 		foreach (range(0, $total - 1) as $index) {
 			$selector = new FeatureShardSelector($index, $total);
-			$assigned = $selector->select($all);
+			$assigned = $selector->select($all, $weights);
 			self::assertSame([], array_intersect($seen, $assigned), "Shard $index overlaps previous shards");
+			foreach ($assigned as $feature) {
+				$scenarioTotal += $weights[$feature];
+			}
 			array_push($union, ...$assigned);
 			array_push($seen, ...$assigned);
 		}
 		sort($union, SORT_STRING);
 		self::assertSame($all, $union, 'A feature was omitted or assigned more than once');
+		self::assertSame(array_sum($weights), $scenarioTotal, 'A scenario was omitted or assigned more than once');
 	}
 
 	public static function shardTotals(): iterable {
@@ -67,21 +77,45 @@ final class FeatureShardSelectorTest extends TestCase {
 		yield 'four' => [4];
 	}
 
+	public function testWeightedFeaturesAreAssignedDeterministically(): void {
+		$features = ['z.feature', 'd.feature', 'c.feature', 'a.feature', 'b.feature', 'e.feature'];
+		$weights = ['a.feature' => 8, 'b.feature' => 5, 'c.feature' => 3, 'd.feature' => 2, 'e.feature' => 1, 'z.feature' => 1];
+		$expected = [
+			['a.feature'],
+			['b.feature'],
+			['c.feature', 'z.feature'],
+			['d.feature', 'e.feature'],
+		];
+		foreach ($expected as $index => $paths) {
+			$selector = new FeatureShardSelector($index, 4);
+			self::assertSame($paths, $selector->select($features, $weights));
+			self::assertSame($paths, $selector->select(array_reverse($features), $weights));
+		}
+	}
+
 	#[DataProvider('shardTotals')]
-	public function testLongRunningFeaturesAreSeparatedWithoutMissingAnyFiles(int $total): void {
+	public function testWeightedFeaturesHaveCompleteDisjointUnion(int $total): void {
 		$features = [
-			'sign/signed.feature',
 			'sign/reject.feature',
-			'build/sign.feature',
-			'account/me.feature',
-			'file/validate.feature',
 			'sign/request.feature',
+			'policies/signature_rejection_authorization.feature',
+			'build/sign.feature',
+			'account/signature.feature',
+			'file/validate.feature',
+		];
+		$weights = [
+			'sign/reject.feature' => 38,
+			'sign/request.feature' => 23,
+			'policies/signature_rejection_authorization.feature' => 18,
+			'build/sign.feature' => 2,
+			'account/signature.feature' => 11,
+			'file/validate.feature' => 11,
 		];
 		$selectedByShard = [];
 		for ($index = 0; $index < $total; $index++) {
 			$selector = new FeatureShardSelector($index, $total);
-			$selectedByShard[$index] = $selector->select($features);
-			self::assertSame($selectedByShard[$index], $selector->select(array_reverse($features)));
+			$selectedByShard[$index] = $selector->select($features, $weights);
+			self::assertSame($selectedByShard[$index], $selector->select(array_reverse($features), $weights));
 		}
 
 		$all = array_merge(...$selectedByShard);
@@ -91,8 +125,56 @@ final class FeatureShardSelectorTest extends TestCase {
 		self::assertSame($expected, $all);
 		if ($total > 1) {
 			self::assertContains('sign/reject.feature', $selectedByShard[0]);
-			self::assertContains('build/sign.feature', $selectedByShard[1]);
+			self::assertContains('sign/request.feature', $selectedByShard[1]);
 		}
+	}
+
+	public function testScenarioCountsIncludeOutlineRowsAndMultipleExamples(): void {
+		$path = tempnam(sys_get_temp_dir(), 'libresign-behat-');
+		self::assertNotFalse($path);
+		try {
+			file_put_contents($path, <<<'GHERKIN'
+Feature: Count only runnable scenarios
+  Scenario: Ordinary
+    Given something
+  Scenario Outline: Values <value>
+    Given value <value>
+    Examples:
+      | value |
+      | one   |
+      | two   |
+    @extra
+    Examples:
+      | value |
+      | three |
+  Scenario: Another
+    Given a string:
+      """
+      Scenario: This is not an actual scenario
+      """
+GHERKIN);
+			self::assertSame(5, FeatureShardSelector::countScenarios($path));
+		} finally {
+			unlink($path);
+		}
+	}
+
+	public function testUnreadableFeatureFileIsRejected(): void {
+		$this->expectException(\RuntimeException::class);
+		FeatureShardSelector::countScenarios(__DIR__ . '/missing.feature');
+	}
+
+	public function testZeroScenarioFileIsGivenMinimumWeight(): void {
+		$selector = new FeatureShardSelector(0, 1);
+		self::assertSame(['empty.feature', 'real.feature'], $selector->select(
+			['empty.feature', 'real.feature'],
+			['empty.feature' => 0, 'real.feature' => 1],
+		));
+	}
+
+	public function testNegativeFeatureWeightIsRejected(): void {
+		$this->expectException(\InvalidArgumentException::class);
+		(new FeatureShardSelector(0, 2))->select(['a.feature'], ['a.feature' => -1]);
 	}
 
 	#[DataProvider('shardTotals')]

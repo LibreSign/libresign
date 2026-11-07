@@ -109,11 +109,11 @@ SHARD_INDEX=3 SHARD_TOTAL=4 vendor-bin/behat/vendor/bin/behat --profile=ci --col
 ```
 
 Without `SHARD_INDEX` and `SHARD_TOTAL`, the entire suite is executed. Shards
-are deterministic for a fixed commit and shard count. The two currently
-slowest measured features (`sign/reject.feature` and `build/sign.feature`) are
-assigned first so they run in separate shards; all other features retain sorted
-round-robin selection. This explicit priority can be revisited with CI timings.
+are deterministic for a fixed commit and shard count. Each feature is weighted
+by its number of executed scenarios (including `Scenario Outline` example
+rows). The heaviest whole feature is assigned first to the shard with the
+lowest estimated load, breaking ties by path and shard index. This avoids
+maintaining a stale hardcoded list of slow features without changing test
+execution, cleanup, or the four-shard matrix. Scenario count is a heuristic:
+compare actual CI wall-clock and runner-minute measurements when changing it.
 Invalid or empty shard configuration fails rather than running the full suite.
-The four-shard rollout is a performance proof of concept. Compare actual
-wall-clock times and runner-minutes against the previous two-shard execution
-before increasing the shard count or accepting it as the default.
