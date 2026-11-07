@@ -88,3 +88,32 @@ New or refactored steps should:
   several positional parameters;
 - not pass state from one scenario to another;
 - keep the existing wording of a step when its meaning is already clear.
+
+
+## Parallel Behat features
+
+The GitHub Actions matrix uses four independent jobs for each supported
+PHP/Nextcloud/database combination. Each job creates its own Nextcloud,
+database, app data, and reports. No two shards share mutable test state.
+
+`behat.php` is the single source of Behat suite configuration. It selects whole
+feature paths via the native Behat 4 `Suite::withPaths()` interface. No
+additional runner, subprocess wrapper, or custom Behat extension is needed.
+The normal Behat command remains unchanged:
+
+```bash
+SHARD_INDEX=0 SHARD_TOTAL=4 vendor-bin/behat/vendor/bin/behat --profile=ci --colors
+SHARD_INDEX=1 SHARD_TOTAL=4 vendor-bin/behat/vendor/bin/behat --profile=ci --colors
+SHARD_INDEX=2 SHARD_TOTAL=4 vendor-bin/behat/vendor/bin/behat --profile=ci --colors
+SHARD_INDEX=3 SHARD_TOTAL=4 vendor-bin/behat/vendor/bin/behat --profile=ci --colors
+```
+
+Without `SHARD_INDEX` and `SHARD_TOTAL`, the entire suite is executed. Shards
+are deterministic for a fixed commit and shard count. The two currently
+slowest measured features (`sign/reject.feature` and `build/sign.feature`) are
+assigned first so they run in separate shards; all other features retain sorted
+round-robin selection. This explicit priority can be revisited with CI timings.
+Invalid or empty shard configuration fails rather than running the full suite.
+The four-shard rollout is a performance proof of concept. Compare actual
+wall-clock times and runner-minutes against the previous two-shard execution
+before increasing the shard count or accepting it as the default.
