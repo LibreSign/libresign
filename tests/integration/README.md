@@ -107,7 +107,11 @@ SHARD_INDEX=1 SHARD_TOTAL=2 vendor-bin/behat/vendor/bin/behat --profile=ci --col
 ```
 
 Without `SHARD_INDEX` and `SHARD_TOTAL`, the entire suite is executed. Shards
-are deterministic for a fixed commit and shard count. Invalid or empty shard
-configuration fails without falling back to the full suite. The initial rollout
+are deterministic for a fixed commit and shard count. The two currently
+slowest measured features (`sign/reject.feature` and `build/sign.feature`) are
+assigned first so they run in separate shards; all other features retain sorted
+round-robin selection. This explicit priority can be revisited with CI timings.
+Invalid or empty shard configuration fails rather than running the full suite.
+The initial rollout
 uses two runners per database; do not assume more runners are faster before
 measuring actual wall-clock times and CPU usage.

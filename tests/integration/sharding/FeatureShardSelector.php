@@ -20,6 +20,16 @@ use SplFileInfo;
  * does not require Behat, a Nextcloud instance, or worker-specific tags.
  */
 final class FeatureShardSelector {
+	/**
+	 * Measured slow features: distributing these first avoids placing both of the
+	 * longest-running Behat features on the same runner. Keep the list small and
+	 * update it only when CI measurements justify a different assignment.
+	 */
+	private const LONG_RUNNING_FEATURES = [
+		'sign/reject.feature',
+		'build/sign.feature',
+	];
+
 	public function __construct(
 		private readonly int $index,
 		private readonly int $total,
@@ -101,13 +111,19 @@ final class FeatureShardSelector {
 		$features = array_values(array_unique($features));
 		sort($features, SORT_STRING);
 
+		// Prioritize the two measured hotspots. Remaining features retain sorted,
+		// deterministic round-robin assignment, regardless of discovery order.
+		$priority = array_values(array_intersect(self::LONG_RUNNING_FEATURES, $features));
+		$ordered = array_merge($priority, array_values(array_diff($features, $priority)));
+
 		$selected = [];
-		foreach ($features as $position => $feature) {
+		foreach ($ordered as $position => $feature) {
 			if ($position % $this->total === $this->index) {
 				$selected[] = $feature;
 			}
 		}
 
+		sort($selected, SORT_STRING);
 		return $selected;
 	}
 }

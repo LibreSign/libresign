@@ -68,6 +68,34 @@ final class FeatureShardSelectorTest extends TestCase {
 	}
 
 	#[DataProvider('shardTotals')]
+	public function testLongRunningFeaturesAreSeparatedWithoutMissingAnyFiles(int $total): void {
+		$features = [
+			'sign/signed.feature',
+			'sign/reject.feature',
+			'build/sign.feature',
+			'account/me.feature',
+			'file/validate.feature',
+			'sign/request.feature',
+		];
+		$selectedByShard = [];
+		for ($index = 0; $index < $total; $index++) {
+			$selector = new FeatureShardSelector($index, $total);
+			$selectedByShard[$index] = $selector->select($features);
+			self::assertSame($selectedByShard[$index], $selector->select(array_reverse($features)));
+		}
+
+		$all = array_merge(...$selectedByShard);
+		sort($all, SORT_STRING);
+		$expected = $features;
+		sort($expected, SORT_STRING);
+		self::assertSame($expected, $all);
+		if ($total > 1) {
+			self::assertContains('sign/reject.feature', $selectedByShard[0]);
+			self::assertContains('build/sign.feature', $selectedByShard[1]);
+		}
+	}
+
+	#[DataProvider('shardTotals')]
 	public function testEmptyFeatureSetIsEmptyForEveryShard(int $total): void {
 		for ($index = 0; $index < $total; $index++) {
 			self::assertSame([], (new FeatureShardSelector($index, $total))->select([]));
