@@ -8,13 +8,17 @@
 
 name: PHPUnit SQLite
 
-on: pull_request
+on:
+  pull_request:
+  push:
+    branches:
+      - main
 
 permissions:
   contents: read
 
 concurrency:
-  group: phpunit-sqlite-${{ github.head_ref || github.run_id }}
+  group: phpunit-sqlite-${{ github.head_ref || github.ref }}
   cancel-in-progress: true
 
 jobs:
@@ -43,6 +47,12 @@ jobs:
       src: ${{ steps.changes.outputs.src}}
 
     steps:
+      - name: Checkout app for push change detection
+        if: github.event_name == 'push'
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
       - uses: dorny/paths-filter@ceb8a2b8f2d89434be7ff52d3de7ec3738c5cc9d # v4.0.3
         id: changes
         continue-on-error: true
@@ -144,42 +154,24 @@ jobs:
         continue-on-error: true
         working-directory: apps/${{ env.APP_NAME }}
         run: |
-          composer run --list | grep '^  test:unit ' | wc -l | grep 1
+          composer run --list | grep '^  test:coverage ' | wc -l | grep 1
 
       - name: PHPUnit
-        # Only run if phpunit config file exists
+        # Coverage runs every suite in tests/php/phpunit.xml, including API and integration.
         if: steps.check_phpunit.outcome == 'success'
         working-directory: apps/${{ env.APP_NAME }}
-        env:
-          XDEBUG_MODE: ${{ matrix.xdebug_mode }}
         run: composer run test:coverage
 
       - name: Upload coverage results to Coveralls
-        if: matrix.xdebug_mode == 'coverage'
-        working-directory: apps/${{ env.APP_NAME }}
-        env:
-          COVERALLS_REPO_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          COVERALLS_PARALLEL: true
-          COVERALLS_FLAG_NAME: php-${{ matrix.php-versions }}
-        run: vendor/bin/php-coveralls --coverage_clover=build/logs/clover.xml --json_path=build/logs/coveralls-upload.json -v
-
-      - name: Check PHPUnit integration script is defined
-        id: check_integration
-        continue-on-error: true
-        working-directory: apps/${{ env.APP_NAME }}
-        run: |
-          composer run --list | grep '^  test:integration ' | wc -l | grep 1
-
-      - name: Run Nextcloud
-        # Only run if phpunit integration config file exists
-        if: steps.check_integration.outcome == 'success'
-        run: php -S localhost:8080 &
-
-      - name: PHPUnit integration
-        # Only run if phpunit integration config file exists
-        if: steps.check_integration.outcome == 'success'
-        working-directory: apps/${{ env.APP_NAME }}
-        run: composer run test:integration
+        if: steps.check_phpunit.outcome == 'success' && (github.event_name == 'push' || (github.event_name == 'pull_request' && github.event.pull_request.base.ref == 'main' && github.event.pull_request.head.repo.full_name == github.repository))
+        uses: coverallsapp/github-action@8d6379e14d29928660c4ba802d8e85393440b329 # v2.3.8
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          file: apps/${{ env.APP_NAME }}/build/logs/clover.xml
+          format: clover
+          base-path: apps/${{ env.APP_NAME }}
+          parallel: true
+          flag-name: php-${{ matrix.php-versions }}
 
       - name: Print logs
         if: always()
@@ -187,10 +179,10 @@ jobs:
           cat data/nextcloud.log
 
       - name: Skipped
-        # Fail the action when neither unit nor integration tests ran
-        if: steps.check_phpunit.outcome == 'failure' && steps.check_integration.outcome == 'failure'
+        # Fail when the full-suite coverage command was unavailable.
+        if: steps.check_phpunit.outcome == 'failure'
         run: |
-          echo 'Neither PHPUnit nor PHPUnit integration tests are specified in composer.json scripts'
+          echo 'The PHPUnit coverage script is not defined in composer.json'
           exit 1
 
   summary:
@@ -208,12 +200,12 @@ jobs:
         run: if ${{ needs.changes.outputs.src != 'false' && needs.phpunit-sqlite.result != 'success' }}; then exit 1; fi
 
   finish-coverage:
-    if: ${{ github.event.pull_request.base.ref == 'main' }}
+    if: ${{ github.event_name == 'push' || (github.event_name == 'pull_request' && github.event.pull_request.base.ref == 'main' && github.event.pull_request.head.repo.full_name == github.repository) }}
     needs: phpunit-sqlite
     runs-on: ubuntu-latest
     steps:
       - name: Let Coveralls know that all tests have finished
-        uses: coverallsapp/github-action@v2.3.8
+        uses: coverallsapp/github-action@8d6379e14d29928660c4ba802d8e85393440b329 # v2.3.8
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           parallel-finished: true
