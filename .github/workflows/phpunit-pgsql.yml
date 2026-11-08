@@ -166,7 +166,7 @@ jobs:
         # Only run if phpunit config file exists
         if: steps.check_phpunit.outcome == 'success'
         working-directory: apps/${{ env.APP_NAME }}
-        run: composer run test:unit
+        run: XDEBUG_MODE=off composer run test:unit
 
       - name: Check PHPUnit integration script is defined
         id: check_integration
