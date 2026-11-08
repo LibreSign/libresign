@@ -33,6 +33,11 @@ jobs:
         with:
           persist-credentials: false
 
+      - name: Check coverage archive script
+        run: |
+          bash -n .github/scripts/archive-coverage.sh
+          python3 -m unittest discover -s .github/scripts/tests -v
+
       - name: Get version matrix
         id: versions
         uses: icewind1991/nextcloud-version-matrix@cd0211ffcef1065e2020cd579e4843b8746e7a58 # v1.3.3
@@ -171,7 +176,7 @@ jobs:
             apps/${{ env.APP_NAME }}/build/logs/clover.xml
             apps/${{ env.APP_NAME }}/build/logs/html-coverage/
           if-no-files-found: error
-          retention-days: 30
+          retention-days: 90 # Preserve native HTML and Clover up to GitHub public artifact limit
 
       - name: Upload coverage results to Coveralls
         if: steps.check_phpunit.outcome == 'success' && (github.event_name == 'push' || (github.event_name == 'pull_request' && github.event.pull_request.base.ref == 'main' && github.event.pull_request.head.repo.full_name == github.repository))
@@ -281,30 +286,14 @@ jobs:
           repositories: coverage
           permission-contents: write
 
-      - name: Preserve current and historical coverage in the central repository
+      - name: Preserve historical reports by SHA and request Pages refresh
         env:
           GH_TOKEN: ${{ steps.coverage-token.outputs.token }}
           SOURCE_SHA: ${{ github.sha }}
+          SOURCE_RUN_ID: ${{ github.run_id }}
+          SOURCE_RUN_ATTEMPT: ${{ github.run_attempt }}
         shell: bash
-        run: |
-          set -euo pipefail
-          gh release upload coverage-latest coverage-snapshot/* --repo LibreSign/coverage --clobber
-          gh release edit coverage-latest --repo LibreSign/coverage \
-            --title 'Latest LibreSign coverage snapshot' \
-            --notes "Real PHPUnit/Octocov report from LibreSign/libresign main commit ${SOURCE_SHA}. Source: GitHub Actions; no duplicate PHPUnit run."
-          archive_tag="coverage-history-$(date -u +%Y-%m)"
-          if ! gh release view "${archive_tag}" --repo LibreSign/coverage >/dev/null 2>&1; then
-            gh release create "${archive_tag}" --repo LibreSign/coverage --target main \
-              --title "LibreSign coverage snapshots ${archive_tag#coverage-history-}" \
-              --notes 'Immutable per-commit native Octocov and Clover metrics from LibreSign main. Full HTML is kept only for the latest snapshot.'
-          fi
-          cp coverage-snapshot/libresign-octocov.json.gz "coverage-snapshot/libresign-${SOURCE_SHA}-octocov.json.gz"
-          cp coverage-snapshot/libresign-clover.xml.gz "coverage-snapshot/libresign-${SOURCE_SHA}-clover.xml.gz"
-          gh release upload "${archive_tag}" \
-            "coverage-snapshot/libresign-${SOURCE_SHA}-octocov.json.gz" \
-            "coverage-snapshot/libresign-${SOURCE_SHA}-clover.xml.gz" \
-            --repo LibreSign/coverage --clobber
-          gh api --method POST repos/LibreSign/coverage/dispatches -f event_type=coverage-updated
+        run: bash .github/scripts/archive-coverage.sh
 
   summary:
     permissions:
