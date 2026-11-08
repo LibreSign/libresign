@@ -173,17 +173,6 @@ jobs:
           if-no-files-found: error
           retention-days: 90 # Preserve native HTML and Clover up to GitHub public artifact limit
 
-      - name: Upload coverage results to Coveralls
-        if: steps.check_phpunit.outcome == 'success' && (github.event_name == 'push' || (github.event_name == 'pull_request' && github.event.pull_request.base.ref == 'main' && github.event.pull_request.head.repo.full_name == github.repository))
-        uses: coverallsapp/github-action@8d6379e14d29928660c4ba802d8e85393440b329 # v2.3.8
-        with:
-          github-token: ${{ secrets.GITHUB_TOKEN }}
-          file: apps/${{ env.APP_NAME }}/build/logs/clover.xml
-          format: clover
-          base-path: apps/${{ env.APP_NAME }}
-          parallel: true
-          flag-name: php-${{ matrix.php-versions }}
-
       - name: Print logs
         if: always()
         run: |
@@ -197,50 +186,18 @@ jobs:
           exit 1
 
   octocov:
-    name: Publish octocov metrics
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    name: Octocov coverage
     needs: phpunit-sqlite
-    runs-on: ubuntu-latest
+    if: >-
+      (github.event_name == 'push' && github.ref == 'refs/heads/main') ||
+      (github.event_name == 'pull_request' && github.event.pull_request.base.ref == 'main')
+    # Runs in LibreSign's workflow context, so reports remain attached to
+    # the same PHPUnit run. The collector implementation lives in coverage.
+    uses: LibreSign/coverage/.github/workflows/source-octocov.yml@b1d3441b45864cfb017574d40b8a978cb8996432
     permissions:
       contents: read
       actions: write
-    steps:
-      - name: Checkout app
-        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-        with:
-          persist-credentials: false
-
-      - name: Download PHPUnit Clover artifacts
-        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
-        with:
-          pattern: phpunit-coverage-*
-          path: coverage-artifacts
-
-      - name: Select reference Clover from the PHPUnit matrix
-        id: reference
-        shell: bash
-        run: |
-          set -euo pipefail
-          mapfile -t reports < <(find coverage-artifacts -type f -name clover.xml | sort -Vr)
-          [[ "${#reports[@]}" -gt 0 ]] || { echo '::error::Clover artifact missing'; exit 1; }
-          selected=''
-          for candidate in "${reports[@]}"; do
-            if [[ "${candidate}" == *-nextcloud-master/* ]]; then
-              selected="${candidate}"
-              break
-            fi
-          done
-          selected="${selected:-${reports[0]}}"
-          mkdir -p .octocov-coverage
-          cp "${selected}" .octocov-coverage/clover.xml
-          test -s .octocov-coverage/clover.xml
-          echo "artifact_dir=$(dirname "${selected}")" >> "${GITHUB_OUTPUT}"
-
-      - name: Save native octocov report in GitHub Actions artifacts
-        uses: k1LoW/octocov-action@a167dc0dee441b7ffc45e1b862ab55ec0d87f278 # v1.5.2
-        with:
-          version: v0.83.5
-
+      pull-requests: write
 
   summary:
     permissions:
@@ -255,14 +212,3 @@ jobs:
     steps:
       - name: Summary status
         run: if ${{ needs.changes.outputs.src != 'false' && needs.phpunit-sqlite.result != 'success' }}; then exit 1; fi
-
-  finish-coverage:
-    if: ${{ github.event_name == 'push' || (github.event_name == 'pull_request' && github.event.pull_request.base.ref == 'main' && github.event.pull_request.head.repo.full_name == github.repository) }}
-    needs: phpunit-sqlite
-    runs-on: ubuntu-latest
-    steps:
-      - name: Let Coveralls know that all tests have finished
-        uses: coverallsapp/github-action@8d6379e14d29928660c4ba802d8e85393440b329 # v2.3.8
-        with:
-          github-token: ${{ secrets.GITHUB_TOKEN }}
-          parallel-finished: true

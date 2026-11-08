@@ -3,9 +3,9 @@
 
 name: Refresh central code coverage
 
-# workflow_run fires after the *entire* source workflow completes. Triggering
-# from within its octocov job could start the publisher before the run is
-# visible among successful runs.
+# This workflow observes 'name: PHPUnit SQLite' in phpunit-sqlite.yml.
+# workflow_run fires only after that ENTIRE workflow completes, including its
+# reusable Octocov job. A notification inside PHPUnit would be premature.
 on:
   workflow_run:
     workflows: [PHPUnit SQLite]
@@ -34,7 +34,8 @@ jobs:
           SOURCE_RUN_ID: ${{ github.event.workflow_run.id }}
         run: |
           set -euo pipefail
-          count="$(gh api "repos/${GITHUB_REPOSITORY}/actions/runs/${SOURCE_RUN_ID}/artifacts"             --jq '[.artifacts[] | select(.name == "octocov-report" and (.expired == false))] | length')"
+          count="$(gh api "repos/${GITHUB_REPOSITORY}/actions/runs/${SOURCE_RUN_ID}/artifacts" \
+            --jq '[.artifacts[] | select(.name == "octocov-report" and (.expired == false))] | length')"
           if [[ "${count}" == "1" ]]; then
             echo 'available=true' >> "${GITHUB_OUTPUT}"
           else
