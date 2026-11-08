@@ -20,6 +20,7 @@ concurrency:
 jobs:
   lint:
     runs-on: ubuntu-latest
+    timeout-minutes: 12
 
     name: php-cs
 
@@ -43,6 +44,8 @@ jobs:
           ini-file: development
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          update: true
+          verbose: true
 
       - name: Remove nextcloud/ocp
         run: |

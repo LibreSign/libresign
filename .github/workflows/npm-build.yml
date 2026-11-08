@@ -26,8 +26,6 @@ jobs:
 
     outputs:
       src: ${{ steps.changes.outputs.src}}
-      # TODO(viewer-compat): Remove this viewer output with the isolated Viewer (PR #9301).
-      viewer: ${{ steps.changes.outputs.viewer}}
 
     steps:
       - uses: dorny/paths-filter@ceb8a2b8f2d89434be7ff52d3de7ec3738c5cc9d # v4.0.3
@@ -45,10 +43,6 @@ jobs:
               - '**.js'
               - '**.ts'
               - '**.vue'
-            # TODO(viewer-compat): Remove this filter when src/viewer/ is deleted (PR #9301).
-            viewer:
-              - 'src/viewer/package.json'
-              - 'src/viewer/package-lock.json'
 
   build:
     runs-on: ubuntu-latest
@@ -64,19 +58,18 @@ jobs:
           persist-credentials: false
 
       - name: Read package.json node and npm engines version
-        uses: skjnldsv/read-package-engines-version-actions@06d6db44aa62f4609ba070f556ec24bc99fb85cb # v4
+        uses: nextcloud-libraries/parse-package-engines-action@39fcc545a815c353dd0a3fd8fd2ef6e59fd02b92 # v0.2.0
         id: versions
-        with:
-          fallbackNode: '^24'
-          fallbackNpm: '^11.3'
 
-      - name: Set up node ${{ steps.versions.outputs.nodeVersion }}
+      - name: Set up node ${{ steps.versions.outputs.node-version }}
         uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
-          node-version: ${{ steps.versions.outputs.nodeVersion }}
+          node-version: ${{ steps.versions.outputs.node-version || '^24' }}
 
-      - name: Set up npm ${{ steps.versions.outputs.npmVersion }}
-        run: npm i -g 'npm@${{ steps.versions.outputs.npmVersion }}'
+      - name: Set up npm ${{ steps.versions.outputs.package-manager-version }}
+        env:
+          NPM_VERSION: ${{ steps.versions.outputs.package-manager-name == 'npm' && steps.versions.outputs.package-manager-version || '^11.3' }}
+        run: npm i -g "npm@${NPM_VERSION}"
 
       - name: Validate package-lock.json # See https://github.com/npm/cli/issues/4460
         run: |
@@ -91,36 +84,6 @@ jobs:
         run: |
           npm ci
           npm run build --if-present
-
-
-      # TODO(viewer-compat): Delete this guard when the Viewer supports dialogs 8 (PR #9301).
-      # Also remove the root package.json scripts.postinstall and the viewer output/filter above.
-      - name: Require Viewer cleanup when dialogs 8 becomes compatible
-        if: needs.changes.outputs.viewer != 'false'
-        run: |
-          test -f src/viewer/package.json || { echo "::error::Remove this obsolete Viewer check with the isolated Viewer."; exit 1; }
-          tmp=$(mktemp -d)
-          trap 'rm -rf "$tmp"' EXIT
-          cp src/viewer/package.json "$tmp/package.json"
-          version=$(node -p "require('./package.json').dependencies['@nextcloud/dialogs']")
-          npm pkg set --prefix "$tmp" "dependencies.@nextcloud/dialogs=$version"
-          if npm install --prefix "$tmp" --package-lock-only --strict-peer-deps --ignore-scripts --no-audit --no-fund >"$tmp/install.log" 2>&1; then
-            if node - "$tmp/package-lock.json" <<'NODE'
-          const p = require(process.argv[2]).packages
-          const compatible = p['node_modules/@nextcloud/viewer']
-            && p['node_modules/@nextcloud/dialogs']?.version?.startsWith('8.')
-            && Object.entries(p).every(([path, pkg]) =>
-              !path.endsWith('/@nextcloud/dialogs') || pkg.version?.startsWith('8.'))
-          process.exit(compatible ? 0 : 1)
-          NODE
-            then
-              echo "::error title=Viewer cleanup available::See PR #9301 and TODO(viewer-compat): remove src/viewer, package.json scripts.postinstall, viewer CI checks, Dependabot and REUSE entries; restore direct imports and mocks, then run PDF security and E2E tests."
-              exit 1
-            fi
-          elif ! grep -q 'ERESOLVE' "$tmp/install.log"; then
-            cat "$tmp/install.log"
-            exit 1
-          fi
 
       - name: Check build changes
         run: |
