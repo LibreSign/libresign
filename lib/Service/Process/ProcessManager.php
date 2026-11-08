@@ -38,7 +38,7 @@ class ProcessManager {
 		}
 
 		$registry = $this->getRegistry();
-		$registry[$source][(string)$pid] = [
+		$registry[$source][$pid] = [
 			'pid' => $pid,
 			'context' => $context,
 			'createdAt' => time(),
@@ -49,7 +49,7 @@ class ProcessManager {
 
 	public function unregister(string $source, int $pid): void {
 		$registry = $this->getRegistry();
-		unset($registry[$source][(string)$pid]);
+		unset($registry[$source][$pid]);
 		$this->saveRegistry($registry);
 	}
 
@@ -210,7 +210,7 @@ class ProcessManager {
 	}
 
 	/**
-	 * @return array<string, array<string, array{pid: int, context: array<string, scalar>, createdAt: int}>>
+	 * @return array<string, array<int, array{pid: int, context: array<string, scalar>, createdAt: int}>>
 	 */
 	private function getRegistry(): array {
 		$raw = $this->appConfig->getValueString(Application::APP_ID, self::APP_CONFIG_KEY, '{}');
@@ -223,7 +223,7 @@ class ProcessManager {
 	}
 
 	/**
-	 * @param array<string, array<string, array{pid: int, context: array<string, scalar>, createdAt: int}>> $registry
+	 * @param array<string, array<int, array{pid: int, context: array<string, scalar>, createdAt: int}>> $registry
 	 */
 	private function saveRegistry(array $registry): void {
 		$this->appConfig->setValueString(Application::APP_ID, self::APP_CONFIG_KEY, json_encode($registry));

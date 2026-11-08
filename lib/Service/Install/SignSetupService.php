@@ -297,16 +297,14 @@ class SignSetupService {
 	 * Returns an array of ['filename' => 'SHA512-hash-of-file'] for all files found
 	 * in the iterator.
 	 *
-	 * @param \RecursiveIteratorIterator $iterator
-	 * @param string $path
+	 * @param \Traversable<string, \SplFileInfo> $iterator
 	 * @return array Array of hashes.
 	 */
-	private function generateHashes(\RecursiveIteratorIterator $iterator): array {
+	private function generateHashes(\Traversable $iterator): array {
 		$hashes = [];
 
 		$baseDirectoryLength = \strlen($this->getInstallPath());
 		foreach ($iterator as $filename => $data) {
-			/** @var \DirectoryIterator $data */
 			if ($data->isDir()) {
 				continue;
 			}
