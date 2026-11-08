@@ -287,6 +287,8 @@ class SignSetupService {
 			\RecursiveDirectoryIterator::SKIP_DOTS
 		);
 
+		// Psalm 7's purity template variance rejects this valid native iterator construction.
+		/** @psalm-suppress InvalidTemplateParam */
 		return new \RecursiveIteratorIterator(
 			$dirItr,
 			\RecursiveIteratorIterator::SELF_FIRST
