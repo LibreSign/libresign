@@ -18,7 +18,7 @@ diff --git a/.github/workflows/psalm.yml b/.github/workflows/psalm.yml
  
        - name: Get php version
          id: versions
-         uses: nextcloud-libraries/nextcloud-version-matrix@cd0211ffcef1065e2020cd579e4843b8746e7a58 # v1.3.3
+         uses: nextcloud-libraries/nextcloud-version-matrix@71959de73c244b11ecbf4503b87c41d65b0f64ae # v1.3.4
  
 +      - name: Checkout server
 +        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
