@@ -34,9 +34,9 @@ https://libresign.coop
 		<dav/>
 	</types>
 	<documentation>
-		<user>https://docs.libresign.coop/user_manual</user>
-		<admin>https://docs.libresign.coop/admin_manual</admin>
-		<developer>https://docs.libresign.coop/developer_manual</developer>
+		<user>https://docs.libresign.coop/main/user_manual/</user>
+		<admin>https://docs.libresign.coop/main/admin_manual/</admin>
+		<developer>https://docs.libresign.coop/main/developer_manual/</developer>
 	</documentation>
 	<category>files</category>
 	<category>office</category>
