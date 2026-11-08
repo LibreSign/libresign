@@ -33,11 +33,6 @@ jobs:
         with:
           persist-credentials: false
 
-      - name: Check coverage archive script
-        run: |
-          bash -n .github/scripts/archive-coverage.sh
-          python3 -m unittest discover -s .github/scripts/tests -v
-
       - name: Get version matrix
         id: versions
         uses: icewind1991/nextcloud-version-matrix@cd0211ffcef1065e2020cd579e4843b8746e7a58 # v1.3.3
@@ -246,45 +241,6 @@ jobs:
         with:
           version: v0.83.5
 
-      - name: Package verified coverage reports without rerunning PHPUnit
-        env:
-          SOURCE_ARTIFACT_DIR: ${{ steps.reference.outputs.artifact_dir }}
-          APP_REPOSITORY: ${{ github.repository }}
-          SOURCE_SHA: ${{ github.sha }}
-          SOURCE_RUN_ID: ${{ github.run_id }}
-        shell: bash
-        run: |
-          set -euo pipefail
-          test -s "${SOURCE_ARTIFACT_DIR}/html-coverage/index.html"
-          test -s "${SOURCE_ARTIFACT_DIR}/clover.xml"
-          test -s .octocov-coverage/octocov-report.json
-          mkdir -p coverage-snapshot
-          tar -C "${SOURCE_ARTIFACT_DIR}/html-coverage" -czf coverage-snapshot/libresign-html.tar.gz .
-          gzip -n -9 < .octocov-coverage/clover.xml > coverage-snapshot/libresign-clover.xml.gz
-          gzip -n -9 < .octocov-coverage/octocov-report.json > coverage-snapshot/libresign-octocov.json.gz
-          python3 .github/scripts/coverage_metadata.py \
-            --report .octocov-coverage/octocov-report.json \
-            --output coverage-snapshot/metadata.json
-          (cd coverage-snapshot && sha256sum libresign-html.tar.gz libresign-clover.xml.gz libresign-octocov.json.gz metadata.json > checksums.sha256)
-
-      - name: Create a scoped token for LibreSign coverage releases
-        id: coverage-token
-        uses: actions/create-github-app-token@64ab729a6294000f5aa4a4bc0b73d1f32bc45510 # v3.3.0
-        with:
-          client-id: ${{ vars.LIBRECODE_WORKFLOW_APP_CLIENT_ID }}
-          private-key: ${{ secrets.LIBRECODE_WORKFLOW_APP_PRIVATE_KEY }}
-          owner: LibreSign
-          repositories: coverage
-          permission-contents: write
-
-      - name: Preserve historical reports by SHA and request Pages refresh
-        env:
-          GH_TOKEN: ${{ steps.coverage-token.outputs.token }}
-          SOURCE_SHA: ${{ github.sha }}
-          SOURCE_RUN_ID: ${{ github.run_id }}
-          SOURCE_RUN_ATTEMPT: ${{ github.run_attempt }}
-        shell: bash
-        run: bash .github/scripts/archive-coverage.sh
 
   summary:
     permissions:
