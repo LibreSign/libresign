@@ -297,7 +297,7 @@ class SignSetupService {
 	 * Returns an array of ['filename' => 'SHA512-hash-of-file'] for all files found
 	 * in the iterator.
 	 *
-	 * @param \Traversable $iterator
+	 * @param \Traversable<string, \SplFileInfo> $iterator
 	 * @return array Array of hashes.
 	 */
 	private function generateHashes(\Traversable $iterator): array {
@@ -305,7 +305,6 @@ class SignSetupService {
 
 		$baseDirectoryLength = \strlen($this->getInstallPath());
 		foreach ($iterator as $filename => $data) {
-			/** @var \DirectoryIterator $data */
 			if ($data->isDir()) {
 				continue;
 			}
