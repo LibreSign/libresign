@@ -177,6 +177,8 @@ jobs:
           ./occ config:system:set cache_app_config --value=false --type=boolean
           # CI-only: exercise Behat requests with Nextcloud APCu local cache.
           ./occ config:system:set memcache.local --value="\\OC\\Memcache\\APCu"
+          # Do not default the distributed cache to APCu: the PHP server has separate workers.
+          ./occ config:system:set memcache.distributed --value="\\OC\\Memcache\\NullCache"
           ./occ app:enable --force ${{ env.APP_NAME }}
           git clone --depth 1 -b ${{ matrix.server-versions }} https://github.com/nextcloud/notifications apps/notifications
           composer --working-dir=apps/notifications install --no-dev
