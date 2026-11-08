@@ -287,8 +287,6 @@ class SignSetupService {
 			\RecursiveDirectoryIterator::SKIP_DOTS
 		);
 
-		// Psalm 7's purity template variance rejects this valid native iterator construction.
-		/** @psalm-suppress InvalidTemplateParam */
 		return new \RecursiveIteratorIterator(
 			$dirItr,
 			\RecursiveIteratorIterator::SELF_FIRST
@@ -299,11 +297,10 @@ class SignSetupService {
 	 * Returns an array of ['filename' => 'SHA512-hash-of-file'] for all files found
 	 * in the iterator.
 	 *
-	 * @param \RecursiveIteratorIterator $iterator
-	 * @param string $path
+	 * @param \Traversable $iterator
 	 * @return array Array of hashes.
 	 */
-	private function generateHashes(\RecursiveIteratorIterator $iterator): array {
+	private function generateHashes(\Traversable $iterator): array {
 		$hashes = [];
 
 		$baseDirectoryLength = \strlen($this->getInstallPath());
