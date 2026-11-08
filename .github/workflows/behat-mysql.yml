@@ -173,6 +173,8 @@ jobs:
           # CI-only: use fast password hashing for disposable Behat users.
           ./occ config:system:set hashing_default_password --value=true --type=boolean
           ./occ config:system:set hashingCost --value=4 --type=integer
+          # OCC resets run outside the persistent HTTP workers; avoid stale AppConfig snapshots.
+          ./occ config:system:set cache_app_config --value=false --type=boolean
           # CI-only: exercise Behat requests with Nextcloud APCu local cache.
           ./occ config:system:set memcache.local --value="\\OC\\Memcache\\APCu"
           ./occ app:enable --force ${{ env.APP_NAME }}
