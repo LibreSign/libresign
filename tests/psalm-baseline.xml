@@ -107,12 +107,10 @@
   </file>
   <file src="lib/Migration/Version8000Date20240405142042.php">
     <UndefinedClass>
+      <code><![CDATA[$schema->getDatabasePlatform()]]></code>
       <code><![CDATA[JsonType]]></code>
       <code><![CDATA[PostgreSQLPlatform]]></code>
     </UndefinedClass>
-    <UndefinedDocblockClass>
-      <code><![CDATA[$schema->getDatabasePlatform()]]></code>
-    </UndefinedDocblockClass>
   </file>
   <file src="lib/Service/AccountService.php">
     <UndefinedClass>
