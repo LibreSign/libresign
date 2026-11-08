@@ -6,6 +6,7 @@ coverage:
     - .octocov-coverage/clover.xml
 report:
   if: is_default_branch
+  path: .octocov-coverage/octocov-report.json
   datastores:
     - artifact://${GITHUB_REPOSITORY}
 diff:

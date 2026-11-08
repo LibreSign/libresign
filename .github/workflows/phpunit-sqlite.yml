@@ -217,6 +217,7 @@ jobs:
           path: coverage-artifacts
 
       - name: Select reference Clover from the PHPUnit matrix
+        id: reference
         shell: bash
         run: |
           set -euo pipefail
@@ -233,11 +234,77 @@ jobs:
           mkdir -p .octocov-coverage
           cp "${selected}" .octocov-coverage/clover.xml
           test -s .octocov-coverage/clover.xml
+          echo "artifact_dir=$(dirname "${selected}")" >> "${GITHUB_OUTPUT}"
 
       - name: Save native octocov report in GitHub Actions artifacts
         uses: k1LoW/octocov-action@a167dc0dee441b7ffc45e1b862ab55ec0d87f278 # v1.5.2
         with:
           version: v0.83.5
+
+      - name: Package verified coverage reports without rerunning PHPUnit
+        env:
+          SOURCE_ARTIFACT_DIR: ${{ steps.reference.outputs.artifact_dir }}
+          APP_REPOSITORY: ${{ github.repository }}
+          SOURCE_SHA: ${{ github.sha }}
+          SOURCE_RUN_ID: ${{ github.run_id }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -s "${SOURCE_ARTIFACT_DIR}/html-coverage/index.html"
+          test -s "${SOURCE_ARTIFACT_DIR}/clover.xml"
+          test -s .octocov-coverage/octocov-report.json
+          mkdir -p coverage-snapshot
+          tar -C "${SOURCE_ARTIFACT_DIR}/html-coverage" -czf coverage-snapshot/libresign-html.tar.gz .
+          gzip -n -9 < .octocov-coverage/clover.xml > coverage-snapshot/libresign-clover.xml.gz
+          gzip -n -9 < .octocov-coverage/octocov-report.json > coverage-snapshot/libresign-octocov.json.gz
+          python3 - <<'PYTHON'
+          import json
+          import os
+          from pathlib import Path
+          Path("coverage-snapshot/metadata.json").write_text(json.dumps({
+              "repository": os.environ["APP_REPOSITORY"],
+              "source_branch": "main",
+              "source_commit_sha": os.environ["SOURCE_SHA"],
+              "source_run_id": int(os.environ["SOURCE_RUN_ID"]),
+              "preview": False,
+          }, indent=2) + "\n", encoding="utf-8")
+          PYTHON
+          (cd coverage-snapshot && sha256sum libresign-html.tar.gz libresign-clover.xml.gz libresign-octocov.json.gz metadata.json > checksums.sha256)
+
+      - name: Create a scoped token for LibreSign coverage releases
+        id: coverage-token
+        uses: actions/create-github-app-token@64ab729a6294000f5aa4a4bc0b73d1f32bc45510 # v3.3.0
+        with:
+          client-id: ${{ vars.LIBRECODE_WORKFLOW_APP_CLIENT_ID }}
+          private-key: ${{ secrets.LIBRECODE_WORKFLOW_APP_PRIVATE_KEY }}
+          owner: LibreSign
+          repositories: coverage
+          permission-contents: write
+
+      - name: Preserve current and historical coverage in the central repository
+        env:
+          GH_TOKEN: ${{ steps.coverage-token.outputs.token }}
+          SOURCE_SHA: ${{ github.sha }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          gh release upload coverage-latest coverage-snapshot/* --repo LibreSign/coverage --clobber
+          gh release edit coverage-latest --repo LibreSign/coverage \
+            --title 'Latest LibreSign coverage snapshot' \
+            --notes "Real PHPUnit/Octocov report from LibreSign/libresign main commit ${SOURCE_SHA}. Source: GitHub Actions; no duplicate PHPUnit run."
+          archive_tag="coverage-history-$(date -u +%Y-%m)"
+          if ! gh release view "${archive_tag}" --repo LibreSign/coverage >/dev/null 2>&1; then
+            gh release create "${archive_tag}" --repo LibreSign/coverage --target main \
+              --title "LibreSign coverage snapshots ${archive_tag#coverage-history-}" \
+              --notes 'Immutable per-commit native Octocov and Clover metrics from LibreSign main. Full HTML is kept only for the latest snapshot.'
+          fi
+          cp coverage-snapshot/libresign-octocov.json.gz "coverage-snapshot/libresign-${SOURCE_SHA}-octocov.json.gz"
+          cp coverage-snapshot/libresign-clover.xml.gz "coverage-snapshot/libresign-${SOURCE_SHA}-clover.xml.gz"
+          gh release upload "${archive_tag}" \
+            "coverage-snapshot/libresign-${SOURCE_SHA}-octocov.json.gz" \
+            "coverage-snapshot/libresign-${SOURCE_SHA}-clover.xml.gz" \
+            --repo LibreSign/coverage --clobber
+          gh api --method POST repos/LibreSign/coverage/dispatches -f event_type=coverage-updated
 
   summary:
     permissions:
