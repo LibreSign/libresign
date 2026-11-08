@@ -9,7 +9,6 @@ updates:
       - "/"
       - "/vendor-bin/coding-standard"
       - "/vendor-bin/openapi-extractor"
-      - "/vendor-bin/php-coveralls"
       - "/vendor-bin/php-scoper"
       - "/vendor-bin/phpunit"
       - "/vendor-bin/psalm"

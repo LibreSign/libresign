@@ -1,0 +1,69 @@
+# SPDX-FileCopyrightText: 2026 LibreCode coop and contributors
+# SPDX-License-Identifier: AGPL-3.0-or-later
+
+name: Refresh central code coverage
+
+# This workflow observes 'name: PHPUnit SQLite' in phpunit-sqlite.yml.
+# workflow_run fires only after that ENTIRE workflow completes, including its
+# reusable Octocov job. A notification inside PHPUnit would be premature.
+on:
+  workflow_run:
+    workflows: [PHPUnit SQLite]
+    types: [completed]
+    branches: [main]
+
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  notify-coverage:
+    if: >-
+      github.event.workflow_run.conclusion == 'success' &&
+      github.event.workflow_run.event == 'push' &&
+      github.event.workflow_run.head_branch == 'main' &&
+      github.event.workflow_run.head_repository.full_name == github.repository
+    runs-on: ubuntu-latest
+    steps:
+      # A successful source workflow may have intentionally skipped PHPUnit
+      # for documentation-only changes. Avoid republishing stale coverage.
+      - name: Check for the native coverage artifact
+        id: report
+        env:
+          GH_TOKEN: ${{ github.token }}
+          SOURCE_RUN_ID: ${{ github.event.workflow_run.id }}
+        run: |
+          set -euo pipefail
+          count="$(gh api "repos/${GITHUB_REPOSITORY}/actions/runs/${SOURCE_RUN_ID}/artifacts" \
+            --jq '[.artifacts[] | select(.name == "octocov-report" and (.expired == false))] | length')"
+          if [[ "${count}" == "1" ]]; then
+            echo 'available=true' >> "${GITHUB_OUTPUT}"
+          else
+            echo '::notice::No Octocov result for this run; nothing to republish'
+            echo 'available=false' >> "${GITHUB_OUTPUT}"
+          fi
+
+      - name: Create a token scoped to the central coverage repository
+        if: steps.report.outputs.available == 'true'
+        id: coverage-token
+        uses: actions/create-github-app-token@64ab729a6294000f5aa4a4bc0b73d1f32bc45510 # v3.3.0
+        with:
+          client-id: ${{ vars.LIBRECODE_WORKFLOW_APP_CLIENT_ID }}
+          private-key: ${{ secrets.LIBRECODE_WORKFLOW_APP_PRIVATE_KEY }}
+          owner: LibreSign
+          repositories: coverage
+          permission-contents: write
+
+      - name: Notify central publisher about successful main run
+        if: steps.report.outputs.available == 'true'
+        env:
+          GH_TOKEN: ${{ steps.coverage-token.outputs.token }}
+          SOURCE_SHA: ${{ github.event.workflow_run.head_sha }}
+          SOURCE_RUN_ID: ${{ github.event.workflow_run.id }}
+        run: |
+          set -euo pipefail
+          gh api --method POST repos/LibreSign/coverage/dispatches \
+            -f event_type=coverage-updated \
+            -f 'client_payload[source_repository]=LibreSign/libresign' \
+            -f "client_payload[source_sha]=${SOURCE_SHA}" \
+            -f "client_payload[source_run_id]=${SOURCE_RUN_ID}"

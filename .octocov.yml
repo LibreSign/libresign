@@ -1,0 +1,21 @@
+# SPDX-FileCopyrightText: 2026 LibreCode coop and contributors
+# SPDX-License-Identifier: AGPL-3.0-or-later
+
+coverage:
+  paths:
+    - .octocov-coverage/clover.xml
+# Show the compared overall/patch coverage on every PR. Fork PRs still get
+# their job summary when GitHub restricts comment-writing permissions.
+comment:
+  if: is_pull_request
+  updatePrevious: true
+summary:
+  if: is_pull_request
+report:
+  if: is_default_branch
+  path: .octocov-coverage/octocov-report.json
+  datastores:
+    - artifact://${GITHUB_REPOSITORY}
+diff:
+  datastores:
+    - artifact://${GITHUB_REPOSITORY}

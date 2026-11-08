@@ -162,16 +162,16 @@ jobs:
         working-directory: apps/${{ env.APP_NAME }}
         run: composer run test:coverage
 
-      - name: Upload coverage results to Coveralls
-        if: steps.check_phpunit.outcome == 'success' && (github.event_name == 'push' || (github.event_name == 'pull_request' && github.event.pull_request.base.ref == 'main' && github.event.pull_request.head.repo.full_name == github.repository))
-        uses: coverallsapp/github-action@8d6379e14d29928660c4ba802d8e85393440b329 # v2.3.8
+      - name: Preserve coverage reports for LibreSign coverage
+        if: steps.check_phpunit.outcome == 'success'
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         with:
-          github-token: ${{ secrets.GITHUB_TOKEN }}
-          file: apps/${{ env.APP_NAME }}/build/logs/clover.xml
-          format: clover
-          base-path: apps/${{ env.APP_NAME }}
-          parallel: true
-          flag-name: php-${{ matrix.php-versions }}
+          name: phpunit-coverage-php-${{ matrix.php-versions }}-nextcloud-${{ matrix.server-versions }}
+          path: |
+            apps/${{ env.APP_NAME }}/build/logs/clover.xml
+            apps/${{ env.APP_NAME }}/build/logs/html-coverage/
+          if-no-files-found: error
+          retention-days: 90 # Preserve native HTML and Clover up to GitHub public artifact limit
 
       - name: Print logs
         if: always()
@@ -184,6 +184,20 @@ jobs:
         run: |
           echo 'The PHPUnit coverage script is not defined in composer.json'
           exit 1
+
+  octocov:
+    name: Octocov coverage
+    needs: phpunit-sqlite
+    if: >-
+      (github.event_name == 'push' && github.ref == 'refs/heads/main') ||
+      (github.event_name == 'pull_request' && github.event.pull_request.base.ref == 'main')
+    # Runs in LibreSign's workflow context, so reports remain attached to
+    # the same PHPUnit run. The collector implementation lives in coverage.
+    uses: LibreSign/coverage/.github/workflows/source-octocov.yml@b1d3441b45864cfb017574d40b8a978cb8996432
+    permissions:
+      contents: read
+      actions: write
+      pull-requests: write
 
   summary:
     permissions:
@@ -198,14 +212,3 @@ jobs:
     steps:
       - name: Summary status
         run: if ${{ needs.changes.outputs.src != 'false' && needs.phpunit-sqlite.result != 'success' }}; then exit 1; fi
-
-  finish-coverage:
-    if: ${{ github.event_name == 'push' || (github.event_name == 'pull_request' && github.event.pull_request.base.ref == 'main' && github.event.pull_request.head.repo.full_name == github.repository) }}
-    needs: phpunit-sqlite
-    runs-on: ubuntu-latest
-    steps:
-      - name: Let Coveralls know that all tests have finished
-        uses: coverallsapp/github-action@8d6379e14d29928660c4ba802d8e85393440b329 # v2.3.8
-        with:
-          github-token: ${{ secrets.GITHUB_TOKEN }}
-          parallel-finished: true
