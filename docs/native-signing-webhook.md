@@ -1,3 +1,8 @@
+<!--
+SPDX-FileCopyrightText: 2026 LibreCode coop and contributors
+SPDX-License-Identifier: AGPL-3.0-or-later
+-->
+
 # Native Nextcloud signing-completion webhook (contract v1)
 
 LibreSign 16 (`main`, Nextcloud 36) emits `OCA\Libresign\Events\SigningRequestCompletedEvent` when the **aggregate signing workflow** changes from a non-signed status to `SIGNED`. This is different from the internal per-signature `SignedEvent`.
