@@ -31,6 +31,7 @@ use OCA\Libresign\Enum\FileStatus;
 use OCA\Libresign\Enum\IdentifyMethodRequirement;
 use OCA\Libresign\Enum\SignRequestStatus;
 use OCA\Libresign\Events\SignedEventFactory;
+use OCA\Libresign\Events\SigningRequestCompletedEvent;
 use OCA\Libresign\Exception\FooterStampUnavailableException;
 use OCA\Libresign\Exception\LibresignException;
 use OCA\Libresign\Handler\DocMdpHandler;
@@ -519,6 +520,11 @@ class SignFileService {
 			return;
 		}
 
+		$completionContext = $libreSignFile->hasParent() || $libreSignFile->isEnvelope()
+			? $this->getCompletionTarget($libreSignFile)
+			: $libreSignFile;
+		$previousCompletionStatus = $completionContext->getStatus();
+
 		$previousLibreSignFile = $this->libreSignFile;
 		$previousSignRequest = $this->signRequest;
 		$this->libreSignFile = $libreSignFile;
@@ -550,6 +556,8 @@ class SignFileService {
 					$signRequest->getSigned()
 				);
 			}
+
+			$this->dispatchCompletionIfTransition($completionContext, $previousCompletionStatus);
 		} finally {
 			$this->libreSignFile = $previousLibreSignFile;
 			$this->signRequest = $previousSignRequest;
@@ -663,6 +671,10 @@ class SignFileService {
 	private function signSequentially(array $signRequests): ?DateTimeInterface {
 		$envelopeLastSignedDate = null;
 		$envelopeContext = $this->getEnvelopeContext();
+		$completionTarget = $envelopeContext['envelope'] instanceof FileEntity
+			? $envelopeContext['envelope']
+			: $this->libreSignFile;
+		$previousCompletionStatus = $completionTarget->getStatus();
 
 		foreach ($signRequests as $index => $signRequestData) {
 			$this->libreSignFile = $signRequestData['file'];
@@ -710,6 +722,7 @@ class SignFileService {
 			);
 		}
 
+		$this->dispatchCompletionIfTransition($completionTarget, $previousCompletionStatus);
 		return $envelopeLastSignedDate;
 	}
 
@@ -956,6 +969,24 @@ class SignFileService {
 
 		if ($libreSignFile->hasParent()) {
 			$this->fileStatusService->propagateStatusToParent($libreSignFile->getParentFileId());
+		}
+	}
+
+	/** Find the aggregate request whose completion is visible to an integrator. */
+	private function getCompletionTarget(FileEntity $file): FileEntity {
+		if (!$file->hasParent()) {
+			return $file;
+		}
+		return $this->fileMapper->getById($file->getParentFileId());
+	}
+
+	private function dispatchCompletionIfTransition(FileEntity $request, int $previousStatus): void {
+		// Envelope propagation and status determination may use different entity
+		// instances. Read the persisted aggregate after all signing updates.
+		$request = $this->fileMapper->getById($request->getId());
+		$event = SigningRequestCompletedEvent::fromTransition($request, $previousStatus);
+		if ($event !== null) {
+			$this->eventDispatcher->dispatchTyped($event);
 		}
 	}
 
