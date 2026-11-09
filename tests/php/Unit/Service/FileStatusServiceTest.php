@@ -67,6 +67,17 @@ class FileStatusServiceTest extends TestCase {
 		$this->service->updateFileStatusIfUpgrade($file, FileStatus::ABLE_TO_SIGN->value);
 	}
 
+	public function testReadyEventCanBeDeferredUntilSignerPersistenceFinishes(): void {
+		$file = new FileEntity();
+		$file->setId(11);
+		$file->setUuid('ready-uuid');
+		$file->setStatus(FileStatus::DRAFT->value);
+		$this->service->updateFileStatusIfUpgrade($file, FileStatus::ABLE_TO_SIGN->value, false);
+		$this->eventDispatcher->expects($this->once())->method('dispatchTyped')
+			->with($this->isInstanceOf(SigningRequestReadyEvent::class));
+		$this->service->dispatchReadyRequest($file);
+	}
+
 	#[DataProvider('dataFileStatusUpgrade')]
 	public function testUpdateFileStatusIfUpgrade(int $currentStatus, int $newStatus, bool $shouldUpdate): void {
 		$file = new FileEntity();

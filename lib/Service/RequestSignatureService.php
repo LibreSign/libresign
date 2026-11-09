@@ -139,8 +139,8 @@ class RequestSignatureService {
 	}
 
 	public function save(array $data): FileEntity {
-		$newlyCreated = false;
-		$file = $this->saveFile($data, $newlyCreated);
+		$becameReady = false;
+		$file = $this->saveFile($data, $becameReady);
 		if (!isset($data['status'])) {
 			$data['status'] = $file->getStatus();
 		}
@@ -150,10 +150,10 @@ class RequestSignatureService {
 			$this->propagateSignersToChildren($file, $data);
 			$this->saveVisibleElements($data, $file);
 		}, $this->db);
-		if ($newlyCreated) {
-			$this->fileStatusService->dispatchCreatedReadyRequest($file);
-		}
 		$this->notifications->flushCommitted();
+		if ($becameReady) {
+			$this->fileStatusService->dispatchReadyRequest($file);
+		}
 
 		return $file;
 	}
@@ -227,15 +227,18 @@ class RequestSignatureService {
 				}, $this->db);
 				$this->notifications->flushCommitted();
 			}
-
-			return [
-				'envelope' => $envelope,
-				'files' => $files,
-			];
 		} catch (\Throwable $e) {
 			$this->rollbackEnvelopeCreation($envelope, $files, $createdNodes);
 			throw $e;
 		}
+
+		if ($envelope->getStatus() === FileStatus::ABLE_TO_SIGN->value) {
+			$this->fileStatusService->dispatchReadyRequest($envelope);
+		}
+		return [
+			'envelope' => $envelope,
+			'files' => $files,
+		];
 	}
 
 	private function processFileData(array $fileData, ?IUser $userManager, array $settings): Node {
@@ -367,16 +370,20 @@ class RequestSignatureService {
 	 *     uploadedFile?: array<string, mixed>
 	 * } $data
 	 */
-	public function saveFile(array $data, ?bool &$newlyCreated = null): FileEntity {
-		$newlyCreated = false;
+	public function saveFile(array $data, ?bool &$becameReady = null): FileEntity {
+		$becameReady = false;
 		if (!empty($data['uuid'])) {
 			$file = $this->fileMapper->getByUuid($data['uuid']);
 			$this->filePolicyApplier->syncCoreFlowPolicies($file, $data);
+			$previousStatus = $file->getStatus();
 			if (!empty($data['name'])) {
 				$file->setName($data['name']);
 				$this->fileService->update($file);
 			}
-			return $this->fileStatusService->updateFileStatusIfUpgrade($file, $data['status'] ?? 0);
+			$updated = $this->fileStatusService->updateFileStatusIfUpgrade($file, $data['status'] ?? 0, false);
+			$becameReady = $previousStatus === FileStatus::DRAFT->value
+				&& $updated->getStatus() === FileStatus::ABLE_TO_SIGN->value;
+			return $updated;
 		}
 		$nodeId = null;
 		if (isset($data['file']['fileNode']) && $data['file']['fileNode'] instanceof Node) {
@@ -395,7 +402,11 @@ class RequestSignatureService {
 			}
 			if ($file !== null) {
 				$this->filePolicyApplier->syncAllPolicies($file, $data);
-				return $this->fileStatusService->updateFileStatusIfUpgrade($file, $data['status'] ?? 0);
+				$previousStatus = $file->getStatus();
+				$updated = $this->fileStatusService->updateFileStatusIfUpgrade($file, $data['status'] ?? 0, false);
+				$becameReady = $previousStatus === FileStatus::DRAFT->value
+					&& $updated->getStatus() === FileStatus::ABLE_TO_SIGN->value;
+				return $updated;
 			}
 		}
 
@@ -438,7 +449,7 @@ class RequestSignatureService {
 		$this->filePolicyApplier->applyAll($file, $data);
 
 		$this->fileMapper->insert($file);
-		$newlyCreated = true;
+		$becameReady = $file->getStatus() === FileStatus::ABLE_TO_SIGN->value;
 		return $file;
 	}
 

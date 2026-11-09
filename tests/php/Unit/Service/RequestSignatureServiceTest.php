@@ -318,6 +318,39 @@ final class RequestSignatureServiceTest extends \OCA\Libresign\Tests\Unit\TestCa
 		$this->assertSame(['freeze:' . \OCA\Libresign\Enum\FileStatus::ABLE_TO_SIGN->value, 'insert'], $calls);
 	}
 
+	public function testReadyRequestEventIsPublishedAfterSignerTransaction(): void {
+		$file = new \OCA\Libresign\Db\File();
+		$file->setUuid('ready-uuid');
+		$file->setStatus(\OCA\Libresign\Enum\FileStatus::ABLE_TO_SIGN->value);
+		$service = $this->getService(['saveFile']);
+		$service->method('saveFile')->willReturnCallback(
+			static function (array $data, ?bool &$becameReady) use ($file): \OCA\Libresign\Db\File {
+				$becameReady = true;
+				return $file;
+			},
+		);
+		$this->fileStatusService->expects($this->once())->method('dispatchReadyRequest')->with($file);
+		$this->assertSame($file, $service->save(['status' => $file->getStatus()]));
+	}
+
+	public function testReadyRequestEventIsNotPublishedWhenSignerPersistenceFails(): void {
+		$file = new \OCA\Libresign\Db\File();
+		$file->setUuid('ready-uuid');
+		$file->setStatus(\OCA\Libresign\Enum\FileStatus::ABLE_TO_SIGN->value);
+		$service = $this->getService(['saveFile']);
+		$service->method('saveFile')->willReturnCallback(
+			static function (array $data, ?bool &$becameReady) use ($file): \OCA\Libresign\Db\File {
+				$becameReady = true;
+				return $file;
+			},
+		);
+		$this->signerValidator->method('normalizeRequestSigners')
+			->willThrowException(new \RuntimeException('invalid signer'));
+		$this->fileStatusService->expects($this->never())->method('dispatchReadyRequest');
+		$this->expectException(\RuntimeException::class);
+		$service->save(['status' => $file->getStatus(), 'signers' => [['identifyMethods' => []]]]);
+	}
+
 	public function testSaveFilesUsesSaveForSingleFile(): void {
 		$service = $this->getService(['save']);
 

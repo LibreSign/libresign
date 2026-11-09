@@ -28,7 +28,7 @@ class FileStatusService {
 	) {
 	}
 
-	public function updateFileStatusIfUpgrade(FileEntity $file, int $newStatus): FileEntity {
+	public function updateFileStatusIfUpgrade(FileEntity $file, int $newStatus, bool $publishReady = true): FileEntity {
 		$currentStatus = $file->getStatus();
 		if ($newStatus > $currentStatus) {
 			$this->markPolicySnapshotFrozen($file, $newStatus);
@@ -36,7 +36,9 @@ class FileStatusService {
 			$this->touchStatusChangedAt($file);
 			$this->fileMapper->update($file);
 			$this->statusCacheService->setStatus($file->getUuid(), $newStatus);
-			$this->dispatchReadyTransition($file, $currentStatus);
+			if ($publishReady && $currentStatus === FileStatus::DRAFT->value) {
+				$this->dispatchReadyRequest($file);
+			}
 
 			if ($file->hasParent()) {
 				$this->propagateStatusToParent($file->getParentFileId());
@@ -46,13 +48,8 @@ class FileStatusService {
 		return $file;
 	}
 
-	/** Called after creating a ready request and persisting its signers. */
-	public function dispatchCreatedReadyRequest(FileEntity $file): void {
-		$this->dispatchReadyTransition($file, FileStatus::DRAFT->value);
-	}
-
-	private function dispatchReadyTransition(FileEntity $file, int $previousStatus): void {
-		$event = SigningRequestReadyEvent::fromTransition($file, $previousStatus);
+	public function dispatchReadyRequest(FileEntity $file): void {
+		$event = SigningRequestReadyEvent::fromTransition($file, FileStatus::DRAFT->value);
 		if ($event !== null) {
 			$this->eventDispatcher->dispatchTyped($event);
 		}
