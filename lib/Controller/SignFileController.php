@@ -438,6 +438,7 @@ class SignFileController extends AEnvironmentAwareOCSController implements ISign
 	 * @param string $uuid UUID of LibreSign file
 	 * @param 'account'|'email'|null $identifyMethod Identify signer method
 	 * @param string|null $signMethod Method used to sign the document, i.e. emailToken, account, clickToSign, smsToken, signalToken, telegramToken, whatsappToken, xmppToken
+	 * @param 'true'|null $idDocApproval Literal string "true" when the UUID is an identification-document file UUID (matches middleware RequireSigner)
 	 * @return DataResponse<Http::STATUS_OK, LibresignMessageResponse, array{}>|DataResponse<Http::STATUS_UNPROCESSABLE_ENTITY, LibresignMessageResponse, array{}>
 	 *
 	 * 200: OK
@@ -449,9 +450,14 @@ class SignFileController extends AEnvironmentAwareOCSController implements ISign
 	#[PublicPage]
 	#[OpenAPI(tags: ['signing'])]
 	#[ApiRoute(verb: 'POST', url: '/api/{apiVersion}/sign/uuid/{uuid}/code', requirements: ['apiVersion' => '(v1)'])]
-	public function requestCodeBySignerUuid(string $uuid, ?string $identifyMethod, ?string $signMethod): DataResponse {
+	public function requestCodeBySignerUuid(
+		string $uuid,
+		?string $identifyMethod,
+		?string $signMethod,
+		?string $idDocApproval = null,
+	): DataResponse {
 		try {
-			if ($this->request->getParam('idDocApproval') === 'true') {
+			if ($idDocApproval === 'true') {
 				// In this context the uuid is the one of the file, not of a sign request.
 				$libreSignFile = $this->signFileService->getFileByUuid($uuid);
 				$signRequest = $this->signFileService->getSignRequestToSign($libreSignFile, null, $this->userSession->getUser());

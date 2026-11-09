@@ -100,9 +100,6 @@ final class SignFileControllerTest extends TestCase {
 	public function testRequestCodeBySignerUuidInIdDocApprovalContextUsesTheApproverSignRequest(): void {
 		$approver = $this->createMock(IUser::class);
 		$this->userSession->method('getUser')->willReturn($approver);
-		$this->request->method('getParam')->willReturnMap([
-			['idDocApproval', null, 'true'],
-		]);
 
 		$idDoc = new FileEntity();
 		$idDoc->setId(10);
@@ -126,17 +123,13 @@ final class SignFileControllerTest extends TestCase {
 			->method('requestCode')
 			->with($approverSignRequest, 'account', 'emailToken');
 
-		$response = $this->getController()->requestCodeBySignerUuid('file-uuid', 'account', 'emailToken');
+		$response = $this->getController()->requestCodeBySignerUuid('file-uuid', 'account', 'emailToken', 'true');
 
 		$this->assertSame(Http::STATUS_OK, $response->getStatus());
 		$this->assertSame('Verification code sent.', $response->getData()['message']);
 	}
 
 	public function testRequestCodeBySignerUuidWithoutIdDocApprovalKeepsTheSignerLookup(): void {
-		$this->request->method('getParam')->willReturnMap([
-			['idDocApproval', null, null],
-		]);
-
 		$signRequest = new SignRequest();
 		$signRequest->setId(5);
 		$signRequest->setFileId(3);
@@ -170,7 +163,7 @@ final class SignFileControllerTest extends TestCase {
 		);
 
 		$this->assertSame(
-			['uuid', 'identifyMethod', 'signMethod'],
+			['uuid', 'identifyMethod', 'signMethod', 'idDocApproval'],
 			array_map(
 				static fn (\ReflectionParameter $parameter): string => $parameter->getName(),
 				$uuidMethod->getParameters(),
