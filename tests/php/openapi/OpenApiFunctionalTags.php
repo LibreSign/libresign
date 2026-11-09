@@ -29,38 +29,10 @@ final class OpenApiFunctionalTags {
 		'verification',
 	];
 
-	public const LEGACY_TAGS = [
-		'account',
-		'admin',
-		'certificate_policy',
-		'crl',
-		'file',
-		'file_element',
-		'file_progress',
-		'footer_template',
-		'id_docs',
-		'identify',
-		'notify',
-		'policy',
-		'setting',
-		'signature_elements',
-		'signature_stamp_preview',
-	];
-
-	/**
-	 * Operation present in openapi.json but omitted from openapi-full.json by the
-	 * current extractor merge of the same path across scopes.
-	 *
-	 * @var list<string>
-	 */
-	public const KNOWN_FULL_SPEC_OMISSIONS = [
-		'footer_template-get-footer-template',
-	];
-
 	private const HTTP_METHODS = ['get', 'post', 'put', 'patch', 'delete', 'head', 'options', 'trace'];
 
 	/**
-	 * @return list<array{operationId: string, method: string, path: string, tags: list<string>}>
+	 * @return list<array{operationId: string, method: string, path: string, tags: list<string>, raw: array<string, mixed>}>
 	 */
 	public static function loadOperations(string $path): array {
 		if (!is_file($path)) {
@@ -93,6 +65,7 @@ final class OpenApiFunctionalTags {
 					'method' => strtoupper((string)$method),
 					'path' => (string)$route,
 					'tags' => array_values(array_map(static fn (mixed $tag): string => (string)$tag, $tags)),
+					'raw' => $operation,
 				];
 			}
 		}
@@ -105,11 +78,11 @@ final class OpenApiFunctionalTags {
 	}
 
 	/**
-	 * @param list<array{operationId: string, method: string, path: string, tags: list<string>}> $operations
+	 * @param list<array{operationId: string, method: string, path: string, tags: list<string>, raw?: array<string, mixed>}> $operations
 	 * @return array{
 	 *   errors: list<string>,
-	 *   byId: array<string, array{operationId: string, method: string, path: string, tags: list<string>}>,
-	 *   byRoute: array<string, array{operationId: string, method: string, path: string, tags: list<string>}>
+	 *   byId: array<string, array{operationId: string, method: string, path: string, tags: list<string>, raw?: array<string, mixed>}>,
+	 *   byRoute: array<string, array{operationId: string, method: string, path: string, tags: list<string>, raw?: array<string, mixed>}>
 	 * }
 	 */
 	public static function indexOperations(string $label, array $operations): array {
@@ -145,7 +118,7 @@ final class OpenApiFunctionalTags {
 	}
 
 	/**
-	 * @param list<array{operationId: string, method: string, path: string, tags: list<string>}> $operations
+	 * @param list<array{operationId: string, method: string, path: string, tags: list<string>, raw?: array<string, mixed>}> $operations
 	 * @return list<string>
 	 */
 	public static function collectErrors(string $label, array $operations): array {
@@ -163,12 +136,8 @@ final class OpenApiFunctionalTags {
 			}
 
 			$tag = $operation['tags'][0];
-			if (in_array($tag, self::LEGACY_TAGS, true)) {
-				$errors[] = "{$location} still uses legacy tag '{$tag}'";
-				continue;
-			}
 			if (!in_array($tag, self::APPROVED_TAGS, true)) {
-				$errors[] = "{$location} uses unclassified tag '{$tag}'";
+				$errors[] = "{$location} uses unapproved tag '{$tag}'";
 			}
 		}
 
@@ -177,12 +146,12 @@ final class OpenApiFunctionalTags {
 
 	/**
 	 * @param array{
-	 *   byId: array<string, array{operationId: string, method: string, path: string, tags: list<string>}>,
-	 *   byRoute: array<string, array{operationId: string, method: string, path: string, tags: list<string>}>
+	 *   byId: array<string, array{operationId: string, method: string, path: string, tags: list<string>, raw?: array<string, mixed>}>,
+	 *   byRoute: array<string, array{operationId: string, method: string, path: string, tags: list<string>, raw?: array<string, mixed>}>
 	 * } $default
 	 * @param array{
-	 *   byId: array<string, array{operationId: string, method: string, path: string, tags: list<string>}>,
-	 *   byRoute: array<string, array{operationId: string, method: string, path: string, tags: list<string>}>
+	 *   byId: array<string, array{operationId: string, method: string, path: string, tags: list<string>, raw?: array<string, mixed>}>,
+	 *   byRoute: array<string, array{operationId: string, method: string, path: string, tags: list<string>, raw?: array<string, mixed>}>
 	 * } $administration
 	 * @return list<string>
 	 */
@@ -202,26 +171,40 @@ final class OpenApiFunctionalTags {
 	/**
 	 * @param list<string> $unionIds
 	 * @param list<string> $fullIds
+	 * @param list<string> $unionRoutes
+	 * @param list<string> $fullRoutes
 	 * @return list<string>
 	 */
-	public static function collectFullSpecOmissions(array $unionIds, array $fullIds): array {
-		$missingFromFull = array_values(array_diff($unionIds, $fullIds));
-		$extraInFull = array_values(array_diff($fullIds, $unionIds));
-		$unexpectedMissing = array_values(array_diff($missingFromFull, self::KNOWN_FULL_SPEC_OMISSIONS));
-		$unexpectedAllowlist = array_values(array_diff(self::KNOWN_FULL_SPEC_OMISSIONS, $missingFromFull));
+	public static function collectFullSpecConsistencyErrors(
+		array $unionIds,
+		array $fullIds,
+		array $unionRoutes = [],
+		array $fullRoutes = [],
+	): array {
 		$errors = [];
+
+		$extraInFull = array_values(array_diff($fullIds, $unionIds));
+		$missingFromFull = array_values(array_diff($unionIds, $fullIds));
 		if ($extraInFull !== []) {
 			$errors[] = 'openapi-full.json contains operations missing from the scoped specs: '
 				. implode(', ', $extraInFull);
 		}
-		if ($unexpectedMissing !== []) {
-			$errors[] = 'openapi-full.json is missing unexpected operations: '
-				. implode(', ', $unexpectedMissing);
+		if ($missingFromFull !== []) {
+			$errors[] = 'openapi-full.json is missing operations from the scoped specs: '
+				. implode(', ', $missingFromFull);
 		}
-		if ($unexpectedAllowlist !== []) {
-			$errors[] = 'KNOWN_FULL_SPEC_OMISSIONS lists operations that are now present in openapi-full.json: '
-				. implode(', ', $unexpectedAllowlist);
+
+		$extraRoutesInFull = array_values(array_diff($fullRoutes, $unionRoutes));
+		$missingRoutesFromFull = array_values(array_diff($unionRoutes, $fullRoutes));
+		if ($extraRoutesInFull !== []) {
+			$errors[] = 'openapi-full.json contains routes missing from the scoped specs: '
+				. implode(', ', $extraRoutesInFull);
 		}
+		if ($missingRoutesFromFull !== []) {
+			$errors[] = 'openapi-full.json is missing routes from the scoped specs: '
+				. implode(', ', $missingRoutesFromFull);
+		}
+
 		return $errors;
 	}
 }

@@ -17,7 +17,7 @@ class OpenApiFunctionalTagsTest extends TestCase {
 	}
 
 	/**
-	 * @return array{operationId: string, method: string, path: string, tags: list<string>}
+	 * @return array{operationId: string, method: string, path: string, tags: list<string>, raw: array<string, mixed>}
 	 */
 	private static function operation(
 		array $tags,
@@ -30,6 +30,10 @@ class OpenApiFunctionalTagsTest extends TestCase {
 			'method' => $method,
 			'path' => $path,
 			'tags' => $tags,
+			'raw' => [
+				'operationId' => $operationId,
+				'tags' => $tags,
+			],
 		];
 	}
 
@@ -63,7 +67,7 @@ class OpenApiFunctionalTagsTest extends TestCase {
 		$this->assertSame([], OpenApiFunctionalTags::collectScopeOverlapErrors($default, $administration));
 	}
 
-	public function testFullSpecificationOnlyOmitsKnownOperations(): void {
+	public function testFullSpecificationMatchesScopedUnion(): void {
 		$default = OpenApiFunctionalTags::indexOperations(
 			'openapi.json',
 			OpenApiFunctionalTags::loadOperations(self::root() . '/openapi.json'),
@@ -77,13 +81,25 @@ class OpenApiFunctionalTagsTest extends TestCase {
 			OpenApiFunctionalTags::loadOperations(self::root() . '/openapi-full.json'),
 		);
 
+		$unionById = $default['byId'] + $administration['byId'];
+		$unionByRoute = $default['byRoute'] + $administration['byRoute'];
 		$this->assertSame(
 			[],
-			OpenApiFunctionalTags::collectFullSpecOmissions(
-				array_keys($default['byId'] + $administration['byId']),
+			OpenApiFunctionalTags::collectFullSpecConsistencyErrors(
+				array_keys($unionById),
 				array_keys($full['byId']),
+				array_keys($unionByRoute),
+				array_keys($full['byRoute']),
 			),
 		);
+
+		foreach ($unionById as $id => $operation) {
+			$this->assertSame(
+				$operation['raw'],
+				$full['byId'][$id]['raw'],
+				"Scoped operation {$id} raw OpenAPI object must match openapi-full.json",
+			);
+		}
 	}
 
 	public function testApprovedTagProducesNoError(): void {
@@ -95,10 +111,10 @@ class OpenApiFunctionalTagsTest extends TestCase {
 
 	public static function invalidOperationProvider(): array {
 		return [
-			'legacy tag' => [['notify'], 'legacy tag'],
+			'former tag notify' => [['notify'], "unapproved tag 'notify'"],
 			'missing tag' => [[], 'exactly one functional tag'],
 			'multiple tags' => [['signing', 'requests'], 'exactly one functional tag'],
-			'unapproved tag' => [['billing'], 'unclassified tag'],
+			'unapproved tag' => [['billing'], "unapproved tag 'billing'"],
 		];
 	}
 
