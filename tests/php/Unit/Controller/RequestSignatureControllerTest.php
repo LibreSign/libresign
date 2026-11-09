@@ -87,6 +87,31 @@ final class RequestSignatureControllerTest extends TestCase {
 		);
 	}
 
+	#[DataProvider('legacyCallbackPayloadScenarios')]
+	public function testLegacyCallbackParameterFailsBeforeSaving(bool $isPatch): void {
+		$this->request->method('getParams')->willReturn(['callback' => 'https://example.test/legacy']);
+		$this->requestSignatureService->expects($this->never())->method('validateNewRequestToFile');
+		$this->requestSignatureService->expects($this->never())->method('save');
+		$this->signingRequestValidator->expects($this->never())->method('validateExistingFile');
+
+		$response = $isPatch
+			? $this->controller->updateSignatureRequest(uuid: '11111111-2222-3333-4444-555555555555')
+			: $this->controller->requestSignature(file: ['nodeId' => 12]);
+
+		$this->assertSame(Http::STATUS_UNPROCESSABLE_ENTITY, $response->getStatus());
+		$this->assertSame(
+			['message' => 'Per-request callbacks have been removed. Configure Nextcloud Webhook Listeners.'],
+			$response->getData(),
+		);
+	}
+
+	public static function legacyCallbackPayloadScenarios(): array {
+		return [
+			'POST create' => [false],
+			'PATCH update' => [true],
+		];
+	}
+
 	#[DataProvider('statusPayloadScenarios')]
 	public function testRequestStatusPropagation(?int $status, bool $expectStatusKey): void {
 		$file = new FileEntity();
@@ -130,7 +155,6 @@ final class RequestSignatureControllerTest extends TestCase {
 			settings: [],
 			file: ['nodeId' => 12],
 			files: [],
-			callback: null,
 			status: $status,
 		);
 

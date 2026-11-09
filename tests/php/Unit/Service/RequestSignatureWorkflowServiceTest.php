@@ -85,7 +85,6 @@ final class RequestSignatureWorkflowServiceTest extends TestCase {
 			[],
 			[],
 			1,
-			null,
 		);
 	}
 
@@ -114,7 +113,6 @@ final class RequestSignatureWorkflowServiceTest extends TestCase {
 			[],
 			[['identifyMethods' => [['method' => 'email', 'value' => 'user@example.test']]]],
 			1,
-			null,
 			[
 				'overrides' => ['signature_flow' => 'parallel'],
 				'activeContext' => ['type' => 'group', 'id' => 'board'],
@@ -157,7 +155,6 @@ final class RequestSignatureWorkflowServiceTest extends TestCase {
 			[['identifyMethods' => [['method' => 'email', 'value' => 'user@example.test']]]],
 			0,
 			null,
-			null,
 			[['fileId' => 31]],
 		);
 
@@ -190,7 +187,6 @@ final class RequestSignatureWorkflowServiceTest extends TestCase {
 			[],
 			[['identifyMethods' => [['method' => 'email', 'value' => 'user@example.test']]]],
 			1,
-			null,
 		);
 
 		$this->assertSame($fileEntity, $result['file']);
@@ -216,7 +212,6 @@ final class RequestSignatureWorkflowServiceTest extends TestCase {
 			[],
 			[['identifyMethods' => [['method' => 'email', 'value' => 'user@example.test']]]],
 			1,
-			null,
 		);
 	}
 
@@ -248,7 +243,6 @@ final class RequestSignatureWorkflowServiceTest extends TestCase {
 			[],
 			[['identifyMethods' => [['method' => 'email', 'value' => 'user@example.test']]]],
 			0,
-			null,
 		);
 	}
 
@@ -267,7 +261,6 @@ final class RequestSignatureWorkflowServiceTest extends TestCase {
 			[],
 			[['identifyMethods' => [['method' => 'email', 'value' => 'user@example.test']]]],
 			1,
-			null,
 		);
 	}
 

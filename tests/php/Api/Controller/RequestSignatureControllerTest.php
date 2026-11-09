@@ -49,6 +49,36 @@ final class RequestSignatureControllerTest extends ApiTestCase {
 	/**
 	 * @runInSeparateProcess
 	 */
+	public function testRequestRejectsRemovedLegacyCallback(): void {
+		$this->createAccount('callbackmanager', 'password', 'testGroup');
+		$this->getMockAppConfig()->setValueString(
+			Application::APP_ID, 'groups_request_sign',
+			'{"allowGroups":["admin","testGroup"],"denyGroups":[]}',
+		);
+
+		$this->request
+			->withMethod('POST')
+			->withPath('/api/v1/request-signature')
+			->withRequestHeader([
+				'Authorization' => 'Basic ' . base64_encode('callbackmanager:password'),
+				'Content-Type' => 'application/json',
+			])
+			->withRequestBody([
+				'name' => 'no-legacy-callback.pdf',
+				'callback' => 'https://example.test/legacy',
+				'file' => ['base64' => base64_encode(file_get_contents(__DIR__ . '/../../fixtures/pdfs/small_valid.pdf'))],
+				'signers' => [],
+			])
+			->expectStatus(422);
+
+		$response = $this->assertRequest();
+		$data = json_decode($response->getBody()->getContents(), true);
+		$this->assertStringContainsString('Per-request callbacks have been removed', json_encode($data));
+	}
+
+	/**
+	 * @runInSeparateProcess
+	 */
 	public function testPostRegisterWithSuccess():void {
 		$this->createAccount('allowrequestsign', 'password', 'testGroup');
 

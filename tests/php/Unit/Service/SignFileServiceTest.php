@@ -74,7 +74,6 @@ use OCP\BackgroundJob\IJobList;
 use OCP\EventDispatcher\IEventDispatcher;
 use OCP\Files\NotFoundException;
 use OCP\Files\NotPermittedException;
-use OCP\Http\Client\IClientService;
 use OCP\IAppConfig;
 use OCP\IDateTimeZone;
 use OCP\IL10N;
@@ -95,7 +94,6 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	private SignRequestMapper&MockObject $signRequestMapper;
 	private \OCA\Libresign\Db\NotificationDeliveryMapper&MockObject $notificationDeliveries;
 	private IdDocsMapper&MockObject $idDocsMapper;
-	private IClientService&MockObject $clientService;
 	private FolderService&MockObject $folderService;
 	private LoggerInterface&MockObject $logger;
 	private IAppConfig $appConfig;
@@ -149,7 +147,6 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$this->notificationDeliveries = $this->createMock(\OCA\Libresign\Db\NotificationDeliveryMapper::class);
 		$this->idDocsMapper = $this->createMock(IdDocsMapper::class);
 		$this->footerHandler = $this->createMock(FooterHandler::class);
-		$this->clientService = $this->createMock(IClientService::class);
 		$this->folderService = $this->createMock(FolderService::class);
 		$this->logger = $this->createMock(LoggerInterface::class);
 		$this->appConfig = $this->getMockAppConfigWithReset();
@@ -504,7 +501,6 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 					$this->idDocsMapper,
 					$this->footerHandler,
 					$this->folderService,
-					$this->clientService,
 					$this->logger,
 					$this->appConfig,
 					$this->identityDocumentValidator,
@@ -553,7 +549,6 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			$this->idDocsMapper,
 			$this->footerHandler,
 			$this->folderService,
-			$this->clientService,
 			$this->logger,
 			$this->appConfig,
 			$this->identityDocumentValidator,
@@ -634,16 +629,6 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 				]
 			]
 		]);
-	}
-
-	public function testNotifyCallback():void {
-		$libreSignFile = new \OCA\Libresign\Db\File();
-		$libreSignFile->setCallback('https://test.coop');
-		$service = $this->getService();
-		$service->setLibreSignFile($libreSignFile);
-		$file = $this->createMock(\OCP\Files\File::class);
-		$actual = $service->notifyCallback($file);
-		$this->assertNull($actual);
 	}
 
 	public function testSignWithFileNotFound():void {
