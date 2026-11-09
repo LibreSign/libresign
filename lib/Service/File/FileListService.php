@@ -1209,6 +1209,7 @@ class FileListService {
 		// geolocation metadata in the OpenAPI contract.
 		if (isset($file['signers']) && is_array($file['signers'])) {
 			$enrichSigners($file['signers']);
+			$file['signers'] = array_values($file['signers']);
 		}
 
 		return $file;

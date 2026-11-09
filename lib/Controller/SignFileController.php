@@ -55,7 +55,7 @@ use Psr\Log\LoggerInterface;
  * @psalm-import-type LibresignSignerDeviceGeolocation from ResponseDefinitions
  */
 
-class SignFileController extends AEnvironmentAwareController implements ISignatureUuid {
+class SignFileController extends AEnvironmentAwareOCSController implements ISignatureUuid {
 	use LibresignTrait;
 	public function __construct(
 		IRequest $request,
@@ -97,7 +97,6 @@ class SignFileController extends AEnvironmentAwareController implements ISignatu
 	 * @return DataResponse<Http::STATUS_OK, LibresignSignActionResponse, array{}>|DataResponse<Http::STATUS_UNPROCESSABLE_ENTITY, LibresignSignActionErrorResponse, array{}>
 	 *
 	 * 200: OK
-	 * 404: Invalid data
 	 * 422: Error
 	 */
 	#[NoAdminRequired]
@@ -125,7 +124,6 @@ class SignFileController extends AEnvironmentAwareController implements ISignatu
 	 * @return DataResponse<Http::STATUS_OK, LibresignSignActionResponse, array{}>|DataResponse<Http::STATUS_UNPROCESSABLE_ENTITY, LibresignSignActionErrorResponse, array{}>
 	 *
 	 * 200: OK
-	 * 404: Invalid data
 	 * 422: Error
 	 */
 	#[NoAdminRequired]

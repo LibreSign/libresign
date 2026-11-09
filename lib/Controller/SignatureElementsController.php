@@ -49,7 +49,7 @@ use Psr\Log\LoggerInterface;
  * @psalm-import-type LibresignUserElementsMessageResponse from \OCA\Libresign\ResponseDefinitions
  * @psalm-import-type LibresignUserElementsResponse from \OCA\Libresign\ResponseDefinitions
  */
-class SignatureElementsController extends AEnvironmentAwareController implements ISignatureUuid {
+class SignatureElementsController extends AEnvironmentAwareOCSController implements ISignatureUuid {
 	use LibresignTrait;
 	public function __construct(
 		IRequest $request,
@@ -344,7 +344,7 @@ class SignatureElementsController extends AEnvironmentAwareController implements
 				$element['elementId'] = $userElement['id'];
 			}
 			$this->accountService->saveVisibleElement($element, $this->sessionService->getSessionId(), $user);
-			/** @var LibresignUserElement[] $elements */
+			/** @var list<LibresignUserElement> $elements */
 			$elements = (
 				$this->userSession->getUser() instanceof IUser
 				? $this->signerElementsService->getUserElements($this->userSession->getUser()->getUID())

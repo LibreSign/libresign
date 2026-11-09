@@ -32,7 +32,7 @@ use Psr\Log\LoggerInterface;
  * @psalm-import-type LibresignNotificationStatusResponse from ResponseDefinitions
  */
 
-class NotifyController extends AEnvironmentAwareController {
+class NotifyController extends AEnvironmentAwareOCSController {
 	public function __construct(
 		IRequest $request,
 		private IL10N $l10n,
@@ -48,7 +48,7 @@ class NotifyController extends AEnvironmentAwareController {
 	 * Notify signers of a file
 	 *
 	 * @param integer $fileId The identifier value of LibreSign file
-	 * @param array{email: string}[] $signers Signers data
+	 * @param list<array{email: string}> $signers Signers data
 	 * @return DataResponse<Http::STATUS_OK, LibresignMessageResponse, array{}>|DataResponse<Http::STATUS_UNPROCESSABLE_ENTITY, LibresignMessageResponse|LibresignActionErrorResponse, array{}>|DataResponse<Http::STATUS_BAD_GATEWAY|Http::STATUS_INTERNAL_SERVER_ERROR, LibresignDangerMessagesResponse, array{}>
 	 *
 	 * 200: Request processed

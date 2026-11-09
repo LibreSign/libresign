@@ -26,7 +26,7 @@ use OCP\IRequest;
 /**
  * @psalm-import-type LibresignErrorResponse from \OCA\Libresign\ResponseDefinitions
  */
-final class SignatureStampPreviewController extends AEnvironmentAwareController {
+final class SignatureStampPreviewController extends AEnvironmentAwareOCSController {
 	public function __construct(
 		IRequest $request,
 		private SignatureStampPreviewNativeService $signatureStampPreviewNativeService,

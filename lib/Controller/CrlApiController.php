@@ -23,7 +23,7 @@ use OCP\IUserSession;
  * @psalm-import-type LibresignCrlListResponse from \OCA\Libresign\ResponseDefinitions
  * @psalm-import-type LibresignCrlRevokeResponse from \OCA\Libresign\ResponseDefinitions
  */
-class CrlApiController extends AEnvironmentAwareController {
+class CrlApiController extends AEnvironmentAwareOCSController {
 	public function __construct(
 		string $appName,
 		IRequest $request,

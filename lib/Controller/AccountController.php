@@ -47,7 +47,7 @@ use Psr\Log\LoggerInterface;
  * @psalm-import-type LibresignMessageResponse from \OCA\Libresign\ResponseDefinitions
  * @psalm-import-type LibresignPagination from \OCA\Libresign\ResponseDefinitions
  */
-class AccountController extends AEnvironmentAwareController implements ISignatureUuid {
+class AccountController extends AEnvironmentAwareOCSController implements ISignatureUuid {
 	use LibresignTrait;
 	public function __construct(
 		IRequest $request,

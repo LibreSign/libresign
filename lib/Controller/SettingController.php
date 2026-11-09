@@ -21,7 +21,7 @@ use OCP\IRequest;
 /**
  * @psalm-import-type LibresignHasRootCertResponse from \OCA\Libresign\ResponseDefinitions
  */
-class SettingController extends AEnvironmentAwareController {
+class SettingController extends AEnvironmentAwareOCSController {
 	public function __construct(
 		IRequest $request,
 		private CertificateEngineFactory $certificateEngineFactory,

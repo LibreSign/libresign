@@ -38,7 +38,7 @@ use OCP\IUserSession;
  * @psalm-import-type LibresignProgressFile from \OCA\Libresign\ResponseDefinitions
  * @psalm-import-type LibresignStatusMessageResponse from \OCA\Libresign\ResponseDefinitions
  */
-class FileProgressController extends AEnvironmentAwareController {
+class FileProgressController extends AEnvironmentAwareOCSController {
 	public function __construct(
 		IRequest $request,
 		private FileMapper $fileMapper,

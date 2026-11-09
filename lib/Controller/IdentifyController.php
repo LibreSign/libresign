@@ -35,7 +35,7 @@ use OCP\IRequest;
  * @psalm-import-type LibresignIdentifyAccount from \OCA\Libresign\ResponseDefinitions
  * @psalm-import-type LibresignIdentifyAccountsResponse from \OCA\Libresign\ResponseDefinitions
  */
-class IdentifyController extends AEnvironmentAwareController {
+class IdentifyController extends AEnvironmentAwareOCSController {
 	public function __construct(
 		IRequest $request,
 		private ISearch $collaboratorSearch,
@@ -62,7 +62,6 @@ class IdentifyController extends AEnvironmentAwareController {
 	 * @return DataResponse<Http::STATUS_OK, LibresignIdentifyAccountsResponse, array{}>
 	 *
 	 * 200: Certificate saved with success
-	 * 400: No file provided or other problem with provided file
 	 */
 	#[NoAdminRequired]
 	#[RequireManager]

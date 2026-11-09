@@ -990,23 +990,42 @@ function getOcsErrorData(error: unknown): OcsErrorData | null {
 
 function showRequestError(error: unknown, fallbackMessage: string): void {
 	const data = getOcsErrorData(error)
-	if (!data) {
+	if (typeof data !== 'object' || data === null) {
 		showError(fallbackMessage)
 		return
 	}
 
-	if ('message' in data && typeof data.message === 'string' && data.message.length > 0) {
-		showError(data.message)
+	const payload = data as Record<string, unknown>
+	if (typeof payload.message === 'string' && payload.message.length > 0) {
+		showError(payload.message)
 		return
 	}
 
-	if ('messages' in data && Array.isArray(data.messages) && data.messages.length > 0) {
-		data.messages.forEach(currentMessage => showError(currentMessage.message))
+	if (Array.isArray(payload.messages) && payload.messages.length > 0) {
+		payload.messages.forEach((currentMessage) => {
+			if (
+				typeof currentMessage === 'object'
+				&& currentMessage !== null
+				&& 'message' in currentMessage
+				&& typeof currentMessage.message === 'string'
+			) {
+				showError(currentMessage.message)
+			}
+		})
 		return
 	}
 
-	if ('errors' in data && Array.isArray(data.errors) && data.errors.length > 0) {
-		data.errors.forEach(currentError => showError(currentError.message))
+	if (Array.isArray(payload.errors) && payload.errors.length > 0) {
+		payload.errors.forEach((currentError) => {
+			if (
+				typeof currentError === 'object'
+				&& currentError !== null
+				&& 'message' in currentError
+				&& typeof currentError.message === 'string'
+			) {
+				showError(currentError.message)
+			}
+		})
 		return
 	}
 

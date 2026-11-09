@@ -67,7 +67,7 @@ use Psr\Log\LoggerInterface;
  * @psalm-import-type LibresignValidateMetadata from \OCA\Libresign\ResponseDefinitions
  * @psalm-import-type LibresignVisibleElement from \OCA\Libresign\ResponseDefinitions
  */
-class FileController extends AEnvironmentAwareController {
+class FileController extends AEnvironmentAwareOCSController {
 	public function __construct(
 		IRequest $request,
 		private IL10N $l10n,
@@ -107,7 +107,6 @@ class FileController extends AEnvironmentAwareController {
 	 *
 	 * 200: OK
 	 * 404: Request failed
-	 * 422: Request failed
 	 */
 	#[PrivateValidation(allowValidSignRequestUuid: true)]
 	#[NoAdminRequired]
@@ -136,7 +135,7 @@ class FileController extends AEnvironmentAwareController {
 	 * @param bool $showVisibleElements Whether to include visible elements in the response
 	 * @param bool $showMessages Whether to include validation messages in the response
 	 * @param bool $showValidateFile Whether to include the file payload in the response
-	 * @return DataResponse<Http::STATUS_OK, LibresignValidatedFileResponse, array{}>|DataResponse<Http::STATUS_FORBIDDEN, array<empty>, array{}>|DataResponse<Http::STATUS_NOT_FOUND, LibresignActionErrorResponse, array{}>
+	 * @return DataResponse<Http::STATUS_OK, LibresignValidatedFileResponse, array{}>|DataResponse<Http::STATUS_FORBIDDEN, list<empty>, array{}>|DataResponse<Http::STATUS_NOT_FOUND, LibresignActionErrorResponse, array{}>
 	 *
 	 * 200: OK
 	 * 403: Forbidden
@@ -381,7 +380,7 @@ class FileController extends AEnvironmentAwareController {
 	 * @param boolean $forceIcon Force to generate a new thumbnail
 	 * @param string $mode To force a given mimetype for the file
 	 * @param boolean $mimeFallback If we have no preview enabled, we can redirect to the mime icon if any
-	 * @return FileDisplayResponse<Http::STATUS_OK, array{Content-Type: string}>|DataResponse<Http::STATUS_BAD_REQUEST|Http::STATUS_FORBIDDEN|Http::STATUS_NOT_FOUND, array<empty>, array{}>|RedirectResponse<Http::STATUS_SEE_OTHER, array{}>
+	 * @return FileDisplayResponse<Http::STATUS_OK, array{Content-Type: string}>|DataResponse<Http::STATUS_BAD_REQUEST|Http::STATUS_FORBIDDEN|Http::STATUS_NOT_FOUND, list<empty>, array{}>|RedirectResponse<Http::STATUS_SEE_OTHER, array{}>
 	 *
 	 * 200: OK
 	 * 303: Redirect
@@ -438,7 +437,7 @@ class FileController extends AEnvironmentAwareController {
 	 * @param boolean $forceIcon Force to generate a new thumbnail
 	 * @param string $mode To force a given mimetype for the file
 	 * @param boolean $mimeFallback If we have no preview enabled, we can redirect to the mime icon if any
-	 * @return FileDisplayResponse<Http::STATUS_OK, array{Content-Type: string}>|DataResponse<Http::STATUS_BAD_REQUEST|Http::STATUS_FORBIDDEN|Http::STATUS_NOT_FOUND, array<empty>, array{}>|RedirectResponse<Http::STATUS_SEE_OTHER, array{}>
+	 * @return FileDisplayResponse<Http::STATUS_OK, array{Content-Type: string}>|DataResponse<Http::STATUS_BAD_REQUEST|Http::STATUS_FORBIDDEN|Http::STATUS_NOT_FOUND, list<empty>, array{}>|RedirectResponse<Http::STATUS_SEE_OTHER, array{}>
 	 *
 	 * 200: OK
 	 * 303: Redirect
@@ -486,7 +485,7 @@ class FileController extends AEnvironmentAwareController {
 	}
 
 	/**
-	 * @return FileDisplayResponse<Http::STATUS_OK, array{Content-Type: string}>|DataResponse<Http::STATUS_BAD_REQUEST|Http::STATUS_FORBIDDEN|Http::STATUS_NOT_FOUND, array<empty>, array{}>|RedirectResponse<Http::STATUS_SEE_OTHER, array{}>
+	 * @return FileDisplayResponse<Http::STATUS_OK, array{Content-Type: string}>|DataResponse<Http::STATUS_BAD_REQUEST|Http::STATUS_FORBIDDEN|Http::STATUS_NOT_FOUND, list<empty>, array{}>|RedirectResponse<Http::STATUS_SEE_OTHER, array{}>
 	 */
 	private function fetchPreview(
 		Node $node,

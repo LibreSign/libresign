@@ -36,7 +36,7 @@ use Psr\Log\LoggerInterface;
  * @psalm-import-type LibresignMessageResponse from \OCA\Libresign\ResponseDefinitions
  * @psalm-import-type LibresignMessagesResponse from \OCA\Libresign\ResponseDefinitions
  */
-class IdDocsController extends AEnvironmentAwareController implements ISignatureUuid {
+class IdDocsController extends AEnvironmentAwareOCSController implements ISignatureUuid {
 	use LibresignTrait;
 	public function __construct(
 		IRequest $request,
@@ -53,8 +53,8 @@ class IdDocsController extends AEnvironmentAwareController implements ISignature
 	/**
 	 * Add identification documents to user profile
 	 *
-	 * @param LibresignIdDocs[] $files The list of files to add to profile
-	 * @return DataResponse<Http::STATUS_OK, array<empty>, array{}>|DataResponse<Http::STATUS_UNAUTHORIZED, LibresignIdDocsUploadErrorResponse, array{}>
+	 * @param list<LibresignIdDocs> $files The list of files to add to profile
+	 * @return DataResponse<Http::STATUS_OK, list<empty>, array{}>|DataResponse<Http::STATUS_UNAUTHORIZED, LibresignIdDocsUploadErrorResponse, array{}>
 	 *
 	 * 200: Certificate saved with success
 	 * 401: No file provided or other problem with provided file
@@ -104,7 +104,7 @@ class IdDocsController extends AEnvironmentAwareController implements ISignature
 	 * @param int $nodeId the nodeId of file to be delete
 	 * @param string|null $uuid Sign request UUID for unauthenticated access
 	 *
-	 * @return DataResponse<Http::STATUS_OK, array<empty>, array{}>|DataResponse<Http::STATUS_UNAUTHORIZED, LibresignMessagesResponse, array{}>
+	 * @return DataResponse<Http::STATUS_OK, list<empty>, array{}>|DataResponse<Http::STATUS_UNAUTHORIZED, LibresignMessagesResponse, array{}>
 	 *
 	 * 200: File deleted with success
 	 * 401: Failure to delete file from account

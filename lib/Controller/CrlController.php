@@ -50,7 +50,7 @@ class CrlController extends Controller {
 	#[NoAdminRequired]
 	#[NoCSRFRequired]
 	#[PublicPage]
-	#[OpenAPI(tags: ['certificates'])]
+	#[OpenAPI(scope: OpenAPI::SCOPE_DEFAULT, tags: ['certificates'])]
 	#[FrontpageRoute(verb: 'GET', url: '/crl/libresign_{instanceId}_{generation}_{engineType}.crl')]
 	public function getRevocationList(string $instanceId, int $generation, string $engineType): DataDownloadResponse|DataResponse {
 		try {
@@ -83,7 +83,7 @@ class CrlController extends Controller {
 	#[NoAdminRequired]
 	#[NoCSRFRequired]
 	#[PublicPage]
-	#[OpenAPI(tags: ['verification'])]
+	#[OpenAPI(scope: OpenAPI::SCOPE_DEFAULT, tags: ['verification'])]
 	#[FrontpageRoute(verb: 'GET', url: '/crl/check/{serialNumber}')]
 	public function checkCertificateStatus(string $serialNumber): DataResponse {
 		if (!$this->isValidSerial($serialNumber)) {

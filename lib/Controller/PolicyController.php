@@ -38,7 +38,7 @@ use OCP\IRequest;
  * @psalm-import-type LibresignUserPolicyState from \OCA\Libresign\ResponseDefinitions
  * @psalm-import-type LibresignUserPolicyWriteResponse from \OCA\Libresign\ResponseDefinitions
  */
-final class PolicyController extends AEnvironmentAwareController {
+final class PolicyController extends AEnvironmentAwareOCSController {
 	public function __construct(
 		IRequest $request,
 		private IL10N $l10n,

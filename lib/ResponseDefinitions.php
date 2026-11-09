@@ -28,11 +28,6 @@ namespace OCA\Libresign;
  *     needIdentificationDocuments: bool,
  *     identificationDocumentsWaitingApproval: bool,
  * }
- * @psalm-type LibresignAccountCapabilitySettings = array{
- *     canRequestSign: bool,
- *     hasSignatureFile: bool,
- *     isApprover: bool,
- * }
  * @psalm-type LibresignIdentifyMethodRequirement = 'required'|'optional'
  *
  * Request input contracts
@@ -186,14 +181,6 @@ namespace OCA\Libresign;
  *     test_url?: string,
  *     signatureMethods?: array<string, LibresignAdminSignatureMethodSetting>,
  * }
- * @psalm-type LibresignIdentifyMethodSetting = array{
- *     name: string,
- *     friendly_name: string,
- *     enabled: bool,
- *     requirement: LibresignIdentifyMethodRequirement,
- *     minimumTotalVerifiedFactors?: positive-int,
- *     signatureMethods?: LibresignSignatureMethods,
- * }
  * @psalm-type LibresignIdentifyAccount = array{
  *     identify: string,
  *     isNoUser: boolean,
@@ -214,8 +201,6 @@ namespace OCA\Libresign;
  *     userId: string,
  *     displayName: ?string,
  * }
- * @psalm-type LibresignDynamicMetadataScalar = string|int|float|bool|null
- * @psalm-type LibresignDynamicMetadataRecord = array<string, mixed>
  * @psalm-type LibresignDynamicMetadataValue = mixed
  * @psalm-type LibresignSignerCertificateInfo = array{
  *     serialNumber?: string,
@@ -228,7 +213,7 @@ namespace OCA\Libresign;
  *     user-agent?: string,
  *     deviceGeolocationRequirement?: LibresignGeolocationRequirement,
  *     geolocation?: LibresignSignerGeolocation,
- *     notify?: LibresignNotify[],
+ *     notify?: list<LibresignNotify>,
  *     certificate_info?: LibresignSignerCertificateInfo,
  * }
  * @psalm-type LibresignSignerDisplayStatus = 'draft'|'ready_to_sign'|'signed'|'rejected'|'observing'|'not_signed'
@@ -236,7 +221,7 @@ namespace OCA\Libresign;
  *     signRequestId: int,
  *     displayName: string,
  *     email?: ?string,
- *     identifyMethods?: LibresignIdentifyMethod[],
+ *     identifyMethods?: list<LibresignIdentifyMethod>,
  *     signed: ?string,
  *     displayStatus: LibresignSignerDisplayStatus,
  *     status?: 0|1|2|3|4,
@@ -256,7 +241,7 @@ namespace OCA\Libresign;
  *     valid_to?: non-negative-int,
  *     remote_address?: string,
  *     user_agent?: string,
- *     notify?: LibresignNotify[],
+ *     notify?: list<LibresignNotify>,
  *     userId?: string,
  *     sign_date?: ?string,
  *     sign_request_uuid?: string,
@@ -265,7 +250,7 @@ namespace OCA\Libresign;
  *     document_modification_state?: 'unchanged'|'unsigned_content'|'trailing_data'|'invalid_byte_range'|'invalid_eof_boundary',
  *     me: bool,
  *     signingOrder?: non-negative-int,
- *     visibleElements: LibresignVisibleElement[],
+ *     visibleElements: list<LibresignVisibleElement>,
  *     signatureMethods?: LibresignSignatureMethods,
  *     uid?: string,
  *     metadata?: LibresignSignerMetadata,
@@ -324,10 +309,6 @@ namespace OCA\Libresign;
  * }
  * @psalm-type LibresignFailureStatusResponse = array{
  *     status: 'failure',
- *     message: string,
- * }
- * @psalm-type LibresignErrorStatusResponse = array{
- *     status: 'error',
  *     message: string,
  * }
  * @psalm-type LibresignActionErrorResponse = array{
@@ -395,7 +376,7 @@ namespace OCA\Libresign;
  * }
  * @psalm-type LibresignRootCertificate = array{
  *     commonName: string,
- *     names: LibresignRootCertificateName[],
+ *     names: list<LibresignRootCertificateName>,
  * }
  * @psalm-type LibresignPolicySection = array{
  *      OID: string,
@@ -404,7 +385,7 @@ namespace OCA\Libresign;
  * @psalm-type LibresignEngineHandler = array{
  *     configPath: string,
  *     cfsslUri?: string,
- *     policySection: LibresignPolicySection[],
+ *     policySection: list<LibresignPolicySection>,
  *     rootCert: LibresignRootCertificate,
  * }
  * @psalm-type LibresignCertificateDataGenerated = LibresignEngineHandler&array{
@@ -419,24 +400,6 @@ namespace OCA\Libresign;
  * }
  * @psalm-type LibresignHasRootCertResponse = array{
  *     hasRootCert: bool,
- * }
- * @psalm-type LibresignReminderSettings = array{
- *     days_before: non-negative-int,
- *     days_between: non-negative-int,
- *     max: non-negative-int,
- *     send_timer: string,
- *     next_run?: string,
- * }
- * @psalm-type LibresignAdminSignatureEngine = 'JSignPdf'|'PhpNative'
- * @psalm-type LibresignDocMdpLevelOption = array{
- *     value: int,
- *     label: string,
- *     description: string,
- * }
- * @psalm-type LibresignDocMdpConfig = array{
- *     enabled: bool,
- *     defaultLevel: int,
- *     availableLevels: list<LibresignDocMdpLevelOption>,
  * }
  * @psalm-type LibresignCertificatePolicyResponse = array{
  *     status: 'success',
@@ -510,9 +473,6 @@ namespace OCA\Libresign;
  * @psalm-type LibresignEffectivePoliciesResponse = array{
  *     policies: array<string, LibresignEffectivePolicyState>,
  * }
- * @psalm-type LibresignSystemPolicyWriteRequest = array{
- *     value: LibresignEffectivePolicyValue,
- * }
  * @psalm-type LibresignGroupPolicyState = array{
  *     policyKey: string,
  *     scope: 'group',
@@ -526,10 +486,6 @@ namespace OCA\Libresign;
  * }
  * @psalm-type LibresignGroupPolicyResponse = array{
  *     policy: LibresignGroupPolicyState,
- * }
- * @psalm-type LibresignGroupPolicyWriteRequest = array{
- *     value: LibresignEffectivePolicyValue,
- *     allowChildOverride: bool,
  * }
  * @psalm-type LibresignSystemPolicyState = array{
  *     policyKey: string,
@@ -666,7 +622,7 @@ namespace OCA\Libresign;
  *     resolution: LibresignValidationPageResolution,
  * }
  * @psalm-type LibresignValidatedChildSigner = LibresignSignerSummary&array{
- *     visibleElements?: LibresignVisibleElement[],
+ *     visibleElements?: list<LibresignVisibleElement>,
  * }
  * @psalm-type LibresignValidatedChildFile = array{
  *     id: int,
@@ -705,11 +661,11 @@ namespace OCA\Libresign;
  *     mime?: string,
  *     pages?: list<LibresignValidationPage>,
  *     metadata?: LibresignValidateMetadata,
- *     signers?: LibresignSignerDetail[],
+ *     signers?: list<LibresignSignerDetail>,
  *     signersCount?: int<0, max>,
  *     settings?: LibresignSettings,
  *     messages?: list<LibresignInfoMessage>,
- *     visibleElements?: LibresignVisibleElement[],
+ *     visibleElements?: list<LibresignVisibleElement>,
  * }
  * @psalm-type LibresignValidatedFileResponse = LibresignValidatedFile&array{
  *     effective_policies?: LibresignEffectivePoliciesResponse,
@@ -806,8 +762,8 @@ namespace OCA\Libresign;
  *     docmdpLevel: int,
  *     signatureFlow: 'none'|'parallel'|'ordered_numeric',
  *     policySnapshotFrozen: bool,
- *     visibleElements: LibresignVisibleElement[],
- *     signers: LibresignSignerDetail[],
+ *     visibleElements: list<LibresignVisibleElement>,
+ *     signers: list<LibresignSignerDetail>,
  *     signersCount: int,
  *     requested_by: LibresignRequestedBy,
  * }
@@ -846,7 +802,7 @@ namespace OCA\Libresign;
  *         },
  *         callback: ?string,
  *         uuid: string,
- *         signers: LibresignSignerDetail[],
+ *         signers: list<LibresignSignerDetail>,
  *     },
  * }
  * @psalm-type LibresignFileElementIdResponse = array{
@@ -864,10 +820,10 @@ namespace OCA\Libresign;
  *     createdAt: string,
  * }
  * @psalm-type LibresignUserElementsResponse = array{
- *     elements: LibresignUserElement[],
+ *     elements: list<LibresignUserElement>,
  * }
  * @psalm-type LibresignUserElementsMessageResponse = array{
- *     elements: LibresignUserElement[],
+ *     elements: list<LibresignUserElement>,
  *     message: string,
  * }
  * @psalm-type LibresignAccountMeResponse = array{

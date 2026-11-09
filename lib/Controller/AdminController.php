@@ -44,9 +44,7 @@ use UnexpectedValueException;
  * @psalm-import-type LibresignConfigureChecksResponse from \OCA\Libresign\ResponseDefinitions
  * @psalm-import-type LibresignEngineHandlerResponse from \OCA\Libresign\ResponseDefinitions
  * @psalm-import-type LibresignErrorResponse from \OCA\Libresign\ResponseDefinitions
- * @psalm-import-type LibresignErrorStatusResponse from \OCA\Libresign\ResponseDefinitions
  * @psalm-import-type LibresignEngineHandler from \OCA\Libresign\ResponseDefinitions
- * @psalm-import-type LibresignIdentifyMethodSetting from \OCA\Libresign\ResponseDefinitions
  * @psalm-import-type LibresignMessageResponse from \OCA\Libresign\ResponseDefinitions
  * @psalm-import-type LibresignSuccessStatusResponse from \OCA\Libresign\ResponseDefinitions
  * @psalm-import-type LibresignFailureStatusResponse from \OCA\Libresign\ResponseDefinitions
@@ -54,7 +52,7 @@ use UnexpectedValueException;
  * @psalm-import-type LibresignRootCertificate from \OCA\Libresign\ResponseDefinitions
  * @psalm-import-type LibresignGeoIpConfig from \OCA\Libresign\ResponseDefinitions
  */
-class AdminController extends AEnvironmentAwareController {
+class AdminController extends AEnvironmentAwareOCSController {
 	use UploadValidator;
 
 	private IEventSource $eventSource;
@@ -82,7 +80,7 @@ class AdminController extends AEnvironmentAwareController {
 	/**
 	 * Generate certificate using CFSSL engine
 	 *
-	 * @param array{commonName: string, names: array<string, array{value:string|array<string>}>} $rootCert fields of root certificate
+	 * @param array{commonName: string, names: array<string, array{value:string|list<string>}>} $rootCert fields of root certificate
 	 * @param string $cfsslUri URI of CFSSL API
 	 * @param string $configPath Path of config files of CFSSL
 	 * @return DataResponse<Http::STATUS_OK, LibresignEngineHandlerResponse, array{}>|DataResponse<Http::STATUS_UNAUTHORIZED, LibresignMessageResponse, array{}>
@@ -120,7 +118,7 @@ class AdminController extends AEnvironmentAwareController {
 	/**
 	 * Generate certificate using OpenSSL engine
 	 *
-	 * @param array{commonName: string, names: array<string, array{value:string|array<string>}>} $rootCert fields of root certificate
+	 * @param array{commonName: string, names: array<string, array{value:string|list<string>}>} $rootCert fields of root certificate
 	 * @param string $configPath Path of config files of CFSSL
 	 * @return DataResponse<Http::STATUS_OK, LibresignEngineHandlerResponse, array{}>|DataResponse<Http::STATUS_UNAUTHORIZED, LibresignMessageResponse, array{}>
 	 *

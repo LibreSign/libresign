@@ -33,7 +33,7 @@ class CertificatePolicyController extends Controller {
 	/**
 	 * Certificate policy of this instance
 	 *
-	 * @return FileDisplayResponse<Http::STATUS_OK, array{Content-Disposition: 'inline; filename="certificate-policy.pdf"', Content-Type: 'application/pdf'}>|DataResponse<Http::STATUS_NOT_FOUND, array<empty>, array{}>
+	 * @return FileDisplayResponse<Http::STATUS_OK, array{Content-Disposition: 'inline; filename="certificate-policy.pdf"', Content-Type: 'application/pdf'}>|DataResponse<Http::STATUS_NOT_FOUND, list<empty>, array{}>
 	 *
 	 * 200: OK
 	 * 404: Not found
@@ -41,7 +41,7 @@ class CertificatePolicyController extends Controller {
 	#[PublicPage]
 	#[NoCSRFRequired]
 	#[AnonRateLimit(limit: 10, period: 60)]
-	#[OpenAPI(tags: ['certificates'])]
+	#[OpenAPI(scope: OpenAPI::SCOPE_DEFAULT, tags: ['certificates'])]
 	#[FrontpageRoute(verb: 'GET', url: '/certificate-policy.pdf')]
 	public function getCertificatePolicy(): FileDisplayResponse|DataResponse {
 		try {

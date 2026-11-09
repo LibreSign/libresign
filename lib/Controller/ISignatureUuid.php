@@ -21,7 +21,7 @@ interface ISignatureUuid {
 	public function getFileEntity(): ?FileEntity;
 
 	/**
-	 * @return File[]
+	 * @return array<int, File>
 	 */
 	public function getNextcloudFiles(): array;
 }

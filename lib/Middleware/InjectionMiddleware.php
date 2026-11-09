@@ -9,7 +9,7 @@ declare(strict_types=1);
 namespace OCA\Libresign\Middleware;
 
 use OCA\Libresign\AppInfo\Application;
-use OCA\Libresign\Controller\AEnvironmentAwareController;
+use OCA\Libresign\Controller\AEnvironmentAwareOCSController;
 use OCA\Libresign\Controller\AEnvironmentPageAwareController;
 use OCA\Libresign\Controller\ISignatureUuid;
 use OCA\Libresign\Db\FileMapper;
@@ -89,9 +89,9 @@ class InjectionMiddleware extends Middleware {
 		$this->isLoggedIn = null;
 		$this->isValidationUrlPrivate = null;
 
-		if ($controller instanceof AEnvironmentAwareController) {
+		if ($controller instanceof AEnvironmentAwareOCSController) {
 			$apiVersion = $this->request->getParam('apiVersion');
-			/** @var AEnvironmentAwareController $controller */
+			/** @var AEnvironmentAwareOCSController $controller */
 			$controller->setAPIVersion((int)substr((string)$apiVersion, 1));
 		}
 

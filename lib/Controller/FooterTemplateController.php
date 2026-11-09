@@ -23,7 +23,7 @@ use OCP\IRequest;
  * @psalm-import-type LibresignErrorResponse from \OCA\Libresign\ResponseDefinitions
  * @psalm-import-type LibresignFooterTemplateResponse from \OCA\Libresign\ResponseDefinitions
  */
-final class FooterTemplateController extends AEnvironmentAwareController {
+final class FooterTemplateController extends AEnvironmentAwareOCSController {
 	public function __construct(
 		IRequest $request,
 		private FooterService $footerService,
