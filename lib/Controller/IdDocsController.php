@@ -19,6 +19,7 @@ use OCP\AppFramework\Http\Attribute\AnonRateLimit;
 use OCP\AppFramework\Http\Attribute\ApiRoute;
 use OCP\AppFramework\Http\Attribute\NoAdminRequired;
 use OCP\AppFramework\Http\Attribute\NoCSRFRequired;
+use OCP\AppFramework\Http\Attribute\OpenAPI;
 use OCP\AppFramework\Http\Attribute\PublicPage;
 use OCP\AppFramework\Http\DataResponse;
 use OCP\IL10N;
@@ -35,7 +36,7 @@ use Psr\Log\LoggerInterface;
  * @psalm-import-type LibresignMessageResponse from \OCA\Libresign\ResponseDefinitions
  * @psalm-import-type LibresignMessagesResponse from \OCA\Libresign\ResponseDefinitions
  */
-class IdDocsController extends AEnvironmentAwareController implements ISignatureUuid {
+class IdDocsController extends AEnvironmentAwareOCSController implements ISignatureUuid {
 	use LibresignTrait;
 	public function __construct(
 		IRequest $request,
@@ -52,8 +53,8 @@ class IdDocsController extends AEnvironmentAwareController implements ISignature
 	/**
 	 * Add identification documents to user profile
 	 *
-	 * @param LibresignIdDocs[] $files The list of files to add to profile
-	 * @return DataResponse<Http::STATUS_OK, array<empty>, array{}>|DataResponse<Http::STATUS_UNAUTHORIZED, LibresignIdDocsUploadErrorResponse, array{}>
+	 * @param list<LibresignIdDocs> $files The list of files to add to profile
+	 * @return DataResponse<Http::STATUS_OK, list<empty>, array{}>|DataResponse<Http::STATUS_UNAUTHORIZED, LibresignIdDocsUploadErrorResponse, array{}>
 	 *
 	 * 200: Certificate saved with success
 	 * 401: No file provided or other problem with provided file
@@ -63,6 +64,7 @@ class IdDocsController extends AEnvironmentAwareController implements ISignature
 	#[NoAdminRequired]
 	#[NoCSRFRequired]
 	#[RequireSignRequestUuid(skipIfAuthenticated: true)]
+	#[OpenAPI(tags: ['identity'])]
 	#[ApiRoute(verb: 'POST', url: '/api/{apiVersion}/id-docs', requirements: ['apiVersion' => '(v1)'])]
 	public function addFiles(array $files): DataResponse {
 		try {
@@ -102,7 +104,7 @@ class IdDocsController extends AEnvironmentAwareController implements ISignature
 	 * @param int $nodeId the nodeId of file to be delete
 	 * @param string|null $uuid Sign request UUID for unauthenticated access
 	 *
-	 * @return DataResponse<Http::STATUS_OK, array<empty>, array{}>|DataResponse<Http::STATUS_UNAUTHORIZED, LibresignMessagesResponse, array{}>
+	 * @return DataResponse<Http::STATUS_OK, list<empty>, array{}>|DataResponse<Http::STATUS_UNAUTHORIZED, LibresignMessagesResponse, array{}>
 	 *
 	 * 200: File deleted with success
 	 * 401: Failure to delete file from account
@@ -112,6 +114,7 @@ class IdDocsController extends AEnvironmentAwareController implements ISignature
 	#[NoAdminRequired]
 	#[NoCSRFRequired]
 	#[RequireSignRequestUuid(skipIfAuthenticated: true)]
+	#[OpenAPI(tags: ['identity'])]
 	#[ApiRoute(verb: 'DELETE', url: '/api/{apiVersion}/id-docs/{nodeId}', requirements: ['apiVersion' => '(v1)'])]
 	public function delete(int $nodeId, ?string $uuid = null): DataResponse {
 		try {
@@ -151,6 +154,7 @@ class IdDocsController extends AEnvironmentAwareController implements ISignature
 	#[AnonRateLimit(limit: 30, period: 60)]
 	#[NoCSRFRequired]
 	#[RequireSignRequestUuid(skipIfAuthenticated: true)]
+	#[OpenAPI(tags: ['identity'])]
 	#[ApiRoute(verb: 'GET', url: '/api/{apiVersion}/id-docs', requirements: ['apiVersion' => '(v1)'])]
 	public function listUnauthenticatedSignerDocuments(
 		?string $userId = null,
@@ -200,6 +204,7 @@ class IdDocsController extends AEnvironmentAwareController implements ISignature
 	 */
 	#[NoAdminRequired]
 	#[NoCSRFRequired]
+	#[OpenAPI(tags: ['identity'])]
 	#[ApiRoute(verb: 'GET', url: '/api/{apiVersion}/id-docs/approval/list', requirements: ['apiVersion' => '(v1)'])]
 	public function listToApproval(
 		?string $userId = null,

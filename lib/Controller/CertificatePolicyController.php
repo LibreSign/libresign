@@ -15,6 +15,7 @@ use OCP\AppFramework\Http;
 use OCP\AppFramework\Http\Attribute\AnonRateLimit;
 use OCP\AppFramework\Http\Attribute\FrontpageRoute;
 use OCP\AppFramework\Http\Attribute\NoCSRFRequired;
+use OCP\AppFramework\Http\Attribute\OpenAPI;
 use OCP\AppFramework\Http\Attribute\PublicPage;
 use OCP\AppFramework\Http\DataResponse;
 use OCP\AppFramework\Http\FileDisplayResponse;
@@ -32,7 +33,7 @@ class CertificatePolicyController extends Controller {
 	/**
 	 * Certificate policy of this instance
 	 *
-	 * @return FileDisplayResponse<Http::STATUS_OK, array{Content-Disposition: 'inline; filename="certificate-policy.pdf"', Content-Type: 'application/pdf'}>|DataResponse<Http::STATUS_NOT_FOUND, array<empty>, array{}>
+	 * @return FileDisplayResponse<Http::STATUS_OK, array{Content-Disposition: 'inline; filename="certificate-policy.pdf"', Content-Type: 'application/pdf'}>|DataResponse<Http::STATUS_NOT_FOUND, list<empty>, array{}>
 	 *
 	 * 200: OK
 	 * 404: Not found
@@ -40,6 +41,7 @@ class CertificatePolicyController extends Controller {
 	#[PublicPage]
 	#[NoCSRFRequired]
 	#[AnonRateLimit(limit: 10, period: 60)]
+	#[OpenAPI(scope: OpenAPI::SCOPE_DEFAULT, tags: ['certificates'])]
 	#[FrontpageRoute(verb: 'GET', url: '/certificate-policy.pdf')]
 	public function getCertificatePolicy(): FileDisplayResponse|DataResponse {
 		try {

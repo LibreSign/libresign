@@ -20,6 +20,7 @@ use OCP\AppFramework\Http;
 use OCP\AppFramework\Http\Attribute\ApiRoute;
 use OCP\AppFramework\Http\Attribute\NoAdminRequired;
 use OCP\AppFramework\Http\Attribute\NoCSRFRequired;
+use OCP\AppFramework\Http\Attribute\OpenAPI;
 use OCP\AppFramework\Http\DataResponse;
 use OCP\IRequest;
 use OCP\IUserSession;
@@ -30,7 +31,7 @@ use Psr\Log\LoggerInterface;
  * @psalm-import-type LibresignErrorsResponse from ResponseDefinitions
  * @psalm-import-type LibresignFileElementIdResponse from ResponseDefinitions
  */
-class FileElementController extends AEnvironmentAwareController {
+class FileElementController extends AEnvironmentAwareOCSController {
 	public function __construct(
 		IRequest $request,
 		private FileElementService $fileElementService,
@@ -61,6 +62,7 @@ class FileElementController extends AEnvironmentAwareController {
 	 */
 	#[NoAdminRequired]
 	#[NoCSRFRequired]
+	#[OpenAPI(tags: ['appearance'])]
 	#[ApiRoute(verb: 'POST', url: '/api/{apiVersion}/file-element/{uuid}', requirements: ['apiVersion' => '(v1)'])]
 	public function createVisibleElement(string $uuid, int $signRequestId, ?int $elementId = null, ?int $fileId = null, string $type = '', array $metadata = [], array $coordinates = []): DataResponse {
 		$visibleElement = [
@@ -117,6 +119,7 @@ class FileElementController extends AEnvironmentAwareController {
 	 */
 	#[NoAdminRequired]
 	#[NoCSRFRequired]
+	#[OpenAPI(tags: ['appearance'])]
 	#[ApiRoute(verb: 'PATCH', url: '/api/{apiVersion}/file-element/{uuid}/{elementId}', requirements: ['apiVersion' => '(v1)'])]
 	public function updateVisibleElement(string $uuid, int $signRequestId, ?int $elementId = null, ?int $fileId = null, string $type = '', array $metadata = [], array $coordinates = []): DataResponse {
 		return $this->createVisibleElement($uuid, $signRequestId, $elementId, $fileId, $type, $metadata, $coordinates);
@@ -129,13 +132,14 @@ class FileElementController extends AEnvironmentAwareController {
 	 *
 	 * @param string $uuid UUID of sign request. The signer UUID is what the person receives via email when asked to sign. This is not the file UUID.
 	 * @param integer $elementId ID of visible element. Each element has an ID that is returned on validation endpoints.
-	 * @return DataResponse<Http::STATUS_OK, array<empty>, array{}>|DataResponse<Http::STATUS_NOT_FOUND, LibresignErrorsResponse, array{}>
+	 * @return DataResponse<Http::STATUS_OK, list<empty>, array{}>|DataResponse<Http::STATUS_NOT_FOUND, LibresignErrorsResponse, array{}>
 	 *
 	 * 200: OK
 	 * 404: Failure when delete visible element or file not found
 	 */
 	#[NoAdminRequired]
 	#[NoCSRFRequired]
+	#[OpenAPI(tags: ['appearance'])]
 	#[ApiRoute(verb: 'DELETE', url: '/api/{apiVersion}/file-element/{uuid}/{elementId}', requirements: ['apiVersion' => '(v1)'])]
 	public function deleteVisibleElement(string $uuid, int $elementId): DataResponse {
 		try {

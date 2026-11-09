@@ -458,7 +458,7 @@ class PageController extends AEnvironmentPageAwareController {
 	}
 
 	/**
-	 * @return string[] Array of PDF URLs
+	 * @return array<int, string> Array of PDF URLs
 	 */
 	private function getPdfUrls(): array {
 		return $this->signFileService->getPdfUrlsForSigning(
@@ -502,7 +502,7 @@ class PageController extends AEnvironmentPageAwareController {
 	 * Use UUID of file to get PDF
 	 *
 	 * @param string $uuid File uuid
-	 * @return FileDisplayResponse<Http::STATUS_OK, array{Content-Type: string}>|DataResponse<Http::STATUS_NOT_FOUND, array<empty>, array{}>
+	 * @return FileDisplayResponse<Http::STATUS_OK, array{Content-Type: string}>|DataResponse<Http::STATUS_NOT_FOUND, list<empty>, array{}>
 	 *
 	 * 200: OK
 	 * 401: Validation page not accessible if unauthenticated

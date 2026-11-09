@@ -33,6 +33,7 @@ use OCP\AppFramework\Http;
 use OCP\AppFramework\Http\Attribute\ApiRoute;
 use OCP\AppFramework\Http\Attribute\NoAdminRequired;
 use OCP\AppFramework\Http\Attribute\NoCSRFRequired;
+use OCP\AppFramework\Http\Attribute\OpenAPI;
 use OCP\AppFramework\Http\Attribute\PublicPage;
 use OCP\AppFramework\Http\DataResponse;
 use OCP\AppFramework\Http\FileDisplayResponse;
@@ -66,7 +67,7 @@ use Psr\Log\LoggerInterface;
  * @psalm-import-type LibresignValidateMetadata from \OCA\Libresign\ResponseDefinitions
  * @psalm-import-type LibresignVisibleElement from \OCA\Libresign\ResponseDefinitions
  */
-class FileController extends AEnvironmentAwareController {
+class FileController extends AEnvironmentAwareOCSController {
 	public function __construct(
 		IRequest $request,
 		private IL10N $l10n,
@@ -106,12 +107,12 @@ class FileController extends AEnvironmentAwareController {
 	 *
 	 * 200: OK
 	 * 404: Request failed
-	 * 422: Request failed
 	 */
 	#[PrivateValidation(allowValidSignRequestUuid: true)]
 	#[NoAdminRequired]
 	#[NoCSRFRequired]
 	#[PublicPage]
+	#[OpenAPI(tags: ['verification'])]
 	#[ApiRoute(verb: 'GET', url: '/api/{apiVersion}/file/validate/uuid/{uuid}', requirements: ['apiVersion' => '(v1)'])]
 	public function validateUuid(
 		string $uuid,
@@ -134,7 +135,7 @@ class FileController extends AEnvironmentAwareController {
 	 * @param bool $showVisibleElements Whether to include visible elements in the response
 	 * @param bool $showMessages Whether to include validation messages in the response
 	 * @param bool $showValidateFile Whether to include the file payload in the response
-	 * @return DataResponse<Http::STATUS_OK, LibresignValidatedFileResponse, array{}>|DataResponse<Http::STATUS_FORBIDDEN, array<empty>, array{}>|DataResponse<Http::STATUS_NOT_FOUND, LibresignActionErrorResponse, array{}>
+	 * @return DataResponse<Http::STATUS_OK, LibresignValidatedFileResponse, array{}>|DataResponse<Http::STATUS_FORBIDDEN, list<empty>, array{}>|DataResponse<Http::STATUS_NOT_FOUND, LibresignActionErrorResponse, array{}>
 	 *
 	 * 200: OK
 	 * 403: Forbidden
@@ -145,6 +146,7 @@ class FileController extends AEnvironmentAwareController {
 	#[NoCSRFRequired]
 	#[PublicPage]
 	#[RequireFileAccess('fileId')]
+	#[OpenAPI(tags: ['verification'])]
 	#[ApiRoute(verb: 'GET', url: '/api/{apiVersion}/file/validate/file_id/{fileId}', requirements: ['apiVersion' => '(v1)'])]
 	public function validateFileId(
 		int $fileId,
@@ -174,6 +176,7 @@ class FileController extends AEnvironmentAwareController {
 	#[NoAdminRequired]
 	#[NoCSRFRequired]
 	#[PublicPage]
+	#[OpenAPI(tags: ['verification'])]
 	#[ApiRoute(verb: 'POST', url: '/api/{apiVersion}/file/validate/', requirements: ['apiVersion' => '(v1)'])]
 	public function validateBinary(): DataResponse {
 		try {
@@ -327,6 +330,7 @@ class FileController extends AEnvironmentAwareController {
 	 */
 	#[NoAdminRequired]
 	#[NoCSRFRequired]
+	#[OpenAPI(tags: ['documents'])]
 	#[ApiRoute(verb: 'GET', url: '/api/{apiVersion}/file/list', requirements: ['apiVersion' => '(v1)'])]
 	public function list(
 		?int $page = null,
@@ -376,7 +380,7 @@ class FileController extends AEnvironmentAwareController {
 	 * @param boolean $forceIcon Force to generate a new thumbnail
 	 * @param string $mode To force a given mimetype for the file
 	 * @param boolean $mimeFallback If we have no preview enabled, we can redirect to the mime icon if any
-	 * @return FileDisplayResponse<Http::STATUS_OK, array{Content-Type: string}>|DataResponse<Http::STATUS_BAD_REQUEST|Http::STATUS_FORBIDDEN|Http::STATUS_NOT_FOUND, array<empty>, array{}>|RedirectResponse<Http::STATUS_SEE_OTHER, array{}>
+	 * @return FileDisplayResponse<Http::STATUS_OK, array{Content-Type: string}>|DataResponse<Http::STATUS_BAD_REQUEST|Http::STATUS_FORBIDDEN|Http::STATUS_NOT_FOUND, list<empty>, array{}>|RedirectResponse<Http::STATUS_SEE_OTHER, array{}>
 	 *
 	 * 200: OK
 	 * 303: Redirect
@@ -387,6 +391,7 @@ class FileController extends AEnvironmentAwareController {
 	#[NoAdminRequired]
 	#[NoCSRFRequired]
 	#[RequireFileAccess('nodeId')]
+	#[OpenAPI(tags: ['documents'])]
 	#[ApiRoute(verb: 'GET', url: '/api/{apiVersion}/file/thumbnail/{nodeId}', requirements: ['apiVersion' => '(v1)'])]
 	public function getThumbnail(
 		int $nodeId = -1,
@@ -432,7 +437,7 @@ class FileController extends AEnvironmentAwareController {
 	 * @param boolean $forceIcon Force to generate a new thumbnail
 	 * @param string $mode To force a given mimetype for the file
 	 * @param boolean $mimeFallback If we have no preview enabled, we can redirect to the mime icon if any
-	 * @return FileDisplayResponse<Http::STATUS_OK, array{Content-Type: string}>|DataResponse<Http::STATUS_BAD_REQUEST|Http::STATUS_FORBIDDEN|Http::STATUS_NOT_FOUND, array<empty>, array{}>|RedirectResponse<Http::STATUS_SEE_OTHER, array{}>
+	 * @return FileDisplayResponse<Http::STATUS_OK, array{Content-Type: string}>|DataResponse<Http::STATUS_BAD_REQUEST|Http::STATUS_FORBIDDEN|Http::STATUS_NOT_FOUND, list<empty>, array{}>|RedirectResponse<Http::STATUS_SEE_OTHER, array{}>
 	 *
 	 * 200: OK
 	 * 303: Redirect
@@ -443,6 +448,7 @@ class FileController extends AEnvironmentAwareController {
 	#[NoAdminRequired]
 	#[NoCSRFRequired]
 	#[RequireFileAccess('fileId')]
+	#[OpenAPI(tags: ['documents'])]
 	#[ApiRoute(verb: 'GET', url: '/api/{apiVersion}/file/thumbnail/file_id/{fileId}', requirements: ['apiVersion' => '(v1)'])]
 	public function getThumbnailByFileId(
 		int $fileId = -1,
@@ -479,7 +485,7 @@ class FileController extends AEnvironmentAwareController {
 	}
 
 	/**
-	 * @return FileDisplayResponse<Http::STATUS_OK, array{Content-Type: string}>|DataResponse<Http::STATUS_BAD_REQUEST|Http::STATUS_FORBIDDEN|Http::STATUS_NOT_FOUND, array<empty>, array{}>|RedirectResponse<Http::STATUS_SEE_OTHER, array{}>
+	 * @return FileDisplayResponse<Http::STATUS_OK, array{Content-Type: string}>|DataResponse<Http::STATUS_BAD_REQUEST|Http::STATUS_FORBIDDEN|Http::STATUS_NOT_FOUND, list<empty>, array{}>|RedirectResponse<Http::STATUS_SEE_OTHER, array{}>
 	 */
 	private function fetchPreview(
 		Node $node,
@@ -584,6 +590,7 @@ class FileController extends AEnvironmentAwareController {
 	#[NoAdminRequired]
 	#[NoCSRFRequired]
 	#[RequireManager]
+	#[OpenAPI(tags: ['documents'])]
 	#[ApiRoute(verb: 'POST', url: '/api/{apiVersion}/file', requirements: ['apiVersion' => '(v1)'])]
 	public function save(
 		array $file = [],
@@ -624,6 +631,7 @@ class FileController extends AEnvironmentAwareController {
 	#[NoAdminRequired]
 	#[NoCSRFRequired]
 	#[RequireManager]
+	#[OpenAPI(tags: ['documents'])]
 	#[ApiRoute(verb: 'POST', url: '/api/{apiVersion}/file/{uuid}/add-file', requirements: ['apiVersion' => '(v1)'])]
 	public function addFileToEnvelope(string $uuid): DataResponse {
 		try {
@@ -854,6 +862,7 @@ class FileController extends AEnvironmentAwareController {
 	#[NoAdminRequired]
 	#[NoCSRFRequired]
 	#[RequireManager]
+	#[OpenAPI(tags: ['documents'])]
 	#[ApiRoute(verb: 'DELETE', url: '/api/{apiVersion}/file/file_id/{fileId}', requirements: ['apiVersion' => '(v1)'])]
 	public function deleteFile(int $fileId, bool $deleteFile = true): DataResponse {
 		try {

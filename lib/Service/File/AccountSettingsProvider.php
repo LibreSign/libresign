@@ -19,7 +19,7 @@ use OCP\Config\IUserConfig;
 use OCP\IGroupManager;
 use OCP\IUser;
 
-/** @psalm-import-type LibresignAccountCapabilitySettings from \OCA\Libresign\ResponseDefinitions */
+/** @psalm-import-type LibresignAccountCapabilitySettings from \OCA\Libresign\InternalTypeAliases */
 class AccountSettingsProvider {
 	public function __construct(
 		private IAccountManager $accountManager,

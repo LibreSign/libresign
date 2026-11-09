@@ -24,6 +24,7 @@ use OCA\Libresign\Service\SignatureBackgroundService;
 use OCP\AppFramework\Http;
 use OCP\AppFramework\Http\Attribute\ApiRoute;
 use OCP\AppFramework\Http\Attribute\NoCSRFRequired;
+use OCP\AppFramework\Http\Attribute\OpenAPI;
 use OCP\AppFramework\Http\ContentSecurityPolicy;
 use OCP\AppFramework\Http\DataResponse;
 use OCP\AppFramework\Http\FileDisplayResponse;
@@ -43,9 +44,7 @@ use UnexpectedValueException;
  * @psalm-import-type LibresignConfigureChecksResponse from \OCA\Libresign\ResponseDefinitions
  * @psalm-import-type LibresignEngineHandlerResponse from \OCA\Libresign\ResponseDefinitions
  * @psalm-import-type LibresignErrorResponse from \OCA\Libresign\ResponseDefinitions
- * @psalm-import-type LibresignErrorStatusResponse from \OCA\Libresign\ResponseDefinitions
  * @psalm-import-type LibresignEngineHandler from \OCA\Libresign\ResponseDefinitions
- * @psalm-import-type LibresignIdentifyMethodSetting from \OCA\Libresign\ResponseDefinitions
  * @psalm-import-type LibresignMessageResponse from \OCA\Libresign\ResponseDefinitions
  * @psalm-import-type LibresignSuccessStatusResponse from \OCA\Libresign\ResponseDefinitions
  * @psalm-import-type LibresignFailureStatusResponse from \OCA\Libresign\ResponseDefinitions
@@ -53,7 +52,7 @@ use UnexpectedValueException;
  * @psalm-import-type LibresignRootCertificate from \OCA\Libresign\ResponseDefinitions
  * @psalm-import-type LibresignGeoIpConfig from \OCA\Libresign\ResponseDefinitions
  */
-class AdminController extends AEnvironmentAwareController {
+class AdminController extends AEnvironmentAwareOCSController {
 	use UploadValidator;
 
 	private IEventSource $eventSource;
@@ -81,7 +80,7 @@ class AdminController extends AEnvironmentAwareController {
 	/**
 	 * Generate certificate using CFSSL engine
 	 *
-	 * @param array{commonName: string, names: array<string, array{value:string|array<string>}>} $rootCert fields of root certificate
+	 * @param array{commonName: string, names: array<string, array{value:string|list<string>}>} $rootCert fields of root certificate
 	 * @param string $cfsslUri URI of CFSSL API
 	 * @param string $configPath Path of config files of CFSSL
 	 * @return DataResponse<Http::STATUS_OK, LibresignEngineHandlerResponse, array{}>|DataResponse<Http::STATUS_UNAUTHORIZED, LibresignMessageResponse, array{}>
@@ -90,6 +89,7 @@ class AdminController extends AEnvironmentAwareController {
 	 * 401: Account not found
 	 */
 	#[NoCSRFRequired]
+	#[OpenAPI(tags: ['certificates'])]
 	#[ApiRoute(verb: 'POST', url: '/api/{apiVersion}/admin/certificate/cfssl', requirements: ['apiVersion' => '(v1)'])]
 	public function generateCertificateCfssl(
 		array $rootCert,
@@ -118,7 +118,7 @@ class AdminController extends AEnvironmentAwareController {
 	/**
 	 * Generate certificate using OpenSSL engine
 	 *
-	 * @param array{commonName: string, names: array<string, array{value:string|array<string>}>} $rootCert fields of root certificate
+	 * @param array{commonName: string, names: array<string, array{value:string|list<string>}>} $rootCert fields of root certificate
 	 * @param string $configPath Path of config files of CFSSL
 	 * @return DataResponse<Http::STATUS_OK, LibresignEngineHandlerResponse, array{}>|DataResponse<Http::STATUS_UNAUTHORIZED, LibresignMessageResponse, array{}>
 	 *
@@ -126,6 +126,7 @@ class AdminController extends AEnvironmentAwareController {
 	 * 401: Account not found
 	 */
 	#[NoCSRFRequired]
+	#[OpenAPI(tags: ['certificates'])]
 	#[ApiRoute(verb: 'POST', url: '/api/{apiVersion}/admin/certificate/openssl', requirements: ['apiVersion' => '(v1)'])]
 	public function generateCertificateOpenSsl(
 		array $rootCert,
@@ -161,6 +162,7 @@ class AdminController extends AEnvironmentAwareController {
 	 * 400: Invalid engine
 	 */
 	#[NoCSRFRequired]
+	#[OpenAPI(tags: ['certificates'])]
 	#[ApiRoute(verb: 'POST', url: '/api/{apiVersion}/admin/certificate/engine', requirements: ['apiVersion' => '(v1)'])]
 	public function setCertificateEngine(string $engine): DataResponse {
 		$validEngines = ['openssl', 'cfssl', 'none'];
@@ -219,6 +221,7 @@ class AdminController extends AEnvironmentAwareController {
 	 * 200: OK
 	 */
 	#[NoCSRFRequired]
+	#[OpenAPI(tags: ['certificates'])]
 	#[ApiRoute(verb: 'GET', url: '/api/{apiVersion}/admin/certificate', requirements: ['apiVersion' => '(v1)'])]
 	public function loadCertificate(): DataResponse {
 		$engine = $this->certificateEngineFactory->getEngine();
@@ -238,6 +241,7 @@ class AdminController extends AEnvironmentAwareController {
 	 * 200: OK
 	 */
 	#[NoCSRFRequired]
+	#[OpenAPI(tags: ['system'])]
 	#[ApiRoute(verb: 'GET', url: '/api/{apiVersion}/admin/configure-check', requirements: ['apiVersion' => '(v1)'])]
 	public function configureCheck(): DataResponse {
 		/** @var LibresignConfigureChecksResponse $checks */
@@ -302,6 +306,7 @@ class AdminController extends AEnvironmentAwareController {
 	 * 422: Error
 	 */
 	#[NoCSRFRequired]
+	#[OpenAPI(tags: ['appearance'])]
 	#[ApiRoute(verb: 'POST', url: '/api/{apiVersion}/admin/signature-background', requirements: ['apiVersion' => '(v1)'])]
 	public function signatureBackgroundSave(): DataResponse {
 		$image = $this->request->getUploadedFile('image');
@@ -336,6 +341,7 @@ class AdminController extends AEnvironmentAwareController {
 	 * 200: Image returned
 	 */
 	#[NoCSRFRequired]
+	#[OpenAPI(tags: ['appearance'])]
 	#[ApiRoute(verb: 'GET', url: '/api/{apiVersion}/admin/signature-background', requirements: ['apiVersion' => '(v1)'])]
 	public function signatureBackgroundGet(): FileDisplayResponse {
 		$file = $this->signatureBackgroundService->getImage();
@@ -358,6 +364,7 @@ class AdminController extends AEnvironmentAwareController {
 	 *
 	 * 200: Deleted with success
 	 */
+	#[OpenAPI(tags: ['appearance'])]
 	#[ApiRoute(verb: 'DELETE', url: '/api/{apiVersion}/admin/signature-background', requirements: ['apiVersion' => '(v1)'])]
 	public function signatureBackgroundDelete(): DataResponse {
 		$this->signatureBackgroundService->delete();
@@ -376,6 +383,7 @@ class AdminController extends AEnvironmentAwareController {
 	 * 200: OK
 	 * 422: Upload or validation error
 	 */
+	#[OpenAPI(tags: ['certificates'])]
 	#[ApiRoute(verb: 'POST', url: '/api/{apiVersion}/admin/certificate-policy', requirements: ['apiVersion' => '(v1)'])]
 	public function saveCertificatePolicy(): DataResponse {
 		// Handle POST method - upload PDF
@@ -411,6 +419,7 @@ class AdminController extends AEnvironmentAwareController {
 	 * 200: OK
 	 * 422: Error
 	 */
+	#[OpenAPI(tags: ['certificates'])]
 	#[ApiRoute(verb: 'DELETE', url: '/api/{apiVersion}/admin/certificate-policy', requirements: ['apiVersion' => '(v1)'])]
 	public function deleteCertificatePolicy(): DataResponse {
 		try {
@@ -436,6 +445,7 @@ class AdminController extends AEnvironmentAwareController {
 	 * 200: OK
 	 * 422: Validation error
 	 */
+	#[OpenAPI(tags: ['certificates'])]
 	#[ApiRoute(verb: 'POST', url: '/api/{apiVersion}/admin/certificate-policy/oid', requirements: ['apiVersion' => '(v1)'])]
 	public function updateOid(string $oid): DataResponse {
 		try {
@@ -463,6 +473,7 @@ class AdminController extends AEnvironmentAwareController {
 	 *
 	 * 200: List of active signings
 	 */
+	#[OpenAPI(tags: ['requests'])]
 	#[ApiRoute(verb: 'GET', url: '/api/{apiVersion}/admin/active-signings', requirements: ['apiVersion' => '(v1)'])]
 	public function getActiveSignings(): DataResponse {
 		try {
@@ -484,6 +495,7 @@ class AdminController extends AEnvironmentAwareController {
 	 * 200: GeoIP configuration
 	 */
 	#[NoCSRFRequired]
+	#[OpenAPI(tags: ['system'])]
 	#[ApiRoute(verb: 'GET', url: '/api/{apiVersion}/admin/geoip', requirements: ['apiVersion' => '(v1)'])]
 	public function getGeoIpConfig(): DataResponse {
 		return new DataResponse($this->geoIpDatabaseStatusService->getStatus());
@@ -501,6 +513,7 @@ class AdminController extends AEnvironmentAwareController {
 	 *
 	 * 200: GeoIP configuration saved
 	 */
+	#[OpenAPI(tags: ['system'])]
 	#[ApiRoute(verb: 'POST', url: '/api/{apiVersion}/admin/geoip', requirements: ['apiVersion' => '(v1)'])]
 	public function saveGeoIpConfig(string $path = ''): DataResponse {
 		$this->geoIpConfigService->setDatabasePath($path === '' ? null : $path);

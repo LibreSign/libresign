@@ -26,6 +26,7 @@ use OCA\Libresign\Service\Policy\Provider\IdentifyMethods\IdentifyMethodsPolicyV
 use OCP\AppFramework\Http;
 use OCP\AppFramework\Http\Attribute\ApiRoute;
 use OCP\AppFramework\Http\Attribute\NoAdminRequired;
+use OCP\AppFramework\Http\Attribute\OpenAPI;
 use OCP\AppFramework\Http\DataResponse;
 use OCP\Collaboration\Collaborators\ISearch;
 use OCP\IRequest;
@@ -34,7 +35,7 @@ use OCP\IRequest;
  * @psalm-import-type LibresignIdentifyAccount from \OCA\Libresign\ResponseDefinitions
  * @psalm-import-type LibresignIdentifyAccountsResponse from \OCA\Libresign\ResponseDefinitions
  */
-class IdentifyController extends AEnvironmentAwareController {
+class IdentifyController extends AEnvironmentAwareOCSController {
 	public function __construct(
 		IRequest $request,
 		private ISearch $collaboratorSearch,
@@ -61,10 +62,10 @@ class IdentifyController extends AEnvironmentAwareController {
 	 * @return DataResponse<Http::STATUS_OK, LibresignIdentifyAccountsResponse, array{}>
 	 *
 	 * 200: Certificate saved with success
-	 * 400: No file provided or other problem with provided file
 	 */
 	#[NoAdminRequired]
 	#[RequireManager]
+	#[OpenAPI(tags: ['identity'])]
 	#[ApiRoute(verb: 'GET', url: '/api/{apiVersion}/identify-account/search', requirements: ['apiVersion' => '(v1)'])]
 	public function search(string $search = '', string $method = '', int $page = 1, int $limit = 25): DataResponse {
 		$rawSearch = $search;

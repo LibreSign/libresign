@@ -1373,12 +1373,20 @@
                         "type": "string"
                     },
                     "value": {
-                        "$ref": "#/components/schemas/EffectivePolicyValue",
-                        "nullable": true
+                        "nullable": true,
+                        "allOf": [
+                            {
+                                "$ref": "#/components/schemas/EffectivePolicyValue"
+                            }
+                        ]
                     },
                     "effectiveValue": {
-                        "$ref": "#/components/schemas/EffectivePolicyValue",
-                        "nullable": true
+                        "nullable": true,
+                        "allOf": [
+                            {
+                                "$ref": "#/components/schemas/EffectivePolicyValue"
+                            }
+                        ]
                     },
                     "allowChildOverride": {
                         "type": "boolean"
@@ -3077,8 +3085,12 @@
                         "type": "string"
                     },
                     "value": {
-                        "$ref": "#/components/schemas/EffectivePolicyValue",
-                        "nullable": true
+                        "nullable": true,
+                        "allOf": [
+                            {
+                                "$ref": "#/components/schemas/EffectivePolicyValue"
+                            }
+                        ]
                     },
                     "allowChildOverride": {
                         "type": "boolean"
@@ -3509,7 +3521,7 @@
                 "operationId": "certificate_policy-get-certificate-policy",
                 "summary": "Certificate policy of this instance",
                 "tags": [
-                    "certificate_policy"
+                    "certificates"
                 ],
                 "security": [
                     {},
@@ -3558,7 +3570,7 @@
                 "operationId": "crl-get-revocation-list",
                 "summary": "Get Certificate Revocation List in DER format (RFC 5280 compliant)",
                 "tags": [
-                    "crl"
+                    "certificates"
                 ],
                 "security": [
                     {},
@@ -3629,7 +3641,7 @@
                 "operationId": "crl-check-certificate-status",
                 "summary": "Check certificate revocation status",
                 "tags": [
-                    "crl"
+                    "verification"
                 ],
                 "security": [
                     {},
@@ -3679,8 +3691,9 @@
             "post": {
                 "operationId": "account-create-to-sign",
                 "summary": "Create account to sign a document",
+                "description": "This endpoint allows CORS requests",
                 "tags": [
-                    "account"
+                    "identity"
                 ],
                 "security": [
                     {},
@@ -3819,7 +3832,7 @@
                 "operationId": "account-signature-generate",
                 "summary": "Create PFX file using self-signed certificate",
                 "tags": [
-                    "account"
+                    "identity"
                 ],
                 "security": [
                     {
@@ -3908,27 +3921,52 @@
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "type": "object",
-                                    "required": [
-                                        "ocs"
-                                    ],
-                                    "properties": {
-                                        "ocs": {
+                                    "anyOf": [
+                                        {
                                             "type": "object",
                                             "required": [
-                                                "meta",
-                                                "data"
+                                                "ocs"
                                             ],
                                             "properties": {
-                                                "meta": {
-                                                    "$ref": "#/components/schemas/OCSMeta"
-                                                },
-                                                "data": {
-                                                    "$ref": "#/components/schemas/MessageResponse"
+                                                "ocs": {
+                                                    "type": "object",
+                                                    "required": [
+                                                        "meta",
+                                                        "data"
+                                                    ],
+                                                    "properties": {
+                                                        "meta": {
+                                                            "$ref": "#/components/schemas/OCSMeta"
+                                                        },
+                                                        "data": {
+                                                            "$ref": "#/components/schemas/MessageResponse"
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                        },
+                                        {
+                                            "type": "object",
+                                            "required": [
+                                                "ocs"
+                                            ],
+                                            "properties": {
+                                                "ocs": {
+                                                    "type": "object",
+                                                    "required": [
+                                                        "meta",
+                                                        "data"
+                                                    ],
+                                                    "properties": {
+                                                        "meta": {
+                                                            "$ref": "#/components/schemas/OCSMeta"
+                                                        },
+                                                        "data": {}
+                                                    }
                                                 }
                                             }
                                         }
-                                    }
+                                    ]
                                 }
                             }
                         }
@@ -3940,9 +3978,9 @@
             "get": {
                 "operationId": "account-me",
                 "summary": "Who am I",
-                "description": "Validates API access data and returns the authenticated user's data.",
+                "description": "Validates API access data and returns the authenticated user's data.\nThis endpoint allows CORS requests",
                 "tags": [
-                    "account"
+                    "identity"
                 ],
                 "security": [
                     {},
@@ -4043,7 +4081,7 @@
                 "operationId": "account-update-settings",
                 "summary": "Update the account phone number",
                 "tags": [
-                    "account"
+                    "identity"
                 ],
                 "security": [
                     {
@@ -4063,6 +4101,7 @@
                                     "phone": {
                                         "type": "string",
                                         "nullable": true,
+                                        "default": null,
                                         "description": "the phone number to be defined. If null will remove the phone number"
                                     }
                                 }
@@ -4154,6 +4193,34 @@
                                 }
                             }
                         }
+                    },
+                    "401": {
+                        "description": "Current user is not logged in",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "required": [
+                                        "ocs"
+                                    ],
+                                    "properties": {
+                                        "ocs": {
+                                            "type": "object",
+                                            "required": [
+                                                "meta",
+                                                "data"
+                                            ],
+                                            "properties": {
+                                                "meta": {
+                                                    "$ref": "#/components/schemas/OCSMeta"
+                                                },
+                                                "data": {}
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
                     }
                 }
             }
@@ -4163,7 +4230,7 @@
                 "operationId": "account-delete-pfx",
                 "summary": "Delete PFX file",
                 "tags": [
-                    "account"
+                    "identity"
                 ],
                 "security": [
                     {
@@ -4227,6 +4294,34 @@
                                 }
                             }
                         }
+                    },
+                    "401": {
+                        "description": "Current user is not logged in",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "required": [
+                                        "ocs"
+                                    ],
+                                    "properties": {
+                                        "ocs": {
+                                            "type": "object",
+                                            "required": [
+                                                "meta",
+                                                "data"
+                                            ],
+                                            "properties": {
+                                                "meta": {
+                                                    "$ref": "#/components/schemas/OCSMeta"
+                                                },
+                                                "data": {}
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
                     }
                 }
             },
@@ -4234,7 +4329,7 @@
                 "operationId": "account-upload-pfx",
                 "summary": "Upload PFX file",
                 "tags": [
-                    "account"
+                    "identity"
                 ],
                 "security": [
                     {
@@ -4328,6 +4423,34 @@
                                 }
                             }
                         }
+                    },
+                    "401": {
+                        "description": "Current user is not logged in",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "required": [
+                                        "ocs"
+                                    ],
+                                    "properties": {
+                                        "ocs": {
+                                            "type": "object",
+                                            "required": [
+                                                "meta",
+                                                "data"
+                                            ],
+                                            "properties": {
+                                                "meta": {
+                                                    "$ref": "#/components/schemas/OCSMeta"
+                                                },
+                                                "data": {}
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
                     }
                 }
             },
@@ -4336,7 +4459,7 @@
                 "summary": "Update PFX file",
                 "description": "Used to change the password of PFX file",
                 "tags": [
-                    "account"
+                    "identity"
                 ],
                 "security": [
                     {
@@ -4454,6 +4577,34 @@
                                 }
                             }
                         }
+                    },
+                    "401": {
+                        "description": "Current user is not logged in",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "required": [
+                                        "ocs"
+                                    ],
+                                    "properties": {
+                                        "ocs": {
+                                            "type": "object",
+                                            "required": [
+                                                "meta",
+                                                "data"
+                                            ],
+                                            "properties": {
+                                                "meta": {
+                                                    "$ref": "#/components/schemas/OCSMeta"
+                                                },
+                                                "data": {}
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
                     }
                 }
             }
@@ -4463,7 +4614,7 @@
                 "operationId": "account-read-pfx-data",
                 "summary": "Read content of PFX file",
                 "tags": [
-                    "account"
+                    "identity"
                 ],
                 "security": [
                     {
@@ -4576,6 +4727,34 @@
                                 }
                             }
                         }
+                    },
+                    "401": {
+                        "description": "Current user is not logged in",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "required": [
+                                        "ocs"
+                                    ],
+                                    "properties": {
+                                        "ocs": {
+                                            "type": "object",
+                                            "required": [
+                                                "meta",
+                                                "data"
+                                            ],
+                                            "properties": {
+                                                "meta": {
+                                                    "$ref": "#/components/schemas/OCSMeta"
+                                                },
+                                                "data": {}
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
                     }
                 }
             }
@@ -4585,7 +4764,7 @@
                 "operationId": "account-set-config",
                 "summary": "Set user config value",
                 "tags": [
-                    "account"
+                    "identity"
                 ],
                 "security": [
                     {
@@ -4688,6 +4867,34 @@
                                 }
                             }
                         }
+                    },
+                    "401": {
+                        "description": "Current user is not logged in",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "required": [
+                                        "ocs"
+                                    ],
+                                    "properties": {
+                                        "ocs": {
+                                            "type": "object",
+                                            "required": [
+                                                "meta",
+                                                "data"
+                                            ],
+                                            "properties": {
+                                                "meta": {
+                                                    "$ref": "#/components/schemas/OCSMeta"
+                                                },
+                                                "data": {}
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
                     }
                 }
             }
@@ -4698,7 +4905,7 @@
                 "summary": "Validate a file using Uuid",
                 "description": "Validate a file returning file data. The response always includes `filesCount` and `files`. For `nodeType=file`, `filesCount=1` and `files` contains the current file. For `nodeType=envelope`, `files` contains envelope child files.",
                 "tags": [
-                    "file"
+                    "verification"
                 ],
                 "security": [
                     {},
@@ -4736,12 +4943,8 @@
                         "in": "query",
                         "description": "Whether to include visible elements in the response",
                         "schema": {
-                            "type": "integer",
-                            "default": 1,
-                            "enum": [
-                                0,
-                                1
-                            ]
+                            "type": "boolean",
+                            "default": true
                         }
                     },
                     {
@@ -4749,12 +4952,8 @@
                         "in": "query",
                         "description": "Whether to include validation messages in the response",
                         "schema": {
-                            "type": "integer",
-                            "default": 1,
-                            "enum": [
-                                0,
-                                1
-                            ]
+                            "type": "boolean",
+                            "default": true
                         }
                     },
                     {
@@ -4762,12 +4961,8 @@
                         "in": "query",
                         "description": "Whether to include the file payload in the response",
                         "schema": {
-                            "type": "integer",
-                            "default": 1,
-                            "enum": [
-                                0,
-                                1
-                            ]
+                            "type": "boolean",
+                            "default": true
                         }
                     },
                     {
@@ -4851,7 +5046,7 @@
                 "summary": "Validate a file using FileId",
                 "description": "Validate a file returning file data. The response always includes `filesCount` and `files`. For `nodeType=file`, `filesCount=1` and `files` contains the current file. For `nodeType=envelope`, `files` contains envelope child files.",
                 "tags": [
-                    "file"
+                    "verification"
                 ],
                 "security": [
                     {},
@@ -4890,12 +5085,8 @@
                         "in": "query",
                         "description": "Whether to include visible elements in the response",
                         "schema": {
-                            "type": "integer",
-                            "default": 1,
-                            "enum": [
-                                0,
-                                1
-                            ]
+                            "type": "boolean",
+                            "default": true
                         }
                     },
                     {
@@ -4903,12 +5094,8 @@
                         "in": "query",
                         "description": "Whether to include validation messages in the response",
                         "schema": {
-                            "type": "integer",
-                            "default": 1,
-                            "enum": [
-                                0,
-                                1
-                            ]
+                            "type": "boolean",
+                            "default": true
                         }
                     },
                     {
@@ -4916,12 +5103,8 @@
                         "in": "query",
                         "description": "Whether to include the file payload in the response",
                         "schema": {
-                            "type": "integer",
-                            "default": 1,
-                            "enum": [
-                                0,
-                                1
-                            ]
+                            "type": "boolean",
+                            "default": true
                         }
                     },
                     {
@@ -5033,7 +5216,7 @@
                 "summary": "Validate a binary file",
                 "description": "Validate a binary file returning file data. Use field 'file' for the file upload. The response always includes `filesCount` and `files`. For `nodeType=file`, `filesCount=1` and `files` contains the current file. For `nodeType=envelope`, `files` contains envelope child files.",
                 "tags": [
-                    "file"
+                    "verification"
                 ],
                 "security": [
                     {},
@@ -5167,7 +5350,7 @@
                 "operationId": "file-list",
                 "summary": "List identification documents that need to be approved",
                 "tags": [
-                    "file"
+                    "documents"
                 ],
                 "security": [
                     {
@@ -5197,7 +5380,8 @@
                         "schema": {
                             "type": "integer",
                             "format": "int64",
-                            "nullable": true
+                            "nullable": true,
+                            "default": null
                         }
                     },
                     {
@@ -5207,7 +5391,8 @@
                         "schema": {
                             "type": "integer",
                             "format": "int64",
-                            "nullable": true
+                            "nullable": true,
+                            "default": null
                         }
                     },
                     {
@@ -5216,7 +5401,8 @@
                         "description": "Signer UUID",
                         "schema": {
                             "type": "string",
-                            "nullable": true
+                            "nullable": true,
+                            "default": null
                         }
                     },
                     {
@@ -5226,6 +5412,7 @@
                         "schema": {
                             "type": "array",
                             "nullable": true,
+                            "default": null,
                             "items": {
                                 "type": "integer",
                                 "format": "int64"
@@ -5239,6 +5426,7 @@
                         "schema": {
                             "type": "array",
                             "nullable": true,
+                            "default": null,
                             "items": {
                                 "type": "integer",
                                 "format": "int64"
@@ -5252,6 +5440,7 @@
                         "schema": {
                             "type": "array",
                             "nullable": true,
+                            "default": null,
                             "items": {
                                 "type": "integer",
                                 "format": "int64"
@@ -5265,7 +5454,8 @@
                         "schema": {
                             "type": "integer",
                             "format": "int64",
-                            "nullable": true
+                            "nullable": true,
+                            "default": null
                         }
                     },
                     {
@@ -5275,7 +5465,8 @@
                         "schema": {
                             "type": "integer",
                             "format": "int64",
-                            "nullable": true
+                            "nullable": true,
+                            "default": null
                         }
                     },
                     {
@@ -5284,7 +5475,8 @@
                         "description": "Name of the column to sort by",
                         "schema": {
                             "type": "string",
-                            "nullable": true
+                            "nullable": true,
+                            "default": null
                         }
                     },
                     {
@@ -5293,7 +5485,8 @@
                         "description": "Ascending or descending order",
                         "schema": {
                             "type": "string",
-                            "nullable": true
+                            "nullable": true,
+                            "default": null
                         }
                     },
                     {
@@ -5303,7 +5496,8 @@
                         "schema": {
                             "type": "integer",
                             "format": "int64",
-                            "nullable": true
+                            "nullable": true,
+                            "default": null
                         }
                     },
                     {
@@ -5311,12 +5505,8 @@
                         "in": "query",
                         "description": "Whether to return the detailed payload instead of the lightweight summary payload",
                         "schema": {
-                            "type": "integer",
-                            "default": 0,
-                            "enum": [
-                                0,
-                                1
-                            ]
+                            "type": "boolean",
+                            "default": false
                         }
                     },
                     {
@@ -5360,6 +5550,34 @@
                                 }
                             }
                         }
+                    },
+                    "401": {
+                        "description": "Current user is not logged in",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "required": [
+                                        "ocs"
+                                    ],
+                                    "properties": {
+                                        "ocs": {
+                                            "type": "object",
+                                            "required": [
+                                                "meta",
+                                                "data"
+                                            ],
+                                            "properties": {
+                                                "meta": {
+                                                    "$ref": "#/components/schemas/OCSMeta"
+                                                },
+                                                "data": {}
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
                     }
                 }
             }
@@ -5369,7 +5587,7 @@
                 "operationId": "file-get-thumbnail",
                 "summary": "Return the thumbnail of a LibreSign file",
                 "tags": [
-                    "file"
+                    "documents"
                 ],
                 "security": [
                     {
@@ -5428,12 +5646,8 @@
                         "in": "query",
                         "description": "Crop, boolean value, default false",
                         "schema": {
-                            "type": "integer",
-                            "default": 0,
-                            "enum": [
-                                0,
-                                1
-                            ]
+                            "type": "boolean",
+                            "default": false
                         }
                     },
                     {
@@ -5441,12 +5655,8 @@
                         "in": "query",
                         "description": "Force to generate a new thumbnail",
                         "schema": {
-                            "type": "integer",
-                            "default": 1,
-                            "enum": [
-                                0,
-                                1
-                            ]
+                            "type": "boolean",
+                            "default": true
                         }
                     },
                     {
@@ -5463,12 +5673,8 @@
                         "in": "query",
                         "description": "If we have no preview enabled, we can redirect to the mime icon if any",
                         "schema": {
-                            "type": "integer",
-                            "default": 0,
-                            "enum": [
-                                0,
-                                1
-                            ]
+                            "type": "boolean",
+                            "default": false
                         }
                     },
                     {
@@ -5587,6 +5793,34 @@
                                 }
                             }
                         }
+                    },
+                    "401": {
+                        "description": "Current user is not logged in",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "required": [
+                                        "ocs"
+                                    ],
+                                    "properties": {
+                                        "ocs": {
+                                            "type": "object",
+                                            "required": [
+                                                "meta",
+                                                "data"
+                                            ],
+                                            "properties": {
+                                                "meta": {
+                                                    "$ref": "#/components/schemas/OCSMeta"
+                                                },
+                                                "data": {}
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
                     }
                 }
             }
@@ -5596,7 +5830,7 @@
                 "operationId": "file-get-thumbnail-by-file-id",
                 "summary": "Return the thumbnail of a LibreSign file by fileId",
                 "tags": [
-                    "file"
+                    "documents"
                 ],
                 "security": [
                     {
@@ -5655,12 +5889,8 @@
                         "in": "query",
                         "description": "Crop, boolean value, default false",
                         "schema": {
-                            "type": "integer",
-                            "default": 0,
-                            "enum": [
-                                0,
-                                1
-                            ]
+                            "type": "boolean",
+                            "default": false
                         }
                     },
                     {
@@ -5668,12 +5898,8 @@
                         "in": "query",
                         "description": "Force to generate a new thumbnail",
                         "schema": {
-                            "type": "integer",
-                            "default": 1,
-                            "enum": [
-                                0,
-                                1
-                            ]
+                            "type": "boolean",
+                            "default": true
                         }
                     },
                     {
@@ -5690,12 +5916,8 @@
                         "in": "query",
                         "description": "If we have no preview enabled, we can redirect to the mime icon if any",
                         "schema": {
-                            "type": "integer",
-                            "default": 0,
-                            "enum": [
-                                0,
-                                1
-                            ]
+                            "type": "boolean",
+                            "default": false
                         }
                     },
                     {
@@ -5814,6 +6036,34 @@
                                 }
                             }
                         }
+                    },
+                    "401": {
+                        "description": "Current user is not logged in",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "required": [
+                                        "ocs"
+                                    ],
+                                    "properties": {
+                                        "ocs": {
+                                            "type": "object",
+                                            "required": [
+                                                "meta",
+                                                "data"
+                                            ],
+                                            "properties": {
+                                                "meta": {
+                                                    "$ref": "#/components/schemas/OCSMeta"
+                                                },
+                                                "data": {}
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
                     }
                 }
             }
@@ -5824,7 +6074,7 @@
                 "summary": "Send a file",
                 "description": "Send a new file to Nextcloud and return the fileId used to create a signature request. Files must be uploaded as multipart/form-data with field name 'file[]' or 'files[]'.\n**Note on multiple file uploads:** PHP has a limit on the number of files that can be uploaded in a single request (max_file_uploads directive, default 20). When uploading many files (more than 20), consider uploading them sequentially in multiple requests or use individual file uploads like the Files app does.",
                 "tags": [
-                    "file"
+                    "documents"
                 ],
                 "security": [
                     {
@@ -5953,6 +6203,34 @@
                                 }
                             }
                         }
+                    },
+                    "401": {
+                        "description": "Current user is not logged in",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "required": [
+                                        "ocs"
+                                    ],
+                                    "properties": {
+                                        "ocs": {
+                                            "type": "object",
+                                            "required": [
+                                                "meta",
+                                                "data"
+                                            ],
+                                            "properties": {
+                                                "meta": {
+                                                    "$ref": "#/components/schemas/OCSMeta"
+                                                },
+                                                "data": {}
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
                     }
                 }
             }
@@ -5963,7 +6241,7 @@
                 "summary": "Add file to envelope",
                 "description": "Add one or more files to an existing envelope that is in DRAFT status. Files must be uploaded as multipart/form-data with field name 'files[]'.",
                 "tags": [
-                    "file"
+                    "documents"
                 ],
                 "security": [
                     {
@@ -6126,6 +6404,34 @@
                                 }
                             }
                         }
+                    },
+                    "401": {
+                        "description": "Current user is not logged in",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "required": [
+                                        "ocs"
+                                    ],
+                                    "properties": {
+                                        "ocs": {
+                                            "type": "object",
+                                            "required": [
+                                                "meta",
+                                                "data"
+                                            ],
+                                            "properties": {
+                                                "meta": {
+                                                    "$ref": "#/components/schemas/OCSMeta"
+                                                },
+                                                "data": {}
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
                     }
                 }
             }
@@ -6136,7 +6442,7 @@
                 "summary": "Delete File",
                 "description": "This will delete the file and all data",
                 "tags": [
-                    "file"
+                    "documents"
                 ],
                 "security": [
                     {
@@ -6174,12 +6480,8 @@
                         "in": "query",
                         "description": "Whether to delete the physical file from Nextcloud (default: true)",
                         "schema": {
-                            "type": "integer",
-                            "default": 1,
-                            "enum": [
-                                0,
-                                1
-                            ]
+                            "type": "boolean",
+                            "default": true
                         }
                     },
                     {
@@ -6229,27 +6531,52 @@
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "type": "object",
-                                    "required": [
-                                        "ocs"
-                                    ],
-                                    "properties": {
-                                        "ocs": {
+                                    "anyOf": [
+                                        {
                                             "type": "object",
                                             "required": [
-                                                "meta",
-                                                "data"
+                                                "ocs"
                                             ],
                                             "properties": {
-                                                "meta": {
-                                                    "$ref": "#/components/schemas/OCSMeta"
-                                                },
-                                                "data": {
-                                                    "$ref": "#/components/schemas/MessageResponse"
+                                                "ocs": {
+                                                    "type": "object",
+                                                    "required": [
+                                                        "meta",
+                                                        "data"
+                                                    ],
+                                                    "properties": {
+                                                        "meta": {
+                                                            "$ref": "#/components/schemas/OCSMeta"
+                                                        },
+                                                        "data": {
+                                                            "$ref": "#/components/schemas/MessageResponse"
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                        },
+                                        {
+                                            "type": "object",
+                                            "required": [
+                                                "ocs"
+                                            ],
+                                            "properties": {
+                                                "ocs": {
+                                                    "type": "object",
+                                                    "required": [
+                                                        "meta",
+                                                        "data"
+                                                    ],
+                                                    "properties": {
+                                                        "meta": {
+                                                            "$ref": "#/components/schemas/OCSMeta"
+                                                        },
+                                                        "data": {}
+                                                    }
                                                 }
                                             }
                                         }
-                                    }
+                                    ]
                                 }
                             }
                         }
@@ -6293,7 +6620,7 @@
                 "summary": "Create visible element",
                 "description": "Create visible element of a specific file",
                 "tags": [
-                    "file_element"
+                    "appearance"
                 ],
                 "security": [
                     {
@@ -6322,12 +6649,14 @@
                                         "type": "integer",
                                         "format": "int64",
                                         "nullable": true,
+                                        "default": null,
                                         "description": "ID of visible element. Each element has an ID that is returned on validation endpoints."
                                     },
                                     "fileId": {
                                         "type": "integer",
                                         "format": "int64",
                                         "nullable": true,
+                                        "default": null,
                                         "description": "LibreSign file ID that owns the visible element"
                                     },
                                     "type": {
@@ -6443,6 +6772,34 @@
                                 }
                             }
                         }
+                    },
+                    "401": {
+                        "description": "Current user is not logged in",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "required": [
+                                        "ocs"
+                                    ],
+                                    "properties": {
+                                        "ocs": {
+                                            "type": "object",
+                                            "required": [
+                                                "meta",
+                                                "data"
+                                            ],
+                                            "properties": {
+                                                "meta": {
+                                                    "$ref": "#/components/schemas/OCSMeta"
+                                                },
+                                                "data": {}
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
                     }
                 }
             }
@@ -6453,7 +6810,7 @@
                 "summary": "Update visible element",
                 "description": "Update visible element of a specific file",
                 "tags": [
-                    "file_element"
+                    "appearance"
                 ],
                 "security": [
                     {
@@ -6482,6 +6839,7 @@
                                         "type": "integer",
                                         "format": "int64",
                                         "nullable": true,
+                                        "default": null,
                                         "description": "LibreSign file ID that owns the visible element"
                                     },
                                     "type": {
@@ -6534,7 +6892,8 @@
                         "schema": {
                             "type": "integer",
                             "format": "int64",
-                            "nullable": true
+                            "nullable": true,
+                            "default": null
                         }
                     },
                     {
@@ -6608,6 +6967,34 @@
                                 }
                             }
                         }
+                    },
+                    "401": {
+                        "description": "Current user is not logged in",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "required": [
+                                        "ocs"
+                                    ],
+                                    "properties": {
+                                        "ocs": {
+                                            "type": "object",
+                                            "required": [
+                                                "meta",
+                                                "data"
+                                            ],
+                                            "properties": {
+                                                "meta": {
+                                                    "$ref": "#/components/schemas/OCSMeta"
+                                                },
+                                                "data": {}
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
                     }
                 }
             },
@@ -6616,7 +7003,7 @@
                 "summary": "Delete visible element",
                 "description": "Delete visible element of a specific file",
                 "tags": [
-                    "file_element"
+                    "appearance"
                 ],
                 "security": [
                     {
@@ -6727,6 +7114,34 @@
                                 }
                             }
                         }
+                    },
+                    "401": {
+                        "description": "Current user is not logged in",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "required": [
+                                        "ocs"
+                                    ],
+                                    "properties": {
+                                        "ocs": {
+                                            "type": "object",
+                                            "required": [
+                                                "meta",
+                                                "data"
+                                            ],
+                                            "properties": {
+                                                "meta": {
+                                                    "$ref": "#/components/schemas/OCSMeta"
+                                                },
+                                                "data": {}
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
                     }
                 }
             }
@@ -6737,7 +7152,7 @@
                 "summary": "Check file progress by sign request UUID with long-polling (similar to Talk)",
                 "description": "Waits up to 30 seconds for status change using cache for efficiency. Returns progress for the specific sign request, not the global file status.",
                 "tags": [
-                    "file_progress"
+                    "signing"
                 ],
                 "security": [
                     {},
@@ -6861,7 +7276,7 @@
                 "summary": "Get footer template",
                 "description": "Returns the current footer template if set, otherwise returns the default template.",
                 "tags": [
-                    "footer_template"
+                    "appearance"
                 ],
                 "security": [
                     {
@@ -6955,6 +7370,34 @@
                                 }
                             }
                         }
+                    },
+                    "401": {
+                        "description": "Current user is not logged in",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "required": [
+                                        "ocs"
+                                    ],
+                                    "properties": {
+                                        "ocs": {
+                                            "type": "object",
+                                            "required": [
+                                                "meta",
+                                                "data"
+                                            ],
+                                            "properties": {
+                                                "meta": {
+                                                    "$ref": "#/components/schemas/OCSMeta"
+                                                },
+                                                "data": {}
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
                     }
                 }
             }
@@ -6964,7 +7407,7 @@
                 "operationId": "footer_template-preview-pdf",
                 "summary": "Preview footer template as PDF",
                 "tags": [
-                    "footer_template"
+                    "appearance"
                 ],
                 "security": [
                     {
@@ -7001,6 +7444,7 @@
                                     "writeQrcodeOnFooter": {
                                         "type": "boolean",
                                         "nullable": true,
+                                        "default": null,
                                         "description": "Whether to force QR code rendering in footer preview (null uses policy)"
                                     }
                                 }
@@ -7103,6 +7547,34 @@
                                 }
                             }
                         }
+                    },
+                    "401": {
+                        "description": "Current user is not logged in",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "required": [
+                                        "ocs"
+                                    ],
+                                    "properties": {
+                                        "ocs": {
+                                            "type": "object",
+                                            "required": [
+                                                "meta",
+                                                "data"
+                                            ],
+                                            "properties": {
+                                                "meta": {
+                                                    "$ref": "#/components/schemas/OCSMeta"
+                                                },
+                                                "data": {}
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
                     }
                 }
             }
@@ -7112,7 +7584,7 @@
                 "operationId": "id_docs-add-files",
                 "summary": "Add identification documents to user profile",
                 "tags": [
-                    "id_docs"
+                    "identity"
                 ],
                 "security": [
                     {},
@@ -7234,7 +7706,7 @@
                 "operationId": "id_docs-list-unauthenticated-signer-documents",
                 "summary": "List files of unauthenticated account",
                 "tags": [
-                    "id_docs"
+                    "identity"
                 ],
                 "security": [
                     {},
@@ -7264,7 +7736,8 @@
                         "description": "User ID to filter by",
                         "schema": {
                             "type": "string",
-                            "nullable": true
+                            "nullable": true,
+                            "default": null
                         }
                     },
                     {
@@ -7274,7 +7747,8 @@
                         "schema": {
                             "type": "integer",
                             "format": "int64",
-                            "nullable": true
+                            "nullable": true,
+                            "default": null
                         }
                     },
                     {
@@ -7284,7 +7758,8 @@
                         "schema": {
                             "type": "integer",
                             "format": "int64",
-                            "nullable": true
+                            "nullable": true,
+                            "default": null
                         }
                     },
                     {
@@ -7294,7 +7769,8 @@
                         "schema": {
                             "type": "integer",
                             "format": "int64",
-                            "nullable": true
+                            "nullable": true,
+                            "default": null
                         }
                     },
                     {
@@ -7377,7 +7853,7 @@
                 "operationId": "id_docs-delete",
                 "summary": "Delete file from account",
                 "tags": [
-                    "id_docs"
+                    "identity"
                 ],
                 "security": [
                     {},
@@ -7417,7 +7893,8 @@
                         "description": "Sign request UUID for unauthenticated access",
                         "schema": {
                             "type": "string",
-                            "nullable": true
+                            "nullable": true,
+                            "default": null
                         }
                     },
                     {
@@ -7498,7 +7975,7 @@
                 "operationId": "id_docs-list-to-approval",
                 "summary": "List files that need to be approved",
                 "tags": [
-                    "id_docs"
+                    "identity"
                 ],
                 "security": [
                     {
@@ -7527,7 +8004,8 @@
                         "description": "User ID to filter by",
                         "schema": {
                             "type": "string",
-                            "nullable": true
+                            "nullable": true,
+                            "default": null
                         }
                     },
                     {
@@ -7537,7 +8015,8 @@
                         "schema": {
                             "type": "integer",
                             "format": "int64",
-                            "nullable": true
+                            "nullable": true,
+                            "default": null
                         }
                     },
                     {
@@ -7547,7 +8026,8 @@
                         "schema": {
                             "type": "integer",
                             "format": "int64",
-                            "nullable": true
+                            "nullable": true,
+                            "default": null
                         }
                     },
                     {
@@ -7557,7 +8037,8 @@
                         "schema": {
                             "type": "integer",
                             "format": "int64",
-                            "nullable": true
+                            "nullable": true,
+                            "default": null
                         }
                     },
                     {
@@ -7566,7 +8047,8 @@
                         "description": "Sort field (e.g., 'owner', 'file_type', 'status')",
                         "schema": {
                             "type": "string",
-                            "nullable": true
+                            "nullable": true,
+                            "default": null
                         }
                     },
                     {
@@ -7575,7 +8057,8 @@
                         "description": "Sort order (ASC or DESC)",
                         "schema": {
                             "type": "string",
-                            "nullable": true
+                            "nullable": true,
+                            "default": null
                         }
                     },
                     {
@@ -7649,6 +8132,34 @@
                                 }
                             }
                         }
+                    },
+                    "401": {
+                        "description": "Current user is not logged in",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "required": [
+                                        "ocs"
+                                    ],
+                                    "properties": {
+                                        "ocs": {
+                                            "type": "object",
+                                            "required": [
+                                                "meta",
+                                                "data"
+                                            ],
+                                            "properties": {
+                                                "meta": {
+                                                    "$ref": "#/components/schemas/OCSMeta"
+                                                },
+                                                "data": {}
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
                     }
                 }
             }
@@ -7659,7 +8170,7 @@
                 "summary": "List possible signers",
                 "description": "Used to identify who can be invited to sign a document. The response follows Administration Settings > LibreSign > Identify method.",
                 "tags": [
-                    "identify"
+                    "identity"
                 ],
                 "security": [
                     {
@@ -7761,6 +8272,34 @@
                                 }
                             }
                         }
+                    },
+                    "401": {
+                        "description": "Current user is not logged in",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "required": [
+                                        "ocs"
+                                    ],
+                                    "properties": {
+                                        "ocs": {
+                                            "type": "object",
+                                            "required": [
+                                                "meta",
+                                                "data"
+                                            ],
+                                            "properties": {
+                                                "meta": {
+                                                    "$ref": "#/components/schemas/OCSMeta"
+                                                },
+                                                "data": {}
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
                     }
                 }
             }
@@ -7770,7 +8309,7 @@
                 "operationId": "notify-signers",
                 "summary": "Notify signers of a file",
                 "tags": [
-                    "notify"
+                    "notifications"
                 ],
                 "security": [
                     {
@@ -7967,6 +8506,34 @@
                                 }
                             }
                         }
+                    },
+                    "401": {
+                        "description": "Current user is not logged in",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "required": [
+                                        "ocs"
+                                    ],
+                                    "properties": {
+                                        "ocs": {
+                                            "type": "object",
+                                            "required": [
+                                                "meta",
+                                                "data"
+                                            ],
+                                            "properties": {
+                                                "meta": {
+                                                    "$ref": "#/components/schemas/OCSMeta"
+                                                },
+                                                "data": {}
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
                     }
                 }
             }
@@ -7976,7 +8543,7 @@
                 "operationId": "notify-signer",
                 "summary": "Notify a signer of a file",
                 "tags": [
-                    "notify"
+                    "notifications"
                 ],
                 "security": [
                     {
@@ -8010,6 +8577,7 @@
                                     "requestId": {
                                         "type": "string",
                                         "nullable": true,
+                                        "default": null,
                                         "description": "Optional random idempotency key (32 lowercase hex characters)"
                                     }
                                 }
@@ -8168,6 +8736,34 @@
                                 }
                             }
                         }
+                    },
+                    "401": {
+                        "description": "Current user is not logged in",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "required": [
+                                        "ocs"
+                                    ],
+                                    "properties": {
+                                        "ocs": {
+                                            "type": "object",
+                                            "required": [
+                                                "meta",
+                                                "data"
+                                            ],
+                                            "properties": {
+                                                "meta": {
+                                                    "$ref": "#/components/schemas/OCSMeta"
+                                                },
+                                                "data": {}
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
                     }
                 }
             }
@@ -8177,7 +8773,7 @@
                 "operationId": "notify-status",
                 "summary": "Read the status of one manual reminder, including each channel.",
                 "tags": [
-                    "notify"
+                    "notifications"
                 ],
                 "security": [
                     {
@@ -8270,6 +8866,34 @@
                                 }
                             }
                         }
+                    },
+                    "401": {
+                        "description": "Current user is not logged in",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "required": [
+                                        "ocs"
+                                    ],
+                                    "properties": {
+                                        "ocs": {
+                                            "type": "object",
+                                            "required": [
+                                                "meta",
+                                                "data"
+                                            ],
+                                            "properties": {
+                                                "meta": {
+                                                    "$ref": "#/components/schemas/OCSMeta"
+                                                },
+                                                "data": {}
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
                     }
                 }
             }
@@ -8279,7 +8903,7 @@
                 "operationId": "notify-notification-dismiss",
                 "summary": "Dismiss a specific notification",
                 "tags": [
-                    "notify"
+                    "notifications"
                 ],
                 "security": [
                     {
@@ -8381,6 +9005,34 @@
                                 }
                             }
                         }
+                    },
+                    "401": {
+                        "description": "Current user is not logged in",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "required": [
+                                        "ocs"
+                                    ],
+                                    "properties": {
+                                        "ocs": {
+                                            "type": "object",
+                                            "required": [
+                                                "meta",
+                                                "data"
+                                            ],
+                                            "properties": {
+                                                "meta": {
+                                                    "$ref": "#/components/schemas/OCSMeta"
+                                                },
+                                                "data": {}
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
                     }
                 }
             }
@@ -8390,7 +9042,7 @@
                 "operationId": "policy-effective",
                 "summary": "Effective policies bootstrap",
                 "tags": [
-                    "policy"
+                    "policies"
                 ],
                 "security": [
                     {
@@ -8454,6 +9106,34 @@
                                 }
                             }
                         }
+                    },
+                    "401": {
+                        "description": "Current user is not logged in",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "required": [
+                                        "ocs"
+                                    ],
+                                    "properties": {
+                                        "ocs": {
+                                            "type": "object",
+                                            "required": [
+                                                "meta",
+                                                "data"
+                                            ],
+                                            "properties": {
+                                                "meta": {
+                                                    "$ref": "#/components/schemas/OCSMeta"
+                                                },
+                                                "data": {}
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
                     }
                 }
             }
@@ -8463,7 +9143,7 @@
                 "operationId": "policy-get-group",
                 "summary": "Read a group-level policy value",
                 "tags": [
-                    "policy"
+                    "policies"
                 ],
                 "security": [
                     {
@@ -8577,6 +9257,34 @@
                                 }
                             }
                         }
+                    },
+                    "401": {
+                        "description": "Current user is not logged in",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "required": [
+                                        "ocs"
+                                    ],
+                                    "properties": {
+                                        "ocs": {
+                                            "type": "object",
+                                            "required": [
+                                                "meta",
+                                                "data"
+                                            ],
+                                            "properties": {
+                                                "meta": {
+                                                    "$ref": "#/components/schemas/OCSMeta"
+                                                },
+                                                "data": {}
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
                     }
                 }
             },
@@ -8584,7 +9292,7 @@
                 "operationId": "policy-set-group",
                 "summary": "Save a group-level policy value",
                 "tags": [
-                    "policy"
+                    "policies"
                 ],
                 "security": [
                     {
@@ -8603,6 +9311,7 @@
                                 "properties": {
                                     "value": {
                                         "nullable": true,
+                                        "default": null,
                                         "description": "Policy value to persist for the group.",
                                         "anyOf": [
                                             {
@@ -8771,6 +9480,34 @@
                                 }
                             }
                         }
+                    },
+                    "401": {
+                        "description": "Current user is not logged in",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "required": [
+                                        "ocs"
+                                    ],
+                                    "properties": {
+                                        "ocs": {
+                                            "type": "object",
+                                            "required": [
+                                                "meta",
+                                                "data"
+                                            ],
+                                            "properties": {
+                                                "meta": {
+                                                    "$ref": "#/components/schemas/OCSMeta"
+                                                },
+                                                "data": {}
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
                     }
                 }
             },
@@ -8778,7 +9515,7 @@
                 "operationId": "policy-clear-group",
                 "summary": "Clear a group-level policy value",
                 "tags": [
-                    "policy"
+                    "policies"
                 ],
                 "security": [
                     {
@@ -8922,6 +9659,34 @@
                                 }
                             }
                         }
+                    },
+                    "401": {
+                        "description": "Current user is not logged in",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "required": [
+                                        "ocs"
+                                    ],
+                                    "properties": {
+                                        "ocs": {
+                                            "type": "object",
+                                            "required": [
+                                                "meta",
+                                                "data"
+                                            ],
+                                            "properties": {
+                                                "meta": {
+                                                    "$ref": "#/components/schemas/OCSMeta"
+                                                },
+                                                "data": {}
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
                     }
                 }
             }
@@ -8931,7 +9696,7 @@
                 "operationId": "policy-list-group-policies",
                 "summary": "List all explicit group-level policy values for a policy key",
                 "tags": [
-                    "policy"
+                    "policies"
                 ],
                 "security": [
                     {
@@ -9016,6 +9781,34 @@
                                 }
                             }
                         }
+                    },
+                    "401": {
+                        "description": "Current user is not logged in",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "required": [
+                                        "ocs"
+                                    ],
+                                    "properties": {
+                                        "ocs": {
+                                            "type": "object",
+                                            "required": [
+                                                "meta",
+                                                "data"
+                                            ],
+                                            "properties": {
+                                                "meta": {
+                                                    "$ref": "#/components/schemas/OCSMeta"
+                                                },
+                                                "data": {}
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
                     }
                 }
             }
@@ -9025,7 +9818,7 @@
                 "operationId": "policy-get-user-policy-for-user",
                 "summary": "Read an explicit user-level policy for a target user (admin scope)",
                 "tags": [
-                    "policy"
+                    "policies"
                 ],
                 "security": [
                     {
@@ -9139,6 +9932,34 @@
                                 }
                             }
                         }
+                    },
+                    "401": {
+                        "description": "Current user is not logged in",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "required": [
+                                        "ocs"
+                                    ],
+                                    "properties": {
+                                        "ocs": {
+                                            "type": "object",
+                                            "required": [
+                                                "meta",
+                                                "data"
+                                            ],
+                                            "properties": {
+                                                "meta": {
+                                                    "$ref": "#/components/schemas/OCSMeta"
+                                                },
+                                                "data": {}
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
                     }
                 }
             },
@@ -9146,7 +9967,7 @@
                 "operationId": "policy-set-user-policy-for-user",
                 "summary": "Save an explicit user policy for a target user (admin scope)",
                 "tags": [
-                    "policy"
+                    "policies"
                 ],
                 "security": [
                     {
@@ -9165,6 +9986,7 @@
                                 "properties": {
                                     "value": {
                                         "nullable": true,
+                                        "default": null,
                                         "description": "Policy value to persist as assigned target user policy.",
                                         "anyOf": [
                                             {
@@ -9333,6 +10155,34 @@
                                 }
                             }
                         }
+                    },
+                    "401": {
+                        "description": "Current user is not logged in",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "required": [
+                                        "ocs"
+                                    ],
+                                    "properties": {
+                                        "ocs": {
+                                            "type": "object",
+                                            "required": [
+                                                "meta",
+                                                "data"
+                                            ],
+                                            "properties": {
+                                                "meta": {
+                                                    "$ref": "#/components/schemas/OCSMeta"
+                                                },
+                                                "data": {}
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
                     }
                 }
             },
@@ -9340,7 +10190,7 @@
                 "operationId": "policy-clear-user-policy-for-user",
                 "summary": "Clear an explicit user policy for a target user (admin scope)",
                 "tags": [
-                    "policy"
+                    "policies"
                 ],
                 "security": [
                     {
@@ -9484,6 +10334,34 @@
                                 }
                             }
                         }
+                    },
+                    "401": {
+                        "description": "Current user is not logged in",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "required": [
+                                        "ocs"
+                                    ],
+                                    "properties": {
+                                        "ocs": {
+                                            "type": "object",
+                                            "required": [
+                                                "meta",
+                                                "data"
+                                            ],
+                                            "properties": {
+                                                "meta": {
+                                                    "$ref": "#/components/schemas/OCSMeta"
+                                                },
+                                                "data": {}
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
                     }
                 }
             }
@@ -9493,7 +10371,7 @@
                 "operationId": "policy-list-user-policies",
                 "summary": "List all explicit user-level policy values for a policy key",
                 "tags": [
-                    "policy"
+                    "policies"
                 ],
                 "security": [
                     {
@@ -9578,6 +10456,34 @@
                                 }
                             }
                         }
+                    },
+                    "401": {
+                        "description": "Current user is not logged in",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "required": [
+                                        "ocs"
+                                    ],
+                                    "properties": {
+                                        "ocs": {
+                                            "type": "object",
+                                            "required": [
+                                                "meta",
+                                                "data"
+                                            ],
+                                            "properties": {
+                                                "meta": {
+                                                    "$ref": "#/components/schemas/OCSMeta"
+                                                },
+                                                "data": {}
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
                     }
                 }
             }
@@ -9587,7 +10493,7 @@
                 "operationId": "policy-set-group-compound",
                 "summary": "Save several group-level values of the same composite policy at once",
                 "tags": [
-                    "policy"
+                    "policies"
                 ],
                 "security": [
                     {
@@ -9781,6 +10687,34 @@
                                 }
                             }
                         }
+                    },
+                    "401": {
+                        "description": "Current user is not logged in",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "required": [
+                                        "ocs"
+                                    ],
+                                    "properties": {
+                                        "ocs": {
+                                            "type": "object",
+                                            "required": [
+                                                "meta",
+                                                "data"
+                                            ],
+                                            "properties": {
+                                                "meta": {
+                                                    "$ref": "#/components/schemas/OCSMeta"
+                                                },
+                                                "data": {}
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
                     }
                 }
             }
@@ -9790,7 +10724,7 @@
                 "operationId": "policy-set-user-preference-compound",
                 "summary": "Save several values of the same composite policy as user preferences",
                 "tags": [
-                    "policy"
+                    "policies"
                 ],
                 "security": [
                     {
@@ -9936,6 +10870,34 @@
                                 }
                             }
                         }
+                    },
+                    "401": {
+                        "description": "Current user is not logged in",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "required": [
+                                        "ocs"
+                                    ],
+                                    "properties": {
+                                        "ocs": {
+                                            "type": "object",
+                                            "required": [
+                                                "meta",
+                                                "data"
+                                            ],
+                                            "properties": {
+                                                "meta": {
+                                                    "$ref": "#/components/schemas/OCSMeta"
+                                                },
+                                                "data": {}
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
                     }
                 }
             }
@@ -9945,7 +10907,7 @@
                 "operationId": "policy-set-user-policy-for-user-compound",
                 "summary": "Save several values of the same composite policy for a target user (admin scope)",
                 "tags": [
-                    "policy"
+                    "policies"
                 ],
                 "security": [
                     {
@@ -10139,6 +11101,34 @@
                                 }
                             }
                         }
+                    },
+                    "401": {
+                        "description": "Current user is not logged in",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "required": [
+                                        "ocs"
+                                    ],
+                                    "properties": {
+                                        "ocs": {
+                                            "type": "object",
+                                            "required": [
+                                                "meta",
+                                                "data"
+                                            ],
+                                            "properties": {
+                                                "meta": {
+                                                    "$ref": "#/components/schemas/OCSMeta"
+                                                },
+                                                "data": {}
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
                     }
                 }
             }
@@ -10148,7 +11138,7 @@
                 "operationId": "policy-set-user-preference",
                 "summary": "Save a user policy preference",
                 "tags": [
-                    "policy"
+                    "policies"
                 ],
                 "security": [
                     {
@@ -10167,6 +11157,7 @@
                                 "properties": {
                                     "value": {
                                         "nullable": true,
+                                        "default": null,
                                         "description": "Policy value to persist as the current user's default.",
                                         "anyOf": [
                                             {
@@ -10290,6 +11281,34 @@
                                 }
                             }
                         }
+                    },
+                    "401": {
+                        "description": "Current user is not logged in",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "required": [
+                                        "ocs"
+                                    ],
+                                    "properties": {
+                                        "ocs": {
+                                            "type": "object",
+                                            "required": [
+                                                "meta",
+                                                "data"
+                                            ],
+                                            "properties": {
+                                                "meta": {
+                                                    "$ref": "#/components/schemas/OCSMeta"
+                                                },
+                                                "data": {}
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
                     }
                 }
             },
@@ -10297,7 +11316,7 @@
                 "operationId": "policy-clear-user-preference",
                 "summary": "Clear a user policy preference",
                 "tags": [
-                    "policy"
+                    "policies"
                 ],
                 "security": [
                     {
@@ -10401,6 +11420,34 @@
                                 }
                             }
                         }
+                    },
+                    "401": {
+                        "description": "Current user is not logged in",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "required": [
+                                        "ocs"
+                                    ],
+                                    "properties": {
+                                        "ocs": {
+                                            "type": "object",
+                                            "required": [
+                                                "meta",
+                                                "data"
+                                            ],
+                                            "properties": {
+                                                "meta": {
+                                                    "$ref": "#/components/schemas/OCSMeta"
+                                                },
+                                                "data": {}
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
                     }
                 }
             }
@@ -10411,7 +11458,7 @@
                 "summary": "Request signature",
                 "description": "Request that a file be signed by a list of signers. Each signer in the signers array can optionally include a 'signingOrder' field to control the order of signatures when ordered signing flow is enabled. The returned `data` always includes `filesCount` and `files`. For `nodeType=file`, `filesCount=1` and `files` contains the current file. For `nodeType=envelope`, `files` contains envelope child files.",
                 "tags": [
-                    "signing"
+                    "requests"
                 ],
                 "security": [
                     {
@@ -10462,6 +11509,7 @@
                                     "callback": {
                                         "type": "string",
                                         "nullable": true,
+                                        "default": null,
                                         "description": "URL that will receive a POST after the document is signed"
                                     },
                                     "status": {
@@ -10474,6 +11522,7 @@
                                     "policy": {
                                         "type": "object",
                                         "nullable": true,
+                                        "default": null,
                                         "description": "Structured policy payload with request-level overrides and active context.",
                                         "additionalProperties": {
                                             "type": "object"
@@ -10575,6 +11624,34 @@
                                 }
                             }
                         }
+                    },
+                    "401": {
+                        "description": "Current user is not logged in",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "required": [
+                                        "ocs"
+                                    ],
+                                    "properties": {
+                                        "ocs": {
+                                            "type": "object",
+                                            "required": [
+                                                "meta",
+                                                "data"
+                                            ],
+                                            "properties": {
+                                                "meta": {
+                                                    "$ref": "#/components/schemas/OCSMeta"
+                                                },
+                                                "data": {}
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
                     }
                 }
             },
@@ -10583,7 +11660,7 @@
                 "summary": "Updates signatures data",
                 "description": "It is necessary to inform the UUID of the file and a list of signers.",
                 "tags": [
-                    "signing"
+                    "requests"
                 ],
                 "security": [
                     {
@@ -10612,30 +11689,39 @@
                                     "uuid": {
                                         "type": "string",
                                         "nullable": true,
+                                        "default": null,
                                         "description": "UUID of sign request. The signer UUID is what the person receives via email when asked to sign. This is not the file UUID."
                                     },
                                     "visibleElements": {
                                         "type": "array",
                                         "nullable": true,
+                                        "default": null,
                                         "description": "Visible elements on document",
                                         "items": {
                                             "$ref": "#/components/schemas/VisibleElement"
                                         }
                                     },
                                     "file": {
-                                        "$ref": "#/components/schemas/NewFile",
                                         "nullable": true,
-                                        "description": "File object. Supports nodeId (a non-negative integer or its canonical decimal string), url, base64 or path when creating a new request."
+                                        "default": null,
+                                        "description": "File object. Supports nodeId (a non-negative integer or its canonical decimal string), url, base64 or path when creating a new request.",
+                                        "allOf": [
+                                            {
+                                                "$ref": "#/components/schemas/NewFile"
+                                            }
+                                        ]
                                     },
                                     "status": {
                                         "type": "integer",
                                         "format": "int64",
                                         "nullable": true,
+                                        "default": null,
                                         "description": "Numeric code of status * 0 - no signers * 1 - signed * 2 - pending"
                                     },
                                     "policy": {
                                         "type": "object",
                                         "nullable": true,
+                                        "default": null,
                                         "description": "Structured policy payload with request-level overrides and active context.",
                                         "additionalProperties": {
                                             "type": "object"
@@ -10644,6 +11730,7 @@
                                     "name": {
                                         "type": "string",
                                         "nullable": true,
+                                        "default": null,
                                         "description": "The name of file to sign"
                                     },
                                     "settings": {
@@ -10755,6 +11842,34 @@
                                 }
                             }
                         }
+                    },
+                    "401": {
+                        "description": "Current user is not logged in",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "required": [
+                                        "ocs"
+                                    ],
+                                    "properties": {
+                                        "ocs": {
+                                            "type": "object",
+                                            "required": [
+                                                "meta",
+                                                "data"
+                                            ],
+                                            "properties": {
+                                                "meta": {
+                                                    "$ref": "#/components/schemas/OCSMeta"
+                                                },
+                                                "data": {}
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
                     }
                 }
             }
@@ -10765,7 +11880,7 @@
                 "summary": "Delete sign request",
                 "description": "You can only request exclusion as any sign",
                 "tags": [
-                    "signing"
+                    "requests"
                 ],
                 "security": [
                     {
@@ -10855,27 +11970,52 @@
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "type": "object",
-                                    "required": [
-                                        "ocs"
-                                    ],
-                                    "properties": {
-                                        "ocs": {
+                                    "anyOf": [
+                                        {
                                             "type": "object",
                                             "required": [
-                                                "meta",
-                                                "data"
+                                                "ocs"
                                             ],
                                             "properties": {
-                                                "meta": {
-                                                    "$ref": "#/components/schemas/OCSMeta"
-                                                },
-                                                "data": {
-                                                    "$ref": "#/components/schemas/MessageResponse"
+                                                "ocs": {
+                                                    "type": "object",
+                                                    "required": [
+                                                        "meta",
+                                                        "data"
+                                                    ],
+                                                    "properties": {
+                                                        "meta": {
+                                                            "$ref": "#/components/schemas/OCSMeta"
+                                                        },
+                                                        "data": {
+                                                            "$ref": "#/components/schemas/MessageResponse"
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                        },
+                                        {
+                                            "type": "object",
+                                            "required": [
+                                                "ocs"
+                                            ],
+                                            "properties": {
+                                                "ocs": {
+                                                    "type": "object",
+                                                    "required": [
+                                                        "meta",
+                                                        "data"
+                                                    ],
+                                                    "properties": {
+                                                        "meta": {
+                                                            "$ref": "#/components/schemas/OCSMeta"
+                                                        },
+                                                        "data": {}
+                                                    }
                                                 }
                                             }
                                         }
-                                    }
+                                    ]
                                 }
                             }
                         }
@@ -10919,7 +12059,7 @@
                 "summary": "Delete sign request",
                 "description": "You can only request exclusion as any sign",
                 "tags": [
-                    "signing"
+                    "requests"
                 ],
                 "security": [
                     {
@@ -10999,27 +12139,52 @@
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "type": "object",
-                                    "required": [
-                                        "ocs"
-                                    ],
-                                    "properties": {
-                                        "ocs": {
+                                    "anyOf": [
+                                        {
                                             "type": "object",
                                             "required": [
-                                                "meta",
-                                                "data"
+                                                "ocs"
                                             ],
                                             "properties": {
-                                                "meta": {
-                                                    "$ref": "#/components/schemas/OCSMeta"
-                                                },
-                                                "data": {
-                                                    "$ref": "#/components/schemas/MessageResponse"
+                                                "ocs": {
+                                                    "type": "object",
+                                                    "required": [
+                                                        "meta",
+                                                        "data"
+                                                    ],
+                                                    "properties": {
+                                                        "meta": {
+                                                            "$ref": "#/components/schemas/OCSMeta"
+                                                        },
+                                                        "data": {
+                                                            "$ref": "#/components/schemas/MessageResponse"
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                        },
+                                        {
+                                            "type": "object",
+                                            "required": [
+                                                "ocs"
+                                            ],
+                                            "properties": {
+                                                "ocs": {
+                                                    "type": "object",
+                                                    "required": [
+                                                        "meta",
+                                                        "data"
+                                                    ],
+                                                    "properties": {
+                                                        "meta": {
+                                                            "$ref": "#/components/schemas/OCSMeta"
+                                                        },
+                                                        "data": {}
+                                                    }
                                                 }
                                             }
                                         }
-                                    }
+                                    ]
                                 }
                             }
                         }
@@ -11518,6 +12683,34 @@
                                 }
                             }
                         }
+                    },
+                    "401": {
+                        "description": "Current user is not logged in",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "required": [
+                                        "ocs"
+                                    ],
+                                    "properties": {
+                                        "ocs": {
+                                            "type": "object",
+                                            "required": [
+                                                "meta",
+                                                "data"
+                                            ],
+                                            "properties": {
+                                                "meta": {
+                                                    "$ref": "#/components/schemas/OCSMeta"
+                                                },
+                                                "data": {}
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
                     }
                 }
             }
@@ -11784,6 +12977,15 @@
                                         "type": "string",
                                         "nullable": true,
                                         "description": "Method used to sign the document, i.e. emailToken, account, clickToSign, smsToken, signalToken, telegramToken, whatsappToken, xmppToken"
+                                    },
+                                    "idDocApproval": {
+                                        "type": "string",
+                                        "nullable": true,
+                                        "default": null,
+                                        "enum": [
+                                            "true"
+                                        ],
+                                        "description": "Literal string \"true\" when the UUID is an identification-document file UUID (matches middleware RequireSigner)"
                                     }
                                 }
                             }
@@ -12032,7 +13234,7 @@
                 "operationId": "signature_elements-create-signature-element",
                 "summary": "Create signature element",
                 "tags": [
-                    "signature_elements"
+                    "appearance"
                 ],
                 "security": [
                     {},
@@ -12076,6 +13278,14 @@
                                 "v1"
                             ],
                             "default": "v1"
+                        }
+                    },
+                    {
+                        "name": "libresign-sign-request-uuid",
+                        "in": "header",
+                        "description": "The UUID of the sign request, used to identify the request",
+                        "schema": {
+                            "type": "string"
                         }
                     },
                     {
@@ -12156,7 +13366,7 @@
                 "operationId": "signature_elements-get-signature-elements",
                 "summary": "Get signature elements",
                 "tags": [
-                    "signature_elements"
+                    "appearance"
                 ],
                 "security": [
                     {},
@@ -12178,6 +13388,14 @@
                                 "v1"
                             ],
                             "default": "v1"
+                        }
+                    },
+                    {
+                        "name": "libresign-sign-request-uuid",
+                        "in": "header",
+                        "description": "The UUID of the sign request, used to identify the request",
+                        "schema": {
+                            "type": "string"
                         }
                     },
                     {
@@ -12261,7 +13479,7 @@
                 "summary": "Use the saved signature elements of a signer identified by email",
                 "description": "The saved elements are copied into the current signing session only after the signer satisfies the confirm method configured for the Email identification factor.",
                 "tags": [
-                    "signature_elements"
+                    "appearance"
                 ],
                 "security": [
                     {},
@@ -12300,6 +13518,14 @@
                                 "v1"
                             ],
                             "default": "v1"
+                        }
+                    },
+                    {
+                        "name": "libresign-sign-request-uuid",
+                        "in": "header",
+                        "description": "The UUID of the sign request, used to identify the request",
+                        "schema": {
+                            "type": "string"
                         }
                     },
                     {
@@ -12382,7 +13608,7 @@
                 "operationId": "signature_elements-preview-signature-element",
                 "summary": "Get preview of signature elements of",
                 "tags": [
-                    "signature_elements"
+                    "appearance"
                 ],
                 "security": [
                     {},
@@ -12477,7 +13703,7 @@
                 "operationId": "signature_elements-get-signature-element",
                 "summary": "Get signature element of signer",
                 "tags": [
-                    "signature_elements"
+                    "appearance"
                 ],
                 "security": [
                     {
@@ -12581,6 +13807,34 @@
                                 }
                             }
                         }
+                    },
+                    "401": {
+                        "description": "Current user is not logged in",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "required": [
+                                        "ocs"
+                                    ],
+                                    "properties": {
+                                        "ocs": {
+                                            "type": "object",
+                                            "required": [
+                                                "meta",
+                                                "data"
+                                            ],
+                                            "properties": {
+                                                "meta": {
+                                                    "$ref": "#/components/schemas/OCSMeta"
+                                                },
+                                                "data": {}
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
                     }
                 }
             },
@@ -12588,7 +13842,7 @@
                 "operationId": "signature_elements-patch-signature-element",
                 "summary": "Update signature element",
                 "tags": [
-                    "signature_elements"
+                    "appearance"
                 ],
                 "security": [
                     {},
@@ -12725,7 +13979,7 @@
                 "operationId": "signature_elements-delete-signature-element",
                 "summary": "Delete signature element",
                 "tags": [
-                    "signature_elements"
+                    "appearance"
                 ],
                 "security": [
                     {},
@@ -12839,7 +14093,7 @@
                 "operationId": "signature_stamp_preview-preview-pdf",
                 "summary": "Render a preview PDF of the signature stamp with the provided configuration",
                 "tags": [
-                    "signature_stamp_preview"
+                    "appearance"
                 ],
                 "security": [
                     {
@@ -12864,29 +14118,35 @@
                                     "templateFontSize": {
                                         "type": "number",
                                         "format": "double",
+                                        "default": null,
                                         "description": "Font size for template text in pt"
                                     },
                                     "signatureFontSize": {
                                         "type": "number",
                                         "format": "double",
+                                        "default": null,
                                         "description": "Font size for signer name in pt"
                                     },
                                     "signatureWidth": {
                                         "type": "number",
                                         "format": "double",
+                                        "default": null,
                                         "description": "Stamp width in mm"
                                     },
                                     "signatureHeight": {
                                         "type": "number",
                                         "format": "double",
+                                        "default": null,
                                         "description": "Stamp height in mm"
                                     },
                                     "renderMode": {
                                         "type": "string",
+                                        "default": null,
                                         "description": "Render mode: default, text, graphic, description_only"
                                     },
                                     "backgroundType": {
                                         "type": "string",
+                                        "default": null,
                                         "description": "Background: default, custom, deleted"
                                     }
                                 }
@@ -12983,6 +14243,34 @@
                                                 "data": {
                                                     "$ref": "#/components/schemas/ErrorResponse"
                                                 }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Current user is not logged in",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "required": [
+                                        "ocs"
+                                    ],
+                                    "properties": {
+                                        "ocs": {
+                                            "type": "object",
+                                            "required": [
+                                                "meta",
+                                                "data"
+                                            ],
+                                            "properties": {
+                                                "meta": {
+                                                    "$ref": "#/components/schemas/OCSMeta"
+                                                },
+                                                "data": {}
                                             }
                                         }
                                     }

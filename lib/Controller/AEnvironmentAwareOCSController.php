@@ -10,7 +10,7 @@ namespace OCA\Libresign\Controller;
 
 use OCP\AppFramework\OCSController;
 
-abstract class AEnvironmentAwareController extends OCSController {
+abstract class AEnvironmentAwareOCSController extends OCSController {
 	protected int $apiVersion = 1;
 
 	public function setAPIVersion(int $apiVersion): void {

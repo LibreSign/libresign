@@ -38,7 +38,7 @@ class DevelopController extends Controller {
 	 *
 	 * `occ config:system:set debug --value true --type boolean`
 	 *
-	 * @return FileDisplayResponse<Http::STATUS_OK, array{Content-Type: 'application/pdf',Content-Disposition: 'inline; filename="file.pdf"'}>|DataResponse<Http::STATUS_NOT_FOUND, array<empty>, array{}>
+	 * @return FileDisplayResponse<Http::STATUS_OK, array{Content-Type: 'application/pdf',Content-Disposition: 'inline; filename="file.pdf"'}>|DataResponse<Http::STATUS_NOT_FOUND, list<empty>, array{}>
 	 *
 	 * 200: PDF returned
 	 * 404: Debug mode not enabled

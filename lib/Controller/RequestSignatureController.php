@@ -36,7 +36,7 @@ use OCP\IUserSession;
  * @psalm-import-type LibresignSettings from \OCA\Libresign\ResponseDefinitions
  * @psalm-import-type LibresignVisibleElement from \OCA\Libresign\ResponseDefinitions
  */
-class RequestSignatureController extends AEnvironmentAwareController {
+class RequestSignatureController extends AEnvironmentAwareOCSController {
 	public function __construct(
 		IRequest $request,
 		protected IL10N $l10n,
@@ -59,7 +59,7 @@ class RequestSignatureController extends AEnvironmentAwareController {
 	 * For `nodeType=file`, `filesCount=1` and `files` contains the current file.
 	 * For `nodeType=envelope`, `files` contains envelope child files.
 	 *
-	 * @param LibresignNewSigner[] $signers Collection of signers who must sign the document. Use identifyMethods as the canonical format. Other supported fields: displayName, description, notify, signingOrder, status, deviceGeolocationRequired
+	 * @param list<LibresignNewSigner> $signers Collection of signers who must sign the document. Use identifyMethods as the canonical format. Other supported fields: displayName, description, notify, signingOrder, status, deviceGeolocationRequired
 	 * @param string $name The name of file to sign
 	 * @param LibresignFolderSettings $settings Settings to define how and where the file should be stored
 	 * @param LibresignNewFile $file File object. Supports nodeId (a non-negative integer or its canonical decimal string, as Nextcloud node ids can exceed a JavaScript number), url, base64 or path.
@@ -75,7 +75,7 @@ class RequestSignatureController extends AEnvironmentAwareController {
 	#[NoAdminRequired]
 	#[NoCSRFRequired]
 	#[RequireManager]
-	#[OpenAPI(tags: ['signing'])]
+	#[OpenAPI(tags: ['requests'])]
 	#[ApiRoute(verb: 'POST', url: '/api/{apiVersion}/request-signature', requirements: ['apiVersion' => '(v1)'])]
 	public function requestSignature(
 		array $signers = [],
@@ -131,9 +131,9 @@ class RequestSignatureController extends AEnvironmentAwareController {
 	 *
 	 * It is necessary to inform the UUID of the file and a list of signers.
 	 *
-	 * @param LibresignNewSigner[]|null $signers Collection of signers who must sign the document. Use identifyMethods as the canonical format.
+	 * @param list<LibresignNewSigner>|null $signers Collection of signers who must sign the document. Use identifyMethods as the canonical format.
 	 * @param string|null $uuid UUID of sign request. The signer UUID is what the person receives via email when asked to sign. This is not the file UUID.
-	 * @param LibresignVisibleElement[]|null $visibleElements Visible elements on document
+	 * @param list<LibresignVisibleElement>|null $visibleElements Visible elements on document
 	 * @param LibresignNewFile|null $file File object. Supports nodeId (a non-negative integer or its canonical decimal string), url, base64 or path when creating a new request.
 	 * @param integer|null $status Numeric code of status * 0 - no signers * 1 - signed * 2 - pending
 	 * @param array<string, mixed>|null $policy Structured policy payload with request-level overrides and active context.
@@ -148,7 +148,7 @@ class RequestSignatureController extends AEnvironmentAwareController {
 	#[NoAdminRequired]
 	#[NoCSRFRequired]
 	#[RequireManager]
-	#[OpenAPI(tags: ['signing'])]
+	#[OpenAPI(tags: ['requests'])]
 	#[ApiRoute(verb: 'PATCH', url: '/api/{apiVersion}/request-signature', requirements: ['apiVersion' => '(v1)'])]
 	public function updateSignatureRequest(
 		?array $signers = [],
@@ -224,7 +224,7 @@ class RequestSignatureController extends AEnvironmentAwareController {
 	#[NoAdminRequired]
 	#[NoCSRFRequired]
 	#[RequireManager]
-	#[OpenAPI(tags: ['signing'])]
+	#[OpenAPI(tags: ['requests'])]
 	#[ApiRoute(verb: 'DELETE', url: '/api/{apiVersion}/sign/file_id/{fileId}/{signRequestId}', requirements: ['apiVersion' => '(v1)'])]
 	public function removeSigner(int $fileId, int $signRequestId): DataResponse {
 		try {
@@ -270,7 +270,7 @@ class RequestSignatureController extends AEnvironmentAwareController {
 	#[NoAdminRequired]
 	#[NoCSRFRequired]
 	#[RequireManager]
-	#[OpenAPI(tags: ['signing'])]
+	#[OpenAPI(tags: ['requests'])]
 	#[ApiRoute(verb: 'DELETE', url: '/api/{apiVersion}/sign/file_id/{fileId}', requirements: ['apiVersion' => '(v1)'])]
 	public function deleteSignatureRequest(int $fileId): DataResponse {
 		try {

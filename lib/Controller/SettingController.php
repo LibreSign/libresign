@@ -21,7 +21,7 @@ use OCP\IRequest;
 /**
  * @psalm-import-type LibresignHasRootCertResponse from \OCA\Libresign\ResponseDefinitions
  */
-class SettingController extends AEnvironmentAwareController {
+class SettingController extends AEnvironmentAwareOCSController {
 	public function __construct(
 		IRequest $request,
 		private CertificateEngineFactory $certificateEngineFactory,
@@ -40,7 +40,10 @@ class SettingController extends AEnvironmentAwareController {
 	 */
 	#[NoAdminRequired]
 	#[NoCSRFRequired]
-	#[OpenAPI(scope: OpenAPI::SCOPE_ADMINISTRATION)]
+	#[OpenAPI(
+		scope: OpenAPI::SCOPE_ADMINISTRATION,
+		tags: ['certificates']
+	)]
 	#[ApiRoute(verb: 'GET', url: '/api/{apiVersion}/setting/has-root-cert', requirements: ['apiVersion' => '(v1)'])]
 	public function hasRootCert(): DataResponse {
 		$engine = $this->certificateEngineFactory->getEngine();

@@ -15,8 +15,8 @@ use OCA\Libresign\Service\Policy\Provider\DocMdp\DocMdpPolicy;
 use OCP\IL10N;
 
 /**
- * @psalm-import-type LibresignDocMdpConfig from \OCA\Libresign\ResponseDefinitions
- * @psalm-import-type LibresignDocMdpLevelOption from \OCA\Libresign\ResponseDefinitions
+ * @psalm-import-type LibresignDocMdpConfig from \OCA\Libresign\InternalTypeAliases
+ * @psalm-import-type LibresignDocMdpLevelOption from \OCA\Libresign\InternalTypeAliases
  */
 class ConfigService {
 	private const DEFAULT_LEVEL = DocMdpLevel::NOT_CERTIFIED;

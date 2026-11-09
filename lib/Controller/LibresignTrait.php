@@ -123,7 +123,7 @@ trait LibresignTrait {
 	}
 
 	/**
-	 * @return File[] Array of files, empty if no file entity loaded
+	 * @return array<int, File> Array of files, empty if no file entity loaded
 	 */
 	public function getNextcloudFiles(): array {
 		if (!$this->fileEntity) {

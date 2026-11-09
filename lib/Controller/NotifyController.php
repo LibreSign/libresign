@@ -18,6 +18,7 @@ use OCP\AppFramework\Http;
 use OCP\AppFramework\Http\Attribute\ApiRoute;
 use OCP\AppFramework\Http\Attribute\NoAdminRequired;
 use OCP\AppFramework\Http\Attribute\NoCSRFRequired;
+use OCP\AppFramework\Http\Attribute\OpenAPI;
 use OCP\AppFramework\Http\DataResponse;
 use OCP\IL10N;
 use OCP\IRequest;
@@ -31,7 +32,7 @@ use Psr\Log\LoggerInterface;
  * @psalm-import-type LibresignNotificationStatusResponse from ResponseDefinitions
  */
 
-class NotifyController extends AEnvironmentAwareController {
+class NotifyController extends AEnvironmentAwareOCSController {
 	public function __construct(
 		IRequest $request,
 		private IL10N $l10n,
@@ -47,7 +48,7 @@ class NotifyController extends AEnvironmentAwareController {
 	 * Notify signers of a file
 	 *
 	 * @param integer $fileId The identifier value of LibreSign file
-	 * @param array{email: string}[] $signers Signers data
+	 * @param list<array{email: string}> $signers Signers data
 	 * @return DataResponse<Http::STATUS_OK, LibresignMessageResponse, array{}>|DataResponse<Http::STATUS_UNPROCESSABLE_ENTITY, LibresignMessageResponse|LibresignActionErrorResponse, array{}>|DataResponse<Http::STATUS_BAD_GATEWAY|Http::STATUS_INTERNAL_SERVER_ERROR, LibresignDangerMessagesResponse, array{}>
 	 *
 	 * 200: Request processed
@@ -57,6 +58,7 @@ class NotifyController extends AEnvironmentAwareController {
 	 */
 	#[NoAdminRequired]
 	#[NoCSRFRequired]
+	#[OpenAPI(tags: ['notifications'])]
 	#[ApiRoute(verb: 'POST', url: '/api/{apiVersion}/notify/signers', requirements: ['apiVersion' => '(v1)'])]
 	public function signers(int $fileId, array $signers): DataResponse {
 		return $this->sendNotification(fn () => $this->notifyService->signers($fileId, $signers));
@@ -77,6 +79,7 @@ class NotifyController extends AEnvironmentAwareController {
 	 */
 	#[NoAdminRequired]
 	#[NoCSRFRequired]
+	#[OpenAPI(tags: ['notifications'])]
 	#[ApiRoute(verb: 'POST', url: '/api/{apiVersion}/notify/signer', requirements: ['apiVersion' => '(v1)'])]
 	public function signer(int $fileId, int $signRequestId, ?string $requestId = null): DataResponse {
 		return $this->sendNotification(fn () => $this->notifyService->signer($fileId, $signRequestId, $requestId));
@@ -93,6 +96,7 @@ class NotifyController extends AEnvironmentAwareController {
 	 * 200: Current notification states
 	 */
 	#[NoAdminRequired]
+	#[OpenAPI(tags: ['notifications'])]
 	#[ApiRoute(verb: 'GET', url: '/api/{apiVersion}/notify/status', requirements: ['apiVersion' => '(v1)'])]
 	public function status(int $fileId, int $signRequestId, string $requestId): DataResponse {
 		$response = new DataResponse($this->statusService->status($fileId, $signRequestId, $requestId));
@@ -158,6 +162,7 @@ class NotifyController extends AEnvironmentAwareController {
 	 * 200: OK
 	 */
 	#[NoAdminRequired]
+	#[OpenAPI(tags: ['notifications'])]
 	#[ApiRoute(verb: 'DELETE', url: '/api/{apiVersion}/notify/notification', requirements: ['apiVersion' => '(v1)'])]
 	public function notificationDismiss(
 		string $objectType,

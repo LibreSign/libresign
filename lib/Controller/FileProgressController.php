@@ -23,6 +23,7 @@ use OCP\AppFramework\Http;
 use OCP\AppFramework\Http\Attribute\ApiRoute;
 use OCP\AppFramework\Http\Attribute\NoAdminRequired;
 use OCP\AppFramework\Http\Attribute\NoCSRFRequired;
+use OCP\AppFramework\Http\Attribute\OpenAPI;
 use OCP\AppFramework\Http\Attribute\PublicPage;
 use OCP\AppFramework\Http\DataResponse;
 use OCP\IRequest;
@@ -37,7 +38,7 @@ use OCP\IUserSession;
  * @psalm-import-type LibresignProgressFile from \OCA\Libresign\ResponseDefinitions
  * @psalm-import-type LibresignStatusMessageResponse from \OCA\Libresign\ResponseDefinitions
  */
-class FileProgressController extends AEnvironmentAwareController {
+class FileProgressController extends AEnvironmentAwareOCSController {
 	public function __construct(
 		IRequest $request,
 		private FileMapper $fileMapper,
@@ -68,6 +69,7 @@ class FileProgressController extends AEnvironmentAwareController {
 	#[NoCSRFRequired]
 	#[RequireSignerUuid]
 	#[PublicPage]
+	#[OpenAPI(tags: ['signing'])]
 	#[ApiRoute(verb: 'GET', url: '/api/{apiVersion}/file/progress/{uuid}', requirements: ['apiVersion' => '(v1)'])]
 	public function checkProgressByUuid(string $uuid, int $timeout = 30): DataResponse {
 		$timeout = max(1, min($timeout, 30));
