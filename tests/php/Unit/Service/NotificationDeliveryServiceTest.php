@@ -10,6 +10,7 @@ namespace OCA\Libresign\Tests\Unit\Service;
 
 use OCA\Libresign\BackgroundJob\DeliverNotification;
 use OCA\Libresign\Db\File;
+use OCA\Libresign\Db\FileMapper;
 use OCA\Libresign\Db\NotificationAttempt;
 use OCA\Libresign\Db\NotificationAttemptMapper;
 use OCA\Libresign\Db\NotificationDelivery;
@@ -31,6 +32,7 @@ use OCA\Libresign\Service\Notification\NotificationSubmissionService;
 use OCA\Libresign\Service\NotificationDeliveryService;
 use OCA\Libresign\Service\Worker\WorkerActivationService;
 use OCP\BackgroundJob\IJobList;
+use OCP\EventDispatcher\IEventDispatcher;
 use OCP\IConfig;
 use OCP\IDBConnection;
 use OCP\Notification\IManager;
@@ -79,6 +81,8 @@ final class NotificationDeliveryServiceTest extends TestCase {
 				new NotificationFailureClassifier(),
 				new NotificationHistoryService($this->createMock(\OCA\Libresign\Db\SignRequestMapper::class)),
 				$this->createMock(LoggerInterface::class),
+				$this->createMock(FileMapper::class),
+				$this->createMock(IEventDispatcher::class),
 			),
 			new NotificationEnvelopeCodec($handoffCrypto, $this->createMock(IManager::class)),
 			$this->mode,

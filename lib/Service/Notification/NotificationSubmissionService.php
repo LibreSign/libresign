@@ -8,12 +8,15 @@ declare(strict_types=1);
 
 namespace OCA\Libresign\Service\Notification;
 
+use OCA\Libresign\Db\FileMapper;
 use OCA\Libresign\Db\NotificationAttemptMapper;
 use OCA\Libresign\Db\NotificationDelivery;
 use OCA\Libresign\Db\NotificationDeliveryMapper;
 use OCA\Libresign\Enum\NotificationDeliveryState;
+use OCA\Libresign\Events\NotificationDeliveryStatusChangedEvent;
 use OCA\Libresign\Exception\NotificationPreparationException;
 use OCP\AppFramework\Db\TTransactional;
+use OCP\EventDispatcher\IEventDispatcher;
 use OCP\IDBConnection;
 use Psr\Log\LoggerInterface;
 
@@ -29,6 +32,8 @@ class NotificationSubmissionService {
 		private NotificationFailureClassifier $failureClassifier,
 		private NotificationHistoryService $history,
 		private LoggerInterface $logger,
+		private FileMapper $fileMapper,
+		private IEventDispatcher $eventDispatcher,
 	) {
 	}
 
@@ -90,7 +95,29 @@ class NotificationSubmissionService {
 				$this->attempts->finish($attempt->getId(), $outcome, $reason);
 				$this->deliveries->finish($delivery->getId(), $outcome, $retryAt);
 			}, $this->db);
+			$this->dispatchDeliveryStatusWebhook($delivery);
 		}
 		return true;
 	}
+
+	private function dispatchDeliveryStatusWebhook(NotificationDelivery $delivery): void {
+		// A webhook failure must not mask a persisted provider result or its original error.
+		try {
+			$persisted = $this->deliveries->findById($delivery->getId());
+			$file = $this->fileMapper->getById($persisted->getFileId());
+			$root = $file->hasParent()
+				? $this->fileMapper->getById($file->getParentFileId())
+				: $file;
+			$event = NotificationDeliveryStatusChangedEvent::fromPersistedDelivery($root, $persisted);
+			if ($event !== null) {
+				$this->eventDispatcher->dispatchTyped($event);
+			}
+		} catch (\Throwable $e) {
+			$this->logger->warning('Unable to enqueue notification outcome webhook', [
+				'exception' => $e,
+				'deliveryId' => $delivery->getId(),
+			]);
+		}
+	}
+
 }

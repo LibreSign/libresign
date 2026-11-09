@@ -9,6 +9,7 @@ declare(strict_types=1);
 namespace OCA\Libresign\Tests\Unit\Service\Notification;
 
 use OCA\Libresign\Db\File;
+use OCA\Libresign\Db\FileMapper;
 use OCA\Libresign\Db\NotificationAttempt;
 use OCA\Libresign\Db\NotificationAttemptMapper;
 use OCA\Libresign\Db\NotificationDelivery;
@@ -24,6 +25,7 @@ use OCA\Libresign\Service\Notification\NotificationFailureClassifier;
 use OCA\Libresign\Service\Notification\NotificationHistoryService;
 use OCA\Libresign\Service\Notification\NotificationMessage;
 use OCA\Libresign\Service\Notification\NotificationSubmissionService;
+use OCP\EventDispatcher\IEventDispatcher;
 use OCP\IDBConnection;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
@@ -65,7 +67,7 @@ final class NotificationSubmissionServiceTest extends TestCase {
 		$db->expects($this->never())->method('rollBack');
 		$channel = $this->createMock(NotificationChannel::class);
 		$channel->method('deliver')->willThrowException($failure);
-		$service = new NotificationSubmissionService($deliveries, $attempts, $db, new NotificationFailureClassifier(), new NotificationHistoryService($this->createMock(SignRequestMapper::class)), $this->createMock(LoggerInterface::class));
+		$service = new NotificationSubmissionService($deliveries, $attempts, $db, new NotificationFailureClassifier(), new NotificationHistoryService($this->createMock(SignRequestMapper::class)), $this->createMock(LoggerInterface::class), $this->createMock(FileMapper::class), $this->createMock(IEventDispatcher::class));
 		$this->expectException(get_class($failure));
 		$service->submit($delivery, $this->message(), $channel);
 	}
