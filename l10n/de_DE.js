@@ -1491,6 +1491,7 @@ OC.L10N.register(
     "PDF certification" : "PDF-Zertifizierung",
     "DocMDP" : "DocMDP",
     "Control which PDF changes remain allowed after signing and help readers detect disallowed modifications." : "Kontrollieren, welche PDF-Änderungen nach der Unterzeichnung noch zulässig sind, und den Lesern helfen, unzulässige Änderungen zu erkennen.",
+    "Allow signers identified by email to choose to save their visible signature and reuse it on later documents after passing the configured confirm method." : "Unterzeichnenden, die per E-Mail identifiziert werden, erlauben, ihre sichtbare Unterschrift zu speichern und nach Bestehen der konfigurierten Bestätigungsmethode für spätere Dokumente wiederzuverwenden.",
     "Signing request expiration" : "Ablauf der Signaturanfrage",
     "Define how long a signing request can remain available." : "Festlegen, wie lange eine Signaturanforderung verfügbar bleiben darf.",
     "Define the interval in seconds for renewing signer access/session while the signing request is within its configured maximum validity." : "Intervall in Sekunden festlegen, in dem der Zugriff bzw. die Sitzung des Unterzeichners erneuert wird, solange die Signaturanforderung innerhalb ihrer konfigurierten maximalen Gültigkeitsdauer liegt.",
