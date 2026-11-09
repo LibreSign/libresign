@@ -8,12 +8,16 @@ on:
     paths:
       - '.devcontainer/**'
       - '.github/workflows/devcontainer.yml'
+      - 'package.json'
+      - 'package-lock.json'
   push:
     branches:
       - main
     paths:
       - '.devcontainer/**'
       - '.github/workflows/devcontainer.yml'
+      - 'package.json'
+      - 'package-lock.json'
   workflow_dispatch:
 
 permissions:
@@ -51,6 +55,8 @@ jobs:
           sh -n .devcontainer/prepare.sh
           bash -n .devcontainer/setup.sh
           node --check .devcontainer/tests/playwright-smoke.cjs
+          node --check .devcontainer/tests/playwright-version.cjs
+          node .devcontainer/tests/playwright-version.cjs
 
           ! jq -e '
             ((.forwardPorts // [])[]? | strings | contains(":")) or
