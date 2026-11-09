@@ -316,6 +316,56 @@ final class SignatureRejectionServiceTest extends TestCase {
 		];
 	}
 
+	public function testProgrammingErrorDuringRejectionRollsBackAndRemainsVisible(): void {
+		$this->withPolicy(self::policy('cancel'));
+		$signer = $this->signRequest();
+		$this->signRequestMapper->method('update')
+			->willThrowException(new \TypeError('programming error'));
+		$this->db->expects($this->once())->method('rollBack');
+		$this->db->expects($this->never())->method('commit');
+		$this->eventDispatcher->expects($this->never())->method('dispatchTyped');
+		$this->expectException(\TypeError::class);
+		try {
+			$this->getService()->reject($this->file(), $signer);
+		} finally {
+			$this->assertSame(SignRequestStatus::ABLE_TO_SIGN, $signer->getStatusEnum());
+		}
+	}
+
+	public function testFailedPublicRejectionEventDoesNotSuppressCancellationEvent(): void {
+		$this->withPolicy(self::policy('cancel'));
+		$file = $this->file();
+		$file->setUuid('workflow-uuid');
+		$signer = $this->signRequest();
+		$events = [];
+		$this->eventDispatcher->method('dispatchTyped')->willReturnCallback(
+			static function ($event) use (&$events): void {
+				$events[] = $event;
+				if ($event instanceof SignerRejectedWebhookEvent) {
+					throw new \RuntimeException('private recipient information');
+				}
+			},
+		);
+		$this->logger->expects($this->once())->method('warning')
+			->with($this->anything(), $this->callback(static function (array $context): bool {
+				return $context['errorType'] === 'RuntimeException'
+					&& !str_contains(json_encode($context), 'private recipient information');
+			}));
+		$this->getService()->reject($file, $signer);
+		$this->assertCount(1, array_filter($events, static fn ($event): bool => $event instanceof SigningRequestCanceledEvent));
+	}
+
+	public function testProgrammingErrorDuringPublicEventDispatchIsNotSuppressed(): void {
+		$this->withPolicy(self::policy('cancel'));
+		$file = $this->file();
+		$file->setUuid('workflow-uuid');
+		$this->db->expects($this->once())->method('commit');
+		$this->db->expects($this->never())->method('rollBack');
+		$this->eventDispatcher->method('dispatchTyped')->willThrowException(new \TypeError('programming error'));
+		$this->expectException(\TypeError::class);
+		$this->getService()->reject($file, $this->signRequest());
+	}
+
 	public function testRejectionCanCompletePreviouslySignedWorkflow(): void {
 		$this->withPolicy(self::policy('continue'));
 		$file = $this->file(FileStatus::PARTIAL_SIGNED->value);

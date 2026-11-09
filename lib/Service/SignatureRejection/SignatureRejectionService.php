@@ -24,6 +24,7 @@ use OCA\Libresign\Service\File\SigningWorkflowStatusResolver;
 use OCA\Libresign\Service\FileStatusService;
 use OCA\Libresign\Service\IdentifyMethodService;
 use OCA\Libresign\Service\SequentialSigningService;
+use OCP\AppFramework\Db\DoesNotExistException;
 use OCP\AppFramework\Utility\ITimeFactory;
 use OCP\EventDispatcher\IEventDispatcher;
 use OCP\IDBConnection;
@@ -144,16 +145,18 @@ class SignatureRejectionService {
 			}
 
 			$this->db->commit();
-		} catch (\Throwable $e) {
-			$this->db->rollBack();
-			$this->restoreState($libreSignFile, $signRequests, $previousSignerStatuses, $previousFileStatus);
-			$this->logger->error('Failed to register the signature rejection: ' . $e->getMessage(), [
-				'exception' => $e,
+		} catch (\Exception $e) {
+			$this->rollBackRejection($libreSignFile, $signRequests, $previousSignerStatuses, $previousFileStatus);
+			$this->logger->error('Failed to register the signature rejection', [
+				'errorType' => get_debug_type($e),
 				'signRequestId' => $signRequest->getId(),
 			]);
 
 			// TRANSLATORS Error shown when the rejection could not be saved and nothing was changed.
 			throw new LibresignException($this->l10n->t('It was not possible to register the rejection. Nothing was changed.'));
+		} catch (\Error $e) {
+			$this->rollBackRejection($libreSignFile, $signRequests, $previousSignerStatuses, $previousFileStatus);
+			throw $e;
 		}
 
 		return $activatedSigners;
@@ -188,8 +191,7 @@ class SignatureRejectionService {
 				$envelopeId,
 			);
 			$collected[$envelopeSignRequest->getId()] ??= $envelopeSignRequest;
-		} catch (\Throwable) {
-			// The envelope itself carries no signature request for this signer.
+		} catch (DoesNotExistException) {
 		}
 
 		// A document this signer already signed keeps its signature.
@@ -293,6 +295,16 @@ class SignatureRejectionService {
 	 * @param list<SignRequestEntity> $signRequests
 	 * @param list<int> $previousSignerStatuses
 	 */
+	private function rollBackRejection(
+		FileEntity $file,
+		array $signRequests,
+		array $previousSignerStatuses,
+		int $previousFileStatus,
+	): void {
+		$this->db->rollBack();
+		$this->restoreState($file, $signRequests, $previousSignerStatuses, $previousFileStatus);
+	}
+
 	private function restoreState(
 		FileEntity $libreSignFile,
 		array $signRequests,
@@ -370,33 +382,36 @@ class SignatureRejectionService {
 		SignRequestEntity $signer,
 		int $previousRootStatus,
 	): void {
-		// Signing-state transactions have committed. A webhook scheduling failure
-		// must not undo a persisted rejection.
 		try {
 			$root = $document->hasParent()
 				? $this->fileMapper->getById($document->getParentFileId())
 				: $document;
-			$rejected = SignerRejectedWebhookEvent::afterRejection(
-				$root, $document, $signer, $this->isWorkflowCanceled($root),
-			);
-			if ($rejected !== null) {
-				$this->eventDispatcher->dispatchTyped($rejected);
-			}
-			$canceled = SigningRequestCanceledEvent::fromTransition($root, $previousRootStatus);
-			if ($canceled !== null) {
-				$this->eventDispatcher->dispatchTyped($canceled);
-			}
-			// Under a continue-on-rejection policy, the final rejection may
-			// finish a workflow that already contains a valid signature.
-			$completed = SigningRequestCompletedEvent::fromTransition($root, $previousRootStatus);
-			if ($completed !== null) {
-				$this->eventDispatcher->dispatchTyped($completed);
-			}
-		} catch (\Throwable $e) {
-			$this->logger->error('Unable to enqueue LibreSign rejection webhook', [
-				'exception' => $e,
+			$events = [
+				SignerRejectedWebhookEvent::afterRejection($root, $document, $signer, $this->isWorkflowCanceled($root)),
+				SigningRequestCanceledEvent::fromTransition($root, $previousRootStatus),
+				SigningRequestCompletedEvent::fromTransition($root, $previousRootStatus),
+			];
+		} catch (\Exception $e) {
+			$this->logger->warning('Unable to prepare LibreSign rejection events', [
 				'fileId' => $document->getId(),
+				'errorType' => get_debug_type($e),
 			]);
+			return;
+		}
+
+		foreach ($events as $event) {
+			if ($event === null) {
+				continue;
+			}
+			try {
+				$this->eventDispatcher->dispatchTyped($event);
+			} catch (\Exception $e) {
+				$this->logger->warning('Unable to publish LibreSign rejection event', [
+					'fileId' => $document->getId(),
+					'eventType' => $event::class,
+					'errorType' => get_debug_type($e),
+				]);
+			}
 		}
 	}
 
@@ -419,8 +434,10 @@ class SignatureRejectionService {
 					));
 				}
 			}
-		} catch (\Throwable $e) {
-			$this->logger->error('Error dispatching SignatureRejectedEvent: ' . $e->getMessage(), ['exception' => $e]);
+		} catch (\Exception $e) {
+			$this->logger->error('Error dispatching SignatureRejectedEvent', [
+				'errorType' => get_debug_type($e),
+			]);
 		}
 	}
 }
