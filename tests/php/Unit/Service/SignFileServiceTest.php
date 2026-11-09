@@ -30,6 +30,7 @@ use OCA\Libresign\Enum\SignatureRejectionBehavior;
 use OCA\Libresign\Enum\SignRequestStatus;
 use OCA\Libresign\Events\SignedEvent;
 use OCA\Libresign\Events\SignedEventFactory;
+use OCA\Libresign\Events\SigningRequestCompletedEvent;
 use OCA\Libresign\Exception\LibresignException;
 use OCA\Libresign\Handler\DocMdpHandler;
 use OCA\Libresign\Handler\FooterHandler;
@@ -822,6 +823,59 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			->setSignRequest($signRequest)
 			->setLibreSignFile($libreSignFile)
 			->sign();
+	}
+
+	public static function nativeCompletionCases(): array {
+		return [
+			'partial workflow' => [33, FileStatus::ABLE_TO_SIGN, FileStatus::PARTIAL_SIGNED, false],
+			'document completed' => [33, FileStatus::PARTIAL_SIGNED, FileStatus::SIGNED, true],
+			'already completed' => [33, FileStatus::SIGNED, FileStatus::SIGNED, false],
+			'unpersisted request' => [null, FileStatus::PARTIAL_SIGNED, FileStatus::SIGNED, false],
+		];
+	}
+
+	#[DataProvider('nativeCompletionCases')]
+	public function testNativeWebhookOnlyForCompletedDocumentWorkflow(?int $id, FileStatus $before, FileStatus $after, bool $completed): void {
+		$service = $this->getService([
+			'getEngine', 'computeHash', 'validateDocMdpAllowsSignatures',
+			'updateSignRequest', 'updateLibreSignFile', 'dispatchSignedEvent',
+		]);
+		$file = new File();
+		if ($id !== null) {
+			$file->setId($id);
+		}
+		$file->setUuid('workflow-uuid');
+		$file->setStatus($before->value);
+
+		$saved = new File();
+		$saved->setUuid('workflow-uuid');
+		$saved->setStatus($after->value);
+		$this->fileMapper->method('getById')->willReturn($saved);
+
+		$nextcloudFile = $this->createMock(\OCP\Files\File::class);
+		$nextcloudFile->method('getId')->willReturn(999);
+		$engine = $this->createMock(Pkcs12Handler::class);
+		$engine->method('sign')->willReturn($nextcloudFile);
+		$service->method('getEngine')->willReturn($engine);
+		$service->method('computeHash')->willReturn('hash');
+
+		$events = [];
+		$this->eventDispatcher->method('dispatchTyped')
+			->willReturnCallback(static function ($event) use (&$events): void {
+				$events[] = $event;
+			});
+
+		$service->signSingleFile($file, new SignRequest());
+		$this->assertSame($completed ? [[
+			'contractVersion' => 1,
+			'eventId' => 'libresign.workflow.completed.v1:workflow-uuid',
+			'requestUuid' => 'workflow-uuid',
+			'requestType' => 'document',
+			'status' => 'completed',
+		]] : [], array_map(
+			static fn (SigningRequestCompletedEvent $event): array => $event->getWebhookSerializable(),
+			$events,
+		));
 	}
 
 	public function testUpdateEnvelopeStatusAddsStatusChangedAt(): void {
