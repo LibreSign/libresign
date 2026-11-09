@@ -981,9 +981,14 @@ class SignFileService {
 	}
 
 	private function dispatchCompletionIfTransition(FileEntity $request, int $previousStatus): void {
+		$requestId = $request->getId();
+		if ($requestId === null) {
+			return;
+		}
+
 		// Envelope propagation and status determination may use different entity
 		// instances. Read the persisted aggregate after all signing updates.
-		$request = $this->fileMapper->getById($request->getId());
+		$request = $this->fileMapper->getById($requestId);
 		$event = SigningRequestCompletedEvent::fromTransition($request, $previousStatus);
 		if ($event !== null) {
 			$this->eventDispatcher->dispatchTyped($event);

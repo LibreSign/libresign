@@ -18,37 +18,38 @@ use OCP\EventDispatcher\IWebhookCompatibleEvent;
  * This is distinct from the internal per-signature SignedEvent.
  */
 final class SigningRequestCompletedEvent extends Event implements IWebhookCompatibleEvent {
-    public const CONTRACT_VERSION = 1;
+	public const CONTRACT_VERSION = 1;
 
-    private function __construct(
-        private readonly string $requestUuid,
-        private readonly string $requestType,
-    ) {
-        parent::__construct();
-    }
+	private function __construct(
+		private readonly string $requestUuid,
+		private readonly string $requestType,
+	) {
+		parent::__construct();
+	}
 
-    /** Only publish the transition to a completed signing workflow. */
-    public static function fromTransition(FileEntity $request, int $previousStatus): ?self {
-        if ($previousStatus === FileStatus::SIGNED->value || $request->getStatus() !== FileStatus::SIGNED->value) {
-            return null;
-        }
+	/** Only publish the transition to a completed signing workflow. */
+	public static function fromTransition(FileEntity $request, int $previousStatus): ?self {
+		if ($previousStatus === FileStatus::SIGNED->value || $request->getStatus() !== FileStatus::SIGNED->value) {
+			return null;
+		}
 
-        // A completion must be based on a signed document or an envelope whose
-        // children have been evaluated by the existing workflow status logic.
-        if ($request->getUuid() === '') {
-            return null;
-        }
+		// A completion must be based on a signed document or an envelope whose
+		// children have been evaluated by the existing workflow status logic.
+		if ($request->getUuid() === '') {
+			return null;
+		}
 
-        return new self($request->getUuid(), $request->isEnvelope() ? 'envelope' : 'document');
-    }
+		return new self($request->getUuid(), $request->isEnvelope() ? 'envelope' : 'document');
+	}
 
-    public function getWebhookSerializable(): array {
-        return [
-            'contractVersion' => self::CONTRACT_VERSION,
-            'eventId' => 'libresign.workflow.completed.v1:' . $this->requestUuid,
-            'requestUuid' => $this->requestUuid,
-            'requestType' => $this->requestType,
-            'status' => 'completed',
-        ];
-    }
+	#[\Override]
+	public function getWebhookSerializable(): array {
+		return [
+			'contractVersion' => self::CONTRACT_VERSION,
+			'eventId' => 'libresign.workflow.completed.v1:' . $this->requestUuid,
+			'requestUuid' => $this->requestUuid,
+			'requestType' => $this->requestType,
+			'status' => 'completed',
+		];
+	}
 }
