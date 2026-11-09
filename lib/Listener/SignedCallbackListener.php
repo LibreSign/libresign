@@ -8,6 +8,7 @@ declare(strict_types=1);
 
 namespace OCA\Libresign\Listener;
 
+use OCA\Libresign\Enum\FileStatus;
 use OCA\Libresign\Events\SignedEvent;
 use OCA\Libresign\Service\SignFileService;
 use OCP\EventDispatcher\Event;
@@ -27,9 +28,10 @@ class SignedCallbackListener implements IEventListener {
 			return;
 		}
 
-		$updatedFields = $event->getLibreSignFile()->getUpdatedFields();
-		if (isset($updatedFields['signed']) && $updatedFields['signed'] === true) {
-			$this->signFileService->notifyCallback($event->getSignedFile());
+		if ($event->getLibreSignFile()->getStatus() !== FileStatus::SIGNED->value) {
+			return;
 		}
+
+		$this->signFileService->notifyCallback($event->getSignedFile());
 	}
 }
