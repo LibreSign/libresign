@@ -33,18 +33,18 @@ final class SigningRequestCompletedEventTest extends \OCA\Libresign\Tests\Unit\T
 		$file->setStatus($current->value);
 
 		$event = SigningRequestCompletedEvent::fromTransition($file, $previous->value);
-		$this->assertSame($expected, $event !== null);
-		if ($event === null) {
+		if (!$expected) {
+			$this->assertNull($event);
 			return;
 		}
+
 		$this->assertInstanceOf(IWebhookCompatibleEvent::class, $event);
-		$payload = $event->getWebhookSerializable();
-		$this->assertSame(1, $payload['contractVersion']);
-		$this->assertSame('test-request-id', $payload['requestUuid']);
-		$this->assertSame($envelope ? 'envelope' : 'document', $payload['requestType']);
-		$this->assertSame('completed', $payload['status']);
-		$this->assertSame('libresign.workflow.completed.v1:test-request-id', $payload['eventId']);
-		$this->assertSame(['contractVersion', 'eventId', 'requestUuid', 'requestType', 'status'], array_keys($payload));
-		$this->assertSame($payload, json_decode(json_encode($payload, JSON_THROW_ON_ERROR), true, 512, JSON_THROW_ON_ERROR));
+		$this->assertSame([
+			'contractVersion' => 1,
+			'eventId' => 'libresign.workflow.completed.v1:test-request-id',
+			'requestUuid' => 'test-request-id',
+			'requestType' => $envelope ? 'envelope' : 'document',
+			'status' => 'completed',
+		], $event->getWebhookSerializable());
 	}
 }

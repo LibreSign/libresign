@@ -972,7 +972,6 @@ class SignFileService {
 		}
 	}
 
-	/** Find the aggregate request whose completion is visible to an integrator. */
 	private function getCompletionTarget(FileEntity $file): FileEntity {
 		if (!$file->hasParent()) {
 			return $file;
@@ -986,8 +985,6 @@ class SignFileService {
 			return;
 		}
 
-		// Envelope propagation and status determination may use different entity
-		// instances. Read the persisted aggregate after all signing updates.
 		$request = $this->fileMapper->getById($requestId);
 		$event = SigningRequestCompletedEvent::fromTransition($request, $previousStatus);
 		if ($event !== null) {

@@ -13,10 +13,6 @@ use OCA\Libresign\Enum\FileStatus;
 use OCP\EventDispatcher\Event;
 use OCP\EventDispatcher\IWebhookCompatibleEvent;
 
-/**
- * Public, versioned completion event for Nextcloud webhook_listeners.
- * This is distinct from the internal per-signature SignedEvent.
- */
 final class SigningRequestCompletedEvent extends Event implements IWebhookCompatibleEvent {
 	public const CONTRACT_VERSION = 1;
 
@@ -27,14 +23,11 @@ final class SigningRequestCompletedEvent extends Event implements IWebhookCompat
 		parent::__construct();
 	}
 
-	/** Only publish the transition to a completed signing workflow. */
 	public static function fromTransition(FileEntity $request, int $previousStatus): ?self {
 		if ($previousStatus === FileStatus::SIGNED->value || $request->getStatus() !== FileStatus::SIGNED->value) {
 			return null;
 		}
 
-		// A completion must be based on a signed document or an envelope whose
-		// children have been evaluated by the existing workflow status logic.
 		if ($request->getUuid() === '') {
 			return null;
 		}
