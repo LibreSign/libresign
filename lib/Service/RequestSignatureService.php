@@ -352,7 +352,6 @@ class RequestSignatureService {
 	 *     userManager?: IUser,
 	 *     signRequest?: SignRequestEntity,
 	 *     name?: string,
-	 *     callback?: string,
 	 *     uuid?: ?string,
 	 *     status?: int,
 	 *     parentFileId?: int,
@@ -416,9 +415,6 @@ class RequestSignatureService {
 		}
 		$file->setName($this->removeExtensionFromName($name, $metadata));
 		$file->setMetadata($metadata);
-		if (!empty($data['callback'])) {
-			$file->setCallback($data['callback']);
-		}
 		if (isset($data['status'])) {
 			$file->setStatus($data['status']);
 		} else {

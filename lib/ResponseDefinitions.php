@@ -844,7 +844,6 @@ namespace OCA\Libresign;
  *             signedNodeId: non-negative-int,
  *             url: string,
  *         },
- *         callback: ?string,
  *         uuid: string,
  *         signers: LibresignSignerDetail[],
  *     },

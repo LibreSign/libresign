@@ -31,8 +31,6 @@ use OCP\DB\Types;
  * @method \DateTime getCreatedAt()
  * @method void setName(string $name)
  * @method non-falsy-string getName()
- * @method void setCallback(string $callback)
- * @method ?string getCallback()
  * @method void setStatus(int $status)
  * @method int getStatus()
  * @method void setMetadata(array $metadata)
@@ -57,7 +55,6 @@ class File extends Entity {
 	protected ?string $userId = null;
 	protected ?int $signedNodeId = null;
 	protected ?string $signedHash = null;
-	protected ?string $callback = null;
 	protected ?array $metadata = null;
 	protected int $modificationStatus = 0;
 	protected int $signatureFlow = SignatureFlow::NUMERIC_NONE;
@@ -79,7 +76,6 @@ class File extends Entity {
 		$this->addType('uuid', Types::STRING);
 		$this->addType('createdAt', Types::DATETIME);
 		$this->addType('name', Types::STRING);
-		$this->addType('callback', Types::STRING);
 		$this->addType('status', Types::INTEGER);
 		$this->addType('metadata', Types::JSON);
 		$this->addType('modificationStatus', Types::SMALLINT);

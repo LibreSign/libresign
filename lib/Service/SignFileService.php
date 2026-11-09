@@ -13,7 +13,6 @@ use DateTimeInterface;
 use Exception;
 use InvalidArgumentException;
 use OC\AppFramework\Http as AppFrameworkHttp;
-use OCA\Libresign\AppInfo\Application;
 use OCA\Libresign\BackgroundJob\SignSingleFileJob;
 use OCA\Libresign\DataObjects\VisibleElementAssoc;
 use OCA\Libresign\Db\File as FileEntity;
@@ -63,7 +62,6 @@ use OCP\BackgroundJob\IJobList;
 use OCP\EventDispatcher\IEventDispatcher;
 use OCP\Files\File;
 use OCP\Files\NotPermittedException;
-use OCP\Http\Client\IClientService;
 use OCP\IAppConfig;
 use OCP\IDateTimeZone;
 use OCP\IL10N;
@@ -105,7 +103,6 @@ class SignFileService {
 		private IdDocsMapper $idDocsMapper,
 		private FooterHandler $footerHandler,
 		protected FolderService $folderService,
-		private IClientService $client,
 		protected LoggerInterface $logger,
 		private IAppConfig $appConfig,
 		protected IdentityDocumentValidator $identityDocumentValidator,
@@ -176,34 +173,6 @@ class SignFileService {
 				throw new \Exception($this->l10n->t('No signature was requested to %s', $signer['email']));
 			}
 		});
-	}
-
-	public function notifyCallback(File $file): void {
-		$uri = $this->libreSignFile->getCallback();
-		if (!$uri) {
-			$uri = $this->appConfig->getValueString(Application::APP_ID, 'webhook_sign_url');
-			if (!$uri) {
-				return;
-			}
-		}
-		$options = [
-			'multipart' => [
-				[
-					'name' => 'uuid',
-					'contents' => $this->libreSignFile->getUuid(),
-				],
-				[
-					'name' => 'status',
-					'contents' => $this->libreSignFile->getStatus(),
-				],
-				[
-					'name' => 'file',
-					'contents' => $file->fopen('r'),
-					'filename' => $file->getName()
-				]
-			]
-		];
-		$this->client->newClient()->post($uri, $options);
 	}
 
 	/**
