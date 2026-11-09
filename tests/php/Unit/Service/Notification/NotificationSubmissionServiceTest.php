@@ -17,6 +17,7 @@ use OCA\Libresign\Db\NotificationDeliveryMapper;
 use OCA\Libresign\Db\SignRequest;
 use OCA\Libresign\Db\SignRequestMapper;
 use OCA\Libresign\Enum\NotificationDeliveryState;
+use OCA\Libresign\Events\NotificationDeliveryStatusChangedEvent;
 use OCA\Libresign\Exception\NotificationPreparationException;
 use OCA\Libresign\Exception\NotificationTransportException;
 use OCA\Libresign\Service\Notification\MailPayload;
@@ -105,4 +106,55 @@ final class NotificationSubmissionServiceTest extends TestCase {
 	public function testNestedPreparationFailureCannotMakeTransportOutcomeSafe(): void {
 		$this->executeFailure(new NotificationTransportException('synthetic uncertain outcome', NotificationDeliveryState::UNKNOWN, 'smtp_outcome_unknown', new NotificationPreparationException('preparation')), 1, NotificationDeliveryState::UNKNOWN, false);
 	}
+
+	public function testAcceptedOutcomeWebhookIsDispatchedOnlyAfterLedgerCommit(): void {
+		$delivery = new NotificationDelivery();
+		$delivery->setId(9);
+		$delivery->setFileId(25);
+		$delivery->setChannel('mail');
+		$delivery->setAttemptCount(1);
+		$persisted = new NotificationDelivery();
+		$persisted->setId(9);
+		$persisted->setFileId(25);
+		$persisted->setChannel('mail');
+		$persisted->setAttemptCount(1);
+		$persisted->setState(NotificationDeliveryState::ACCEPTED->value);
+		$attempt = new NotificationAttempt();
+		$attempt->setId(28);
+
+		$deliveries = $this->createMock(NotificationDeliveryMapper::class);
+		$deliveries->method('claim')->with(9)->willReturn(true);
+		$deliveries->method('findById')->with(9)->willReturn($persisted);
+		$deliveries->expects($this->once())->method('finish')->with(9, NotificationDeliveryState::ACCEPTED, null);
+		$attempts = $this->createMock(NotificationAttemptMapper::class);
+		$attempts->method('begin')->willReturn($attempt);
+		$attempts->expects($this->once())->method('finish')->with(28, NotificationDeliveryState::ACCEPTED, null);
+		$db = $this->createMock(IDBConnection::class);
+		$committed = 0;
+		$db->expects($this->exactly(2))->method('commit')->willReturnCallback(static function () use (&$committed): void {
+			$committed++;
+		});
+		$root = new File();
+		$root->setUuid('public-workflow-uuid');
+		$files = $this->createMock(FileMapper::class);
+		$files->method('getById')->with(25)->willReturn($root);
+		$dispatcher = $this->createMock(IEventDispatcher::class);
+		$dispatcher->expects($this->once())->method('dispatchTyped')->with($this->callback(
+			static function ($event) use (&$committed): bool {
+				return $committed === 2
+					&& $event instanceof NotificationDeliveryStatusChangedEvent
+					&& $event->getWebhookSerializable()['state'] === 'accepted'
+					&& $event->getWebhookSerializable()['requestUuid'] === 'public-workflow-uuid';
+			},
+		));
+		$channel = $this->createMock(NotificationChannel::class);
+		$channel->expects($this->once())->method('deliver');
+		$history = new NotificationHistoryService($this->createMock(SignRequestMapper::class));
+		$service = new NotificationSubmissionService(
+			$deliveries, $attempts, $db, new NotificationFailureClassifier(),
+			$history, $this->createMock(LoggerInterface::class), $files, $dispatcher,
+		);
+		$this->assertTrue($service->submit($delivery, $this->message(), $channel));
+	}
+
 }
