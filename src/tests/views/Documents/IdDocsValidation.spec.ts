@@ -135,7 +135,6 @@ describe('IdDocsValidation.vue', () => {
 				signedNodeId: 10,
 				url: '/files/alice-passport.pdf',
 			},
-			callback: null,
 			signers: [{
 				description: null,
 				displayName: 'Approver',
@@ -177,7 +176,6 @@ describe('IdDocsValidation.vue', () => {
 				signedNodeId: 11,
 				url: '/files/bob-license.pdf',
 			},
-			callback: null,
 			signers: [],
 		},
 	}
