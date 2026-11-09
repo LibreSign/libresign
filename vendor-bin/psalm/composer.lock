@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "7703fa61e69ecfd62af10947bb1602ba",
+    "content-hash": "a18abb5d0ebaf4fb0a9a5a02021be564",
     "packages": [],
     "packages-dev": [
         {
@@ -532,16 +532,16 @@
         },
         {
             "name": "amphp/process",
-            "version": "v2.1.1",
+            "version": "v2.1.2",
             "source": {
                 "type": "git",
                 "url": "https://github.com/amphp/process.git",
-                "reference": "6ee0d11112a9b1338b7dc270d51f254e872c90b5"
+                "reference": "acfd64f68df5fa7f2d674c93d1986b2bf5d02770"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/amphp/process/zipball/6ee0d11112a9b1338b7dc270d51f254e872c90b5",
-                "reference": "6ee0d11112a9b1338b7dc270d51f254e872c90b5",
+                "url": "https://api.github.com/repos/amphp/process/zipball/acfd64f68df5fa7f2d674c93d1986b2bf5d02770",
+                "reference": "acfd64f68df5fa7f2d674c93d1986b2bf5d02770",
                 "shasum": ""
             },
             "require": {
@@ -588,7 +588,7 @@
             "homepage": "https://amphp.org/process",
             "support": {
                 "issues": "https://github.com/amphp/process/issues",
-                "source": "https://github.com/amphp/process/tree/v2.1.1"
+                "source": "https://github.com/amphp/process/tree/v2.1.2"
             },
             "funding": [
                 {
@@ -596,7 +596,7 @@
                     "type": "github"
                 }
             ],
-            "time": "2026-11-01T22:46:42+00:00"
+            "time": "2026-11-07T16:33:32+00:00"
         },
         {
             "name": "amphp/serialization",
@@ -1921,16 +1921,16 @@
         },
         {
             "name": "psalm/plugin-laravel",
-            "version": "v4.18.3",
+            "version": "v4.19.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/psalm/psalm-plugin-laravel.git",
-                "reference": "60227263b35357a42661e00a1a9bbcd142982e37"
+                "reference": "af17fae370b75761ab0dcf4440a7b57d1fda2412"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/psalm/psalm-plugin-laravel/zipball/60227263b35357a42661e00a1a9bbcd142982e37",
-                "reference": "60227263b35357a42661e00a1a9bbcd142982e37",
+                "url": "https://api.github.com/repos/psalm/psalm-plugin-laravel/zipball/af17fae370b75761ab0dcf4440a7b57d1fda2412",
+                "reference": "af17fae370b75761ab0dcf4440a7b57d1fda2412",
                 "shasum": ""
             },
             "require": {
@@ -1998,7 +1998,7 @@
             ],
             "support": {
                 "issues": "https://github.com/psalm/psalm-plugin-laravel/issues",
-                "source": "https://github.com/psalm/psalm-plugin-laravel/tree/v4.18.3"
+                "source": "https://github.com/psalm/psalm-plugin-laravel/tree/v4.19.0"
             },
             "funding": [
                 {
@@ -2006,7 +2006,7 @@
                     "type": "github"
                 }
             ],
-            "time": "2026-11-04T21:14:13+00:00"
+            "time": "2026-11-06T23:22:49+00:00"
         },
         {
             "name": "psalm/plugin-mockery",
@@ -3555,16 +3555,16 @@
         },
         {
             "name": "vimeo/psalm",
-            "version": "7.0.1",
+            "version": "7.0.4",
             "source": {
                 "type": "git",
                 "url": "https://github.com/vimeo/psalm.git",
-                "reference": "c3909231356b5fce30739ff0cf62bf50e6b5e7c7"
+                "reference": "fa5b1f6e665cb743838ffd865b8fc96207f9409f"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/vimeo/psalm/zipball/c3909231356b5fce30739ff0cf62bf50e6b5e7c7",
-                "reference": "c3909231356b5fce30739ff0cf62bf50e6b5e7c7",
+                "url": "https://api.github.com/repos/vimeo/psalm/zipball/fa5b1f6e665cb743838ffd865b8fc96207f9409f",
+                "reference": "fa5b1f6e665cb743838ffd865b8fc96207f9409f",
                 "shasum": ""
             },
             "require": {
@@ -3672,7 +3672,7 @@
                 "issues": "https://github.com/vimeo/psalm/issues",
                 "source": "https://github.com/vimeo/psalm"
             },
-            "time": "2026-11-03T11:14:30+00:00"
+            "time": "2026-11-05T20:37:08+00:00"
         },
         {
             "name": "webmozart/assert",
