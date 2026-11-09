@@ -16,6 +16,9 @@ use OCA\Libresign\Enum\FileStatus;
 use OCA\Libresign\Enum\SignatureRejectionCommentMode;
 use OCA\Libresign\Enum\SignRequestStatus;
 use OCA\Libresign\Events\SignatureRejectedEvent;
+use OCA\Libresign\Events\SignerRejectedWebhookEvent;
+use OCA\Libresign\Events\SigningRequestCanceledEvent;
+use OCA\Libresign\Events\SigningRequestCompletedEvent;
 use OCA\Libresign\Exception\LibresignException;
 use OCA\Libresign\Service\File\SigningWorkflowStatusResolver;
 use OCA\Libresign\Service\FileStatusService;
@@ -77,7 +80,12 @@ class SignatureRejectionService {
 		// always the signer's call and no policy can take that choice away.
 		$commentIsPrivate = $normalizedComment !== null && $privateComment;
 
+		$root = $libreSignFile->hasParent()
+			? $this->fileMapper->getById($libreSignFile->getParentFileId())
+			: $libreSignFile;
+		$previousRootStatus = $root->getStatus();
 		$activatedSigners = $this->persistRejection($libreSignFile, $signRequest, $normalizedComment, $commentIsPrivate, $config->cancelsWorkflow());
+		$this->dispatchPublicRejectionEvents($libreSignFile, $signRequest, $previousRootStatus);
 		// Record the committed rejection before notification errors can interrupt this flow.
 		// The event reports the status the rejection left, as the API does: a workflow that
 		// continues after rejections is still canceled once every signer rejected.
@@ -355,6 +363,41 @@ class SignatureRejectionService {
 		}
 
 		return $trimmed;
+	}
+
+	private function dispatchPublicRejectionEvents(
+		FileEntity $document,
+		SignRequestEntity $signer,
+		int $previousRootStatus,
+	): void {
+		// Signing-state transactions have committed. A webhook scheduling failure
+		// must not undo a persisted rejection.
+		try {
+			$root = $document->hasParent()
+				? $this->fileMapper->getById($document->getParentFileId())
+				: $document;
+			$rejected = SignerRejectedWebhookEvent::afterRejection(
+				$root, $document, $signer, $this->isWorkflowCanceled($root),
+			);
+			if ($rejected !== null) {
+				$this->eventDispatcher->dispatchTyped($rejected);
+			}
+			$canceled = SigningRequestCanceledEvent::fromTransition($root, $previousRootStatus);
+			if ($canceled !== null) {
+				$this->eventDispatcher->dispatchTyped($canceled);
+			}
+			// Under a continue-on-rejection policy, the final rejection may
+			// finish a workflow that already contains a valid signature.
+			$completed = SigningRequestCompletedEvent::fromTransition($root, $previousRootStatus);
+			if ($completed !== null) {
+				$this->eventDispatcher->dispatchTyped($completed);
+			}
+		} catch (\Throwable $e) {
+			$this->logger->error('Unable to enqueue LibreSign rejection webhook', [
+				'exception' => $e,
+				'fileId' => $document->getId(),
+			]);
+		}
 	}
 
 	private function dispatchRejectedEvent(

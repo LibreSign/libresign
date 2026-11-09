@@ -31,6 +31,7 @@ use OCA\Libresign\Enum\FileStatus;
 use OCA\Libresign\Enum\IdentifyMethodRequirement;
 use OCA\Libresign\Enum\SignRequestStatus;
 use OCA\Libresign\Events\SignedEventFactory;
+use OCA\Libresign\Events\SignerSignedWebhookEvent;
 use OCA\Libresign\Events\SigningRequestCompletedEvent;
 use OCA\Libresign\Exception\FooterStampUnavailableException;
 use OCA\Libresign\Exception\LibresignException;
@@ -1018,6 +1019,11 @@ class SignFileService {
 			$certificateSerialNumber,
 		);
 		$this->eventDispatcher->dispatchTyped($event);
+		$root = $this->getCompletionTarget($this->libreSignFile);
+		$publicEvent = SignerSignedWebhookEvent::afterSigning($root, $this->libreSignFile, $this->signRequest);
+		if ($publicEvent !== null) {
+			$this->eventDispatcher->dispatchTyped($publicEvent);
+		}
 	}
 
 	protected function identifyEngine(File $file): ISignEngineHandler {

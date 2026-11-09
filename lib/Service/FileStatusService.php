@@ -13,8 +13,10 @@ use DateTimeInterface;
 use OCA\Libresign\Db\File as FileEntity;
 use OCA\Libresign\Db\FileMapper;
 use OCA\Libresign\Enum\FileStatus;
+use OCA\Libresign\Events\SigningRequestReadyEvent;
 use OCA\Libresign\Service\SignRequest\StatusCacheService;
 use OCP\AppFramework\Db\DoesNotExistException;
+use OCP\EventDispatcher\IEventDispatcher;
 
 class FileStatusService {
 	public const POLICY_SNAPSHOT_FROZEN_AT = 'policy_snapshot_frozen_at';
@@ -22,6 +24,7 @@ class FileStatusService {
 	public function __construct(
 		private FileMapper $fileMapper,
 		private StatusCacheService $statusCacheService,
+		private IEventDispatcher $eventDispatcher,
 	) {
 	}
 
@@ -33,6 +36,7 @@ class FileStatusService {
 			$this->touchStatusChangedAt($file);
 			$this->fileMapper->update($file);
 			$this->statusCacheService->setStatus($file->getUuid(), $newStatus);
+			$this->dispatchReadyTransition($file, $currentStatus);
 
 			if ($file->hasParent()) {
 				$this->propagateStatusToParent($file->getParentFileId());
@@ -40,6 +44,18 @@ class FileStatusService {
 		}
 
 		return $file;
+	}
+
+	/** Called after creating a ready request and persisting its signers. */
+	public function dispatchCreatedReadyRequest(FileEntity $file): void {
+		$this->dispatchReadyTransition($file, FileStatus::DRAFT->value);
+	}
+
+	private function dispatchReadyTransition(FileEntity $file, int $previousStatus): void {
+		$event = SigningRequestReadyEvent::fromTransition($file, $previousStatus);
+		if ($event !== null) {
+			$this->eventDispatcher->dispatchTyped($event);
+		}
 	}
 
 	public function invalidateCachedStatus(FileEntity $file): void {

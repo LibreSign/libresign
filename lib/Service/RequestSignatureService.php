@@ -139,7 +139,8 @@ class RequestSignatureService {
 	}
 
 	public function save(array $data): FileEntity {
-		$file = $this->saveFile($data);
+		$newlyCreated = false;
+		$file = $this->saveFile($data, $newlyCreated);
 		if (!isset($data['status'])) {
 			$data['status'] = $file->getStatus();
 		}
@@ -149,6 +150,9 @@ class RequestSignatureService {
 			$this->propagateSignersToChildren($file, $data);
 			$this->saveVisibleElements($data, $file);
 		}, $this->db);
+		if ($newlyCreated) {
+			$this->fileStatusService->dispatchCreatedReadyRequest($file);
+		}
 		$this->notifications->flushCommitted();
 
 		return $file;
@@ -363,7 +367,8 @@ class RequestSignatureService {
 	 *     uploadedFile?: array<string, mixed>
 	 * } $data
 	 */
-	public function saveFile(array $data): FileEntity {
+	public function saveFile(array $data, ?bool &$newlyCreated = null): FileEntity {
+		$newlyCreated = false;
 		if (!empty($data['uuid'])) {
 			$file = $this->fileMapper->getByUuid($data['uuid']);
 			$this->filePolicyApplier->syncCoreFlowPolicies($file, $data);
@@ -433,6 +438,7 @@ class RequestSignatureService {
 		$this->filePolicyApplier->applyAll($file, $data);
 
 		$this->fileMapper->insert($file);
+		$newlyCreated = true;
 		return $file;
 	}
 

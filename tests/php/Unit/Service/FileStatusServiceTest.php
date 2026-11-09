@@ -12,8 +12,10 @@ use DateTimeInterface;
 use OCA\Libresign\Db\File as FileEntity;
 use OCA\Libresign\Db\FileMapper;
 use OCA\Libresign\Enum\FileStatus;
+use OCA\Libresign\Events\SigningRequestReadyEvent;
 use OCA\Libresign\Service\FileStatusService;
 use OCA\Libresign\Service\SignRequest\StatusCacheService;
+use OCP\EventDispatcher\IEventDispatcher;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
@@ -22,11 +24,13 @@ class FileStatusServiceTest extends TestCase {
 	private FileMapper|MockObject $fileMapper;
 	private StatusCacheService|MockObject $statusCacheService;
 	private FileStatusService $service;
+	private IEventDispatcher&MockObject $eventDispatcher;
 
 	protected function setUp(): void {
 		$this->fileMapper = $this->createMock(FileMapper::class);
 		$this->statusCacheService = $this->createMock(StatusCacheService::class);
-		$this->service = new FileStatusService($this->fileMapper, $this->statusCacheService);
+		$this->eventDispatcher = $this->createMock(IEventDispatcher::class);
+		$this->service = new FileStatusService($this->fileMapper, $this->statusCacheService, $this->eventDispatcher);
 	}
 
 	public function testQueuedSigningStatusIsNotPublishedBeforeCommit(): void {
@@ -47,6 +51,20 @@ class FileStatusServiceTest extends TestCase {
 		$this->statusCacheService->expects($this->once())->method('invalidateStatus')->with('file-uuid');
 		$this->statusCacheService->expects($this->never())->method('setStatus');
 		$this->service->onQueuedJobCommitted($file);
+	}
+
+	public function testReadyWebhookIsEmittedOnceForRootDraftTransition(): void {
+		$file = new FileEntity();
+		$file->setId(11);
+		$file->setUuid('ready-uuid');
+		$file->setStatus(FileStatus::DRAFT->value);
+		$this->eventDispatcher->expects($this->once())->method('dispatchTyped')
+			->with($this->callback(static function ($event): bool {
+				return $event instanceof SigningRequestReadyEvent
+					&& $event->getWebhookSerializable()['status'] === 'ready_to_sign';
+			}));
+		$this->service->updateFileStatusIfUpgrade($file, FileStatus::ABLE_TO_SIGN->value);
+		$this->service->updateFileStatusIfUpgrade($file, FileStatus::ABLE_TO_SIGN->value);
 	}
 
 	#[DataProvider('dataFileStatusUpgrade')]

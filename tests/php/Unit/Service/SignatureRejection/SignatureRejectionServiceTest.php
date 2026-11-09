@@ -15,6 +15,9 @@ use OCA\Libresign\Db\SignRequestMapper;
 use OCA\Libresign\Enum\FileStatus;
 use OCA\Libresign\Enum\SignRequestStatus;
 use OCA\Libresign\Events\SignatureRejectedEvent;
+use OCA\Libresign\Events\SignerRejectedWebhookEvent;
+use OCA\Libresign\Events\SigningRequestCanceledEvent;
+use OCA\Libresign\Events\SigningRequestCompletedEvent;
 use OCA\Libresign\Exception\LibresignException;
 use OCA\Libresign\Service\File\SigningWorkflowStatusResolver;
 use OCA\Libresign\Service\FileStatusService;
@@ -283,6 +286,48 @@ final class SignatureRejectionServiceTest extends TestCase {
 
 		$this->assertNull($signRequest->getRejectionComment());
 		$this->assertFalse($signRequest->getRejectionCommentPrivate());
+	}
+
+	#[DataProvider('publicRejectionOutcomes')]
+	public function testCommittedRejectionEmitsOnePublicBusinessEvent(bool $cancel): void {
+		$this->withPolicy(self::policy($cancel ? 'cancel' : 'continue', 'optional'));
+		$file = $this->file();
+		$file->setUuid('request-uuid');
+		$signer = $this->signRequest();
+		$signer->setUuid('secret-invitation');
+		$events = [];
+		$this->eventDispatcher->method('dispatchTyped')->willReturnCallback(static function ($event) use (&$events): void {
+			$events[] = $event;
+		});
+		$this->getService()->reject($file, $signer, 'private explanation', true);
+		$rejections = array_values(array_filter($events, static fn ($event): bool => $event instanceof SignerRejectedWebhookEvent));
+		$cancellations = array_values(array_filter($events, static fn ($event): bool => $event instanceof SigningRequestCanceledEvent));
+		$this->assertCount(1, $rejections);
+		$this->assertCount($cancel ? 1 : 0, $cancellations);
+		$this->assertSame($cancel, $rejections[0]->getWebhookSerializable()['workflowCanceled']);
+		$this->assertStringNotContainsString('private explanation', json_encode($rejections[0]->getWebhookSerializable()));
+	}
+
+	/** @return array<string, array{bool}> */
+	public static function publicRejectionOutcomes(): array {
+		return [
+			'continue' => [false],
+			'cancel' => [true],
+		];
+	}
+
+	public function testRejectionCanCompletePreviouslySignedWorkflow(): void {
+		$this->withPolicy(self::policy('continue'));
+		$file = $this->file(FileStatus::PARTIAL_SIGNED->value);
+		$file->setUuid('completed-by-rejection');
+		$this->signingWorkflowStatusResolver->method('resolve')->willReturn(FileStatus::SIGNED);
+		$events = [];
+		$this->eventDispatcher->method('dispatchTyped')->willReturnCallback(static function ($event) use (&$events): void {
+			$events[] = $event;
+		});
+		$this->getService()->reject($file, $this->signRequest());
+		$this->assertSame(FileStatus::SIGNED->value, $file->getStatus());
+		$this->assertCount(1, array_filter($events, static fn ($event): bool => $event instanceof SigningRequestCompletedEvent));
 	}
 
 	public function testRejectionIsPersistedWithItsTimestampAndComment(): void {
