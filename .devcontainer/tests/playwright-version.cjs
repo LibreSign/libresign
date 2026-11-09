@@ -28,9 +28,9 @@ for (const dependency of ['playwright', 'playwright-core']) {
 	)
 }
 
-const playwrightService = compose.match(/^  playwright:\s*\n((?:^    .*\n|^\s*\n)*)/m)?.[1]
+const playwrightService = compose.match(/^ {2}playwright:\s*\n((?:^ {4}.*\n|^\s*\n)*)/m)?.[1]
 assert.ok(playwrightService, 'Missing Playwright service in devcontainer Compose override')
-const image = playwrightService.match(/^    image:\s*(\S+)\s*$/m)?.[1]
+const image = playwrightService.match(/^ {4}image:\s*(\S+)\s*$/m)?.[1]
 assert.ok(image, 'Pin the Playwright image in the devcontainer Compose override')
 assert.equal(
 	image,
