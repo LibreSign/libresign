@@ -64,7 +64,10 @@ export type paths = {
         };
         get?: never;
         put?: never;
-        /** Create account to sign a document */
+        /**
+         * Create account to sign a document
+         * @description This endpoint allows CORS requests
+         */
         post: operations["account-create-to-sign"];
         delete?: never;
         options?: never;
@@ -99,6 +102,7 @@ export type paths = {
         /**
          * Who am I
          * @description Validates API access data and returns the authenticated user's data.
+         *     This endpoint allows CORS requests
          */
         get: operations["account-me"];
         put?: never;
@@ -425,7 +429,11 @@ export type paths = {
             path?: never;
             cookie?: never;
         };
-        get?: never;
+        /**
+         * Get footer template
+         * @description Returns the current footer template if set, otherwise returns the default template.
+         */
+        get: operations["footer_template-get-footer-template"];
         put?: never;
         /**
          * Save footer template and render preview
@@ -1341,11 +1349,6 @@ export type paths = {
 export type webhooks = Record<string, never>;
 export type components = {
     schemas: {
-        AccountCapabilitySettings: {
-            canRequestSign: boolean;
-            hasSignatureFile: boolean;
-            isApprover: boolean;
-        };
         AccountMeResponse: {
             account: {
                 uid: string;
@@ -1394,8 +1397,6 @@ export type components = {
         ActiveSigningsResponse: {
             data: components["schemas"]["ActiveSigningItem"][];
         };
-        /** @enum {string} */
-        AdminSignatureEngine: "JSignPdf" | "PhpNative";
         AdminSignatureMethodSetting: {
             enabled: boolean;
             label: string;
@@ -1589,22 +1590,6 @@ export type components = {
         DetailedFileResponse: components["schemas"]["DetailedFile"] & {
             message: string;
         };
-        DocMdpConfig: {
-            enabled: boolean;
-            /** Format: int64 */
-            defaultLevel: number;
-            availableLevels: components["schemas"]["DocMdpLevelOption"][];
-        };
-        DocMdpLevelOption: {
-            /** Format: int64 */
-            value: number;
-            label: string;
-            description: string;
-        };
-        DynamicMetadataRecord: {
-            [key: string]: Record<string, never>;
-        };
-        DynamicMetadataScalar: (string | number | boolean) | null;
         DynamicMetadataValue: Record<string, never>;
         EffectiveCompoundPolicyWriteResponse: components["schemas"]["MessageResponse"] & {
             policies: {
@@ -1673,11 +1658,6 @@ export type components = {
         };
         ErrorResponse: {
             error: string;
-        };
-        ErrorStatusResponse: {
-            /** @enum {string} */
-            status: "error";
-            message: string;
         };
         ErrorsResponse: {
             errors: components["schemas"]["ErrorItem"][];
@@ -1840,16 +1820,12 @@ export type components = {
             /** @enum {string} */
             scope: "group";
             targetId: string;
-            value: components["schemas"]["EffectivePolicyValue"];
-            effectiveValue?: components["schemas"]["EffectivePolicyValue"];
+            value: components["schemas"]["EffectivePolicyValue"] | null;
+            effectiveValue?: components["schemas"]["EffectivePolicyValue"] | null;
             allowChildOverride: boolean;
             visibleToChild: boolean;
             allowedValues: components["schemas"]["EffectivePolicyValue"][];
             deletableByCurrentActor: boolean;
-        };
-        GroupPolicyWriteRequest: {
-            value: components["schemas"]["EffectivePolicyValue"];
-            allowChildOverride: boolean;
         };
         GroupPolicyWriteResponse: components["schemas"]["MessageResponse"] & components["schemas"]["GroupPolicyResponse"];
         HasRootCertResponse: {
@@ -1913,15 +1889,6 @@ export type components = {
         };
         /** @enum {string} */
         IdentifyMethodRequirement: "required" | "optional";
-        IdentifyMethodSetting: {
-            name: string;
-            friendly_name: string;
-            enabled: boolean;
-            requirement: components["schemas"]["IdentifyMethodRequirement"];
-            /** Format: int64 */
-            minimumTotalVerifiedFactors?: number;
-            signatureMethods?: components["schemas"]["SignatureMethods"];
-        };
         InfoMessage: {
             /** @enum {string} */
             type: "info";
@@ -2131,16 +2098,6 @@ export type components = {
         PublicCapabilities: {
             libresign?: components["schemas"]["Capabilities"];
         };
-        ReminderSettings: {
-            /** Format: int64 */
-            days_before: number;
-            /** Format: int64 */
-            days_between: number;
-            /** Format: int64 */
-            max: number;
-            send_timer: string;
-            next_run?: string;
-        };
         RequestedBy: {
             userId: string;
             displayName: string | null;
@@ -2340,13 +2297,10 @@ export type components = {
             policyKey: string;
             /** @enum {string} */
             scope: "system" | "global";
-            value: components["schemas"]["EffectivePolicyValue"];
+            value: components["schemas"]["EffectivePolicyValue"] | null;
             allowChildOverride: boolean;
             visibleToChild: boolean;
             allowedValues: components["schemas"]["EffectivePolicyValue"][];
-        };
-        SystemPolicyWriteRequest: {
-            value: components["schemas"]["EffectivePolicyValue"];
         };
         SystemPolicyWriteResponse: components["schemas"]["MessageResponse"] & components["schemas"]["EffectivePolicyResponse"];
         UserCompoundPolicyWriteResponse: components["schemas"]["MessageResponse"] & {
@@ -2382,7 +2336,7 @@ export type components = {
             /** @enum {string} */
             scope: "user_policy";
             targetId: string;
-            value: components["schemas"]["EffectivePolicyValue"];
+            value: components["schemas"]["EffectivePolicyValue"] | null;
             allowChildOverride: boolean;
         };
         UserPolicyWriteResponse: components["schemas"]["MessageResponse"] & components["schemas"]["UserPolicyResponse"];
@@ -2716,6 +2670,11 @@ export interface operations {
                             meta: components["schemas"]["OCSMeta"];
                             data: components["schemas"]["MessageResponse"];
                         };
+                    } | {
+                        ocs: {
+                            meta: components["schemas"]["OCSMeta"];
+                            data: unknown;
+                        };
                     };
                 };
             };
@@ -2780,7 +2739,10 @@ export interface operations {
         requestBody?: {
             content: {
                 "application/json": {
-                    /** @description the phone number to be defined. If null will remove the phone number */
+                    /**
+                     * @description the phone number to be defined. If null will remove the phone number
+                     * @default null
+                     */
                     phone?: string | null;
                 };
             };
@@ -2796,6 +2758,20 @@ export interface operations {
                         ocs: {
                             meta: components["schemas"]["OCSMeta"];
                             data: components["schemas"]["AccountSettingsUpdateResponse"];
+                        };
+                    };
+                };
+            };
+            /** @description Current user is not logged in */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        ocs: {
+                            meta: components["schemas"]["OCSMeta"];
+                            data: unknown;
                         };
                     };
                 };
@@ -2858,6 +2834,20 @@ export interface operations {
                     };
                 };
             };
+            /** @description Current user is not logged in */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        ocs: {
+                            meta: components["schemas"]["OCSMeta"];
+                            data: unknown;
+                        };
+                    };
+                };
+            };
         };
     };
     "account-delete-pfx": {
@@ -2884,6 +2874,20 @@ export interface operations {
                         ocs: {
                             meta: components["schemas"]["OCSMeta"];
                             data: components["schemas"]["MessageResponse"];
+                        };
+                    };
+                };
+            };
+            /** @description Current user is not logged in */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        ocs: {
+                            meta: components["schemas"]["OCSMeta"];
+                            data: unknown;
                         };
                     };
                 };
@@ -2941,6 +2945,20 @@ export interface operations {
                     };
                 };
             };
+            /** @description Current user is not logged in */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        ocs: {
+                            meta: components["schemas"]["OCSMeta"];
+                            data: unknown;
+                        };
+                    };
+                };
+            };
         };
     };
     "account-read-pfx-data": {
@@ -2992,6 +3010,20 @@ export interface operations {
                     };
                 };
             };
+            /** @description Current user is not logged in */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        ocs: {
+                            meta: components["schemas"]["OCSMeta"];
+                            data: unknown;
+                        };
+                    };
+                };
+            };
         };
     };
     "account-set-config": {
@@ -3038,17 +3070,31 @@ export interface operations {
                     };
                 };
             };
+            /** @description Current user is not logged in */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        ocs: {
+                            meta: components["schemas"]["OCSMeta"];
+                            data: unknown;
+                        };
+                    };
+                };
+            };
         };
     };
     "file-validate-uuid": {
         parameters: {
             query?: {
                 /** @description Whether to include visible elements in the response */
-                showVisibleElements?: 0 | 1;
+                showVisibleElements?: boolean;
                 /** @description Whether to include validation messages in the response */
-                showMessages?: 0 | 1;
+                showMessages?: boolean;
                 /** @description Whether to include the file payload in the response */
-                showValidateFile?: 0 | 1;
+                showValidateFile?: boolean;
             };
             header: {
                 /** @description Required to be true for the API request to pass */
@@ -3097,11 +3143,11 @@ export interface operations {
         parameters: {
             query?: {
                 /** @description Whether to include visible elements in the response */
-                showVisibleElements?: 0 | 1;
+                showVisibleElements?: boolean;
                 /** @description Whether to include validation messages in the response */
-                showMessages?: 0 | 1;
+                showMessages?: boolean;
                 /** @description Whether to include the file payload in the response */
-                showValidateFile?: 0 | 1;
+                showValidateFile?: boolean;
             };
             header: {
                 /** @description Required to be true for the API request to pass */
@@ -3244,7 +3290,7 @@ export interface operations {
                 /** @description Filter files by parent envelope file ID */
                 parentFileId?: number | null;
                 /** @description Whether to return the detailed payload instead of the lightweight summary payload */
-                details?: 0 | 1;
+                details?: boolean;
             };
             header: {
                 /** @description Required to be true for the API request to pass */
@@ -3271,6 +3317,20 @@ export interface operations {
                     };
                 };
             };
+            /** @description Current user is not logged in */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        ocs: {
+                            meta: components["schemas"]["OCSMeta"];
+                            data: unknown;
+                        };
+                    };
+                };
+            };
         };
     };
     "file-get-thumbnail": {
@@ -3281,13 +3341,13 @@ export interface operations {
                 /** @description Height of generated file */
                 y?: number;
                 /** @description Crop, boolean value, default false */
-                a?: 0 | 1;
+                a?: boolean;
                 /** @description Force to generate a new thumbnail */
-                forceIcon?: 0 | 1;
+                forceIcon?: boolean;
                 /** @description To force a given mimetype for the file */
                 mode?: string;
                 /** @description If we have no preview enabled, we can redirect to the mime icon if any */
-                mimeFallback?: 0 | 1;
+                mimeFallback?: boolean;
             };
             header: {
                 /** @description Required to be true for the API request to pass */
@@ -3321,6 +3381,20 @@ export interface operations {
             };
             /** @description Bad request */
             400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        ocs: {
+                            meta: components["schemas"]["OCSMeta"];
+                            data: unknown;
+                        };
+                    };
+                };
+            };
+            /** @description Current user is not logged in */
+            401: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -3371,13 +3445,13 @@ export interface operations {
                 /** @description Height of generated file */
                 y?: number;
                 /** @description Crop, boolean value, default false */
-                a?: 0 | 1;
+                a?: boolean;
                 /** @description Force to generate a new thumbnail */
-                forceIcon?: 0 | 1;
+                forceIcon?: boolean;
                 /** @description To force a given mimetype for the file */
                 mode?: string;
                 /** @description If we have no preview enabled, we can redirect to the mime icon if any */
-                mimeFallback?: 0 | 1;
+                mimeFallback?: boolean;
             };
             header: {
                 /** @description Required to be true for the API request to pass */
@@ -3411,6 +3485,20 @@ export interface operations {
             };
             /** @description Bad request */
             400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        ocs: {
+                            meta: components["schemas"]["OCSMeta"];
+                            data: unknown;
+                        };
+                    };
+                };
+            };
+            /** @description Current user is not logged in */
+            401: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -3506,6 +3594,20 @@ export interface operations {
                     };
                 };
             };
+            /** @description Current user is not logged in */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        ocs: {
+                            meta: components["schemas"]["OCSMeta"];
+                            data: unknown;
+                        };
+                    };
+                };
+            };
             /** @description Failed to save data */
             422: {
                 headers: {
@@ -3566,6 +3668,20 @@ export interface operations {
                     };
                 };
             };
+            /** @description Current user is not logged in */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        ocs: {
+                            meta: components["schemas"]["OCSMeta"];
+                            data: unknown;
+                        };
+                    };
+                };
+            };
             /** @description Envelope not found */
             404: {
                 headers: {
@@ -3600,7 +3716,7 @@ export interface operations {
         parameters: {
             query?: {
                 /** @description Whether to delete the physical file from Nextcloud (default: true) */
-                deleteFile?: 0 | 1;
+                deleteFile?: boolean;
             };
             header: {
                 /** @description Required to be true for the API request to pass */
@@ -3639,6 +3755,11 @@ export interface operations {
                         ocs: {
                             meta: components["schemas"]["OCSMeta"];
                             data: components["schemas"]["MessageResponse"];
+                        };
+                    } | {
+                        ocs: {
+                            meta: components["schemas"]["OCSMeta"];
+                            data: unknown;
                         };
                     };
                 };
@@ -3684,11 +3805,13 @@ export interface operations {
                     /**
                      * Format: int64
                      * @description ID of visible element. Each element has an ID that is returned on validation endpoints.
+                     * @default null
                      */
                     elementId?: number | null;
                     /**
                      * Format: int64
                      * @description LibreSign file ID that owns the visible element
+                     * @default null
                      */
                     fileId?: number | null;
                     /**
@@ -3720,6 +3843,20 @@ export interface operations {
                         ocs: {
                             meta: components["schemas"]["OCSMeta"];
                             data: components["schemas"]["FileElementIdResponse"];
+                        };
+                    };
+                };
+            };
+            /** @description Current user is not logged in */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        ocs: {
+                            meta: components["schemas"]["OCSMeta"];
+                            data: unknown;
                         };
                     };
                 };
@@ -3760,6 +3897,20 @@ export interface operations {
         responses: {
             /** @description OK */
             200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        ocs: {
+                            meta: components["schemas"]["OCSMeta"];
+                            data: unknown;
+                        };
+                    };
+                };
+            };
+            /** @description Current user is not logged in */
+            401: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -3815,6 +3966,7 @@ export interface operations {
                     /**
                      * Format: int64
                      * @description LibreSign file ID that owns the visible element
+                     * @default null
                      */
                     fileId?: number | null;
                     /**
@@ -3846,6 +3998,20 @@ export interface operations {
                         ocs: {
                             meta: components["schemas"]["OCSMeta"];
                             data: components["schemas"]["FileElementIdResponse"];
+                        };
+                    };
+                };
+            };
+            /** @description Current user is not logged in */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        ocs: {
+                            meta: components["schemas"]["OCSMeta"];
+                            data: unknown;
                         };
                     };
                 };
@@ -3915,6 +4081,64 @@ export interface operations {
             };
         };
     };
+    "footer_template-get-footer-template": {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Required to be true for the API request to pass */
+                "OCS-APIRequest": boolean;
+            };
+            path: {
+                apiVersion: "v1";
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        ocs: {
+                            meta: components["schemas"]["OCSMeta"];
+                            data: components["schemas"]["FooterTemplateResponse"];
+                        };
+                    };
+                };
+            };
+            /** @description Current user is not logged in */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        ocs: {
+                            meta: components["schemas"]["OCSMeta"];
+                            data: unknown;
+                        };
+                    };
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        ocs: {
+                            meta: components["schemas"]["OCSMeta"];
+                            data: components["schemas"]["ErrorResponse"];
+                        };
+                    };
+                };
+            };
+        };
+    };
     "footer_template-save-footer-template": {
         parameters: {
             query?: never;
@@ -3974,6 +4198,20 @@ export interface operations {
                     };
                 };
             };
+            /** @description Current user is not logged in */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        ocs: {
+                            meta: components["schemas"]["OCSMeta"];
+                            data: unknown;
+                        };
+                    };
+                };
+            };
             /** @description Forbidden */
             403: {
                 headers: {
@@ -3984,6 +4222,11 @@ export interface operations {
                         ocs: {
                             meta: components["schemas"]["OCSMeta"];
                             data: components["schemas"]["ErrorResponse"];
+                        };
+                    } | {
+                        ocs: {
+                            meta: components["schemas"]["OCSMeta"];
+                            data: unknown;
                         };
                     };
                 };
@@ -4022,7 +4265,10 @@ export interface operations {
                      * @default 50
                      */
                     height?: number;
-                    /** @description Whether to force QR code rendering in footer preview (null uses policy) */
+                    /**
+                     * @description Whether to force QR code rendering in footer preview (null uses policy)
+                     * @default null
+                     */
                     writeQrcodeOnFooter?: boolean | null;
                 };
             };
@@ -4047,6 +4293,20 @@ export interface operations {
                         ocs: {
                             meta: components["schemas"]["OCSMeta"];
                             data: components["schemas"]["ErrorResponse"];
+                        };
+                    };
+                };
+            };
+            /** @description Current user is not logged in */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        ocs: {
+                            meta: components["schemas"]["OCSMeta"];
+                            data: unknown;
                         };
                     };
                 };
@@ -4261,6 +4521,20 @@ export interface operations {
                     };
                 };
             };
+            /** @description Current user is not logged in */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        ocs: {
+                            meta: components["schemas"]["OCSMeta"];
+                            data: unknown;
+                        };
+                    };
+                };
+            };
             /** @description Account not found */
             404: {
                 headers: {
@@ -4314,6 +4588,20 @@ export interface operations {
                     };
                 };
             };
+            /** @description Current user is not logged in */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        ocs: {
+                            meta: components["schemas"]["OCSMeta"];
+                            data: unknown;
+                        };
+                    };
+                };
+            };
         };
     };
     "notify-signers": {
@@ -4354,6 +4642,20 @@ export interface operations {
                         ocs: {
                             meta: components["schemas"]["OCSMeta"];
                             data: components["schemas"]["MessageResponse"];
+                        };
+                    };
+                };
+            };
+            /** @description Current user is not logged in */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        ocs: {
+                            meta: components["schemas"]["OCSMeta"];
+                            data: unknown;
                         };
                     };
                 };
@@ -4427,7 +4729,10 @@ export interface operations {
                      * @description The sign request id
                      */
                     signRequestId: number;
-                    /** @description Optional random idempotency key (32 lowercase hex characters) */
+                    /**
+                     * @description Optional random idempotency key (32 lowercase hex characters)
+                     * @default null
+                     */
                     requestId?: string | null;
                 };
             };
@@ -4443,6 +4748,20 @@ export interface operations {
                         ocs: {
                             meta: components["schemas"]["OCSMeta"];
                             data: components["schemas"]["MessageResponse"];
+                        };
+                    };
+                };
+            };
+            /** @description Current user is not logged in */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        ocs: {
+                            meta: components["schemas"]["OCSMeta"];
+                            data: unknown;
                         };
                     };
                 };
@@ -4526,6 +4845,20 @@ export interface operations {
                     };
                 };
             };
+            /** @description Current user is not logged in */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        ocs: {
+                            meta: components["schemas"]["OCSMeta"];
+                            data: unknown;
+                        };
+                    };
+                };
+            };
         };
     };
     "notify-notification-dismiss": {
@@ -4565,6 +4898,20 @@ export interface operations {
                     };
                 };
             };
+            /** @description Current user is not logged in */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        ocs: {
+                            meta: components["schemas"]["OCSMeta"];
+                            data: unknown;
+                        };
+                    };
+                };
+            };
         };
     };
     "policy-effective": {
@@ -4591,6 +4938,20 @@ export interface operations {
                         ocs: {
                             meta: components["schemas"]["OCSMeta"];
                             data: components["schemas"]["EffectivePoliciesResponse"];
+                        };
+                    };
+                };
+            };
+            /** @description Current user is not logged in */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        ocs: {
+                            meta: components["schemas"]["OCSMeta"];
+                            data: unknown;
                         };
                     };
                 };
@@ -4625,6 +4986,20 @@ export interface operations {
                         ocs: {
                             meta: components["schemas"]["OCSMeta"];
                             data: components["schemas"]["GroupPolicyResponse"];
+                        };
+                    };
+                };
+            };
+            /** @description Current user is not logged in */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        ocs: {
+                            meta: components["schemas"]["OCSMeta"];
+                            data: unknown;
                         };
                     };
                 };
@@ -4664,7 +5039,10 @@ export interface operations {
         requestBody?: {
             content: {
                 "application/json": {
-                    /** @description Policy value to persist for the group. */
+                    /**
+                     * @description Policy value to persist for the group.
+                     * @default null
+                     */
                     value?: (boolean | number | string | {
                         [key: string]: Record<string, never>;
                     }) | null;
@@ -4701,6 +5079,20 @@ export interface operations {
                         ocs: {
                             meta: components["schemas"]["OCSMeta"];
                             data: components["schemas"]["ErrorResponse"];
+                        };
+                    };
+                };
+            };
+            /** @description Current user is not logged in */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        ocs: {
+                            meta: components["schemas"]["OCSMeta"];
+                            data: unknown;
                         };
                     };
                 };
@@ -4767,6 +5159,20 @@ export interface operations {
                     };
                 };
             };
+            /** @description Current user is not logged in */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        ocs: {
+                            meta: components["schemas"]["OCSMeta"];
+                            data: unknown;
+                        };
+                    };
+                };
+            };
             /** @description Forbidden */
             403: {
                 headers: {
@@ -4815,6 +5221,20 @@ export interface operations {
                     };
                 };
             };
+            /** @description Current user is not logged in */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        ocs: {
+                            meta: components["schemas"]["OCSMeta"];
+                            data: unknown;
+                        };
+                    };
+                };
+            };
         };
     };
     "policy-get-user-policy-for-user": {
@@ -4845,6 +5265,20 @@ export interface operations {
                         ocs: {
                             meta: components["schemas"]["OCSMeta"];
                             data: components["schemas"]["UserPolicyResponse"];
+                        };
+                    };
+                };
+            };
+            /** @description Current user is not logged in */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        ocs: {
+                            meta: components["schemas"]["OCSMeta"];
+                            data: unknown;
                         };
                     };
                 };
@@ -4884,7 +5318,10 @@ export interface operations {
         requestBody?: {
             content: {
                 "application/json": {
-                    /** @description Policy value to persist as assigned target user policy. */
+                    /**
+                     * @description Policy value to persist as assigned target user policy.
+                     * @default null
+                     */
                     value?: (boolean | number | string | {
                         [key: string]: Record<string, never>;
                     }) | null;
@@ -4921,6 +5358,20 @@ export interface operations {
                         ocs: {
                             meta: components["schemas"]["OCSMeta"];
                             data: components["schemas"]["ErrorResponse"];
+                        };
+                    };
+                };
+            };
+            /** @description Current user is not logged in */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        ocs: {
+                            meta: components["schemas"]["OCSMeta"];
+                            data: unknown;
                         };
                     };
                 };
@@ -4987,6 +5438,20 @@ export interface operations {
                     };
                 };
             };
+            /** @description Current user is not logged in */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        ocs: {
+                            meta: components["schemas"]["OCSMeta"];
+                            data: unknown;
+                        };
+                    };
+                };
+            };
             /** @description Forbidden */
             403: {
                 headers: {
@@ -5031,6 +5496,20 @@ export interface operations {
                             data: {
                                 policies: components["schemas"]["UserPolicyState"][];
                             };
+                        };
+                    };
+                };
+            };
+            /** @description Current user is not logged in */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        ocs: {
+                            meta: components["schemas"]["OCSMeta"];
+                            data: unknown;
                         };
                     };
                 };
@@ -5100,6 +5579,20 @@ export interface operations {
                         ocs: {
                             meta: components["schemas"]["OCSMeta"];
                             data: components["schemas"]["ErrorResponse"];
+                        };
+                    };
+                };
+            };
+            /** @description Current user is not logged in */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        ocs: {
+                            meta: components["schemas"]["OCSMeta"];
+                            data: unknown;
                         };
                     };
                 };
@@ -5178,6 +5671,20 @@ export interface operations {
                     };
                 };
             };
+            /** @description Current user is not logged in */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        ocs: {
+                            meta: components["schemas"]["OCSMeta"];
+                            data: unknown;
+                        };
+                    };
+                };
+            };
         };
     };
     "policy-set-user-policy-for-user-compound": {
@@ -5247,6 +5754,20 @@ export interface operations {
                     };
                 };
             };
+            /** @description Current user is not logged in */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        ocs: {
+                            meta: components["schemas"]["OCSMeta"];
+                            data: unknown;
+                        };
+                    };
+                };
+            };
             /** @description Forbidden */
             403: {
                 headers: {
@@ -5280,7 +5801,10 @@ export interface operations {
         requestBody?: {
             content: {
                 "application/json": {
-                    /** @description Policy value to persist as the current user's default. */
+                    /**
+                     * @description Policy value to persist as the current user's default.
+                     * @default null
+                     */
                     value?: (boolean | number | string | {
                         [key: string]: Record<string, never>;
                     }) | null;
@@ -5312,6 +5836,20 @@ export interface operations {
                         ocs: {
                             meta: components["schemas"]["OCSMeta"];
                             data: components["schemas"]["ErrorResponse"];
+                        };
+                    };
+                };
+            };
+            /** @description Current user is not logged in */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        ocs: {
+                            meta: components["schemas"]["OCSMeta"];
+                            data: unknown;
                         };
                     };
                 };
@@ -5362,6 +5900,20 @@ export interface operations {
                     };
                 };
             };
+            /** @description Current user is not logged in */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        ocs: {
+                            meta: components["schemas"]["OCSMeta"];
+                            data: unknown;
+                        };
+                    };
+                };
+            };
         };
     };
     "request_signature-request-signature": {
@@ -5404,7 +5956,10 @@ export interface operations {
                      * @default []
                      */
                     files?: components["schemas"]["NewFile"][];
-                    /** @description URL that will receive a POST after the document is signed */
+                    /**
+                     * @description URL that will receive a POST after the document is signed
+                     * @default null
+                     */
                     callback?: string | null;
                     /**
                      * Format: int64
@@ -5412,7 +5967,10 @@ export interface operations {
                      * @default 1
                      */
                     status?: number | null;
-                    /** @description Structured policy payload with request-level overrides and active context. */
+                    /**
+                     * @description Structured policy payload with request-level overrides and active context.
+                     * @default null
+                     */
                     policy?: {
                         [key: string]: Record<string, never>;
                     } | null;
@@ -5430,6 +5988,20 @@ export interface operations {
                         ocs: {
                             meta: components["schemas"]["OCSMeta"];
                             data: components["schemas"]["DetailedFileResponse"];
+                        };
+                    };
+                };
+            };
+            /** @description Current user is not logged in */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        ocs: {
+                            meta: components["schemas"]["OCSMeta"];
+                            data: unknown;
                         };
                     };
                 };
@@ -5470,22 +6042,38 @@ export interface operations {
                      * @default []
                      */
                     signers?: components["schemas"]["NewSigner"][] | null;
-                    /** @description UUID of sign request. The signer UUID is what the person receives via email when asked to sign. This is not the file UUID. */
+                    /**
+                     * @description UUID of sign request. The signer UUID is what the person receives via email when asked to sign. This is not the file UUID.
+                     * @default null
+                     */
                     uuid?: string | null;
-                    /** @description Visible elements on document */
+                    /**
+                     * @description Visible elements on document
+                     * @default null
+                     */
                     visibleElements?: components["schemas"]["VisibleElement"][] | null;
-                    /** @description File object. Supports nodeId (a non-negative integer or its canonical decimal string), url, base64 or path when creating a new request. */
-                    file?: components["schemas"]["NewFile"];
+                    /**
+                     * @description File object. Supports nodeId (a non-negative integer or its canonical decimal string), url, base64 or path when creating a new request.
+                     * @default null
+                     */
+                    file?: components["schemas"]["NewFile"] | null;
                     /**
                      * Format: int64
                      * @description Numeric code of status * 0 - no signers * 1 - signed * 2 - pending
+                     * @default null
                      */
                     status?: number | null;
-                    /** @description Structured policy payload with request-level overrides and active context. */
+                    /**
+                     * @description Structured policy payload with request-level overrides and active context.
+                     * @default null
+                     */
                     policy?: {
                         [key: string]: Record<string, never>;
                     } | null;
-                    /** @description The name of file to sign */
+                    /**
+                     * @description The name of file to sign
+                     * @default null
+                     */
                     name?: string | null;
                     /**
                      * @description Settings to define how and where the file should be stored
@@ -5511,6 +6099,20 @@ export interface operations {
                         ocs: {
                             meta: components["schemas"]["OCSMeta"];
                             data: components["schemas"]["DetailedFileResponse"];
+                        };
+                    };
+                };
+            };
+            /** @description Current user is not logged in */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        ocs: {
+                            meta: components["schemas"]["OCSMeta"];
+                            data: unknown;
                         };
                     };
                 };
@@ -5573,6 +6175,11 @@ export interface operations {
                         ocs: {
                             meta: components["schemas"]["OCSMeta"];
                             data: components["schemas"]["MessageResponse"];
+                        };
+                    } | {
+                        ocs: {
+                            meta: components["schemas"]["OCSMeta"];
+                            data: unknown;
                         };
                     };
                 };
@@ -5715,6 +6322,11 @@ export interface operations {
                         ocs: {
                             meta: components["schemas"]["OCSMeta"];
                             data: components["schemas"]["MessageResponse"];
+                        };
+                    } | {
+                        ocs: {
+                            meta: components["schemas"]["OCSMeta"];
+                            data: unknown;
                         };
                     };
                 };
@@ -5867,6 +6479,20 @@ export interface operations {
                     };
                 };
             };
+            /** @description Current user is not logged in */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        ocs: {
+                            meta: components["schemas"]["OCSMeta"];
+                            data: unknown;
+                        };
+                    };
+                };
+            };
             /** @description Error */
             422: {
                 headers: {
@@ -6001,6 +6627,12 @@ export interface operations {
                     identifyMethod?: "account" | "email" | null;
                     /** @description Method used to sign the document, i.e. emailToken, account, clickToSign, smsToken, signalToken, telegramToken, whatsappToken, xmppToken */
                     signMethod?: string | null;
+                    /**
+                     * @description Literal string "true" when the UUID is an identification-document file UUID (matches middleware RequireSigner)
+                     * @default null
+                     * @enum {string|null}
+                     */
+                    idDocApproval?: "true" | null;
                 };
             };
         };
@@ -6097,6 +6729,8 @@ export interface operations {
         parameters: {
             query?: never;
             header: {
+                /** @description The UUID of the sign request, used to identify the request */
+                "libresign-sign-request-uuid"?: string;
                 /** @description Required to be true for the API request to pass */
                 "OCS-APIRequest": boolean;
             };
@@ -6141,6 +6775,8 @@ export interface operations {
         parameters: {
             query?: never;
             header: {
+                /** @description The UUID of the sign request, used to identify the request */
+                "libresign-sign-request-uuid"?: string;
                 /** @description Required to be true for the API request to pass */
                 "OCS-APIRequest": boolean;
             };
@@ -6194,6 +6830,8 @@ export interface operations {
         parameters: {
             query?: never;
             header: {
+                /** @description The UUID of the sign request, used to identify the request */
+                "libresign-sign-request-uuid"?: string;
                 /** @description Required to be true for the API request to pass */
                 "OCS-APIRequest": boolean;
             };
@@ -6311,6 +6949,20 @@ export interface operations {
                         ocs: {
                             meta: components["schemas"]["OCSMeta"];
                             data: components["schemas"]["UserElement"];
+                        };
+                    };
+                };
+            };
+            /** @description Current user is not logged in */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        ocs: {
+                            meta: components["schemas"]["OCSMeta"];
+                            data: unknown;
                         };
                     };
                 };
@@ -6463,26 +7115,36 @@ export interface operations {
                     /**
                      * Format: double
                      * @description Font size for template text in pt
+                     * @default null
                      */
                     templateFontSize?: number;
                     /**
                      * Format: double
                      * @description Font size for signer name in pt
+                     * @default null
                      */
                     signatureFontSize?: number;
                     /**
                      * Format: double
                      * @description Stamp width in mm
+                     * @default null
                      */
                     signatureWidth?: number;
                     /**
                      * Format: double
                      * @description Stamp height in mm
+                     * @default null
                      */
                     signatureHeight?: number;
-                    /** @description Render mode: default, text, graphic, description_only */
+                    /**
+                     * @description Render mode: default, text, graphic, description_only
+                     * @default null
+                     */
                     renderMode?: string;
-                    /** @description Background: default, custom, deleted */
+                    /**
+                     * @description Background: default, custom, deleted
+                     * @default null
+                     */
                     backgroundType?: string;
                 };
             };
@@ -6495,6 +7157,20 @@ export interface operations {
                 };
                 content: {
                     "application/pdf": string;
+                };
+            };
+            /** @description Current user is not logged in */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        ocs: {
+                            meta: components["schemas"]["OCSMeta"];
+                            data: unknown;
+                        };
+                    };
                 };
             };
             /** @description Forbidden */
@@ -6590,6 +7266,25 @@ export interface operations {
                             meta: components["schemas"]["OCSMeta"];
                             data: components["schemas"]["MessageResponse"];
                         };
+                    } | {
+                        ocs: {
+                            meta: components["schemas"]["OCSMeta"];
+                            data: unknown;
+                        };
+                    };
+                };
+            };
+            /** @description Logged in account must be an admin */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        ocs: {
+                            meta: components["schemas"]["OCSMeta"];
+                            data: unknown;
+                        };
                     };
                 };
             };
@@ -6653,6 +7348,25 @@ export interface operations {
                             meta: components["schemas"]["OCSMeta"];
                             data: components["schemas"]["MessageResponse"];
                         };
+                    } | {
+                        ocs: {
+                            meta: components["schemas"]["OCSMeta"];
+                            data: unknown;
+                        };
+                    };
+                };
+            };
+            /** @description Logged in account must be an admin */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        ocs: {
+                            meta: components["schemas"]["OCSMeta"];
+                            data: unknown;
+                        };
                     };
                 };
             };
@@ -6707,6 +7421,34 @@ export interface operations {
                     };
                 };
             };
+            /** @description Current user is not logged in */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        ocs: {
+                            meta: components["schemas"]["OCSMeta"];
+                            data: unknown;
+                        };
+                    };
+                };
+            };
+            /** @description Logged in account must be an admin */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        ocs: {
+                            meta: components["schemas"]["OCSMeta"];
+                            data: unknown;
+                        };
+                    };
+                };
+            };
         };
     };
     "admin-load-certificate": {
@@ -6733,6 +7475,34 @@ export interface operations {
                         ocs: {
                             meta: components["schemas"]["OCSMeta"];
                             data: components["schemas"]["CertificateDataGenerated"];
+                        };
+                    };
+                };
+            };
+            /** @description Current user is not logged in */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        ocs: {
+                            meta: components["schemas"]["OCSMeta"];
+                            data: unknown;
+                        };
+                    };
+                };
+            };
+            /** @description Logged in account must be an admin */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        ocs: {
+                            meta: components["schemas"]["OCSMeta"];
+                            data: unknown;
                         };
                     };
                 };
@@ -6767,6 +7537,34 @@ export interface operations {
                     };
                 };
             };
+            /** @description Current user is not logged in */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        ocs: {
+                            meta: components["schemas"]["OCSMeta"];
+                            data: unknown;
+                        };
+                    };
+                };
+            };
+            /** @description Logged in account must be an admin */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        ocs: {
+                            meta: components["schemas"]["OCSMeta"];
+                            data: unknown;
+                        };
+                    };
+                };
+            };
         };
     };
     "admin-signature-background-get": {
@@ -6790,6 +7588,34 @@ export interface operations {
                 };
                 content: {
                     "*/*": string;
+                };
+            };
+            /** @description Current user is not logged in */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        ocs: {
+                            meta: components["schemas"]["OCSMeta"];
+                            data: unknown;
+                        };
+                    };
+                };
+            };
+            /** @description Logged in account must be an admin */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        ocs: {
+                            meta: components["schemas"]["OCSMeta"];
+                            data: unknown;
+                        };
+                    };
                 };
             };
         };
@@ -6818,6 +7644,34 @@ export interface operations {
                         ocs: {
                             meta: components["schemas"]["OCSMeta"];
                             data: components["schemas"]["SuccessStatusResponse"];
+                        };
+                    };
+                };
+            };
+            /** @description Current user is not logged in */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        ocs: {
+                            meta: components["schemas"]["OCSMeta"];
+                            data: unknown;
+                        };
+                    };
+                };
+            };
+            /** @description Logged in account must be an admin */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        ocs: {
+                            meta: components["schemas"]["OCSMeta"];
+                            data: unknown;
                         };
                     };
                 };
@@ -6866,6 +7720,34 @@ export interface operations {
                     };
                 };
             };
+            /** @description Current user is not logged in */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        ocs: {
+                            meta: components["schemas"]["OCSMeta"];
+                            data: unknown;
+                        };
+                    };
+                };
+            };
+            /** @description Logged in account must be an admin */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        ocs: {
+                            meta: components["schemas"]["OCSMeta"];
+                            data: unknown;
+                        };
+                    };
+                };
+            };
         };
     };
     "admin-save-certificate-policy": {
@@ -6892,6 +7774,34 @@ export interface operations {
                         ocs: {
                             meta: components["schemas"]["OCSMeta"];
                             data: components["schemas"]["CertificatePolicyResponse"];
+                        };
+                    };
+                };
+            };
+            /** @description Current user is not logged in */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        ocs: {
+                            meta: components["schemas"]["OCSMeta"];
+                            data: unknown;
+                        };
+                    };
+                };
+            };
+            /** @description Logged in account must be an admin */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        ocs: {
+                            meta: components["schemas"]["OCSMeta"];
+                            data: unknown;
                         };
                     };
                 };
@@ -6939,6 +7849,34 @@ export interface operations {
                                 /** @enum {string} */
                                 status: "success";
                             };
+                        };
+                    };
+                };
+            };
+            /** @description Current user is not logged in */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        ocs: {
+                            meta: components["schemas"]["OCSMeta"];
+                            data: unknown;
+                        };
+                    };
+                };
+            };
+            /** @description Logged in account must be an admin */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        ocs: {
+                            meta: components["schemas"]["OCSMeta"];
+                            data: unknown;
                         };
                     };
                 };
@@ -6994,6 +7932,34 @@ export interface operations {
                     };
                 };
             };
+            /** @description Current user is not logged in */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        ocs: {
+                            meta: components["schemas"]["OCSMeta"];
+                            data: unknown;
+                        };
+                    };
+                };
+            };
+            /** @description Logged in account must be an admin */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        ocs: {
+                            meta: components["schemas"]["OCSMeta"];
+                            data: unknown;
+                        };
+                    };
+                };
+            };
             /** @description Validation error */
             422: {
                 headers: {
@@ -7034,6 +8000,34 @@ export interface operations {
                         ocs: {
                             meta: components["schemas"]["OCSMeta"];
                             data: components["schemas"]["ActiveSigningsResponse"];
+                        };
+                    };
+                };
+            };
+            /** @description Current user is not logged in */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        ocs: {
+                            meta: components["schemas"]["OCSMeta"];
+                            data: unknown;
+                        };
+                    };
+                };
+            };
+            /** @description Logged in account must be an admin */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        ocs: {
+                            meta: components["schemas"]["OCSMeta"];
+                            data: unknown;
                         };
                     };
                 };
@@ -7081,6 +8075,34 @@ export interface operations {
                     };
                 };
             };
+            /** @description Current user is not logged in */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        ocs: {
+                            meta: components["schemas"]["OCSMeta"];
+                            data: unknown;
+                        };
+                    };
+                };
+            };
+            /** @description Logged in account must be an admin */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        ocs: {
+                            meta: components["schemas"]["OCSMeta"];
+                            data: unknown;
+                        };
+                    };
+                };
+            };
         };
     };
     "admin-save-geo-ip-config": {
@@ -7117,6 +8139,34 @@ export interface operations {
                         ocs: {
                             meta: components["schemas"]["OCSMeta"];
                             data: components["schemas"]["GeoIpConfig"];
+                        };
+                    };
+                };
+            };
+            /** @description Current user is not logged in */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        ocs: {
+                            meta: components["schemas"]["OCSMeta"];
+                            data: unknown;
+                        };
+                    };
+                };
+            };
+            /** @description Logged in account must be an admin */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        ocs: {
+                            meta: components["schemas"]["OCSMeta"];
+                            data: unknown;
                         };
                     };
                 };
@@ -7174,6 +8224,34 @@ export interface operations {
                     };
                 };
             };
+            /** @description Current user is not logged in */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        ocs: {
+                            meta: components["schemas"]["OCSMeta"];
+                            data: unknown;
+                        };
+                    };
+                };
+            };
+            /** @description Logged in account must be an admin */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        ocs: {
+                            meta: components["schemas"]["OCSMeta"];
+                            data: unknown;
+                        };
+                    };
+                };
+            };
         };
     };
     "crl_api-revoke": {
@@ -7196,9 +8274,13 @@ export interface operations {
                     /**
                      * Format: int64
                      * @description Revocation reason code (0-10, see RFC 5280)
+                     * @default null
                      */
                     reasonCode?: number | null;
-                    /** @description Optional text describing the reason */
+                    /**
+                     * @description Optional text describing the reason
+                     * @default null
+                     */
                     reasonText?: string | null;
                 };
             };
@@ -7228,6 +8310,34 @@ export interface operations {
                         ocs: {
                             meta: components["schemas"]["OCSMeta"];
                             data: components["schemas"]["CrlRevokeResponse"];
+                        };
+                    };
+                };
+            };
+            /** @description Current user is not logged in */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        ocs: {
+                            meta: components["schemas"]["OCSMeta"];
+                            data: unknown;
+                        };
+                    };
+                };
+            };
+            /** @description Logged in account must be an admin */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        ocs: {
+                            meta: components["schemas"]["OCSMeta"];
+                            data: unknown;
                         };
                     };
                 };
@@ -7278,6 +8388,34 @@ export interface operations {
                     };
                 };
             };
+            /** @description Current user is not logged in */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        ocs: {
+                            meta: components["schemas"]["OCSMeta"];
+                            data: unknown;
+                        };
+                    };
+                };
+            };
+            /** @description Logged in account must be an admin */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        ocs: {
+                            meta: components["schemas"]["OCSMeta"];
+                            data: unknown;
+                        };
+                    };
+                };
+            };
         };
     };
     "policy-set-system": {
@@ -7297,7 +8435,10 @@ export interface operations {
         requestBody?: {
             content: {
                 "application/json": {
-                    /** @description Policy value to persist as an explicit system rule, even when it equals the default. Null removes the explicit system rule: the built-in default applies and lower layers may override it. */
+                    /**
+                     * @description Policy value to persist as an explicit system rule, even when it equals the default. Null removes the explicit system rule: the built-in default applies and lower layers may override it.
+                     * @default null
+                     */
                     value?: (boolean | number | string | {
                         [key: string]: Record<string, never>;
                     }) | null;
@@ -7334,6 +8475,34 @@ export interface operations {
                         ocs: {
                             meta: components["schemas"]["OCSMeta"];
                             data: components["schemas"]["ErrorResponse"];
+                        };
+                    };
+                };
+            };
+            /** @description Current user is not logged in */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        ocs: {
+                            meta: components["schemas"]["OCSMeta"];
+                            data: unknown;
+                        };
+                    };
+                };
+            };
+            /** @description Logged in account must be an admin */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        ocs: {
+                            meta: components["schemas"]["OCSMeta"];
+                            data: unknown;
                         };
                     };
                 };
@@ -7405,6 +8574,34 @@ export interface operations {
                     };
                 };
             };
+            /** @description Current user is not logged in */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        ocs: {
+                            meta: components["schemas"]["OCSMeta"];
+                            data: unknown;
+                        };
+                    };
+                };
+            };
+            /** @description Logged in account must be an admin */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        ocs: {
+                            meta: components["schemas"]["OCSMeta"];
+                            data: unknown;
+                        };
+                    };
+                };
+            };
         };
     };
     "setting-has-root-cert": {
@@ -7431,6 +8628,20 @@ export interface operations {
                         ocs: {
                             meta: components["schemas"]["OCSMeta"];
                             data: components["schemas"]["HasRootCertResponse"];
+                        };
+                    };
+                };
+            };
+            /** @description Current user is not logged in */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        ocs: {
+                            meta: components["schemas"]["OCSMeta"];
+                            data: unknown;
                         };
                     };
                 };
