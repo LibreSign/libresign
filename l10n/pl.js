@@ -138,6 +138,7 @@ OC.L10N.register(
     "Blockquote" : "Cytat",
     "Code block" : "Blok kodu",
     "Link" : "Odnośnik",
+    "Undo" : "Cofnij",
     "Redo" : "Powtórzenie",
     "Duplicate" : "Zduplikuj",
     "Loading …" : "Wczytywanie…",
