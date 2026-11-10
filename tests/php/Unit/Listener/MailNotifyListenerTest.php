@@ -178,6 +178,21 @@ class MailNotifyListenerTest extends TestCase {
 		$this->assertSame('bob@example.org', $message->recipient);
 	}
 
+	public function testAccountCancellationRespectsUidMailPreference(): void {
+		$this->userManager->method('get')->with('bob-uid')->willReturn($this->account('bob-uid', 'bob@example.org'));
+		$this->preferences->expects($this->once())->method('isEmailNotificationDisabled')
+			->with('bob-uid', SignRequestCanceledEvent::SIGN_REQUEST_CANCELED, true)
+			->willReturn(true);
+
+		$this->listener->handle(new SignRequestCanceledEvent(
+			$this->request(),
+			new FileEntity(),
+			$this->identifyMethod('account', 'bob-uid'),
+		));
+
+		$this->assertSame([], $this->deliveries);
+	}
+
 	public static function signedMailPreferences(): array {
 		return [
 			'notification disabled' => [true, false],
@@ -187,7 +202,9 @@ class MailNotifyListenerTest extends TestCase {
 
 	#[DataProvider('signedMailPreferences')]
 	public function testSignedMailRespectsNotificationPreference(bool $disabled, bool $shouldDeliver): void {
-		$this->preferences->method('isEmailNotificationDisabled')->willReturn($disabled);
+		$this->preferences->expects($this->once())->method('isEmailNotificationDisabled')
+			->with('admin', SignedEvent::FILE_SIGNED, true)
+			->willReturn($disabled);
 		$owner = $this->account('admin', 'admin@example.org');
 
 		$file = new FileEntity();
