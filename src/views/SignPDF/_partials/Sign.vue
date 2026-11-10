@@ -13,7 +13,7 @@
 				:heading="t('libresign', 'Document approval')"
 				type="info">
 				<!-- TRANSLATORS Explanation for a reviewer signing a submitted document to record approval. The review procedure is set by the organization. -->
-				{{ t('libresign', 'Review the identification document uploaded by the signer according to your organization's procedure. Signing records your approval. Once all required identification documents are approved, the signer can continue the signing process, subject to other requirements.') }}
+				{{ t('libresign', 'Review the identification document uploaded by the signer according to the procedure defined by your organization. Signing records your approval. Once all required identification documents are approved, the signer can continue the signing process, subject to other requirements.') }}
 			</NcNoteCard>
 			<NcCheckboxRadioSwitch v-if="signatureElementsStore.emailSigner && hasSignatures && hasVisibleSignatureField"
 				v-model="rememberSignature">
