@@ -30,6 +30,7 @@ use OCA\Libresign\Enum\SignatureRejectionBehavior;
 use OCA\Libresign\Enum\SignRequestStatus;
 use OCA\Libresign\Events\SignedEvent;
 use OCA\Libresign\Events\SignedEventFactory;
+use OCA\Libresign\Events\SignerSignedWebhookEvent;
 use OCA\Libresign\Events\SigningRequestCompletedEvent;
 use OCA\Libresign\Exception\LibresignException;
 use OCA\Libresign\Handler\DocMdpHandler;
@@ -876,6 +877,55 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			static fn (SigningRequestCompletedEvent $event): array => $event->getWebhookSerializable(),
 			$events,
 		));
+	}
+
+	public function testLegacyListenerFailureDoesNotSuppressNativeSigningEvent(): void {
+		$service = $this->getService([
+			'getEngine', 'computeHash', 'validateDocMdpAllowsSignatures',
+			'updateSignRequest', 'updateLibreSignFile',
+		]);
+		$file = new File();
+		$file->setId(17);
+		$file->setUuid('document-uuid');
+		$file->setStatus(FileStatus::ABLE_TO_SIGN->value);
+		$signer = new SignRequest();
+		$signer->setId(31);
+		$signer->setSigned(new DateTime('2026-11-09T11:00:00Z'));
+		$signer->setSignedHash('signed-content-hash');
+
+		$signedFile = $this->createMock(\OCP\Files\File::class);
+		$signedFile->method('getId')->willReturn(123);
+		$engine = $this->createMock(Pkcs12Handler::class);
+		$engine->method('sign')->willReturn($signedFile);
+		$engine->method('getInputFile')->willReturn($signedFile);
+		$service->method('getEngine')->willReturn($engine);
+		$service->method('computeHash')->willReturn('signed-content-hash');
+		$this->fileMapper->method('getById')->willReturn($file);
+		$this->signedEventFactory->method('make')->willReturn($this->createMock(SignedEvent::class));
+
+		$events = [];
+		$this->eventDispatcher->method('dispatchTyped')->willReturnCallback(
+			static function ($event) use (&$events): void {
+				$events[] = $event;
+				if ($event instanceof SignedEvent) {
+					throw new \RuntimeException('private callback details');
+				}
+			},
+		);
+		$this->logger->expects($this->once())->method('warning')
+			->with('Unable to dispatch legacy signed event', $this->callback(
+				static fn (array $context): bool => $context['errorType'] === 'RuntimeException'
+					&& !str_contains(json_encode($context), 'private callback details'),
+			));
+
+		$service->signSingleFile($file, $signer);
+
+		$published = array_values(array_filter(
+			$events,
+			static fn ($event): bool => $event instanceof SignerSignedWebhookEvent,
+		));
+		$this->assertCount(1, $published);
+		$this->assertSame('document-uuid', $published[0]->getWebhookSerializable()['requestUuid']);
 	}
 
 	public function testUpdateEnvelopeStatusAddsStatusChangedAt(): void {
