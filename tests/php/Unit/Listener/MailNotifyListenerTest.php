@@ -105,10 +105,12 @@ class MailNotifyListenerTest extends TestCase {
 	#[DataProvider('accountPreferences')]
 	public function testAccountSignerRespectsMailPreference(bool $disabled, bool $shouldDeliver): void {
 		$account = $this->account('bob-uid', 'bob@example.org');
-		$this->userManager->method('get')->with('bob-uid')->willReturn($account);
-		$this->preferences->expects($this->once())->method('isEmailNotificationDisabled')
-			->with('bob-uid', SendSignNotificationEvent::FILE_TO_SIGN, true)
-			->willReturn($disabled);
+		$this->userManager
+			->method('get')
+			->willReturn($account);
+		$this->preferences
+			->method('isEmailNotificationDisabled')
+			->willReturnCallback(static fn (string $uid): bool => $uid === 'bob-uid' && $disabled);
 
 		$this->listener->handle($this->invitation('account', 'bob-uid'));
 
@@ -125,7 +127,9 @@ class MailNotifyListenerTest extends TestCase {
 			$account,
 			$this->account('other-uid', 'shared@example.org'),
 		]);
-		$this->preferences->method('isEmailNotificationDisabled')->willReturn(true);
+		$this->preferences
+			->method('isEmailNotificationDisabled')
+			->willReturnCallback(static fn (string $uid): bool => $uid === 'bob-uid');
 
 		$this->listener->handle($this->invitation('account', 'bob-uid'));
 
@@ -140,27 +144,54 @@ class MailNotifyListenerTest extends TestCase {
 		$this->assertSame([], $this->deliveries);
 	}
 
+	public function testUnsupportedIdentificationMethodDoesNotDispatch(): void {
+		$this->listener->handle($this->invitation('sms', '5511999999999'));
+
+		$this->assertSame([], $this->deliveries);
+	}
+
+	public function testEmptyEmailDoesNotDispatch(): void {
+		$this->listener->handle($this->invitation('email', ''));
+
+		$this->assertSame([], $this->deliveries);
+	}
+
 	public function testDeletedSignerDoesNotDispatch(): void {
 		$this->listener->handle($this->invitation('email', 'deleted@example.org', null, true));
 
 		$this->assertSame([], $this->deliveries);
 	}
 
-	public function testEmailSignerReceivesCancellationEvenWhenAddressBelongsToAccount(): void {
-		$this->userManager->method('getByEmail')->willReturn([
-			$this->account('bob-uid', 'bob@example.org'),
-		]);
-		$this->preferences->method('isEmailNotificationDisabled')->willReturn(true);
+	public static function emailCancellationPreferences(): array {
+		return [
+			'notifications enabled' => [false, true],
+			'notifications disabled' => [true, false],
+		];
+	}
 
-		$this->listener->handle(new SignRequestCanceledEvent(
-			$this->request(),
-			new FileEntity(),
-			$this->identifyMethod('email', 'bob@example.org'),
-		));
+	#[DataProvider('emailCancellationPreferences')]
+	public function testEmailSignerCancellationRespectsExistingAccountPreference(bool $disabled, bool $shouldDeliver): void {
+		$account = $this->account('bob-uid', 'bob@example.org');
+		$this->userManager
+			->method('getByEmail')
+			->willReturn([$account]);
+		$this->preferences
+			->method('isEmailNotificationDisabled')
+			->willReturnCallback(static fn (string $uid): bool => $uid === 'bob-uid' && $disabled);
 
-		$message = $this->singleDelivery();
-		$this->assertSame('sign_request_canceled', $message->eventType);
-		$this->assertSame('bob@example.org', $message->recipient);
+		$this->listener->handle($this->cancellation('email', 'bob@example.org'));
+
+		$this->assertCount($shouldDeliver ? 1 : 0, $this->deliveries);
+		if ($shouldDeliver) {
+			$this->assertSame('bob@example.org', $this->singleDelivery()->recipient);
+			$this->assertSame('sign_request_canceled', $this->singleDelivery()->eventType);
+		}
+	}
+
+	public function testExternalEmailSignerReceivesCancellation(): void {
+		$this->listener->handle($this->cancellation('email', 'carol@example.org'));
+
+		$this->assertSame('carol@example.org', $this->singleDelivery()->recipient);
 	}
 
 	public static function signedMailPreferences(): array {
@@ -241,6 +272,14 @@ class MailNotifyListenerTest extends TestCase {
 			new FileEntity(),
 			$this->identifyMethod($method, $value, $deleted),
 			'invitation-42',
+		);
+	}
+
+	private function cancellation(string $method, string $value): SignRequestCanceledEvent {
+		return new SignRequestCanceledEvent(
+			$this->request(),
+			new FileEntity(),
+			$this->identifyMethod($method, $value),
 		);
 	}
 
