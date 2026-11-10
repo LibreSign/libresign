@@ -34,6 +34,7 @@ final class NotificationEnvelopeCodec {
 				'type' => 'id_doc_rejection',
 				'reason' => $message->payload->reason,
 				'accountSigner' => $message->payload->accountSigner,
+				'recipientUserId' => $message->payload->recipientUserId,
 			],
 			$message->payload instanceof MailPayload => [
 				'type' => 'mail',
@@ -143,6 +144,7 @@ final class NotificationEnvelopeCodec {
 			'id_doc_rejection' => new IdDocRejectionPayload(
 				(string)$payload['reason'],
 				(bool)$payload['accountSigner'],
+				isset($payload['recipientUserId']) ? (string)$payload['recipientUserId'] : null,
 			),
 			'mail' => new MailPayload(
 				isset($payload['displayName']) ? (string)$payload['displayName'] : null,

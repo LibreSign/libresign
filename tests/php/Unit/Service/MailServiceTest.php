@@ -21,6 +21,7 @@ use OCP\IL10N;
 use OCP\IURLGenerator;
 use OCP\IUser;
 use OCP\IUserManager;
+use OCP\L10N\IFactory;
 use OCP\Mail\IEMailTemplate;
 use OCP\Mail\IMailer;
 use OCP\Mail\IMessage as ISystemMessage;
@@ -41,6 +42,7 @@ final class MailServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	private IMailer&MockObject $mailer;
 	private FileMapper&MockObject $fileMapper;
 	private IL10N&MockObject $l10n;
+	private IFactory&MockObject $l10nFactory;
 	private IURLGenerator&MockObject $urlGenerator;
 	private IAppConfig&MockObject $appConfig;
 	private PolicyService&MockObject $policyService;
@@ -54,6 +56,7 @@ final class MailServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$this->mailer = $this->createMock(IMailer::class);
 		$this->fileMapper = $this->createMock(FileMapper::class);
 		$this->l10n = $this->createMock(IL10N::class);
+		$this->l10nFactory = $this->createMock(IFactory::class);
 		$this->l10n
 			->method('t')
 			->willReturnArgument(0);
@@ -72,6 +75,97 @@ final class MailServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			$this->policyService,
 			$this->mailProviderManager,
 			$this->userManager,
+			$this->l10nFactory,
+		);
+	}
+
+	public function testRejectedIdEmailUsesRecipientLanguageAndSeparatePlainReason(): void {
+		$recipient = $this->createMock(IUser::class);
+		$this->userManager->expects($this->once())->method('get')
+			->with('signer')->willReturn($recipient);
+		$this->l10nFactory->expects($this->once())->method('getUserLanguage')
+			->with($recipient)->willReturn('pt_BR');
+
+		$recipientL10n = $this->createMock(IL10N::class);
+		$recipientL10n->method('getLanguageCode')->willReturn('pt_BR');
+		$recipientL10n->method('t')->willReturnCallback(static function (string $text, array $parameters = []): string {
+			return 'PT: ' . vsprintf($text, $parameters);
+		});
+		$this->l10nFactory->expects($this->once())->method('get')
+			->with('libresign', 'pt_BR')->willReturn($recipientL10n);
+
+		$template = $this->createMock(IEMailTemplate::class);
+		$template->expects($this->once())->method('setLanguage')->with('pt_BR');
+		$template->expects($this->once())->method('setSubject')
+			->with('PT: LibreSign: Identification document rejected');
+		$template->expects($this->once())->method('addHeading')
+			->with('PT: Please replace your identification document');
+		$template->expects($this->once())->method('addFooter');
+		$bodyTexts = [];
+		$template->method('addBodyText')->willReturnCallback(static function (string $text) use (&$bodyTexts): void {
+			$bodyTexts[] = $text;
+		});
+		$template->expects($this->once())->method('addBodyButton')
+			->with('PT: Replace identification document', 'https://example.test/apps/libresign/');
+		$this->mailer->expects($this->once())->method('createEMailTemplate')
+			->with('libresign.IdentificationDocumentRejected')->willReturn($template);
+		$this->urlGenerator->expects($this->once())->method('linkToRouteAbsolute')
+			->with('libresign.page.indexF')->willReturn('https://example.test/apps/libresign/');
+		$message = $this->mockSystemMessage();
+		$message->expects($this->once())->method('setTo')->with(['signer@example.test']);
+		$message->expects($this->once())->method('useTemplate')->with($template);
+		$this->mailer->expects($this->once())->method('send')->with($message)->willReturn([]);
+
+		$file = new File();
+		$file->setName('Carteira <privada>.pdf');
+		$reason = "The page is unreadable <img src=x onerror=alert(1)>\nPlease scan again.";
+		$this->service->notifyIdentificationDocumentRejected(
+			$this->mockSignRequest(),
+			'signer@example.test',
+			$file,
+			$reason,
+			true,
+			'signer',
+		);
+
+		$this->assertSame([
+			'PT: Your identification document "Carteira <privada>.pdf" was not approved.',
+			'PT: The reviewer provided the following reason:',
+			$reason,
+			'PT: Upload a replacement identification document to continue signing.',
+		], $bodyTexts);
+	}
+
+	public function testRejectedIdEmailUsesDefaultLocaleAndGuestSigningLink(): void {
+		$this->userManager->expects($this->never())->method('get');
+		$this->l10nFactory->expects($this->never())->method('getUserLanguage');
+		$l10n = $this->createMock(IL10N::class);
+		$l10n->method('getLanguageCode')->willReturn('en');
+		$l10n->method('t')->willReturnCallback(static function (string $text, array $parameters = []): string {
+			return vsprintf($text, $parameters);
+		});
+		$this->l10nFactory->expects($this->once())->method('get')
+			->with('libresign', null)->willReturn($l10n);
+
+		$template = $this->createMock(IEMailTemplate::class);
+		$template->expects($this->once())->method('setLanguage')->with('en');
+		$template->expects($this->once())->method('addBodyButton')
+			->with('Replace identification document', 'https://example.test/sign/asdfg/pdf');
+		$this->mailer->method('createEMailTemplate')->willReturn($template);
+		$this->urlGenerator->expects($this->once())->method('linkToRouteAbsolute')
+			->with('libresign.page.signFPath', ['uuid' => 'asdfg', 'path' => 'pdf'])
+			->willReturn('https://example.test/sign/asdfg/pdf');
+		$this->mockSystemMessage();
+		$this->mailer->expects($this->once())->method('send')->willReturn([]);
+
+		$file = new File();
+		$file->setName('ID.pdf');
+		$this->service->notifyIdentificationDocumentRejected(
+			$this->mockSignRequest(),
+			'signer@example.test',
+			$file,
+			'The scan is incomplete.',
+			false,
 		);
 	}
 

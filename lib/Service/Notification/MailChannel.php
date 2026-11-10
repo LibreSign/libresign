@@ -30,6 +30,7 @@ final class MailChannel implements NotificationChannel {
 				$message->file,
 				$message->payload->reason,
 				$message->payload->accountSigner,
+				$message->payload->recipientUserId,
 			);
 			return;
 		}

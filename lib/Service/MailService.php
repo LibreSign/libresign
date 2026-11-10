@@ -21,6 +21,7 @@ use OCP\IL10N;
 use OCP\IURLGenerator;
 use OCP\IUser;
 use OCP\IUserManager;
+use OCP\L10N\IFactory;
 use OCP\Mail\IEMailTemplate;
 use OCP\Mail\IMailer;
 use OCP\Mail\IMessage;
@@ -44,6 +45,7 @@ class MailService {
 		private PolicyService $policyService,
 		private IMailProviderManager $mailProviderManager,
 		private IUserManager $userManager,
+		private IFactory $l10nFactory,
 	) {
 	}
 
@@ -362,26 +364,38 @@ class MailService {
 		File $document,
 		string $reason,
 		bool $accountSigner,
+		?string $recipientUserId = null,
 	): void {
-		$template = $this->mailer->createEMailTemplate('settings.TestEmail');
+		// Resolve the recipient's language at delivery time: queued messages may run outside
+		// the request context of the signer or reviewer who submitted the document.
+		$recipient = $recipientUserId !== null ? $this->userManager->get($recipientUserId) : null;
+		$language = $recipient !== null ? $this->l10nFactory->getUserLanguage($recipient) : null;
+		$l10n = $this->l10nFactory->get('libresign', $language);
+
+		$template = $this->mailer->createEMailTemplate('libresign.IdentificationDocumentRejected');
+		$template->setLanguage($l10n->getLanguageCode());
 		// TRANSLATORS Subject of an email asking the signer to replace a rejected identification document.
-		$template->setSubject($this->l10n->t('LibreSign: Identification document rejected'));
+		$template->setSubject($l10n->t('LibreSign: Identification document rejected'));
 		$template->addHeader();
 		// TRANSLATORS Email heading for a rejected identification document.
-		$template->addHeading($this->l10n->t('Please replace your identification document'), false);
-		// TRANSLATORS Inform the signer that the submitted document was not accepted.
-		$template->addBodyText($this->l10n->t('Your identification document "%s" was not approved.', [$document->getName()]));
-		// TRANSLATORS The reason supplied by the authorized reviewer for rejecting the document.
-		$template->addBodyText($this->l10n->t('Reason: %s', [$reason]));
+		$template->addHeading($l10n->t('Please replace your identification document'));
+		// TRANSLATORS Email body identifying the rejected file. %s is its filename.
+		$template->addBodyText($l10n->t('Your identification document "%s" was not approved.', [$document->getName()]));
+		// TRANSLATORS Email text introducing the reviewer's explanation for rejecting the identification document.
+		$template->addBodyText($l10n->t('The reviewer provided the following reason:'));
+		// The reviewer-supplied reason is not a translation string. Let IEMailTemplate
+		// escape its HTML representation while retaining the original plain text.
+		$template->addBodyText($reason);
 		// TRANSLATORS Instruction for the signer after the submitted identification document was rejected.
-		$template->addBodyText($this->l10n->t('Upload a replacement identification document to continue signing.'));
+		$template->addBodyText($l10n->t('Upload a replacement identification document to continue signing.'));
 		$template->addBodyButton(
 			// TRANSLATORS Button to return to the identification document upload flow.
-			$this->l10n->t('Replace identification document'),
+			$l10n->t('Replace identification document'),
 			$accountSigner
 				? $this->urlGenerator->linkToRouteAbsolute('libresign.page.indexF')
 				: $this->urlGenerator->linkToRouteAbsolute('libresign.page.signFPath', ['uuid' => $signRequest->getUuid(), 'path' => 'pdf']),
 		);
+		$template->addFooter();
 		$message = $this->mailer->createMessage();
 		$message->setTo([$email]);
 		$message->useTemplate($template);

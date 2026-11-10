@@ -12,6 +12,7 @@ final readonly class IdDocRejectionPayload implements NotificationPayload {
 	public function __construct(
 		public string $reason,
 		public bool $accountSigner,
+		public ?string $recipientUserId = null,
 	) {
 	}
 }
