@@ -53,28 +53,28 @@ class FileStatusServiceTest extends TestCase {
 		$this->service->onQueuedJobCommitted($file);
 	}
 
-	public function testReadyWebhookIsEmittedOnceForRootDraftTransition(): void {
+	public function testStatusPersistenceDoesNotPublishBeforeSignerTransactionCommits(): void {
 		$file = new FileEntity();
 		$file->setId(11);
 		$file->setUuid('ready-uuid');
 		$file->setStatus(FileStatus::DRAFT->value);
+		$this->eventDispatcher->expects($this->never())->method('dispatchTyped');
+
+		$this->service->updateFileStatusIfUpgrade($file, FileStatus::ABLE_TO_SIGN->value);
+
+		$this->assertSame(FileStatus::ABLE_TO_SIGN->value, $file->getStatus());
+	}
+
+	public function testReadyEventIsPublishedWhenExplicitlyRequestedAfterPersistence(): void {
+		$file = new FileEntity();
+		$file->setId(11);
+		$file->setUuid('ready-uuid');
+		$file->setStatus(FileStatus::ABLE_TO_SIGN->value);
 		$this->eventDispatcher->expects($this->once())->method('dispatchTyped')
 			->with($this->callback(static function ($event): bool {
 				return $event instanceof SigningRequestReadyEvent
 					&& $event->getWebhookSerializable()['status'] === 'ready_to_sign';
 			}));
-		$this->service->updateFileStatusIfUpgrade($file, FileStatus::ABLE_TO_SIGN->value);
-		$this->service->updateFileStatusIfUpgrade($file, FileStatus::ABLE_TO_SIGN->value);
-	}
-
-	public function testReadyEventCanBeDeferredUntilSignerPersistenceFinishes(): void {
-		$file = new FileEntity();
-		$file->setId(11);
-		$file->setUuid('ready-uuid');
-		$file->setStatus(FileStatus::DRAFT->value);
-		$this->service->updateFileStatusIfUpgrade($file, FileStatus::ABLE_TO_SIGN->value, false);
-		$this->eventDispatcher->expects($this->once())->method('dispatchTyped')
-			->with($this->isInstanceOf(SigningRequestReadyEvent::class));
 		$this->service->dispatchReadyRequest($file);
 	}
 

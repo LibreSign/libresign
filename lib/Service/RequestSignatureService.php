@@ -139,23 +139,23 @@ class RequestSignatureService {
 	}
 
 	public function save(array $data): FileEntity {
-		$becameReady = false;
-		$file = $this->saveFile($data, $becameReady);
-		if (!isset($data['status'])) {
-			$data['status'] = $file->getStatus();
-		}
-		$this->atomic(function () use ($file, $data): void {
+		$result = $this->atomic(function () use ($data): array {
+			$result = $this->persistFile($data);
+			$file = $result['file'];
+			$data['status'] ??= $file->getStatus();
 			$this->sequentialSigningService->setFile($file);
 			$this->associateToSigners($data, $file);
 			$this->propagateSignersToChildren($file, $data);
 			$this->saveVisibleElements($data, $file);
+			return $result;
 		}, $this->db);
+
 		$this->notifications->flushCommitted();
-		if ($becameReady) {
-			$this->fileStatusService->dispatchReadyRequest($file);
+		if ($result['becameReady']) {
+			$this->fileStatusService->dispatchReadyRequest($result['file']);
 		}
 
-		return $file;
+		return $result['file'];
 	}
 
 	private function propagateSignersToChildren(FileEntity $envelope, array $data): void {
@@ -370,8 +370,12 @@ class RequestSignatureService {
 	 *     uploadedFile?: array<string, mixed>
 	 * } $data
 	 */
-	public function saveFile(array $data, ?bool &$becameReady = null): FileEntity {
-		$becameReady = false;
+	public function saveFile(array $data): FileEntity {
+		return $this->persistFile($data)['file'];
+	}
+
+	/** @return array{file: FileEntity, becameReady: bool} */
+	private function persistFile(array $data): array {
 		if (!empty($data['uuid'])) {
 			$file = $this->fileMapper->getByUuid($data['uuid']);
 			$this->filePolicyApplier->syncCoreFlowPolicies($file, $data);
@@ -380,10 +384,12 @@ class RequestSignatureService {
 				$file->setName($data['name']);
 				$this->fileService->update($file);
 			}
-			$updated = $this->fileStatusService->updateFileStatusIfUpgrade($file, $data['status'] ?? 0, false);
-			$becameReady = $previousStatus === FileStatus::DRAFT->value
-				&& $updated->getStatus() === FileStatus::ABLE_TO_SIGN->value;
-			return $updated;
+			$updated = $this->fileStatusService->updateFileStatusIfUpgrade($file, $data['status'] ?? 0);
+			return [
+				'file' => $updated,
+				'becameReady' => $previousStatus === FileStatus::DRAFT->value
+					&& $updated->getStatus() === FileStatus::ABLE_TO_SIGN->value,
+			];
 		}
 		$nodeId = null;
 		if (isset($data['file']['fileNode']) && $data['file']['fileNode'] instanceof Node) {
@@ -403,10 +409,12 @@ class RequestSignatureService {
 			if ($file !== null) {
 				$this->filePolicyApplier->syncAllPolicies($file, $data);
 				$previousStatus = $file->getStatus();
-				$updated = $this->fileStatusService->updateFileStatusIfUpgrade($file, $data['status'] ?? 0, false);
-				$becameReady = $previousStatus === FileStatus::DRAFT->value
-					&& $updated->getStatus() === FileStatus::ABLE_TO_SIGN->value;
-				return $updated;
+				$updated = $this->fileStatusService->updateFileStatusIfUpgrade($file, $data['status'] ?? 0);
+				return [
+					'file' => $updated,
+					'becameReady' => $previousStatus === FileStatus::DRAFT->value
+						&& $updated->getStatus() === FileStatus::ABLE_TO_SIGN->value,
+				];
 			}
 		}
 
@@ -449,8 +457,10 @@ class RequestSignatureService {
 		$this->filePolicyApplier->applyAll($file, $data);
 
 		$this->fileMapper->insert($file);
-		$becameReady = $file->getStatus() === FileStatus::ABLE_TO_SIGN->value;
-		return $file;
+		return [
+			'file' => $file,
+			'becameReady' => !$file->hasParent() && $file->getStatus() === FileStatus::ABLE_TO_SIGN->value,
+		];
 	}
 
 	private function getFileMetadata(\OCP\Files\Node $node): array {

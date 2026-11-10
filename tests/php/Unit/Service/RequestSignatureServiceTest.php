@@ -85,6 +85,8 @@ final class RequestSignatureServiceTest extends \OCA\Libresign\Tests\Unit\TestCa
 	private SignRequestService&MockObject $signRequestService;
 	private FilePolicyApplier&MockObject $filePolicyApplier;
 	private SignerGeolocationPolicyService&MockObject $signerGeolocationPolicyService;
+	private \OCP\IDBConnection&MockObject $db;
+	private \OCA\Libresign\Service\NotificationDeliveryService&MockObject $notifications;
 
 	public function setUp(): void {
 		parent::setUp();
@@ -123,6 +125,8 @@ final class RequestSignatureServiceTest extends \OCA\Libresign\Tests\Unit\TestCa
 		$this->signRequestService = $this->createMock(SignRequestService::class);
 		$this->filePolicyApplier = $this->createMock(FilePolicyApplier::class);
 		$this->signerGeolocationPolicyService = $this->createMock(SignerGeolocationPolicyService::class);
+		$this->db = $this->createMock(\OCP\IDBConnection::class);
+		$this->notifications = $this->createMock(\OCA\Libresign\Service\NotificationDeliveryService::class);
 	}
 
 	private function getService(array $methods = []): RequestSignatureService|MockObject {
@@ -158,8 +162,8 @@ final class RequestSignatureServiceTest extends \OCA\Libresign\Tests\Unit\TestCa
 					$this->filePolicyApplier,
 					$this->signerGeolocationPolicyService,
 					$this->signerRemovalService,
-					$this->createMock(\OCP\IDBConnection::class),
-					$this->createMock(\OCA\Libresign\Service\NotificationDeliveryService::class),
+					$this->db,
+					$this->notifications,
 				])
 				->onlyMethods($methods)
 				->getMock();
@@ -195,8 +199,8 @@ final class RequestSignatureServiceTest extends \OCA\Libresign\Tests\Unit\TestCa
 			$this->filePolicyApplier,
 			$this->signerGeolocationPolicyService,
 			$this->signerRemovalService,
-			$this->createMock(\OCP\IDBConnection::class),
-			$this->createMock(\OCA\Libresign\Service\NotificationDeliveryService::class),
+			$this->db,
+			$this->notifications,
 		);
 	}
 
@@ -318,37 +322,56 @@ final class RequestSignatureServiceTest extends \OCA\Libresign\Tests\Unit\TestCa
 		$this->assertSame(['freeze:' . \OCA\Libresign\Enum\FileStatus::ABLE_TO_SIGN->value, 'insert'], $calls);
 	}
 
-	public function testReadyRequestEventIsPublishedAfterSignerTransaction(): void {
+	public function testReadyRequestEventIsPublishedOnlyAfterSignerTransactionCommits(): void {
 		$file = new \OCA\Libresign\Db\File();
 		$file->setUuid('ready-uuid');
-		$file->setStatus(\OCA\Libresign\Enum\FileStatus::ABLE_TO_SIGN->value);
-		$service = $this->getService(['saveFile']);
-		$service->method('saveFile')->willReturnCallback(
-			static function (array $data, ?bool &$becameReady) use ($file): \OCA\Libresign\Db\File {
-				$becameReady = true;
+		$file->setStatus(\OCA\Libresign\Enum\FileStatus::DRAFT->value);
+		$this->fileMapper->method('getByUuid')->with('ready-uuid')->willReturn($file);
+		$this->fileStatusService->method('updateFileStatusIfUpgrade')
+			->willReturnCallback(static function ($file, int $status) {
+				$file->setStatus($status);
 				return $file;
-			},
-		);
-		$this->fileStatusService->expects($this->once())->method('dispatchReadyRequest')->with($file);
-		$this->assertSame($file, $service->save(['status' => $file->getStatus()]));
+			});
+
+		$committed = false;
+		$this->db->expects($this->once())->method('commit')
+			->willReturnCallback(static function () use (&$committed): void {
+				$committed = true;
+			});
+		$this->fileStatusService->expects($this->once())->method('dispatchReadyRequest')
+			->with($this->callback(static function ($published) use (&$committed, $file): bool {
+				return $committed && $published === $file
+					&& $file->getStatus() === \OCA\Libresign\Enum\FileStatus::ABLE_TO_SIGN->value;
+			}));
+
+		$this->assertSame($file, $this->getService()->save([
+			'uuid' => 'ready-uuid',
+			'status' => \OCA\Libresign\Enum\FileStatus::ABLE_TO_SIGN->value,
+		]));
 	}
 
 	public function testReadyRequestEventIsNotPublishedWhenSignerPersistenceFails(): void {
 		$file = new \OCA\Libresign\Db\File();
 		$file->setUuid('ready-uuid');
-		$file->setStatus(\OCA\Libresign\Enum\FileStatus::ABLE_TO_SIGN->value);
-		$service = $this->getService(['saveFile']);
-		$service->method('saveFile')->willReturnCallback(
-			static function (array $data, ?bool &$becameReady) use ($file): \OCA\Libresign\Db\File {
-				$becameReady = true;
+		$file->setStatus(\OCA\Libresign\Enum\FileStatus::DRAFT->value);
+		$this->fileMapper->method('getByUuid')->with('ready-uuid')->willReturn($file);
+		$this->fileStatusService->method('updateFileStatusIfUpgrade')
+			->willReturnCallback(static function ($file, int $status) {
+				$file->setStatus($status);
 				return $file;
-			},
-		);
+			});
 		$this->signerValidator->method('normalizeRequestSigners')
 			->willThrowException(new \RuntimeException('invalid signer'));
+		$this->db->expects($this->once())->method('rollBack');
+		$this->db->expects($this->never())->method('commit');
 		$this->fileStatusService->expects($this->never())->method('dispatchReadyRequest');
 		$this->expectException(\RuntimeException::class);
-		$service->save(['status' => $file->getStatus(), 'signers' => [['identifyMethods' => []]]]);
+
+		$this->getService()->save([
+			'uuid' => 'ready-uuid',
+			'status' => \OCA\Libresign\Enum\FileStatus::ABLE_TO_SIGN->value,
+			'signers' => [['identifyMethods' => []]],
+		]);
 	}
 
 	public function testSaveFilesUsesSaveForSingleFile(): void {

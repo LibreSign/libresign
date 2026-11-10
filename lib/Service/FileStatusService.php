@@ -28,18 +28,13 @@ class FileStatusService {
 	) {
 	}
 
-	public function updateFileStatusIfUpgrade(FileEntity $file, int $newStatus, bool $publishReady = true): FileEntity {
-		$currentStatus = $file->getStatus();
-		if ($newStatus > $currentStatus) {
+	public function updateFileStatusIfUpgrade(FileEntity $file, int $newStatus): FileEntity {
+		if ($newStatus > $file->getStatus()) {
 			$this->markPolicySnapshotFrozen($file, $newStatus);
 			$file->setStatus($newStatus);
 			$this->touchStatusChangedAt($file);
 			$this->fileMapper->update($file);
 			$this->statusCacheService->setStatus($file->getUuid(), $newStatus);
-			if ($publishReady && $currentStatus === FileStatus::DRAFT->value) {
-				$this->dispatchReadyRequest($file);
-			}
-
 			if ($file->hasParent()) {
 				$this->propagateStatusToParent($file->getParentFileId());
 			}
