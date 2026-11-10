@@ -175,8 +175,17 @@ class MailNotifyListener implements NotificationModule {
 
 		if ($identifyMethod->getName() === 'email') {
 			$email = $entity->getIdentifierValue();
-			if ($email === '' || ($notificationType === SignRequestCanceledEvent::SIGN_REQUEST_CANCELED
-				&& $this->isEmailCancellationDisabled($email))) {
+			if ($email === '') {
+				return null;
+			}
+			// Invitations need mail even when a matching account opted out.
+			// Cancellations retain the linked account's preference.
+			if ($notificationType === SendSignNotificationEvent::FILE_TO_SIGN
+				&& $this->notificationPreferenceResolver->isEmailNotificationGloballyDisabled($notificationType)) {
+				return null;
+			}
+			if ($notificationType === SignRequestCanceledEvent::SIGN_REQUEST_CANCELED
+				&& $this->isEmailCancellationDisabled($email)) {
 				return null;
 			}
 			return $email;

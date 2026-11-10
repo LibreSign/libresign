@@ -81,6 +81,16 @@ class MailNotifyListenerTest extends TestCase {
 		$this->assertTrue($payload->firstNotification);
 	}
 
+	public function testAdminDisabledEmailChannelSuppressesInvitation(): void {
+		$this->preferences
+			->method('isEmailNotificationGloballyDisabled')
+			->willReturn(true);
+
+		$this->listener->handle($this->invitation('email', 'bob@example.org'));
+
+		$this->assertSame([], $this->deliveries);
+	}
+
 	public function testExternalEmailSignerReceivesInvitation(): void {
 		$this->listener->handle($this->invitation('email', 'external@example.org'));
 
