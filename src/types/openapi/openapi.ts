@@ -3993,6 +3993,20 @@ export interface operations {
                     };
                 };
             };
+            /** @description Current user is not logged in */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        ocs: {
+                            meta: components["schemas"]["OCSMeta"];
+                            data: unknown;
+                        };
+                    };
+                };
+            };
         };
     };
     "id_docs-list-to-approval": {
