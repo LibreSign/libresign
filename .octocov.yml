@@ -4,11 +4,18 @@
 coverage:
   paths:
     - .octocov-coverage/clover.xml
+testExecutionTime:
+  steps:
+    - PHPUnit
 # Show the compared overall/patch coverage on every PR. Fork PRs still get
 # their job summary when GitHub restricts comment-writing permissions.
 comment:
   if: is_pull_request
   updatePrevious: true
+  message: >-
+    **Note:** Metrics describe the revision analyzed by the successful PHPUnit
+    run. Newer commits with pending, canceled or failed checks may not yet be
+    represented in this report.
 summary:
   if: is_pull_request
 report:
