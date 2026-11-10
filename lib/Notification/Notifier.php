@@ -54,8 +54,23 @@ class Notifier implements INotifier {
 			'update_sign_request' => $this->parseSignRequest($notification, $l, true),
 			'file_signed' => $this->parseSigned($notification, $l),
 			'sign_request_canceled' => $this->parseCanceled($notification, $l),
+			'identification_document_rejected' => $this->parseIdentificationDocumentRejected($notification, $l),
 			default => throw new UnknownNotificationException(),
 		};
+	}
+
+	private function parseIdentificationDocumentRejected(INotification $notification, IL10N $l): INotification {
+		$params = $notification->getSubjectParameters();
+		// TRANSLATORS Nextcloud notification subject when a submitted ID was rejected.
+		$notification->setParsedSubject($l->t('Your identification document was rejected'));
+		// TRANSLATORS {document} is the document name and {reason} is the reason supplied by the reviewer.
+		$notification->setParsedMessage($l->t('Replace "{document}". Reason: {reason}', [
+			'document' => (string)($params['documentName'] ?? ''),
+			'reason' => (string)($params['reason'] ?? ''),
+		]));
+		$notification->setLink($this->url->linkToRouteAbsolute('libresign.page.indexF'));
+		$notification->setIcon($this->url->getAbsoluteURL($this->url->imagePath(Application::APP_ID, 'app-dark.svg')));
+		return $notification;
 	}
 
 	private function parseSignRequest(

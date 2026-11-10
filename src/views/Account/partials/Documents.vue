@@ -27,8 +27,11 @@
 							</p>
 						</div>
 					</div>
+					<NcNoteCard v-if="doc.rejection" type="warning">
+						{{ t('libresign', 'Document rejected: {reason}. Upload a replacement.', { reason: doc.rejection.reason }) }}
+					</NcNoteCard>
 					<div class="document-actions">
-						<NcButton v-if="doc.status === -1 && isAuthenticatedUser && doc.file_type?.key"
+						<NcButton v-if="(doc.status === -1 || doc.rejection) && isAuthenticatedUser && doc.file_type?.key"
 							variant="tertiary"
 							:aria-label="t('libresign', 'Choose from Files')"
 							@click="toggleFilePicker(doc.file_type.key)">
@@ -38,7 +41,7 @@
 							<!-- TRANSLATORS Button label to pick an existing identification document from Nextcloud Files. -->
 							{{ t('libresign', 'Choose from Files') }}
 						</NcButton>
-						<NcButton v-if="doc.status === -1 && doc.file_type?.key"
+						<NcButton v-if="(doc.status === -1 || doc.rejection) && doc.file_type?.key"
 							variant="tertiary"
 							:aria-label="t('libresign', 'Upload file')"
 							@click="inputFile(doc.file_type.key)">
@@ -48,7 +51,7 @@
 							<!-- TRANSLATORS Button label to upload identification document from local device. -->
 							{{ t('libresign', 'Upload file') }}
 						</NcButton>
-						<NcButton v-if="doc.status !== -1"
+						<NcButton v-if="doc.status !== -1 && !doc.rejection"
 							variant="tertiary"
 							:aria-label="t('libresign', 'Delete file')"
 							@click="deleteFile(doc)">
@@ -116,6 +119,7 @@ type IdentificationDocument = {
 	uuid?: string
 	status?: number
 	statusText?: string
+	rejection?: { reason: string, at: string } | null
 	name?: string
 	file_type: DocumentTypeInfo
 	file?: {
@@ -153,7 +157,7 @@ const documents = computed(() => ({
 }))
 
 const list = computed(() => Object.values(documents.value))
-const hasDocumentsWaitingApproval = computed(() => list.value.some((doc) => doc.status === IDENTIFICATION_DOCUMENTS_STATUS.NEED_APPROVAL))
+const hasDocumentsWaitingApproval = computed(() => list.value.some((doc) => !doc.rejection && doc.status === IDENTIFICATION_DOCUMENTS_STATUS.NEED_APPROVAL))
 const isAuthenticatedUser = computed(() => Boolean(getCurrentUser()))
 const enabledFlow = computed(() => {
 	const config = loadState('libresign', 'config', {}) as DocumentsConfig
@@ -161,7 +165,8 @@ const enabledFlow = computed(() => {
 })
 
 function findDocumentByType(list: IdentificationDocument[], type: string) {
-	return list.find((row) => row?.file_type?.type === type) || {
+	return list.find((row) => row?.file_type?.type === type && !row.rejection)
+		|| list.find((row) => row?.file_type?.type === type) || {
 		nodeId: 0,
 		uuid: '',
 		status: -1,

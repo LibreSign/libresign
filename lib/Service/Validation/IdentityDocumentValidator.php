@@ -50,6 +50,12 @@ class IdentityDocumentValidator {
 		}
 	}
 
+	public function validateSignRequestHasNoActiveFileWithType(int $signRequestId, string $type): void {
+		if ($this->idDocsMapper->getActiveBySignRequestAndType($signRequestId, $type) !== null) {
+			throw new LibresignException($this->l10n->t('A file of this type has been associated.'));
+		}
+	}
+
 	public function canSignWithIdentificationDocumentStatus(?IUser $user, int $status): void {
 		if ($user && $this->userCanApproveValidationDocuments($user, false)) {
 			return;

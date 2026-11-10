@@ -145,6 +145,7 @@ class IdDocsService {
 		$files = $this->normalizeNodeIds($files);
 		foreach ($files as $fileIndex => $file) {
 			$this->validateTypeOfFile($fileIndex, $file);
+			$this->identityDocumentValidator->validateSignRequestHasNoActiveFileWithType($signRequest->getId(), $file['type']);
 		}
 		// Store the documents under the owner of the file being signed, where
 		// later lookups by the stored user_id expect them; without an IUser the
@@ -176,10 +177,18 @@ class IdDocsService {
 		return $this->userManager->get($signedFile->getUserId());
 	}
 
-	public function list(array $filter, ?int $page = null, ?int $length = null, array $sort = []): array {
+	public function list(array $filter, ?int $page = null, ?int $length = null, array $sort = [], bool $includeReviewer = false): array {
 		$page ??= 1;
 		$length ??= (int)$this->appConfig->getValueInt(Application::APP_ID, 'length_of_page', 100);
 		$data = $this->idDocsMapper->list($filter, $page, $length, $sort);
+		if (!$includeReviewer) {
+			foreach ($data['data'] as &$entry) {
+				if (isset($entry['rejection'])) {
+					unset($entry['rejection']['by']);
+				}
+			}
+			unset($entry);
+		}
 		$data['pagination']->setRouteName('ocs.libresign.File.list');
 		$pagination = $data['pagination']->getPagination($page, $length, $filter);
 		return [
@@ -195,6 +204,9 @@ class IdDocsService {
 			$this->identityDocumentValidator->validateIdDocIsOwnedByUser($nodeId, $user->getUID());
 			$idDocs = $this->idDocsMapper->getByUserIdAndNodeId($user->getUID(), $nodeId);
 		}
+		if ($idDocs->getRejectedAt() !== null) {
+			throw new LibresignException($this->l10n->t('Rejected documents are retained for audit purposes.'));
+		}
 		$this->idDocsMapper->delete($idDocs);
 		$file = $this->fileMapper->getById($idDocs->getFileId());
 		$this->fileMapper->delete($file);
@@ -203,6 +215,9 @@ class IdDocsService {
 	public function deleteIdDocBySignRequest(int $nodeId, SignRequest $signRequest): void {
 		$this->identityDocumentValidator->validateIdDocBelongsToSignRequest($nodeId, $signRequest->getId());
 		$idDocs = $this->idDocsMapper->getBySignRequestIdAndNodeId($signRequest->getId(), $nodeId);
+		if ($idDocs->getRejectedAt() !== null) {
+			throw new LibresignException($this->l10n->t('Rejected documents are retained for audit purposes.'));
+		}
 		$this->idDocsMapper->delete($idDocs);
 		$file = $this->fileMapper->getById($idDocs->getFileId());
 		$this->fileMapper->delete($file);

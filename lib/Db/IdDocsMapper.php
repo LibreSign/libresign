@@ -117,12 +117,39 @@ class IdDocsMapper extends QBMapper {
 		$qb->select('*')
 			->from($this->getTableName())
 			->where($qb->expr()->eq('user_id', $qb->createNamedParameter($userId)))
-			->andWhere($qb->expr()->eq('file_type', $qb->createNamedParameter($fileType)));
+			->andWhere($qb->expr()->eq('file_type', $qb->createNamedParameter($fileType)))
+			->andWhere($qb->expr()->isNull('rejected_at'));
 		try {
 			return $this->findEntity($qb);
 		} catch (\Throwable) {
 			return null;
 		}
+	}
+
+	public function getActiveBySignRequestAndType(int $signRequestId, string $fileType): ?IdDocs {
+		$qb = $this->db->getQueryBuilder();
+		$qb->select('*')
+			->from($this->getTableName())
+			->where($qb->expr()->eq('sign_request_id', $qb->createNamedParameter($signRequestId, IQueryBuilder::PARAM_INT)))
+			->andWhere($qb->expr()->eq('file_type', $qb->createNamedParameter($fileType)))
+			->andWhere($qb->expr()->isNull('rejected_at'));
+		try {
+			return $this->findEntity($qb);
+		} catch (\OCP\AppFramework\Db\DoesNotExistException) {
+			return null;
+		}
+	}
+
+	/** Atomically record one rejection so a second reviewer cannot overwrite the audit decision. */
+	public function rejectIfPending(IdDocs $idDoc, string $approverUid, string $reason, \DateTime $date): bool {
+		$qb = $this->db->getQueryBuilder();
+		$qb->update($this->getTableName())
+			->set('rejected_at', $qb->createNamedParameter($date->format('Y-m-d H:i:s')))
+			->set('rejected_by', $qb->createNamedParameter($approverUid))
+			->set('rejection_reason', $qb->createNamedParameter($reason))
+			->where($qb->expr()->eq('id', $qb->createNamedParameter($idDoc->getId(), IQueryBuilder::PARAM_INT)))
+			->andWhere($qb->expr()->isNull('rejected_at'));
+		return $qb->executeStatement() === 1;
 	}
 
 	public function list(array $filter, ?int $page = null, ?int $length = null, array $sort = []): array {
@@ -167,6 +194,9 @@ class IdDocsMapper extends QBMapper {
 				'f.node_id',
 				'f.user_id',
 				'id.file_type',
+				'id.rejected_at',
+				'id.rejected_by',
+				'id.rejection_reason',
 				'id.sign_request_id',
 				'f.created_at',
 			);
@@ -225,6 +255,9 @@ class IdDocsMapper extends QBMapper {
 				'sr.display_name',
 				'f.created_at',
 				'id.file_type',
+				'id.rejected_at',
+				'id.rejected_by',
+				'id.rejection_reason',
 			);
 
 			if ($needsUserJoin) {
@@ -302,10 +335,17 @@ class IdDocsMapper extends QBMapper {
 				'description' => $this->fileTypeMapper->getDescriptionOfType($row['file_type']),
 			],
 			'created_at' => $createdAt,
+			'rejection' => $row['rejected_at'] === null ? null : [
+				'reason' => $row['rejection_reason'],
+				'at' => $row['rejected_at'],
+				'by' => $row['rejected_by'],
+			],
 			'file' => [
 				'name' => $row['name'],
 				'status' => (int)$row['status'],
-				'statusText' => $this->getIdDocStatusText((int)$row['status']),
+				'statusText' => $row['rejected_at'] !== null
+					? $this->l10n->t('rejected')
+					: $this->getIdDocStatusText((int)$row['status']),
 				'created_at' => $createdAt,
 				'user_id' => $row['user_id'],
 				'file' => [
@@ -371,9 +411,8 @@ class IdDocsMapper extends QBMapper {
 		$qb->select('lf.*')
 			->from('libresign_file', 'lf')
 			->join('lf', $this->getTableName(), 'lid', 'lid.file_id = lf.id')
-			->where(
-				$qb->expr()->eq('lid.user_id', $qb->createNamedParameter($userId))
-			);
+			->where($qb->expr()->eq('lid.user_id', $qb->createNamedParameter($userId)))
+			->andWhere($qb->expr()->isNull('lid.rejected_at'));
 
 		$cursor = $qb->executeQuery();
 		$return = [];
@@ -397,9 +436,8 @@ class IdDocsMapper extends QBMapper {
 		$qb->select('lf.*')
 			->from('libresign_file', 'lf')
 			->join('lf', $this->getTableName(), 'lid', 'lid.file_id = lf.id')
-			->where(
-				$qb->expr()->eq('lid.sign_request_id', $qb->createNamedParameter($signRequestId, IQueryBuilder::PARAM_INT))
-			);
+			->where($qb->expr()->eq('lid.sign_request_id', $qb->createNamedParameter($signRequestId, IQueryBuilder::PARAM_INT)))
+			->andWhere($qb->expr()->isNull('lid.rejected_at'));
 
 		$cursor = $qb->executeQuery();
 		$return = [];

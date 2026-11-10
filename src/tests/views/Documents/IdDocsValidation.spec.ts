@@ -12,7 +12,9 @@ import type { components } from '../../../types/openapi/openapi'
 
 const axiosGetMock = vi.fn()
 const axiosDeleteMock = vi.fn()
+const axiosPostMock = vi.fn()
 const showErrorMock = vi.fn()
+const showSuccessMock = vi.fn()
 const openDocumentMock = vi.fn()
 const routerPushMock = vi.fn()
 const userConfigUpdateMock = vi.fn()
@@ -37,11 +39,13 @@ vi.mock('@nextcloud/axios', () => ({
 	default: {
 		get: vi.fn((...args: unknown[]) => axiosGetMock(...args)),
 		delete: vi.fn((...args: unknown[]) => axiosDeleteMock(...args)),
+		post: vi.fn((...args: unknown[]) => axiosPostMock(...args)),
 	},
 }))
 
 vi.mock('@nextcloud/dialogs', () => ({
 	showError: vi.fn((...args: unknown[]) => showErrorMock(...args)),
+	showSuccess: vi.fn((...args: unknown[]) => showSuccessMock(...args)),
 }))
 
 vi.mock('@nextcloud/router', () => ({
@@ -91,6 +95,18 @@ vi.mock('@nextcloud/vue/components/NcActionInput', () => ({
 
 vi.mock('@nextcloud/vue/components/NcActionSeparator', () => ({
 	default: { name: 'NcActionSeparator', template: '<hr class="nc-action-separator-stub" />' },
+}))
+
+vi.mock('@nextcloud/vue/components/NcDialog', () => ({
+	default: { name: 'NcDialog', template: '<div class="dialog-stub"><slot /><slot name="actions" /></div>' },
+}))
+vi.mock('@nextcloud/vue/components/NcTextArea', () => ({
+	default: { name: 'NcTextArea', props: ['modelValue'], emits: ['update:modelValue'],
+		template: '<textarea :value="modelValue" @input="$emit(\'update:modelValue\', $event.target.value)" />',
+	},
+}))
+vi.mock('@nextcloud/vue/components/NcButton', () => ({
+	default: { name: 'NcButton', template: '<button @click="$emit(\'click\')"><slot /></button>', emits: ['click'] },
 }))
 
 vi.mock('@nextcloud/vue/components/NcAvatar', () => ({
@@ -187,6 +203,8 @@ describe('IdDocsValidation.vue', () => {
 	beforeEach(() => {
 		axiosGetMock.mockReset()
 		axiosDeleteMock.mockReset()
+		axiosPostMock.mockReset()
+		showSuccessMock.mockReset()
 		showErrorMock.mockReset()
 		openDocumentMock.mockReset()
 		routerPushMock.mockReset()
@@ -213,6 +231,7 @@ describe('IdDocsValidation.vue', () => {
 			},
 		})
 
+		axiosPostMock.mockResolvedValue({ data: { ocs: { data: { rejected: true } } } })
 		axiosDeleteMock.mockResolvedValue({
 			data: {
 				ocs: {
@@ -314,6 +333,60 @@ describe('IdDocsValidation.vue', () => {
 			params: { uuid: 'file-partial' },
 			query: { idDocApproval: 'true' },
 		})
+	})
+
+	it('separates rejected documents from pending and approved, and exposes the reason', async () => {
+		const wrapper = createWrapper()
+		await flushPromises()
+		const rejectedDoc = {
+			...pendingDoc,
+			rejection: { at: '2026-11-10T10:00:00Z', reason: 'Expired document', by: 'reviewer' },
+		}
+		wrapper.vm.documentList = [signedDoc, pendingDoc, rejectedDoc]
+		await wrapper.vm.$nextTick()
+
+		wrapper.vm.setStatusFilter('rejected', true)
+		expect(wrapper.vm.filteredDocuments).toEqual([rejectedDoc])
+		expect(wrapper.text()).toContain('Expired document')
+		expect(wrapper.find('tbody tr').findAll('button').map(button => button.text().trim())).not.toContain('Reject')
+
+		wrapper.vm.setStatusFilter('pending', true)
+		expect(wrapper.vm.filteredDocuments).toEqual([pendingDoc])
+		wrapper.vm.setStatusFilter('signed', true)
+		expect(wrapper.vm.filteredDocuments).toEqual([signedDoc])
+	})
+
+	it('requires a reason before submitting an ID document rejection', async () => {
+		const wrapper = createWrapper()
+		await flushPromises()
+		wrapper.vm.openRejectDialog(pendingDoc)
+		await wrapper.vm.$nextTick()
+		expect(wrapper.find('.dialog-stub').exists()).toBe(true)
+		expect(wrapper.find('.dialog-stub textarea').exists()).toBe(true)
+		await wrapper.vm.rejectDocument()
+		expect(axiosPostMock).not.toHaveBeenCalled()
+
+		wrapper.vm.rejectionReason = 'Document has expired'
+		await wrapper.vm.rejectDocument()
+		await flushPromises()
+		expect(axiosPostMock).toHaveBeenCalledWith(
+			'/ocs/v2.php/apps/libresign/api/v1/id-docs/11/reject',
+			{ reason: 'Document has expired' },
+		)
+		expect(showSuccessMock).toHaveBeenCalledWith('Identification document rejected.')
+		expect(wrapper.vm.rejectionDocument).toBeNull()
+	})
+
+	it('preserves the rejection dialog and displays an error if the API rejects the action', async () => {
+		const wrapper = createWrapper()
+		await flushPromises()
+		axiosPostMock.mockRejectedValueOnce(new Error('network'))
+		wrapper.vm.openRejectDialog(pendingDoc)
+		wrapper.vm.rejectionReason = 'Unreadable image'
+		await wrapper.vm.rejectDocument()
+		expect(showErrorMock).toHaveBeenCalledWith('Unable to reject document')
+		expect(wrapper.vm.rejectionDocument).not.toBeNull()
+		expect(wrapper.vm.rejecting).toBe(false)
 	})
 
 	it('routes to approve and validation pages using document uuid', async () => {

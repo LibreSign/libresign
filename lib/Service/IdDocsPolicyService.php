@@ -44,6 +44,9 @@ class IdDocsPolicyService {
 			return false;
 		}
 
+		if ($idDocs->getRejectedAt() !== null) {
+			return false;
+		}
 		if (!$this->isIdentificationDocumentsEnabled($user, $this->getRelatedSignRequest($idDocs))) {
 			return false;
 		}
