@@ -127,6 +127,35 @@ class MailNotifyListenerTest extends TestCase {
 		));
 	}
 
+	public function testEmailSignerWithExistingAccountStillReceivesInvitationMail(): void {
+		$signRequest = new SignRequest();
+		$signRequest->setId(78);
+		$signRequest->setDescription('Please sign');
+
+		$identifyEntity = new IdentifyMethodEntity();
+		$identifyEntity->setIdentifierKey('email');
+		$identifyEntity->setIdentifierValue('bob@example.org');
+
+		$identifyMethod = $this->createMock(IIdentifyMethod::class);
+		$identifyMethod->method('getName')->willReturn('email');
+		$identifyMethod->method('getEntity')->willReturn($identifyEntity);
+
+		$account = $this->createMock(IUser::class);
+		$account->method('getUID')->willReturn('0F1E2D3C4B5A69788796A5B4C3D2E1F0');
+		$this->userManager->method('getByEmail')->with('bob@example.org')->willReturn([$account]);
+		$this->notificationPreferenceResolver->method('isEmailNotificationDisabled')->willReturn(true);
+
+		$this->mailService->expects($this->once())
+			->method('notifyUnsignedUser')
+			->with($signRequest, 'bob@example.org', 'Please sign');
+
+		$this->listener->handle(new SendSignNotificationEvent(
+			$signRequest,
+			new FileEntity(),
+			$identifyMethod,
+		));
+	}
+
 	public function testMissingAccountIsSkippedWithoutFailingNotificationDispatch(): void {
 		$request = new SignRequest();
 		$request->setId(77);
