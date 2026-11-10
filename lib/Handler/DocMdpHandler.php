@@ -38,7 +38,7 @@ class DocMdpHandler {
 		}
 
 		rewind($resource);
-		$content = stream_get_contents($resource);
+		$content = $this->removeUnreferencedSignatures(stream_get_contents($resource));
 		$isoStatus = $this->getIsoComplianceStatus($content);
 
 		rewind($resource);
@@ -85,7 +85,7 @@ class DocMdpHandler {
 	 */
 	private function extractDocMdpLevel($pdfResource): DocMdpLevel {
 		rewind($pdfResource);
-		$content = stream_get_contents($pdfResource);
+		$content = $this->removeUnreferencedSignatures(stream_get_contents($pdfResource));
 
 		$isoStatus = $this->getIsoComplianceStatus($content);
 		if (!$this->isIsoCompliant($isoStatus) && !$this->isOnlySingleDocMdpViolation($isoStatus)) {
@@ -98,6 +98,35 @@ class DocMdpHandler {
 		}
 
 		return DocMdpLevel::tryFrom($pValue) ?? DocMdpLevel::NOT_CERTIFIED;
+	}
+
+	/**
+	 * Drop signature dictionaries that no other object references.
+	 *
+	 * A signature dictionary only takes effect when something points to it,
+	 * such as a signature field (/V) or the catalog (/Perms /DocMDP). A
+	 * leftover one that no other object references is not an active
+	 * certification.
+	 *
+	 * References inside compressed object streams cannot be seen in the raw
+	 * content, so PDFs with object streams are returned unchanged.
+	 */
+	private function removeUnreferencedSignatures(string $content): string {
+		if (preg_match('/\/Type\s*\/ObjStm\b/', $content)) {
+			return $content;
+		}
+
+		return preg_replace_callback(
+			'/(?<!\d)(\d+)\s+(\d+)\s+obj\b.*?endobj/s',
+			function (array $match) use ($content): string {
+				if (!preg_match('/\/Type\s*\/Sig\b/', $match[0])) {
+					return $match[0];
+				}
+				$reference = '/(?<!\d)' . $match[1] . '\s+' . $match[2] . '\s+R\b/';
+				return preg_match($reference, $content) ? $match[0] : '';
+			},
+			$content
+		) ?? $content;
 	}
 
 	/**
