@@ -455,49 +455,109 @@ final class OpenSslHandlerTest extends \OCA\Libresign\Tests\Integration\AppDataT
 		$this->assertMatchesRegularExpression('/^[0-9A-Fa-f]+$/', $parsed['serialNumberHex'], 'Serial number hex should contain only hex characters');
 	}
 
-	public function testLeafCertificateDoesNotInheritSystemOpenSslDistinguishedNameDefaults(): void {
+	#[DataProvider('leafSubjectCases')]
+	public function testLeafCertificateSubjectMatchesConfiguredFields(array $configuredFields, array $expectedSubject): void {
 		$rootInstance = $this->getInstance();
-		$rootInstance->setCountry('DE');
-		$rootInstance->setLocality('Berlin');
 		$rootInstance->generateRootCert('Test Root CA', []);
 
 		$signerInstance = $this->getInstance();
 		$signerInstance->setCommonName('Test Signer');
-		$signerInstance->setHosts(['signer@domain.tld']);
 		$signerInstance->setPassword('123456');
-
-		$systemConfig = $this->tempManager->getTemporaryFile('.cnf');
-		$this->assertNotFalse($systemConfig);
-		file_put_contents($systemConfig, implode("\n", [
-			'[req]',
-			'distinguished_name = req_distinguished_name',
-			'[req_distinguished_name]',
-			'stateOrProvinceName_default = Some-State',
-			'0.organizationName_default = Internet Widgits Pty Ltd',
-			'',
-		]));
-		$originalConfig = getenv('OPENSSL_CONF');
-
-		try {
-			putenv('OPENSSL_CONF=' . $systemConfig);
-			$certificate = $signerInstance->generateCertificate();
-		} finally {
-			if ($originalConfig === false) {
-				putenv('OPENSSL_CONF');
-			} else {
-				putenv('OPENSSL_CONF=' . $originalConfig);
-			}
-			unlink($systemConfig);
+		foreach ($configuredFields as $field => $value) {
+			match ($field) {
+				'C' => $signerInstance->setCountry($value),
+				'ST' => $signerInstance->setState($value),
+				'L' => $signerInstance->setLocality($value),
+				'O' => $signerInstance->setOrganization($value),
+			};
 		}
 
+		$certificate = $signerInstance->generateCertificate();
+		$parsed = $signerInstance->readCertificate($certificate, '123456');
+		$subject = array_intersect_key($parsed['subject'], array_flip(['CN', 'C', 'ST', 'L', 'O']));
+		ksort($subject);
+		ksort($expectedSubject);
+		$this->assertSame($expectedSubject, $subject);
+	}
+
+	public static function leafSubjectCases(): array {
+		return [
+			'common name only' => [
+				[],
+				['CN' => 'Test Signer'],
+			],
+			'country and locality without defaults' => [
+				['C' => 'DE', 'L' => 'Berlin'],
+				['CN' => 'Test Signer', 'C' => 'DE', 'L' => 'Berlin'],
+			],
+			'state only' => [
+				['ST' => 'Brandenburg'],
+				['CN' => 'Test Signer', 'ST' => 'Brandenburg'],
+			],
+			'organization only' => [
+				['O' => 'LibreCode'],
+				['CN' => 'Test Signer', 'O' => 'LibreCode'],
+			],
+			'country locality and state' => [
+				['C' => 'DE', 'ST' => 'Brandenburg', 'L' => 'Berlin'],
+				['CN' => 'Test Signer', 'C' => 'DE', 'ST' => 'Brandenburg', 'L' => 'Berlin'],
+			],
+			'country locality and organization' => [
+				['C' => 'DE', 'L' => 'Berlin', 'O' => 'LibreCode'],
+				['CN' => 'Test Signer', 'C' => 'DE', 'L' => 'Berlin', 'O' => 'LibreCode'],
+			],
+			'all configured fields' => [
+				['C' => 'BR', 'ST' => 'Rio de Janeiro', 'L' => 'Niteroi', 'O' => 'LibreCode'],
+				['CN' => 'Test Signer', 'C' => 'BR', 'ST' => 'Rio de Janeiro', 'L' => 'Niteroi', 'O' => 'LibreCode'],
+			],
+			'placeholder strings explicitly supplied' => [
+				['ST' => 'Some-State', 'O' => 'Internet Widgits Pty Ltd'],
+				['CN' => 'Test Signer', 'ST' => 'Some-State', 'O' => 'Internet Widgits Pty Ltd'],
+			],
+		];
+	}
+
+	public function testLeafCsrUsesGeneratedConfig(): void {
+		$rootInstance = $this->getInstance();
+		$rootInstance->generateRootCert('Test Root CA', []);
+
+		$signerInstance = $this->getMockBuilder(OpenSslHandler::class)
+			->setConstructorArgs([
+				$this->config,
+				$this->appConfig,
+				$this->appDataFactory,
+				$this->dateTimeFormatter,
+				$this->tempManager,
+				$this->certificatePolicyService,
+				$this->urlGenerator,
+				$this->serialNumberService,
+				$this->caIdentifierService,
+				$this->policyService,
+				$this->logger,
+				$this->crlMapper,
+				$this->subjectAlternativeNameService,
+				$this->crlRevocationChecker,
+			])
+			->onlyMethods(['createCsr'])
+			->getMock();
+		$signerInstance->expects($this->once())->method('createCsr')
+			->willReturnCallback(function (array $distinguishedNames, mixed $privateKey, array $options) {
+				$this->assertArrayHasKey('config', $options);
+				$this->assertSame('req', $options['config_section_name'] ?? null);
+				$this->assertFileExists($options['config']);
+				$config = file_get_contents($options['config']);
+				$this->assertNotFalse($config);
+				$this->assertStringContainsString('[req_distinguished_name]', $config);
+				$this->assertStringContainsString('[v3_req]', $config);
+				$this->assertStringNotContainsString('req_extensions =', $config);
+				return openssl_csr_new($distinguishedNames, $privateKey, $options);
+			});
+
+		$signerInstance->setCommonName('Test Signer');
+		$signerInstance->setPassword('123456');
+		$certificate = $signerInstance->generateCertificate();
 		$parsed = $signerInstance->readCertificate($certificate, '123456');
 		$this->assertSame('Test Signer', $parsed['subject']['CN']);
-		$this->assertSame('DE', $parsed['subject']['C']);
-		$this->assertSame('Berlin', $parsed['subject']['L']);
-		$this->assertArrayNotHasKey('ST', $parsed['subject']);
-		$this->assertArrayNotHasKey('O', $parsed['subject']);
-		$this->assertStringContainsString('email:signer@domain.tld', $parsed['extensions']['subjectAltName']);
-		$this->assertStringContainsString('Digital Signature', $parsed['extensions']['keyUsage']);
 	}
 
 	public function testLeafCertificateUsesRsa2048Key(): void {
