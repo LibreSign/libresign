@@ -187,6 +187,60 @@ final class DocMdpFilePolicyApplierTest extends \OCA\Libresign\Tests\Unit\TestCa
 		$this->assertSame(DocMdpLevel::CERTIFIED_FORM_FILLING, $file->getDocmdpLevelEnum());
 	}
 
+	public function testResolveLevelOfANewRequestUsesTheSubmittedOverride(): void {
+		$this->policyService
+			->expects($this->once())
+			->method('resolveForUser')
+			->with(DocMdpPolicy::KEY, null, [DocMdpPolicy::KEY => 1], ['type' => 'group', 'id' => 'sales'])
+			->willReturn($this->createResolvedPolicy(1, sourceScope: 'request'));
+
+		$level = $this->getApplier()->resolveLevel(null, [
+			'policyOverrides' => [DocMdpPolicy::KEY => 1],
+			'policyActiveContext' => ['type' => 'group', 'id' => 'sales'],
+		]);
+
+		$this->assertSame(DocMdpLevel::CERTIFIED_NO_CHANGES_ALLOWED, $level);
+	}
+
+	public function testResolveLevelOfADraftUsesTheLevelSyncWouldStore(): void {
+		$file = $this->createStoredRequest(FileStatus::DRAFT->value, []);
+
+		$this->policyService
+			->expects($this->once())
+			->method('resolveForUserId')
+			->with(DocMdpPolicy::KEY, 'john', [DocMdpPolicy::KEY => 2])
+			->willReturn($this->createResolvedPolicy(2, sourceScope: 'request'));
+
+		$level = $this->getApplier()->resolveLevel($file, ['policyOverrides' => [DocMdpPolicy::KEY => 2]]);
+
+		$this->assertSame(DocMdpLevel::CERTIFIED_FORM_FILLING, $level);
+	}
+
+	public function testResolveLevelOfAFrozenRequestIsTheStoredOneEvenWhenUncertified(): void {
+		$file = $this->createStoredRequest(FileStatus::ABLE_TO_SIGN->value, self::FROZEN + [
+			'policy_snapshot' => [
+				DocMdpPolicy::KEY => ['effectiveValue' => DocMdpLevel::NOT_CERTIFIED->value, 'sourceScope' => 'system'],
+			],
+		]);
+		$file->setDocmdpLevelEnum(DocMdpLevel::NOT_CERTIFIED);
+
+		$this->policyService->expects($this->never())->method('resolveForUserId');
+		$this->policyService->expects($this->never())->method('resolveForUser');
+
+		$this->assertSame(DocMdpLevel::NOT_CERTIFIED, $this->getApplier()->resolveLevel($file, []));
+	}
+
+	public function testResolveLevelOfAFrozenRequestWithoutAStoredLevelLeavesItToTheCurrentOne(): void {
+		$file = new File();
+		$file->setUserId('john');
+		$file->setStatus(FileStatus::ABLE_TO_SIGN->value);
+		$file->setDocmdpLevelEnum(DocMdpLevel::NOT_CERTIFIED);
+
+		$this->policyService->expects($this->never())->method('resolveForUserId');
+
+		$this->assertNull($this->getApplier()->resolveLevel($file, []));
+	}
+
 	/** @param array<string, mixed> $metadata */
 	private function createStoredRequest(int $status, array $metadata): File {
 		$file = new File();
