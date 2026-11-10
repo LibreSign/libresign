@@ -188,7 +188,7 @@ final class NotificationDeliveryServiceTest extends \OCA\Libresign\Tests\Integra
 	public function testSubmittedOutcomeEventReflectsCommittedLedgerWithoutRecipientData(): void {
 		$fileMapper = Server::get(FileMapper::class);
 		$file = new File();
-		$file->setUuid('notification-workflow-' . bin2hex(random_bytes(12)));
+		$file->setUuid(bin2hex(random_bytes(16)));
 		$file->setNodeId(random_int(1000000, 1999999));
 		$file->setUserId('synthetic-owner');
 		$file->setName('notification-contract.pdf');
