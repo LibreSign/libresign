@@ -188,6 +188,46 @@ describe('ModalVerificationCode (email mode)', () => {
 		expect(explanation.text()).toContain('verification code')
 	})
 
+	it.each([
+		{
+			approvalContext: true,
+			instruction: 'Confirm the email address associated with your own account.',
+			excluded: 'where you received the signature request',
+			completion: 'You can now sign to record your approval of the document.',
+			action: 'Sign and approve document',
+		},
+		{
+			approvalContext: false,
+			instruction: 'enter the same email address where you received the signature request',
+			excluded: 'your own account',
+			completion: 'You can now sign the document.',
+			action: 'Sign document',
+		},
+	])('renders verification and confirmation text for approval context $approvalContext', async ({ approvalContext, instruction, excluded, completion, action }) => {
+		wrapper = mount(ModalVerificationCode, {
+			props: { mode: 'email', approvalContext },
+			global: {
+				stubs: {
+					...stubs,
+					NcDialog: { template: '<div><slot /><slot name="actions" /></div>' },
+				},
+			},
+		}) as ModalVerificationCodeWrapper
+
+		const explanation = wrapper.find('.step-explanation').text()
+		expect(explanation).toContain(instruction)
+		expect(explanation).not.toContain(excluded)
+
+		ensureEmailToken(signMethodsStore).hasConfirmCode = true
+		wrapper.vm.identityVerified = true
+		await wrapper.vm.$nextTick()
+
+		expect(wrapper.find('.signature-ready').text()).toBe(completion)
+		const actionLabels = wrapper.findAll('button').map(button => button.text().trim())
+		expect(actionLabels).toContain(action)
+		expect(actionLabels).not.toContain(approvalContext ? 'Sign document' : 'Sign and approve document')
+	})
+
 	it('shows correct dialog title for step 1 in email mode', async () => {
 		wrapper = mount(ModalVerificationCode, {
 			props: { mode: 'email' },

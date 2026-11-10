@@ -9,7 +9,7 @@
 			<div class="document-status">
 				<span class="document-status__label">{{ t('libresign', 'Status') }}</span>
 				<span class="document-status__dot" aria-hidden="true" />
-				<span class="document-status__text">{{ currentDocument.statusText }}</span>
+				<span class="document-status__text">{{ displayedStatusText }}</span>
 			</div>
 		</header>
 
@@ -91,6 +91,15 @@ const currentDocument = computed(() => signStore.document ?? {
 })
 const shouldReviewBeforeSigning = computed(() => getRoute()?.path?.startsWith('/f/filelist/sign') === true)
 const canOpenSignDocument = computed(() => Boolean(getSignRequestUuid()))
+const displayedStatusText = computed(() => {
+	if (getRoute()?.path?.startsWith('/f/id-docs/approve/')
+		&& (currentDocument.value.status === FILE_STATUS.ABLE_TO_SIGN
+			|| currentDocument.value.status === FILE_STATUS.PARTIAL_SIGNED)) {
+		// TRANSLATORS A document awaiting review by an authorized approver, rather than a normal signer.
+		return t('libresign', 'waiting for approval')
+	}
+	return currentDocument.value.statusText
+})
 
 const instance = getCurrentInstance()
 

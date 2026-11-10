@@ -7,8 +7,7 @@
 		<div class="id-docs-validation">
 			<div class="id-docs-validation__toolbar">
 				<div class="filter-wrapper" :class="{ 'filter-wrapper--active': hasActiveFilters }">
-					<!-- TRANSLATORS {count} is the number of active filters currently applied to the document validation list. -->
-					<NcActions :aria-label="hasActiveFilters ? t('libresign', 'Filters ({count})', { count: activeFilterCount }) : t('libresign', 'Filters')">
+					<NcActions :aria-label="filterActionLabel">
 						<template #icon>
 							<NcIconSvgWrapper :path="mdiFilter" :size="20" />
 						</template>
@@ -26,7 +25,8 @@
 							<template #icon>
 								<NcIconSvgWrapper :path="mdiCheckCircle" :size="20" />
 							</template>
-							{{ t('libresign', 'Signed') }}
+							<!-- TRANSLATORS Filter for documents that have already been approved by an authorized reviewer. -->
+							{{ t('libresign', 'Approved') }}
 						</NcActionButton>
 
 						<NcActionButton type="radio"
@@ -35,6 +35,7 @@
 							<template #icon>
 								<NcIconSvgWrapper :path="mdiClockAlert" :size="20" />
 							</template>
+							<!-- TRANSLATORS Filter for documents that have not yet completed the approval workflow. -->
 							{{ t('libresign', 'Pending') }}
 						</NcActionButton>
 
@@ -108,7 +109,7 @@
 								{{ doc.file_type.name }}
 							</td>
 							<td>
-								{{ doc.file.statusText }}
+								{{ doc.file.status === FILE_STATUS.PARTIAL_SIGNED ? t('libresign', 'waiting for approval') : doc.file.statusText }}
 							</td>
 							<td>
 								<template v-if="doc.file?.signers?.length > 0 && doc.file.signers[0].sign_date">
@@ -130,7 +131,7 @@
 											<template #icon>
 												<NcIconSvgWrapper :path="mdiEye" :size="20" />
 											</template>
-											<!-- TRANSLATORS: "Validate" here is a technical process: checking the cryptographic integrity of the signatures, the certificate chain and revocation status. It does NOT mean approving or authorizing something. -->
+											<!-- TRANSLATORS "Validate" here is a technical process: checking the cryptographic integrity of the signatures, the certificate chain and revocation status. It does NOT mean approving or authorizing something. -->
 											{{ t('libresign', 'Validate') }}
 										</NcActionButton>
 									</template>
@@ -142,13 +143,13 @@
 											{{ t('libresign', 'Open file') }}
 										</NcActionButton>
 									</template>
-									<NcActionButton v-if="doc.file?.status === FILE_STATUS.ABLE_TO_SIGN"
-										:aria-label="t('libresign', 'Sign')"
+									<NcActionButton v-if="doc.file?.status === FILE_STATUS.ABLE_TO_SIGN || doc.file?.status === FILE_STATUS.PARTIAL_SIGNED"
+										:aria-label="reviewAndApproveLabel"
 										@click="openApprove(doc)">
 										<template #icon>
 											<NcIconSvgWrapper :path="mdiPencil" :size="20" />
 										</template>
-										{{ t('libresign', 'Sign') }}
+										{{ reviewAndApproveLabel }}
 									</NcActionButton>
 									<NcActionButton @click="deleteDocument(doc)">
 										<template #icon>
@@ -243,9 +244,11 @@ defineOptions({
 	name: 'IdDocsValidation',
 })
 const SORT_FIELDS: readonly SortField[] = ['owner', 'file_type', 'status']
+// TRANSLATORS Button for opening a submitted document so a reviewer can inspect it and record approval.
+const reviewAndApproveLabel = t('libresign', 'Review and approve')
 const STATUS_OPTIONS: StatusOption[] = [
 	// TRANSLATORS Filter status label meaning the document already has the required signature approval result.
-	{ value: 'signed', label: t('libresign', 'Signed') },
+	{ value: 'signed', label: t('libresign', 'Approved') },
 	// TRANSLATORS Filter status label meaning the document is still waiting for validation or approval.
 	{ value: 'pending', label: t('libresign', 'Pending') },
 ]
@@ -280,6 +283,14 @@ const activeFilterCount = computed(() => {
 	if (filters.owner) { count++ }
 	if (filters.status) { count++ }
 	return count
+})
+const filterActionLabel = computed(() => {
+	if (hasActiveFilters.value) {
+		// TRANSLATORS {count} is the number of active filters on the submitted-document approval list.
+		return t('libresign', 'Filters ({count})', { count: activeFilterCount.value })
+	}
+	// TRANSLATORS Name of the button that opens the list of approval-queue filters.
+	return t('libresign', 'Filters')
 })
 const filteredDocuments = computed(() => {
 	let docs = [...documentList.value]

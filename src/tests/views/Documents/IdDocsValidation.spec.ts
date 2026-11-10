@@ -277,6 +277,45 @@ describe('IdDocsValidation.vue', () => {
 		})
 	})
 
+	it('presents approval rather than a generic signing action', async () => {
+		const wrapper = createWrapper()
+		await flushPromises()
+
+		const actionLabels = wrapper.findAll('.nc-action-button-stub').map(action => action.text().trim())
+		expect(actionLabels).toContain('Review and approve')
+		expect(actionLabels).not.toContain('Sign')
+		expect(wrapper.text()).toContain('Approved')
+	})
+
+	it('keeps partially signed identification documents available for approval', async () => {
+		const wrapper = createWrapper()
+		await flushPromises()
+		const partiallySignedDoc: IdDocEntry = {
+			...pendingDoc,
+			file: {
+				...pendingDoc.file,
+				status: FILE_STATUS.PARTIAL_SIGNED,
+				statusText: 'Partially signed',
+				uuid: 'file-partial',
+			},
+		}
+		wrapper.vm.documentList = [partiallySignedDoc]
+		await wrapper.vm.$nextTick()
+
+		const row = wrapper.find('tbody tr')
+		expect(row.text()).toContain('waiting for approval')
+		expect(row.text()).not.toContain('Partially signed')
+		const approveAction = row.findAll('.nc-action-button-stub')
+			.find(action => action.text().trim() === 'Review and approve')
+		expect(approveAction).toBeDefined()
+		await approveAction!.trigger('click')
+		expect(routerPushMock).toHaveBeenCalledWith({
+			name: 'IdDocsApprove',
+			params: { uuid: 'file-partial' },
+			query: { idDocApproval: 'true' },
+		})
+	})
+
 	it('routes to approve and validation pages using document uuid', async () => {
 		const wrapper = createWrapper()
 		await flushPromises()

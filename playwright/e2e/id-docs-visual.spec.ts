@@ -136,7 +136,7 @@ test('identification documents appear on the account page after upload', async (
 	await expect(page.getByRole('columnheader', { name: /Owner/i })).toBeVisible({ timeout: 20_000 })
 	await expect(page.getByRole('cell', { name: /^admin$/i }).first()).toBeVisible({ timeout: 20_000 })
 	await expect(page.getByText(/waiting for approval/i).first()).toBeVisible()
-	await expect(page.getByRole('button', { name: /Sign/i }).first()).toBeVisible()
+	await expect(page.getByRole('button', { name: /Review and approve/i }).first()).toBeVisible()
 	await shot(page, '04-id-docs-approval-list')
 
 	await page.goto('./settings/admin/libresign')

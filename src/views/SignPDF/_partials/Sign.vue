@@ -8,6 +8,13 @@
 			<Signatures v-if="hasSignatures" />
 		</div>
 		<div v-if="!loading" class="button-wrapper">
+			<!-- TRANSLATORS Heading for a reviewer signing a submitted document to record organizational approval. -->
+			<NcNoteCard v-if="showApprovalGuidance"
+				:heading="t('libresign', 'Document approval')"
+				type="info">
+				<!-- TRANSLATORS Explanation for a reviewer signing a submitted document to record approval. The review procedure is set by the organization. -->
+				{{ t('libresign', 'Review the identification document uploaded by the signer according to the procedure defined by your organization. Signing records your approval. Once all required identification documents are approved, the signer can continue the signing process, subject to other requirements.') }}
+			</NcNoteCard>
 			<NcCheckboxRadioSwitch v-if="signatureElementsStore.emailSigner && hasSignatures && hasVisibleSignatureField"
 				v-model="rememberSignature">
 				<!-- TRANSLATORS Opt-in to remember an external email signer's visible signature after confirmed signing. -->
@@ -42,7 +49,7 @@
 				<NcRichText :text="error.message"
 					:use-markdown="true" />
 			</NcNoteCard>
-			<NcNoteCard v-if="!hasVisibleSignatureField && !hasBlockingSignError"
+			<NcNoteCard v-if="!isApprovalRoute && !hasVisibleSignatureField && !hasBlockingSignError"
 				:heading="t('libresign', 'No visible signature is required')"
 				type="info">
 				<p>
@@ -86,15 +93,13 @@
 			</div>
 			<div v-else-if="signMethodsStore.needCreatePassword()">
 				<p>
-					<!-- TRANSLATORS Warning shown when the signer must define a signing password before proceeding. -->
-					{{ t('libresign', 'Please define your sign password') }}
+					{{ passwordSetupInstructionText }}
 				</p>
 				<NcButton :wide="true"
 					:disabled="loading"
 					variant="primary"
 					@click="openModal('createPassword')">
-					<!-- TRANSLATORS Button label that opens the password creation step and then allows signing. -->
-					{{ t('libresign', 'Define a password and sign the document.') }}
+					{{ passwordSetupActionLabel }}
 				</NcButton>
 			</div>
 			<div v-else-if="needIdentificationDocuments" class="no-identification-warning">
@@ -120,8 +125,7 @@
 				<template #icon>
 					<NcLoadingIcon v-if="loading" :size="20" />
 				</template>
-				<!-- TRANSLATORS Primary action button that starts signing the current document. -->
-				{{ t('libresign', 'Sign document') }}
+				{{ signActionLabel }}
 			</NcButton>
 			<div v-else>
 				<p>
@@ -145,8 +149,7 @@
 			</NcNoteCard>
 
 			<p class="confirmation-text">
-				<!-- TRANSLATORS Confirmation prompt asking the signer to confirm they want to sign the current document. -->
-				{{ t('libresign', 'Confirm that you want to sign this document.') }}
+				{{ signConfirmationText }}
 			</p>
 
 			<template #actions>
@@ -161,8 +164,7 @@
 					<template #icon>
 						<NcLoadingIcon v-if="loading" :size="20" />
 					</template>
-					<!-- TRANSLATORS Dialog action button that confirms signing the current document. -->
-					{{ t('libresign', 'Sign document') }}
+					{{ signActionLabel }}
 				</NcButton>
 			</template>
 		</NcDialog>
@@ -181,8 +183,7 @@
 			</NcNoteCard>
 
 			<p class="confirmation-text">
-				<!-- TRANSLATORS Instruction asking the signer to enter the signature password before signing the current document. -->
-				{{ t('libresign', 'Enter your signature password to sign the document.') }}
+				{{ signPasswordInstructionText }}
 			</p>
 
 			<form @submit.prevent="signWithPassword()">
@@ -204,8 +205,7 @@
 					<template #icon>
 						<NcLoadingIcon v-if="loading" :size="20" />
 					</template>
-					<!-- TRANSLATORS Dialog action button that signs the current document after password entry. -->
-					{{ t('libresign', 'Sign document') }}
+					{{ signActionLabel }}
 				</NcButton>
 			</template>
 		</NcDialog>
@@ -230,6 +230,7 @@
 			@close="signMethodsStore.closeModal('token')" />
 		<ModalVerificationCode v-if="signMethodsStore.modal.emailToken"
 			mode="email"
+			:approval-context="isApprovalRoute"
 			@change="signWithEmailToken"
 			@close="signMethodsStore.closeModal('emailToken')" />
 		<ModalVerificationCode v-if="showSavedSignatureCode"
@@ -529,12 +530,59 @@ function getSignatureMethodSetting(
 	return settings[method]
 }
 
-// TRANSLATORS Dialog title for signing the current document.
-const signDocumentDialogTitle = t('libresign', 'Sign document')
 // TRANSLATORS Field label for the password input used to unlock the signer certificate or signing credential.
 const signaturePasswordLabel = t('libresign', 'Signature password')
 
 const route = useRoute()
+const isApprovalRoute = computed(() => route.name === 'IdDocsApprove')
+const signActionLabel = computed(() => {
+	if (isApprovalRoute.value) {
+		// TRANSLATORS Action to sign a reviewed document and record its approval by the authorized reviewer.
+		return t('libresign', 'Sign and approve document')
+	}
+	// TRANSLATORS Action to digitally sign a document as an ordinary signer, without approving a submitted document.
+	return t('libresign', 'Sign document')
+})
+const signDocumentDialogTitle = computed(() => {
+	if (isApprovalRoute.value) {
+		// TRANSLATORS Title of the dialog used by a reviewer who is approving a submitted document.
+		return t('libresign', 'Document approval')
+	}
+	// TRANSLATORS Title of the confirmation dialog shown during ordinary document signing.
+	return t('libresign', 'Sign document')
+})
+const passwordSetupInstructionText = computed(() => {
+	if (isApprovalRoute.value) {
+		// TRANSLATORS Asks a reviewer to create their own signature password before approving a submitted document.
+		return t('libresign', 'Define your signature password before approving this document.')
+	}
+	// TRANSLATORS Asks an ordinary signer to create a password before signing a document.
+	return t('libresign', 'Please define your sign password')
+})
+const passwordSetupActionLabel = computed(() => {
+	if (isApprovalRoute.value) {
+		// TRANSLATORS Action to set up a signature password, then digitally sign a submitted document to record approval.
+		return t('libresign', 'Define a password and sign to approve')
+	}
+	// TRANSLATORS Action to create a signature password and then sign a document as an ordinary signer.
+	return t('libresign', 'Define a password and sign the document.')
+})
+const signConfirmationText = computed(() => {
+	if (isApprovalRoute.value) {
+		// TRANSLATORS Confirms the reviewer has examined the submitted document and wants to sign it to record approval.
+		return t('libresign', 'Confirm that you have reviewed this document and want to sign it to record your approval.')
+	}
+	// TRANSLATORS Confirmation prompt for an ordinary signer before applying a digital signature.
+	return t('libresign', 'Confirm that you want to sign this document.')
+})
+const signPasswordInstructionText = computed(() => {
+	if (isApprovalRoute.value) {
+		// TRANSLATORS Asks the reviewer for their signature password to record approval of a submitted document.
+		return t('libresign', 'Enter your signature password to sign and approve the document.')
+	}
+	// TRANSLATORS Asks an ordinary signer for their signature password to sign the current document.
+	return t('libresign', 'Enter your signature password to sign the document.')
+})
 const signStore = useSignStore() as SignStoreContract
 const signMethodsStore = useSignMethodsStore() as SignMethodsStoreContract
 const signatureElementsStore = useSignatureElementsStore() as SignatureElementsStoreContract
@@ -558,6 +606,9 @@ let unwatchPendingAction: null | (() => void) = null
 let requirementValidator: SigningRequirementValidator | null = null
 let actionHandler: SignFlowHandler | null = null
 const currentDocument = computed<SignDocument>(() => signStore.document)
+const showApprovalGuidance = computed(() => isApprovalRoute.value
+	&& (currentDocument.value?.status === FILE_STATUS.ABLE_TO_SIGN
+		|| currentDocument.value?.status === FILE_STATUS.PARTIAL_SIGNED))
 const visibleElementsDocument = computed(() => normalizeDocumentForVisibleElements(currentDocument.value))
 const currentUserSignRequestIds = computed(() => new Set(getCurrentUserSignRequestIds(visibleElementsDocument.value)))
 
