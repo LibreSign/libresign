@@ -494,6 +494,23 @@ export type paths = {
         patch?: never;
         trace?: never;
     };
+    "/ocs/v2.php/apps/libresign/api/{apiVersion}/id-docs/{nodeId}/reject": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Reject a submitted identification document, preserving the decision for audit. */
+        post: operations["id_docs-reject"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/ocs/v2.php/apps/libresign/api/{apiVersion}/id-docs/approval/list": {
         parameters: {
             query?: never;
@@ -1264,6 +1281,11 @@ export type components = {
                 description: string | null;
             };
             created_at: string;
+            rejection: {
+                reason: string;
+                at: string;
+                by?: string;
+            } | null;
             file: {
                 name: string;
                 /**
@@ -3912,6 +3934,61 @@ export interface operations {
                         ocs: {
                             meta: components["schemas"]["OCSMeta"];
                             data: components["schemas"]["MessagesResponse"];
+                        };
+                    };
+                };
+            };
+        };
+    };
+    "id_docs-reject": {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Required to be true for the API request to pass */
+                "OCS-APIRequest": boolean;
+            };
+            path: {
+                apiVersion: "v1";
+                /** @description ID of the submitted identification document node. */
+                nodeId: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    /** @description Reason supplied by the authorized approver. */
+                    reason: string;
+                };
+            };
+        };
+        responses: {
+            /** @description Rejection recorded and signer notification queued */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        ocs: {
+                            meta: components["schemas"]["OCSMeta"];
+                            data: {
+                                rejected: boolean;
+                            };
+                        };
+                    };
+                };
+            };
+            /** @description Invalid reason, unauthorized reviewer, or document already reviewed */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        ocs: {
+                            meta: components["schemas"]["OCSMeta"];
+                            data: components["schemas"]["MessageResponse"];
                         };
                     };
                 };

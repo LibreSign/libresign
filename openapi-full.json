@@ -1194,6 +1194,7 @@
                     "account",
                     "file_type",
                     "created_at",
+                    "rejection",
                     "file"
                 ],
                 "properties": {
@@ -1234,6 +1235,25 @@
                     },
                     "created_at": {
                         "type": "string"
+                    },
+                    "rejection": {
+                        "type": "object",
+                        "nullable": true,
+                        "required": [
+                            "reason",
+                            "at"
+                        ],
+                        "properties": {
+                            "reason": {
+                                "type": "string"
+                            },
+                            "at": {
+                                "type": "string"
+                            },
+                            "by": {
+                                "type": "string"
+                            }
+                        }
                     },
                     "file": {
                         "type": "object",
@@ -8696,6 +8716,146 @@
                                                 },
                                                 "data": {
                                                     "$ref": "#/components/schemas/MessagesResponse"
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/ocs/v2.php/apps/libresign/api/{apiVersion}/id-docs/{nodeId}/reject": {
+            "post": {
+                "operationId": "id_docs-reject",
+                "summary": "Reject a submitted identification document, preserving the decision for audit.",
+                "tags": [
+                    "identity"
+                ],
+                "security": [
+                    {
+                        "bearer_auth": []
+                    },
+                    {
+                        "basic_auth": []
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object",
+                                "required": [
+                                    "reason"
+                                ],
+                                "properties": {
+                                    "reason": {
+                                        "type": "string",
+                                        "description": "Reason supplied by the authorized approver."
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                "parameters": [
+                    {
+                        "name": "apiVersion",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "enum": [
+                                "v1"
+                            ],
+                            "default": "v1"
+                        }
+                    },
+                    {
+                        "name": "nodeId",
+                        "in": "path",
+                        "description": "ID of the submitted identification document node.",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "format": "int64"
+                        }
+                    },
+                    {
+                        "name": "OCS-APIRequest",
+                        "in": "header",
+                        "description": "Required to be true for the API request to pass",
+                        "required": true,
+                        "schema": {
+                            "type": "boolean",
+                            "default": true
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Rejection recorded and signer notification queued",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "required": [
+                                        "ocs"
+                                    ],
+                                    "properties": {
+                                        "ocs": {
+                                            "type": "object",
+                                            "required": [
+                                                "meta",
+                                                "data"
+                                            ],
+                                            "properties": {
+                                                "meta": {
+                                                    "$ref": "#/components/schemas/OCSMeta"
+                                                },
+                                                "data": {
+                                                    "type": "object",
+                                                    "required": [
+                                                        "rejected"
+                                                    ],
+                                                    "properties": {
+                                                        "rejected": {
+                                                            "type": "boolean"
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid reason, unauthorized reviewer, or document already reviewed",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "required": [
+                                        "ocs"
+                                    ],
+                                    "properties": {
+                                        "ocs": {
+                                            "type": "object",
+                                            "required": [
+                                                "meta",
+                                                "data"
+                                            ],
+                                            "properties": {
+                                                "meta": {
+                                                    "$ref": "#/components/schemas/OCSMeta"
+                                                },
+                                                "data": {
+                                                    "$ref": "#/components/schemas/MessageResponse"
                                                 }
                                             }
                                         }
