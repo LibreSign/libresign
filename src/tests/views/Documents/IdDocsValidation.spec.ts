@@ -139,6 +139,7 @@ describe('IdDocsValidation.vue', () => {
 			description: null,
 		},
 		created_at: '2026-03-06T10:00:00Z',
+		rejection: null,
 		file: {
 			uuid: 'file-1',
 			status: FILE_STATUS.SIGNED,
@@ -181,6 +182,7 @@ describe('IdDocsValidation.vue', () => {
 			description: null,
 		},
 		created_at: '2026-03-07T10:00:00Z',
+		rejection: null,
 		file: {
 			uuid: 'file-2',
 			status: FILE_STATUS.ABLE_TO_SIGN,
