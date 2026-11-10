@@ -224,7 +224,6 @@
 			@certificate:uploaded="onSignatureFileCreated" />
 		<ModalVerificationCode v-if="signMethodsStore.modal.token"
 			mode="token"
-			:approval-context="isApprovalRoute"
 			:phone-number="user.settings.phoneNumber"
 			@change="signWithTokenCode"
 			@update:phone="val => emit('update:phone', val)"

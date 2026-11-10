@@ -8,10 +8,10 @@ import { DOMWrapper, flushPromises, mount } from '@vue/test-utils'
 import type { VueWrapper } from '@vue/test-utils'
 import { createPinia, setActivePinia } from 'pinia'
 
-import { FILE_STATUS, SIGN_REQUEST_STATUS } from '../../../constants.js'
-import { useSignMethodsStore } from '../../../store/signMethods.js'
-import { useSignStore } from '../../../store/sign.js'
-import Sign from '../../../views/SignPDF/_partials/Sign.vue'
+import { FILE_STATUS, SIGN_REQUEST_STATUS } from '../../../../constants.js'
+import { useSignMethodsStore } from '../../../../store/signMethods.js'
+import { useSignStore } from '../../../../store/sign.js'
+import Sign from '../../../../views/SignPDF/_partials/Sign.vue'
 
 const currentRoute = vi.hoisted(() => ({
 	name: 'SignPDF',
@@ -163,6 +163,7 @@ describe('Sign.vue approval labels and signing methods', () => {
 		})
 		await flushPromises()
 
+		expect(wrapper.text().includes('Review the identification document uploaded by the signer')).toBe(approval)
 		expect(signMethodsStore.modal[method]).toBe(true)
 		const element = document.body.querySelector<HTMLElement>('[role="dialog"]')
 		expect(element).not.toBeNull()

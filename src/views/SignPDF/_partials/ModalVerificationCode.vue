@@ -270,14 +270,8 @@ const emailInstructionText = computed(() => {
 	// TRANSLATORS Email verification instructions for an ordinary signer who received a signature request.
 	return t('libresign', 'To verify your identity, enter the same email address where you received the signature request. We will send a verification code to this address.')
 })
-const tokenInstructionText = computed(() => {
-	if (isApprovalContext.value) {
-		// TRANSLATORS Phone-based verification for the approver's own account before recording document approval.
-		return t('libresign', 'To sign and approve this document, verify your own account using a confirmation code sent to your contact information.')
-	}
-	// TRANSLATORS Phone-based verification for an ordinary signer before signing their document.
-	return t('libresign', 'To sign this document, we must verify your identity. Enter your contact information to receive a verification code.')
-})
+// TRANSLATORS Phone-based verification for a signer using SMS or another messaging channel.
+const tokenInstructionText = t('libresign', 'To sign this document, we must verify your identity. Enter your contact information to receive a verification code.')
 const signatureReadyText = computed(() => {
 	if (isApprovalContext.value) {
 		// TRANSLATORS After the approver's verification code is accepted, invites them to sign the submitted document to record approval.
@@ -552,11 +546,6 @@ defineExpose({
 	step1Active,
 	step2Active,
 	dialogTitle,
-	isApprovalContext,
-	emailInstructionText,
-	tokenInstructionText,
-	signatureReadyText,
-	signActionLabel,
 	progressText,
 	codeExplanationText,
 	displayContact,

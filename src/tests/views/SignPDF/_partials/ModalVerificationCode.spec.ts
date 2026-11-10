@@ -5,7 +5,7 @@
 
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { setActivePinia, createPinia } from 'pinia'
-import { mount, shallowMount } from '@vue/test-utils'
+import { mount } from '@vue/test-utils'
 import type { VueWrapper } from '@vue/test-utils'
 import ModalVerificationCode from '@/views/SignPDF/_partials/ModalVerificationCode.vue'
 import axios from '@nextcloud/axios'
@@ -188,19 +188,44 @@ describe('ModalVerificationCode (email mode)', () => {
 		expect(explanation.text()).toContain('verification code')
 	})
 
-	it('instructs the approver to verify their own account rather than the original signer', async () => {
-		wrapper = shallowMount(ModalVerificationCode, {
-			props: { mode: 'email', approvalContext: true },
+	it.each([
+		{
+			approvalContext: true,
+			instruction: 'Confirm the email address associated with your own account.',
+			excluded: 'where you received the signature request',
+			completion: 'You can now sign to record your approval of the document.',
+			action: 'Sign and approve document',
+		},
+		{
+			approvalContext: false,
+			instruction: 'enter the same email address where you received the signature request',
+			excluded: 'your own account',
+			completion: 'You can now sign the document.',
+			action: 'Sign document',
+		},
+	])('renders verification and confirmation text for approval context $approvalContext', async ({ approvalContext, instruction, excluded, completion, action }) => {
+		wrapper = mount(ModalVerificationCode, {
+			props: { mode: 'email', approvalContext },
+			global: {
+				stubs: {
+					...stubs,
+					NcDialog: { template: '<div><slot /><slot name="actions" /></div>' },
+				},
+			},
 		}) as ModalVerificationCodeWrapper
 
-		expect(wrapper.vm.isApprovalContext).toBe(true)
-		expect(wrapper.vm.emailInstructionText).toContain('your own account')
-		expect(wrapper.vm.emailInstructionText).toContain('as the approver')
-		expect(wrapper.vm.emailInstructionText).not.toContain('where you received the signature request')
+		const explanation = wrapper.find('.step-explanation').text()
+		expect(explanation).toContain(instruction)
+		expect(explanation).not.toContain(excluded)
 
-		await wrapper.setProps({ approvalContext: false })
-		expect(wrapper.vm.isApprovalContext).toBe(false)
-		expect(wrapper.vm.emailInstructionText).toContain('where you received the signature request')
+		ensureEmailToken(signMethodsStore).hasConfirmCode = true
+		wrapper.vm.identityVerified = true
+		await wrapper.vm.$nextTick()
+
+		expect(wrapper.find('.signature-ready').text()).toBe(completion)
+		const actionLabels = wrapper.findAll('button').map(button => button.text().trim())
+		expect(actionLabels).toContain(action)
+		expect(actionLabels).not.toContain(approvalContext ? 'Sign document' : 'Sign and approve document')
 	})
 
 	it('shows correct dialog title for step 1 in email mode', async () => {
