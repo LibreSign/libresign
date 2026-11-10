@@ -69,6 +69,7 @@ OC.L10N.register(
     "No recommendations. Start typing." : "Нема препораки. Започнете со пишување.",
     "Sign" : "Знак",
     "An error occurred" : "Настана грешка",
+    "Failed to load files" : "Неуспешно вчитување на датотеки",
     "Upload cancelled" : "Прикачувањето е откажано",
     "Saved" : "Зачувано",
     "_{count} selected_::_{count} selected_" : ["{count} означена","{count} означени"],
