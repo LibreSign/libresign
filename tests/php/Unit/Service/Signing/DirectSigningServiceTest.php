@@ -134,8 +134,12 @@ final class DirectSigningServiceTest extends TestCase {
 	public static function protectedSourceCases(): iterable {
 		yield 'shared PDF by node ID' => [['nodeId' => 4], 'account-b', 'application/pdf', false, Http::STATUS_FORBIDDEN];
 		yield 'shared PDF by path' => [['path' => '/contract.pdf'], 'account-b', 'application/pdf', false, Http::STATUS_FORBIDDEN];
+		yield 'shared PDF by node ID with empty base64' => [['base64' => '', 'nodeId' => 4], 'account-b', 'application/pdf', false, Http::STATUS_FORBIDDEN];
+		yield 'shared PDF by path with empty base64' => [['base64' => '', 'path' => '/contract.pdf'], 'account-b', 'application/pdf', false, Http::STATUS_FORBIDDEN];
 		yield 'own draft by node ID' => [['nodeId' => 4], 'account-a', 'application/pdf', true, Http::STATUS_UNPROCESSABLE_ENTITY];
 		yield 'own draft by path' => [['path' => '/contract.pdf'], 'account-a', 'application/pdf', true, Http::STATUS_UNPROCESSABLE_ENTITY];
+		yield 'own draft by node ID with empty base64' => [['base64' => '', 'nodeId' => 4], 'account-a', 'application/pdf', true, Http::STATUS_UNPROCESSABLE_ENTITY];
+		yield 'own draft by path with empty base64' => [['base64' => '', 'path' => '/contract.pdf'], 'account-a', 'application/pdf', true, Http::STATUS_UNPROCESSABLE_ENTITY];
 		yield 'wrong MIME by node ID' => [['nodeId' => 4], 'account-a', 'text/plain', false, Http::STATUS_UNPROCESSABLE_ENTITY];
 		yield 'wrong MIME by path' => [['path' => '/contract.pdf'], 'account-a', 'text/plain', false, Http::STATUS_UNPROCESSABLE_ENTITY];
 	}
@@ -154,6 +158,9 @@ final class DirectSigningServiceTest extends TestCase {
 	public static function invalidInputCases(): iterable {
 		yield 'no document' => [[], 'file.pdf', 'clickToSign', ''];
 		yield 'multiple sources' => [['nodeId' => 4, 'base64' => 'encoded'], 'file.pdf', 'clickToSign', ''];
+		yield 'numeric base64' => [['base64' => 123], 'file.pdf', 'clickToSign', ''];
+		yield 'array base64' => [['base64' => []], 'file.pdf', 'clickToSign', ''];
+		yield 'null base64 with node ID' => [['base64' => null, 'nodeId' => 4], 'file.pdf', 'clickToSign', ''];
 		yield 'remote URL' => [['url' => 'https://example.invalid/file.pdf'], 'file.pdf', 'clickToSign', ''];
 		yield 'unsupported key' => [['nodeId' => 4, 'signers' => []], 'file.pdf', 'clickToSign', ''];
 		yield 'not a PDF filename' => [['nodeId' => 4], 'file.txt', 'clickToSign', ''];
@@ -289,6 +296,8 @@ final class DirectSigningServiceTest extends TestCase {
 	public static function preflightFailureCases(): iterable {
 		yield 'node ID signer failure' => [['nodeId' => 4], false, 'signer'];
 		yield 'node ID credential failure' => [['nodeId' => 4], false, 'credentials'];
+		yield 'node ID with empty base64 preserves original file' => [['base64' => '', 'nodeId' => 4], false, 'credentials'];
+		yield 'path with empty base64 preserves original file' => [['base64' => '', 'path' => '/contract.pdf'], false, 'credentials'];
 		yield 'path preserves original file' => [['path' => '/contract.pdf'], false, 'credentials'];
 		yield 'base64 removes uploaded file' => [['base64' => 'encoded'], true, 'credentials'];
 	}
