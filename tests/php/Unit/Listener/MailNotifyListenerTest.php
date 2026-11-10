@@ -120,7 +120,9 @@ class MailNotifyListenerTest extends TestCase {
 			->willReturn($account);
 		$this->preferences
 			->method('isEmailNotificationDisabled')
-			->willReturnCallback(static fn (string $uid): bool => $uid === 'bob-uid' && $disabled);
+			->willReturnMap([
+				['bob-uid', SendSignNotificationEvent::FILE_TO_SIGN, true, $disabled],
+			]);
 
 		$this->listener->handle($this->invitation('account', 'bob-uid'));
 
@@ -139,7 +141,9 @@ class MailNotifyListenerTest extends TestCase {
 		]);
 		$this->preferences
 			->method('isEmailNotificationDisabled')
-			->willReturnCallback(static fn (string $uid): bool => $uid === 'bob-uid');
+			->willReturnMap([
+				['bob-uid', SendSignNotificationEvent::FILE_TO_SIGN, true, true],
+			]);
 
 		$this->listener->handle($this->invitation('account', 'bob-uid'));
 
@@ -187,7 +191,9 @@ class MailNotifyListenerTest extends TestCase {
 			->willReturn([$account]);
 		$this->preferences
 			->method('isEmailNotificationDisabled')
-			->willReturnCallback(static fn (string $uid): bool => $uid === 'bob-uid' && $disabled);
+			->willReturnMap([
+				['bob-uid', SignRequestCanceledEvent::SIGN_REQUEST_CANCELED, true, $disabled],
+			]);
 
 		$this->listener->handle($this->cancellation('email', 'bob@example.org'));
 
@@ -300,7 +306,10 @@ class MailNotifyListenerTest extends TestCase {
 		$entity->setIdentifierKey($method);
 		$entity->setIdentifierValue($value);
 		if ($deleted) {
-			$entity->setMetadata(['deleted_account' => true]);
+			$entity->setMetadata(['deleted_account' => [
+				'account' => $value,
+				'display_name' => 'Deleted user',
+			]]);
 		}
 		$identify = $this->createMock(IIdentifyMethod::class);
 		$identify->method('getName')->willReturn($method);
