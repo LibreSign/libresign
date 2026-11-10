@@ -27,6 +27,25 @@ class NotificationPreferenceResolver {
 		return $this->isNotificationDisabled($userId, 'email', $type, $requireKnownActivitySetting);
 	}
 
+	/**
+	 * Apply the administrator's mail policy without consulting a linked user's opt-out.
+	 */
+	public function isEmailNotificationGloballyDisabled(
+		string $type,
+		bool $requireKnownActivitySetting = true,
+	): bool {
+		if ($this->activitySettingsStore->isAvailable()) {
+			if ($requireKnownActivitySetting && !$this->activitySettingsStore->hasSetting($type)) {
+				return false;
+			}
+			return !$this->isActivitySettingEnabled($this->activitySettingsStore->getAdminSetting('email', $type));
+		}
+
+		return !$this->isActivitySettingEnabled(
+			$this->appConfig->getValueString('activity', sprintf('notify_email_%s', $type), '1'),
+		);
+	}
+
 	public function isInAppNotificationDisabled(
 		string $userId,
 		string $type,
