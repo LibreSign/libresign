@@ -48,7 +48,7 @@ final class Version19005Date20261109110000 extends SimpleMigrationStep {
 
 	private function backupFileCallbacks(): void {
 		$query = $this->connection->getQueryBuilder();
-		$query->select('id', 'uuid', 'callback')
+		$query->select('id', 'callback')
 			->from('libresign_file')
 			->where($query->expr()->isNotNull('callback'))
 			->andWhere($query->expr()->neq('callback', $query->createNamedParameter('')))
@@ -69,12 +69,12 @@ final class Version19005Date20261109110000 extends SimpleMigrationStep {
 			}
 
 			try {
-				if (fputcsv($handle, ['id', 'uuid', 'callback'], ',', '"', '') === false) {
+				if (fputcsv($handle, ['id', 'callback'], ',', '"', '') === false) {
 					throw new \RuntimeException('Could not write LibreSign callback backup header');
 				}
 
 				do {
-					if (fputcsv($handle, [$row['id'], $row['uuid'], $row['callback']], ',', '"', '') === false) {
+					if (fputcsv($handle, [$row['id'], $row['callback']], ',', '"', '') === false) {
 						throw new \RuntimeException('Could not write LibreSign callback backup row');
 					}
 				} while (($row = $result->fetchAssociative()) !== false);
