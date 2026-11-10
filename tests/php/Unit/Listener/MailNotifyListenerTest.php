@@ -235,6 +235,8 @@ class MailNotifyListenerTest extends TestCase {
 	}
 
 	public function testExternalEmailSignerReceivesCancellation(): void {
+		$this->userManager->method('getByEmail')->with('carol@example.org')->willReturn([]);
+
 		$this->listener->handle($this->cancellation('email', 'carol@example.org'));
 
 		$this->assertSame('carol@example.org', $this->singleDelivery()->recipient);
