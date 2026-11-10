@@ -1020,24 +1020,19 @@ class SignFileService {
 				$certificateSerialNumber,
 			);
 			$this->eventDispatcher->dispatchTyped($event);
-		} catch (\Exception $e) {
-			$this->logger->warning('Unable to dispatch legacy signed event', [
-				'signRequestId' => $this->signRequest->getId(),
-				'errorType' => get_debug_type($e),
-			]);
-		}
-
-		try {
-			$root = $this->getCompletionTarget($this->libreSignFile);
-			$publicEvent = SignerSignedWebhookEvent::afterSigning($root, $this->libreSignFile, $this->signRequest);
-			if ($publicEvent !== null) {
-				$this->eventDispatcher->dispatchTyped($publicEvent);
+		} finally {
+			try {
+				$root = $this->getCompletionTarget($this->libreSignFile);
+				$publicEvent = SignerSignedWebhookEvent::afterSigning($root, $this->libreSignFile, $this->signRequest);
+				if ($publicEvent !== null) {
+					$this->eventDispatcher->dispatchTyped($publicEvent);
+				}
+			} catch (\Exception $e) {
+				$this->logger->warning('Unable to dispatch signer signed webhook event', [
+					'signRequestId' => $this->signRequest->getId(),
+					'errorType' => get_debug_type($e),
+				]);
 			}
-		} catch (\Exception $e) {
-			$this->logger->warning('Unable to dispatch signer signed webhook event', [
-				'signRequestId' => $this->signRequest->getId(),
-				'errorType' => get_debug_type($e),
-			]);
 		}
 	}
 

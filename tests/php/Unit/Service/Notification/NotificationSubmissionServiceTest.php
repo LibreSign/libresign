@@ -35,6 +35,23 @@ final class NotificationSubmissionServiceTest extends TestCase {
 		return new NotificationMessage('test-event', 'sign_request', 'mail', new File(), new SignRequest(), 'test@example.invalid', new MailPayload(firstNotification: true));
 	}
 
+	private function service(
+		NotificationDeliveryMapper $deliveries,
+		NotificationAttemptMapper $attempts,
+		NotificationDeliveryEventPublisher $publisher,
+		?IDBConnection $db = null,
+	): NotificationSubmissionService {
+		return new NotificationSubmissionService(
+			$deliveries,
+			$attempts,
+			$db ?? $this->createMock(IDBConnection::class),
+			new NotificationFailureClassifier(),
+			new NotificationHistoryService($this->createMock(SignRequestMapper::class)),
+			$this->createMock(LoggerInterface::class),
+			$publisher,
+		);
+	}
+
 	private function executeFailure(\Exception $failure, int $attemptNumber, NotificationDeliveryState $expected, bool $expectRetry): void {
 		$delivery = new NotificationDelivery();
 		$delivery->setId(9);
@@ -66,7 +83,9 @@ final class NotificationSubmissionServiceTest extends TestCase {
 		$db->expects($this->never())->method('rollBack');
 		$channel = $this->createMock(NotificationChannel::class);
 		$channel->method('deliver')->willThrowException($failure);
-		$service = new NotificationSubmissionService($deliveries, $attempts, $db, new NotificationFailureClassifier(), new NotificationHistoryService($this->createMock(SignRequestMapper::class)), $this->createMock(LoggerInterface::class), $this->createMock(NotificationDeliveryEventPublisher::class));
+		$publisher = $this->createMock(NotificationDeliveryEventPublisher::class);
+		$publisher->expects($this->once())->method('publish')->with(9);
+		$service = $this->service($deliveries, $attempts, $publisher, $db);
 		$this->expectException(get_class($failure));
 		$service->submit($delivery, $this->message(), $channel);
 	}
@@ -105,28 +124,60 @@ final class NotificationSubmissionServiceTest extends TestCase {
 		$this->executeFailure(new NotificationTransportException('synthetic uncertain outcome', NotificationDeliveryState::UNKNOWN, 'smtp_outcome_unknown', new NotificationPreparationException('preparation')), 1, NotificationDeliveryState::UNKNOWN, false);
 	}
 
-	public function testSuccessfulSubmissionRequestsOutcomePublication(): void {
+	public function testPublishedOutcomeFollowsFinalLedgerCommit(): void {
 		$delivery = new NotificationDelivery();
 		$delivery->setId(9);
 		$attempt = new NotificationAttempt();
 		$attempt->setId(28);
-
 		$deliveries = $this->createMock(NotificationDeliveryMapper::class);
 		$deliveries->method('claim')->willReturn(true);
 		$attempts = $this->createMock(NotificationAttemptMapper::class);
 		$attempts->method('begin')->willReturn($attempt);
-		$publisher = $this->createMock(NotificationDeliveryEventPublisher::class);
-		$publisher->expects($this->once())->method('publish')->with(9);
+
+		$commits = 0;
+		$db = $this->createMock(IDBConnection::class);
+		$db->expects($this->exactly(2))->method('commit')
+			->willReturnCallback(static function () use (&$commits): void {
+				$commits++;
+			});
 		$channel = $this->createMock(NotificationChannel::class);
-		$channel->expects($this->once())->method('deliver');
+		$channel->expects($this->once())->method('deliver')
+			->willReturnCallback(function () use (&$commits): void {
+				$this->assertSame(1, $commits, 'The attempt must be claimed before sending.');
+			});
+		$publisher = $this->createMock(NotificationDeliveryEventPublisher::class);
+		$publisher->expects($this->once())->method('publish')->with(9)
+			->willReturnCallback(function () use (&$commits): void {
+				$this->assertSame(2, $commits, 'Publication must follow the committed ledger outcome.');
+			});
 
-		$service = new NotificationSubmissionService(
-			$deliveries, $attempts, $this->createMock(IDBConnection::class), new NotificationFailureClassifier(),
-			new NotificationHistoryService($this->createMock(SignRequestMapper::class)),
-			$this->createMock(LoggerInterface::class), $publisher,
+		$this->assertTrue($this->service($deliveries, $attempts, $publisher, $db)
+			->submit($delivery, $this->message(), $channel));
+	}
+
+	public function testFailedLedgerPersistenceDoesNotPublishOutcome(): void {
+		$delivery = new NotificationDelivery();
+		$delivery->setId(9);
+		$attempt = new NotificationAttempt();
+		$attempt->setId(28);
+		$deliveries = $this->createMock(NotificationDeliveryMapper::class);
+		$deliveries->method('claim')->willReturn(true);
+		$attempts = $this->createMock(NotificationAttemptMapper::class);
+		$attempts->method('begin')->willReturn($attempt);
+		$attempts->method('finish')->willThrowException(new \RuntimeException('ledger write failed'));
+
+		$db = $this->createMock(IDBConnection::class);
+		$db->expects($this->once())->method('rollBack');
+		$publisher = $this->createMock(NotificationDeliveryEventPublisher::class);
+		$publisher->expects($this->never())->method('publish');
+		$this->expectException(\RuntimeException::class);
+		$this->expectExceptionMessage('ledger write failed');
+
+		$this->service($deliveries, $attempts, $publisher, $db)->submit(
+			$delivery,
+			$this->message(),
+			$this->createMock(NotificationChannel::class),
 		);
-
-		$this->assertTrue($service->submit($delivery, $this->message(), $channel));
 	}
 
 	public function testAlreadyClaimedDeliveryNeverSubmitsOrPublishes(): void {
@@ -138,13 +189,11 @@ final class NotificationSubmissionServiceTest extends TestCase {
 		$channel->expects($this->never())->method('deliver');
 		$publisher = $this->createMock(NotificationDeliveryEventPublisher::class);
 		$publisher->expects($this->never())->method('publish');
-		$service = new NotificationSubmissionService(
-			$deliveries, $this->createMock(NotificationAttemptMapper::class),
-			$this->createMock(IDBConnection::class), new NotificationFailureClassifier(),
-			new NotificationHistoryService($this->createMock(SignRequestMapper::class)),
-			$this->createMock(LoggerInterface::class), $publisher,
-		);
-		$this->assertFalse($service->submit($delivery, $this->message(), $channel));
+		$this->assertFalse($this->service(
+			$deliveries,
+			$this->createMock(NotificationAttemptMapper::class),
+			$publisher,
+		)->submit($delivery, $this->message(), $channel));
 	}
 
 }

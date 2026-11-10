@@ -912,20 +912,18 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 				}
 			},
 		);
-		$this->logger->expects($this->once())->method('warning')
-			->with('Unable to dispatch legacy signed event', $this->callback(
-				static fn (array $context): bool => $context['errorType'] === 'RuntimeException'
-					&& !str_contains(json_encode($context), 'private callback details'),
+		$this->expectException(\RuntimeException::class);
+		$this->expectExceptionMessage('private callback details');
+		try {
+			$service->signSingleFile($file, $signer);
+		} finally {
+			$published = array_values(array_filter(
+				$events,
+				static fn ($event): bool => $event instanceof SignerSignedWebhookEvent,
 			));
-
-		$service->signSingleFile($file, $signer);
-
-		$published = array_values(array_filter(
-			$events,
-			static fn ($event): bool => $event instanceof SignerSignedWebhookEvent,
-		));
-		$this->assertCount(1, $published);
-		$this->assertSame('document-uuid', $published[0]->getWebhookSerializable()['requestUuid']);
+			$this->assertCount(1, $published);
+			$this->assertSame('document-uuid', $published[0]->getWebhookSerializable()['requestUuid']);
+		}
 	}
 
 	public function testUpdateEnvelopeStatusAddsStatusChangedAt(): void {

@@ -139,23 +139,22 @@ class RequestSignatureService {
 	}
 
 	public function save(array $data): FileEntity {
-		$result = $this->atomic(function () use ($data): array {
-			$result = $this->persistFile($data);
-			$file = $result['file'];
-			$data['status'] ??= $file->getStatus();
+		$result = $this->persistFile($data);
+		$file = $result['file'];
+		$data['status'] ??= $file->getStatus();
+		$this->atomic(function () use ($file, $data): void {
 			$this->sequentialSigningService->setFile($file);
 			$this->associateToSigners($data, $file);
 			$this->propagateSignersToChildren($file, $data);
 			$this->saveVisibleElements($data, $file);
-			return $result;
 		}, $this->db);
 
 		$this->notifications->flushCommitted();
 		if ($result['becameReady']) {
-			$this->fileStatusService->dispatchReadyRequest($result['file']);
+			$this->fileStatusService->dispatchReadyRequest($file);
 		}
 
-		return $result['file'];
+		return $file;
 	}
 
 	private function propagateSignersToChildren(FileEntity $envelope, array $data): void {
