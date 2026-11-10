@@ -14,7 +14,6 @@ use OCA\Libresign\Events\SendSignNotificationEvent;
 use OCA\Libresign\Events\SignedEvent;
 use OCA\Libresign\Events\SignRequestCanceledEvent;
 use OCA\Libresign\Exception\LibresignException;
-use OCA\Libresign\Service\IdentifyMethod\IdentifyService;
 use OCA\Libresign\Service\IdentifyMethod\IIdentifyMethod;
 use OCA\Libresign\Service\Notification\MailChannel;
 use OCA\Libresign\Service\Notification\MailPayload;
@@ -26,14 +25,11 @@ use OCA\Libresign\Service\NotificationPreferenceResolver;
 use OCP\EventDispatcher\Event;
 use OCP\IUser;
 use OCP\IUserManager;
-use OCP\IUserSession;
 use Psr\Log\LoggerInterface;
 
 class MailNotifyListener implements NotificationModule {
 	public function __construct(
-		protected IUserSession $userSession,
 		protected IUserManager $userManager,
-		protected IdentifyService $identifyService,
 		private MailChannel $mailChannel,
 		private LoggerInterface $logger,
 		private NotificationPreferenceResolver $notificationPreferenceResolver,
@@ -86,29 +82,9 @@ class MailNotifyListener implements NotificationModule {
 		string $eventId,
 	): void {
 		try {
-			if ($identifyMethod->getEntity()->isDeletedAccount()) {
+			$email = $this->getRecipientEmail($identifyMethod, SendSignNotificationEvent::FILE_TO_SIGN);
+			if ($email === null) {
 				return;
-			}
-			$email = '';
-			if ($identifyMethod->getName() === 'account') {
-				$userId = $identifyMethod->getEntity()->getIdentifierValue();
-				$email = $this->userManager->get($userId)?->getEMailAddress() ?? '';
-			} elseif ($identifyMethod->getName() === 'email') {
-				$email = $identifyMethod->getEntity()->getIdentifierValue();
-			}
-			if (empty($email)) {
-				return;
-			}
-
-			if ($identifyMethod->getName() === 'account') {
-				$users = $this->userManager->getByEmail($email);
-				if (count($users) === 1 && $this->notificationPreferenceResolver->isEmailNotificationDisabled(
-					$users[0]->getUID(),
-					SendSignNotificationEvent::FILE_TO_SIGN,
-					true,
-				)) {
-					return;
-				}
 			}
 
 			$this->deliveryService->dispatch(
@@ -171,31 +147,9 @@ class MailNotifyListener implements NotificationModule {
 		string $eventId,
 	): void {
 		try {
-			if ($identifyMethod->getEntity()->isDeletedAccount()) {
+			$email = $this->getRecipientEmail($identifyMethod, SignRequestCanceledEvent::SIGN_REQUEST_CANCELED);
+			if ($email === null) {
 				return;
-			}
-
-			$email = '';
-			if ($identifyMethod->getName() === 'account') {
-				$userId = $identifyMethod->getEntity()->getIdentifierValue();
-				$user = $this->userManager->get($userId);
-				if ($user) {
-					$email = $user->getEMailAddress();
-				}
-			} elseif ($identifyMethod->getName() === 'email') {
-				$email = $identifyMethod->getEntity()->getIdentifierValue();
-			}
-
-			if (empty($email)) {
-				return;
-			}
-
-			$users = $this->userManager->getByEmail($email);
-			if (count($users) === 1) {
-				$userId = $users[0]->getUID();
-				if ($this->notificationPreferenceResolver->isEmailNotificationDisabled($userId, SignRequestCanceledEvent::SIGN_REQUEST_CANCELED, true)) {
-					return;
-				}
 			}
 
 			try {
@@ -207,10 +161,38 @@ class MailNotifyListener implements NotificationModule {
 				// Mail failures must not undo an otherwise committed cancellation.
 				return;
 			}
-
 		} catch (\InvalidArgumentException $e) {
 			$this->logger->error($e->getMessage(), ['exception' => $e]);
 			return;
 		}
+	}
+
+	private function getRecipientEmail(IIdentifyMethod $identifyMethod, string $notificationType): ?string {
+		$entity = $identifyMethod->getEntity();
+		if ($entity->isDeletedAccount()) {
+			return null;
+		}
+
+		if ($identifyMethod->getName() === 'email') {
+			$email = $entity->getIdentifierValue();
+			return $email !== '' ? $email : null;
+		}
+		if ($identifyMethod->getName() !== 'account') {
+			return null;
+		}
+
+		$user = $this->userManager->get($entity->getIdentifierValue());
+		if (!$user instanceof IUser) {
+			return null;
+		}
+		$email = $user->getEMailAddress();
+		if (empty($email) || $this->notificationPreferenceResolver->isEmailNotificationDisabled(
+			$user->getUID(),
+			$notificationType,
+			true,
+		)) {
+			return null;
+		}
+		return $email;
 	}
 }
