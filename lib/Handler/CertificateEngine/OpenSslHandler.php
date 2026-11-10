@@ -148,9 +148,7 @@ class OpenSslHandler extends AEngineHandler implements IEngineHandler {
 		];
 	}
 
-	private function getLeafCertOptions(): array {
-		$configFile = $this->generateLeafConfig();
-
+	private function getLeafCertOptions(string $configFile): array {
 		return [
 			'digest_alg' => 'sha256',
 			'config' => $configFile,
@@ -179,7 +177,12 @@ class OpenSslHandler extends AEngineHandler implements IEngineHandler {
 			throw $this->buildOpenSslException('Failed to generate OpenSSL private key');
 		}
 
-		$csr = $this->createCsr($this->getCsrNames(), $privateKey, ['digest_alg' => 'sha256']);
+		$configFile = $this->generateLeafConfig();
+		$csr = $this->createCsr($this->getCsrNames(), $privateKey, [
+			'digest_alg' => 'sha256',
+			'config' => $configFile,
+			'config_section_name' => 'req',
+		]);
 		if ($csr === false) {
 			throw $this->buildOpenSslException('Failed to generate OpenSSL CSR');
 		}
@@ -202,7 +205,7 @@ class OpenSslHandler extends AEngineHandler implements IEngineHandler {
 			CertificateType::LEAF->value,
 		);
 		$serialNumber = (int)$serialNumberString;
-		$options = $this->getLeafCertOptions();
+		$options = $this->getLeafCertOptions($configFile);
 
 		$x509 = $this->signCsr($csr, $rootCertificate, $rootPrivateKey, $this->getLeafExpiryInDays(), $options, $serialNumber);
 		if ($x509 === false) {
@@ -357,7 +360,6 @@ class OpenSslHandler extends AEngineHandler implements IEngineHandler {
 		$config = [
 			'req' => [
 				'distinguished_name' => 'req_distinguished_name',
-				'req_extensions' => 'v3_req',
 				'prompt' => 'no',
 			],
 			'req_distinguished_name' => [],

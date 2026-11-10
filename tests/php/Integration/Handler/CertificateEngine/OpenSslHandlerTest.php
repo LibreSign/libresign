@@ -455,6 +455,51 @@ final class OpenSslHandlerTest extends \OCA\Libresign\Tests\Integration\AppDataT
 		$this->assertMatchesRegularExpression('/^[0-9A-Fa-f]+$/', $parsed['serialNumberHex'], 'Serial number hex should contain only hex characters');
 	}
 
+	public function testLeafCertificateDoesNotInheritSystemOpenSslDistinguishedNameDefaults(): void {
+		$rootInstance = $this->getInstance();
+		$rootInstance->setCountry('DE');
+		$rootInstance->setLocality('Berlin');
+		$rootInstance->generateRootCert('Test Root CA', []);
+
+		$signerInstance = $this->getInstance();
+		$signerInstance->setCommonName('Test Signer');
+		$signerInstance->setHosts(['signer@domain.tld']);
+		$signerInstance->setPassword('123456');
+
+		$systemConfig = $this->tempManager->getTemporaryFile('.cnf');
+		$this->assertNotFalse($systemConfig);
+		file_put_contents($systemConfig, implode("\n", [
+			'[req]',
+			'distinguished_name = req_distinguished_name',
+			'[req_distinguished_name]',
+			'stateOrProvinceName_default = Some-State',
+			'0.organizationName_default = Internet Widgits Pty Ltd',
+			'',
+		]));
+		$originalConfig = getenv('OPENSSL_CONF');
+
+		try {
+			putenv('OPENSSL_CONF=' . $systemConfig);
+			$certificate = $signerInstance->generateCertificate();
+		} finally {
+			if ($originalConfig === false) {
+				putenv('OPENSSL_CONF');
+			} else {
+				putenv('OPENSSL_CONF=' . $originalConfig);
+			}
+			unlink($systemConfig);
+		}
+
+		$parsed = $signerInstance->readCertificate($certificate, '123456');
+		$this->assertSame('Test Signer', $parsed['subject']['CN']);
+		$this->assertSame('DE', $parsed['subject']['C']);
+		$this->assertSame('Berlin', $parsed['subject']['L']);
+		$this->assertArrayNotHasKey('ST', $parsed['subject']);
+		$this->assertArrayNotHasKey('O', $parsed['subject']);
+		$this->assertStringContainsString('email:signer@domain.tld', $parsed['extensions']['subjectAltName']);
+		$this->assertStringContainsString('Digital Signature', $parsed['extensions']['keyUsage']);
+	}
+
 	public function testLeafCertificateUsesRsa2048Key(): void {
 		['certificate' => $certificate] = $this->generateLeafCertificate();
 
