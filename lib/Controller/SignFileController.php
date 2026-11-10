@@ -386,9 +386,20 @@ class SignFileController extends AEnvironmentAwareController implements ISignatu
 				$comment,
 				$privateComment,
 			);
-		} catch (\Throwable $th) {
+		} catch (LibresignException $e) {
 			return new DataResponse(
-				['message' => $th->getMessage()],
+				['message' => $e->getMessage()],
+				Http::STATUS_UNPROCESSABLE_ENTITY,
+			);
+		} catch (\Throwable $th) {
+			// Reject is public and persistence can throw internal errors. Never
+			// reveal exception details to an unauthenticated signing client.
+			$this->logger->error('Unable to process signature rejection', [
+				'errorType' => get_debug_type($th),
+			]);
+			return new DataResponse(
+				// TRANSLATORS Error shown when a signature rejection fails unexpectedly.
+				['message' => $this->l10n->t('Unable to process signature rejection.')],
 				Http::STATUS_UNPROCESSABLE_ENTITY,
 			);
 		}
