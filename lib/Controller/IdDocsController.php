@@ -11,6 +11,7 @@ namespace OCA\Libresign\Controller;
 use Exception;
 use OCA\Libresign\AppInfo\Application;
 use OCA\Libresign\Middleware\Attribute\RequireSignRequestUuid;
+use OCA\Libresign\Service\IdDocRejectionService;
 use OCA\Libresign\Service\IdDocsService;
 use OCA\Libresign\Service\SignFileService;
 use OCA\Libresign\Service\Validation\IdentityDocumentValidator;
@@ -43,7 +44,7 @@ class IdDocsController extends AEnvironmentAwareOCSController implements ISignat
 		protected SignFileService $signFileService,
 		protected IL10N $l10n,
 		protected IdDocsService $idDocsService,
-		protected \OCA\Libresign\Service\IdDocRejectionService $rejectionService,
+		protected IdDocRejectionService $rejectionService,
 		protected IUserSession $userSession,
 		protected IdentityDocumentValidator $identityDocumentValidator,
 		protected LoggerInterface $logger,
