@@ -188,7 +188,11 @@ class MailNotifyListener implements IEventListener {
 
 		if ($identifyMethod->getName() === 'email') {
 			$email = $entity->getIdentifierValue();
-			return $email !== '' ? $email : null;
+			if ($email === '' || ($notificationType === SignRequestCanceledEvent::SIGN_REQUEST_CANCELED
+				&& $this->isEmailCancellationDisabled($email))) {
+				return null;
+			}
+			return $email;
 		}
 		if ($identifyMethod->getName() !== 'account') {
 			return null;
@@ -207,5 +211,14 @@ class MailNotifyListener implements IEventListener {
 			return null;
 		}
 		return $email;
+	}
+
+	private function isEmailCancellationDisabled(string $email): bool {
+		$users = $this->userManager->getByEmail($email);
+		return count($users) === 1 && $this->notificationPreferenceResolver->isEmailNotificationDisabled(
+			$users[0]->getUID(),
+			SignRequestCanceledEvent::SIGN_REQUEST_CANCELED,
+			true,
+		);
 	}
 }
