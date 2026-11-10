@@ -9,11 +9,11 @@
 		</div>
 		<div v-if="!loading" class="button-wrapper">
 			<!-- TRANSLATORS Heading for a reviewer signing a submitted document to record organizational approval. -->
-			<NcNoteCard v-if="isApprovalRoute"
+			<NcNoteCard v-if="showApprovalGuidance"
 				:heading="t('libresign', 'Document approval')"
 				type="info">
 				<!-- TRANSLATORS Explanation for a reviewer signing a submitted document to record approval. The review procedure is set by the organization. -->
-				{{ t('libresign', 'Review the document following the procedure set by your organization. By signing it, you record your approval of the document.') }}
+				{{ t('libresign', 'Review the identification document uploaded by the signer according to your organization's procedure. Signing records your approval. Once all required identification documents are approved, the signer can continue the signing process, subject to other requirements.') }}
 			</NcNoteCard>
 			<NcCheckboxRadioSwitch v-if="signatureElementsStore.emailSigner && hasSignatures && hasVisibleSignatureField"
 				v-model="rememberSignature">
@@ -607,6 +607,9 @@ let unwatchPendingAction: null | (() => void) = null
 let requirementValidator: SigningRequirementValidator | null = null
 let actionHandler: SignFlowHandler | null = null
 const currentDocument = computed<SignDocument>(() => signStore.document)
+const showApprovalGuidance = computed(() => isApprovalRoute.value
+	&& (currentDocument.value?.status === FILE_STATUS.ABLE_TO_SIGN
+		|| currentDocument.value?.status === FILE_STATUS.PARTIAL_SIGNED))
 const visibleElementsDocument = computed(() => normalizeDocumentForVisibleElements(currentDocument.value))
 const currentUserSignRequestIds = computed(() => new Set(getCurrentUserSignRequestIds(visibleElementsDocument.value)))
 

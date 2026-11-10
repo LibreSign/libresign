@@ -109,7 +109,7 @@
 								{{ doc.file_type.name }}
 							</td>
 							<td>
-								{{ doc.file.statusText }}
+								{{ doc.file.status === FILE_STATUS.PARTIAL_SIGNED ? t('libresign', 'waiting for approval') : doc.file.statusText }}
 							</td>
 							<td>
 								<template v-if="doc.file?.signers?.length > 0 && doc.file.signers[0].sign_date">
@@ -143,7 +143,7 @@
 											{{ t('libresign', 'Open file') }}
 										</NcActionButton>
 									</template>
-									<NcActionButton v-if="doc.file?.status === FILE_STATUS.ABLE_TO_SIGN"
+									<NcActionButton v-if="doc.file?.status === FILE_STATUS.ABLE_TO_SIGN || doc.file?.status === FILE_STATUS.PARTIAL_SIGNED"
 										:aria-label="reviewAndApproveLabel"
 										@click="openApprove(doc)">
 										<template #icon>

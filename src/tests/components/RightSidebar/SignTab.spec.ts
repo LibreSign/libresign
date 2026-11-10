@@ -158,7 +158,7 @@ describe('SignTab', () => {
 		])('shows approval-specific status only in the document approval route for $status', async ({ status, originalText }) => {
 			signStore.document = createDocument({ status, statusText: originalText })
 			wrapper = await createWrapper('/f/id-docs/approve/file-uuid')
-			expect(wrapper.find('.document-status__text').text()).toBe('Ready for approval')
+			expect(wrapper.find('.document-status__text').text()).toBe('waiting for approval')
 
 			wrapper.unmount()
 			wrapper = await createWrapper('/f/sign/file-uuid')
