@@ -151,6 +151,21 @@ class MailNotifyListenerTest extends TestCase {
 		$this->assertSame([], $this->deliveries);
 	}
 
+	public function testSignedMailSkipsEnvelopeChildren(): void {
+		$file = new FileEntity();
+		$file->setParentFileId(99);
+		$file->setUserId('admin');
+		$this->listener->handle(new SignedEvent(
+			$this->request(),
+			$file,
+			$this->identifyMethod('account', 'signer1'),
+			$this->account('admin', 'admin@example.org'),
+			$this->createMock(File::class),
+		));
+
+		$this->assertSame([], $this->deliveries);
+	}
+
 	public function testMissingAccountDoesNotDispatch(): void {
 		$this->userManager->method('get')->willReturn(null);
 
@@ -201,6 +216,22 @@ class MailNotifyListenerTest extends TestCase {
 			$this->assertSame('bob@example.org', $this->singleDelivery()->recipient);
 			$this->assertSame('sign_request_canceled', $this->singleDelivery()->eventType);
 		}
+	}
+
+	public function testSharedEmailCancellationKeepsLegacyRecipientBehavior(): void {
+		$this->userManager
+			->method('getByEmail')
+			->willReturn([
+				$this->account('first-uid', 'shared@example.org'),
+				$this->account('second-uid', 'shared@example.org'),
+			]);
+		$this->preferences
+			->method('isEmailNotificationDisabled')
+			->willReturn(true);
+
+		$this->listener->handle($this->cancellation('email', 'shared@example.org'));
+
+		$this->assertSame('shared@example.org', $this->singleDelivery()->recipient);
 	}
 
 	public function testExternalEmailSignerReceivesCancellation(): void {

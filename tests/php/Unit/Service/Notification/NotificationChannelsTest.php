@@ -70,6 +70,36 @@ final class NotificationChannelsTest extends TestCase {
 		));
 	}
 
+	public function testMailChannelDeliversSignedFileNotification(): void {
+		$request = $this->request();
+		$file = $this->file();
+		$mail = $this->createMock(MailService::class);
+		$mail->expects($this->once())
+			->method('notifySignedUser')
+			->with($request, 'owner@example.invalid', $file, 'Document owner');
+
+		$channel = new MailChannel($mail);
+		$channel->deliver(new NotificationMessage(
+			'signed-event', 'file_signed', 'mail', $file, $request,
+			'owner@example.invalid', new MailPayload('Document owner'),
+		));
+	}
+
+	public function testMailChannelDeliversCancellationNotification(): void {
+		$request = $this->request();
+		$file = $this->file();
+		$mail = $this->createMock(MailService::class);
+		$mail->expects($this->once())
+			->method('notifyCanceledRequest')
+			->with($request, 'signer@example.invalid', $file);
+
+		$channel = new MailChannel($mail);
+		$channel->deliver(new NotificationMessage(
+			'canceled-event', 'sign_request_canceled', 'mail', $file, $request,
+			'signer@example.invalid', new MailPayload(),
+		));
+	}
+
 	public function testGatewayChannelKeepsProviderAndRecipientSeparate(): void {
 		// Test the real final integration bridge with a synthetic provider.
 		$provider = new class {
