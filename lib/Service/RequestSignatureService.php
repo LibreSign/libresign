@@ -151,10 +151,23 @@ class RequestSignatureService {
 
 		$this->notifications->flushCommitted();
 		if ($result['becameReady']) {
-			$this->fileStatusService->dispatchReadyRequest($file);
+			$this->publishReadyRequest($file);
 		}
 
 		return $file;
+	}
+
+	private function publishReadyRequest(FileEntity $file): void {
+		try {
+			$this->fileStatusService->dispatchReadyRequest($file);
+		} catch (\Throwable $e) {
+			// The database write already committed. Do not turn a successful
+			// signing request into a failed API response due to a webhook listener.
+			$this->logger->warning('Unable to publish signing request ready event', [
+				'fileId' => $file->getId(),
+				'errorType' => get_debug_type($e),
+			]);
+		}
 	}
 
 	private function propagateSignersToChildren(FileEntity $envelope, array $data): void {
@@ -232,7 +245,7 @@ class RequestSignatureService {
 		}
 
 		if ($envelope->getStatus() === FileStatus::ABLE_TO_SIGN->value) {
-			$this->fileStatusService->dispatchReadyRequest($envelope);
+			$this->publishReadyRequest($envelope);
 		}
 		return [
 			'envelope' => $envelope,

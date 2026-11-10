@@ -926,6 +926,57 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		}
 	}
 
+	public function testNativeWebhookListenerErrorCannotInterruptCommittedSigning(): void {
+		$service = $this->getService([
+			'getEngine', 'computeHash', 'validateDocMdpAllowsSignatures',
+			'updateSignRequest', 'updateLibreSignFile',
+		]);
+		$file = new File();
+		$file->setId(17);
+		$file->setUuid('document-uuid');
+		$file->setStatus(FileStatus::ABLE_TO_SIGN->value);
+		$signer = new SignRequest();
+		$signer->setId(31);
+		$signer->setSigned(new DateTime('2026-11-09T11:00:00Z'));
+		$signer->setSignedHash('signed-content-hash');
+
+		$signedFile = $this->createMock(\OCP\Files\File::class);
+		$signedFile->method('getId')->willReturn(123);
+		$engine = $this->createMock(Pkcs12Handler::class);
+		$engine->method('sign')->willReturn($signedFile);
+		$engine->method('getInputFile')->willReturn($signedFile);
+		$service->method('getEngine')->willReturn($engine);
+		$service->method('computeHash')->willReturn('signed-content-hash');
+		$service->method('updateLibreSignFile')->willReturnCallback(
+			static function (File $file): void {
+				$file->setStatus(FileStatus::SIGNED->value);
+			},
+		);
+		$this->fileMapper->method('getById')->willReturn($file);
+		$this->signedEventFactory->method('make')->willReturn($this->createMock(SignedEvent::class));
+		$events = [];
+		$this->eventDispatcher->method('dispatchTyped')->willReturnCallback(
+			static function ($event) use (&$events): void {
+				$events[] = $event;
+				if ($event instanceof SignerSignedWebhookEvent) {
+					throw new \TypeError('PRIVATE_WEBHOOK_DETAILS');
+				}
+			},
+		);
+		$this->logger->expects($this->once())->method('warning')->with(
+			'Unable to dispatch signer signed webhook event',
+			$this->callback(static fn (array $context): bool
+				=> ($context['errorType'] ?? null) === \TypeError::class
+				&& !str_contains(json_encode($context), 'PRIVATE_WEBHOOK_DETAILS')
+			),
+		);
+
+		$service->signSingleFile($file, $signer);
+
+		$this->assertSame(FileStatus::SIGNED->value, $file->getStatus());
+		$this->assertCount(1, array_filter($events, static fn ($event): bool => $event instanceof SigningRequestCompletedEvent));
+	}
+
 	public function testUpdateEnvelopeStatusAddsStatusChangedAt(): void {
 		$service = $this->getService();
 

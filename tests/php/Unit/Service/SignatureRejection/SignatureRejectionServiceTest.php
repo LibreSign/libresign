@@ -355,15 +355,32 @@ final class SignatureRejectionServiceTest extends TestCase {
 		$this->assertCount(1, array_filter($events, static fn ($event): bool => $event instanceof SigningRequestCanceledEvent));
 	}
 
-	public function testProgrammingErrorDuringPublicEventDispatchIsNotSuppressed(): void {
+	public function testPublicWebhookErrorCannotInterruptCommittedRejection(): void {
 		$this->withPolicy(self::policy('cancel'));
 		$file = $this->file();
 		$file->setUuid('workflow-uuid');
+		$signer = $this->signRequest();
 		$this->db->expects($this->once())->method('commit');
 		$this->db->expects($this->never())->method('rollBack');
-		$this->eventDispatcher->method('dispatchTyped')->willThrowException(new \TypeError('programming error'));
-		$this->expectException(\TypeError::class);
-		$this->getService()->reject($file, $this->signRequest());
+		$events = [];
+		$this->eventDispatcher->method('dispatchTyped')->willReturnCallback(
+			static function ($event) use (&$events): void {
+				$events[] = $event;
+				if ($event instanceof SignerRejectedWebhookEvent) {
+					throw new \TypeError('PRIVATE_WEBHOOK_DETAILS');
+				}
+			},
+		);
+		$this->logger->expects($this->once())->method('warning')->with(
+			'Unable to publish LibreSign rejection event',
+			$this->callback(static fn (array $context): bool
+				=> ($context['errorType'] ?? null) === \TypeError::class
+				&& !str_contains(json_encode($context), 'PRIVATE_WEBHOOK_DETAILS')
+			),
+		);
+
+		$this->assertSame($signer, $this->getService()->reject($file, $signer));
+		$this->assertCount(1, array_filter($events, static fn ($event): bool => $event instanceof SigningRequestCanceledEvent));
 	}
 
 	public function testRejectionCanCompletePreviouslySignedWorkflow(): void {

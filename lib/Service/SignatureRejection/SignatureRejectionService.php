@@ -391,7 +391,7 @@ class SignatureRejectionService {
 				SigningRequestCanceledEvent::fromTransition($root, $previousRootStatus),
 				SigningRequestCompletedEvent::fromTransition($root, $previousRootStatus),
 			];
-		} catch (\Exception $e) {
+		} catch (\Throwable $e) {
 			$this->logger->warning('Unable to prepare LibreSign rejection events', [
 				'fileId' => $document->getId(),
 				'errorType' => get_debug_type($e),
@@ -405,7 +405,8 @@ class SignatureRejectionService {
 			}
 			try {
 				$this->eventDispatcher->dispatchTyped($event);
-			} catch (\Exception $e) {
+			} catch (\Throwable $e) {
+				// Listener errors cannot undo a persisted rejection or suppress later events.
 				$this->logger->warning('Unable to publish LibreSign rejection event', [
 					'fileId' => $document->getId(),
 					'eventType' => $event::class,

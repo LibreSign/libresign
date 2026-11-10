@@ -1027,7 +1027,7 @@ class SignFileService {
 				if ($publicEvent !== null) {
 					$this->eventDispatcher->dispatchTyped($publicEvent);
 				}
-			} catch (\Exception $e) {
+			} catch (\Throwable $e) {
 				$this->logger->warning('Unable to dispatch signer signed webhook event', [
 					'signRequestId' => $this->signRequest->getId(),
 					'errorType' => get_debug_type($e),

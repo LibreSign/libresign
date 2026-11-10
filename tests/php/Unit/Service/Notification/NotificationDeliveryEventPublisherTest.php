@@ -90,9 +90,23 @@ final class NotificationDeliveryEventPublisherTest extends TestCase {
 		$this->publisher->publish(9);
 	}
 
-	public function testProgrammingErrorIsNotSwallowed(): void {
-		$this->deliveries->method('findById')->willThrowException(new \TypeError('programming error'));
-		$this->expectException(\TypeError::class);
+	public function testListenerProgrammingErrorCannotInterruptCommittedDelivery(): void {
+		$this->deliveries->method('findById')->willReturn($this->delivery());
+		$root = new File();
+		$root->setUuid('root-uuid');
+		$this->files->method('getById')->willReturn($root);
+		$this->dispatcher->method('dispatchTyped')->willThrowException(
+			new \TypeError('PRIVATE_WEBHOOK_DETAILS'),
+		);
+		$this->logger->expects($this->once())->method('warning')->with(
+			'Unable to publish persisted notification outcome',
+			$this->callback(static fn (array $context): bool
+				=> ($context['deliveryId'] ?? null) === 9
+				&& ($context['errorType'] ?? null) === \TypeError::class
+				&& !str_contains(json_encode($context), 'PRIVATE_WEBHOOK_DETAILS')
+			),
+		);
+
 		$this->publisher->publish(9);
 	}
 }

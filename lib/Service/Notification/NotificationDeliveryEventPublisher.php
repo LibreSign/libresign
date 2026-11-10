@@ -34,7 +34,8 @@ class NotificationDeliveryEventPublisher {
 			if ($event !== null) {
 				$this->events->dispatchTyped($event);
 			}
-		} catch (\Exception $e) {
+		} catch (\Throwable $e) {
+			// The delivery has already been committed: webhook listeners are best effort.
 			$this->logger->warning('Unable to publish persisted notification outcome', [
 				'deliveryId' => $deliveryId,
 				'errorType' => get_debug_type($e),

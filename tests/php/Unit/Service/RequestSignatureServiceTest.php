@@ -350,6 +350,38 @@ final class RequestSignatureServiceTest extends \OCA\Libresign\Tests\Unit\TestCa
 		]));
 	}
 
+	public function testReadyWebhookFailureDoesNotInvalidateCommittedRequest(): void {
+		$file = new \OCA\Libresign\Db\File();
+		$file->setUuid('ready-uuid');
+		$file->setStatus(\OCA\Libresign\Enum\FileStatus::DRAFT->value);
+		$this->fileMapper->method('getByUuid')->with('ready-uuid')->willReturn($file);
+		$this->fileStatusService->method('updateFileStatusIfUpgrade')
+			->willReturnCallback(static function ($file, int $status) {
+				$file->setStatus($status);
+				return $file;
+			});
+		$committed = false;
+		$this->db->expects($this->once())->method('commit')
+			->willReturnCallback(static function () use (&$committed): void {
+				$committed = true;
+			});
+		$this->fileStatusService->method('dispatchReadyRequest')
+			->willThrowException(new \TypeError('PRIVATE_WEBHOOK_DETAILS'));
+		$this->loggerInterface->expects($this->once())->method('warning')->with(
+			'Unable to publish signing request ready event',
+			$this->callback(static fn (array $context): bool
+				=> ($context['errorType'] ?? null) === \TypeError::class
+				&& !str_contains(json_encode($context), 'PRIVATE_WEBHOOK_DETAILS')
+			),
+		);
+
+		$this->assertSame($file, $this->getService()->save([
+			'uuid' => 'ready-uuid',
+			'status' => \OCA\Libresign\Enum\FileStatus::ABLE_TO_SIGN->value,
+		]));
+		$this->assertTrue($committed);
+	}
+
 	public function testReadyRequestEventIsNotPublishedWhenSignerPersistenceFails(): void {
 		$file = new \OCA\Libresign\Db\File();
 		$file->setUuid('ready-uuid');
