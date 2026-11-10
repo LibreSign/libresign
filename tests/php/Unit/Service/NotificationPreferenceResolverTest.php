@@ -8,6 +8,7 @@ declare(strict_types=1);
 
 namespace OCA\Libresign\Tests\Unit\Service;
 
+use OCA\Libresign\Events\SendSignNotificationEvent;
 use OCA\Libresign\Events\SignedEvent;
 use OCA\Libresign\Service\ActivitySettingsStore;
 use OCA\Libresign\Service\NotificationPreferenceResolver;
@@ -68,6 +69,43 @@ class NotificationPreferenceResolverTest extends TestCase {
 			$expectedDisabled,
 			$this->resolver->isEmailNotificationDisabled('admin', SignedEvent::FILE_SIGNED, true),
 		);
+	}
+
+	public static function globalEmailSettings(): array {
+		return [
+			'admin permits email' => ['1', false],
+			'admin disables email' => ['0', true],
+		];
+	}
+
+	#[DataProvider('globalEmailSettings')]
+	public function testGlobalEmailPreferenceUsesActivityAdminSetting(string $value, bool $disabled): void {
+		$this->activitySettingsStore->method('isAvailable')->willReturn(true);
+		$this->activitySettingsStore->method('hasSetting')
+			->with(SendSignNotificationEvent::FILE_TO_SIGN)->willReturn(true);
+		$this->activitySettingsStore->method('getAdminSetting')
+			->with('email', SendSignNotificationEvent::FILE_TO_SIGN)->willReturn($value);
+		$this->activitySettingsStore->expects($this->never())->method('getUserSetting');
+
+		$this->assertSame($disabled, $this->resolver->isEmailNotificationGloballyDisabled(SendSignNotificationEvent::FILE_TO_SIGN));
+	}
+
+	#[DataProvider('globalEmailSettings')]
+	public function testGlobalEmailPreferenceUsesAppConfigFallback(string $value, bool $disabled): void {
+		$this->activitySettingsStore->method('isAvailable')->willReturn(false);
+		$this->appConfig->method('getValueString')
+			->with('activity', 'notify_email_libresign_file_to_sign', '1')->willReturn($value);
+		$this->userConfig->expects($this->never())->method('getValueString');
+
+		$this->assertSame($disabled, $this->resolver->isEmailNotificationGloballyDisabled(SendSignNotificationEvent::FILE_TO_SIGN));
+	}
+
+	public function testGlobalEmailPreferenceIgnoresUnregisteredActivitySetting(): void {
+		$this->activitySettingsStore->method('isAvailable')->willReturn(true);
+		$this->activitySettingsStore->method('hasSetting')->willReturn(false);
+		$this->activitySettingsStore->expects($this->never())->method('getAdminSetting');
+
+		$this->assertFalse($this->resolver->isEmailNotificationGloballyDisabled(SendSignNotificationEvent::FILE_TO_SIGN));
 	}
 
 	public function testInAppFallbackUsesNotificationChannel(): void {
