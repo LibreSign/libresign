@@ -22,13 +22,11 @@ use OCP\EventDispatcher\Event;
 use OCP\EventDispatcher\IEventListener;
 use OCP\IUser;
 use OCP\IUserManager;
-use OCP\IUserSession;
 use Psr\Log\LoggerInterface;
 
 /** @template-implements IEventListener<Event> */
 class MailNotifyListener implements IEventListener {
 	public function __construct(
-		protected IUserSession $userSession,
 		protected IUserManager $userManager,
 		protected IdentifyService $identifyService,
 		protected MailService $mail,
@@ -65,7 +63,8 @@ class MailNotifyListener implements IEventListener {
 		IIdentifyMethod $identifyMethod,
 	): void {
 		try {
-			if ($identifyMethod->getEntity()->isDeletedAccount()) {
+			$email = $this->getRecipientEmail($identifyMethod, SendSignNotificationEvent::FILE_TO_SIGN);
+			if ($email === null) {
 				return;
 			}
 			$email = '';
@@ -145,7 +144,8 @@ class MailNotifyListener implements IEventListener {
 		FileEntity $libreSignFile,
 	): void {
 		try {
-			if ($identifyMethod->getEntity()->isDeletedAccount()) {
+			$email = $this->getRecipientEmail($identifyMethod, SignRequestCanceledEvent::SIGN_REQUEST_CANCELED);
+			if ($email === null) {
 				return;
 			}
 
@@ -178,5 +178,34 @@ class MailNotifyListener implements IEventListener {
 			$this->logger->error($e->getMessage(), ['exception' => $e]);
 			return;
 		}
+	}
+
+	private function getRecipientEmail(IIdentifyMethod $identifyMethod, string $notificationType): ?string {
+		$entity = $identifyMethod->getEntity();
+		if ($entity->isDeletedAccount()) {
+			return null;
+		}
+
+		if ($identifyMethod->getName() === 'email') {
+			$email = $entity->getIdentifierValue();
+			return $email !== '' ? $email : null;
+		}
+		if ($identifyMethod->getName() !== 'account') {
+			return null;
+		}
+
+		$user = $this->userManager->get($entity->getIdentifierValue());
+		if (!$user instanceof IUser) {
+			return null;
+		}
+		$email = $user->getEMailAddress();
+		if (empty($email) || $this->notificationPreferenceResolver->isEmailNotificationDisabled(
+			$user->getUID(),
+			$notificationType,
+			true,
+		)) {
+			return null;
+		}
+		return $email;
 	}
 }
