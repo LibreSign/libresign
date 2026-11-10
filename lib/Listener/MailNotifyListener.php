@@ -100,11 +100,10 @@ class MailNotifyListener implements NotificationModule {
 				return;
 			}
 
-			$users = $this->userManager->getByEmail($email);
-			if (count($users) === 1) {
-				$userId = $users[0]->getUID();
-				if ($this->notificationPreferenceResolver->isEmailNotificationDisabled(
-					$userId,
+			if ($identifyMethod->getName() === 'account') {
+				$users = $this->userManager->getByEmail($email);
+				if (count($users) === 1 && $this->notificationPreferenceResolver->isEmailNotificationDisabled(
+					$users[0]->getUID(),
 					SendSignNotificationEvent::FILE_TO_SIGN,
 					true,
 				)) {
