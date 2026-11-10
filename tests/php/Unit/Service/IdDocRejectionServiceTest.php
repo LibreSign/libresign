@@ -94,6 +94,7 @@ final class IdDocRejectionServiceTest extends TestCase {
 		$doc->setId(7);
 		$doc->setFileId(9);
 		$file = new File();
+		$file->setId(9);
 		$file->setStatus(FileStatus::SIGNED->value);
 		$this->documents->method('getByNodeId')->with(11)->willReturn($doc);
 		$this->files->method('getById')->with(9)->willReturn($file);
@@ -109,6 +110,7 @@ final class IdDocRejectionServiceTest extends TestCase {
 		$doc->setFileId(9);
 		$doc->setRejectedAt(new \DateTime('2026-11-09T00:00:00Z'));
 		$file = new File();
+		$file->setId(9);
 		$file->setStatus(FileStatus::ABLE_TO_SIGN->value);
 		$this->documents->method('getByNodeId')->willReturn($doc);
 		$this->files->method('getById')->willReturn($file);
@@ -127,6 +129,7 @@ final class IdDocRejectionServiceTest extends TestCase {
 		$doc->setUserId('account-user');
 		$doc->setSignRequestId(null);
 		$file = new File();
+		$file->setId(9);
 		$file->setStatus(FileStatus::ABLE_TO_SIGN->value);
 		$this->documents->method('getByNodeId')->willReturn($doc);
 		$this->files->method('getById')->willReturn($file);
