@@ -53,5 +53,4 @@ describe('SignFlowHandler', () => {
 
 		expect(result).toBeNull()
 	})
-
 })

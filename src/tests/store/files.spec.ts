@@ -1742,7 +1742,7 @@ describe('files store - critical business rules', () => {
 
 			it('does NOT mutate the shared emptyFile when no file is selected', () => {
 				const store = useFilesStore()
-				store.selectedFileId = 0  // nothing selected
+				store.selectedFileId = 0 // nothing selected
 
 				const signer = { email: 'a@example.com', localKey: 'draft-signer:test', statusText: 'Draft' }
 				// If emptyFile were mutated, the signerUpdate below would persist

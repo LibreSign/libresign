@@ -85,26 +85,15 @@ export default [
 
 			// Formatting — large autofix churn; follow-up PR
 			'@stylistic/arrow-parens': 'off', // ~168 hits
-			'@stylistic/eol-last': 'off', // ~10 hits
 			'@stylistic/exp-list-style': 'off', // ~34 hits
-			'@stylistic/function-call-argument-newline': 'off', // ~4 hits
-			'@stylistic/function-call-spacing': 'off', // ~1 hit
 			'@stylistic/function-paren-newline': 'off', // ~177 hits
 			'@stylistic/implicit-arrow-linebreak': 'off', // ~39 hits
 			'@stylistic/indent': 'off', // ~778 hits; tabs vs spaces migration
-			'@stylistic/indent-binary-ops': 'off', // ~4 hits
-			'@stylistic/lines-between-class-members': 'off', // ~1 hit
 			'@stylistic/max-statements-per-line': 'off', // ~100 hits
 			'@stylistic/member-delimiter-style': 'off', // ~180 hits
 			'@stylistic/no-extra-semi': 'off', // ~23 hits
-			'@stylistic/no-multi-spaces': 'off', // ~1 hit
 			'@stylistic/no-tabs': 'off', // ~190 hits; tabs vs spaces migration
-			'@stylistic/no-trailing-spaces': 'off', // ~1 hit
-			'@stylistic/operator-linebreak': 'off', // ~6 hits
-			'@stylistic/padded-blocks': 'off', // ~4 hits
 			'@stylistic/semi': 'off', // ~16 hits
-			'@stylistic/space-before-function-paren': 'off', // ~2 hits
-			'@stylistic/space-in-parens': 'off', // ~2 hits
 			'vue/first-attribute-linebreak': 'off', // ~435 hits; formatting churn
 			'vue/max-attributes-per-line': 'off', // ~68 hits; formatting churn
 

@@ -52,8 +52,7 @@ describe('identify methods workbench', () => {
 
 	it('restricts group-admin identify methods drafts to delegated enabled methods', async () => {
 		currentUserState.isAdmin = false
-		identifyMethodsInitialState.splice(0, identifyMethodsInitialState.length,
-			{
+		identifyMethodsInitialState.splice(0, identifyMethodsInitialState.length, {
 				name: 'account',
 				friendly_name: 'Account',
 				enabled: true,
@@ -65,8 +64,7 @@ describe('identify methods workbench', () => {
 					},
 				},
 				signatureMethodEnabled: 'password',
-			},
-			{
+			}, {
 				name: 'email',
 				friendly_name: 'Email',
 				enabled: false,

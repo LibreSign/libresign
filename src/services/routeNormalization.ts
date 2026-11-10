@@ -48,7 +48,7 @@ function shouldRejectAsArray(value: unknown): value is unknown[] {
 function buildStringOnlyRecord(record: Record<string, unknown>, source: 'params' | 'query'): Record<string, string> {
 	const result: Record<string, string> = {}
 	const droppedKeys: string[] = []
-	
+
 	for (const [key, entry] of Object.entries(record)) {
 		if (typeof entry === 'string') {
 			result[key] = entry

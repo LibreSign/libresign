@@ -183,11 +183,11 @@ type RouteState = {
 	query: Record<string, string>
 }
 
-type ValidationRouteName =
-	| 'validation'
-	| 'ValidationFile'
-	| 'ValidationFileExternal'
-	| 'ValidationFileShortUrl'
+type ValidationRouteName
+	= | 'validation'
+		| 'ValidationFile'
+		| 'ValidationFileExternal'
+		| 'ValidationFileShortUrl'
 
 type RouterState = {
 	push: (location: unknown) => void

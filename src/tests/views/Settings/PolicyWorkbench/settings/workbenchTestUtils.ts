@@ -138,8 +138,7 @@ export function resetWorkbenchHarness(): void {
 	currentUserState.isAdmin = true
 	configState.can_manage_group_policies = true
 	configState.manageable_policy_group_ids = []
-	identifyMethodsInitialState.splice(0, identifyMethodsInitialState.length,
-		{
+	identifyMethodsInitialState.splice(0, identifyMethodsInitialState.length, {
 			name: 'email',
 			friendly_name: 'Email',
 			enabled: true,

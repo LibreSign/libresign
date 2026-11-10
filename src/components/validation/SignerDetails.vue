@@ -490,11 +490,11 @@ function hasValidationIssues(signer: SignerModel) {
 	}
 
 	return (signer.signature_validation !== undefined
-			&& signer.signature_validation.id !== 1)
-		|| (signer.certificate_validation !== undefined
-			&& signer.certificate_validation.id !== 1)
-		|| hasDocumentModificationWarning(signer)
-		|| isRevokedBeforeSigning(signer)
+		&& signer.signature_validation.id !== 1)
+	|| (signer.certificate_validation !== undefined
+		&& signer.certificate_validation.id !== 1)
+	|| hasDocumentModificationWarning(signer)
+	|| isRevokedBeforeSigning(signer)
 }
 
 function getIconValidityPath(signer: SignerModel) {
@@ -516,9 +516,9 @@ function getIconValidityPath(signer: SignerModel) {
 
 function getSignerValidationClass(signer: SignerModel) {
 	if ((signer.signature_validation !== undefined
-			&& signer.signature_validation.id !== 1)
-		|| signer.modification_validation?.status === MODIFICATION_VIOLATION
-		|| isRevokedBeforeSigning(signer)) {
+		&& signer.signature_validation.id !== 1)
+	|| signer.modification_validation?.status === MODIFICATION_VIOLATION
+	|| isRevokedBeforeSigning(signer)) {
 		return 'validation-icon--error'
 	}
 	if (hasDocumentModificationWarning(signer)

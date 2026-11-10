@@ -525,7 +525,6 @@ describe('FileStatusList', () => {
 
 			await wrapper.vm.$nextTick()
 			expect(wrapper.vm.updateTimer).toBeTruthy()
-
 		})
 	})
 

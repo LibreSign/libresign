@@ -22,10 +22,10 @@ export const MODIFICATION_UNMODIFIED = 1
 export const MODIFICATION_ALLOWED = 2
 export const MODIFICATION_VIOLATION = 3
 
-export type ModificationValidationStatus =
-	typeof MODIFICATION_UNMODIFIED
-	| typeof MODIFICATION_ALLOWED
-	| typeof MODIFICATION_VIOLATION
+export type ModificationValidationStatus
+	= typeof MODIFICATION_UNMODIFIED
+		| typeof MODIFICATION_ALLOWED
+		| typeof MODIFICATION_VIOLATION
 
 export type ValidationModificationInfo = {
 	status?: ModificationValidationStatus
@@ -39,12 +39,12 @@ type ValidationMetadataDimension = {
 	h: number
 }
 
-export type DocumentModificationState =
-	| 'unchanged'
-	| 'unsigned_content'
-	| 'trailing_data'
-	| 'invalid_byte_range'
-	| 'invalid_eof_boundary'
+export type DocumentModificationState
+	= | 'unchanged'
+		| 'unsigned_content'
+		| 'trailing_data'
+		| 'invalid_byte_range'
+		| 'invalid_eof_boundary'
 
 export type ValidationSignerDetailRecord = SignerDetailRecord & {
 	signature_validation?: ValidationStatusInfo

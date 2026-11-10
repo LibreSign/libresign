@@ -48,8 +48,8 @@ const extractBackendDefaultSignatureTextTemplate = (rawValue: unknown): string =
 // never from a frontend hardcoded translation copy.
 const BACKEND_DEFAULT_SIGNATURE_TEXT_TEMPLATE = extractBackendDefaultSignatureTextTemplate(
 	initialEffectivePolicies.policies?.signature_stamp?.meta?.defaultSystemValue
-		?? initialEffectivePolicies.policies?.signature_stamp?.effectiveValue
-		?? null,
+	?? initialEffectivePolicies.policies?.signature_stamp?.effectiveValue
+	?? null,
 )
 
 export const SIGNATURE_TEXT_DEFAULTS = Object.freeze({

@@ -130,10 +130,10 @@ const serialNumber = computed(() => {
 
 const hasContent = computed(() =>
 	!!(authority.value
-	|| props.timestamp?.genTime
-	|| policy.value
-	|| hashAlgorithm.value
-	|| serialNumber.value),
+		|| props.timestamp?.genTime
+		|| policy.value
+		|| hashAlgorithm.value
+		|| serialNumber.value),
 )
 
 const toggleAriaLabel = computed(() =>

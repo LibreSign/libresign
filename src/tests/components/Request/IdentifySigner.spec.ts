@@ -607,7 +607,7 @@ describe('IdentifySigner rules', () => {
 				signerToEdit: {
 					displayName: 'Signer without methods',
 					identifyMethods: [],
-					...( { signRequestId: 123 } as unknown as SignerToEdit ),
+					...({ signRequestId: 123 } as unknown as SignerToEdit),
 				},
 			})
 
