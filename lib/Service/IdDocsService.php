@@ -205,6 +205,7 @@ class IdDocsService {
 			$idDocs = $this->idDocsMapper->getByUserIdAndNodeId($user->getUID(), $nodeId);
 		}
 		if ($idDocs->getRejectedAt() !== null) {
+			// TRANSLATORS Error shown when trying to delete a rejected identification document that must remain in the audit history.
 			throw new LibresignException($this->l10n->t('Rejected documents are retained for audit purposes.'));
 		}
 		$this->idDocsMapper->delete($idDocs);
@@ -216,6 +217,7 @@ class IdDocsService {
 		$this->identityDocumentValidator->validateIdDocBelongsToSignRequest($nodeId, $signRequest->getId());
 		$idDocs = $this->idDocsMapper->getBySignRequestIdAndNodeId($signRequest->getId(), $nodeId);
 		if ($idDocs->getRejectedAt() !== null) {
+			// TRANSLATORS Error shown when trying to delete a rejected identification document that must remain in the audit history.
 			throw new LibresignException($this->l10n->t('Rejected documents are retained for audit purposes.'));
 		}
 		$this->idDocsMapper->delete($idDocs);

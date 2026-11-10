@@ -50,6 +50,7 @@ final class IdDocRejectionService {
 
 	public function reject(int $nodeId, string $reason, ?IUser $approver): void {
 		if (!$this->policy->userCanApproveValidationDocuments($approver, false)) {
+			// TRANSLATORS Authorization error when the current user cannot review identification documents.
 			throw new LibresignException($this->l10n->t('Not allowed'));
 		}
 		$reason = trim($reason);
@@ -61,6 +62,7 @@ final class IdDocRejectionService {
 			$doc = $this->idDocs->getByNodeId($nodeId);
 			$file = $this->files->getById($doc->getFileId());
 			if (!$this->policy->canApproverSignIdDoc($approver, $file->getId(), $file->getStatus())) {
+				// TRANSLATORS Authorization error when the reviewer cannot approve or reject this identification document.
 				throw new LibresignException($this->l10n->t('Not allowed'));
 			}
 			if ($doc->getRejectedAt() !== null
@@ -74,6 +76,7 @@ final class IdDocRejectionService {
 				$reason,
 				\DateTime::createFromInterface($this->clock->getDateTime()),
 			)) {
+				// TRANSLATORS Conflict error when another reviewer has already rejected this identification document.
 				throw new LibresignException($this->l10n->t('This document has already been rejected.'));
 			}
 			$this->registerNotification($doc->getUserId(), $doc->getSignRequestId(), $doc->getId(), $file, $reason);

@@ -324,6 +324,13 @@ class IdDocsMapper extends QBMapper {
 		$userId = $row['user_id'] ?? null;
 		$displayName = $row['account_displayname'] ?? $row['sign_request_display_name'] ?? $userId ?? '';
 
+		if ($row['rejected_at'] !== null) {
+			// TRANSLATORS Lowercase status returned for a submitted identification document rejected by an authorized reviewer.
+			$statusText = $this->l10n->t('rejected');
+		} else {
+			$statusText = $this->getIdDocStatusText((int)$row['status']);
+		}
+
 		return [
 			'account' => [
 				'userId' => $userId,
@@ -343,9 +350,7 @@ class IdDocsMapper extends QBMapper {
 			'file' => [
 				'name' => $row['name'],
 				'status' => (int)$row['status'],
-				'statusText' => $row['rejected_at'] !== null
-					? $this->l10n->t('rejected')
-					: $this->getIdDocStatusText((int)$row['status']),
+				'statusText' => $statusText,
 				'created_at' => $createdAt,
 				'user_id' => $row['user_id'],
 				'file' => [
