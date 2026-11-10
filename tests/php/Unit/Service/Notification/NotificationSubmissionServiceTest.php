@@ -105,7 +105,7 @@ final class NotificationSubmissionServiceTest extends TestCase {
 		$this->executeFailure(new NotificationTransportException('synthetic uncertain outcome', NotificationDeliveryState::UNKNOWN, 'smtp_outcome_unknown', new NotificationPreparationException('preparation')), 1, NotificationDeliveryState::UNKNOWN, false);
 	}
 
-	public function testSuccessfulSubmissionPublishesAfterLedgerCommit(): void {
+	public function testSuccessfulSubmissionRequestsOutcomePublication(): void {
 		$delivery = new NotificationDelivery();
 		$delivery->setId(9);
 		$attempt = new NotificationAttempt();
@@ -113,27 +113,19 @@ final class NotificationSubmissionServiceTest extends TestCase {
 
 		$deliveries = $this->createMock(NotificationDeliveryMapper::class);
 		$deliveries->method('claim')->willReturn(true);
-		$deliveries->expects($this->once())->method('finish')->with(9, NotificationDeliveryState::ACCEPTED, null);
 		$attempts = $this->createMock(NotificationAttemptMapper::class);
 		$attempts->method('begin')->willReturn($attempt);
-		$attempts->expects($this->once())->method('finish')->with(28, NotificationDeliveryState::ACCEPTED, null);
-		$db = $this->createMock(IDBConnection::class);
-		$commits = 0;
-		$db->method('commit')->willReturnCallback(static function () use (&$commits): void {
-			$commits++;
-		});
 		$publisher = $this->createMock(NotificationDeliveryEventPublisher::class);
-		$publisher->expects($this->once())->method('publish')->with(9)
-			->willReturnCallback(function () use (&$commits): void {
-				$this->assertSame(2, $commits);
-			});
+		$publisher->expects($this->once())->method('publish')->with(9);
 		$channel = $this->createMock(NotificationChannel::class);
 		$channel->expects($this->once())->method('deliver');
+
 		$service = new NotificationSubmissionService(
-			$deliveries, $attempts, $db, new NotificationFailureClassifier(),
+			$deliveries, $attempts, $this->createMock(IDBConnection::class), new NotificationFailureClassifier(),
 			new NotificationHistoryService($this->createMock(SignRequestMapper::class)),
 			$this->createMock(LoggerInterface::class), $publisher,
 		);
+
 		$this->assertTrue($service->submit($delivery, $this->message(), $channel));
 	}
 
