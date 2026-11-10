@@ -31,6 +31,7 @@ use OCA\Libresign\Service\SignatureBackgroundService;
 use OCA\Libresign\Service\SignatureTextService;
 use OCA\Libresign\Service\SignerElementsService;
 use OCA\Libresign\Service\TemporarySignatureImageService;
+use OCA\Libresign\Tests\Fixtures\PdfGenerator;
 use OCA\Libresign\Vendor\Jeidison\JSignPDF\JSignPDF;
 use OCA\Libresign\Vendor\Jeidison\JSignPDF\Sign\JSignParam;
 use OCP\IAppConfig;
@@ -1333,6 +1334,13 @@ final class JSignPdfHandlerTest extends \OCA\Libresign\Tests\Integration\AppData
 				true,
 				[],
 				'%PDF-1.6',
+				$tsa,
+				['-cl' => DocMdpLevel::CERTIFIED_FORM_FILLING_AND_ANNOTATIONS->name, '--tsa-server-url' => 'https://tsa.example.test/tsr', '--tsa-hash-algorithm' => 'SHA-256', '--hash-algorithm' => 'SHA256'],
+			],
+			'certification when the PDF has only an unreferenced signature dictionary' => [
+				true,
+				[],
+				PdfGenerator::createPdfWithStandaloneDocMdpSignature(1),
 				$tsa,
 				['-cl' => DocMdpLevel::CERTIFIED_FORM_FILLING_AND_ANNOTATIONS->name, '--tsa-server-url' => 'https://tsa.example.test/tsr', '--tsa-hash-algorithm' => 'SHA-256', '--hash-algorithm' => 'SHA256'],
 			],
