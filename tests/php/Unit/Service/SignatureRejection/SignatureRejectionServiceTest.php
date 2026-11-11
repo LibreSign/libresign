@@ -54,8 +54,9 @@ final class SignatureRejectionServiceTest extends TestCase {
 	/** @var list<SignRequest> */
 	private array $envelopeChildSignRequests = [];
 	private ?SignRequest $envelopeSignRequest = null;
-	/** @var array<int, File> */
+	/** @var array<int, File|null> */
 	private array $filesById = [];
+	private bool $detachedFileReads = false;
 
 	protected function setUp(): void {
 		parent::setUp();
@@ -84,8 +85,11 @@ final class SignatureRejectionServiceTest extends TestCase {
 		// without the default stub masking it.
 		$this->fileMapper->method('getById')
 			->willReturnCallback(function (int $id): File {
-				if (isset($this->filesById[$id])) {
-					return $this->filesById[$id];
+				if (array_key_exists($id, $this->filesById)) {
+					if ($this->filesById[$id] === null) {
+						throw new DoesNotExistException('Synthetic missing committed envelope');
+					}
+					return $this->detachedFileReads ? clone $this->filesById[$id] : $this->filesById[$id];
 				}
 				$file = $this->file();
 				$file->setId($id);
@@ -297,7 +301,7 @@ final class SignatureRejectionServiceTest extends TestCase {
 		$signer = $this->signRequest();
 		$this->db->expects($this->once())->method('commit');
 		$this->webhooks->expects($this->once())->method('signerRejected')
-			->with($file, $signer, FileStatus::ABLE_TO_SIGN->value);
+			->with($file, $file, $signer, FileStatus::ABLE_TO_SIGN->value);
 		$this->getService()->reject($file, $signer, 'private explanation', true);
 		$this->assertSame(SignRequestStatus::REJECTED, $signer->getStatusEnum());
 		$this->assertTrue($signer->getRejectionCommentPrivate());
@@ -306,6 +310,94 @@ final class SignatureRejectionServiceTest extends TestCase {
 	/** @return array<string, array{bool}> */
 	public static function publicRejectionOutcomes(): array {
 		return ['continue' => [false], 'cancel' => [true]];
+	}
+
+	public function testEnvelopeWebhookReceivesTheCommittedRootStatus(): void {
+		$this->withPolicy(self::policy('cancel'));
+		$document = $this->file();
+		$document->setId(21);
+		$document->setParentFileId(1);
+		$document->setUuid('child-uuid');
+		$signer = $this->signRequest();
+		$signer->setFileId(21);
+
+		$persistedRoot = $this->envelope();
+		$persistedRoot->setUuid('root-uuid');
+		$this->filesById[1] = $persistedRoot;
+		// Mapper reads are detached entities: the pre-commit root object is stale
+		// after the transaction updates the envelope row.
+		$this->detachedFileReads = true;
+		$this->fileStatusService->method('update')
+			->willReturnCallback(function (File $updated): File {
+				$this->filesById[$updated->getId()] = clone $updated;
+				return $updated;
+			});
+		$committed = false;
+		$this->db->expects($this->once())->method('commit')
+			->willReturnCallback(static function () use (&$committed): void {
+				$committed = true;
+			});
+		$this->webhooks->expects($this->once())->method('signerRejected')
+			->with(
+				$this->callback(static function (File $root) use (&$committed): bool {
+					return $committed
+						&& $root->getUuid() === 'root-uuid'
+						&& $root->getStatus() === FileStatus::CANCELED->value;
+				}),
+				$document,
+				$signer,
+				FileStatus::ABLE_TO_SIGN->value,
+			);
+
+		$this->getService()->reject($document, $signer);
+
+		$this->assertSame(FileStatus::CANCELED->value, $this->filesById[1]->getStatus());
+		$this->assertSame(SignRequestStatus::REJECTED, $signer->getStatusEnum());
+	}
+
+	public function testMissingEnvelopeAfterCommitDoesNotTurnRejectionIntoFailedRequest(): void {
+		$this->withPolicy(self::policy('cancel'));
+		$document = $this->file();
+		$document->setId(21);
+		$document->setParentFileId(1);
+		$signer = $this->signRequest();
+		$signer->setFileId(21);
+		$this->filesById[1] = $this->envelope();
+		$this->db->expects($this->once())->method('commit')
+			->willReturnCallback(function (): void {
+				$this->filesById[1] = null;
+			});
+		$this->logger->expects($this->once())->method('error')
+			->with('Committed rejection envelope missing during webhook publication', [
+				'fileId' => 21,
+				'errorType' => DoesNotExistException::class,
+			]);
+		$this->webhooks->expects($this->never())->method('signerRejected');
+		$this->eventDispatcher->expects($this->once())->method('dispatchTyped')
+			->with($this->isInstanceOf(SignatureRejectedEvent::class));
+
+		$result = $this->getService()->reject($document, $signer);
+		$this->assertSame($signer, $result);
+		$this->assertSame(SignRequestStatus::REJECTED, $result->getStatusEnum());
+	}
+
+	public function testMissingEnvelopeBeforeCommitPreventsTheRejection(): void {
+		$this->withPolicy(self::policy('cancel'));
+		$document = $this->file();
+		$document->setId(21);
+		$document->setParentFileId(1);
+		$signer = $this->signRequest();
+		$this->filesById[1] = null;
+		$this->db->expects($this->never())->method('beginTransaction');
+		$this->db->expects($this->never())->method('commit');
+		$this->webhooks->expects($this->never())->method('signerRejected');
+
+		$this->expectException(DoesNotExistException::class);
+		try {
+			$this->getService()->reject($document, $signer);
+		} finally {
+			$this->assertSame(SignRequestStatus::ABLE_TO_SIGN, $signer->getStatusEnum());
+		}
 	}
 
 	public function testProgrammingErrorDuringRejectionRollsBackAndRemainsVisible(): void {
@@ -329,7 +421,7 @@ final class SignatureRejectionServiceTest extends TestCase {
 		$file = $this->file(FileStatus::PARTIAL_SIGNED->value);
 		$file->setUuid('completed-by-rejection');
 		$this->signingWorkflowStatusResolver->method('resolve')->willReturn(FileStatus::SIGNED);
-		$this->webhooks->expects($this->once())->method('signerRejected')->with($file, $this->anything(), FileStatus::PARTIAL_SIGNED->value);
+		$this->webhooks->expects($this->once())->method('signerRejected')->with($file, $file, $this->anything(), FileStatus::PARTIAL_SIGNED->value);
 		$this->getService()->reject($file, $this->signRequest());
 		$this->assertSame(FileStatus::SIGNED->value, $file->getStatus());
 	}

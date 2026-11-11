@@ -23,6 +23,7 @@ use OCA\Libresign\Events\SigningRequestCanceledEvent;
 use OCA\Libresign\Events\SigningRequestCompletedEvent;
 use OCA\Libresign\Events\SigningRequestReadyEvent;
 use OCA\Libresign\Service\Webhook\NativeWebhookEventPublisher;
+use OCP\AppFramework\Db\DoesNotExistException;
 use OCP\EventDispatcher\IEventDispatcher;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\MockObject\MockObject;
@@ -122,7 +123,7 @@ final class NativeWebhookEventPublisherTest extends TestCase {
 		$root->setNodeType('envelope');
 		$child = self::file(25, 'child-uuid', FileStatus::CANCELED);
 		$child->setParentFileId(13);
-		$this->files->method('getById')->with(13)->willReturn($root);
+		$this->files->expects($this->never())->method('getById');
 		$published = [];
 		$this->dispatcher->method('dispatchTyped')->willReturnCallback(
 			static function ($event) use (&$published): void {
@@ -138,7 +139,7 @@ final class NativeWebhookEventPublisherTest extends TestCase {
 					&& ($context['event'] ?? null) === 'signer.rejected'
 					&& !str_contains(json_encode($context), 'PRIVATE_REJECTION_COMMENT'),
 			));
-		$this->publisher->signerRejected($child, self::signer(true), FileStatus::ABLE_TO_SIGN->value);
+		$this->publisher->signerRejected($root, $child, self::signer(true), FileStatus::ABLE_TO_SIGN->value);
 		$this->assertCount(1, array_filter($published, static fn ($event): bool => $event instanceof SigningRequestCanceledEvent));
 		$this->assertCount(1, array_filter($published, static fn ($event): bool => $event instanceof SignerRejectedWebhookEvent));
 	}
@@ -150,7 +151,7 @@ final class NativeWebhookEventPublisherTest extends TestCase {
 			static function ($event) use (&$published): void {
 				$published[] = $event;
 			});
-		$this->publisher->signerRejected($root, self::signer(true), FileStatus::PARTIAL_SIGNED->value);
+		$this->publisher->signerRejected($root, $root, self::signer(true), FileStatus::PARTIAL_SIGNED->value);
 		$this->assertCount(1, array_filter($published, static fn ($event): bool => $event instanceof SigningRequestCompletedEvent));
 		$this->assertCount(0, array_filter($published, static fn ($event): bool => $event instanceof SigningRequestCanceledEvent));
 		$rejection = array_values(array_filter($published, static fn ($event): bool => $event instanceof SignerRejectedWebhookEvent))[0];
@@ -211,20 +212,36 @@ final class NativeWebhookEventPublisherTest extends TestCase {
 		$this->publisher->notificationOutcome(9);
 	}
 
-	public function testRepositoryFailureIsLoggedAsAnErrorWithoutPrivateMessage(): void {
+	public function testMissingPersistedDeliveryIsLoggedAsAnErrorWithoutPrivateMessage(): void {
 		$this->deliveries->method('findById')->willThrowException(
-			new \RuntimeException('PRIVATE_RECIPIENT'));
+			new DoesNotExistException('PRIVATE_RECIPIENT'));
 		$this->dispatcher->expects($this->never())->method('dispatchTyped');
 		$this->logger->expects($this->once())->method('error')
 			->with('Native webhook publication failed after commit', $this->callback(
 				static fn (array $context): bool
 					=> ($context['phase'] ?? null) === 'prepare'
 					&& ($context['deliveryId'] ?? null) === 9
-					&& ($context['errorType'] ?? null) === \RuntimeException::class
+					&& ($context['errorType'] ?? null) === DoesNotExistException::class
 					&& is_string($context['errorFile'] ?? null)
 					&& is_int($context['errorLine'] ?? null)
 					&& !str_contains(json_encode($context), 'PRIVATE_RECIPIENT'),
 			));
+		$this->publisher->notificationOutcome(9);
+	}
+
+	/** @return array<string, array{\Throwable}> */
+	public static function unexpectedPreparationErrors(): array {
+		return [
+			'programming error' => [new \TypeError('INTERNAL_DETAILS')],
+			'unexpected database failure' => [new \RuntimeException('INTERNAL_DETAILS')],
+		];
+	}
+
+	#[DataProvider('unexpectedPreparationErrors')]
+	public function testUnexpectedPreparationErrorsRemainVisible(\Throwable $failure): void {
+		$this->deliveries->method('findById')->willThrowException($failure);
+		$this->dispatcher->expects($this->never())->method('dispatchTyped');
+		$this->expectException($failure::class);
 		$this->publisher->notificationOutcome(9);
 	}
 

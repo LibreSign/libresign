@@ -19,6 +19,7 @@ use OCA\Libresign\Events\SignerSignedWebhookEvent;
 use OCA\Libresign\Events\SigningRequestCanceledEvent;
 use OCA\Libresign\Events\SigningRequestCompletedEvent;
 use OCA\Libresign\Events\SigningRequestReadyEvent;
+use OCP\AppFramework\Db\DoesNotExistException;
 use OCP\EventDispatcher\Event;
 use OCP\EventDispatcher\IEventDispatcher;
 use Psr\Log\LoggerInterface;
@@ -27,10 +28,11 @@ use Psr\Log\LoggerInterface;
  * Publishes native webhook events after the business operation has committed.
  *
  * Publication is best effort: it cannot reverse a persisted operation.
- * Preparation errors and listener programming errors are logged as errors;
- * listener exceptions are logged as warnings. Nextcloud Webhook Listeners
- * enqueues HTTP delivery jobs when enabled, but LibreSign does not persist
- * failed event dispatches for replay.
+ * Missing persisted records and listener programming errors are logged as errors;
+ * listener exceptions are logged as warnings. Unexpected preparation failures
+ * are not swallowed: they indicate a fault in the application or database path.
+ * Nextcloud Webhook Listeners enqueues HTTP delivery jobs when enabled, but
+ * LibreSign does not persist failed event dispatches for replay.
  */
 class NativeWebhookEventPublisher {
 	public function __construct(
@@ -55,14 +57,8 @@ class NativeWebhookEventPublisher {
 		));
 	}
 
-	public function signerRejected(FileEntity $document, SignRequestEntity $signer, int $previousRootStatus): void {
+	public function signerRejected(FileEntity $root, FileEntity $document, SignRequestEntity $signer, int $previousRootStatus): void {
 		$context = ['fileId' => $document->getId(), 'signRequestId' => $signer->getId()];
-		try {
-			$root = $this->rootOf($document);
-		} catch (\Throwable $e) {
-			$this->reportFailure($e, 'prepare', 'signer.rejected', $context);
-			return;
-		}
 
 		// A listener failure cannot suppress later aggregate transitions.
 		$this->publish('signer.rejected', $context,
@@ -101,7 +97,9 @@ class NativeWebhookEventPublisher {
 	private function publish(string $eventName, array $context, \Closure $eventFactory): void {
 		try {
 			$event = $eventFactory();
-		} catch (\Throwable $e) {
+		} catch (DoesNotExistException $e) {
+			// A row missing after a commit is an explicit data-integrity failure.
+			// Do not turn unrelated database or programming faults into success.
 			$this->reportFailure($e, 'prepare', $eventName, $context);
 			return;
 		}
