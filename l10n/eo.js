@@ -97,6 +97,7 @@ OC.L10N.register(
     "Revoke" : "Senvalidigi",
     "Type:" : "Tipo:",
     "Page not found" : "Paĝo ne trovita",
+    "Approved" : "Aprobita",
     "Ok" : "Bone",
     "Rename" : "Alinomi",
     "File name" : "Dosiernomo",

@@ -79,6 +79,7 @@ OC.L10N.register(
     "Actions" : "Actions",
     "Type:" : "Turi:",
     "Page not found" : "Sahifa topilmadi",
+    "Approved" : "Tasdiqlangan",
     "Ok" : "Yaxshi",
     "Rename" : "Nomini o'zgartirish",
     "File name" : "Fayl nomi",
