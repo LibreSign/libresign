@@ -71,6 +71,7 @@ OC.L10N.register(
     "Comment" : "Kommentar",
     "Actions" : "Aktiounen",
     "Type:" : "Typ:",
+    "Approved" : "Zougestëmmt",
     "Ok" : "OK",
     "Rename" : "Ëmbenennen",
     "Modified" : "Geännert",

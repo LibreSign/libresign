@@ -134,6 +134,7 @@ OC.L10N.register(
     "Revoke" : "Revocar",
     "Type:" : "Tipe :",
     "Page not found" : "Pagina pas trobada",
+    "Approved" : "Validat",
     "Approved by" : "Validat per",
     "Rename" : "Tornar nommar",
     "File name" : "Nom de fichièr",

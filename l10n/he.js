@@ -113,6 +113,7 @@ OC.L10N.register(
     "Revoke" : "שלילה",
     "Type:" : "סוג:",
     "Page not found" : "העמוד לא נמצא",
+    "Approved" : "מאושר",
     "Approved by" : "אושר ע״י",
     "Ok" : "אישור",
     "Rename" : "שינוי שם",

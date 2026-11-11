@@ -96,6 +96,7 @@ OC.L10N.register(
     "Revoke" : "Revocar",
     "Type:" : "Tipo:",
     "Page not found" : "Página no encontrada",
+    "Approved" : "Aprobado",
     "Modified" : "Modificado",
     "Created at" : "Creado en",
     "Reset to default" : "Restablecer al predeterminado",
