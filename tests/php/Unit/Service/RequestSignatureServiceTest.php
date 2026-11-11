@@ -336,7 +336,6 @@ final class RequestSignatureServiceTest extends \OCA\Libresign\Tests\Unit\TestCa
 			->with(621)
 			->willThrowException(new \OCP\AppFramework\Db\DoesNotExistException('new node is not yet registered'));
 
-
 		$inTransaction = false;
 		$this->db->expects($this->once())->method('beginTransaction')->willReturnCallback(
 			static function () use (&$inTransaction): void {
