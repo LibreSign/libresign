@@ -12,9 +12,13 @@ async function main() {
   const basePath = process.env.SDK_TEST_URL
   const username = process.env.SDK_TEST_USER
   const password = process.env.SDK_TEST_PASSWORD
-  if (!basePath || !username || !password) throw new Error('Set SDK_TEST_URL, SDK_TEST_USER and SDK_TEST_PASSWORD')
+  if (!basePath || !username || !password) {
+    throw new Error('Set SDK_TEST_URL, SDK_TEST_USER and SDK_TEST_PASSWORD')
+  }
   const url = new URL(basePath)
-  if (url.protocol !== 'https:' || !(url.hostname === 'localhost' || url.hostname.endsWith('.localhost'))) throw new Error('Only local HTTPS Nextcloud instances are supported')
+  if (url.protocol !== 'https:' || !(url.hostname === 'localhost' || url.hostname.endsWith('.localhost'))) {
+    throw new Error('Only local HTTPS Nextcloud instances are supported')
+  }
   // NCDD uses a local self-signed certificate; never use this for remote hosts.
   const instance = axios.create({ httpsAgent: new Agent({ rejectUnauthorized: false }), proxy: false, timeout: 15000 })
   const config = new Configuration({ basePath, username, password })
@@ -47,16 +51,23 @@ async function main() {
     assert.equal(Buffer.from(pdf.data as unknown as ArrayBuffer).subarray(0, 5).toString(), '%PDF-')
     console.log('certificate-policy: HTTP 200, PDF content type and bytes verified')
   } catch (error) {
-    if (!axios.isAxiosError(error) || error.response?.status !== 404) throw error
+    if (!axios.isAxiosError(error) || error.response?.status !== 404) {
+      throw error
+    }
     console.log('certificate-policy: HTTP 404 (no configured policy PDF); binary response not verified')
   }
   const invalid = new IdentityApi(new Configuration({ basePath, username, password: 'deliberately-invalid-test-password' }), undefined, instance)
   await assert.rejects(() => invalid.accountMe({ apiVersion: 'v1', oCSAPIRequest: true }), (error: unknown) => axios.isAxiosError(error) && (error.response?.status === 401 || error.response?.status === 403))
   console.log('account-me with invalid credentials: HTTP authentication error verified')
-  if (failed) process.exitCode = 1
+  if (failed) {
+    process.exitCode = 1
+  }
 }
 main().catch(error => {
-  if (axios.isAxiosError(error)) console.error('Live request failed with HTTP status', error.response?.status ?? 'unavailable', 'code', error.code ?? 'none')
-  else console.error(error instanceof Error ? error.message : 'Live test failed')
+  if (axios.isAxiosError(error)) {
+    console.error('Live request failed with HTTP status', error.response?.status ?? 'unavailable', 'code', error.code ?? 'none')
+  } else {
+    console.error(error instanceof Error ? error.message : 'Live test failed')
+  }
   process.exitCode = 1
 })

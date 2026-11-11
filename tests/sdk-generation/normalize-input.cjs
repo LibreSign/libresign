@@ -12,11 +12,19 @@ const root = path.resolve(__dirname, '../..')
 const target = path.join(root, 'build/sdk-generation/normalized/openapi-full.oneof.json')
 let rewritten = 0
 function normalize(value) {
-  if (Array.isArray(value)) return value.map(normalize)
-  if (value === null || typeof value !== 'object') return value
+  if (Array.isArray(value)) {
+    return value.map(normalize)
+  }
+  if (value === null || typeof value !== 'object') {
+    return value
+  }
   const isUnion = Array.isArray(value.anyOf)
-  if (isUnion && 'oneOf' in value) throw new Error('Schema declares both anyOf and oneOf')
-  if (isUnion) rewritten++
+  if (isUnion && 'oneOf' in value) {
+    throw new Error('Schema declares both anyOf and oneOf')
+  }
+  if (isUnion) {
+    rewritten++
+  }
   return Object.fromEntries(Object.entries(value).map(([key, item]) => [isUnion && key === 'anyOf' ? 'oneOf' : key, normalize(item)]))
 }
 const output = normalize(JSON.parse(fs.readFileSync(path.join(root, 'openapi-full.json'), 'utf8')))

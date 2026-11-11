@@ -14,7 +14,9 @@ async function run() {
   const adapter: AxiosAdapter = async config => {
     last = config
     const response = { data: body, status, statusText: String(status), headers: {}, config }
-    if (config.validateStatus && !config.validateStatus(status)) throw new AxiosError('HTTP error', 'ERR_BAD_RESPONSE', config, undefined, response)
+    if (config.validateStatus && !config.validateStatus(status)) {
+      throw new AxiosError('HTTP error', 'ERR_BAD_RESPONSE', config, undefined, response)
+    }
     return response
   }
   const instance = axios.create({ adapter, headers: { 'X-Instance': 'injected' } })
