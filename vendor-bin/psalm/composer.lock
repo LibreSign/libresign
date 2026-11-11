@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "a18abb5d0ebaf4fb0a9a5a02021be564",
+    "content-hash": "f1bf38b206c0de06bda38ae03e0b58ea",
     "packages": [],
     "packages-dev": [
         {
@@ -3555,16 +3555,16 @@
         },
         {
             "name": "vimeo/psalm",
-            "version": "7.0.4",
+            "version": "7.0.5",
             "source": {
                 "type": "git",
                 "url": "https://github.com/vimeo/psalm.git",
-                "reference": "fa5b1f6e665cb743838ffd865b8fc96207f9409f"
+                "reference": "e3586fb9542ad66e37122f7c7ddf6b9a9ea7eaec"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/vimeo/psalm/zipball/fa5b1f6e665cb743838ffd865b8fc96207f9409f",
-                "reference": "fa5b1f6e665cb743838ffd865b8fc96207f9409f",
+                "url": "https://api.github.com/repos/vimeo/psalm/zipball/e3586fb9542ad66e37122f7c7ddf6b9a9ea7eaec",
+                "reference": "e3586fb9542ad66e37122f7c7ddf6b9a9ea7eaec",
                 "shasum": ""
             },
             "require": {
@@ -3620,7 +3620,8 @@
             },
             "suggest": {
                 "ext-curl": "In order to send data to shepherd",
-                "ext-igbinary": "^2.0.5 is required, used to serialize caching data"
+                "ext-igbinary": "^2.0.5 is required, used to serialize caching data",
+                "ext-zstd": ">=0.15.0 is required, used to compress caching data"
             },
             "bin": [
                 "psalm",
@@ -3672,7 +3673,7 @@
                 "issues": "https://github.com/vimeo/psalm/issues",
                 "source": "https://github.com/vimeo/psalm"
             },
-            "time": "2026-11-05T20:37:08+00:00"
+            "time": "2026-11-06T22:09:24+00:00"
         },
         {
             "name": "webmozart/assert",
