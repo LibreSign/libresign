@@ -7,10 +7,13 @@
     "compile": "tsc --noEmit --strict --skipLibCheck --target ES2020 --module commonjs --moduleResolution node ../../build/sdk-generation/typescript/*.ts types.ts transport.ts live.ts",
     "test": "tsx transport.ts && node inventory.cjs",
     "test:live": "tsx live.ts",
-    "test:anyof": "tsc --noEmit --strict --skipLibCheck --target ES2020 --module commonjs --moduleResolution node anyof-negative.ts"
+    "test:anyof": "tsc --noEmit --strict --skipLibCheck --target ES2020 --module commonjs --moduleResolution node anyof-negative.ts",
+    "test:normalized": "tsc --noEmit --strict --skipLibCheck --target ES2020 --module commonjs --moduleResolution node ../../build/sdk-generation/normalized/typescript/*.ts normalized-types.ts",
+    "test:nextcloud": "node nextcloud-import.mjs"
   },
   "dependencies": {
-    "axios": "1.9.0"
+    "@nextcloud/axios": "2.6.0",
+    "axios": "1.20.0"
   },
   "devDependencies": {
     "@types/node": "22.15.21",

@@ -5,87 +5,103 @@
 
 # Compatibility evaluation
 
-## Decision: No-Go
+## Decision: No-Go for unmodified input
 
-OpenAPI Generator 7.15.0's `typescript-axios` output in the evaluated
-configuration is not a sufficiently faithful SDK foundation: critical `anyOf`
-models are incorrect. This does not prevent planning an SDK using a different
-generator or a reviewed mitigation. Multipart omissions are separate gaps in
-the input contract, not evidence that the generator mishandles declared uploads.
-This decision does not assert that every operation is broken, nor does it
-change backend authorization.
+OpenAPI Generator 7.27.0's `typescript-axios` output is not a sufficiently
+faithful SDK foundation: `EffectivePolicyValue` is an empty interface and
+accepts invalid arrays. Version 7.15.0 has the same defect. The separate
+normalized-input experiment partially improves unions; it does not change
+this decision or approve any source contract change. Multipart is tracked
+separately in #9435.
 
-## Input and reproducibility
+## Input and toolchain
 
-- Application revision: `b02d0b82e3abe346085c8bfe059e7ca4bf8f6bfd`.
-- `openapi-full.json` SHA-256: `2501bc11fcee0545dfb703a28d93018a80e62f6e14ba81bae549d1b130de9243`.
-- Generator: Docker image `openapitools/openapi-generator-cli` 7.15.0,
-  SHA-256 `509f01c3c7eee9d1ad286506a7b6aa4624a95b410be9a238a306d209e900621f`;
-  generator `typescript-axios`, `useSingleRequestParameter=true`.
-- TypeScript 5.8.3, Axios 1.9.0, tsx 4.19.4, Node 24.22.2; exact npm
-  dependencies and transitives are in the lockfile.
-- The commands in README were run, except that the first two output directories
-  were generated before the setup script was written with equivalent pinned
-  tooling. A third generation used the final script. Validation succeeded with
-  warnings for unused `Capabilities` and `PublicCapabilities` models. A full
-  recursive diff of the first and third output directories was empty, without
-  excluding metadata. Generated code was not edited.
-- Warm local timings: validation and generation together 4.40 seconds;
-  compilation 1.20 seconds; transport and inventory 0.56 seconds. These are
-  wall-clock observations from one machine, excluding npm installation and image
-  download, not CI benchmarks. No recurring CI job is proposed without
-  measuring cold-start cost and benefit.
+- Application base: `9aebe13938369e70344a4fb1e16fc331387427ea` (upstream main).
+- `openapi-full.json` SHA-256:
+  `2501bc11fcee0545dfb703a28d93018a80e62f6e14ba81bae549d1b130de9243`.
+- Generator: `openapitools/openapi-generator-cli` 7.27.0 at
+  `sha256:949efd0d5cf3c093ef169887b2ebe0879ee2e8074b6476264232ce4fd8ef46d0`;
+  `typescript-axios`, `useSingleRequestParameter=true`.
+- Previous comparison: 7.15.0 at
+  `sha256:509f01c3c7eee9d1ad286506a7b6aa4624a95b410be9a238a306d209e900621f`.
+- TypeScript 5.8.3, Axios 1.20.0, `@nextcloud/axios` 2.6.0, tsx 4.19.4;
+  Node 24.22.2, npm 11.19.1. npm dependencies/transitives are locked.
+  Axios matches the application's locked version and satisfies Nextcloud Axios.
+- All deterministic README commands ran with fresh generated directories.
+  Validation succeeded with unused `Capabilities` and `PublicCapabilities`
+  warnings. Two generations had an empty recursive diff including metadata.
+  No generated source was edited.
+- Warm timings: setup 1.05 s; validation/generation 4.91 s (repeat 5.79 s);
+  strict compilation 2.09 s; transport/inventory 1.06 s; normalized
+  validation/generation 4.71 s and type checks 1.36 s. These are single-machine
+  observations with cached images, not cold CI benchmarks. No CI job is added.
 
-## Inventory and models
+## Unmodified input results
 
-The input contains 90 operations, rather than the 88 in the issue. The
-[inventory](inventory.md) matches HTTP method and path to the generator's
-actual documentation and checks for a corresponding public class method in the
-TypeScript AST: 90 matched, no duplicate input operation IDs, missing methods or
-wrong functional class among the ten approved tags. This is a presence/grouping
-check, not an exhaustive signature or runtime-serialization audit. In
-particular, the generated Markdown examples use positional arguments despite
-`useSingleRequestParameter=true`; use the actual class signatures instead.
+The [inventory](inventory.md) covers 90 operations (69 default, 21
+administration), rather than the issue's original 88: 90 matched, zero inventory
+errors, ten functional classes. The checked-in snapshot matches the new output.
+The check matches method/path, generated documentation and public TypeScript
+class methods; it does not exhaustively validate signatures or serialization.
+Generated Markdown examples still use positional arguments despite the chosen
+single-request-parameter configuration; use actual class signatures.
 
-Generated code and positive/negative checks in `types.ts` compile under strict
-TypeScript (with `skipLibCheck`); `NewFile.nodeId` accepts number/string and
-rejects boolean; `SignerDetail` includes required inherited and local fields;
-nullable/optional and enum examples reject invalid values. These tests sample
-contracts and do not validate numerical minima or runtime JSON.
+Strict compilation with `skipLibCheck` passes. `types.ts` tests number/string
+`NewFile.nodeId` (rejecting boolean), inherited/local `SignerDetail` fields,
+nullable/optional fields and enums. `test:anyof` exits 2 with TS2578, an unused
+`@ts-expect-error`: the generated empty interface accepts an invalid policy
+array. This is a failed acceptance criterion, not a passing test.
 
-`EffectivePolicyValue` is generated as an empty interface even though the
-schema is a nullable `anyOf` of boolean, number, string and object. An invalid
-array is accepted. `npm run test:anyof` fails with TS2578 (unused
-`@ts-expect-error`), proving the negative test is not enforced. This is a
-critical type-fidelity failure, not a passing acceptance test. No generated
-code was patched to hide it.
+The controlled Axios adapter tests generated calls for account GET and typed
+OCS envelope, encoded policy path and simulated HTTP 403, signature-request
+JSON POST, and non-OCS PDF with explicit `responseType: arraybuffer`. Basic-only
+and bearer-only configurations are independent, with assertions that the other
+credential mechanism is absent. Both root and subdirectory paths pass.
+An instance at `https://instance.test/installed` overrides configuration
+`https://example.test/nextcloud` for both OCS and PDF URLs, proving precedence
+with different values.
 
-## Transport
+The real locked `@nextcloud/axios` ESM import probe exits 1 in Node with
+`ReferenceError: window is not defined`: `@nextcloud/auth` imports
+`@nextcloud/browser-storage`, whose `StorageBuilder.build` accesses browser
+storage during initialization. No browser globals are mocked. Real Nextcloud
+Axios injection and its CSRF/session interceptors remain unverified; the
+successful transport tests use ordinary Axios.
 
-Tests invoke generated class methods through a synthetic Axios adapter, with
-synthetic credentials and data. They check:
+## Normalized-input experiment
 
-- `IdentityApi.accountMe`: GET, versioned OCS URL, explicit
-  `OCS-APIRequest: true`, injected basic auth and typed `ocs.data` envelope.
-- `PoliciesApi.policyGetSystem`: encoded path parameter, bearer configuration,
-  and a simulated HTTP 403 rejection. Authorization remains the server's job;
-  no server authorization was tested. The encoded sample exercises serialization
-  and is not claimed to satisfy the policy key's server-side pattern.
-- `RequestsApi.requestSignatureRequestSignature`: JSON body and content type.
-- `CertificatesApi.certificatePolicyGetCertificatePolicy`: non-OCS path and
-  explicit `responseType: arraybuffer`, with synthetic binary data.
-- Root and `/nextcloud` URLs, including an injected Axios instance with its own
-  `baseURL`. A supplied instance's `baseURL` takes precedence over the generated
-  configuration's base path. An Axios-compatible injected instance is exercised;
-  the real `@nextcloud/axios` package and a live Nextcloud server were not tested.
+`normalize-input.cjs` writes only
+`build/sdk-generation/normalized/openapi-full.oneof.json`, renaming all 22
+`anyOf` keywords to `oneOf`. Generation is separate from the main evaluation.
+It produces:
 
-The generated client does not unwrap `ocs.data`, and the caller must supply the
-required OCS header argument. An Axios adapter must perform status settlement;
-this harness simulates it rather than claiming to test a real network adapter.
-HTTP 200 containing an OCS-level error is not automatically interpreted as an
-error by this test. The PDF return is generated as `File`, while the explicit
-arraybuffer transport yields bytes at runtime; the caller must choose and
-reconcile response handling. No automatic binary response type was observed.
+- `EffectivePolicyValue = boolean | number | string | { [key: string]: object }`;
+- `FileListResponseDataInner = DetailedFile | FileSummary`;
+- `FileRuntimeMetadata = ValidateMetadata | { [key: string]: object }`.
+
+`test:normalized` passes strict compilation and positive/negative checks:
+policy primitives/object values and object union members compile; policy arrays,
+undefined and scalar file/metadata values are rejected. It also records a
+remaining defect: schema-valid `null` is rejected by `EffectivePolicyValue`.
+Passing this diagnostic suite does not establish full contract fidelity.
+
+This transformation is **generator-input normalization only**, not an equivalent
+validation contract. In particular, integers match both `integer` and `number`
+alternatives: `anyOf` allows that overlap, while `oneOf` requires exactly one
+match. Never replace committed OpenAPI with this experiment's output.
+
+## Remaining limits
+
+OCS envelopes are not automatically unwrapped, and callers must pass the OCS
+header argument. Adapter status settlement is simulated; server authorization
+and OCS-level errors inside HTTP 200 are not tested. Basic auth is inspected as
+Axios config, not a real on-wire Authorization header. PDF types are generated
+as `File` although explicit arraybuffer transport returns bytes; callers must
+reconcile those types. No live Nextcloud checks were rerun for this version;
+real account success, binary download, subdirectory deployment and state-changing
+signature requests remain unverified. Tests sample models, not runtime JSON
+validation or numerical limits. No production SDK or frontend migration is
+included.
 
 ## Multipart limitations
 
@@ -106,58 +122,15 @@ outside this evaluation.
 
 ## Handoff
 
-Investigate generator configuration, another generator, or a narrowly designed
-adapter for `anyOf` fidelity and binary handling; separately correct the source
-contract for uploads. Rerun this harness against the resulting approved
-contract and version before deciding on SDK infrastructure. A dedicated issue
-for contract/extractor multipart support may be warranted once maintainers
-choose the remediation; none is created by this evaluation.
+Maintainers must choose among these options; this evaluation selects none:
 
-## Local Nextcloud check (2026-11-10)
+1. Conditional Go with reviewed generator-input normalization, addressing the
+   remaining nullable and transport limitations before SDK infrastructure.
+2. Correct the source contract/extractor to emit `oneOf` where semantically
+   valid, explicitly resolving overlapping alternatives rather than blindly
+   renaming keywords.
+3. Evaluate another generator against the same acceptance criteria.
 
-The optional `test:live` was run against the existing development instance
-using this checkout: Nextcloud 36.0.0 dev, LibreSign 16.0.0-dev.3, HTTPS on
-the local NCDD proxy. No application data was created or modified intentionally.
-The generated client with real HTTP and basic authentication returned:
-
-- `policy-get-system` for `signature_flow`: HTTP 200 and an OCS envelope using
-  an administrator account. This is not a negative authorization test.
-- `account-me`: HTTP 500. The Nextcloud log identified a missing stored
-  signature PFX referenced by the account, followed by `GenericFileException`.
-  This is an instance data problem observed on the server; the positive account
-  response remains unverified. No account certificate was modified.
-- The same account call with deliberately invalid credentials was rejected
-  with an HTTP authentication error.
-- `certificate-policy`: HTTP 404; no PDF was available, so real binary download
-  remains unverified. The response was handled as an Axios HTTP error.
-
-The local instance was hosted at the root, so a live subdirectory installation
-was not tested. `request_signature-request-signature` was not run against this
-instance because it changes application state. Its serialization remains covered
-by the synthetic adapter. These observations do not change the No-Go decision.
-
-## Independent review observations
-
-Independent Claude Fable and Grok reviews reproduced the `anyOf` failure and
-noted that its impact extends to policy write models and object unions such as
-`FileListResponseDataInner` and `FileRuntimeMetadata`. The original minimal
-negative test proves acceptance of an invalid array; it does not measure the
-full extent of these other failures. The reviews also identified further upload
-contract omissions: `file-validate-binary` (`file`),
-`file-add-file-to-envelope` (`files`), and
-`admin-save-certificate-policy` (`pdf`). They require separate verification
-and correction at the source contract, outside this evaluation.
-
-The reviews disagreed on the decision threshold: Grok supported No-Go for the
-tested version and configuration; Fable suggested Go conditional on a future
-normalization of `anyOf` to `oneOf`, based on an isolated experiment. That
-transformation is not part of this harness, can change schema semantics, and
-has not been approved as a contract change. Consequently it is a candidate
-for future investigation, not evidence that this unmodified input works.
-
-The simulated transport uses both basic and bearer credentials together and
-does not establish which Authorization header a real Axios network adapter
-will send when both are configured. Its supplied Axios `baseURL` and
-configuration `basePath` also have the same value: the precedence described
-above follows from inspection of generated `common.ts`, not that test alone.
-No claim of complete parameter-signature coverage follows from the inventory.
+Rerun the harness against the approved contract and toolchain. Multipart source
+contract work belongs to #9435. No PHP controller, extractor, committed OpenAPI,
+generated frontend type, CI job or permanent SDK is changed here.
