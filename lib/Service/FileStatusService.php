@@ -18,6 +18,7 @@ use OCP\AppFramework\Db\DoesNotExistException;
 
 class FileStatusService {
 	public const POLICY_SNAPSHOT_FROZEN_AT = 'policy_snapshot_frozen_at';
+	public const READY_EVENT_ID_METADATA_KEY = 'ready_event_id';
 
 	public function __construct(
 		private FileMapper $fileMapper,
@@ -214,7 +215,7 @@ class FileStatusService {
 
 	public function markReadyTransition(FileEntity $file): void {
 		$metadata = $file->getMetadata() ?? [];
-		$metadata['ready_event_id'] = bin2hex(random_bytes(16));
+		$metadata[self::READY_EVENT_ID_METADATA_KEY] = bin2hex(random_bytes(16));
 		$file->setMetadata($metadata);
 	}
 

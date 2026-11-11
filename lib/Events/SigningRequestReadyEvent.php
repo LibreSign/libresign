@@ -10,6 +10,7 @@ namespace OCA\Libresign\Events;
 
 use OCA\Libresign\Db\File as FileEntity;
 use OCA\Libresign\Enum\FileStatus;
+use OCA\Libresign\Service\FileStatusService;
 use OCP\EventDispatcher\Event;
 use OCP\EventDispatcher\IWebhookCompatibleEvent;
 
@@ -33,7 +34,7 @@ final class SigningRequestReadyEvent extends Event implements IWebhookCompatible
 			return null;
 		}
 
-		$transitionId = ($file->getMetadata() ?? [])['ready_event_id'] ?? null;
+		$transitionId = ($file->getMetadata() ?? [])[FileStatusService::READY_EVENT_ID_METADATA_KEY] ?? null;
 		$eventId = 'libresign.workflow.ready.v1:' . $file->getUuid();
 		if (is_string($transitionId) && $transitionId !== '') {
 			$eventId .= ':' . $transitionId;
