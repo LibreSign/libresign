@@ -39,8 +39,6 @@ class SignatureRejectionNotifier {
 		FileEntity $libreSignFile,
 		bool $workflowCanceled,
 	): void {
-		// The rejection is already committed at this point: a failing listener must
-		// not turn a recorded rejection into an error for the signer.
 		try {
 			$groupedIdentifyMethods = $this->identifyMethodService->getIdentifyMethodsFromSignRequestId($signRequest->getId());
 			foreach ($groupedIdentifyMethods as $identifyMethods) {
