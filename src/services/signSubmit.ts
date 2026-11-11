@@ -75,8 +75,8 @@ export type SignSubmissionAttempt = {
 	signRequestUuid: string
 }
 
-export type SignSubmissionOutcome =
-	| {
+export type SignSubmissionOutcome
+	= | {
 		type: 'signed'
 		payload: Record<string, unknown> & {
 			signRequestUuid: string

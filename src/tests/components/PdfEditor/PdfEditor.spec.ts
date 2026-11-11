@@ -306,7 +306,6 @@ describe('PdfEditor Component - Business Rules', () => {
 			expect(vi.getTimerCount()).toBe(0)
 			vi.useRealTimers()
 		})
-
 	})
 
 	describe('RULE: pdf-elements event relay', () => {

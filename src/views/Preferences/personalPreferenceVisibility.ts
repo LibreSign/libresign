@@ -53,8 +53,7 @@ export const canRenderWorkbenchPolicyForGroupAdmin = (
 
 	const explicitGroupAdminRenderDecision = definition
 		?.groupAdminBehavior
-		?.canRenderPolicy
-		?.(policy)
+		?.canRenderPolicy?.(policy)
 
 	if (typeof explicitGroupAdminRenderDecision === 'boolean') {
 		return explicitGroupAdminRenderDecision

@@ -54,15 +54,15 @@ export interface RealPolicyAllowOverrideContext {
 	viewMode: 'system-admin' | 'group-admin'
 }
 
-export type RealPolicySettingCategory =
-	| 'who-can-sign'
-	| 'how-signing-works'
-	| 'signer-experience'
-	| 'what-gets-recorded'
-	| 'signer-geolocation'
-	| 'time-and-limits'
-	| 'trust-and-verification'
-	| 'system-behavior'
+export type RealPolicySettingCategory
+	= | 'who-can-sign'
+		| 'how-signing-works'
+		| 'signer-experience'
+		| 'what-gets-recorded'
+		| 'signer-geolocation'
+		| 'time-and-limits'
+		| 'trust-and-verification'
+		| 'system-behavior'
 
 export interface RealPolicySettingDefinition {
 	key: string

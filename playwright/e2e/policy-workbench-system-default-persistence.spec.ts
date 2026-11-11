@@ -411,7 +411,7 @@ test('admin can manage instance, group, and user rules when system default is fi
 	const targetUsersCombobox = stableDialog.page().getByRole('combobox', { name: /^(Scope accounts|Target users)$/i }).first()
 	const targetUsersLabel = stableDialog.page().getByLabel(/^(Scope accounts|Target users)$/i).first()
 	const hasTargetUsersSelector = await targetUsersCombobox.isVisible({ timeout: 2000 }).catch(() => false)
-			|| await targetUsersLabel.isVisible({ timeout: 2000 }).catch(() => false)
+		|| await targetUsersLabel.isVisible({ timeout: 2000 }).catch(() => false)
 	if (!hasTargetUsersSelector) {
 		await resetSystemRuleToBaseline(stableDialog)
 		expect([null, 'none']).toContain(await getSystemSignatureFlowValue(page))

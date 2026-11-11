@@ -15,16 +15,16 @@ export type CollectedGeolocation = {
 
 export type GeolocationRequirement = 'disabled' | 'required'
 
-export type GeolocationCollectionFailureReason =
-	| 'permission_denied'
-	| 'position_unavailable'
-	| 'timeout'
-	| 'unsupported'
-	| 'unknown'
+export type GeolocationCollectionFailureReason
+	= | 'permission_denied'
+		| 'position_unavailable'
+		| 'timeout'
+		| 'unsupported'
+		| 'unknown'
 
-export type GeolocationCollectionResult =
-	| { ok: true, geolocation: CollectedGeolocation }
-	| { ok: false, reason: GeolocationCollectionFailureReason }
+export type GeolocationCollectionResult
+	= | { ok: true, geolocation: CollectedGeolocation }
+		| { ok: false, reason: GeolocationCollectionFailureReason }
 
 export type DeviceReportedLocation = {
 	status?: string

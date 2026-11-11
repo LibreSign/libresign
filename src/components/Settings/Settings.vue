@@ -138,7 +138,7 @@ const canManagePolicies = computed(() => {
 		editableByCurrentActor?: boolean
 		canSaveAsUserDefault?: boolean
 	}>)
-		|| hasManageableWorkbenchPolicy(initialEffectivePolicies.policies)
+	|| hasManageableWorkbenchPolicy(initialEffectivePolicies.policies)
 })
 
 onMounted(() => {

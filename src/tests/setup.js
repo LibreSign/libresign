@@ -16,7 +16,7 @@ setActivePinia(createPinia())
 const originalError = console.error
 const originalWarn = console.warn
 
-console.error = function (...args) {
+console.error = function(...args) {
 	const message = args[0]
 	// Allow legitimate error logging, but throw for assertion failures
 	if (message instanceof Error || typeof message === 'string') {
@@ -25,7 +25,7 @@ console.error = function (...args) {
 	return originalError.apply(console, args)
 }
 
-console.warn = function (...args) {
+console.warn = function(...args) {
 	const message = args[0]
 	if (message instanceof Error || typeof message === 'string') {
 		throw new Error(String(message))

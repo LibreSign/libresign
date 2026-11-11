@@ -326,5 +326,4 @@ describe('router business rules', () => {
 			})
 		})
 	})
-
 })

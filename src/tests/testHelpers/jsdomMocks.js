@@ -106,6 +106,7 @@ if (typeof window !== 'undefined') {
 		constructor(callback) {
 			this._callback = callback
 		}
+
 		observe() {}
 		disconnect() {}
 		takeRecords() {
