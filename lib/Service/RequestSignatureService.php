@@ -157,8 +157,8 @@ class RequestSignatureService {
 		}
 
 		try {
-			$result = $this->atomic(function () use ($data, &$file): array {
-				$result = $this->persistFile($data);
+			$result = $this->atomic(function () use ($data, &$file, $createdNode): array {
+				$result = $this->persistFile($data, $createdNode);
 				$file = $result['file'];
 				$data['status'] ??= $file->getStatus();
 				$this->sequentialSigningService->setFile($file);
@@ -428,7 +428,7 @@ class RequestSignatureService {
 	}
 
 	/** @return array{file: FileEntity, becameReady: bool} */
-	private function persistFile(array $data): array {
+	private function persistFile(array $data, ?Node $createdNode = null): array {
 		if (!empty($data['uuid'])) {
 			$file = $this->fileMapper->getByUuid($data['uuid']);
 			$this->filePolicyApplier->syncCoreFlowPolicies($file, $data);
@@ -459,7 +459,7 @@ class RequestSignatureService {
 			}
 		}
 
-		$node = $this->fileService->getNodeFromData($data);
+		$node = $createdNode ?? $this->fileService->getNodeFromData($data);
 
 		$file = new FileEntity();
 		$file->setNodeId($node->getId());

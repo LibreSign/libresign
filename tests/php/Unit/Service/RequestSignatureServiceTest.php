@@ -327,12 +327,15 @@ final class RequestSignatureServiceTest extends \OCA\Libresign\Tests\Unit\TestCa
 		$this->assertSame(['freeze:' . \OCA\Libresign\Enum\FileStatus::ABLE_TO_SIGN->value, 'insert'], $calls);
 	}
 
-
 	public function testNewStorageNodeIsCreatedBeforeTransactionAndDeletedAfterSignerRollback(): void {
 		$node = $this->createMock(\OCP\Files\File::class);
 		$node->method('getId')->willReturn(621);
 		$node->method('getExtension')->willReturn('');
 		$node->method('getName')->willReturn('new-contract.pdf');
+		$this->fileMapper->expects($this->once())->method('getByNodeId')
+			->with(621)
+			->willThrowException(new \OCP\AppFramework\Db\DoesNotExistException('new node is not yet registered'));
+
 
 		$inTransaction = false;
 		$this->db->expects($this->once())->method('beginTransaction')->willReturnCallback(
@@ -403,6 +406,10 @@ final class RequestSignatureServiceTest extends \OCA\Libresign\Tests\Unit\TestCa
 		$node->method('getId')->willReturn(623);
 		$node->method('getExtension')->willReturn('');
 		$node->method('getName')->willReturn('new-contract.pdf');
+		$this->fileMapper->expects($this->once())->method('getByNodeId')
+			->with(623)
+			->willThrowException(new \OCP\AppFramework\Db\DoesNotExistException('new node is not yet registered'));
+
 		$this->fileService->expects($this->once())->method('getNodeFromData')->willReturn($node);
 		$this->fileMapper->expects($this->once())->method('insert')->willReturnArgument(0);
 		$this->db->expects($this->once())->method('commit');
@@ -423,6 +430,10 @@ final class RequestSignatureServiceTest extends \OCA\Libresign\Tests\Unit\TestCa
 		$node->method('getId')->willReturn(624);
 		$node->method('getExtension')->willReturn('');
 		$node->method('getName')->willReturn('new-contract.pdf');
+		$this->fileMapper->expects($this->once())->method('getByNodeId')
+			->with(624)
+			->willThrowException(new \OCP\AppFramework\Db\DoesNotExistException('new node is not yet registered'));
+
 		$this->fileService->method('getNodeFromData')->willReturn($node);
 		$this->filePolicyApplier->method('applyAll')->willThrowException(new \RuntimeException('policy persistence failed'));
 		$this->db->expects($this->once())->method('rollBack');
@@ -500,6 +511,10 @@ final class RequestSignatureServiceTest extends \OCA\Libresign\Tests\Unit\TestCa
 		$node->method('getId')->willReturn(501);
 		$node->method('getExtension')->willReturn('');
 		$node->method('getName')->willReturn('contract.pdf');
+		$this->fileMapper->expects($this->once())->method('getByNodeId')
+			->with(501)
+			->willThrowException(new \OCP\AppFramework\Db\DoesNotExistException('new node is not yet registered'));
+
 		$this->fileService->method('getNodeFromData')->willReturn($node);
 		$this->fileMapper->method('insert')->willReturnArgument(0);
 		$this->user->method('getUID')->willReturn('tester');

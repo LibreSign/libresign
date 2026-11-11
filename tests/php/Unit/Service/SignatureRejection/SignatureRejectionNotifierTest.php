@@ -136,7 +136,6 @@ final class SignatureRejectionNotifierTest extends TestCase {
 		$this->assertSame(2, $calls);
 	}
 
-
 	public function testIdentificationLookupFailureLogsSourceWithoutExceptionMessage(): void {
 		$failure = new \RuntimeException('private identification details');
 		$this->identification->method('getIdentifyMethodsFromSignRequestId')->willThrowException($failure);
