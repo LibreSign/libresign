@@ -15,6 +15,7 @@ use OCA\Libresign\Service\MailService;
 use OCA\Libresign\Service\Notification\GatewayChannel;
 use OCA\Libresign\Service\Notification\GatewayNotificationComposer;
 use OCA\Libresign\Service\Notification\GatewayPayload;
+use OCA\Libresign\Service\Notification\IdDocRejectionPayload;
 use OCA\Libresign\Service\Notification\InAppChannel;
 use OCA\Libresign\Service\Notification\InAppPayload;
 use OCA\Libresign\Service\Notification\MailChannel;
@@ -29,6 +30,7 @@ use OCP\IL10N;
 use OCP\IURLGenerator;
 use OCP\Notification\IManager;
 use OCP\Notification\INotification;
+use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 use Psr\Container\ContainerInterface;
 use Psr\Log\LoggerInterface;
@@ -63,6 +65,42 @@ final class NotificationChannelsTest extends TestCase {
 		$channel->deliver(new NotificationMessage(
 			'business-event-next', 'sign_request', 'mail', $this->file(), $this->request(),
 			'synthetic@example.invalid', new MailPayload(firstNotification: false),
+		));
+	}
+
+	#[DataProvider('rejectedDocumentRecipients')]
+	public function testMailChannelDeliversRejectionReasonToExpectedSigner(
+		bool $accountSigner,
+		?string $recipientUserId,
+		string $email,
+	): void {
+		$file = $this->file();
+		$request = $this->request();
+		$reason = 'Expired document — please replace the front and back scan.';
+		$mail = $this->createMock(MailService::class);
+		$mail->expects($this->once())->method('notifyIdentificationDocumentRejected')
+			->with($request, $email, $file, $reason, $accountSigner, $recipientUserId);
+		(new MailChannel($mail))->deliver(new NotificationMessage(
+			'id-doc-rejected:31', 'id_doc_rejected', 'mail',
+			$file, $request, $email, new IdDocRejectionPayload($reason, $accountSigner, $recipientUserId),
+		));
+	}
+
+	public static function rejectedDocumentRecipients(): array {
+		return [
+			'external signer' => [false, null, 'external@example.test'],
+			'Nextcloud account' => [true, 'synthetic-owner', 'owner@example.test'],
+		];
+	}
+
+	public function testMailChannelRejectsIncompatiblePayloadInsteadOfSendingWrongNotification(): void {
+		$mail = $this->createMock(MailService::class);
+		$mail->expects($this->never())->method('notifyIdentificationDocumentRejected');
+		$mail->expects($this->never())->method('notifyUnsignedUser');
+		$this->expectException(\InvalidArgumentException::class);
+		(new MailChannel($mail))->deliver(new NotificationMessage(
+			'id-doc-rejected:31', 'id_doc_rejected', 'mail',
+			$this->file(), $this->request(), 'external@example.test', new MailPayload(firstNotification: true),
 		));
 	}
 
