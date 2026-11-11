@@ -20,11 +20,11 @@ use OCA\Libresign\Exception\NotificationPreparationException;
 use OCA\Libresign\Exception\NotificationTransportException;
 use OCA\Libresign\Service\Notification\MailPayload;
 use OCA\Libresign\Service\Notification\NotificationChannel;
-use OCA\Libresign\Service\Notification\NotificationDeliveryEventPublisher;
 use OCA\Libresign\Service\Notification\NotificationFailureClassifier;
 use OCA\Libresign\Service\Notification\NotificationHistoryService;
 use OCA\Libresign\Service\Notification\NotificationMessage;
 use OCA\Libresign\Service\Notification\NotificationSubmissionService;
+use OCA\Libresign\Service\Webhook\NativeWebhookEventPublisher;
 use OCP\IDBConnection;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
@@ -38,7 +38,7 @@ final class NotificationSubmissionServiceTest extends TestCase {
 	private function service(
 		NotificationDeliveryMapper $deliveries,
 		NotificationAttemptMapper $attempts,
-		NotificationDeliveryEventPublisher $publisher,
+		NativeWebhookEventPublisher $publisher,
 		?IDBConnection $db = null,
 	): NotificationSubmissionService {
 		return new NotificationSubmissionService(
@@ -83,8 +83,8 @@ final class NotificationSubmissionServiceTest extends TestCase {
 		$db->expects($this->never())->method('rollBack');
 		$channel = $this->createMock(NotificationChannel::class);
 		$channel->method('deliver')->willThrowException($failure);
-		$publisher = $this->createMock(NotificationDeliveryEventPublisher::class);
-		$publisher->expects($this->once())->method('publish')->with(9);
+		$publisher = $this->createMock(NativeWebhookEventPublisher::class);
+		$publisher->expects($this->once())->method('notificationOutcome')->with(9);
 		$service = $this->service($deliveries, $attempts, $publisher, $db);
 		$this->expectException(get_class($failure));
 		$service->submit($delivery, $this->message(), $channel);
@@ -145,8 +145,8 @@ final class NotificationSubmissionServiceTest extends TestCase {
 			->willReturnCallback(function () use (&$commits): void {
 				$this->assertSame(1, $commits, 'The attempt must be claimed before sending.');
 			});
-		$publisher = $this->createMock(NotificationDeliveryEventPublisher::class);
-		$publisher->expects($this->once())->method('publish')->with(9)
+		$publisher = $this->createMock(NativeWebhookEventPublisher::class);
+		$publisher->expects($this->once())->method('notificationOutcome')->with(9)
 			->willReturnCallback(function () use (&$commits): void {
 				$this->assertSame(2, $commits, 'Publication must follow the committed ledger outcome.');
 			});
@@ -168,8 +168,8 @@ final class NotificationSubmissionServiceTest extends TestCase {
 
 		$db = $this->createMock(IDBConnection::class);
 		$db->expects($this->once())->method('rollBack');
-		$publisher = $this->createMock(NotificationDeliveryEventPublisher::class);
-		$publisher->expects($this->never())->method('publish');
+		$publisher = $this->createMock(NativeWebhookEventPublisher::class);
+		$publisher->expects($this->never())->method('notificationOutcome');
 		$this->expectException(\RuntimeException::class);
 		$this->expectExceptionMessage('ledger write failed');
 
@@ -187,8 +187,8 @@ final class NotificationSubmissionServiceTest extends TestCase {
 		$deliveries->method('claim')->willReturn(false);
 		$channel = $this->createMock(NotificationChannel::class);
 		$channel->expects($this->never())->method('deliver');
-		$publisher = $this->createMock(NotificationDeliveryEventPublisher::class);
-		$publisher->expects($this->never())->method('publish');
+		$publisher = $this->createMock(NativeWebhookEventPublisher::class);
+		$publisher->expects($this->never())->method('notificationOutcome');
 		$this->assertFalse($this->service(
 			$deliveries,
 			$this->createMock(NotificationAttemptMapper::class),

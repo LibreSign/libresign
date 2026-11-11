@@ -13,10 +13,8 @@ use DateTimeInterface;
 use OCA\Libresign\Db\File as FileEntity;
 use OCA\Libresign\Db\FileMapper;
 use OCA\Libresign\Enum\FileStatus;
-use OCA\Libresign\Events\SigningRequestReadyEvent;
 use OCA\Libresign\Service\SignRequest\StatusCacheService;
 use OCP\AppFramework\Db\DoesNotExistException;
-use OCP\EventDispatcher\IEventDispatcher;
 
 class FileStatusService {
 	public const POLICY_SNAPSHOT_FROZEN_AT = 'policy_snapshot_frozen_at';
@@ -24,7 +22,6 @@ class FileStatusService {
 	public function __construct(
 		private FileMapper $fileMapper,
 		private StatusCacheService $statusCacheService,
-		private IEventDispatcher $eventDispatcher,
 	) {
 	}
 
@@ -41,13 +38,6 @@ class FileStatusService {
 		}
 
 		return $file;
-	}
-
-	public function dispatchReadyRequest(FileEntity $file): void {
-		$event = SigningRequestReadyEvent::fromTransition($file, FileStatus::DRAFT->value);
-		if ($event !== null) {
-			$this->eventDispatcher->dispatchTyped($event);
-		}
 	}
 
 	public function invalidateCachedStatus(FileEntity $file): void {

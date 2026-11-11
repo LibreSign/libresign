@@ -30,6 +30,7 @@ use OCA\Libresign\Service\SignRequest\SignRequestService;
 use OCA\Libresign\Service\Validation\FileInputValidator;
 use OCA\Libresign\Service\Validation\SignerValidator;
 use OCA\Libresign\Service\Validation\SigningRequestValidator;
+use OCA\Libresign\Service\Webhook\NativeWebhookEventPublisher;
 use OCP\AppFramework\Db\DoesNotExistException;
 use OCP\AppFramework\Db\MultipleObjectsReturnedException;
 use OCP\AppFramework\Db\TTransactional;
@@ -79,6 +80,7 @@ class RequestSignatureService {
 		protected SignerRemovalService $signerRemovalService,
 		protected IDBConnection $db,
 		protected NotificationDeliveryService $notifications,
+		protected NativeWebhookEventPublisher $webhooks,
 	) {
 	}
 
@@ -151,23 +153,10 @@ class RequestSignatureService {
 
 		$this->notifications->flushCommitted();
 		if ($result['becameReady']) {
-			$this->publishReadyRequest($file);
+			$this->webhooks->requestReady($file);
 		}
 
 		return $file;
-	}
-
-	private function publishReadyRequest(FileEntity $file): void {
-		try {
-			$this->fileStatusService->dispatchReadyRequest($file);
-		} catch (\Throwable $e) {
-			// The database write already committed. Do not turn a successful
-			// signing request into a failed API response due to a webhook listener.
-			$this->logger->warning('Unable to publish signing request ready event', [
-				'fileId' => $file->getId(),
-				'errorType' => get_debug_type($e),
-			]);
-		}
 	}
 
 	private function propagateSignersToChildren(FileEntity $envelope, array $data): void {
@@ -245,7 +234,7 @@ class RequestSignatureService {
 		}
 
 		if ($envelope->getStatus() === FileStatus::ABLE_TO_SIGN->value) {
-			$this->publishReadyRequest($envelope);
+			$this->webhooks->requestReady($envelope);
 		}
 		return [
 			'envelope' => $envelope,

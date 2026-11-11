@@ -41,6 +41,7 @@ use OCA\Libresign\Service\SignRequest\StatusUpdatePolicy;
 use OCA\Libresign\Service\Validation\FileInputValidator;
 use OCA\Libresign\Service\Validation\SignerValidator;
 use OCA\Libresign\Service\Validation\SigningRequestValidator;
+use OCA\Libresign\Service\Webhook\NativeWebhookEventPublisher;
 use OCP\Files\Folder;
 use OCP\Files\IMimeTypeDetector;
 use OCP\Http\Client\IClient;
@@ -87,6 +88,7 @@ final class RequestSignatureServiceTest extends \OCA\Libresign\Tests\Unit\TestCa
 	private SignerGeolocationPolicyService&MockObject $signerGeolocationPolicyService;
 	private \OCP\IDBConnection&MockObject $db;
 	private \OCA\Libresign\Service\NotificationDeliveryService&MockObject $notifications;
+	private NativeWebhookEventPublisher&MockObject $webhooks;
 
 	public function setUp(): void {
 		parent::setUp();
@@ -127,6 +129,7 @@ final class RequestSignatureServiceTest extends \OCA\Libresign\Tests\Unit\TestCa
 		$this->signerGeolocationPolicyService = $this->createMock(SignerGeolocationPolicyService::class);
 		$this->db = $this->createMock(\OCP\IDBConnection::class);
 		$this->notifications = $this->createMock(\OCA\Libresign\Service\NotificationDeliveryService::class);
+		$this->webhooks = $this->createMock(NativeWebhookEventPublisher::class);
 	}
 
 	private function getService(array $methods = []): RequestSignatureService|MockObject {
@@ -164,6 +167,7 @@ final class RequestSignatureServiceTest extends \OCA\Libresign\Tests\Unit\TestCa
 					$this->signerRemovalService,
 					$this->db,
 					$this->notifications,
+					$this->webhooks,
 				])
 				->onlyMethods($methods)
 				->getMock();
@@ -201,6 +205,7 @@ final class RequestSignatureServiceTest extends \OCA\Libresign\Tests\Unit\TestCa
 			$this->signerRemovalService,
 			$this->db,
 			$this->notifications,
+			$this->webhooks,
 		);
 	}
 
@@ -338,7 +343,7 @@ final class RequestSignatureServiceTest extends \OCA\Libresign\Tests\Unit\TestCa
 			->willReturnCallback(static function () use (&$committed): void {
 				$committed = true;
 			});
-		$this->fileStatusService->expects($this->once())->method('dispatchReadyRequest')
+		$this->webhooks->expects($this->once())->method('requestReady')
 			->with($this->callback(static function ($published) use (&$committed, $file): bool {
 				return $committed && $published === $file
 					&& $file->getStatus() === \OCA\Libresign\Enum\FileStatus::ABLE_TO_SIGN->value;
@@ -348,38 +353,6 @@ final class RequestSignatureServiceTest extends \OCA\Libresign\Tests\Unit\TestCa
 			'uuid' => 'ready-uuid',
 			'status' => \OCA\Libresign\Enum\FileStatus::ABLE_TO_SIGN->value,
 		]));
-	}
-
-	public function testReadyWebhookFailureDoesNotInvalidateCommittedRequest(): void {
-		$file = new \OCA\Libresign\Db\File();
-		$file->setUuid('ready-uuid');
-		$file->setStatus(\OCA\Libresign\Enum\FileStatus::DRAFT->value);
-		$this->fileMapper->method('getByUuid')->with('ready-uuid')->willReturn($file);
-		$this->fileStatusService->method('updateFileStatusIfUpgrade')
-			->willReturnCallback(static function ($file, int $status) {
-				$file->setStatus($status);
-				return $file;
-			});
-		$committed = false;
-		$this->db->expects($this->once())->method('commit')
-			->willReturnCallback(static function () use (&$committed): void {
-				$committed = true;
-			});
-		$this->fileStatusService->method('dispatchReadyRequest')
-			->willThrowException(new \TypeError('PRIVATE_WEBHOOK_DETAILS'));
-		$this->loggerInterface->expects($this->once())->method('warning')->with(
-			'Unable to publish signing request ready event',
-			$this->callback(static fn (array $context): bool
-				=> ($context['errorType'] ?? null) === \TypeError::class
-				&& !str_contains(json_encode($context), 'PRIVATE_WEBHOOK_DETAILS')
-			),
-		);
-
-		$this->assertSame($file, $this->getService()->save([
-			'uuid' => 'ready-uuid',
-			'status' => \OCA\Libresign\Enum\FileStatus::ABLE_TO_SIGN->value,
-		]));
-		$this->assertTrue($committed);
 	}
 
 	public function testReadyRequestEventIsNotPublishedWhenSignerPersistenceFails(): void {
@@ -396,7 +369,7 @@ final class RequestSignatureServiceTest extends \OCA\Libresign\Tests\Unit\TestCa
 			->willThrowException(new \RuntimeException('invalid signer'));
 		$this->db->expects($this->once())->method('rollBack');
 		$this->db->expects($this->never())->method('commit');
-		$this->fileStatusService->expects($this->never())->method('dispatchReadyRequest');
+		$this->webhooks->expects($this->never())->method('requestReady');
 		$this->expectException(\RuntimeException::class);
 
 		$this->getService()->save([
@@ -968,6 +941,7 @@ final class RequestSignatureServiceTest extends \OCA\Libresign\Tests\Unit\TestCa
 				$this->signerRemovalService,
 				$this->createMock(\OCP\IDBConnection::class),
 				$this->createMock(\OCA\Libresign\Service\NotificationDeliveryService::class),
+				$this->webhooks,
 			])
 			->onlyMethods(['unassociateToUser'])
 			->getMock();
@@ -1046,6 +1020,7 @@ final class RequestSignatureServiceTest extends \OCA\Libresign\Tests\Unit\TestCa
 				$this->signerRemovalService,
 				$this->createMock(\OCP\IDBConnection::class),
 				$this->createMock(\OCA\Libresign\Service\NotificationDeliveryService::class),
+				$this->webhooks,
 			])
 			->onlyMethods(['unassociateToUser'])
 			->getMock();

@@ -31,8 +31,6 @@ use OCA\Libresign\Enum\FileStatus;
 use OCA\Libresign\Enum\IdentifyMethodRequirement;
 use OCA\Libresign\Enum\SignRequestStatus;
 use OCA\Libresign\Events\SignedEventFactory;
-use OCA\Libresign\Events\SignerSignedWebhookEvent;
-use OCA\Libresign\Events\SigningRequestCompletedEvent;
 use OCA\Libresign\Exception\FooterStampUnavailableException;
 use OCA\Libresign\Exception\LibresignException;
 use OCA\Libresign\Handler\DocMdpHandler;
@@ -57,6 +55,7 @@ use OCA\Libresign\Service\SignRequest\StatusService;
 use OCA\Libresign\Service\Validation\IdentityDocumentValidator;
 use OCA\Libresign\Service\Validation\SignerValidator;
 use OCA\Libresign\Service\Validation\SigningRequestValidator;
+use OCA\Libresign\Service\Webhook\NativeWebhookEventPublisher;
 use OCP\AppFramework\Db\DoesNotExistException;
 use OCP\AppFramework\Db\MultipleObjectsReturnedException;
 use OCP\AppFramework\Utility\ITimeFactory;
@@ -144,6 +143,7 @@ class SignFileService {
 		private TemporarySignatureImageService $temporarySignatureImageService,
 		private NotificationDeliveryMapper $notificationDeliveries,
 		private SigningWorkflowStatusResolver $signingWorkflowStatusResolver,
+		private NativeWebhookEventPublisher $webhooks,
 	) {
 	}
 
@@ -981,16 +981,7 @@ class SignFileService {
 	}
 
 	private function dispatchCompletionIfTransition(FileEntity $request, int $previousStatus): void {
-		$requestId = $request->getId();
-		if ($requestId === null) {
-			return;
-		}
-
-		$request = $this->fileMapper->getById($requestId);
-		$event = SigningRequestCompletedEvent::fromTransition($request, $previousStatus);
-		if ($event !== null) {
-			$this->eventDispatcher->dispatchTyped($event);
-		}
+		$this->webhooks->requestCompleted($request, $previousStatus);
 	}
 
 	protected function dispatchSignedEvent(): void {
@@ -1021,18 +1012,7 @@ class SignFileService {
 			);
 			$this->eventDispatcher->dispatchTyped($event);
 		} finally {
-			try {
-				$root = $this->getCompletionTarget($this->libreSignFile);
-				$publicEvent = SignerSignedWebhookEvent::afterSigning($root, $this->libreSignFile, $this->signRequest);
-				if ($publicEvent !== null) {
-					$this->eventDispatcher->dispatchTyped($publicEvent);
-				}
-			} catch (\Throwable $e) {
-				$this->logger->warning('Unable to dispatch signer signed webhook event', [
-					'signRequestId' => $this->signRequest->getId(),
-					'errorType' => get_debug_type($e),
-				]);
-			}
+			$this->webhooks->signerSigned($this->libreSignFile, $this->signRequest);
 		}
 	}
 

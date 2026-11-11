@@ -13,6 +13,7 @@ use OCA\Libresign\Db\NotificationDelivery;
 use OCA\Libresign\Db\NotificationDeliveryMapper;
 use OCA\Libresign\Enum\NotificationDeliveryState;
 use OCA\Libresign\Exception\NotificationPreparationException;
+use OCA\Libresign\Service\Webhook\NativeWebhookEventPublisher;
 use OCP\AppFramework\Db\TTransactional;
 use OCP\IDBConnection;
 use Psr\Log\LoggerInterface;
@@ -29,7 +30,7 @@ class NotificationSubmissionService {
 		private NotificationFailureClassifier $failureClassifier,
 		private NotificationHistoryService $history,
 		private LoggerInterface $logger,
-		private NotificationDeliveryEventPublisher $eventPublisher,
+		private NativeWebhookEventPublisher $webhooks,
 	) {
 	}
 
@@ -91,7 +92,7 @@ class NotificationSubmissionService {
 				$this->attempts->finish($attempt->getId(), $outcome, $reason);
 				$this->deliveries->finish($delivery->getId(), $outcome, $retryAt);
 			}, $this->db);
-			$this->eventPublisher->publish($delivery->getId());
+			$this->webhooks->notificationOutcome($delivery->getId());
 		}
 		return true;
 	}

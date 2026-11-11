@@ -16,14 +16,12 @@ use OCA\Libresign\Enum\FileStatus;
 use OCA\Libresign\Enum\SignatureRejectionCommentMode;
 use OCA\Libresign\Enum\SignRequestStatus;
 use OCA\Libresign\Events\SignatureRejectedEvent;
-use OCA\Libresign\Events\SignerRejectedWebhookEvent;
-use OCA\Libresign\Events\SigningRequestCanceledEvent;
-use OCA\Libresign\Events\SigningRequestCompletedEvent;
 use OCA\Libresign\Exception\LibresignException;
 use OCA\Libresign\Service\File\SigningWorkflowStatusResolver;
 use OCA\Libresign\Service\FileStatusService;
 use OCA\Libresign\Service\IdentifyMethodService;
 use OCA\Libresign\Service\SequentialSigningService;
+use OCA\Libresign\Service\Webhook\NativeWebhookEventPublisher;
 use OCP\AppFramework\Db\DoesNotExistException;
 use OCP\AppFramework\Utility\ITimeFactory;
 use OCP\EventDispatcher\IEventDispatcher;
@@ -54,6 +52,7 @@ class SignatureRejectionService {
 		private ITimeFactory $timeFactory,
 		private IL10N $l10n,
 		private LoggerInterface $logger,
+		private NativeWebhookEventPublisher $webhooks,
 	) {
 	}
 
@@ -86,7 +85,7 @@ class SignatureRejectionService {
 			: $libreSignFile;
 		$previousRootStatus = $root->getStatus();
 		$activatedSigners = $this->persistRejection($libreSignFile, $signRequest, $normalizedComment, $commentIsPrivate, $config->cancelsWorkflow());
-		$this->dispatchPublicRejectionEvents($libreSignFile, $signRequest, $previousRootStatus);
+		$this->webhooks->signerRejected($libreSignFile, $signRequest, $previousRootStatus);
 		// Record the committed rejection before notification errors can interrupt this flow.
 		// The event reports the status the rejection left, as the API does: a workflow that
 		// continues after rejections is still canceled once every signer rejected.
@@ -375,45 +374,6 @@ class SignatureRejectionService {
 		}
 
 		return $trimmed;
-	}
-
-	private function dispatchPublicRejectionEvents(
-		FileEntity $document,
-		SignRequestEntity $signer,
-		int $previousRootStatus,
-	): void {
-		try {
-			$root = $document->hasParent()
-				? $this->fileMapper->getById($document->getParentFileId())
-				: $document;
-			$events = [
-				SignerRejectedWebhookEvent::afterRejection($root, $document, $signer, $this->isWorkflowCanceled($root)),
-				SigningRequestCanceledEvent::fromTransition($root, $previousRootStatus),
-				SigningRequestCompletedEvent::fromTransition($root, $previousRootStatus),
-			];
-		} catch (\Throwable $e) {
-			$this->logger->warning('Unable to prepare LibreSign rejection events', [
-				'fileId' => $document->getId(),
-				'errorType' => get_debug_type($e),
-			]);
-			return;
-		}
-
-		foreach ($events as $event) {
-			if ($event === null) {
-				continue;
-			}
-			try {
-				$this->eventDispatcher->dispatchTyped($event);
-			} catch (\Throwable $e) {
-				// Listener errors cannot undo a persisted rejection or suppress later events.
-				$this->logger->warning('Unable to publish LibreSign rejection event', [
-					'fileId' => $document->getId(),
-					'eventType' => $event::class,
-					'errorType' => get_debug_type($e),
-				]);
-			}
-		}
 	}
 
 	private function dispatchRejectedEvent(

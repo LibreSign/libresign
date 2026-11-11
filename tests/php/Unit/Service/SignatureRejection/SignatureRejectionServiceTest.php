@@ -15,9 +15,6 @@ use OCA\Libresign\Db\SignRequestMapper;
 use OCA\Libresign\Enum\FileStatus;
 use OCA\Libresign\Enum\SignRequestStatus;
 use OCA\Libresign\Events\SignatureRejectedEvent;
-use OCA\Libresign\Events\SignerRejectedWebhookEvent;
-use OCA\Libresign\Events\SigningRequestCanceledEvent;
-use OCA\Libresign\Events\SigningRequestCompletedEvent;
 use OCA\Libresign\Exception\LibresignException;
 use OCA\Libresign\Service\File\SigningWorkflowStatusResolver;
 use OCA\Libresign\Service\FileStatusService;
@@ -27,6 +24,7 @@ use OCA\Libresign\Service\Policy\Provider\SignatureRejection\SignatureRejectionP
 use OCA\Libresign\Service\SequentialSigningService;
 use OCA\Libresign\Service\SignatureRejection\SignatureRejectionPolicyService;
 use OCA\Libresign\Service\SignatureRejection\SignatureRejectionService;
+use OCA\Libresign\Service\Webhook\NativeWebhookEventPublisher;
 use OCP\AppFramework\Db\DoesNotExistException;
 use OCP\AppFramework\Utility\ITimeFactory;
 use OCP\EventDispatcher\IEventDispatcher;
@@ -52,6 +50,7 @@ final class SignatureRejectionServiceTest extends TestCase {
 	private ITimeFactory&MockObject $timeFactory;
 	private IL10N&MockObject $l10n;
 	private LoggerInterface&MockObject $logger;
+	private NativeWebhookEventPublisher&MockObject $webhooks;
 	/** @var list<SignRequest> */
 	private array $envelopeChildSignRequests = [];
 	private ?SignRequest $envelopeSignRequest = null;
@@ -72,6 +71,7 @@ final class SignatureRejectionServiceTest extends TestCase {
 		$this->timeFactory = $this->createMock(ITimeFactory::class);
 		$this->l10n = $this->createMock(IL10N::class);
 		$this->logger = $this->createMock(LoggerInterface::class);
+		$this->webhooks = $this->createMock(NativeWebhookEventPublisher::class);
 
 		$this->l10n->method('t')->willReturnArgument(0);
 		$this->timeFactory->method('getDateTime')
@@ -116,6 +116,7 @@ final class SignatureRejectionServiceTest extends TestCase {
 			$this->timeFactory,
 			$this->l10n,
 			$this->logger,
+			$this->webhooks,
 		);
 	}
 
@@ -289,31 +290,22 @@ final class SignatureRejectionServiceTest extends TestCase {
 	}
 
 	#[DataProvider('publicRejectionOutcomes')]
-	public function testCommittedRejectionEmitsOnePublicBusinessEvent(bool $cancel): void {
+	public function testCommittedRejectionDelegatesBusinessEvent(bool $cancel): void {
 		$this->withPolicy(self::policy($cancel ? 'cancel' : 'continue', 'optional'));
 		$file = $this->file();
 		$file->setUuid('request-uuid');
 		$signer = $this->signRequest();
-		$signer->setUuid('secret-invitation');
-		$events = [];
-		$this->eventDispatcher->method('dispatchTyped')->willReturnCallback(static function ($event) use (&$events): void {
-			$events[] = $event;
-		});
+		$this->db->expects($this->once())->method('commit');
+		$this->webhooks->expects($this->once())->method('signerRejected')
+			->with($file, $signer, FileStatus::ABLE_TO_SIGN->value);
 		$this->getService()->reject($file, $signer, 'private explanation', true);
-		$rejections = array_values(array_filter($events, static fn ($event): bool => $event instanceof SignerRejectedWebhookEvent));
-		$cancellations = array_values(array_filter($events, static fn ($event): bool => $event instanceof SigningRequestCanceledEvent));
-		$this->assertCount(1, $rejections);
-		$this->assertCount($cancel ? 1 : 0, $cancellations);
-		$this->assertSame($cancel, $rejections[0]->getWebhookSerializable()['workflowCanceled']);
-		$this->assertStringNotContainsString('private explanation', json_encode($rejections[0]->getWebhookSerializable()));
+		$this->assertSame(SignRequestStatus::REJECTED, $signer->getStatusEnum());
+		$this->assertTrue($signer->getRejectionCommentPrivate());
 	}
 
 	/** @return array<string, array{bool}> */
 	public static function publicRejectionOutcomes(): array {
-		return [
-			'continue' => [false],
-			'cancel' => [true],
-		];
+		return ['continue' => [false], 'cancel' => [true]];
 	}
 
 	public function testProgrammingErrorDuringRejectionRollsBackAndRemainsVisible(): void {
@@ -332,69 +324,14 @@ final class SignatureRejectionServiceTest extends TestCase {
 		}
 	}
 
-	public function testFailedPublicRejectionEventDoesNotSuppressCancellationEvent(): void {
-		$this->withPolicy(self::policy('cancel'));
-		$file = $this->file();
-		$file->setUuid('workflow-uuid');
-		$signer = $this->signRequest();
-		$events = [];
-		$this->eventDispatcher->method('dispatchTyped')->willReturnCallback(
-			static function ($event) use (&$events): void {
-				$events[] = $event;
-				if ($event instanceof SignerRejectedWebhookEvent) {
-					throw new \RuntimeException('private recipient information');
-				}
-			},
-		);
-		$this->logger->expects($this->once())->method('warning')
-			->with($this->anything(), $this->callback(static function (array $context): bool {
-				return $context['errorType'] === 'RuntimeException'
-					&& !str_contains(json_encode($context), 'private recipient information');
-			}));
-		$this->getService()->reject($file, $signer);
-		$this->assertCount(1, array_filter($events, static fn ($event): bool => $event instanceof SigningRequestCanceledEvent));
-	}
-
-	public function testPublicWebhookErrorCannotInterruptCommittedRejection(): void {
-		$this->withPolicy(self::policy('cancel'));
-		$file = $this->file();
-		$file->setUuid('workflow-uuid');
-		$signer = $this->signRequest();
-		$this->db->expects($this->once())->method('commit');
-		$this->db->expects($this->never())->method('rollBack');
-		$events = [];
-		$this->eventDispatcher->method('dispatchTyped')->willReturnCallback(
-			static function ($event) use (&$events): void {
-				$events[] = $event;
-				if ($event instanceof SignerRejectedWebhookEvent) {
-					throw new \TypeError('PRIVATE_WEBHOOK_DETAILS');
-				}
-			},
-		);
-		$this->logger->expects($this->once())->method('warning')->with(
-			'Unable to publish LibreSign rejection event',
-			$this->callback(static fn (array $context): bool
-				=> ($context['errorType'] ?? null) === \TypeError::class
-				&& !str_contains(json_encode($context), 'PRIVATE_WEBHOOK_DETAILS')
-			),
-		);
-
-		$this->assertSame($signer, $this->getService()->reject($file, $signer));
-		$this->assertCount(1, array_filter($events, static fn ($event): bool => $event instanceof SigningRequestCanceledEvent));
-	}
-
 	public function testRejectionCanCompletePreviouslySignedWorkflow(): void {
 		$this->withPolicy(self::policy('continue'));
 		$file = $this->file(FileStatus::PARTIAL_SIGNED->value);
 		$file->setUuid('completed-by-rejection');
 		$this->signingWorkflowStatusResolver->method('resolve')->willReturn(FileStatus::SIGNED);
-		$events = [];
-		$this->eventDispatcher->method('dispatchTyped')->willReturnCallback(static function ($event) use (&$events): void {
-			$events[] = $event;
-		});
+		$this->webhooks->expects($this->once())->method('signerRejected')->with($file, $this->anything(), FileStatus::PARTIAL_SIGNED->value);
 		$this->getService()->reject($file, $this->signRequest());
 		$this->assertSame(FileStatus::SIGNED->value, $file->getStatus());
-		$this->assertCount(1, array_filter($events, static fn ($event): bool => $event instanceof SigningRequestCompletedEvent));
 	}
 
 	public function testRejectionIsPersistedWithItsTimestampAndComment(): void {
