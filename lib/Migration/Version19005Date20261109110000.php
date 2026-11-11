@@ -83,10 +83,15 @@ final class Version19005Date20261109110000 extends SimpleMigrationStep {
 					throw new \RuntimeException('Could not prepare LibreSign callback backup for storage');
 				}
 
-				// Supplying the populated resource writes synchronously. In contrast,
-				// newFile() without content defers persistence until stream close.
+				$csv = stream_get_contents($handle);
+				if ($csv === false || strlen($csv) !== $bytes) {
+					throw new \RuntimeException('Could not read LibreSign callback backup buffer');
+				}
+
+				// Nextcloud closes resources passed to newFile(); pass a string instead
+				// so this method retains ownership of the buffer until finally.
 				$folder = $this->appData->getFolder('/');
-				$file = $folder->newFile(self::FILE_BACKUP, $handle);
+				$file = $folder->newFile(self::FILE_BACKUP, $csv);
 				if ($file->getSize() != $bytes) {
 					throw new \RuntimeException('Could not verify LibreSign callback backup size');
 				}
