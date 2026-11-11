@@ -32,6 +32,7 @@ final class SignatureRejectionPersistenceTest extends TestCase {
 	private FileMapper&MockObject $files;
 	private SignatureRejectionWorkflow&MockObject $workflow;
 	private IDBConnection&MockObject $db;
+	private LoggerInterface&MockObject $logger;
 	private SignatureRejectionPersistence $persistence;
 
 	protected function setUp(): void {
@@ -43,10 +44,10 @@ final class SignatureRejectionPersistenceTest extends TestCase {
 		$clock->method('getDateTime')->willReturn(new \DateTime(self::REJECTED_AT));
 		$l10n = $this->createMock(IL10N::class);
 		$l10n->method('t')->willReturnArgument(0);
-		$logger = $this->createMock(LoggerInterface::class);
+		$this->logger = $this->createMock(LoggerInterface::class);
 		$this->persistence = new SignatureRejectionPersistence(
 			$this->signRequests, $this->files, $this->workflow,
-			$this->db, $clock, $l10n, $logger,
+			$this->db, $clock, $l10n, $this->logger,
 		);
 	}
 
@@ -121,6 +122,15 @@ final class SignatureRejectionPersistenceTest extends TestCase {
 		$signer = $this->signer();
 		$this->workflow->method('collectSignRequestsToReject')->willReturn([$signer]);
 		$this->signRequests->method('update')->willThrowException(new \RuntimeException('database error'));
+		$this->logger->expects($this->once())->method('error')->with(
+			'Failed to register the signature rejection',
+			$this->callback(static fn (array $context): bool
+				=> ($context['errorType'] ?? null) === \RuntimeException::class
+				&& ($context['signRequestId'] ?? null) === $signer->getId()
+				&& is_string($context['errorFile'] ?? null)
+				&& is_int($context['errorLine'] ?? null)
+				&& !array_key_exists('exception', $context)),
+		);
 		$this->db->expects($this->never())->method('commit');
 		$this->db->expects($this->once())->method('rollBack');
 		$this->expectException(LibresignException::class);

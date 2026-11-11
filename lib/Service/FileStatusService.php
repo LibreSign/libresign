@@ -28,6 +28,9 @@ class FileStatusService {
 	public function updateFileStatusIfUpgrade(FileEntity $file, int $newStatus): FileEntity {
 		if ($newStatus > $file->getStatus()) {
 			$this->markPolicySnapshotFrozen($file, $newStatus);
+			if (!$file->hasParent() && $file->getStatus() === FileStatus::DRAFT->value && $newStatus === FileStatus::ABLE_TO_SIGN->value) {
+				$this->markReadyTransition($file);
+			}
 			$file->setStatus($newStatus);
 			$this->touchStatusChangedAt($file);
 			$this->fileMapper->update($file);
@@ -99,6 +102,9 @@ class FileStatusService {
 
 		if ($parent->getStatus() !== $newStatus) {
 			$this->markPolicySnapshotFrozen($parent, $newStatus);
+			if ($parent->getStatus() === FileStatus::DRAFT->value && $newStatus === FileStatus::ABLE_TO_SIGN->value) {
+				$this->markReadyTransition($parent);
+			}
 			$parent->setStatus($newStatus);
 			$this->touchStatusChangedAt($parent);
 			$this->fileMapper->update($parent);
@@ -204,6 +210,12 @@ class FileStatusService {
 	private static function hasFrozenPolicySnapshot(FileEntity $file): bool {
 		return isset(($file->getMetadata() ?? [])[self::POLICY_SNAPSHOT_FROZEN_AT])
 			|| $file->getStatus() >= FileStatus::ABLE_TO_SIGN->value;
+	}
+
+	public function markReadyTransition(FileEntity $file): void {
+		$metadata = $file->getMetadata() ?? [];
+		$metadata['ready_event_id'] = bin2hex(random_bytes(16));
+		$file->setMetadata($metadata);
 	}
 
 	private function touchStatusChangedAt(FileEntity $file): void {

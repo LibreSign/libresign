@@ -87,6 +87,31 @@ final class SignatureRejectionWorkflowTest extends TestCase {
 		$this->assertSame(SignRequestStatus::SIGNED, $signed->getStatusEnum());
 	}
 
+	public function testDuplicateEnvelopeIdentityFailsBeforeAnyRejectionIsPersisted(): void {
+		$signer = $this->signer();
+		$this->signRequests->method('getByEnvelopeChildrenAndIdentifyMethod')->willReturn([]);
+		$this->signRequests->method('getByIdentifyMethodAndFileId')->willThrowException(
+			new \OCP\AppFramework\Db\MultipleObjectsReturnedException('ambiguous signer identity'),
+		);
+		$this->expectException(\OCP\AppFramework\Db\MultipleObjectsReturnedException::class);
+
+		try {
+			$this->workflow->collectSignRequestsToReject($this->envelope(), $signer);
+		} finally {
+			$this->assertSame(SignRequestStatus::ABLE_TO_SIGN, $signer->getStatusEnum());
+		}
+	}
+
+	public function testInvalidEnvelopeIdentificationCannotSilentlySkipRelatedSignatures(): void {
+		$signer = $this->signer();
+		$this->identification->method('getIdentifiedMethod')->willThrowException(
+			new \OCA\Libresign\Exception\LibresignException('Invalid identification method'),
+		);
+		$this->expectException(\OCA\Libresign\Exception\LibresignException::class);
+
+		$this->workflow->collectSignRequestsToReject($this->envelope(), $signer);
+	}
+
 	public function testContinuingWorkflowActivatesNextSignerAndResolvesDocumentStatus(): void {
 		$document = $this->file(FileStatus::PARTIAL_SIGNED->value);
 		$rejected = $this->signer();

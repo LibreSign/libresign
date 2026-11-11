@@ -141,22 +141,38 @@ class RequestSignatureService {
 	}
 
 	public function save(array $data): FileEntity {
-		$result = $this->persistFile($data);
-		$file = $result['file'];
-		$data['status'] ??= $file->getStatus();
-		$this->atomic(function () use ($file, $data): void {
-			$this->sequentialSigningService->setFile($file);
-			$this->associateToSigners($data, $file);
-			$this->propagateSignersToChildren($file, $data);
-			$this->saveVisibleElements($data, $file);
-		}, $this->db);
+		$file = null;
+		try {
+			$result = $this->atomic(function () use ($data, &$file): array {
+				$result = $this->persistFile($data);
+				$file = $result['file'];
+				$data['status'] ??= $file->getStatus();
+				$this->sequentialSigningService->setFile($file);
+				$this->associateToSigners($data, $file);
+				$this->propagateSignersToChildren($file, $data);
+				$this->saveVisibleElements($data, $file);
+				return $result;
+			}, $this->db);
+		} catch (\Throwable $e) {
+			if ($file !== null) {
+				try {
+					$this->fileMapper->invalidateCachedEntity($file);
+					$this->fileStatusService->invalidateCachedStatus($file);
+				} catch (\Throwable $cacheError) {
+					$this->logger->warning('Unable to invalidate request caches after rollback', [
+						'errorType' => get_debug_type($cacheError),
+					]);
+				}
+			}
+			throw $e;
+		}
 
 		$this->notifications->flushCommitted();
 		if ($result['becameReady']) {
-			$this->webhooks->requestReady($file);
+			$this->webhooks->requestReady($result['file']);
 		}
 
-		return $file;
+		return $result['file'];
 	}
 
 	private function propagateSignersToChildren(FileEntity $envelope, array $data): void {
@@ -220,11 +236,21 @@ class RequestSignatureService {
 				$files[] = $fileEntity;
 			}
 
-			if (!empty($data['signers'])) {
-				$this->atomic(function () use ($envelope, $data): void {
-					$this->sequentialSigningService->setFile($envelope);
-					$this->associateToSigners($data, $envelope);
-					$this->propagateSignersToChildren($envelope, $data);
+			$makeReady = ($data['status'] ?? FileStatus::DRAFT->value) === FileStatus::ABLE_TO_SIGN->value;
+			if (!empty($data['signers']) || $makeReady) {
+				$this->atomic(function () use ($envelope, $data, $makeReady): void {
+					if (!empty($data['signers'])) {
+						$this->sequentialSigningService->setFile($envelope);
+						$this->associateToSigners($data, $envelope);
+					}
+					if ($makeReady) {
+						$this->fileStatusService->updateFileStatusIfUpgrade($envelope, FileStatus::ABLE_TO_SIGN->value);
+					}
+					if (!empty($data['signers'])) {
+						$this->propagateSignersToChildren($envelope, $data);
+					} elseif ($makeReady) {
+						$this->fileStatusService->propagateStatusToChildren($envelope->getId(), $envelope->getStatus());
+					}
 				}, $this->db);
 				$this->notifications->flushCommitted();
 			}
@@ -233,7 +259,7 @@ class RequestSignatureService {
 			throw $e;
 		}
 
-		if ($envelope->getStatus() === FileStatus::ABLE_TO_SIGN->value) {
+		if ($makeReady && $envelope->getStatus() === FileStatus::ABLE_TO_SIGN->value) {
 			$this->webhooks->requestReady($envelope);
 		}
 		return [
@@ -438,6 +464,9 @@ class RequestSignatureService {
 			$file->setStatus(FileStatus::ABLE_TO_SIGN->value);
 		}
 		$this->fileStatusService->markPolicySnapshotFrozen($file, $file->getStatus());
+		if ($file->getStatus() === FileStatus::ABLE_TO_SIGN->value && empty($data['parentFileId'])) {
+			$this->fileStatusService->markReadyTransition($file);
+		}
 
 		if (isset($data['parentFileId'])) {
 			$file->setParentFileId($data['parentFileId']);

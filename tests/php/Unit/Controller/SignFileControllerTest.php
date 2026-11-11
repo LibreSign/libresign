@@ -258,6 +258,8 @@ final class SignFileControllerTest extends TestCase {
 			'Unable to process signature rejection',
 			$this->callback(static fn (array $context): bool
 				=> ($context['errorType'] ?? null) === \TypeError::class
+				&& ($context['errorFile'] ?? null) === __FILE__
+				&& is_int($context['errorLine'] ?? null)
 				&& !str_contains(json_encode($context), '/private/not-for-client')
 			),
 		);

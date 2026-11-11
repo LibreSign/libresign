@@ -394,6 +394,8 @@ class SignFileController extends AEnvironmentAwareController implements ISignatu
 		} catch (\Throwable $th) {
 			$this->logger->error('Unable to process signature rejection', [
 				'errorType' => get_debug_type($th),
+				'errorFile' => $th->getFile(),
+				'errorLine' => $th->getLine(),
 			]);
 			return new DataResponse(
 				// TRANSLATORS Error shown when a signature rejection fails unexpectedly.

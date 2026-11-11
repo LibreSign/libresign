@@ -80,6 +80,49 @@ final class SignatureRejectionNotifierTest extends TestCase {
 		$this->notifier->afterCommit($this->file(), $this->signer(), new CommittedRejection(1, [$next]));
 	}
 
+	public function testLegacyListenerTypeErrorDoesNotInterruptCommittedRejection(): void {
+		$this->identification->method('getIdentifyMethodsFromSignRequestId')->willReturn([
+			'account' => [$this->createMock(IIdentifyMethod::class)],
+		]);
+		$this->events->method('dispatchTyped')->willThrowException(new \TypeError('private listener error'));
+		$this->logger->expects($this->once())->method('error')->with(
+			'Error dispatching SignatureRejectedEvent',
+			['errorType' => \TypeError::class],
+		);
+		$next = $this->signer(id: 77);
+		$this->sequential->expects($this->once())->method('notifyActivatedSigners')->with([$next]);
+
+		$this->notifier->afterCommit(
+			$this->file(),
+			$this->signer(),
+			new CommittedRejection(1, [$next]),
+		);
+	}
+
+	public function testFailureInOneLegacyMethodDoesNotBlockOtherMethods(): void {
+		$this->identification->method('getIdentifyMethodsFromSignRequestId')->willReturn([
+			'account' => [
+				$this->createMock(IIdentifyMethod::class),
+				$this->createMock(IIdentifyMethod::class),
+			],
+		]);
+		$calls = 0;
+		$this->events->method('dispatchTyped')->willReturnCallback(
+			static function () use (&$calls): void {
+				if (++$calls === 1) {
+					throw new \TypeError('legacy listener error');
+				}
+			},
+		);
+		$this->logger->expects($this->once())->method('error')
+			->with('Error dispatching SignatureRejectedEvent', ['errorType' => \TypeError::class]);
+		$this->sequential->expects($this->once())->method('notifyActivatedSigners')->with([]);
+
+		$this->notifier->afterCommit($this->file(), $this->signer(), new CommittedRejection(1, []));
+
+		$this->assertSame(2, $calls);
+	}
+
 	public function testNotificationFailureAfterCommitRemainsVisible(): void {
 		$this->identification->method('getIdentifyMethodsFromSignRequestId')->willReturn([]);
 		$this->sequential->method('notifyActivatedSigners')

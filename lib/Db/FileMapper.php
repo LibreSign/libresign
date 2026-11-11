@@ -54,6 +54,19 @@ class FileMapper extends CachedQBMapper {
 	}
 
 	#[\Override]
+	public function invalidateCachedEntity(Entity $entity): void {
+		parent::invalidateCachedEntity($entity);
+		if ($entity instanceof File) {
+			if ($entity->getNodeId() !== null) {
+				$this->cacheRemove('node_id:' . $entity->getNodeId());
+			}
+			if ($entity->getUuid() !== '') {
+				$this->cacheRemove('uuid:' . $entity->getUuid());
+			}
+		}
+	}
+
+	#[\Override]
 	protected function cacheEntity(Entity $entity): void {
 		parent::cacheEntity($entity);
 		if ($entity instanceof File) {

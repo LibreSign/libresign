@@ -60,6 +60,44 @@ class FileStatusServiceTest extends TestCase {
 		$this->assertSame(FileStatus::ABLE_TO_SIGN->value, $file->getStatus());
 	}
 
+	public function testRepeatedReadyTransitionsReceiveUniquePersistedIdentifiers(): void {
+		$file = new FileEntity();
+		$file->setId(11);
+		$file->setUuid('repeat-ready');
+		$file->setStatus(FileStatus::DRAFT->value);
+		$this->service->updateFileStatusIfUpgrade($file, FileStatus::ABLE_TO_SIGN->value);
+		$first = $file->getMetadata()['ready_event_id'] ?? null;
+		$this->assertMatchesRegularExpression('/^[a-f0-9]{32}$/', $first);
+
+		$this->service->updateFileStatusIfUpgrade($file, FileStatus::ABLE_TO_SIGN->value);
+		$this->assertSame($first, $file->getMetadata()['ready_event_id']);
+
+		$file->setStatus(FileStatus::DRAFT->value);
+		$this->service->updateFileStatusIfUpgrade($file, FileStatus::ABLE_TO_SIGN->value);
+		$this->assertNotSame($first, $file->getMetadata()['ready_event_id']);
+	}
+
+	public function testChildUpgradeMarksTheEnvelopeReadyTransitionOnly(): void {
+		$envelope = new FileEntity();
+		$envelope->setId(45);
+		$envelope->setUuid('envelope-ready');
+		$envelope->setNodeType('envelope');
+		$envelope->setStatus(FileStatus::DRAFT->value);
+		$child = new FileEntity();
+		$child->setId(46);
+		$child->setUuid('child-ready');
+		$child->setParentFileId(45);
+		$child->setStatus(FileStatus::DRAFT->value);
+		$this->fileMapper->method('getById')->with(45)->willReturn($envelope);
+		$this->fileMapper->method('getChildrenFiles')->with(45)->willReturn([$child]);
+
+		$this->service->updateFileStatusIfUpgrade($child, FileStatus::ABLE_TO_SIGN->value);
+
+		$this->assertSame(FileStatus::ABLE_TO_SIGN->value, $envelope->getStatus());
+		$this->assertMatchesRegularExpression('/^[a-f0-9]{32}$/', $envelope->getMetadata()['ready_event_id']);
+		$this->assertArrayNotHasKey('ready_event_id', $child->getMetadata() ?? []);
+	}
+
 	#[DataProvider('dataFileStatusUpgrade')]
 	public function testUpdateFileStatusIfUpgrade(int $currentStatus, int $newStatus, bool $shouldUpdate): void {
 		$file = new FileEntity();

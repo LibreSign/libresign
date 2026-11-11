@@ -355,6 +355,67 @@ final class RequestSignatureServiceTest extends \OCA\Libresign\Tests\Unit\TestCa
 		]));
 	}
 
+	public function testReadyStatusUpdateSharesTheSignerTransaction(): void {
+		$file = new \OCA\Libresign\Db\File();
+		$file->setUuid('transaction-uuid');
+		$file->setStatus(\OCA\Libresign\Enum\FileStatus::DRAFT->value);
+		$this->fileMapper->method('getByUuid')->willReturn($file);
+		$inTransaction = false;
+		$this->db->expects($this->once())->method('beginTransaction')->willReturnCallback(
+			static function () use (&$inTransaction): void {
+				$inTransaction = true;
+			},
+		);
+		$this->fileStatusService->method('updateFileStatusIfUpgrade')->willReturnCallback(
+			function ($file, int $newStatus) use (&$inTransaction) {
+				$this->assertTrue($inTransaction, 'Ready status must be part of the signer transaction');
+				$file->setStatus($newStatus);
+				return $file;
+			},
+		);
+		$this->db->method('commit')->willReturnCallback(
+			static function () use (&$inTransaction): void {
+				$inTransaction = false;
+			},
+		);
+
+		$this->getService()->save([
+			'uuid' => 'transaction-uuid',
+			'status' => \OCA\Libresign\Enum\FileStatus::ABLE_TO_SIGN->value,
+		]);
+		$this->assertFalse($inTransaction);
+	}
+
+	public function testReadyRequestNewInsertIsPublishedAfterCommit(): void {
+		$node = $this->createMock(\OCP\Files\File::class);
+		$node->method('getId')->willReturn(501);
+		$node->method('getExtension')->willReturn('');
+		$node->method('getName')->willReturn('contract.pdf');
+		$this->fileService->method('getNodeFromData')->willReturn($node);
+		$this->fileMapper->method('insert')->willReturnArgument(0);
+		$this->user->method('getUID')->willReturn('tester');
+		$committed = false;
+		$this->db->expects($this->once())->method('commit')->willReturnCallback(
+			static function () use (&$committed): void {
+				$committed = true;
+			},
+		);
+		$this->fileStatusService->expects($this->once())->method('markReadyTransition');
+		$this->webhooks->expects($this->once())->method('requestReady')->with(
+			$this->callback(static function ($file) use (&$committed): bool {
+				return $committed
+					&& $file->getStatus() === \OCA\Libresign\Enum\FileStatus::ABLE_TO_SIGN->value
+					&& $file->getUuid() !== '';
+			}),
+		);
+
+		$this->getService()->save([
+			'name' => 'contract',
+			'userManager' => $this->user,
+			'status' => \OCA\Libresign\Enum\FileStatus::ABLE_TO_SIGN->value,
+		]);
+	}
+
 	public function testReadyRequestEventIsNotPublishedWhenSignerPersistenceFails(): void {
 		$file = new \OCA\Libresign\Db\File();
 		$file->setUuid('ready-uuid');
@@ -377,6 +438,116 @@ final class RequestSignatureServiceTest extends \OCA\Libresign\Tests\Unit\TestCa
 			'status' => \OCA\Libresign\Enum\FileStatus::ABLE_TO_SIGN->value,
 			'signers' => [['identifyMethods' => []]],
 		]);
+	}
+
+	public function testNewEnvelopeReadyRequestPublishesAfterCommit(): void {
+		$service = $this->getService(['saveFile']);
+		$envelope = new \OCA\Libresign\Db\File();
+		$envelope->setId(51);
+		$envelope->setUuid('envelope-ready');
+		$envelope->setNodeType('envelope');
+		$envelope->setStatus(\OCA\Libresign\Enum\FileStatus::DRAFT->value);
+		$folder = $this->createMock(Folder::class);
+		$folder->method('getId')->willReturn(204);
+		$node = $this->createMock(\OCP\Files\Node::class);
+		$node->method('getName')->willReturn('contract.pdf');
+		$node->method('getId')->willReturn(205);
+		$this->user->method('getUID')->willReturn('synthetic-requester');
+		$this->envelopeService->method('createEnvelope')->willReturn($envelope);
+		$this->envelopeService->method('getEnvelopeFolder')->willReturn($folder);
+		$this->envelopeService->method('addFileToEnvelope')->willReturn(new \OCA\Libresign\Db\File());
+		$this->fileService->method('getNodeFromData')->willReturn($node);
+		$this->envelopeFileRelocator->method('ensureFileInEnvelopeFolder')->willReturn($node);
+		$service->method('saveFile')->willReturn(new \OCA\Libresign\Db\File());
+		$this->fileStatusService->expects($this->once())->method('updateFileStatusIfUpgrade')
+			->with($envelope, \OCA\Libresign\Enum\FileStatus::ABLE_TO_SIGN->value)
+			->willReturnCallback(static function ($file, int $status) {
+				$file->setStatus($status);
+				return $file;
+			});
+		$this->fileStatusService->expects($this->once())->method('propagateStatusToChildren')
+			->with(51, \OCA\Libresign\Enum\FileStatus::ABLE_TO_SIGN->value);
+		$committed = false;
+		$this->db->expects($this->once())->method('commit')->willReturnCallback(
+			static function () use (&$committed): void {
+				$committed = true;
+			},
+		);
+		$this->webhooks->expects($this->once())->method('requestReady')->with(
+			$this->callback(static function ($file) use (&$committed, $envelope): bool {
+				return $committed
+					&& $file === $envelope
+					&& $file->getStatus() === \OCA\Libresign\Enum\FileStatus::ABLE_TO_SIGN->value;
+			}),
+		);
+
+		$result = $service->saveEnvelope([
+			'files' => [['name' => 'a.pdf', 'file' => ['path' => '/a.pdf']],
+				['name' => 'b.pdf', 'file' => ['path' => '/b.pdf']]],
+			'name' => 'Signed package',
+			'userManager' => $this->user,
+			'settings' => [],
+			'signers' => [],
+			'status' => \OCA\Libresign\Enum\FileStatus::ABLE_TO_SIGN->value,
+		]);
+
+		$this->assertSame($envelope, $result['envelope']);
+		$this->assertSame(\OCA\Libresign\Enum\FileStatus::ABLE_TO_SIGN->value, $envelope->getStatus());
+	}
+
+	public function testFailedSignerWriteCanBeRetriedWithoutLosingReadyEvent(): void {
+		$storedStatus = \OCA\Libresign\Enum\FileStatus::DRAFT->value;
+		$this->fileMapper->method('getByUuid')->willReturnCallback(
+			static function () use (&$storedStatus) {
+				$file = new \OCA\Libresign\Db\File();
+				$file->setId(42);
+				$file->setUuid('retry-ready');
+				$file->setStatus($storedStatus);
+				return $file;
+			},
+		);
+		$this->fileStatusService->method('updateFileStatusIfUpgrade')->willReturnCallback(
+			static function ($file, int $newStatus) use (&$storedStatus) {
+				$file->setStatus($newStatus);
+				$storedStatus = $newStatus;
+				return $file;
+			},
+		);
+		$this->db->expects($this->once())->method('rollBack')->willReturnCallback(
+			static function () use (&$storedStatus): void {
+				$storedStatus = \OCA\Libresign\Enum\FileStatus::DRAFT->value;
+			},
+		);
+		$this->fileMapper->expects($this->once())->method('invalidateCachedEntity');
+		$this->fileStatusService->expects($this->once())->method('invalidateCachedStatus');
+		$calls = 0;
+		$this->signerValidator->method('normalizeRequestSigners')->willReturnCallback(
+			static function () use (&$calls): array {
+				if (++$calls === 1) {
+					throw new \RuntimeException('synthetic signer write failed');
+				}
+				return [];
+			},
+		);
+		$this->db->expects($this->once())->method('commit');
+		$this->webhooks->expects($this->once())->method('requestReady');
+		$data = [
+			'uuid' => 'retry-ready',
+			'status' => \OCA\Libresign\Enum\FileStatus::ABLE_TO_SIGN->value,
+			'signers' => [['identifyMethods' => []]],
+		];
+
+		try {
+			$this->getService()->save($data);
+			$this->fail('The first attempt must fail before commit');
+		} catch (\RuntimeException $e) {
+			$this->assertSame('synthetic signer write failed', $e->getMessage());
+			$this->assertSame(\OCA\Libresign\Enum\FileStatus::DRAFT->value, $storedStatus);
+		}
+
+		$this->getService()->save($data);
+		$this->assertSame(\OCA\Libresign\Enum\FileStatus::ABLE_TO_SIGN->value, $storedStatus);
+		$this->assertSame(3, $calls);
 	}
 
 	public function testSaveFilesUsesSaveForSingleFile(): void {

@@ -69,6 +69,8 @@ class SignatureRejectionPersistence {
 			$this->rollBackRejection($libreSignFile, $signRequests, $previousSignerStatuses, $previousFileStatus);
 			$this->logger->error('Failed to register the signature rejection', [
 				'errorType' => get_debug_type($e),
+				'errorFile' => $e->getFile(),
+				'errorLine' => $e->getLine(),
 				'signRequestId' => $signRequest->getId(),
 			]);
 

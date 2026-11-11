@@ -41,20 +41,24 @@ class SignatureRejectionNotifier {
 	): void {
 		try {
 			$groupedIdentifyMethods = $this->identifyMethodService->getIdentifyMethodsFromSignRequestId($signRequest->getId());
-			foreach ($groupedIdentifyMethods as $identifyMethods) {
-				foreach ($identifyMethods as $identifyMethod) {
-					$this->eventDispatcher->dispatchTyped(new SignatureRejectedEvent(
-						$signRequest,
-						$libreSignFile,
-						$identifyMethod,
-						$workflowCanceled,
-					));
-				}
-			}
 		} catch (\Exception $e) {
 			$this->logger->error('Error dispatching SignatureRejectedEvent', [
 				'errorType' => get_debug_type($e),
 			]);
+			return;
+		}
+
+		foreach ($groupedIdentifyMethods as $identifyMethods) {
+			foreach ($identifyMethods as $identifyMethod) {
+				$event = new SignatureRejectedEvent($signRequest, $libreSignFile, $identifyMethod, $workflowCanceled);
+				try {
+					$this->eventDispatcher->dispatchTyped($event);
+				} catch (\Throwable $e) {
+					$this->logger->error('Error dispatching SignatureRejectedEvent', [
+						'errorType' => get_debug_type($e),
+					]);
+				}
+			}
 		}
 	}
 }

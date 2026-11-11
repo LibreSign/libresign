@@ -20,6 +20,7 @@ final class SigningRequestReadyEvent extends Event implements IWebhookCompatible
 	private function __construct(
 		private readonly string $requestUuid,
 		private readonly string $requestType,
+		private readonly string $eventId,
 	) {
 		parent::__construct();
 	}
@@ -32,14 +33,19 @@ final class SigningRequestReadyEvent extends Event implements IWebhookCompatible
 			return null;
 		}
 
-		return new self($file->getUuid(), $file->isEnvelope() ? 'envelope' : 'document');
+		$transitionId = ($file->getMetadata() ?? [])['ready_event_id'] ?? null;
+		$eventId = 'libresign.workflow.ready.v1:' . $file->getUuid();
+		if (is_string($transitionId) && $transitionId !== '') {
+			$eventId .= ':' . $transitionId;
+		}
+		return new self($file->getUuid(), $file->isEnvelope() ? 'envelope' : 'document', $eventId);
 	}
 
 	#[\Override]
 	public function getWebhookSerializable(): array {
 		return [
 			'contractVersion' => self::CONTRACT_VERSION,
-			'eventId' => 'libresign.workflow.ready.v1:' . $this->requestUuid,
+			'eventId' => $this->eventId,
 			'requestUuid' => $this->requestUuid,
 			'requestType' => $this->requestType,
 			'status' => 'ready_to_sign',

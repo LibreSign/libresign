@@ -63,6 +63,22 @@ final class NativeWebhookEventsTest extends TestCase {
 		], $event->getWebhookSerializable());
 	}
 
+	public function testTwoReadyTransitionsOfSameRequestHaveDistinctStableEventIds(): void {
+		$file = self::file('same-request');
+		$file->setStatus(FileStatus::ABLE_TO_SIGN->value);
+		$file->setMetadata(['ready_event_id' => 'transition-one']);
+		$first = SigningRequestReadyEvent::fromTransition($file, FileStatus::DRAFT->value);
+		$this->assertNotNull($first);
+		$this->assertSame($first->getWebhookSerializable(), SigningRequestReadyEvent::fromTransition($file, FileStatus::DRAFT->value)->getWebhookSerializable());
+
+		$file->setStatus(FileStatus::DRAFT->value);
+		$file->setStatus(FileStatus::ABLE_TO_SIGN->value);
+		$file->setMetadata(['ready_event_id' => 'transition-two']);
+		$second = SigningRequestReadyEvent::fromTransition($file, FileStatus::DRAFT->value);
+		$this->assertNotNull($second);
+		$this->assertNotSame($first->getWebhookSerializable()['eventId'], $second->getWebhookSerializable()['eventId']);
+	}
+
 	/** @return array<string, array{FileStatus, FileStatus, bool, bool}> */
 	public static function canceledTransitions(): array {
 		return [
