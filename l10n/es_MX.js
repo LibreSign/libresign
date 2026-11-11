@@ -115,6 +115,7 @@ OC.L10N.register(
     "Revoke" : "Revocar",
     "Type:" : "Tipo:",
     "Page not found" : "Página no encontrada",
+    "Approved" : "Aprobado",
     "Renamed \"{oldName}\" to \"{newName}\"" : "Renombrado \"{oldName}\" a \"{newName}\"",
     "Rename" : "Renombrar",
     "Toggle selection for file \"{displayName}\"" : "Alternar selección para archivo \"{displayName}\"",

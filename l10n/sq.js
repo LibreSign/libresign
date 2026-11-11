@@ -86,6 +86,7 @@ OC.L10N.register(
     "Revoke" : "Anulo",
     "Type:" : "Lloji:",
     "Page not found" : "Faqja nuk u gjet ",
+    "Approved" : "Të miratuara",
     "Ok" : "Në rregull",
     "Rename" : "Riemërtoje",
     "File name" : "Emri i skedarit",

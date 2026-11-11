@@ -154,6 +154,7 @@ OC.L10N.register(
     "Type:" : "Genia:",
     "Page not found" : "Pàgina no agatada",
     "Sorry but the page you are looking for does not exist, has been removed, moved or is temporarily unavailable." : "Perdona, ma sa pàgina chi ses chirchende non b'est prus, nche l'ant bogada, tramudada o immoe no est a disponimentu.",
+    "Approved" : "Aprovadu",
     "Approved by" : "Aprovadu dae",
     "Renamed \"{oldName}\" to \"{newName}\"" : "\"{oldName}\" s'est torradu a numenare comente \"{newName}\"",
     "Ok" : "AB",

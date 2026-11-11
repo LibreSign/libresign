@@ -85,6 +85,7 @@ OC.L10N.register(
     "Revoke" : "Revocar",
     "Type:" : "Tipo:",
     "Page not found" : "Página no encontrada",
+    "Approved" : "Aprobado",
     "Ok" : "Ok",
     "Modified" : "Modificado",
     "1 file" : "1 archivo",
