@@ -12,37 +12,25 @@ use OCA\Libresign\Db\File;
 use OCA\Libresign\Db\FileMapper;
 use OCA\Libresign\Db\IdDocs;
 use OCA\Libresign\Db\IdDocsMapper;
-use OCA\Libresign\Db\IdentifyMethod;
-use OCA\Libresign\Db\IdentifyMethodMapper;
-use OCA\Libresign\Db\SignRequest;
-use OCA\Libresign\Db\SignRequestMapper;
 use OCA\Libresign\Enum\FileStatus;
 use OCA\Libresign\Exception\LibresignException;
+use OCA\Libresign\Service\IdDocRejectionNotifier;
 use OCA\Libresign\Service\IdDocRejectionService;
 use OCA\Libresign\Service\IdDocsPolicyService;
-use OCA\Libresign\Service\MailService;
-use OCA\Libresign\Service\Notification\IdDocRejectionPayload;
-use OCA\Libresign\Service\Notification\InAppChannel;
-use OCA\Libresign\Service\Notification\MailChannel;
-use OCA\Libresign\Service\Notification\NotificationMessage;
-use OCA\Libresign\Service\NotificationDeliveryService;
 use OCA\Libresign\Tests\Unit\TestCase;
 use OCP\AppFramework\Utility\ITimeFactory;
 use OCP\IDBConnection;
 use OCP\IL10N;
 use OCP\IUser;
-use OCP\IUserManager;
-use OCP\Notification\IManager;
-use OCP\Notification\INotification;
 use PHPUnit\Framework\Attributes\DataProvider;
 
 final class IdDocRejectionServiceTest extends TestCase {
 	private IdDocsPolicyService $policy;
 	private IdDocsMapper $documents;
 	private FileMapper $files;
-	private NotificationDeliveryService $notifications;
+	private IdDocRejectionNotifier $notifier;
 	private IDBConnection $db;
-	private IL10N $l10n;
+	private bool $documentApproverAllowed = true;
 	private IdDocRejectionService $service;
 
 	protected function setUp(): void {
@@ -50,164 +38,189 @@ final class IdDocRejectionServiceTest extends TestCase {
 		$this->policy = $this->createMock(IdDocsPolicyService::class);
 		$this->documents = $this->createMock(IdDocsMapper::class);
 		$this->files = $this->createMock(FileMapper::class);
-		$this->notifications = $this->createMock(NotificationDeliveryService::class);
+		$this->notifier = $this->createMock(IdDocRejectionNotifier::class);
 		$this->db = $this->createMock(IDBConnection::class);
-		$this->l10n = $this->createMock(IL10N::class);
-		$this->l10n->method('t')->willReturnArgument(0);
-		$this->policy->method('canApproverSignIdDoc')->willReturn(true);
+		$l10n = $this->createMock(IL10N::class);
+		$l10n->method('t')->willReturnArgument(0);
 		$clock = $this->createMock(ITimeFactory::class);
 		$clock->method('getDateTime')->willReturn(new \DateTime('2026-11-10T12:00:00Z'));
+		$this->policy->method('canApproverSignIdDoc')
+			->willReturnCallback(fn (): bool => $this->documentApproverAllowed);
 		$this->service = new IdDocRejectionService(
-			$this->policy,
-			$this->documents,
-			$this->files,
-			$this->createMock(SignRequestMapper::class),
-			$this->createMock(IdentifyMethodMapper::class),
-			$this->createMock(IUserManager::class),
-			$clock,
-			$this->l10n,
-			$this->db,
-			$this->notifications,
-			new MailChannel($this->createMock(MailService::class)),
-			new InAppChannel($this->createMock(IManager::class)),
-			$this->createMock(IManager::class),
+			$this->policy, $this->documents, $this->files, $clock, $l10n, $this->db,
+			$this->notifier,
 		);
 	}
 
-	public function testUnauthenticatedAndUnauthorizedUsersCannotReject(): void {
+	#[DataProvider('unauthorizedReviewers')]
+	public function testUnauthorizedReviewerCannotReadOrRejectDocument(bool $hasUser): void {
 		$this->policy->method('userCanApproveValidationDocuments')->willReturn(false);
 		$this->documents->expects($this->never())->method('getByNodeId');
+		$this->notifier->expects($this->never())->method('queue');
+		$this->notifier->expects($this->never())->method('flushCommitted');
 		$this->expectException(LibresignException::class);
-		$this->service->reject(11, 'Expired document', null);
+		$this->service->reject(11, 'Expired document', $hasUser ? $this->createMock(IUser::class) : null);
+	}
+
+	public static function unauthorizedReviewers(): array {
+		return [
+			'unauthenticated' => [false],
+			'account without reviewer permission' => [true],
+		];
 	}
 
 	#[DataProvider('invalidReasons')]
-	public function testReasonMustBeProvidedAndLimited(string $reason): void {
+	public function testInvalidReasonCannotReadOrRejectDocument(string $reason): void {
 		$this->policy->method('userCanApproveValidationDocuments')->willReturn(true);
 		$this->documents->expects($this->never())->method('getByNodeId');
+		$this->notifier->expects($this->never())->method('queue');
 		$this->expectException(LibresignException::class);
 		$this->service->reject(11, $reason, $this->createMock(IUser::class));
 	}
 
 	public static function invalidReasons(): array {
-		return [[' '], [str_repeat('a', 1025)]];
+		return [
+			'empty' => [''],
+			'whitespace only' => ["\t\n "],
+			'long ASCII' => [str_repeat('a', 1025)],
+			'long Unicode' => [str_repeat('é', 1025)],
+		];
 	}
 
-	public function testApprovedDocumentCannotBeRejected(): void {
+	#[DataProvider('unapprovableStates')]
+	public function testCannotRejectDocumentNotWaitingForReview(int $status, bool $alreadyRejected): void {
 		$this->policy->method('userCanApproveValidationDocuments')->willReturn(true);
-		$doc = new IdDocs();
-		$doc->setId(7);
-		$doc->setFileId(9);
-		$file = new File();
-		$file->setId(9);
-		$file->setStatus(FileStatus::SIGNED->value);
-		$this->documents->method('getByNodeId')->with(11)->willReturn($doc);
+		$document = $this->document($alreadyRejected);
+		$file = $this->file($status);
+		$this->documents->method('getByNodeId')->with(11)->willReturn($document);
 		$this->files->method('getById')->with(9)->willReturn($file);
+		$this->documents->expects($this->never())->method('rejectIfPending');
+		$this->notifier->expects($this->never())->method('queue');
+		$this->expectException(LibresignException::class);
+		$this->service->reject(11, 'Expired document', $this->createMock(IUser::class));
+	}
+
+	public static function unapprovableStates(): array {
+		return [
+			'draft' => [FileStatus::DRAFT->value, false],
+			'signed' => [FileStatus::SIGNED->value, false],
+			'canceled' => [FileStatus::CANCELED->value, false],
+			'already rejected' => [FileStatus::ABLE_TO_SIGN->value, true],
+		];
+	}
+
+	public function testDocumentSpecificAuthorizationPreventsRejection(): void {
+		$this->policy->method('userCanApproveValidationDocuments')->willReturn(true);
+		$this->documentApproverAllowed = false;
+		$this->documents->method('getByNodeId')->willReturn($this->document());
+		$this->files->method('getById')->willReturn($this->file());
 		$this->documents->expects($this->never())->method('rejectIfPending');
 		$this->expectException(LibresignException::class);
 		$this->service->reject(11, 'Expired document', $this->createMock(IUser::class));
 	}
 
-	public function testRejectingAlreadyRejectedDocumentDoesNotOverwriteAudit(): void {
+	public function testConcurrentRejectionDoesNotOverwriteAuditOrNotify(): void {
 		$this->policy->method('userCanApproveValidationDocuments')->willReturn(true);
-		$doc = new IdDocs();
-		$doc->setId(7);
-		$doc->setFileId(9);
-		$doc->setRejectedAt(new \DateTime('2026-11-09T00:00:00Z'));
-		$file = new File();
-		$file->setId(9);
-		$file->setStatus(FileStatus::ABLE_TO_SIGN->value);
-		$this->documents->method('getByNodeId')->willReturn($doc);
-		$this->files->method('getById')->willReturn($file);
-		$this->documents->expects($this->never())->method('rejectIfPending');
+		$this->documents->method('getByNodeId')->willReturn($this->document());
+		$this->files->method('getById')->willReturn($this->file());
+		$this->documents->method('rejectIfPending')->willReturn(false);
+		$this->notifier->expects($this->never())->method('queue');
+		$this->notifier->expects($this->never())->method('flushCommitted');
 		$this->expectException(LibresignException::class);
-		$this->service->reject(11, 'Other reason', $this->createMock(IUser::class));
+		$this->service->reject(11, 'Expired document', $this->createMock(IUser::class));
 	}
 
-	public function testAccountSignerNotificationCarriesRecipientIdentityForMailLocale(): void {
-		$this->policy->method('userCanApproveValidationDocuments')->willReturn(true);
-		$reviewer = $this->createMock(IUser::class);
-		$reviewer->method('getUID')->willReturn('reviewer');
-		$idDoc = new IdDocs();
-		$idDoc->setId(7);
-		$idDoc->setFileId(9);
-		$idDoc->setSignRequestId(42);
-
-		$file = new File();
-		$file->setId(9);
-		$file->setName('Identity document.pdf');
-		$file->setStatus(FileStatus::ABLE_TO_SIGN->value);
-		$this->documents->method('getByNodeId')->with(11)->willReturn($idDoc);
-		$this->documents->method('rejectIfPending')->willReturn(true);
-		$this->files->method('getById')->with(9)->willReturn($file);
-
-		$request = new SignRequest();
-		$request->setId(42);
-		$requests = $this->createMock(SignRequestMapper::class);
-		$requests->method('getById')->with(42)->willReturn($request);
-
-		$identifyMethod = new IdentifyMethod();
-		$identifyMethod->setIdentifierKey('account');
-		$identifyMethod->setIdentifierValue('signer');
-		$identifyMethods = $this->createMock(IdentifyMethodMapper::class);
-		$identifyMethods->method('getIdentifyMethodsFromSignRequestId')
-			->with(42)->willReturn([$identifyMethod]);
-		$signer = $this->createMock(IUser::class);
-		$signer->method('getEMailAddress')->willReturn('signer@example.test');
-		$users = $this->createMock(IUserManager::class);
-		$users->method('get')->with('signer')->willReturn($signer);
-
-		$notification = $this->createMock(INotification::class);
-		$notification->method('setApp')->willReturnSelf();
-		$notification->method('setUser')->willReturnSelf();
-		$notification->method('setObject')->willReturnSelf();
-		$notification->method('setDateTime')->willReturnSelf();
-		$notification->method('setSubject')->willReturnSelf();
-		$manager = $this->createMock(IManager::class);
-		$manager->method('createNotification')->willReturn($notification);
-		$clock = $this->createMock(ITimeFactory::class);
-		$clock->method('getDateTime')->willReturn(new \DateTime('2026-11-10T12:00:00Z'));
-		$messages = [];
-		$this->notifications->expects($this->exactly(2))
-			->method('dispatch')
-			->willReturnCallback(static function (NotificationMessage $message) use (&$messages): bool {
-				$messages[] = $message;
-				return true;
-			});
-
-		$service = new IdDocRejectionService(
-			$this->policy, $this->documents, $this->files, $requests, $identifyMethods,
-			$users, $clock, $this->l10n, $this->db, $this->notifications,
-			new MailChannel($this->createMock(MailService::class)), new InAppChannel($manager), $manager,
-		);
-		$service->reject(11, 'Photo is blurry', $reviewer);
-
-		$this->assertSame('mail', $messages[0]->channel);
-		$this->assertSame('signer@example.test', $messages[0]->recipient);
-		$this->assertInstanceOf(IdDocRejectionPayload::class, $messages[0]->payload);
-		$this->assertTrue($messages[0]->payload->accountSigner);
-		$this->assertSame('signer', $messages[0]->payload->recipientUserId);
-		$this->assertSame('nextcloud', $messages[1]->channel);
-	}
-
-	public function testRejectPersistsDecisionBeforeNotificationFlush(): void {
+	#[DataProvider('approvableStates')]
+	public function testSuccessfulRejectionRecordsAuditAndQueuesNotification(int $status, string $reason, string $expectedReason): void {
 		$this->policy->method('userCanApproveValidationDocuments')->willReturn(true);
 		$approver = $this->createMock(IUser::class);
 		$approver->method('getUID')->willReturn('reviewer');
-		$doc = new IdDocs();
-		$doc->setId(7);
-		$doc->setFileId(9);
-		$doc->setUserId('account-user');
-		$doc->setSignRequestId(null);
-		$file = new File();
-		$file->setId(9);
-		$file->setStatus(FileStatus::ABLE_TO_SIGN->value);
+		$document = $this->document();
+		$file = $this->file($status);
+		$this->documents->method('getByNodeId')->with(11)->willReturn($document);
+		$this->files->method('getById')->with(9)->willReturn($file);
+		$this->documents->expects($this->once())->method('rejectIfPending')
+			->with($document, 'reviewer', $expectedReason, $this->isInstanceOf(\DateTime::class))
+			->willReturn(true);
+		$this->notifier->expects($this->once())->method('queue')->with($document, $file, $expectedReason);
+		$this->notifier->expects($this->once())->method('flushCommitted');
+		$this->service->reject(11, $reason, $approver);
+	}
+
+	public static function approvableStates(): array {
+		return [
+			'ready to sign' => [FileStatus::ABLE_TO_SIGN->value, ' Expired document ', 'Expired document'],
+			'partially signed' => [FileStatus::PARTIAL_SIGNED->value, 'Photo is blurry', 'Photo is blurry'],
+			'Unicode boundary accepted' => [FileStatus::ABLE_TO_SIGN->value, str_repeat('é', 1024), str_repeat('é', 1024)],
+		];
+	}
+
+	public function testRejectionNotificationIsQueuedBeforeCommitAndFlushedAfter(): void {
+		$this->policy->method('userCanApproveValidationDocuments')->willReturn(true);
+		$approver = $this->createMock(IUser::class);
+		$approver->method('getUID')->willReturn('reviewer');
+		$doc = $this->document();
+		$file = $this->file();
 		$this->documents->method('getByNodeId')->willReturn($doc);
 		$this->files->method('getById')->willReturn($file);
-		$this->documents->expects($this->once())->method('rejectIfPending')
-			->with($doc, 'reviewer', 'Expired document', $this->isInstanceOf(\DateTime::class))
-			->willReturn(true);
-		$this->notifications->expects($this->once())->method('flushCommitted');
-		$this->service->reject(11, ' Expired document ', $approver);
+		$observed = [];
+		$this->db->method('beginTransaction')->willReturnCallback(static function () use (&$observed): void {
+			$observed[] = 'begin';
+		});
+		$this->documents->method('rejectIfPending')->willReturnCallback(
+			static function () use (&$observed): bool {
+				$observed[] = 'audit persisted';
+				return true;
+			},
+		);
+		$this->notifier->method('queue')->willReturnCallback(static function () use (&$observed): void {
+			$observed[] = 'notification queued';
+		});
+		$this->db->method('commit')->willReturnCallback(static function () use (&$observed): void {
+			$observed[] = 'commit';
+		});
+		$this->notifier->method('flushCommitted')->willReturnCallback(
+			static function () use (&$observed): void {
+				$observed[] = 'delivery flushed';
+			},
+		);
+
+		$this->service->reject(11, 'Expired document', $approver);
+
+		$this->assertSame(['begin', 'audit persisted', 'notification queued', 'commit', 'delivery flushed'], $observed);
+	}
+
+	public function testQueueFailureRollsBackRejectionWithoutDelivery(): void {
+		$this->policy->method('userCanApproveValidationDocuments')->willReturn(true);
+		$approver = $this->createMock(IUser::class);
+		$approver->method('getUID')->willReturn('reviewer');
+		$doc = $this->document();
+		$this->documents->method('getByNodeId')->willReturn($doc);
+		$this->files->method('getById')->willReturn($this->file());
+		$this->documents->method('rejectIfPending')->willReturn(true);
+		$this->notifier->method('queue')->willThrowException(new \RuntimeException('Outbox unavailable'));
+		$this->db->expects($this->once())->method('rollBack');
+		$this->db->expects($this->never())->method('commit');
+		$this->notifier->expects($this->never())->method('flushCommitted');
+		$this->expectException(\RuntimeException::class);
+		$this->service->reject(11, 'Expired document', $approver);
+	}
+
+	private function document(bool $rejected = false): IdDocs {
+		$document = new IdDocs();
+		$document->setId(7);
+		$document->setFileId(9);
+		$document->setSignRequestId(42);
+		if ($rejected) {
+			$document->setRejectedAt(new \DateTime('2026-11-09T00:00:00Z'));
+		}
+		return $document;
+	}
+
+	private function file(int $status = FileStatus::ABLE_TO_SIGN->value): File {
+		$file = new File();
+		$file->setId(9);
+		$file->setStatus($status);
+		return $file;
 	}
 }
