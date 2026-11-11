@@ -142,6 +142,20 @@ class RequestSignatureService {
 
 	public function save(array $data): FileEntity {
 		$file = null;
+		$createdNode = null;
+
+		// Creating a storage node cannot be rolled back by the database transaction.
+		// Resolve new content first, but leave already supplied node references alone.
+		if (empty($data['uuid'])
+			&& !isset($data['file']['fileNode'])
+			&& empty($data['file']['nodeId'])
+			&& !isset($data['file']['path'])
+			&& !isset($data['file']['fileId'])) {
+			$createdNode = $this->fileService->getNodeFromData($data);
+			$data['file'] = ['fileNode' => $createdNode];
+			unset($data['uploadedFile']);
+		}
+
 		try {
 			$result = $this->atomic(function () use ($data, &$file): array {
 				$result = $this->persistFile($data);
@@ -154,6 +168,18 @@ class RequestSignatureService {
 				return $result;
 			}, $this->db);
 		} catch (\Throwable $e) {
+			if ($createdNode !== null) {
+				try {
+					$createdNode->delete();
+				} catch (\Throwable $deleteError) {
+					$this->logger->error('Unable to remove newly created request node after rollback', [
+						'nodeId' => $createdNode->getId(),
+						'errorType' => get_debug_type($deleteError),
+						'errorFile' => $deleteError->getFile(),
+						'errorLine' => $deleteError->getLine(),
+					]);
+				}
+			}
 			if ($file !== null) {
 				try {
 					$this->fileMapper->invalidateCachedEntity($file);

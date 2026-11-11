@@ -44,6 +44,8 @@ class SignatureRejectionNotifier {
 		} catch (\Exception $e) {
 			$this->logger->error('Error dispatching SignatureRejectedEvent', [
 				'errorType' => get_debug_type($e),
+				'errorFile' => $e->getFile(),
+				'errorLine' => $e->getLine(),
 			]);
 			return;
 		}
@@ -56,6 +58,8 @@ class SignatureRejectionNotifier {
 				} catch (\Throwable $e) {
 					$this->logger->error('Error dispatching SignatureRejectedEvent', [
 						'errorType' => get_debug_type($e),
+						'errorFile' => $e->getFile(),
+						'errorLine' => $e->getLine(),
 					]);
 				}
 			}

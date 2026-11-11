@@ -71,9 +71,14 @@ final class SignatureRejectionNotifierTest extends TestCase {
 		$this->identification->method('getIdentifyMethodsFromSignRequestId')->willReturn([
 			'account' => [$this->createMock(IIdentifyMethod::class)],
 		]);
-		$this->events->method('dispatchTyped')->willThrowException(new \RuntimeException('listener failed'));
+		$failure = new \RuntimeException('listener failed');
+		$this->events->method('dispatchTyped')->willThrowException($failure);
 		$this->logger->expects($this->once())->method('error')
-			->with('Error dispatching SignatureRejectedEvent', ['errorType' => \RuntimeException::class]);
+			->with('Error dispatching SignatureRejectedEvent', [
+				'errorType' => \RuntimeException::class,
+				'errorFile' => $failure->getFile(),
+				'errorLine' => $failure->getLine(),
+			]);
 		$next = $this->signer(id: 77);
 		$this->sequential->expects($this->once())->method('notifyActivatedSigners')->with([$next]);
 
@@ -84,10 +89,15 @@ final class SignatureRejectionNotifierTest extends TestCase {
 		$this->identification->method('getIdentifyMethodsFromSignRequestId')->willReturn([
 			'account' => [$this->createMock(IIdentifyMethod::class)],
 		]);
-		$this->events->method('dispatchTyped')->willThrowException(new \TypeError('private listener error'));
+		$failure = new \TypeError('private listener error');
+		$this->events->method('dispatchTyped')->willThrowException($failure);
 		$this->logger->expects($this->once())->method('error')->with(
 			'Error dispatching SignatureRejectedEvent',
-			['errorType' => \TypeError::class],
+			[
+				'errorType' => \TypeError::class,
+				'errorFile' => $failure->getFile(),
+				'errorLine' => $failure->getLine(),
+			],
 		);
 		$next = $this->signer(id: 77);
 		$this->sequential->expects($this->once())->method('notifyActivatedSigners')->with([$next]);
@@ -115,12 +125,33 @@ final class SignatureRejectionNotifierTest extends TestCase {
 			},
 		);
 		$this->logger->expects($this->once())->method('error')
-			->with('Error dispatching SignatureRejectedEvent', ['errorType' => \TypeError::class]);
+			->with('Error dispatching SignatureRejectedEvent', $this->callback(
+				static fn (array $context): bool => $context['errorType'] === \TypeError::class
+					&& $context['errorFile'] !== '' && $context['errorLine'] > 0
+			));
 		$this->sequential->expects($this->once())->method('notifyActivatedSigners')->with([]);
 
 		$this->notifier->afterCommit($this->file(), $this->signer(), new CommittedRejection(1, []));
 
 		$this->assertSame(2, $calls);
+	}
+
+
+	public function testIdentificationLookupFailureLogsSourceWithoutExceptionMessage(): void {
+		$failure = new \RuntimeException('private identification details');
+		$this->identification->method('getIdentifyMethodsFromSignRequestId')->willThrowException($failure);
+		$this->logger->expects($this->once())->method('error')->with(
+			'Error dispatching SignatureRejectedEvent',
+			[
+				'errorType' => \RuntimeException::class,
+				'errorFile' => $failure->getFile(),
+				'errorLine' => $failure->getLine(),
+			],
+		);
+		$this->events->expects($this->never())->method('dispatchTyped');
+		$this->sequential->expects($this->once())->method('notifyActivatedSigners')->with([]);
+
+		$this->notifier->afterCommit($this->file(), $this->signer(), new CommittedRejection(1, []));
 	}
 
 	public function testNotificationFailureAfterCommitRemainsVisible(): void {

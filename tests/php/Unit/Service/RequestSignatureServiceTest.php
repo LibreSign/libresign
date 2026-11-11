@@ -327,6 +327,115 @@ final class RequestSignatureServiceTest extends \OCA\Libresign\Tests\Unit\TestCa
 		$this->assertSame(['freeze:' . \OCA\Libresign\Enum\FileStatus::ABLE_TO_SIGN->value, 'insert'], $calls);
 	}
 
+
+	public function testNewStorageNodeIsCreatedBeforeTransactionAndDeletedAfterSignerRollback(): void {
+		$node = $this->createMock(\OCP\Files\File::class);
+		$node->method('getId')->willReturn(621);
+		$node->method('getExtension')->willReturn('');
+		$node->method('getName')->willReturn('new-contract.pdf');
+
+		$inTransaction = false;
+		$this->db->expects($this->once())->method('beginTransaction')->willReturnCallback(
+			static function () use (&$inTransaction): void {
+				$inTransaction = true;
+			},
+		);
+		$this->fileService->expects($this->once())->method('getNodeFromData')
+			->with($this->callback(function (array $data) use (&$inTransaction): bool {
+				$this->assertFalse($inTransaction, 'Storage creation must happen outside the database transaction');
+				return ($data['file']['url'] ?? null) === 'https://example.invalid/contract.pdf';
+			}))
+			->willReturn($node);
+		$this->fileMapper->expects($this->once())->method('insert')->willReturnArgument(0);
+		$this->filePolicyApplier->expects($this->once())->method('applyAll')
+			->with($this->anything(), $this->callback(
+				static fn (array $data): bool => ($data['file']['fileNode'] ?? null) === $node
+					&& !isset($data['file']['url'])
+			));
+		$this->signerValidator->method('normalizeRequestSigners')
+			->willThrowException(new \RuntimeException('synthetic signer failure'));
+		$this->db->expects($this->once())->method('rollBack')->willReturnCallback(
+			static function () use (&$inTransaction): void {
+				$inTransaction = false;
+			},
+		);
+		$node->expects($this->once())->method('delete');
+		$this->webhooks->expects($this->never())->method('requestReady');
+
+		try {
+			$this->getService()->save([
+				'name' => 'new-contract',
+				'userManager' => $this->user,
+				'status' => \OCA\Libresign\Enum\FileStatus::ABLE_TO_SIGN->value,
+				'file' => ['url' => 'https://example.invalid/contract.pdf'],
+				'signers' => [['identifyMethods' => []]],
+			]);
+			$this->fail('Signer persistence failure must abort the request');
+		} catch (\RuntimeException $e) {
+			$this->assertSame('synthetic signer failure', $e->getMessage());
+		}
+		$this->assertFalse($inTransaction);
+	}
+
+	public function testExistingStorageNodeIsNotDeletedAfterSignerRollback(): void {
+		$node = $this->createMock(\OCP\Files\File::class);
+		$node->method('getId')->willReturn(622);
+		$node->method('getExtension')->willReturn('');
+		$node->method('getName')->willReturn('existing-contract.pdf');
+		$this->fileService->expects($this->once())->method('getNodeFromData')->willReturn($node);
+		$this->fileMapper->expects($this->once())->method('insert')->willReturnArgument(0);
+		$this->signerValidator->method('normalizeRequestSigners')
+			->willThrowException(new \RuntimeException('synthetic signer failure'));
+		$this->db->expects($this->once())->method('rollBack');
+		$node->expects($this->never())->method('delete');
+
+		$this->expectException(\RuntimeException::class);
+		$this->getService()->save([
+			'name' => 'existing-contract',
+			'userManager' => $this->user,
+			'file' => ['path' => '/documents/existing-contract.pdf'],
+			'signers' => [['identifyMethods' => []]],
+		]);
+	}
+
+	public function testNewStorageNodeRemainsAvailableAfterCommit(): void {
+		$node = $this->createMock(\OCP\Files\File::class);
+		$node->method('getId')->willReturn(623);
+		$node->method('getExtension')->willReturn('');
+		$node->method('getName')->willReturn('new-contract.pdf');
+		$this->fileService->expects($this->once())->method('getNodeFromData')->willReturn($node);
+		$this->fileMapper->expects($this->once())->method('insert')->willReturnArgument(0);
+		$this->db->expects($this->once())->method('commit');
+		$node->expects($this->never())->method('delete');
+
+		$result = $this->getService()->save([
+			'name' => 'new-contract',
+			'userManager' => $this->user,
+			'file' => ['url' => 'https://example.invalid/contract.pdf'],
+			'status' => \OCA\Libresign\Enum\FileStatus::DRAFT->value,
+		]);
+
+		$this->assertSame(623, $result->getNodeId());
+	}
+
+	public function testCreatedNodeIsRemovedIfFilePersistenceFailsBeforeEntityAssignment(): void {
+		$node = $this->createMock(\OCP\Files\File::class);
+		$node->method('getId')->willReturn(624);
+		$node->method('getExtension')->willReturn('');
+		$node->method('getName')->willReturn('new-contract.pdf');
+		$this->fileService->method('getNodeFromData')->willReturn($node);
+		$this->filePolicyApplier->method('applyAll')->willThrowException(new \RuntimeException('policy persistence failed'));
+		$this->db->expects($this->once())->method('rollBack');
+		$node->expects($this->once())->method('delete');
+
+		$this->expectException(\RuntimeException::class);
+		$this->getService()->save([
+			'name' => 'new-contract',
+			'userManager' => $this->user,
+			'file' => ['url' => 'https://example.invalid/contract.pdf'],
+		]);
+	}
+
 	public function testReadyRequestEventIsPublishedOnlyAfterSignerTransactionCommits(): void {
 		$file = new \OCA\Libresign\Db\File();
 		$file->setUuid('ready-uuid');
