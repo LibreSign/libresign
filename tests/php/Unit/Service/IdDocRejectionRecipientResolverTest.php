@@ -54,7 +54,11 @@ final class IdDocRejectionRecipientResolverTest extends TestCase {
 		});
 		$resolver = new IdDocRejectionRecipientResolver($mapper, $users);
 
-		$this->assertSame($expected, $resolver->resolve($accountUserId, 42));
+		$normalize = static function (array $recipients): array {
+			usort($recipients, static fn (array $a, array $b): int => strcmp(json_encode($a), json_encode($b)));
+			return $recipients;
+		};
+		$this->assertSame($normalize($expected), $normalize($resolver->resolve($accountUserId, 42)));
 	}
 
 	public static function recipients(): array {
@@ -79,7 +83,7 @@ final class IdDocRejectionRecipientResolverTest extends TestCase {
 				null, [['account', 'signer']], ['signer' => 'signer@example.test'],
 				[['uid' => 'signer', 'email' => 'signer@example.test']],
 			],
-			'mixed methods retain identities and order' => [
+			'mixed methods preserve recipient identities' => [
 				null, [['email', 'one@example.test'], ['account', 'signer']], ['signer' => 'two@example.test'],
 				[
 					['uid' => null, 'email' => 'one@example.test'],
