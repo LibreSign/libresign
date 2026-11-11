@@ -56,31 +56,46 @@ final class Version19005Date20261109110000Test extends TestCase {
 			['id' => '12', 'callback' => 'https://example.test/a?a=1,b=2'],
 			['id' => '47', 'callback' => 'https://example.test/ç?x="quoted"'],
 		];
-		$path = tempnam(sys_get_temp_dir(), 'libresign-callback-test-');
-		$this->assertNotFalse($path);
-		try {
-			$file = $this->createMock(ISimpleFile::class);
-			$file->method('write')->willReturnCallback(static fn () => fopen($path, 'wb'));
-			$folder = $this->createMock(ISimpleFolder::class);
-			$folder->expects($this->once())
-				->method('newFile')
-				->with('backup-table-libresign_file_callback_Version19005Date20261109110000.csv')
-				->willReturn($file);
-			$appData = $this->createMock(IAppData::class);
-			$appData->method('getFolder')->with('/')->willReturn($folder);
-			$factory = $this->createMock(IAppDataFactory::class);
-			$factory->method('get')->with(Application::APP_ID)->willReturn($appData);
-			$migration = $this->migration($this->createMock(IAppConfig::class), $factory, $this->connectionForRows($rows));
-			$this->runPreSchema($migration, true);
+		$csvContent = '';
+		$file = $this->createMock(ISimpleFile::class);
+		$file->expects($this->never())->method('write');
+		$file->method('getSize')->willReturnCallback(static function () use (&$csvContent): int {
+			return strlen($csvContent);
+		});
+		$folder = $this->createMock(ISimpleFolder::class);
+		$folder->expects($this->once())
+			->method('newFile')
+			->with(
+				'backup-table-libresign_file_callback_Version19005Date20261109110000.csv',
+				$this->callback(static function ($stream) use (&$csvContent): bool {
+					if (!is_resource($stream)) {
+						return false;
+					}
+					$csvContent = stream_get_contents($stream);
+					return $csvContent !== false;
+				}),
+			)->willReturn($file);
+		$appData = $this->createMock(IAppData::class);
+		$appData->method('getFolder')->with('/')->willReturn($folder);
+		$factory = $this->createMock(IAppDataFactory::class);
+		$factory->method('get')->with(Application::APP_ID)->willReturn($appData);
+		$output = $this->createMock(IOutput::class);
+		$output->expects($this->once())->method('info')
+			->with($this->stringContains('backup-table-libresign_file_callback_'));
+		$migration = $this->migration($this->createMock(IAppConfig::class), $factory, $this->connectionForRows($rows));
+		$this->runPreSchema($migration, true, $output);
 
-			$fp = fopen($path, 'rb');
+		$fp = fopen('php://temp', 'w+');
+		$this->assertIsResource($fp);
+		try {
+			fwrite($fp, $csvContent);
+			rewind($fp);
 			$this->assertSame(['id', 'callback'], fgetcsv($fp, 0, ',', '"', ''));
 			$this->assertSame(array_values($rows[0]), fgetcsv($fp, 0, ',', '"', ''));
 			$this->assertSame(array_values($rows[1]), fgetcsv($fp, 0, ',', '"', ''));
 			$this->assertFalse(fgetcsv($fp, 0, ',', '"', ''));
-			fclose($fp);
 		} finally {
-			unlink($path);
+			fclose($fp);
 		}
 	}
 
@@ -103,13 +118,37 @@ final class Version19005Date20261109110000Test extends TestCase {
 		$this->runPreSchema($migration, true);
 	}
 
+	public function testTruncatedCallbackBackupAbortsMigration(): void {
+		$file = $this->createMock(ISimpleFile::class);
+		$file->method('getSize')->willReturn(1);
+		$folder = $this->createMock(ISimpleFolder::class);
+		$folder->expects($this->once())->method('newFile')->willReturn($file);
+		$appData = $this->createMock(IAppData::class);
+		$appData->method('getFolder')->willReturn($folder);
+		$factory = $this->createMock(IAppDataFactory::class);
+		$factory->method('get')->willReturn($appData);
+		$config = $this->createMock(IAppConfig::class);
+		$config->expects($this->never())->method('deleteKey');
+		$output = $this->createMock(IOutput::class);
+		$output->expects($this->never())->method('info');
+		$migration = $this->migration($config, $factory, $this->connectionForRows([
+			['id' => '4', 'callback' => 'https://example.test/callback'],
+		]));
+
+		$this->expectException(\RuntimeException::class);
+		$this->expectExceptionMessage('Could not verify LibreSign callback backup size');
+		$this->runPreSchema($migration, true, $output);
+	}
+
 	public function testNoBackupFileWhenAllCallbacksAreEmpty(): void {
 		$appData = $this->createMock(IAppData::class);
 		$appData->expects($this->never())->method('getFolder');
 		$factory = $this->createMock(IAppDataFactory::class);
 		$factory->method('get')->willReturn($appData);
 		$migration = $this->migration($this->createMock(IAppConfig::class), $factory, $this->connectionForRows([]));
-		$this->runPreSchema($migration, true);
+		$output = $this->createMock(IOutput::class);
+		$output->expects($this->never())->method('info');
+		$this->runPreSchema($migration, true, $output);
 	}
 
 	public function testBacksUpGlobalCallbackEvenWhenColumnIsAbsent(): void {
@@ -117,18 +156,23 @@ final class Version19005Date20261109110000Test extends TestCase {
 		$config->method('getKeys')->willReturn(['webhook_sign_url']);
 		$config->method('getValueString')->with(Application::APP_ID, 'webhook_sign_url')
 			->willReturn('https://example.test/callback?secret=abc');
+		$expectedJson = "{\n    \"webhook_sign_url\": \"https://example.test/callback?secret=abc\"\n}";
+		$file = $this->createMock(ISimpleFile::class);
+		$file->method('getSize')->willReturn(strlen($expectedJson));
 		$folder = $this->createMock(ISimpleFolder::class);
 		$folder->expects($this->once())->method('newFile')
-			->with(
-				'backup-config-webhook_sign_url_Version19005Date20261109110000.json',
-				"{\n    \"webhook_sign_url\": \"https://example.test/callback?secret=abc\"\n}",
-			);
+			->with('backup-config-webhook_sign_url_Version19005Date20261109110000.json', $expectedJson)
+			->willReturn($file);
 		$appData = $this->createMock(IAppData::class);
 		$appData->method('getFolder')->with('/')->willReturn($folder);
 		$factory = $this->createMock(IAppDataFactory::class);
 		$factory->method('get')->willReturn($appData);
+		$output = $this->createMock(IOutput::class);
+		$output->expects($this->once())->method('info')->with($this->callback(static function (string $message): bool {
+			return str_contains($message, 'backup-config-webhook_sign_url_') && !str_contains($message, 'secret=abc');
+		}));
 
-		$this->runPreSchema($this->migration($config, $factory), false);
+		$this->runPreSchema($this->migration($config, $factory), false, $output);
 	}
 
 	public function testDoesNotDeleteConfigWhenBackupFails(): void {
@@ -148,6 +192,25 @@ final class Version19005Date20261109110000Test extends TestCase {
 		$this->runPreSchema($this->migration($config, $factory), false);
 	}
 
+	public function testTruncatedConfigBackupDoesNotDeleteLegacyValue(): void {
+		$config = $this->createMock(IAppConfig::class);
+		$config->method('getKeys')->willReturn(['webhook_sign_url']);
+		$config->method('getValueString')->willReturn('https://example.test/callback');
+		$config->expects($this->never())->method('deleteKey');
+		$file = $this->createMock(ISimpleFile::class);
+		$file->method('getSize')->willReturn(1);
+		$folder = $this->createMock(ISimpleFolder::class);
+		$folder->method('newFile')->willReturn($file);
+		$appData = $this->createMock(IAppData::class);
+		$appData->method('getFolder')->willReturn($folder);
+		$factory = $this->createMock(IAppDataFactory::class);
+		$factory->method('get')->willReturn($appData);
+
+		$this->expectException(\RuntimeException::class);
+		$this->expectExceptionMessage('Could not verify LibreSign webhook URL backup size');
+		$this->runPreSchema($this->migration($config, $factory), false);
+	}
+
 	public function testRemovesOnlyConfiguredLegacyWebhookUrl(): void {
 		$config = $this->createMock(IAppConfig::class);
 		$config->method('getKeys')->with(Application::APP_ID)->willReturn(['webhook_sign_url', 'signature_engine']);
@@ -162,13 +225,13 @@ final class Version19005Date20261109110000Test extends TestCase {
 		$this->migration($config)->postSchemaChange($this->createMock(IOutput::class), static fn (): ISchemaWrapper => throw new \LogicException('Schema unused'), []);
 	}
 
-	private function runPreSchema(Version19005Date20261109110000 $migration, bool $columnExists): void {
+	private function runPreSchema(Version19005Date20261109110000 $migration, bool $columnExists, ?IOutput $output = null): void {
 		$table = $this->createMock(ITable::class);
 		$table->method('hasColumn')->with('callback')->willReturn($columnExists);
 		$schema = $this->createMock(ISchemaWrapper::class);
 		$schema->method('hasTable')->with('libresign_file')->willReturn(true);
 		$schema->method('getTable')->willReturn($table);
-		$migration->preSchemaChange($this->createMock(IOutput::class), static fn (): ISchemaWrapper => $schema, []);
+		$migration->preSchemaChange($output ?? $this->createMock(IOutput::class), static fn (): ISchemaWrapper => $schema, []);
 	}
 
 	private function connectionForRows(array $rows): IDBConnection {
@@ -176,17 +239,16 @@ final class Version19005Date20261109110000Test extends TestCase {
 		$result->method('fetchAssociative')->willReturnOnConsecutiveCalls(...[...$rows, false]);
 		$result->expects($this->once())->method('closeCursor');
 		$expr = $this->createMock(IExpressionBuilder::class);
-		$expr->method('isNotNull')->willReturn('callback IS NOT NULL');
-		$expr->method('neq')->willReturn('callback <> :empty');
+		$expr->expects($this->once())->method('nonEmptyString')->with('callback')
+			->willReturn('portable non-empty callback predicate');
 		$query = $this->createMock(IQueryBuilder::class);
 		$query->expects($this->once())->method('select')->with('id', 'callback')->willReturnSelf();
-		$query->expects($this->once())->method('where')->with('callback IS NOT NULL')->willReturnSelf();
-		$query->expects($this->once())->method('andWhere')->with('callback <> :empty')->willReturnSelf();
+		$query->expects($this->once())->method('where')->with('portable non-empty callback predicate')->willReturnSelf();
+		$query->expects($this->never())->method('andWhere');
 		foreach (['from', 'orderBy'] as $method) {
 			$query->method($method)->willReturnSelf();
 		}
 		$query->method('expr')->willReturn($expr);
-		$query->method('createNamedParameter')->willReturn(':empty');
 		$query->method('executeQuery')->willReturn($result);
 		$connection = $this->createMock(IDBConnection::class);
 		$connection->method('getQueryBuilder')->willReturn($query);
