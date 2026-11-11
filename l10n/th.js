@@ -85,6 +85,7 @@ OC.L10N.register(
     "Revoke" : "เพิกถอน",
     "Type:" : "ชนิด:",
     "Page not found" : "ไม่พบหน้า",
+    "Approved" : "ได้รับการอนุมัติ",
     "Ok" : "ตกลง",
     "Rename" : "เปลี่ยนชื่อ",
     "Modified" : "แก้ไขเมื่อ",

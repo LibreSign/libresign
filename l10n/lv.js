@@ -104,6 +104,7 @@ OC.L10N.register(
     "Owner:" : "Īpašnieks:",
     "Type:" : "Veids:",
     "Page not found" : "Lapa nav atrasta",
+    "Approved" : "Apstiprināts",
     "Renamed \"{oldName}\" to \"{newName}\"" : "Pārdēvēja \"{oldName}\" par \"{newName}\"",
     "Ok" : "Labi",
     "Rename" : "Pārdēvēt",

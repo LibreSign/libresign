@@ -209,6 +209,7 @@ OC.L10N.register(
     "Type:" : "Vrsta:",
     "Page not found" : "Stranica nije pronađena",
     "Sorry but the page you are looking for does not exist, has been removed, moved or is temporarily unavailable." : "Stranica koju tražite ne postoji, uklonjena je, premještena ili je privremeno nedostupna.",
+    "Approved" : "Odobreno",
     "Approved by" : "Odobrio",
     "Renamed \"{oldName}\" to \"{newName}\"" : "Preimenovali ste \"{oldName}\" u \"{newName}\"",
     "Ok" : "U redu",

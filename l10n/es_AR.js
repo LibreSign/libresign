@@ -90,6 +90,7 @@ OC.L10N.register(
     "Revoke" : "Revocar",
     "Type:" : "Tipo:",
     "Page not found" : "Página no encontrada",
+    "Approved" : "Aprovado",
     "Rename" : "Renombrar",
     "File name" : "Nombre del archivo",
     "Remove filter" : "Quitar filtro",

@@ -121,6 +121,7 @@ OC.L10N.register(
     "Revoke" : "Одземи",
     "Type:" : "Вид:",
     "Page not found" : "Страницата не е пронајдена",
+    "Approved" : "Одобрен",
     "Renamed \"{oldName}\" to \"{newName}\"" : "Преименувано \"{oldName}\" во \"{newName}\"",
     "Ok" : "Во ред",
     "Rename" : "Преименувај",

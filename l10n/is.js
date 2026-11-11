@@ -126,6 +126,7 @@ OC.L10N.register(
     "Revoke" : "Afturkalla",
     "Type:" : "Tegund:",
     "Page not found" : "Síða fannst ekki",
+    "Approved" : "Samþykkt",
     "Renamed \"{oldName}\" to \"{newName}\"" : "Endurnefndi \"{oldName}\" sem \"{newName}\"",
     "Ok" : "Í lagi",
     "Rename" : "Endurnefna",

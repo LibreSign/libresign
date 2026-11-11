@@ -142,6 +142,7 @@ OC.L10N.register(
     "Owner:" : "Bab:",
     "Type:" : "Anaw:",
     "Page not found" : "Ulac asebter",
+    "Approved" : "Yettwaqbel",
     "Ok" : "Ih",
     "Rename" : "Beddel isem",
     "File name" : "Isem n ufaylu",
