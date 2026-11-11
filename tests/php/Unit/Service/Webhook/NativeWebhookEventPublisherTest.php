@@ -123,7 +123,7 @@ final class NativeWebhookEventPublisherTest extends TestCase {
 		$root->setNodeType('envelope');
 		$child = self::file(25, 'child-uuid', FileStatus::CANCELED);
 		$child->setParentFileId(13);
-		$this->files->expects($this->never())->method('getById');
+		$this->files->method('getById')->with(13)->willReturn($root);
 		$published = [];
 		$this->dispatcher->method('dispatchTyped')->willReturnCallback(
 			static function ($event) use (&$published): void {
@@ -139,9 +139,36 @@ final class NativeWebhookEventPublisherTest extends TestCase {
 					&& ($context['event'] ?? null) === 'signer.rejected'
 					&& !str_contains(json_encode($context), 'PRIVATE_REJECTION_COMMENT'),
 			));
-		$this->publisher->signerRejected($root, $child, self::signer(true), FileStatus::ABLE_TO_SIGN->value);
+		$this->publisher->signerRejected($child, self::signer(true), FileStatus::ABLE_TO_SIGN->value);
 		$this->assertCount(1, array_filter($published, static fn ($event): bool => $event instanceof SigningRequestCanceledEvent));
 		$this->assertCount(1, array_filter($published, static fn ($event): bool => $event instanceof SignerRejectedWebhookEvent));
+	}
+
+	public function testMissingEnvelopeDoesNotPublishARejectionOrTransitions(): void {
+		$child = self::file(25, 'child-uuid', FileStatus::CANCELED);
+		$child->setParentFileId(13);
+		$this->files->method('getById')->with(13)->willThrowException(new DoesNotExistException('PRIVATE_MESSAGE'));
+		$this->dispatcher->expects($this->never())->method('dispatchTyped');
+		$this->logger->expects($this->once())->method('error')
+			->with('Native webhook publication failed after commit', $this->callback(
+				static fn (array $context): bool
+					=> ($context['phase'] ?? null) === 'prepare'
+					&& ($context['event'] ?? null) === 'signer.rejected'
+					&& ($context['errorType'] ?? null) === DoesNotExistException::class
+					&& !str_contains(json_encode($context), 'PRIVATE_MESSAGE')
+			));
+
+		$this->publisher->signerRejected($child, self::signer(true), FileStatus::ABLE_TO_SIGN->value);
+	}
+
+	public function testUnexpectedEnvelopeLookupErrorIsNotSuppressed(): void {
+		$child = self::file(25, 'child-uuid', FileStatus::CANCELED);
+		$child->setParentFileId(13);
+		$this->files->method('getById')->with(13)->willThrowException(new \TypeError('invalid mapper state'));
+		$this->dispatcher->expects($this->never())->method('dispatchTyped');
+		$this->expectException(\TypeError::class);
+
+		$this->publisher->signerRejected($child, self::signer(true), FileStatus::ABLE_TO_SIGN->value);
 	}
 
 	public function testRejectionCanCompletePreviouslyPartiallySignedWorkflow(): void {
@@ -151,7 +178,7 @@ final class NativeWebhookEventPublisherTest extends TestCase {
 			static function ($event) use (&$published): void {
 				$published[] = $event;
 			});
-		$this->publisher->signerRejected($root, $root, self::signer(true), FileStatus::PARTIAL_SIGNED->value);
+		$this->publisher->signerRejected($root, self::signer(true), FileStatus::PARTIAL_SIGNED->value);
 		$this->assertCount(1, array_filter($published, static fn ($event): bool => $event instanceof SigningRequestCompletedEvent));
 		$this->assertCount(0, array_filter($published, static fn ($event): bool => $event instanceof SigningRequestCanceledEvent));
 		$rejection = array_values(array_filter($published, static fn ($event): bool => $event instanceof SignerRejectedWebhookEvent))[0];

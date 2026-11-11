@@ -10,11 +10,15 @@ namespace OCA\Libresign\Tests\Unit\Service\SignatureRejection;
 
 use OCA\Libresign\Db\File;
 use OCA\Libresign\Db\FileMapper;
+use OCA\Libresign\Db\NotificationDeliveryMapper;
 use OCA\Libresign\Db\SignRequest;
 use OCA\Libresign\Db\SignRequestMapper;
 use OCA\Libresign\Enum\FileStatus;
 use OCA\Libresign\Enum\SignRequestStatus;
 use OCA\Libresign\Events\SignatureRejectedEvent;
+use OCA\Libresign\Events\SignerRejectedWebhookEvent;
+use OCA\Libresign\Events\SigningRequestCanceledEvent;
+use OCA\Libresign\Events\SigningRequestCompletedEvent;
 use OCA\Libresign\Exception\LibresignException;
 use OCA\Libresign\Service\File\SigningWorkflowStatusResolver;
 use OCA\Libresign\Service\FileStatusService;
@@ -50,7 +54,7 @@ final class SignatureRejectionServiceTest extends TestCase {
 	private ITimeFactory&MockObject $timeFactory;
 	private IL10N&MockObject $l10n;
 	private LoggerInterface&MockObject $logger;
-	private NativeWebhookEventPublisher&MockObject $webhooks;
+	private NativeWebhookEventPublisher $webhooks;
 	/** @var list<SignRequest> */
 	private array $envelopeChildSignRequests = [];
 	private ?SignRequest $envelopeSignRequest = null;
@@ -81,8 +85,6 @@ final class SignatureRejectionServiceTest extends TestCase {
 			->willReturn(['account' => [$this->createMock(IIdentifyMethod::class)]]);
 		$this->sequentialSigningService->method('setFile')->willReturnSelf();
 
-		// Backed by mutable properties so a test can widen the envelope fan-out
-		// without the default stub masking it.
 		$this->fileMapper->method('getById')
 			->willReturnCallback(function (int $id): File {
 				if (array_key_exists($id, $this->filesById)) {
@@ -121,6 +123,15 @@ final class SignatureRejectionServiceTest extends TestCase {
 			$this->l10n,
 			$this->logger,
 			$this->webhooks,
+		);
+	}
+
+	private function useNativeWebhookPublisher(): void {
+		$this->webhooks = new NativeWebhookEventPublisher(
+			$this->eventDispatcher,
+			$this->logger,
+			$this->fileMapper,
+			$this->createMock(NotificationDeliveryMapper::class),
 		);
 	}
 
@@ -294,15 +305,35 @@ final class SignatureRejectionServiceTest extends TestCase {
 	}
 
 	#[DataProvider('publicRejectionOutcomes')]
-	public function testCommittedRejectionDelegatesBusinessEvent(bool $cancel): void {
+	public function testCommittedRejectionPublishesSanitizedEvents(bool $cancel): void {
 		$this->withPolicy(self::policy($cancel ? 'cancel' : 'continue', 'optional'));
+		$this->useNativeWebhookPublisher();
 		$file = $this->file();
 		$file->setUuid('request-uuid');
 		$signer = $this->signRequest();
-		$this->db->expects($this->once())->method('commit');
-		$this->webhooks->expects($this->once())->method('signerRejected')
-			->with($file, $file, $signer, FileStatus::ABLE_TO_SIGN->value);
+		$published = [];
+		$committed = false;
+		$this->db->expects($this->once())->method('commit')
+			->willReturnCallback(static function () use (&$committed): void {
+				$committed = true;
+			});
+		$this->eventDispatcher->method('dispatchTyped')
+			->willReturnCallback(function (object $event) use (&$published, &$committed): void {
+				$this->assertTrue($committed);
+				$published[] = $event;
+			});
+
 		$this->getService()->reject($file, $signer, 'private explanation', true);
+
+		$rejections = array_values(array_filter($published,
+			static fn (object $event): bool => $event instanceof SignerRejectedWebhookEvent));
+		$this->assertCount(1, $rejections);
+		$payload = $rejections[0]->getWebhookSerializable();
+		$this->assertSame('request-uuid', $payload['requestUuid']);
+		$this->assertSame($cancel, $payload['workflowCanceled']);
+		$this->assertStringNotContainsString('private explanation', json_encode($payload));
+		$this->assertCount($cancel ? 1 : 0, array_filter($published,
+			static fn (object $event): bool => $event instanceof SigningRequestCanceledEvent));
 		$this->assertSame(SignRequestStatus::REJECTED, $signer->getStatusEnum());
 		$this->assertTrue($signer->getRejectionCommentPrivate());
 	}
@@ -314,6 +345,7 @@ final class SignatureRejectionServiceTest extends TestCase {
 
 	public function testEnvelopeWebhookReceivesTheCommittedRootStatus(): void {
 		$this->withPolicy(self::policy('cancel'));
+		$this->useNativeWebhookPublisher();
 		$document = $this->file();
 		$document->setId(21);
 		$document->setParentFileId(1);
@@ -324,8 +356,6 @@ final class SignatureRejectionServiceTest extends TestCase {
 		$persistedRoot = $this->envelope();
 		$persistedRoot->setUuid('root-uuid');
 		$this->filesById[1] = $persistedRoot;
-		// Mapper reads are detached entities: the pre-commit root object is stale
-		// after the transaction updates the envelope row.
 		$this->detachedFileReads = true;
 		$this->fileStatusService->method('update')
 			->willReturnCallback(function (File $updated): File {
@@ -337,26 +367,30 @@ final class SignatureRejectionServiceTest extends TestCase {
 			->willReturnCallback(static function () use (&$committed): void {
 				$committed = true;
 			});
-		$this->webhooks->expects($this->once())->method('signerRejected')
-			->with(
-				$this->callback(static function (File $root) use (&$committed): bool {
-					return $committed
-						&& $root->getUuid() === 'root-uuid'
-						&& $root->getStatus() === FileStatus::CANCELED->value;
-				}),
-				$document,
-				$signer,
-				FileStatus::ABLE_TO_SIGN->value,
-			);
+		$published = [];
+		$this->eventDispatcher->method('dispatchTyped')
+			->willReturnCallback(function (object $event) use (&$published, &$committed): void {
+				$this->assertTrue($committed);
+				$published[] = $event;
+			});
 
 		$this->getService()->reject($document, $signer);
 
+		$rejections = array_values(array_filter($published,
+			static fn (object $event): bool => $event instanceof SignerRejectedWebhookEvent));
+		$this->assertCount(1, $rejections);
+		$this->assertSame('root-uuid', $rejections[0]->getWebhookSerializable()['requestUuid']);
+		$this->assertSame('envelope', $rejections[0]->getWebhookSerializable()['requestType']);
+		$this->assertTrue($rejections[0]->getWebhookSerializable()['workflowCanceled']);
+		$this->assertCount(1, array_filter($published,
+			static fn (object $event): bool => $event instanceof SigningRequestCanceledEvent));
 		$this->assertSame(FileStatus::CANCELED->value, $this->filesById[1]->getStatus());
 		$this->assertSame(SignRequestStatus::REJECTED, $signer->getStatusEnum());
 	}
 
 	public function testMissingEnvelopeAfterCommitDoesNotTurnRejectionIntoFailedRequest(): void {
 		$this->withPolicy(self::policy('cancel'));
+		$this->useNativeWebhookPublisher();
 		$document = $this->file();
 		$document->setId(21);
 		$document->setParentFileId(1);
@@ -368,17 +402,25 @@ final class SignatureRejectionServiceTest extends TestCase {
 				$this->filesById[1] = null;
 			});
 		$this->logger->expects($this->once())->method('error')
-			->with('Committed rejection envelope missing during webhook publication', [
-				'fileId' => 21,
-				'errorType' => DoesNotExistException::class,
-			]);
-		$this->webhooks->expects($this->never())->method('signerRejected');
-		$this->eventDispatcher->expects($this->once())->method('dispatchTyped')
-			->with($this->isInstanceOf(SignatureRejectedEvent::class));
+			->with('Native webhook publication failed after commit', $this->callback(
+				static fn (array $context): bool
+					=> ($context['fileId'] ?? null) === 21
+					&& ($context['event'] ?? null) === 'signer.rejected'
+					&& ($context['phase'] ?? null) === 'prepare'
+					&& ($context['errorType'] ?? null) === DoesNotExistException::class,
+			));
+		$published = [];
+		$this->eventDispatcher->method('dispatchTyped')
+			->willReturnCallback(static function (object $event) use (&$published): void {
+				$published[] = $event;
+			});
 
 		$result = $this->getService()->reject($document, $signer);
+
 		$this->assertSame($signer, $result);
 		$this->assertSame(SignRequestStatus::REJECTED, $result->getStatusEnum());
+		$this->assertCount(1, $published);
+		$this->assertInstanceOf(SignatureRejectedEvent::class, $published[0]);
 	}
 
 	public function testMissingEnvelopeBeforeCommitPreventsTheRejection(): void {
@@ -418,11 +460,22 @@ final class SignatureRejectionServiceTest extends TestCase {
 
 	public function testRejectionCanCompletePreviouslySignedWorkflow(): void {
 		$this->withPolicy(self::policy('continue'));
+		$this->useNativeWebhookPublisher();
 		$file = $this->file(FileStatus::PARTIAL_SIGNED->value);
 		$file->setUuid('completed-by-rejection');
 		$this->signingWorkflowStatusResolver->method('resolve')->willReturn(FileStatus::SIGNED);
-		$this->webhooks->expects($this->once())->method('signerRejected')->with($file, $file, $this->anything(), FileStatus::PARTIAL_SIGNED->value);
+		$published = [];
+		$this->eventDispatcher->method('dispatchTyped')
+			->willReturnCallback(static function (object $event) use (&$published): void {
+				$published[] = $event;
+			});
+
 		$this->getService()->reject($file, $this->signRequest());
+
+		$completed = array_values(array_filter($published,
+			static fn (object $event): bool => $event instanceof SigningRequestCompletedEvent));
+		$this->assertCount(1, $completed);
+		$this->assertSame('completed-by-rejection', $completed[0]->getWebhookSerializable()['requestUuid']);
 		$this->assertSame(FileStatus::SIGNED->value, $file->getStatus());
 	}
 

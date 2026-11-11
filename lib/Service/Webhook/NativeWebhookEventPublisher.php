@@ -25,14 +25,10 @@ use OCP\EventDispatcher\IEventDispatcher;
 use Psr\Log\LoggerInterface;
 
 /**
- * Publishes native webhook events after the business operation has committed.
+ * Publishes native lifecycle events after business state has committed.
  *
- * Publication is best effort: it cannot reverse a persisted operation.
- * Missing persisted records and listener programming errors are logged as errors;
- * listener exceptions are logged as warnings. Unexpected preparation failures
- * are not swallowed: they indicate a fault in the application or database path.
- * Nextcloud Webhook Listeners enqueues HTTP delivery jobs when enabled, but
- * LibreSign does not persist failed event dispatches for replay.
+ * Listener failures cannot undo committed operations. Event dispatch is
+ * best-effort and LibreSign does not provide a replayable event outbox.
  */
 class NativeWebhookEventPublisher {
 	public function __construct(
@@ -57,10 +53,15 @@ class NativeWebhookEventPublisher {
 		));
 	}
 
-	public function signerRejected(FileEntity $root, FileEntity $document, SignRequestEntity $signer, int $previousRootStatus): void {
+	public function signerRejected(FileEntity $document, SignRequestEntity $signer, int $previousRootStatus): void {
 		$context = ['fileId' => $document->getId(), 'signRequestId' => $signer->getId()];
+		try {
+			$root = $this->rootOf($document);
+		} catch (DoesNotExistException $e) {
+			$this->reportFailure($e, 'prepare', 'signer.rejected', $context);
+			return;
+		}
 
-		// A listener failure cannot suppress later aggregate transitions.
 		$this->publish('signer.rejected', $context,
 			static fn (): ?Event => SignerRejectedWebhookEvent::afterRejection(
 				$root, $document, $signer, $root->getStatus() === FileStatus::CANCELED->value,
@@ -98,8 +99,6 @@ class NativeWebhookEventPublisher {
 		try {
 			$event = $eventFactory();
 		} catch (DoesNotExistException $e) {
-			// A row missing after a commit is an explicit data-integrity failure.
-			// Do not turn unrelated database or programming faults into success.
 			$this->reportFailure($e, 'prepare', $eventName, $context);
 			return;
 		}
@@ -121,8 +120,6 @@ class NativeWebhookEventPublisher {
 	}
 
 	private function reportFailure(\Throwable $error, string $phase, string $eventName, array $context): void {
-		// Listener exceptions may contain private comments, tokens or recipients.
-		// Keep the type and source location, never the message or stack trace.
 		$details = $context + [
 			'event' => $eventName,
 			'phase' => $phase,

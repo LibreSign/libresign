@@ -380,17 +380,11 @@ class RequestSignatureService {
 		if (!empty($data['uuid'])) {
 			$file = $this->fileMapper->getByUuid($data['uuid']);
 			$this->filePolicyApplier->syncCoreFlowPolicies($file, $data);
-			$previousStatus = $file->getStatus();
 			if (!empty($data['name'])) {
 				$file->setName($data['name']);
 				$this->fileService->update($file);
 			}
-			$updated = $this->fileStatusService->updateFileStatusIfUpgrade($file, $data['status'] ?? 0);
-			return [
-				'file' => $updated,
-				'becameReady' => $previousStatus === FileStatus::DRAFT->value
-					&& $updated->getStatus() === FileStatus::ABLE_TO_SIGN->value,
-			];
+			return $this->upgradeExistingFileStatus($file, $data['status'] ?? 0);
 		}
 		$nodeId = null;
 		if (isset($data['file']['fileNode']) && $data['file']['fileNode'] instanceof Node) {
@@ -409,13 +403,7 @@ class RequestSignatureService {
 			}
 			if ($file !== null) {
 				$this->filePolicyApplier->syncAllPolicies($file, $data);
-				$previousStatus = $file->getStatus();
-				$updated = $this->fileStatusService->updateFileStatusIfUpgrade($file, $data['status'] ?? 0);
-				return [
-					'file' => $updated,
-					'becameReady' => $previousStatus === FileStatus::DRAFT->value
-						&& $updated->getStatus() === FileStatus::ABLE_TO_SIGN->value,
-				];
+				return $this->upgradeExistingFileStatus($file, $data['status'] ?? 0);
 			}
 		}
 
@@ -461,6 +449,17 @@ class RequestSignatureService {
 		return [
 			'file' => $file,
 			'becameReady' => !$file->hasParent() && $file->getStatus() === FileStatus::ABLE_TO_SIGN->value,
+		];
+	}
+
+	/** @return array{file: FileEntity, becameReady: bool} */
+	private function upgradeExistingFileStatus(FileEntity $file, int $newStatus): array {
+		$wasDraft = $file->getStatus() === FileStatus::DRAFT->value;
+		$file = $this->fileStatusService->updateFileStatusIfUpgrade($file, $newStatus);
+		return [
+			'file' => $file,
+			'becameReady' => $wasDraft && !$file->hasParent()
+				&& $file->getStatus() === FileStatus::ABLE_TO_SIGN->value,
 		];
 	}
 

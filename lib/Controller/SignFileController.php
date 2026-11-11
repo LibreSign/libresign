@@ -392,8 +392,6 @@ class SignFileController extends AEnvironmentAwareController implements ISignatu
 				Http::STATUS_UNPROCESSABLE_ENTITY,
 			);
 		} catch (\Throwable $th) {
-			// Reject is public and persistence can throw internal errors. Never
-			// reveal exception details to an unauthenticated signing client.
 			$this->logger->error('Unable to process signature rejection', [
 				'errorType' => get_debug_type($th),
 			]);

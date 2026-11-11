@@ -80,32 +80,11 @@ class SignatureRejectionService {
 		// always the signer's call and no policy can take that choice away.
 		$commentIsPrivate = $normalizedComment !== null && $privateComment;
 
-		$root = $libreSignFile->hasParent()
-			? $this->fileMapper->getById($libreSignFile->getParentFileId())
-			: $libreSignFile;
-		$previousRootStatus = $root->getStatus();
+		$previousRootStatus = $libreSignFile->hasParent()
+			? $this->fileMapper->getById($libreSignFile->getParentFileId())->getStatus()
+			: $libreSignFile->getStatus();
 		$activatedSigners = $this->persistRejection($libreSignFile, $signRequest, $normalizedComment, $commentIsPrivate, $config->cancelsWorkflow());
-		// The envelope can change during the transaction. The earlier snapshot is
-		// needed for the transition, but must not be reused as the final status.
-		if ($libreSignFile->hasParent()) {
-			try {
-				$root = $this->fileMapper->getById($libreSignFile->getParentFileId());
-			} catch (DoesNotExistException $e) {
-				// The rejection committed, but its envelope no longer exists.
-				// Do not publish a webhook with the stale pre-commit status.
-				$root = null;
-				$this->logger->error('Committed rejection envelope missing during webhook publication', [
-					'fileId' => $libreSignFile->getId(),
-					'errorType' => get_debug_type($e),
-				]);
-			}
-		}
-		if ($root !== null) {
-			$this->webhooks->signerRejected($root, $libreSignFile, $signRequest, $previousRootStatus);
-		}
-		// Record the committed rejection before notification errors can interrupt this flow.
-		// The event reports the status the rejection left, as the API does: a workflow that
-		// continues after rejections is still canceled once every signer rejected.
+		$this->webhooks->signerRejected($libreSignFile, $signRequest, $previousRootStatus);
 		$this->dispatchRejectedEvent($signRequest, $libreSignFile, $this->isWorkflowCanceled($libreSignFile));
 		$this->sequentialSigningService->notifyActivatedSigners($activatedSigners);
 
