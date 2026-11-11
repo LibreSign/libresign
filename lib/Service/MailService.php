@@ -14,6 +14,7 @@ use OCA\Libresign\Db\SignRequest;
 use OCA\Libresign\Enum\NotificationDeliveryState;
 use OCA\Libresign\Exception\LibresignException;
 use OCA\Libresign\Exception\MailTransportException;
+use OCA\Libresign\Service\IdDoc\IdDocRejectionEmailTemplateBuilder;
 use OCA\Libresign\Service\Policy\PolicyService;
 use OCA\Libresign\Service\Policy\Provider\MailSenderStrategy\MailSenderStrategyPolicy;
 use OCP\IAppConfig;

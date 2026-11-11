@@ -16,7 +16,7 @@ use OCA\Libresign\Enum\FileStatus;
 use OCA\Libresign\Exception\IdDocAccessDeniedException;
 use OCA\Libresign\Exception\LibresignException;
 use OCA\Libresign\Exception\NotAnIdDocException;
-use OCA\Libresign\Service\IdDocsPolicyService;
+use OCA\Libresign\Service\IdDoc\IdDocsPolicyService;
 use OCA\Libresign\Service\SignFileService;
 use OCA\Libresign\Service\UuidResolverService;
 use OCP\AppFramework\Db\DoesNotExistException;

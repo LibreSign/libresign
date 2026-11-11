@@ -6,11 +6,11 @@ declare(strict_types=1);
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
 
-namespace OCA\Libresign\Tests\Integration\Service;
+namespace OCA\Libresign\Tests\Integration\Service\IdDoc;
 
 use OCA\Libresign\Db\File;
 use OCA\Libresign\Db\SignRequest;
-use OCA\Libresign\Service\IdDocRejectionEmailTemplateBuilder;
+use OCA\Libresign\Service\IdDoc\IdDocRejectionEmailTemplateBuilder;
 use OCP\IL10N;
 use OCP\IURLGenerator;
 use OCP\IUser;

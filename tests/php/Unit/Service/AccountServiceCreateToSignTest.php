@@ -15,7 +15,7 @@ use OCA\Libresign\Service\AccountCertificateService;
 use OCA\Libresign\Service\AccountFileService;
 use OCA\Libresign\Service\AccountService;
 use OCA\Libresign\Service\File\AccountSettingsProvider;
-use OCA\Libresign\Service\IdDocsService;
+use OCA\Libresign\Service\IdDoc\IdDocsService;
 use OCA\Libresign\Service\IdentifyMethodService;
 use OCA\Libresign\Service\Policy\RequestSignAuthorizationService;
 use OCA\Libresign\Service\SignerElementsService;

@@ -11,7 +11,7 @@ namespace OCA\Libresign\Service\File;
 
 use OCA\Libresign\AppInfo\Application;
 use OCA\Libresign\Service\AccountCertificateService;
-use OCA\Libresign\Service\IdDocsPolicyService;
+use OCA\Libresign\Service\IdDoc\IdDocsPolicyService;
 use OCA\Libresign\Service\Policy\PolicyAuthorizationService;
 use OCA\Libresign\Service\Validation\IdentityDocumentValidator;
 use OCP\Accounts\IAccountManager;

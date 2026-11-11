@@ -13,7 +13,7 @@ use OCA\Libresign\Db\IdDocsMapper;
 use OCA\Libresign\Exception\LibresignException;
 use OCA\Libresign\Helper\JSActions;
 use OCA\Libresign\Service\FileService;
-use OCA\Libresign\Service\IdDocsPolicyService;
+use OCA\Libresign\Service\IdDoc\IdDocsPolicyService;
 use OCP\IL10N;
 use OCP\IUser;
 use OCP\IUserManager;

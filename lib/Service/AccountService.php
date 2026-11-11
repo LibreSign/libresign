@@ -13,6 +13,7 @@ use OCA\Libresign\Db\IdentifyMethodMapper;
 use OCA\Libresign\Db\SignRequest;
 use OCA\Libresign\Exception\LibresignException;
 use OCA\Libresign\Service\File\AccountSettingsProvider;
+use OCA\Libresign\Service\IdDoc\IdDocsService;
 use OCA\Libresign\Service\Policy\RequestSignAuthorizationService;
 use OCA\Settings\Mailer\NewUserMailHelper;
 use OCP\Files\File;

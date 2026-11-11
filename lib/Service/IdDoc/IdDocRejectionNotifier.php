@@ -6,7 +6,7 @@ declare(strict_types=1);
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
 
-namespace OCA\Libresign\Service;
+namespace OCA\Libresign\Service\IdDoc;
 
 use OCA\Libresign\AppInfo\Application;
 use OCA\Libresign\Db\File;
@@ -17,6 +17,7 @@ use OCA\Libresign\Service\Notification\InAppChannel;
 use OCA\Libresign\Service\Notification\InAppPayload;
 use OCA\Libresign\Service\Notification\MailChannel;
 use OCA\Libresign\Service\Notification\NotificationMessage;
+use OCA\Libresign\Service\NotificationDeliveryService;
 use OCP\AppFramework\Utility\ITimeFactory;
 use OCP\Notification\IManager;
 
