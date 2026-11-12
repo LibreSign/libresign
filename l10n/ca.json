@@ -243,6 +243,7 @@
     "Type:" : "Tipus:",
     "Page not found" : "Pàgina no trobada",
     "Sorry but the page you are looking for does not exist, has been removed, moved or is temporarily unavailable." : "Ho sentim, però la pàgina que cerques no existeix, s'ha eliminat, s'ha mogut o no està disponible temporalment.",
+    "Approved" : "Aprovat",
     "Approved by" : "Aprovat per",
     "Renamed \"{oldName}\" to \"{newName}\"" : "S'ha canviat el nom de «{oldName}» a «{newName}»",
     "Ok" : "D'acord",
