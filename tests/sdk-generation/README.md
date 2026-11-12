@@ -18,9 +18,11 @@ npm test --prefix tests/sdk-generation
 npm run test:anyof --prefix tests/sdk-generation
 ```
 
-The last command currently **fails intentionally**: TS2578 demonstrates that
-an invalid array is accepted by the generated `EffectivePolicyValue`. Any other
-failure must be investigated separately. `npm test` checks transport and writes
+The last command **passes while the known defect exists**: it assigns an invalid
+array to the generated `EffectivePolicyValue` without suppressing diagnostics.
+A missing client fails with TS2307; a corrected type that rejects arrays fails
+with TS2322 and requires reevaluating the No-Go report. `npm test` checks
+transport, generation cleanup and live-check error handling, and writes
 the generated operation inventory to `build/sdk-generation/inventory.md`.
 Compare that inventory with the checked-in evaluation snapshot when changing the
 specification. This does not prove every operation's runtime serialization.
@@ -28,8 +30,10 @@ specification. This does not prove every operation's runtime serialization.
 The generator validates the full specification first and never uses
 `--skip-validate-spec`. Its Docker image digest pins OpenAPI Generator 7.27.0;
 `useSingleRequestParameter=true` is enabled. npm dependencies are pinned by
-`package-lock.json`. Use fresh output directories: the generator does not remove
-stale files. Generated code stays under ignored `build/` and must not be edited.
+`package-lock.json`. After validating the input, the script clears only the
+selected output subdirectory before generation. It rejects the build root,
+symlinked output paths and inputs inside the output directory. Generated code
+stays under ignored `build/` and must not be edited.
 See [REPORT.md](REPORT.md) and [inventory.md](inventory.md) for results.
 
 ## Normalized-input experiment
@@ -72,4 +76,7 @@ requests plus one deliberately invalid authentication attempt. It requires a
 local instance and is not part of the deterministic harness. It accepts only
 localhost hostnames and disables TLS certificate verification for the local
 development proxy; do not use it with remote systems. The PDF check reports a
-404 as unverified when no certificate policy PDF is configured.
+404 as unverified when no certificate policy PDF is configured. Other PDF errors
+mark the run as failed but still allow the invalid-credentials check to run.
+That check requires HTTP 401; HTTP 403 and 429 do not count as authentication
+success for this negative test.

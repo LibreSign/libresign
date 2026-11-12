@@ -48,9 +48,11 @@ single-request-parameter configuration; use actual class signatures.
 
 Strict compilation with `skipLibCheck` passes. `types.ts` tests number/string
 `NewFile.nodeId` (rejecting boolean), inherited/local `SignerDetail` fields,
-nullable/optional fields and enums. `test:anyof` exits 2 with TS2578, an unused
-`@ts-expect-error`: the generated empty interface accepts an invalid policy
-array. This is a failed acceptance criterion, not a passing test.
+nullable/optional fields and enums. `test:anyof` exits 0 because the generated
+empty interface accepts an invalid policy array. This is a passing reproduction
+of a failed SDK acceptance criterion, so the decision remains No-Go. The fixture
+has no error suppression: missing generated output fails with TS2307; a type
+that rejects arrays fails with TS2322, requiring the report to be reevaluated.
 
 The controlled Axios adapter tests generated calls for account GET and typed
 OCS envelope, encoded policy path and simulated HTTP 403, signature-request
