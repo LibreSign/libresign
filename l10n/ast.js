@@ -119,6 +119,7 @@ OC.L10N.register(
     "Revoke" : "Revocar",
     "Type:" : "Tipu:",
     "Page not found" : "Nun s'atopó la páxina",
+    "Approved" : "Aprobóse",
     "Renamed \"{oldName}\" to \"{newName}\"" : "Renomóse «{oldName}» a «{newName}»",
     "Ok" : "D'acuerdu",
     "Rename" : "Renomar",
