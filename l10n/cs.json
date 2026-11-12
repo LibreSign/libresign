@@ -610,6 +610,7 @@
     "WARNING: This is a CERTIFICATE AUTHORITY! Revoking it will affect the certificate chain and may invalidate certificates issued by this CA." : "VAROVÁNÍ: Toto je CERTIFIKAČNÍ AUTORITA! Odvoláním její platnosti postihne řetěz certifikátů a může vést ke zneplatnění certifkátů, vydaných touto cert. autoritou.",
     "Page not found" : "Stránka nenalezena",
     "Sorry but the page you are looking for does not exist, has been removed, moved or is temporarily unavailable." : "Je nám líto, ale stránka kterou hledáte neexistuje, byla odebrána, přesunuta nebo je dočasně nedostupná.",
+    "Approved" : "Schváleno",
     "Failed to load documents" : "Nepodařilo se načíst dokumenty",
     "Failed to delete document" : "Nepodařilo se smazat dokument",
     "No documents to validate" : "Žádný dokument k ověření",
