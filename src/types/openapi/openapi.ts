@@ -1420,8 +1420,8 @@ export type components = {
         IdDocsUploadErrorResponse: {
             /** Format: int64 */
             file: number | null;
-            /** @enum {string|null} */
-            type: "info" | "warning" | "danger" | null;
+            /** @enum {string} */
+            type: "info" | "warning" | "danger";
             message: string;
         };
         IdentifyAccount: {
