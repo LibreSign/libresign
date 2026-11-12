@@ -42,7 +42,14 @@ final class IdDocsControllerTest extends ApiTestCase {
 			->withPath('/api/v1/id-docs')
 			->expectStatus(401);
 
-		$this->assertRequest();
+		$response = $this->assertRequest();
+		$body = json_decode($response->getBody()->getContents(), true);
+		$this->assertArrayHasKey('meta', $body['ocs']);
+		$this->assertSame([
+			'file' => 0,
+			'type' => 'danger',
+			'message' => 'Invalid file type.',
+		], $body['ocs']['data']);
 	}
 
 	/**

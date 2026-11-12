@@ -816,7 +816,7 @@ namespace OCA\Libresign;
  * }
  * @psalm-type LibresignIdDocsUploadErrorResponse = array{
  *     file: ?int,
- *     type: 'info'|'warning'|'danger'|null,
+ *     type: 'info'|'warning'|'danger',
  *     message: string,
  * }
  * @psalm-type LibresignIdDocsListResponse = array{
