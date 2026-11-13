@@ -98,7 +98,9 @@ Feature: policies/boolean_policy_layers
 
     Given as user "admin"
     When sending "post" to ocs "/apps/libresign/api/v1/policies/system/show_confetti_after_signing"
-      | value | null |
+      """
+      {"value": null}
+      """
     Then the response should have a status code 200
 
     Given as user "signer1"
