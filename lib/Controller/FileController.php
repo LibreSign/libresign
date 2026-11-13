@@ -587,7 +587,11 @@ class FileController extends AEnvironmentAwareController {
 		try {
 			$this->validateHelper->canRequestSign($this->userSession->getUser());
 
-			$normalizedFiles = $this->prepareFilesForSaving($file, $files, $settings);
+			$uploadedFiles = $this->request->getUploadedFile('files') ?: $this->request->getUploadedFile('file');
+			$normalizedFiles = $this->prepareFilesForSaving($file, $files, $settings, $uploadedFiles);
+			if ($uploadedFiles) {
+				$this->assertExpectedUploadedFileCount(count($normalizedFiles));
+			}
 
 			return $this->saveFiles($normalizedFiles, $name, $settings);
 		} catch (LibresignException $e) {
@@ -644,6 +648,7 @@ class FileController extends AEnvironmentAwareController {
 			}
 
 			$normalizedFiles = $this->processUploadedFiles($uploadedFiles);
+			$this->assertExpectedUploadedFileCount(count($normalizedFiles));
 
 			$addedFiles = [];
 			foreach ($normalizedFiles as $fileData) {
@@ -735,9 +740,7 @@ class FileController extends AEnvironmentAwareController {
 	/**
 	 * @return list<array{fileNode?: Node, name?: string, uploadedFile?: array}> Normalized files array
 	 */
-	private function prepareFilesForSaving(array $file, array $files, array $settings): array {
-		$uploadedFiles = $this->request->getUploadedFile('files') ?: $this->request->getUploadedFile('file');
-
+	private function prepareFilesForSaving(array $file, array $files, array $settings, ?array $uploadedFiles): array {
 		if ($uploadedFiles) {
 			return $this->processUploadedFiles($uploadedFiles);
 		}
@@ -753,6 +756,24 @@ class FileController extends AEnvironmentAwareController {
 
 		// TRANSLATORS Error shown when creating or updating a signature request without a file.
 		throw new LibresignException($this->l10n->t('File or files parameter is required'));
+	}
+
+	/**
+	 * Detect uploads silently truncated by PHP's max_file_uploads limit.
+	 * Clients may omit the count for backwards compatibility.
+	 */
+	private function assertExpectedUploadedFileCount(int $receivedCount): void {
+		$declaredCount = $this->request->getParam('expectedFilesCount');
+		if ($declaredCount === null) {
+			return;
+		}
+		if ((!is_string($declaredCount) && !is_int($declaredCount))
+			|| !ctype_digit((string)$declaredCount)
+			|| (string)(int)$declaredCount !== (string)$declaredCount
+			|| (int)$declaredCount !== $receivedCount) {
+			// TRANSLATORS Error shown when the number of uploaded documents differs from the count declared by the client.
+			throw new LibresignException($this->l10n->t('The number of uploaded files does not match the expected count'));
+		}
 	}
 
 	/**
