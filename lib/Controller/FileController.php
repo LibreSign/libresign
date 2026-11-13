@@ -572,6 +572,7 @@ class FileController extends AEnvironmentAwareOCSController {
 	 *
 	 * Send a new file to Nextcloud and return the fileId used to create a signature request.
 	 * Files must be uploaded as multipart/form-data with field name 'file[]' or 'files[]'.
+	 * Multipart clients can send optional expectedFilesCount to reject incomplete batches.
 	 *
 	 * **Note on multiple file uploads:**
 	 * PHP has a limit on the number of files that can be uploaded in a single request (max_file_uploads directive, default 20).
@@ -623,6 +624,7 @@ class FileController extends AEnvironmentAwareOCSController {
 	 *
 	 * Add one or more files to an existing envelope that is in DRAFT status.
 	 * Files must be uploaded as multipart/form-data with field name 'files[]'.
+	 * Multipart clients can send optional expectedFilesCount to reject incomplete batches.
 	 *
 	 * @param string $uuid The UUID of the envelope
 	 * @return DataResponse<Http::STATUS_OK, LibresignDetailedFileResponse, array{}>|DataResponse<Http::STATUS_BAD_REQUEST|Http::STATUS_NOT_FOUND|Http::STATUS_UNPROCESSABLE_ENTITY, LibresignMessageResponse, array{}>
