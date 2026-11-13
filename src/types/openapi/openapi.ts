@@ -325,7 +325,7 @@ export type paths = {
         put?: never;
         /**
          * Add file to envelope
-         * @description Add one or more files to an existing envelope that is in DRAFT status. Files must be uploaded as multipart/form-data with field name 'files[]'.
+         * @description Add one or more files to an existing envelope that is in DRAFT status. Files must be uploaded as multipart/form-data with field name 'files[]'. Multipart clients can send optional expectedFilesCount to reject incomplete batches.
          */
         post: operations["file-add-file-to-envelope"];
         delete?: never;
