@@ -11,13 +11,13 @@
 
 # LibreSign
 
-**Free and open-source electronic signatures for Nextcloud.**
+**Free and open-source electronic and digital signatures for PDFs and documents.**
 
-LibreSign is a Nextcloud app for requesting, signing, tracking, and validating documents, including PDFs. It runs **inside a Nextcloud server**, including self-hosted deployments; **it is not an independent standalone signing server**. It works with Nextcloud files and permissions, so you can manage signing workflows on infrastructure you control.
+LibreSign helps organizations request, sign, track, and validate documents with configurable signing workflows. Manage signing order, include internal and external recipients, and keep a traceable record of each request. External recipients can sign without a Nextcloud account when the relevant identification and signing methods are enabled.
 
-An existing application can keep its own portal, authentication, and business process while its backend uses LibreSign's OCS/REST API to request and track signatures. **The API is included in the free and open-source LibreSign software**, with no separate API license or subscription required. Protected operations use the host Nextcloud installation's authentication and permissions, plus LibreSign's configured policies.
+Use LibreSign's included API to integrate signature requests into an existing portal or business application without replacing its interface or processes. The API is part of the free software; access follows the installation's authentication, permissions, and signing policies.
 
-The integration typically authenticates as an authorized Nextcloud account using a revocable App Password. **External signers can sign without creating a Nextcloud account** when an external identification and signing method is enabled and configured (for example, email). The integration account is not the signer's identity, and its credentials must not be passed to signers.
+LibreSign runs as a **Nextcloud app** and requires a compatible Nextcloud installation. You can self-host it or choose optional professional deployment services.
 
 ## Key features
 
@@ -38,6 +38,11 @@ LibreSign is for teams where signing is part of a controlled business process.
 - Keep traceability for audits, legal checks, and internal reviews
 - Align signing with existing approval and governance processes
 - Adapt workflows to how your organization works instead of following fixed external models
+
+## Get started
+
+- **Community / self-hosted:** [Get LibreSign from the Nextcloud App Store](https://apps.nextcloud.com/apps/libresign) and follow the [official documentation](https://docs.libresign.coop/) for setup, API reference, integration examples, and release-specific guidance. The software and API have no license fee; you operate your installation.
+- **Business / professional services:** Need managed deployment, technical support, or help integrating LibreSign with your systems? [Explore business options](https://libresign.coop/pricing/) or [contact the LibreSign team](https://libresign.coop/contact-us/). Professional services are optional.
 
 ## Contributing
 
@@ -61,26 +66,6 @@ Thanks to all the people who contribute to LibreSign:
 <p align="center">
   <img src="img/screenshot/request-signature.png" alt="LibreSign interface screenshot" width="900"/>
 </p>
-
-## Documentation
-
-- [Official documentation and version selector](https://docs.libresign.coop/)
-- [Nextcloud App Store](https://apps.nextcloud.com/apps/libresign)
-- [Developer manual (development branch, unreleased)](https://docs.libresign.coop/main/developer_manual/)
-- [Documentation source and contribution guidelines](https://github.com/LibreSign/documentation)
-
-### Integration guides by version
-
-Select the guide matching your installed LibreSign release; `/api/v1` is the OCS protocol version, **not** the application major version. Authentication, request payloads, and available features depend on the release and administrator configuration.
-
-| LibreSign / Nextcloud | Integration guide | External signer guide | OpenAPI contract | Bash/PHP examples |
-| --- | --- | --- | --- | --- |
-| 13 / 33 | [Architecture](https://docs.libresign.coop/13/developer_manual/integration/index.html) | [External email signers](https://docs.libresign.coop/13/developer_manual/api/external-email-signers.html) | [OpenAPI](https://docs.libresign.coop/13/developer_manual/api/openapi.html) | [Examples](https://github.com/LibreSign/documentation/tree/stable13/examples/external-email-signers) |
-| 14 / 34 | [Architecture](https://docs.libresign.coop/14/developer_manual/integration/index.html) | [External email signers](https://docs.libresign.coop/14/developer_manual/api/external-email-signers.html) | [OpenAPI](https://docs.libresign.coop/14/developer_manual/api/openapi.html) | [Examples](https://github.com/LibreSign/documentation/tree/stable14/examples/external-email-signers) |
-| 15 / 35 | [Architecture](https://docs.libresign.coop/15/developer_manual/integration/index.html) | [External email signers](https://docs.libresign.coop/15/developer_manual/api/external-email-signers.html) | [OpenAPI](https://docs.libresign.coop/15/developer_manual/api/openapi.html) | [Examples](https://github.com/LibreSign/documentation/tree/stable15/examples/external-email-signers) |
-| Development (unreleased) | [Architecture](https://docs.libresign.coop/main/developer_manual/integration/index.html) | [External email signers](https://docs.libresign.coop/main/developer_manual/api/external-email-signers.html) | [OpenAPI](https://docs.libresign.coop/main/developer_manual/api/openapi.html) | [Examples](https://github.com/LibreSign/documentation/tree/main/examples/external-email-signers) |
-
-- [Importable n8n signing workflow](https://github.com/LibreSign/documentation/blob/main/examples/n8n/README.md) — example with one email signer, release-specific request selection, and prerequisites for Nextcloud storage and WebDAV.
 
 ## Sponsors
 
