@@ -40,6 +40,7 @@ use OCP\AppFramework\Http\Attribute\NoAdminRequired;
 use OCP\AppFramework\Http\Attribute\NoCSRFRequired;
 use OCP\AppFramework\Http\Attribute\OpenAPI;
 use OCP\AppFramework\Http\Attribute\PublicPage;
+use OCP\AppFramework\Http\Attribute\RequestHeader;
 use OCP\AppFramework\Http\DataResponse;
 use OCP\IL10N;
 use OCP\IRequest;
@@ -499,6 +500,7 @@ class SignFileController extends AEnvironmentAwareOCSController implements ISign
 	 */
 	#[NoAdminRequired]
 	#[NoCSRFRequired]
+	#[RequestHeader(name: 'libresign-sign-request-uuid', description: 'The UUID of the sign request, used to identify the request', indirect: true)]
 	#[RequireSigner]
 	#[PublicPage]
 	#[OpenAPI(tags: ['signing'])]
