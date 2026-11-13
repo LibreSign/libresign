@@ -6,6 +6,6 @@
   "type": "module",
   "dependencies": {
     "@nextcloud/dialogs": "^7.6.0",
-    "@nextcloud/viewer": "2.0.0-beta.20"
+    "@nextcloud/viewer": "2.0.0-beta.21"
   }
 }
