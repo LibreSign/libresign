@@ -15,6 +15,7 @@ use OCA\Libresign\Db\IdDocsMapper;
 use OCA\Libresign\Db\IdentifyMethodMapper;
 use OCA\Libresign\Db\SignRequest;
 use OCA\Libresign\Db\SignRequestMapper;
+use OCA\Libresign\Exception\IdDocsUploadValidationException;
 use OCA\Libresign\Exception\LibresignException;
 use OCA\Libresign\Service\IdDocsService;
 use OCA\Libresign\Service\RequestSignatureService;
@@ -399,4 +400,41 @@ final class IdDocsServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			$signRequest,
 		);
 	}
+
+	public function testValidateIdDocsPreservesExpectedValidationMessageAndFileIndex(): void {
+		$user = $this->createMock(IUser::class);
+		$user->method('getUID')->willReturn('synthetic-user');
+		$this->fileTypeMapper->method('getTypes')->willReturn(['IDENTIFICATION' => []]);
+		$this->fileInputValidator->method('validateNewFile')
+			->willThrowException(new LibresignException('Invalid fileID.'));
+
+		try {
+			$this->getIdDocsService()->validateIdDocs(
+				[['type' => 'IDENTIFICATION', 'file' => ['nodeId' => 12]]],
+				$user,
+			);
+			$this->fail('Expected a file-indexed validation error');
+		} catch (IdDocsUploadValidationException $exception) {
+			$this->assertSame(
+				['type' => 'danger', 'file' => 0, 'message' => 'Invalid fileID.'],
+				json_decode($exception->getMessage(), true),
+			);
+		}
+	}
+
+	public function testValidateIdDocsDoesNotReclassifyUnexpectedInfrastructureFailure(): void {
+		$user = $this->createMock(IUser::class);
+		$this->fileTypeMapper->method('getTypes')->willReturn(['IDENTIFICATION' => []]);
+		$this->fileInputValidator->method('validateNewFile')
+			->willThrowException(new \RuntimeException('internal-canary-123'));
+
+		$this->expectException(\RuntimeException::class);
+		$this->expectExceptionMessage('internal-canary-123');
+
+		$this->getIdDocsService()->validateIdDocs(
+			[['type' => 'IDENTIFICATION', 'file' => ['nodeId' => 12]]],
+			$user,
+		);
+	}
+
 }
