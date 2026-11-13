@@ -2725,11 +2725,14 @@
                     }
                 ],
                 "requestBody": {
-                    "required": false,
+                    "required": true,
                     "content": {
                         "application/json": {
                             "schema": {
                                 "type": "object",
+                                "required": [
+                                    "value"
+                                ],
                                 "properties": {
                                     "value": {
                                         "nullable": true,
