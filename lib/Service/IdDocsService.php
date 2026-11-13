@@ -9,6 +9,7 @@ declare(strict_types=1);
 namespace OCA\Libresign\Service;
 
 use OCA\Libresign\AppInfo\Application;
+use OCA\Libresign\Db\File as FileEntity;
 use OCA\Libresign\Db\FileMapper;
 use OCA\Libresign\Db\FileTypeMapper;
 use OCA\Libresign\Db\IdDocsMapper;
@@ -18,6 +19,8 @@ use OCA\Libresign\Db\SignRequest;
 use OCA\Libresign\Db\SignRequest as SignRequestEntity;
 use OCA\Libresign\Db\SignRequestMapper;
 use OCA\Libresign\Enum\IdentifyMethodRequirement;
+use OCA\Libresign\Exception\FileProcessingValidationException;
+use OCA\Libresign\Exception\IdDocsUploadValidationException;
 use OCA\Libresign\Exception\LibresignException;
 use OCA\Libresign\Service\Validation\FileInputValidator;
 use OCA\Libresign\Service\Validation\IdentityDocumentValidator;
@@ -49,7 +52,7 @@ class IdDocsService {
 	private function validateTypeOfFile(int $fileIndex, array $file): void {
 		$profileFileTypes = $this->fileTypeMapper->getTypes();
 		if (!array_key_exists($file['type'], $profileFileTypes)) {
-			throw new LibresignException(json_encode([
+			throw new IdDocsUploadValidationException(json_encode([
 				'type' => 'danger',
 				'file' => $fileIndex,
 				// TRANSLATORS Error shown when an uploaded identity document has an unsupported file type.
@@ -61,7 +64,7 @@ class IdDocsService {
 	private function validateIdDoc(int $fileIndex, array $file, IUser $user): void {
 		$profileFileTypes = $this->fileTypeMapper->getTypes();
 		if (!array_key_exists($file['type'], $profileFileTypes)) {
-			throw new LibresignException(json_encode([
+			throw new IdDocsUploadValidationException(json_encode([
 				'type' => 'danger',
 				'file' => $fileIndex,
 				// TRANSLATORS Error shown when an uploaded identity document has an unsupported file type.
@@ -73,8 +76,8 @@ class IdDocsService {
 			$this->identityDocumentValidator->validateFileTypeExists($file['type']);
 			$this->fileInputValidator->validateNewFile($file, FileInputValidator::TYPE_ACCOUNT_DOCUMENT, $user);
 			$this->identityDocumentValidator->validateUserHasNoFileWithThisType($user->getUID(), $file['type']);
-		} catch (\Exception $e) {
-			throw new LibresignException(json_encode([
+		} catch (LibresignException $e) {
+			throw new IdDocsUploadValidationException(json_encode([
 				'type' => 'danger',
 				'file' => $fileIndex,
 				'message' => $e->getMessage()
@@ -94,7 +97,7 @@ class IdDocsService {
 			try {
 				$files[$fileIndex]['file'] = $this->fileInputValidator->normalizeNodeId($fileData['file'], FileInputValidator::TYPE_ACCOUNT_DOCUMENT);
 			} catch (LibresignException $e) {
-				throw new LibresignException(json_encode([
+				throw new IdDocsUploadValidationException(json_encode([
 					'type' => 'danger',
 					'file' => $fileIndex,
 					'message' => $e->getMessage(),
@@ -114,11 +117,11 @@ class IdDocsService {
 	public function addIdDocs(array $files, IUser $user): void {
 		$files = $this->normalizeNodeIds($files);
 		$this->validateIdDocs($files, $user);
-		foreach ($files as $fileData) {
+		foreach ($files as $fileIndex => $fileData) {
 			$dataToSave = $fileData;
 			$dataToSave['userManager'] = $user;
 			$dataToSave['name'] = $fileData['name'] ?? $fileData['type'];
-			$file = $this->requestSignatureService->saveFile($dataToSave);
+			$file = $this->saveIdDocFile($fileIndex, $dataToSave);
 
 			$signRequest = new SignRequestEntity();
 			$signRequest->setFileId($file->getId());
@@ -157,9 +160,26 @@ class IdDocsService {
 			if ($owner instanceof IUser) {
 				$dataToSave['userManager'] = $owner;
 			}
-			$file = $this->requestSignatureService->saveFile($dataToSave);
+			$file = $this->saveIdDocFile($fileIndex, $dataToSave);
 
 			$this->idDocsMapper->save($file->getId(), $signRequest->getId(), null, $fileData['type']);
+		}
+	}
+
+	/**
+	 * Only explicitly classified file-input errors may reach the upload response.
+	 * Other LibresignExceptions can contain infrastructure details and must stay
+	 * unclassified so that the controller logs and masks them.
+	 */
+	private function saveIdDocFile(int $fileIndex, array $dataToSave): FileEntity {
+		try {
+			return $this->requestSignatureService->saveFile($dataToSave);
+		} catch (FileProcessingValidationException $exception) {
+			throw new IdDocsUploadValidationException(json_encode([
+				'type' => 'danger',
+				'file' => $fileIndex,
+				'message' => $exception->getMessage(),
+			]), previous: $exception);
 		}
 	}
 

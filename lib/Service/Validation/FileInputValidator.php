@@ -11,6 +11,7 @@ namespace OCA\Libresign\Service\Validation;
 use InvalidArgumentException;
 use OCA\Libresign\Db\FileMapper;
 use OCA\Libresign\Db\SignRequestMapper;
+use OCA\Libresign\Exception\FileProcessingValidationException;
 use OCA\Libresign\Exception\LibresignException;
 use OCA\Libresign\Service\FolderService;
 use OCP\Files\IMimeTypeDetector;
@@ -212,10 +213,10 @@ class FileInputValidator {
 
 	public function validateMimeTypeAcceptedByMime(string $mimetype, int $type = self::TYPE_TO_SIGN): void {
 		if ($type === self::TYPE_TO_SIGN && $mimetype !== 'application/pdf') {
-			throw new LibresignException($this->l10n->t('File type: %s. Must be a fileID of %s format.', [$this->getTypeOfFile($type), 'PDF']));
+			throw new FileProcessingValidationException($this->l10n->t('File type: %s. Must be a fileID of %s format.', [$this->getTypeOfFile($type), 'PDF']));
 		}
 		if (in_array($type, [self::TYPE_VISIBLE_ELEMENT_PDF, self::TYPE_VISIBLE_ELEMENT_USER], true) && $mimetype !== 'image/png') {
-			throw new LibresignException($this->l10n->t('File type: %s. Must be a fileID of %s format.', [$this->getTypeOfFile($type), 'png']));
+			throw new FileProcessingValidationException($this->l10n->t('File type: %s. Must be a fileID of %s format.', [$this->getTypeOfFile($type), 'png']));
 		}
 	}
 

@@ -9,6 +9,7 @@ declare(strict_types=1);
 
 namespace OCA\Libresign\Service\File\Pdf;
 
+use OCA\Libresign\Exception\FileProcessingValidationException;
 use OCA\Libresign\Exception\LibresignException;
 use OCA\Libresign\Vendor\Smalot\PdfParser\Document;
 use OCA\Libresign\Vendor\Smalot\PdfParser\Parser;
@@ -45,7 +46,7 @@ class PdfParser {
 			$this->logger->error('PDF parsing failed: ' . $th->getMessage());
 
 			// TRANSLATORS %s is the file name that could not be processed as PDF
-			throw new LibresignException($this->l10n->t('Unable to process the file as a PDF document: %s', [$fileName]), self::CODE_INVALID_PDF);
+			throw new FileProcessingValidationException($this->l10n->t('Unable to process the file as a PDF document: %s', [$fileName]), self::CODE_INVALID_PDF);
 		}
 	}
 
@@ -58,6 +59,6 @@ class PdfParser {
 		}
 
 		// TRANSLATORS %s is the name of the password-protected PDF file
-		throw new LibresignException($this->l10n->t('The file "%s" is password-protected. Please remove the protection and try again.', [$fileName]));
+		throw new FileProcessingValidationException($this->l10n->t('The file "%s" is password-protected. Please remove the protection and try again.', [$fileName]));
 	}
 }
