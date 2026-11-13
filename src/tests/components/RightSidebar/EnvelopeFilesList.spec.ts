@@ -79,6 +79,7 @@ type EnvelopeFilesListVm = {
 	isTouchDevice: boolean
 	getMaxFileUploads: () => number
 	validateMaxFileUploads: (filesCount: number) => boolean
+	addFileToEnvelope: () => void
 	getPreviewUrl: (file: Partial<EnvelopeFileRecord>) => string | null
 	openFile: (file: EnvelopeFileRecord) => void
 	isSelected: (fileId: number) => boolean
@@ -360,6 +361,33 @@ describe('EnvelopeFilesList', () => {
 
 			expect(result).toBe(false)
 			expect(wrapper.vm.errorMessage).toContain('10')
+		})
+	})
+
+	describe('RULE: multipart envelope upload', () => {
+		it('sends two files with matching declared count', async () => {
+			filesStore.selectedFile = { id: 1, uuid: 'envelope-uuid', status: FILE_STATUS.DRAFT }
+			wrapper = createWrapper()
+			vi.mocked(axios.post).mockResolvedValue({
+				data: { ocs: { data: { files: [], filesCount: 2, message: 'Files added' } } },
+			})
+			const createElementSpy = vi.spyOn(document, 'createElement')
+			wrapper.vm.addFileToEnvelope()
+			const input = createElementSpy.mock.results
+				.find(result => result.value?.type === 'file')?.value as HTMLInputElement
+			expect(input).toBeDefined()
+			Object.defineProperty(input, 'files', {
+				value: [
+					new File(['a'], 'one.pdf', { type: 'application/pdf' }),
+					new File(['b'], 'two.pdf', { type: 'application/pdf' }),
+				],
+				configurable: true,
+			})
+			await input.onchange?.({ target: input } as unknown as Event)
+			const multipart = vi.mocked(axios.post).mock.calls[0][1] as FormData
+			expect(multipart.get('expectedFilesCount')).toBe('2')
+			expect(multipart.getAll('files[]')).toHaveLength(2)
+			createElementSpy.mockRestore()
 		})
 	})
 
