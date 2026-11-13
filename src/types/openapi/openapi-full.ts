@@ -6677,6 +6677,8 @@ export interface operations {
         parameters: {
             query?: never;
             header: {
+                /** @description The UUID of the sign request, used to identify the request */
+                "libresign-sign-request-uuid"?: string;
                 /** @description Required to be true for the API request to pass */
                 "OCS-APIRequest": boolean;
             };

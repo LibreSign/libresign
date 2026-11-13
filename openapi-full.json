@@ -13916,6 +13916,14 @@
                         }
                     },
                     {
+                        "name": "libresign-sign-request-uuid",
+                        "in": "header",
+                        "description": "The UUID of the sign request, used to identify the request",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
                         "name": "OCS-APIRequest",
                         "in": "header",
                         "description": "Required to be true for the API request to pass",
