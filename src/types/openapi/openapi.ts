@@ -6059,14 +6059,18 @@ export interface operations {
             content: {
                 "application/json": {
                     /**
-                     * @description Identify signer method
+                     * @description Identify signer method. Omit or pass null when not provided.
+                     * @default null
                      * @enum {string|null}
                      */
                     identifyMethod?: "account" | "email" | null;
-                    /** @description Method used to sign the document, i.e. emailToken, account, clickToSign, smsToken, signalToken, telegramToken, whatsappToken, xmppToken */
+                    /**
+                     * @description Method used to sign the document, i.e. emailToken, account, clickToSign, smsToken, signalToken, telegramToken, whatsappToken, xmppToken
+                     * @default null
+                     */
                     signMethod?: string | null;
                     /**
-                     * @description Literal string "true" when the UUID is an identification-document file UUID (matches middleware RequireSigner)
+                     * @description Literal string "true" when the UUID is an identification-document file UUID (matches middleware RequireSigner). Omit for a signer UUID.
                      * @default null
                      * @enum {string|null}
                      */
@@ -6123,11 +6127,15 @@ export interface operations {
             content: {
                 "application/json": {
                     /**
-                     * @description Identify signer method
+                     * @description Identify signer method. Omit or pass null when not provided.
+                     * @default null
                      * @enum {string|null}
                      */
                     identifyMethod?: "account" | "email" | null;
-                    /** @description Method used to sign the document, i.e. emailToken, account, clickToSign, smsToken, signalToken, telegramToken, whatsappToken, xmppToken */
+                    /**
+                     * @description Method used to sign the document, i.e. emailToken, account, clickToSign, smsToken, signalToken, telegramToken, whatsappToken, xmppToken
+                     * @default null
+                     */
                     signMethod?: string | null;
                 };
             };

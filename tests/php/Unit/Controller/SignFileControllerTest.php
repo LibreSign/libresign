@@ -34,6 +34,7 @@ use OCP\IL10N;
 use OCP\IRequest;
 use OCP\IUser;
 use OCP\IUserSession;
+use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\LoggerInterface;
@@ -129,7 +130,18 @@ final class SignFileControllerTest extends TestCase {
 		$this->assertSame('Verification code sent.', $response->getData()['message']);
 	}
 
-	public function testRequestCodeBySignerUuidWithoutIdDocApprovalKeepsTheSignerLookup(): void {
+	/** @return array<string, array{list<null|string>}> */
+	public static function nonApprovalFlags(): array {
+		return [
+			'absent flag' => [[]],
+			'explicit null' => [[null]],
+			'false string' => [['false']],
+		];
+	}
+
+	/** @param list<null|string> $flags */
+	#[DataProvider('nonApprovalFlags')]
+	public function testRequestCodeBySignerUuidWithoutIdDocApprovalKeepsTheSignerLookup(array $flags): void {
 		$signRequest = new SignRequest();
 		$signRequest->setId(5);
 		$signRequest->setFileId(3);
@@ -147,9 +159,43 @@ final class SignFileControllerTest extends TestCase {
 			->method('requestCode')
 			->with($signRequest, 'email', 'emailToken');
 
-		$response = $this->getController()->requestCodeBySignerUuid('signer-uuid', 'email', 'emailToken');
+		$response = $this->getController()->requestCodeBySignerUuid('signer-uuid', 'email', 'emailToken', ...$flags);
 
 		$this->assertSame(Http::STATUS_OK, $response->getStatus());
+	}
+
+	/** @return array<string, array{string, string|int, list<null>}> */
+	public static function missingCodeMethods(): array {
+		return [
+			'uuid omitted' => ['requestCodeBySignerUuid', 'signer-uuid', []],
+			'uuid null' => ['requestCodeBySignerUuid', 'signer-uuid', [null, null]],
+			'file omitted' => ['requestCodeByFileId', 3, []],
+			'file null' => ['requestCodeByFileId', 3, [null, null]],
+		];
+	}
+
+	/** @param list<null> $methods */
+	#[DataProvider('missingCodeMethods')]
+	public function testMissingCodeMethodsStillUseServiceValidation(string $method, string|int $identifier, array $methods): void {
+		$signRequest = new SignRequest();
+		$signRequest->setId(5);
+		$signRequest->setFileId(3);
+		$file = new FileEntity();
+		$file->setId(3);
+		$lookup = is_int($identifier) ? 'getByFileIdAndUserId' : 'getBySignerUuidAndUserId';
+		$this->signRequestMapper->expects($this->once())->method($lookup)
+			->with($identifier)->willReturn($signRequest);
+		$this->signFileService->expects($this->never())->method('getFileByUuid');
+		$this->signFileService->method('getFile')->with(3)->willReturn($file);
+		$this->signingRequestValidator->expects($this->once())->method('fileCanBeSigned')->with($file);
+		$this->signFileService->expects($this->once())->method('requestCode')
+			->with($signRequest, '', '')
+			->willThrowException(new \InvalidArgumentException('Invalid identification method'));
+
+		$response = $this->getController()->$method($identifier, ...$methods);
+
+		$this->assertSame(Http::STATUS_UNPROCESSABLE_ENTITY, $response->getStatus());
+		$this->assertSame('Unable to send verification code.', $response->getData()['message']);
 	}
 
 	public function testRequestCodeEndpointsDoNotExposeIdentifyDestinationParameter(): void {

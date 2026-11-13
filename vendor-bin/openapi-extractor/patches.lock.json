@@ -1,0 +1,17 @@
+{
+    "_hash": "5af766e1aff36be65649e5cd01844dad99429deaa9ecb61045cf20a85529cdca",
+    "patches": {
+        "nextcloud/openapi-extractor": [
+            {
+                "package": "nextcloud/openapi-extractor",
+                "description": "Preserve null in nullable OpenAPI 3.0 enums",
+                "url": "../../.patches/openapi-nullable-enum.diff",
+                "sha256": "fed04aff6d39da7123975e0fa98afc9e83270f3c68e43a17544c2ea466bd2d14",
+                "depth": 1,
+                "extra": {
+                    "provenance": "root"
+                }
+            }
+        ]
+    }
+}

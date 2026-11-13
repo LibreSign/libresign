@@ -1,0 +1,14 @@
+--- a/src/OpenApiType.php
++++ b/src/OpenApiType.php
+@@ -115,7 +115,10 @@
+ 			$values['default'] = $this->type === 'object' && is_array($this->defaultValue) && count($this->defaultValue) === 0 ? new stdClass() : $this->defaultValue;
+ 		}
+ 		if ($this->enum !== null) {
+-			$values['enum'] = $this->enum;
++			// OpenAPI 3.0 nullable does not override the enum constraint.
++			$values['enum'] = $this->nullable && !in_array(null, $this->enum, true)
++				? [...$this->enum, null]
++				: $this->enum;
+ 		}
+ 		if ($this->description !== null && $this->description !== '' && !$isParameter) {
+ 			$values['description'] = Helpers::cleanDocComment($this->description);
