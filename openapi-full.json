@@ -1861,8 +1861,7 @@
                         "enum": [
                             "info",
                             "warning",
-                            "danger",
-                            null
+                            "danger"
                         ]
                     },
                     "message": {
