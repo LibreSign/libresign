@@ -9302,38 +9302,18 @@
                     }
                 ],
                 "requestBody": {
-                    "required": false,
+                    "required": true,
                     "content": {
                         "application/json": {
                             "schema": {
                                 "type": "object",
+                                "required": [
+                                    "value"
+                                ],
                                 "properties": {
                                     "value": {
-                                        "nullable": true,
-                                        "default": null,
-                                        "description": "Policy value to persist for the group.",
-                                        "anyOf": [
-                                            {
-                                                "type": "boolean"
-                                            },
-                                            {
-                                                "type": "integer",
-                                                "format": "int64"
-                                            },
-                                            {
-                                                "type": "number",
-                                                "format": "double"
-                                            },
-                                            {
-                                                "type": "string"
-                                            },
-                                            {
-                                                "type": "object",
-                                                "additionalProperties": {
-                                                    "type": "object"
-                                                }
-                                            }
-                                        ]
+                                        "$ref": "#/components/schemas/EffectivePolicyValue",
+                                        "description": "Policy value to persist for the group."
                                     },
                                     "allowChildOverride": {
                                         "type": "boolean",
@@ -9977,38 +9957,18 @@
                     }
                 ],
                 "requestBody": {
-                    "required": false,
+                    "required": true,
                     "content": {
                         "application/json": {
                             "schema": {
                                 "type": "object",
+                                "required": [
+                                    "value"
+                                ],
                                 "properties": {
                                     "value": {
-                                        "nullable": true,
-                                        "default": null,
-                                        "description": "Policy value to persist as assigned target user policy.",
-                                        "anyOf": [
-                                            {
-                                                "type": "boolean"
-                                            },
-                                            {
-                                                "type": "integer",
-                                                "format": "int64"
-                                            },
-                                            {
-                                                "type": "number",
-                                                "format": "double"
-                                            },
-                                            {
-                                                "type": "string"
-                                            },
-                                            {
-                                                "type": "object",
-                                                "additionalProperties": {
-                                                    "type": "object"
-                                                }
-                                            }
-                                        ]
+                                        "$ref": "#/components/schemas/EffectivePolicyValue",
+                                        "description": "Policy value to persist as assigned target user policy."
                                     },
                                     "allowChildOverride": {
                                         "type": "boolean",
@@ -11148,38 +11108,18 @@
                     }
                 ],
                 "requestBody": {
-                    "required": false,
+                    "required": true,
                     "content": {
                         "application/json": {
                             "schema": {
                                 "type": "object",
+                                "required": [
+                                    "value"
+                                ],
                                 "properties": {
                                     "value": {
-                                        "nullable": true,
-                                        "default": null,
-                                        "description": "Policy value to persist as the current user's default.",
-                                        "anyOf": [
-                                            {
-                                                "type": "boolean"
-                                            },
-                                            {
-                                                "type": "integer",
-                                                "format": "int64"
-                                            },
-                                            {
-                                                "type": "number",
-                                                "format": "double"
-                                            },
-                                            {
-                                                "type": "string"
-                                            },
-                                            {
-                                                "type": "object",
-                                                "additionalProperties": {
-                                                    "type": "object"
-                                                }
-                                            }
-                                        ]
+                                        "$ref": "#/components/schemas/EffectivePolicyValue",
+                                        "description": "Policy value to persist as the current user's default."
                                     }
                                 }
                             }
