@@ -15,7 +15,7 @@ export default defineConfig({
 		},
 	},
 	resolve: {
-		// TODO(viewer-compat): Recheck Vue deduplication after cleanup; do not remove blindly (PR #9301).
+		// Keep Viewer and LibreSign components on the same Vue runtime.
 		dedupe: ['vue', '@nextcloud/vue'],
 		alias: [
 			{

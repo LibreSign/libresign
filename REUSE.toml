@@ -49,9 +49,6 @@ path = [
     "psalm.xml",
 	"funding.json",
 	".well-known/funding-manifest-urls",
-    # TODO(viewer-compat): Delete these two exceptions with src/viewer/ (PR #9301).
-    "src/viewer/package-lock.json",
-    "src/viewer/package.json",
     "src/types/openapi/openapi-administration.ts",
     "src/types/openapi/openapi-full.ts",
     "src/types/openapi/openapi.ts",
