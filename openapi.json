@@ -1481,7 +1481,6 @@
                     },
                     "type": {
                         "type": "string",
-                        "nullable": true,
                         "enum": [
                             "info",
                             "warning",
@@ -9317,14 +9316,16 @@
                     }
                 ],
                 "requestBody": {
-                    "required": false,
+                    "required": true,
                     "content": {
                         "application/json": {
                             "schema": {
                                 "type": "object",
+                                "required": [
+                                    "value"
+                                ],
                                 "properties": {
                                     "value": {
-                                        "default": null,
                                         "description": "Policy value to persist for the group.",
                                         "allOf": [
                                             {
@@ -9974,14 +9975,16 @@
                     }
                 ],
                 "requestBody": {
-                    "required": false,
+                    "required": true,
                     "content": {
                         "application/json": {
                             "schema": {
                                 "type": "object",
+                                "required": [
+                                    "value"
+                                ],
                                 "properties": {
                                     "value": {
-                                        "default": null,
                                         "description": "Policy value to persist as assigned target user policy.",
                                         "allOf": [
                                             {
@@ -11061,14 +11064,16 @@
                     }
                 ],
                 "requestBody": {
-                    "required": false,
+                    "required": true,
                     "content": {
                         "application/json": {
                             "schema": {
                                 "type": "object",
+                                "required": [
+                                    "value"
+                                ],
                                 "properties": {
                                     "value": {
-                                        "default": null,
                                         "description": "Policy value to persist as the current user's default.",
                                         "allOf": [
                                             {

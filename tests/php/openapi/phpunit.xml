@@ -16,6 +16,7 @@
       <file>OpenApiFunctionalTagsTest.php</file>
       <file>OpenApiPolicyValueTest.php</file>
       <file>OpenApiExtractorSchemaTest.php</file>
+      <file>OpenApiGenerationTest.php</file>
     </testsuite>
   </testsuites>
 </phpunit>

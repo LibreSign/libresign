@@ -81,13 +81,13 @@ class IdDocsController extends AEnvironmentAwareOCSController implements ISignat
 			if (isset($exceptionData->file)) {
 				$message = [
 					'file' => $exceptionData->file,
-					'type' => $exceptionData->type,
+					'type' => $exceptionData->type ?? 'danger',
 					'message' => $exceptionData->message
 				];
 			} else {
 				$message = [
 					'file' => null,
-					'type' => null,
+					'type' => 'danger',
 					'message' => $exception->getMessage()
 				];
 			}

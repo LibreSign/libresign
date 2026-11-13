@@ -32,14 +32,16 @@ class OpenApiPolicyValueTest extends TestCase {
 				if (!str_starts_with($id, 'policy-set-')) {
 					continue;
 				}
-				$properties = $operation['requestBody']['content']['application/json']['schema']['properties'];
+				$schema = $operation['requestBody']['content']['application/json']['schema'];
+				$properties = $schema['properties'];
 				if (isset($properties['value'])) {
 					$value = $properties['value'];
+					$this->assertContains('value', $schema['required'] ?? [], $id);
 					$this->assertArrayNotHasKey('$ref', $value, $id);
+					$this->assertArrayNotHasKey('default', $value, $id);
 					$this->assertSame(['$ref'], array_keys($value['allOf'][0]), $id);
 					$this->assertSame('#/components/schemas/EffectivePolicyValue', $value['allOf'][0]['$ref'], $id);
 					$this->assertNotSame('', $value['description'], $id);
-					$this->assertNull($value['default'], $id);
 				} else {
 					$value = $properties['values']['additionalProperties'];
 					$this->assertSame('#/components/schemas/EffectivePolicyValue', $value['$ref'], $id);

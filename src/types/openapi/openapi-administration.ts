@@ -1923,14 +1923,11 @@ export interface operations {
             };
             cookie?: never;
         };
-        requestBody?: {
+        requestBody: {
             content: {
                 "application/json": {
-                    /**
-                     * @description Policy value to persist as an explicit system rule, even when it equals the default. Null removes the explicit system rule: the built-in default applies and lower layers may override it.
-                     * @default null
-                     */
-                    value?: components["schemas"]["EffectivePolicyValue"];
+                    /** @description Policy value to persist as an explicit system rule, even when it equals the default. Null removes the explicit system rule: the built-in default applies and lower layers may override it. */
+                    value: components["schemas"]["EffectivePolicyValue"];
                     /**
                      * @description Whether lower layers may override this system default.
                      * @default false
