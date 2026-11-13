@@ -11,11 +11,13 @@
 
 # LibreSign
 
-Control how your documents get signed
+**Free and open-source electronic and digital signatures for PDFs and documents.**
 
-LibreSign helps you control how document signing works across your organization.  
-Organizations use it with Nextcloud to run signing workflows that match internal rules, legal requirements, and daily processes.  
-It gives teams clear visibility into who signed, when they signed, and how each request moved through the process.
+LibreSign helps organizations request, sign, track, and validate documents with configurable signing workflows. Manage signing order, include internal and external recipients, and keep a traceable record of each request. External recipients can sign without a Nextcloud account when the relevant identification and signing methods are enabled.
+
+Use LibreSign's included API to integrate signature requests into an existing portal or business application without replacing its interface or processes. The API is part of the free software; access follows the installation's authentication, permissions, and signing policies.
+
+LibreSign runs as a **Nextcloud app** and requires a compatible Nextcloud installation. You can self-host it or choose optional professional deployment services.
 
 ## Key features
 
@@ -36,6 +38,11 @@ LibreSign is for teams where signing is part of a controlled business process.
 - Keep traceability for audits, legal checks, and internal reviews
 - Align signing with existing approval and governance processes
 - Adapt workflows to how your organization works instead of following fixed external models
+
+## Get started
+
+- **Community / self-hosted:** [Get LibreSign from the Nextcloud App Store](https://apps.nextcloud.com/apps/libresign) and follow the [official documentation](https://docs.libresign.coop/) for setup, API reference, integration examples, and release-specific guidance. The software and API have no license fee; you operate your installation.
+- **Business / professional services:** Need managed deployment, technical support, or help integrating LibreSign with your systems? [Explore business options](https://libresign.coop/pricing/) or [contact the LibreSign team](https://libresign.coop/contact-us/). Professional services are optional.
 
 ## Contributing
 
@@ -59,12 +66,6 @@ Thanks to all the people who contribute to LibreSign:
 <p align="center">
   <img src="img/screenshot/request-signature.png" alt="LibreSign interface screenshot" width="900"/>
 </p>
-
-## Documentation
-
-- Official documentation: https://docs.libresign.coop/
-- Developer manual: https://docs.libresign.coop/developer_manual/
-- Documentation repository: https://github.com/LibreSign/documentation
 
 ## Sponsors
 
