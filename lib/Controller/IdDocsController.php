@@ -21,6 +21,7 @@ use OCP\AppFramework\Http\Attribute\NoAdminRequired;
 use OCP\AppFramework\Http\Attribute\NoCSRFRequired;
 use OCP\AppFramework\Http\Attribute\OpenAPI;
 use OCP\AppFramework\Http\Attribute\PublicPage;
+use OCP\AppFramework\Http\Attribute\RequestHeader;
 use OCP\AppFramework\Http\DataResponse;
 use OCP\IL10N;
 use OCP\IRequest;
@@ -63,6 +64,7 @@ class IdDocsController extends AEnvironmentAwareOCSController implements ISignat
 	#[AnonRateLimit(limit: 30, period: 60)]
 	#[NoAdminRequired]
 	#[NoCSRFRequired]
+	#[RequestHeader(name: 'libresign-sign-request-uuid', description: 'The UUID of the sign request, used to identify the request', indirect: true)]
 	#[RequireSignRequestUuid(skipIfAuthenticated: true)]
 	#[OpenAPI(tags: ['identity'])]
 	#[ApiRoute(verb: 'POST', url: '/api/{apiVersion}/id-docs', requirements: ['apiVersion' => '(v1)'])]
@@ -113,6 +115,7 @@ class IdDocsController extends AEnvironmentAwareOCSController implements ISignat
 	#[AnonRateLimit(limit: 30, period: 60)]
 	#[NoAdminRequired]
 	#[NoCSRFRequired]
+	#[RequestHeader(name: 'libresign-sign-request-uuid', description: 'The UUID of the sign request, used to identify the request', indirect: true)]
 	#[RequireSignRequestUuid(skipIfAuthenticated: true)]
 	#[OpenAPI(tags: ['identity'])]
 	#[ApiRoute(verb: 'DELETE', url: '/api/{apiVersion}/id-docs/{nodeId}', requirements: ['apiVersion' => '(v1)'])]
@@ -153,6 +156,7 @@ class IdDocsController extends AEnvironmentAwareOCSController implements ISignat
 	#[PublicPage]
 	#[AnonRateLimit(limit: 30, period: 60)]
 	#[NoCSRFRequired]
+	#[RequestHeader(name: 'libresign-sign-request-uuid', description: 'The UUID of the sign request, used to identify the request', indirect: true)]
 	#[RequireSignRequestUuid(skipIfAuthenticated: true)]
 	#[OpenAPI(tags: ['identity'])]
 	#[ApiRoute(verb: 'GET', url: '/api/{apiVersion}/id-docs', requirements: ['apiVersion' => '(v1)'])]
