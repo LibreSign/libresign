@@ -23,6 +23,7 @@ use OCP\IL10N;
 use OCP\IRequest;
 
 /**
+ * @psalm-import-type LibresignEffectivePolicyValue from \OCA\Libresign\ResponseDefinitions
  * @psalm-import-type LibresignErrorResponse from \OCA\Libresign\ResponseDefinitions
  * @psalm-import-type LibresignEffectivePolicyState from \OCA\Libresign\ResponseDefinitions
  * @psalm-import-type LibresignEffectivePoliciesResponse from \OCA\Libresign\ResponseDefinitions
@@ -251,7 +252,7 @@ final class PolicyController extends AEnvironmentAwareOCSController {
 	 * Save a system-level policy value
 	 *
 	 * @param string $policyKey Policy identifier to persist at the system layer.
-	 * @param null|bool|int|float|string|array<string, mixed> $value Policy value to persist as an explicit system rule, even when it equals the default. Null removes the explicit system rule: the built-in default applies and lower layers may override it.
+	 * @param LibresignEffectivePolicyValue $value Policy value to persist as an explicit system rule, even when it equals the default. Null removes the explicit system rule: the built-in default applies and lower layers may override it.
 	 * @param bool $allowChildOverride Whether lower layers may override this system default.
 	 * @return DataResponse<Http::STATUS_OK, LibresignSystemPolicyWriteResponse, array{}>|DataResponse<Http::STATUS_BAD_REQUEST, LibresignErrorResponse, array{}>
 	 *
@@ -290,7 +291,7 @@ final class PolicyController extends AEnvironmentAwareOCSController {
 	 *
 	 * @param string $groupId Group identifier that receives the policy binding.
 	 * @param string $policyKey Policy identifier to persist at the group layer.
-	 * @param null|bool|int|float|string|array<string, mixed> $value Policy value to persist for the group.
+	 * @param LibresignEffectivePolicyValue $value Policy value to persist for the group.
 	 * @param bool $allowChildOverride Whether users and requests below this group may override the group default.
 	 * @return DataResponse<Http::STATUS_OK, LibresignGroupPolicyWriteResponse, array{}>|DataResponse<Http::STATUS_BAD_REQUEST, LibresignErrorResponse, array{}>|DataResponse<Http::STATUS_FORBIDDEN, LibresignErrorResponse, array{}>
 	 *
@@ -345,7 +346,7 @@ final class PolicyController extends AEnvironmentAwareOCSController {
 	 * them is stored, so the result does not depend on the order of the values.
 	 *
 	 * @param string $parentPolicyKey Policy identifier the other settings are grouped under.
-	 * @param array<string, null|bool|int|float|string|array<string, mixed>> $values Values to persist, keyed by policy identifier, each as an explicit system rule even when it equals the default. Null removes the explicit system rule of that policy: the built-in default applies and lower layers may override it.
+	 * @param array<string, LibresignEffectivePolicyValue> $values Values to persist, keyed by policy identifier, each as an explicit system rule even when it equals the default. Null removes the explicit system rule of that policy: the built-in default applies and lower layers may override it.
 	 * @param array<string, bool> $allowChildOverride Whether lower layers may override each saved value, keyed by policy identifier.
 	 * @return DataResponse<Http::STATUS_OK, LibresignEffectiveCompoundPolicyWriteResponse, array{}>|DataResponse<Http::STATUS_BAD_REQUEST, LibresignErrorResponse, array{}>
 	 *
@@ -391,7 +392,7 @@ final class PolicyController extends AEnvironmentAwareOCSController {
 	 *
 	 * @param string $groupId Group identifier that receives the policy bindings.
 	 * @param string $parentPolicyKey Policy identifier the other settings are grouped under.
-	 * @param array<string, null|bool|int|float|string|array<string, mixed>> $values Values to persist for the group, keyed by policy identifier.
+	 * @param array<string, LibresignEffectivePolicyValue> $values Values to persist for the group, keyed by policy identifier.
 	 * @param array<string, bool> $allowChildOverride Whether users and requests below this group may override each saved value, keyed by policy identifier.
 	 * @return DataResponse<Http::STATUS_OK, LibresignGroupCompoundPolicyWriteResponse, array{}>|DataResponse<Http::STATUS_BAD_REQUEST, LibresignErrorResponse, array{}>|DataResponse<Http::STATUS_FORBIDDEN, LibresignErrorResponse, array{}>
 	 *
@@ -451,7 +452,7 @@ final class PolicyController extends AEnvironmentAwareOCSController {
 	 * Save several values of the same composite policy as user preferences
 	 *
 	 * @param string $parentPolicyKey Policy identifier the other settings are grouped under.
-	 * @param array<string, null|bool|int|float|string|array<string, mixed>> $values Values to persist as the current user's defaults, keyed by policy identifier.
+	 * @param array<string, LibresignEffectivePolicyValue> $values Values to persist as the current user's defaults, keyed by policy identifier.
 	 * @return DataResponse<Http::STATUS_OK, LibresignEffectiveCompoundPolicyWriteResponse, array{}>|DataResponse<Http::STATUS_BAD_REQUEST, LibresignErrorResponse, array{}>
 	 *
 	 * 200: OK
@@ -496,7 +497,7 @@ final class PolicyController extends AEnvironmentAwareOCSController {
 	 *
 	 * @param string $userId Target user identifier that receives the policy assignments.
 	 * @param string $parentPolicyKey Policy identifier the other settings are grouped under.
-	 * @param array<string, null|bool|int|float|string|array<string, mixed>> $values Values to persist for the target user, keyed by policy identifier.
+	 * @param array<string, LibresignEffectivePolicyValue> $values Values to persist for the target user, keyed by policy identifier.
 	 * @param array<string, bool> $allowChildOverride Whether the target user may still override each assigned value, keyed by policy identifier.
 	 * @return DataResponse<Http::STATUS_OK, LibresignUserCompoundPolicyWriteResponse, array{}>|DataResponse<Http::STATUS_BAD_REQUEST, LibresignErrorResponse, array{}>|DataResponse<Http::STATUS_FORBIDDEN, LibresignErrorResponse, array{}>
 	 *
@@ -599,7 +600,7 @@ final class PolicyController extends AEnvironmentAwareOCSController {
 	 * Save a user policy preference
 	 *
 	 * @param string $policyKey Policy identifier to persist for the current user.
-	 * @param null|bool|int|float|string|array<string, mixed> $value Policy value to persist as the current user's default.
+	 * @param LibresignEffectivePolicyValue $value Policy value to persist as the current user's default.
 	 * @return DataResponse<Http::STATUS_OK, LibresignSystemPolicyWriteResponse, array{}>|DataResponse<Http::STATUS_BAD_REQUEST, LibresignErrorResponse, array{}>
 	 *
 	 * 200: OK
@@ -637,7 +638,7 @@ final class PolicyController extends AEnvironmentAwareOCSController {
 	 *
 	 * @param string $userId Target user identifier that receives the policy assignment.
 	 * @param string $policyKey Policy identifier to persist for the target user.
-	 * @param null|bool|int|float|string|array<string, mixed> $value Policy value to persist as assigned target user policy.
+	 * @param LibresignEffectivePolicyValue $value Policy value to persist as assigned target user policy.
 	 * @param bool $allowChildOverride Whether the target user may still override the assigned value in personal preferences.
 	 * @return DataResponse<Http::STATUS_OK, LibresignUserPolicyWriteResponse, array{}>|DataResponse<Http::STATUS_BAD_REQUEST, LibresignErrorResponse, array{}>|DataResponse<Http::STATUS_FORBIDDEN, LibresignErrorResponse, array{}>
 	 *

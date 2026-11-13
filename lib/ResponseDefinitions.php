@@ -433,7 +433,7 @@ namespace OCA\Libresign;
  * Validation and progress contracts
  *
  * @psalm-type LibresignPolicyScope = 'system'|'group'|'user'
- * @psalm-type LibresignEffectivePolicyValue = null|bool|int|float|string|array<string, mixed>
+ * @psalm-type LibresignEffectivePolicyValue = null|bool|int|float|string|object
  * @psalm-type LibresignEffectivePolicyMeta = array{
  *     defaultSystemValue?: LibresignEffectivePolicyValue,
  *     appConfigKey?: string,

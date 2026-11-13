@@ -500,7 +500,7 @@ export type components = {
             everyoneCount: number;
         };
         EffectivePolicyValue: (boolean | number | string | {
-            [key: string]: Record<string, never>;
+            [key: string]: unknown;
         }) | null;
         EngineHandler: {
             configPath: string;
@@ -1930,9 +1930,7 @@ export interface operations {
                      * @description Policy value to persist as an explicit system rule, even when it equals the default. Null removes the explicit system rule: the built-in default applies and lower layers may override it.
                      * @default null
                      */
-                    value?: (boolean | number | string | {
-                        [key: string]: Record<string, never>;
-                    }) | null;
+                    value?: components["schemas"]["EffectivePolicyValue"];
                     /**
                      * @description Whether lower layers may override this system default.
                      * @default false
@@ -2022,9 +2020,7 @@ export interface operations {
                      * @default {}
                      */
                     values?: {
-                        [key: string]: (boolean | number | string | {
-                            [key: string]: Record<string, never>;
-                        }) | null;
+                        [key: string]: components["schemas"]["EffectivePolicyValue"];
                     };
                     /**
                      * @description Whether lower layers may override each saved value, keyed by policy identifier.
