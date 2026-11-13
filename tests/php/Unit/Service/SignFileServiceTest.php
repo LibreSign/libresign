@@ -32,6 +32,7 @@ use OCA\Libresign\Events\SignedEvent;
 use OCA\Libresign\Events\SignedEventFactory;
 use OCA\Libresign\Events\SigningRequestCompletedEvent;
 use OCA\Libresign\Exception\LibresignException;
+use OCA\Libresign\Handler\CertificateEngine\CertificateEngineFactory;
 use OCA\Libresign\Handler\DocMdpHandler;
 use OCA\Libresign\Handler\FooterHandler;
 use OCA\Libresign\Handler\PdfTk\Pdf;
@@ -40,7 +41,9 @@ use OCA\Libresign\Handler\SignEngine\Pkcs7Handler;
 use OCA\Libresign\Handler\SignEngine\SignEngineFactory;
 use OCA\Libresign\Handler\SignEngine\SignEngineHandler;
 use OCA\Libresign\Helper\JavaHelper;
+use OCA\Libresign\Service\CaIdentifierService;
 use OCA\Libresign\Service\CertificateValidityPolicy;
+use OCA\Libresign\Service\Crl\CrlService;
 use OCA\Libresign\Service\Envelope\EnvelopeStatusDeterminer;
 use OCA\Libresign\Service\File\SigningWorkflowStatusResolver;
 use OCA\Libresign\Service\FileStatusService;
@@ -54,8 +57,10 @@ use OCA\Libresign\Service\PfxProvider;
 use OCA\Libresign\Service\Policy\Model\ResolvedPolicy;
 use OCA\Libresign\Service\Policy\PolicyService;
 use OCA\Libresign\Service\Policy\Provider\CollectMetadata\CollectMetadataPolicy;
+use OCA\Libresign\Service\Policy\Provider\DocMdp\DocMdpPolicy;
 use OCA\Libresign\Service\Policy\Provider\Footer\FooterPolicy;
 use OCA\Libresign\Service\Policy\Provider\Footer\FooterPolicyValue;
+use OCA\Libresign\Service\Signature\PdfSignatureValidationService;
 use OCA\Libresign\Service\SignatureRejection\SignatureRejectionPolicyService;
 use OCA\Libresign\Service\SignerElementsService;
 use OCA\Libresign\Service\SignFileService;
@@ -1457,6 +1462,65 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		}
 		$libreSignFile->setMetadata($metadata);
 		return $libreSignFile;
+	}
+
+	/** @param array<string, mixed> $metadata */
+	#[DataProvider('provideDocMdpLevelsGivenToTheEngine')]
+	public function testTheEngineCertifiesWithTheLevelTheFrozenRequestStores(int $status, array $metadata, ?File $envelope, ?DocMdpLevel $expected): void {
+		$libreSignFile = new File();
+		$libreSignFile->setUuid('uuid');
+		$libreSignFile->setStatus($status);
+		$libreSignFile->setMetadata($metadata);
+		$libreSignFile->setDocmdpLevelEnum(DocMdpLevel::CERTIFIED_NO_CHANGES_ALLOWED);
+		if ($envelope !== null) {
+			$libreSignFile->setParentFileId(5);
+			$this->fileMapper->method('findEnvelope')->with($libreSignFile)->willReturn($envelope);
+		}
+
+		$pfx = $this->createMock(\OCP\Files\File::class);
+		$pfx->method('getContent')->willReturn('pfx');
+		$folder = $this->createMock(\OCP\Files\Folder::class);
+		$folder->method('get')->willReturn($pfx);
+		$folderService = $this->createMock(FolderService::class);
+		$folderService->method('getFolder')->willReturn($folder);
+		$engine = new Pkcs12Handler(
+			$folderService,
+			$this->appConfig,
+			$this->createMock(CertificateEngineFactory::class),
+			$this->l10n,
+			$this->footerHandler,
+			$this->createMock(LoggerInterface::class),
+			$this->createMock(CaIdentifierService::class),
+			$this->createMock(DocMdpHandler::class),
+			$this->createMock(CrlService::class),
+			$this->createMock(PdfSignatureValidationService::class),
+		);
+
+		$service = $this->getService(['getFileToSign', 'readCertificate']);
+		$service->method('getFileToSign')->willReturn($this->createMock(\OCP\Files\File::class));
+		$service->method('readCertificate')->willReturn(['issuer' => ['CN' => 'LibreCode'], 'subject' => ['CN' => 'Jane Doe']]);
+		$service->setLibreSignFile($libreSignFile);
+		$service->setSignRequest($this->createSignRequestMock(['getId' => 171, 'getMetadata' => []]));
+		(new \ReflectionProperty(SignFileService::class, 'engine'))->setValue($service, $engine);
+
+		self::invokePrivate($service, 'configureEngine');
+
+		$this->assertSame($expected, $engine->getDocMdpLevel());
+	}
+
+	/** @return iterable<string, array{0: int, 1: array<string, mixed>, 2: ?File, 3: ?DocMdpLevel}> */
+	public static function provideDocMdpLevelsGivenToTheEngine(): iterable {
+		$frozen = ['policy_snapshot_frozen_at' => '2026-01-01T00:00:00+00:00'];
+		$stored = ['policy_snapshot' => [DocMdpPolicy::KEY => ['effectiveValue' => DocMdpLevel::CERTIFIED_NO_CHANGES_ALLOWED->value, 'sourceScope' => 'system']]];
+		$frozenEnvelope = new File();
+		$frozenEnvelope->setMetadata($frozen);
+
+		yield 'sent' => [FileStatus::ABLE_TO_SIGN->value, $frozen + $stored, null, DocMdpLevel::CERTIFIED_NO_CHANGES_ALLOWED];
+		yield 'returned to draft' => [FileStatus::DRAFT->value, $frozen + $stored, null, DocMdpLevel::CERTIFIED_NO_CHANGES_ALLOWED];
+		yield 'sent before the freeze was recorded' => [FileStatus::ABLE_TO_SIGN->value, $stored, null, DocMdpLevel::CERTIFIED_NO_CHANGES_ALLOWED];
+		yield 'document of a sent envelope' => [FileStatus::DRAFT->value, $stored, $frozenEnvelope, DocMdpLevel::CERTIFIED_NO_CHANGES_ALLOWED];
+		yield 'sent before the level was stored' => [FileStatus::ABLE_TO_SIGN->value, $frozen, null, null];
+		yield 'draft never sent' => [FileStatus::DRAFT->value, $stored, null, null];
 	}
 
 	/** @return array<string, mixed> */

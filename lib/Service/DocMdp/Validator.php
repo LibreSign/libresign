@@ -14,6 +14,7 @@ use OCA\Libresign\Db\FileMapper;
 use OCA\Libresign\Enum\ParticipantRole;
 use OCA\Libresign\Exception\LibresignException;
 use OCA\Libresign\Service\File\Pdf\PdfValidator;
+use OCA\Libresign\Service\Policy\Provider\DocMdp\FilePolicy\DocMdpFilePolicyApplier;
 use OCP\AppFramework\Db\DoesNotExistException;
 use OCP\Files\IRootFolder;
 use OCP\IL10N;
@@ -25,6 +26,7 @@ class Validator {
 		private ConfigService $configService,
 		private PdfValidator $pdfValidator,
 		private IRootFolder $root,
+		private DocMdpFilePolicyApplier $docMdpFilePolicyApplier,
 	) {
 	}
 
@@ -96,22 +98,22 @@ class Validator {
 		return $count;
 	}
 
+	/**
+	 * Signers are checked before the request is saved, so this is the level the
+	 * request will certify with once saved, not the one it stores now.
+	 */
 	private function getDocMdpLevel(array $data, ?File &$file): int {
-		$docMdpLevel = null;
-
 		if (!empty($data['uuid'])) {
 			try {
 				$file = $this->fileMapper->getByUuid($data['uuid']);
-				$docMdpLevel = $file->getDocmdpLevel();
 			} catch (DoesNotExistException) {
-				// File doesn't exist, use global configured level
+				// File doesn't exist, resolve the level of a new request
 			}
 		}
 
-		if ($docMdpLevel === null || $docMdpLevel === 0) {
-			return $this->configService->getLevel()->value;
-		}
+		$level = $this->docMdpFilePolicyApplier->resolveLevel($file, $data)
+			?? $this->configService->getLevel();
 
-		return $docMdpLevel;
+		return $level->value;
 	}
 }

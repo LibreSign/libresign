@@ -796,6 +796,72 @@ final class JSignPdfHandlerTest extends \OCA\Libresign\Tests\Integration\AppData
 		$this->assertStringNotContainsString("'-cl' '" . DocMdpLevel::CERTIFIED_FORM_FILLING_AND_ANNOTATIONS->name . "'", $paramsSeen[0]);
 	}
 
+	#[DataProvider('providerAReusedHandlerDoesNotCertifyAnUncertifiedDocument')]
+	public function testAReusedHandlerDoesNotCertifyAnUncertifiedDocument(bool $firstVisible, bool $secondVisible): void {
+		if (self::$certificateEngineFactory === null || empty(self::$certificateContent)) {
+			$this->markTestSkipped('Certificate initialization failed');
+		}
+		$this->appConfig->setValueString('libresign', 'java_path', __FILE__);
+		$this->appConfig->setValueString('libresign', 'jsignpdf_temp_path', sys_get_temp_dir());
+		$this->appConfig->setValueString('libresign', 'jsignpdf_path', __DIR__);
+		$this->persistSignatureStampPolicy('', SignerElementsService::RENDER_MODE_DESCRIPTION_ONLY, 10, SignatureTextPolicyValue::DEFAULT_SIGNATURE_FONT_SIZE, 100, 100, 'deleted');
+		$this->persistHashAlgorithmPolicy('SHA256');
+		$this->signatureBackgroundService->method('getSignatureBackgroundType')->willReturn('deleted');
+
+		$reusedHandler = $this->getInstance();
+		$certified = $this->signDocument($reusedHandler, DocMdpLevel::CERTIFIED_NO_CHANGES_ALLOWED, $firstVisible);
+		$uncertified = $this->signDocument($reusedHandler, DocMdpLevel::NOT_CERTIFIED, $secondVisible);
+		$control = $this->signDocument($this->getInstance(), DocMdpLevel::NOT_CERTIFIED, $secondVisible);
+
+		$this->assertStringContainsString("'-cl' '" . DocMdpLevel::CERTIFIED_NO_CHANGES_ALLOWED->name . "'", $certified[0]);
+		$this->assertStringNotContainsString("'-cl'", $control[0]);
+		$this->assertStringNotContainsString("'-cl'", $uncertified[0]);
+	}
+
+	public static function providerAReusedHandlerDoesNotCertifyAnUncertifiedDocument(): array {
+		return [
+			'invisible after invisible' => [false, false],
+			'visible after invisible' => [false, true],
+			'invisible after visible' => [true, false],
+			'visible after visible' => [true, true],
+		];
+	}
+
+	/** @return list<string> The JSignPdf options of each signing call */
+	private function signDocument(JSignPdfHandler $handler, DocMdpLevel $level, bool $visible): array {
+		$inputFile = $this->createMock(\OC\Files\Node\File::class);
+		$inputFile->method('getContent')->willReturn('%PDF-1.6');
+
+		$paramsSeen = [];
+		$jSignPdf = $this->createMock(JSignPDF::class);
+		$jSignPdf->method('setParam')
+			->willReturnCallback(function (JSignParam $param) use (&$paramsSeen): void {
+				$paramsSeen[] = $param->getJSignParameters();
+			});
+		$jSignPdf->method('sign')->willReturn('content');
+
+		$docMdpConfigService = $this->createMock(DocMdpConfigService::class);
+		$docMdpConfigService->method('isEnabled')->willReturn(false);
+		$this->setDocMdpConfigService($handler, $docMdpConfigService);
+		$handler->setVisibleElements($visible ? [self::getElement([
+			'page' => 1,
+			'llx' => 10,
+			'lly' => 10,
+			'urx' => 110,
+			'ury' => 60,
+		], realpath(__DIR__ . '/../../../../../../img/app-dark.png'))] : []);
+		$handler->setJSignPdf($jSignPdf);
+		$handler->setInputFile($inputFile);
+		$handler->setSignatureParams(['SignerCommonName' => 'Test User']);
+		$handler->setCertificate(self::$certificateContent);
+		$handler->setPassword('password');
+		$handler->setDocMdpLevel($level);
+		$handler->getSignedContent();
+
+		$this->assertCount(1, $paramsSeen);
+		return $paramsSeen;
+	}
+
 	#[DataProvider('providerSignatureDimensions')]
 	public function testMergeBackgroundWithSignatureFitsOversizedSignatureInsideStampBox(int $signatureWidth, int $signatureHeight): void {
 		if (!extension_loaded('imagick')) {
@@ -1186,6 +1252,27 @@ final class JSignPdfHandlerTest extends \OCA\Libresign\Tests\Integration\AppData
 				['--tsa-server-url' => 'https://tsa.example.test/tsr', '--tsa-hash-algorithm' => 'SHA-256'],
 				[],
 			],
+		];
+	}
+
+	#[DataProvider('providerTheGivenLevelWinsOverTheCurrentLevel')]
+	public function testTheGivenLevelWinsOverTheCurrentLevel(?DocMdpLevel $givenLevel, DocMdpLevel $currentLevel, ?string $expected): void {
+		$docMdpConfigService = $this->createMock(DocMdpConfigService::class);
+		$docMdpConfigService->method('isEnabled')->willReturn($currentLevel->isCertifying());
+		$docMdpConfigService->method('getLevel')->willReturn($currentLevel);
+		$jSignPdfHandler = $this->getInstance();
+		$this->setDocMdpConfigService($jSignPdfHandler, $docMdpConfigService);
+		$jSignPdfHandler->setDocMdpLevel($givenLevel);
+
+		$this->assertSame($expected, self::invokePrivate($jSignPdfHandler, 'getCertificationLevel'));
+	}
+
+	public static function providerTheGivenLevelWinsOverTheCurrentLevel(): array {
+		return [
+			'another certifying level' => [DocMdpLevel::CERTIFIED_FORM_FILLING_AND_ANNOTATIONS, DocMdpLevel::CERTIFIED_NO_CHANGES_ALLOWED, DocMdpLevel::CERTIFIED_FORM_FILLING_AND_ANNOTATIONS->name],
+			'not certified while the current level certifies' => [DocMdpLevel::NOT_CERTIFIED, DocMdpLevel::CERTIFIED_FORM_FILLING, null],
+			'certified while the current level does not' => [DocMdpLevel::CERTIFIED_NO_CHANGES_ALLOWED, DocMdpLevel::NOT_CERTIFIED, DocMdpLevel::CERTIFIED_NO_CHANGES_ALLOWED->name],
+			'no level given falls back to the current level' => [null, DocMdpLevel::CERTIFIED_FORM_FILLING, DocMdpLevel::CERTIFIED_FORM_FILLING->name],
 		];
 	}
 
