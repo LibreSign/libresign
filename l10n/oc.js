@@ -137,6 +137,7 @@ OC.L10N.register(
     "Approved" : "Validat",
     "Approved by" : "Validat per",
     "Rename" : "Tornar nommar",
+    "File is loading" : "Se carga lo fichièr",
     "File name" : "Nom de fichièr",
     "Modified" : "Modificat",
     "1 file" : "1 fichièr",

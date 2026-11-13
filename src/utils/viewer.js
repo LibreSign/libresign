@@ -5,8 +5,7 @@
 
 import { getCurrentUser } from '@nextcloud/auth'
 import { File, Permission } from '@nextcloud/files'
-// TODO(viewer-compat): Restore direct @nextcloud/viewer imports after cleanup (PR #9301).
-import { canView, getHandlers, getViewer } from '../viewer/index.js'
+import { canView, getHandlers, getViewer } from '@nextcloud/viewer'
 
 /**
  * Construct a read-only file for a URL supplied by LibreSign. In particular,

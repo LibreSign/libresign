@@ -7,6 +7,9 @@ Feature: policies/groups_request_sign_policy
     Then the response should have a status code 200
 
     When sending "post" to ocs "/apps/libresign/api/v1/policies/system/groups_request_sign"
+      """
+      {"value": null}
+      """
     Then the response should have a status code 200
 
     When sending "post" to ocs "/apps/libresign/api/v1/policies/system/groups_request_sign"
@@ -61,6 +64,9 @@ Feature: policies/groups_request_sign_policy
     Then the response should have a status code 200
 
     When sending "post" to ocs "/apps/libresign/api/v1/policies/system/groups_request_sign"
+      """
+      {"value": null}
+      """
     Then the response should have a status code 200
 
   Scenario: Group admin deny override controls inherited request access for the managed group
@@ -90,6 +96,9 @@ Feature: policies/groups_request_sign_policy
     Then the response should have a status code 200
 
     When sending "post" to ocs "/apps/libresign/api/v1/policies/system/groups_request_sign"
+      """
+      {"value": null}
+      """
     Then the response should have a status code 200
 
     # VALIDATION: Without any allow policy, the group admin sees no group rule and cannot request signatures
@@ -224,6 +233,9 @@ Feature: policies/groups_request_sign_policy
     # CLEANUP: Reset system policy and remove the temporary group
     Given as user "admin"
     When sending "post" to ocs "/apps/libresign/api/v1/policies/system/groups_request_sign"
+      """
+      {"value": null}
+      """
     Then the response should have a status code 200
     And run the command "group:delete policy-request-access-board-gadmin" with result code 0
 
@@ -266,6 +278,9 @@ Feature: policies/groups_request_sign_policy
 
     Given as user "admin"
     When sending "post" to ocs "/apps/libresign/api/v1/policies/system/groups_request_sign"
+      """
+      {"value": null}
+      """
     Then the response should have a status code 200
     And run the command "group:delete policy-request-access-allow" with result code 0
     And run the command "group:delete policy-request-access-deny" with result code 0
@@ -299,6 +314,9 @@ Feature: policies/groups_request_sign_policy
     Then the response should have a status code 200
 
     When sending "post" to ocs "/apps/libresign/api/v1/policies/system/groups_request_sign"
+      """
+      {"value": null}
+      """
     Then the response should have a status code 200
 
     # RULE: The sysadmin seeds request access only for board and delegates child overrides.
@@ -343,6 +361,9 @@ Feature: policies/groups_request_sign_policy
     # CLEANUP: reset policy state and remove temporary groups.
     Given as user "admin"
     When sending "post" to ocs "/apps/libresign/api/v1/policies/system/groups_request_sign"
+      """
+      {"value": null}
+      """
     Then the response should have a status code 200
     And run the command "group:delete policy-request-access-board-extension" with result code 0
     And run the command "group:delete policy-request-access-company-extension" with result code 0
@@ -372,6 +393,9 @@ Feature: policies/groups_request_sign_policy
     Then the response should have a status code 200
 
     When sending "post" to ocs "/apps/libresign/api/v1/policies/system/groups_request_sign"
+      """
+      {"value": null}
+      """
     Then the response should have a status code 200
 
     # RULE: The sysadmin seeds request access only for board and delegates child overrides.
@@ -452,6 +476,9 @@ Feature: policies/groups_request_sign_policy
     Then the response should have a status code 200
 
     When sending "post" to ocs "/apps/libresign/api/v1/policies/system/groups_request_sign"
+      """
+      {"value": null}
+      """
     Then the response should have a status code 200
     And run the command "group:delete policy-request-access-board-overlay" with result code 0
     And run the command "group:delete policy-request-access-company-overlay" with result code 0
