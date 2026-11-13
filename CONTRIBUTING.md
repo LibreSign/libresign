@@ -66,6 +66,11 @@ AI-assisted contributions are welcome. You may use AI for any part of the contri
 
 When updating your branch with changes from `main`, rebasing is preferred when practical because it avoids unnecessary merge commits and keeps the pull request history easier to review.
 
+### Translation
+
+For contributing translations and writing translator context hints in code,
+see the [LibreSign translation guide](https://docs.libresign.coop/developer_manual/translation.html).
+
 ### Front and backend development environment
 
 More information [here](https://docs.libresign.coop/developer_manual/getting-started/development-environment/setup), at the [official documentation](https://docs.libresign.coop/developer_manual/getting-started/development-environment/setup)

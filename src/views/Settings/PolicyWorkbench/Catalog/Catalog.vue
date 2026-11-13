@@ -575,8 +575,16 @@ const ruleDialogButtons = computed(() => {
 		})
 	}
 
+	let primaryActionLabel: string
+	if (state.editorMode === 'edit') {
+		// TRANSLATORS Saves changes to a policy rule that is already configured.
+		primaryActionLabel = t('libresign', 'Save changes')
+	} else {
+		// TRANSLATORS Creates a new policy rule in the settings catalog.
+		primaryActionLabel = t('libresign', 'Create rule')
+	}
 	buttons.push({
-		label: state.editorMode === 'edit' ? t('libresign', 'Save changes') : t('libresign', 'Create rule'),
+		label: primaryActionLabel,
 		variant: 'primary',
 		disabled: !state.canSaveDraft,
 		callback: async () => {
@@ -614,6 +622,14 @@ const discardDialogButtons = computed(() => {
 })
 
 const removalDialogButtons = computed(() => {
+	let removalActionLabel: string
+	if (isRemovingRule.value) {
+		// TRANSLATORS Describes the ongoing removal of a policy exception.
+		removalActionLabel = t('libresign', 'Removing exception...')
+	} else {
+		// TRANSLATORS Action to remove an existing policy exception.
+		removalActionLabel = t('libresign', 'Remove exception')
+	}
 	return [
 		{
 			label: t('libresign', 'Cancel'),
@@ -622,7 +638,7 @@ const removalDialogButtons = computed(() => {
 			callback: () => cancelRuleRemoval(),
 		},
 		{
-			label: isRemovingRule.value ? t('libresign', 'Removing exception...') : t('libresign', 'Remove exception'),
+			label: removalActionLabel,
 			variant: 'error' as const,
 			disabled: isRemovingRule.value,
 			callback: () => {
