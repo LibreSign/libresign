@@ -13,6 +13,7 @@ use OCA\Libresign\Controller\SignFileController;
 use OCA\Libresign\Db\File as FileEntity;
 use OCA\Libresign\Db\SignRequest;
 use OCA\Libresign\Db\SignRequestMapper;
+use OCA\Libresign\Exception\LibresignException;
 use OCA\Libresign\Handler\SigningErrorHandler;
 use OCA\Libresign\Service\AsyncSigningService;
 use OCA\Libresign\Service\EmailSignerElementsService;
@@ -164,19 +165,37 @@ final class SignFileControllerTest extends TestCase {
 		$this->assertSame(Http::STATUS_OK, $response->getStatus());
 	}
 
-	/** @return array<string, array{string, string|int, list<null>}> */
+	/** @return array<string, array{string, string|int, array<int|string, null|string>, string, string}> */
 	public static function missingCodeMethods(): array {
-		return [
-			'uuid omitted' => ['requestCodeBySignerUuid', 'signer-uuid', []],
-			'uuid null' => ['requestCodeBySignerUuid', 'signer-uuid', [null, null]],
-			'file omitted' => ['requestCodeByFileId', 3, []],
-			'file null' => ['requestCodeByFileId', 3, [null, null]],
-		];
+		$cases = [];
+		foreach (['requestCodeBySignerUuid' => 'signer-uuid', 'requestCodeByFileId' => 3] as $method => $identifier) {
+			$cases += [
+				"$method: both omitted" => [$method, $identifier, [], '', ''],
+				"$method: both null" => [$method, $identifier, [null, null], '', ''],
+				"$method: identifyMethod omitted" => [$method, $identifier, ['signMethod' => 'emailToken'], '', 'emailToken'],
+				"$method: identifyMethod null" => [$method, $identifier, [null, 'emailToken'], '', 'emailToken'],
+				"$method: signMethod omitted" => [$method, $identifier, ['email'], 'email', ''],
+				"$method: signMethod null" => [$method, $identifier, ['email', null], 'email', ''],
+			];
+		}
+		return $cases;
 	}
 
-	/** @param list<null> $methods */
+	/**
+	 * A missing method reaches the service as an empty string, which the
+	 * service rejects (covered by SignFileServiceTest); it is never replaced
+	 * by a default method.
+	 *
+	 * @param array<int|string, null|string> $methods
+	 */
 	#[DataProvider('missingCodeMethods')]
-	public function testMissingCodeMethodsStillUseServiceValidation(string $method, string|int $identifier, array $methods): void {
+	public function testMissingCodeMethodsStillUseServiceValidation(
+		string $method,
+		string|int $identifier,
+		array $methods,
+		string $expectedIdentifyMethod,
+		string $expectedSignMethod,
+	): void {
 		$signRequest = new SignRequest();
 		$signRequest->setId(5);
 		$signRequest->setFileId(3);
@@ -189,13 +208,31 @@ final class SignFileControllerTest extends TestCase {
 		$this->signFileService->method('getFile')->with(3)->willReturn($file);
 		$this->signingRequestValidator->expects($this->once())->method('fileCanBeSigned')->with($file);
 		$this->signFileService->expects($this->once())->method('requestCode')
-			->with($signRequest, '', '')
-			->willThrowException(new \InvalidArgumentException('Invalid identification method'));
+			->with($signRequest, $expectedIdentifyMethod, $expectedSignMethod)
+			->willThrowException(new LibresignException('Invalid identification method'));
 
 		$response = $this->getController()->$method($identifier, ...$methods);
 
 		$this->assertSame(Http::STATUS_UNPROCESSABLE_ENTITY, $response->getStatus());
 		$this->assertSame('Unable to send verification code.', $response->getData()['message']);
+	}
+
+	public function testRequestCodeByFileIdWithValidMethodsSendsTheCode(): void {
+		$signRequest = new SignRequest();
+		$signRequest->setId(5);
+		$signRequest->setFileId(3);
+		$file = new FileEntity();
+		$file->setId(3);
+		$this->signRequestMapper->expects($this->once())->method('getByFileIdAndUserId')
+			->with(3)->willReturn($signRequest);
+		$this->signFileService->method('getFile')->with(3)->willReturn($file);
+		$this->signFileService->expects($this->once())->method('requestCode')
+			->with($signRequest, 'email', 'emailToken');
+
+		$response = $this->getController()->requestCodeByFileId(3, 'email', 'emailToken');
+
+		$this->assertSame(Http::STATUS_OK, $response->getStatus());
+		$this->assertSame('Verification code sent.', $response->getData()['message']);
 	}
 
 	public function testRequestCodeEndpointsDoNotExposeIdentifyDestinationParameter(): void {
