@@ -3848,9 +3848,7 @@ export interface operations {
             content: {
                 "application/json": {
                     /** @description Policy value to persist for the group. */
-                    value?: (boolean | number | string | {
-                        [key: string]: Record<string, never>;
-                    }) | null;
+                    value: components["schemas"]["EffectivePolicyValue"];
                     /**
                      * @description Whether users and requests below this group may override the group default.
                      * @default false
@@ -4068,9 +4066,7 @@ export interface operations {
             content: {
                 "application/json": {
                     /** @description Policy value to persist as assigned target user policy. */
-                    value?: (boolean | number | string | {
-                        [key: string]: Record<string, never>;
-                    }) | null;
+                    value: components["schemas"]["EffectivePolicyValue"];
                     /**
                      * @description Whether the target user may still override the assigned value in personal preferences.
                      * @default false
@@ -4238,9 +4234,7 @@ export interface operations {
             content: {
                 "application/json": {
                     /** @description Policy value to persist as the current user's default. */
-                    value?: (boolean | number | string | {
-                        [key: string]: Record<string, never>;
-                    }) | null;
+                    value: components["schemas"]["EffectivePolicyValue"];
                 };
             };
         };
