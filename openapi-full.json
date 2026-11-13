@@ -1858,7 +1858,6 @@
                     },
                     "type": {
                         "type": "string",
-                        "nullable": true,
                         "enum": [
                             "info",
                             "warning",
