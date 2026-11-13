@@ -366,6 +366,14 @@ describe('EnvelopeFilesList', () => {
 
 	describe('RULE: multipart envelope upload', () => {
 		it('sends two files with matching declared count', async () => {
+			getCapabilitiesMock.mockReturnValue({
+				libresign: {
+					config: {
+						envelope: { 'is-available': true },
+						upload: { 'max-file-uploads': 20 },
+					},
+				},
+			})
 			filesStore.selectedFile = { id: 1, uuid: 'envelope-uuid', status: FILE_STATUS.DRAFT }
 			wrapper = createWrapper()
 			vi.mocked(axios.post).mockResolvedValue({
