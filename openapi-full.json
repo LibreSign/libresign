@@ -6631,7 +6631,6 @@
                                 "type": "object",
                                 "properties": {
                                     "file": {
-                                        "default": [],
                                         "description": "File to save",
                                         "allOf": [
                                             {
@@ -6645,7 +6644,6 @@
                                         "description": "The name of file to sign"
                                     },
                                     "settings": {
-                                        "default": [],
                                         "description": "Settings to define how and where the file should be stored",
                                         "allOf": [
                                             {
@@ -7217,7 +7215,6 @@
                                         "description": "Metadata of visible elements to associate with the document"
                                     },
                                     "coordinates": {
-                                        "default": [],
                                         "description": "Coortinates of a visible element on PDF",
                                         "allOf": [
                                             {
@@ -7404,7 +7401,6 @@
                                         "description": "Metadata of visible elements to associate with the document"
                                     },
                                     "coordinates": {
-                                        "default": [],
                                         "description": "Coortinates of a visible element on PDF",
                                         "allOf": [
                                             {
@@ -12125,7 +12121,6 @@
                                         "description": "The name of file to sign"
                                     },
                                     "settings": {
-                                        "default": [],
                                         "description": "Settings to define how and where the file should be stored",
                                         "allOf": [
                                             {
@@ -12134,7 +12129,6 @@
                                         ]
                                     },
                                     "file": {
-                                        "default": [],
                                         "description": "File object. Supports nodeId (a non-negative integer or its canonical decimal string, as Nextcloud node ids can exceed a JavaScript number), url, base64 or path.",
                                         "allOf": [
                                             {
@@ -12374,7 +12368,6 @@
                                         "description": "The name of file to sign"
                                     },
                                     "settings": {
-                                        "default": [],
                                         "description": "Settings to define how and where the file should be stored",
                                         "allOf": [
                                             {

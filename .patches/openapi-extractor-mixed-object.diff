@@ -1,17 +1,23 @@
 --- a/src/OpenApiType.php
 +++ b/src/OpenApiType.php
-@@ -82,6 +82,36 @@
- 	}
+@@ -79,6 +79,87 @@
  
- 	/**
+ 		// https://github.com/OAI/OpenAPI-Specification/issues/1368#issuecomment-354037150
+ 		return $type !== 'object' && $anyOf === null && ($allOf === null || (($nullable ?? false) && count($allOf) === 1));
++	}
++
++	/**
 +	 * OpenAPI 3.0 ignores keywords beside a Reference Object. Description and
-+	 * default have to live on a Schema Object that wraps the reference.
++	 * a default that conforms to the schema have to live on a Schema Object
++	 * that wraps the reference.
++	 *
++	 * @param array<string, array<string, mixed>> $schemas
 +	 */
-+	private function hasSchemaObjectKeywords(bool $isParameter): bool {
++	private function hasSchemaObjectKeywords(bool $isParameter, array $schemas): bool {
 +		if ($this->type !== null || $this->format !== null || $this->nullable || $this->deprecated) {
 +			return true;
 +		}
-+		if ($this->hasDefaultValue && !$this->hasUnknownDefaultValue) {
++		if ($this->hasDefaultValue && !$this->hasUnknownDefaultValue && !$this->shouldOmitDefault($schemas)) {
 +			return true;
 +		}
 +		if ($this->enum !== null || $this->items !== null || $this->additionalProperties !== null) {
@@ -34,16 +40,59 @@
 +	}
 +
 +	/**
- 	 * @param array<string, array<string, mixed>> $schemas
- 	 */
- 	public function toArray(array $schemas, bool $isParameter = false): array|stdClass {
-@@ -93,6 +123,18 @@
- 				nullable: $this->nullable,
- 				description: $this->description,
- 			))->toArray($schemas, $isParameter);
++	 * An empty PHP array is the extractor's stand-in for an unspecified object.
++	 * Beside a $ref it used to be ignored. Promoting it makes the default an
++	 * array while the referenced schema is an object.
++	 *
++	 * @param array<string, array<string, mixed>> $schemas
++	 */
++	private function shouldOmitDefault(array $schemas): bool {
++		if (!is_array($this->defaultValue) || count($this->defaultValue) !== 0) {
++			return false;
++		}
++		if ($this->type === 'object' || $this->type === 'array') {
++			return false;
 +		}
 +
-+		if ($this->ref !== null && $this->hasSchemaObjectKeywords($isParameter)) {
++		return $this->referencedSchemaIsObject($schemas);
++	}
++
++	/**
++	 * @param array<string, array<string, mixed>> $schemas
++	 */
++	private function referencedSchemaIsObject(array $schemas): bool {
++		$refs = [];
++		if ($this->ref !== null) {
++			$refs[] = $this->ref;
++		}
++		foreach ($this->allOf ?? [] as $member) {
++			if ($member->type === 'object') {
++				return true;
++			}
++			if ($member->ref !== null) {
++				$refs[] = $member->ref;
++			}
++		}
++		foreach ($refs as $ref) {
++			$prefix = '#/components/schemas/';
++			if (!str_starts_with($ref, $prefix)) {
++				continue;
++			}
++			$schema = $schemas[substr($ref, strlen($prefix))] ?? null;
++			if (is_array($schema) && ($schema['type'] ?? null) === 'object') {
++				return true;
++			}
++		}
++
++		return false;
+ 	}
+ 
+ 	/**
+@@ -95,6 +176,18 @@
+ 			))->toArray($schemas, $isParameter);
+ 		}
+ 
++		if ($this->ref !== null && $this->hasSchemaObjectKeywords($isParameter, $schemas)) {
 +			$reference = new self(
 +				context: $this->context,
 +				ref: $this->ref,
@@ -53,10 +102,21 @@
 +			$schema->allOf = [...($schema->allOf ?? []), $reference];
 +
 +			return $schema->toArray($schemas, $isParameter);
- 		}
- 
++		}
++
  		$values = [];
-@@ -243,6 +285,17 @@
+ 		if ($this->ref !== null) {
+ 			$values['$ref'] = $this->ref;
+@@ -111,7 +204,7 @@
+ 		if ($this->deprecated) {
+ 			$values['deprecated'] = true;
+ 		}
+-		if ($this->hasDefaultValue && !$this->hasUnknownDefaultValue) {
++		if ($this->hasDefaultValue && !$this->hasUnknownDefaultValue && !$this->shouldOmitDefault($schemas)) {
+ 			$values['default'] = $this->type === 'object' && is_array($this->defaultValue) && count($this->defaultValue) === 0 ? new stdClass() : $this->defaultValue;
+ 		}
+ 		if ($this->enum !== null) {
+@@ -243,6 +336,17 @@
  			$key = $node->genericTypes[0] instanceof IdentifierTypeNode ? $node->genericTypes[0]->name : $node->genericTypes[0]->type->name;
  			$allowedTypes = ['string', 'lowercase-string', 'non-empty-string', 'non-empty-lowercase-string', 'class-string'];
  			if (in_array($key, $allowedTypes, true)) {
