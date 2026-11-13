@@ -30,7 +30,6 @@ use OCA\Libresign\Enum\SignatureRejectionBehavior;
 use OCA\Libresign\Enum\SignRequestStatus;
 use OCA\Libresign\Events\SignedEvent;
 use OCA\Libresign\Events\SignedEventFactory;
-use OCA\Libresign\Events\SigningRequestCompletedEvent;
 use OCA\Libresign\Exception\LibresignException;
 use OCA\Libresign\Handler\DocMdpHandler;
 use OCA\Libresign\Handler\FooterHandler;
@@ -68,6 +67,7 @@ use OCA\Libresign\Service\TsaValidationService;
 use OCA\Libresign\Service\Validation\IdentityDocumentValidator;
 use OCA\Libresign\Service\Validation\SignerValidator;
 use OCA\Libresign\Service\Validation\SigningRequestValidator;
+use OCA\Libresign\Service\Webhook\NativeWebhookEventPublisher;
 use OCP\AppFramework\Db\DoesNotExistException;
 use OCP\AppFramework\Utility\ITimeFactory;
 use OCP\BackgroundJob\IJobList;
@@ -108,6 +108,7 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	private FileElementMapper&MockObject $fileElementMapper;
 	private UserElementMapper&MockObject $userElementMapper;
 	private IEventDispatcher&MockObject $eventDispatcher;
+	private NativeWebhookEventPublisher&MockObject $webhooks;
 	private ISecureRandom&MockObject $secureRandom;
 	private IURLGenerator&MockObject $urlGenerator;
 	private IdentifyMethodMapper&MockObject $identifyMethodMapper;
@@ -163,6 +164,7 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$this->fileElementMapper = $this->createMock(FileElementMapper::class);
 		$this->userElementMapper = $this->createMock(UserElementMapper::class);
 		$this->eventDispatcher = $this->createMock(IEventDispatcher::class);
+		$this->webhooks = $this->createMock(NativeWebhookEventPublisher::class);
 		$this->secureRandom = $this->createMock(ISecureRandom::class);
 		$this->secureRandom->method('generate')->willReturn('temporary-password');
 		$this->urlGenerator = $this->createMock(IURLGenerator::class);
@@ -542,6 +544,7 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 					new TemporarySignatureImageService($this->tempManager, $this->l10n),
 					$this->notificationDeliveries,
 					new SigningWorkflowStatusResolver($this->idDocsMapper, $this->signatureRejectionPolicyService),
+					$this->webhooks,
 				])
 				->onlyMethods($methods)
 				->getMock();
@@ -591,6 +594,7 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			new TemporarySignatureImageService($this->tempManager, $this->l10n),
 			$this->notificationDeliveries,
 			new SigningWorkflowStatusResolver($this->idDocsMapper, $this->signatureRejectionPolicyService),
+			$this->webhooks,
 		);
 	}
 
@@ -825,57 +829,61 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			->sign();
 	}
 
-	public static function nativeCompletionCases(): array {
-		return [
-			'partial workflow' => [33, FileStatus::ABLE_TO_SIGN, FileStatus::PARTIAL_SIGNED, false],
-			'document completed' => [33, FileStatus::PARTIAL_SIGNED, FileStatus::SIGNED, true],
-			'already completed' => [33, FileStatus::SIGNED, FileStatus::SIGNED, false],
-			'unpersisted request' => [null, FileStatus::PARTIAL_SIGNED, FileStatus::SIGNED, false],
-		];
-	}
-
-	#[DataProvider('nativeCompletionCases')]
-	public function testNativeWebhookOnlyForCompletedDocumentWorkflow(?int $id, FileStatus $before, FileStatus $after, bool $completed): void {
+	public function testSigningDelegatesCompletionAfterPersistence(): void {
 		$service = $this->getService([
 			'getEngine', 'computeHash', 'validateDocMdpAllowsSignatures',
 			'updateSignRequest', 'updateLibreSignFile', 'dispatchSignedEvent',
 		]);
 		$file = new File();
-		if ($id !== null) {
-			$file->setId($id);
-		}
+		$file->setId(33);
 		$file->setUuid('workflow-uuid');
-		$file->setStatus($before->value);
-
-		$saved = new File();
-		$saved->setUuid('workflow-uuid');
-		$saved->setStatus($after->value);
-		$this->fileMapper->method('getById')->willReturn($saved);
-
-		$nextcloudFile = $this->createMock(\OCP\Files\File::class);
-		$nextcloudFile->method('getId')->willReturn(999);
+		$file->setStatus(FileStatus::PARTIAL_SIGNED->value);
+		$signedFile = $this->createMock(\OCP\Files\File::class);
+		$signedFile->method('getId')->willReturn(999);
 		$engine = $this->createMock(Pkcs12Handler::class);
-		$engine->method('sign')->willReturn($nextcloudFile);
+		$engine->method('sign')->willReturn($signedFile);
 		$service->method('getEngine')->willReturn($engine);
 		$service->method('computeHash')->willReturn('hash');
-
-		$events = [];
-		$this->eventDispatcher->method('dispatchTyped')
-			->willReturnCallback(static function ($event) use (&$events): void {
-				$events[] = $event;
-			});
-
+		$this->webhooks->expects($this->once())->method('requestCompleted')
+			->with($file, FileStatus::PARTIAL_SIGNED->value);
 		$service->signSingleFile($file, new SignRequest());
-		$this->assertSame($completed ? [[
-			'contractVersion' => 1,
-			'eventId' => 'libresign.workflow.completed.v1:workflow-uuid',
-			'requestUuid' => 'workflow-uuid',
-			'requestType' => 'document',
-			'status' => 'completed',
-		]] : [], array_map(
-			static fn (SigningRequestCompletedEvent $event): array => $event->getWebhookSerializable(),
-			$events,
-		));
+	}
+
+	public function testLegacyListenerFailureDoesNotSuppressNativeSigningEvent(): void {
+		$service = $this->getService([
+			'getEngine', 'computeHash', 'validateDocMdpAllowsSignatures',
+			'updateSignRequest', 'updateLibreSignFile',
+		]);
+		$file = new File();
+		$file->setId(17);
+		$file->setUuid('document-uuid');
+		$file->setStatus(FileStatus::ABLE_TO_SIGN->value);
+		$signer = new SignRequest();
+		$signer->setId(31);
+		$signer->setSigned(new DateTime('2026-11-09T11:00:00Z'));
+		$signer->setSignedHash('signed-content-hash');
+
+		$signedFile = $this->createMock(\OCP\Files\File::class);
+		$signedFile->method('getId')->willReturn(123);
+		$engine = $this->createMock(Pkcs12Handler::class);
+		$engine->method('sign')->willReturn($signedFile);
+		$engine->method('getInputFile')->willReturn($signedFile);
+		$service->method('getEngine')->willReturn($engine);
+		$service->method('computeHash')->willReturn('signed-content-hash');
+		$this->fileMapper->method('getById')->willReturn($file);
+		$this->signedEventFactory->method('make')->willReturn($this->createMock(SignedEvent::class));
+
+		$this->webhooks->expects($this->once())->method('signerSigned')->with($file, $signer);
+		$this->eventDispatcher->method('dispatchTyped')->willReturnCallback(
+			static function ($event): void {
+				if ($event instanceof SignedEvent) {
+					throw new \RuntimeException('private callback details');
+				}
+			},
+		);
+		$this->expectException(\RuntimeException::class);
+		$this->expectExceptionMessage('private callback details');
+		$service->signSingleFile($file, $signer);
 	}
 
 	public function testUpdateEnvelopeStatusAddsStatusChangedAt(): void {

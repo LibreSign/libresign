@@ -107,6 +107,18 @@ final class ValidationMetadataNormalizerTest extends \OCA\Libresign\Tests\Unit\T
 				],
 				'missingKeys' => ['d'],
 			],
+			'excludes the internal ready transition ID from public validation metadata' => [
+				'metadata' => [
+					'ready_event_id' => 'private-transition-identifier',
+					'status_changed_at' => '2026-11-11T00:00:00+00:00',
+				],
+				'fileName' => 'contract.pdf',
+				'totalPages' => 1,
+				'expectedSubset' => [
+					'status_changed_at' => '2026-11-11T00:00:00+00:00',
+				],
+				'missingKeys' => ['ready_event_id'],
+			],
 			'drops the policy snapshot freeze marker' => [
 				'metadata' => [
 					'status_changed_at' => '2026-01-01T00:00:00+00:00',

@@ -10,18 +10,23 @@ namespace OCA\Libresign\Tests\Integration\Service;
 
 use OCA\Libresign\BackgroundJob\DeliverNotification;
 use OCA\Libresign\Db\File;
+use OCA\Libresign\Db\FileMapper;
 use OCA\Libresign\Db\NotificationAttemptMapper;
 use OCA\Libresign\Db\NotificationDeliveryMapper;
 use OCA\Libresign\Db\SignRequest;
+use OCA\Libresign\Enum\FileStatus;
 use OCA\Libresign\Enum\NotificationDeliveryState;
+use OCA\Libresign\Events\NotificationDeliveryStatusChangedEvent;
 use OCA\Libresign\Exception\MailTransportException;
 use OCA\Libresign\Service\Notification\GatewayPayload;
 use OCA\Libresign\Service\Notification\MailPayload;
 use OCA\Libresign\Service\Notification\NotificationChannel;
 use OCA\Libresign\Service\Notification\NotificationMessage;
+use OCA\Libresign\Service\Notification\NotificationSubmissionService;
 use OCA\Libresign\Service\NotificationDeliveryService;
 use OCP\AppFramework\Db\DoesNotExistException;
 use OCP\BackgroundJob\IJobList;
+use OCP\EventDispatcher\IEventDispatcher;
 use OCP\IDBConnection;
 use OCP\Server;
 
@@ -178,6 +183,68 @@ final class NotificationDeliveryServiceTest extends \OCA\Libresign\Tests\Integra
 		$attempts = $this->attempts->findForDelivery($persisted->getId());
 		$this->assertCount(1, $attempts);
 		$this->assertSame(NotificationDeliveryState::ACCEPTED->value, $attempts[0]->getState());
+	}
+
+	public function testSubmittedOutcomeEventReflectsCommittedLedgerWithoutRecipientData(): void {
+		$fileMapper = Server::get(FileMapper::class);
+		$file = new File();
+		$file->setUuid(bin2hex(random_bytes(16)));
+		$file->setNodeId(random_int(1000000, 1999999));
+		$file->setUserId('synthetic-owner');
+		$file->setName('notification-contract.pdf');
+		$file->setCreatedAt(new \DateTime('now', new \DateTimeZone('UTC')));
+		$file->setStatus(FileStatus::ABLE_TO_SIGN->value);
+		$file = $fileMapper->insert($file);
+
+		$source = 'committed-event-' . bin2hex(random_bytes(10));
+		$key = hash('sha256', 'outcome-' . $source);
+		$dispatcher = Server::get(IEventDispatcher::class);
+		$db = Server::get(IDBConnection::class);
+		$observed = [];
+		$listener = function (NotificationDeliveryStatusChangedEvent $event) use (&$observed, $db, $key): void {
+			$delivery = $this->deliveries->findByEventKey($key);
+			$attempts = $this->attempts->findForDelivery($delivery->getId());
+			$observed[] = [
+				'inTransaction' => $db->inTransaction(),
+				'ledgerState' => $delivery->getState(),
+				'attemptStates' => array_map(static fn ($attempt): string => $attempt->getState(), $attempts),
+				'payload' => $event->getWebhookSerializable(),
+			];
+		};
+		$dispatcher->addListener(NotificationDeliveryStatusChangedEvent::class, $listener);
+
+		try {
+			$delivery = $this->deliveries->register(
+				$key, hash('sha256', 'correlation-' . $source), 'sign_request', 'mail',
+				$file->getId(), null, 'synthetic-owner', 'PRIVATE_ENCRYPTED_RECIPIENT',
+			);
+			$this->keys[] = $key;
+			$channel = new class implements NotificationChannel {
+				public function supports(string $channel): bool {
+					return $channel === 'mail';
+				}
+				public function deliver(NotificationMessage $message): void {
+				}
+			};
+			$this->assertTrue(Server::get(NotificationSubmissionService::class)->submit(
+				$delivery,
+				new NotificationMessage($source, 'sign_request', 'mail', $file, $this->request(), 'synthetic@example.invalid', new MailPayload()),
+				$channel,
+			));
+			$this->assertCount(1, $observed);
+			$this->assertFalse($observed[0]['inTransaction']);
+			$this->assertSame(NotificationDeliveryState::ACCEPTED->value, $observed[0]['ledgerState']);
+			$this->assertSame([NotificationDeliveryState::ACCEPTED->value], $observed[0]['attemptStates']);
+			$this->assertSame($file->getUuid(), $observed[0]['payload']['requestUuid']);
+			$this->assertSame(NotificationDeliveryState::ACCEPTED->value, $observed[0]['payload']['state']);
+			$this->assertSame(1, $observed[0]['payload']['attempt']);
+			$serialized = json_encode($observed[0]['payload'], JSON_THROW_ON_ERROR);
+			$this->assertStringNotContainsString('synthetic@example.invalid', $serialized);
+			$this->assertStringNotContainsString('PRIVATE_ENCRYPTED_RECIPIENT', $serialized);
+		} finally {
+			$dispatcher->removeListener(NotificationDeliveryStatusChangedEvent::class, $listener);
+			$fileMapper->delete($file);
+		}
 	}
 
 	public function testAmbiguousSubmissionNeverRetriesEvenWhenEventReplayed(): void {

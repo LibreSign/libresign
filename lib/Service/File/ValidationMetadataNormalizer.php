@@ -28,7 +28,7 @@ final class ValidationMetadataNormalizer {
 	public static function normalize(array $metadata, string $fileName, int $totalPages): array {
 		$normalized = $metadata;
 		// Internal lifecycle marker, not part of the validation metadata.
-		unset($normalized[FileStatusService::POLICY_SNAPSHOT_FROZEN_AT]);
+		unset($normalized[FileStatusService::POLICY_SNAPSHOT_FROZEN_AT], $normalized[FileStatusService::READY_EVENT_ID_METADATA_KEY]);
 		$normalized['p'] = self::normalizePageCount($totalPages);
 		$normalized['extension'] = self::normalizeExtension($normalized, $fileName);
 

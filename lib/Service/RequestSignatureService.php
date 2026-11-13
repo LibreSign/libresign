@@ -30,6 +30,7 @@ use OCA\Libresign\Service\SignRequest\SignRequestService;
 use OCA\Libresign\Service\Validation\FileInputValidator;
 use OCA\Libresign\Service\Validation\SignerValidator;
 use OCA\Libresign\Service\Validation\SigningRequestValidator;
+use OCA\Libresign\Service\Webhook\NativeWebhookEventPublisher;
 use OCP\AppFramework\Db\DoesNotExistException;
 use OCP\AppFramework\Db\MultipleObjectsReturnedException;
 use OCP\AppFramework\Db\TTransactional;
@@ -79,6 +80,7 @@ class RequestSignatureService {
 		protected SignerRemovalService $signerRemovalService,
 		protected IDBConnection $db,
 		protected NotificationDeliveryService $notifications,
+		protected NativeWebhookEventPublisher $webhooks,
 	) {
 	}
 
@@ -139,19 +141,64 @@ class RequestSignatureService {
 	}
 
 	public function save(array $data): FileEntity {
-		$file = $this->saveFile($data);
-		if (!isset($data['status'])) {
-			$data['status'] = $file->getStatus();
-		}
-		$this->atomic(function () use ($file, $data): void {
-			$this->sequentialSigningService->setFile($file);
-			$this->associateToSigners($data, $file);
-			$this->propagateSignersToChildren($file, $data);
-			$this->saveVisibleElements($data, $file);
-		}, $this->db);
-		$this->notifications->flushCommitted();
+		$file = null;
+		$createdNode = null;
 
-		return $file;
+		// Creating a storage node cannot be rolled back by the database transaction.
+		// Resolve new content first, but leave already supplied node references alone.
+		if (empty($data['uuid'])
+			&& !isset($data['file']['fileNode'])
+			&& empty($data['file']['nodeId'])
+			&& !isset($data['file']['path'])
+			&& !isset($data['file']['fileId'])) {
+			$createdNode = $this->fileService->getNodeFromData($data);
+			$data['file'] = ['fileNode' => $createdNode];
+			unset($data['uploadedFile']);
+		}
+
+		try {
+			$result = $this->atomic(function () use ($data, &$file, $createdNode): array {
+				$result = $this->persistFile($data, $createdNode);
+				$file = $result['file'];
+				$data['status'] ??= $file->getStatus();
+				$this->sequentialSigningService->setFile($file);
+				$this->associateToSigners($data, $file);
+				$this->propagateSignersToChildren($file, $data);
+				$this->saveVisibleElements($data, $file);
+				return $result;
+			}, $this->db);
+		} catch (\Throwable $e) {
+			if ($createdNode !== null) {
+				try {
+					$createdNode->delete();
+				} catch (\Throwable $deleteError) {
+					$this->logger->error('Unable to remove newly created request node after rollback', [
+						'nodeId' => $createdNode->getId(),
+						'errorType' => get_debug_type($deleteError),
+						'errorFile' => $deleteError->getFile(),
+						'errorLine' => $deleteError->getLine(),
+					]);
+				}
+			}
+			if ($file !== null) {
+				try {
+					$this->fileMapper->invalidateCachedEntity($file);
+					$this->fileStatusService->invalidateCachedStatus($file);
+				} catch (\Throwable $cacheError) {
+					$this->logger->warning('Unable to invalidate request caches after rollback', [
+						'errorType' => get_debug_type($cacheError),
+					]);
+				}
+			}
+			throw $e;
+		}
+
+		$this->notifications->flushCommitted();
+		if ($result['becameReady']) {
+			$this->webhooks->requestReady($result['file']);
+		}
+
+		return $result['file'];
 	}
 
 	private function propagateSignersToChildren(FileEntity $envelope, array $data): void {
@@ -215,23 +262,36 @@ class RequestSignatureService {
 				$files[] = $fileEntity;
 			}
 
-			if (!empty($data['signers'])) {
-				$this->atomic(function () use ($envelope, $data): void {
-					$this->sequentialSigningService->setFile($envelope);
-					$this->associateToSigners($data, $envelope);
-					$this->propagateSignersToChildren($envelope, $data);
+			$makeReady = ($data['status'] ?? FileStatus::DRAFT->value) === FileStatus::ABLE_TO_SIGN->value;
+			if (!empty($data['signers']) || $makeReady) {
+				$this->atomic(function () use ($envelope, $data, $makeReady): void {
+					if (!empty($data['signers'])) {
+						$this->sequentialSigningService->setFile($envelope);
+						$this->associateToSigners($data, $envelope);
+					}
+					if ($makeReady) {
+						$this->fileStatusService->updateFileStatusIfUpgrade($envelope, FileStatus::ABLE_TO_SIGN->value);
+					}
+					if (!empty($data['signers'])) {
+						$this->propagateSignersToChildren($envelope, $data);
+					} elseif ($makeReady) {
+						$this->fileStatusService->propagateStatusToChildren($envelope->getId(), $envelope->getStatus());
+					}
 				}, $this->db);
 				$this->notifications->flushCommitted();
 			}
-
-			return [
-				'envelope' => $envelope,
-				'files' => $files,
-			];
 		} catch (\Throwable $e) {
 			$this->rollbackEnvelopeCreation($envelope, $files, $createdNodes);
 			throw $e;
 		}
+
+		if ($makeReady && $envelope->getStatus() === FileStatus::ABLE_TO_SIGN->value) {
+			$this->webhooks->requestReady($envelope);
+		}
+		return [
+			'envelope' => $envelope,
+			'files' => $files,
+		];
 	}
 
 	private function processFileData(array $fileData, ?IUser $userManager, array $settings): Node {
@@ -364,6 +424,11 @@ class RequestSignatureService {
 	 * } $data
 	 */
 	public function saveFile(array $data): FileEntity {
+		return $this->persistFile($data)['file'];
+	}
+
+	/** @return array{file: FileEntity, becameReady: bool} */
+	private function persistFile(array $data, ?Node $createdNode = null): array {
 		if (!empty($data['uuid'])) {
 			$file = $this->fileMapper->getByUuid($data['uuid']);
 			$this->filePolicyApplier->syncCoreFlowPolicies($file, $data);
@@ -371,7 +436,7 @@ class RequestSignatureService {
 				$file->setName($data['name']);
 				$this->fileService->update($file);
 			}
-			return $this->fileStatusService->updateFileStatusIfUpgrade($file, $data['status'] ?? 0);
+			return $this->upgradeExistingFileStatus($file, $data['status'] ?? 0);
 		}
 		$nodeId = null;
 		if (isset($data['file']['fileNode']) && $data['file']['fileNode'] instanceof Node) {
@@ -390,11 +455,11 @@ class RequestSignatureService {
 			}
 			if ($file !== null) {
 				$this->filePolicyApplier->syncAllPolicies($file, $data);
-				return $this->fileStatusService->updateFileStatusIfUpgrade($file, $data['status'] ?? 0);
+				return $this->upgradeExistingFileStatus($file, $data['status'] ?? 0);
 			}
 		}
 
-		$node = $this->fileService->getNodeFromData($data);
+		$node = $createdNode ?? $this->fileService->getNodeFromData($data);
 
 		$file = new FileEntity();
 		$file->setNodeId($node->getId());
@@ -425,6 +490,9 @@ class RequestSignatureService {
 			$file->setStatus(FileStatus::ABLE_TO_SIGN->value);
 		}
 		$this->fileStatusService->markPolicySnapshotFrozen($file, $file->getStatus());
+		if ($file->getStatus() === FileStatus::ABLE_TO_SIGN->value && empty($data['parentFileId'])) {
+			$this->fileStatusService->markReadyTransition($file);
+		}
 
 		if (isset($data['parentFileId'])) {
 			$file->setParentFileId($data['parentFileId']);
@@ -433,7 +501,21 @@ class RequestSignatureService {
 		$this->filePolicyApplier->applyAll($file, $data);
 
 		$this->fileMapper->insert($file);
-		return $file;
+		return [
+			'file' => $file,
+			'becameReady' => !$file->hasParent() && $file->getStatus() === FileStatus::ABLE_TO_SIGN->value,
+		];
+	}
+
+	/** @return array{file: FileEntity, becameReady: bool} */
+	private function upgradeExistingFileStatus(FileEntity $file, int $newStatus): array {
+		$wasDraft = $file->getStatus() === FileStatus::DRAFT->value;
+		$file = $this->fileStatusService->updateFileStatusIfUpgrade($file, $newStatus);
+		return [
+			'file' => $file,
+			'becameReady' => $wasDraft && !$file->hasParent()
+				&& $file->getStatus() === FileStatus::ABLE_TO_SIGN->value,
+		];
 	}
 
 	private function getFileMetadata(\OCP\Files\Node $node): array {

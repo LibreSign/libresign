@@ -50,6 +50,7 @@ final class SignFileControllerTest extends TestCase {
 	private SignerValidator&MockObject $signerValidator;
 	private WorkerConfiguration&MockObject $workerConfiguration;
 	private AsyncSigningService&MockObject $asyncSigningService;
+	private SignatureRejectionService&MockObject $signatureRejectionService;
 
 	protected function setUp(): void {
 		$this->request = $this->createMock(IRequest::class);
@@ -64,6 +65,7 @@ final class SignFileControllerTest extends TestCase {
 		$this->signerValidator = $this->createMock(SignerValidator::class);
 		$this->workerConfiguration = $this->createMock(WorkerConfiguration::class);
 		$this->asyncSigningService = $this->createMock(AsyncSigningService::class);
+		$this->signatureRejectionService = $this->createMock(SignatureRejectionService::class);
 	}
 
 	private function getController(): SignFileController {
@@ -86,7 +88,7 @@ final class SignFileControllerTest extends TestCase {
 			$this->createMock(SignerGeolocationMetadataValidator::class),
 			$this->createMock(SignerIpGeolocationPolicyService::class),
 			$this->createMock(SigningErrorHandler::class),
-			$this->createMock(SignatureRejectionService::class),
+			$this->signatureRejectionService,
 			$this->emailSignerElementsService,
 			$this->logger,
 		);
@@ -234,6 +236,44 @@ final class SignFileControllerTest extends TestCase {
 			$response->getData()['message'],
 		);
 	}
+	public function testRejectPublicApiDoesNotExposeUnexpectedServerError(): void {
+		$file = new FileEntity();
+		$file->setId(10);
+		$signer = new SignRequest();
+		$signer->setId(12);
+		$signer->setFileId(10);
+		$this->signFileService->method('getLibresignFile')->willReturn($file);
+		$this->signFileService->method('getSignRequestToSign')->willReturn($signer);
+		$this->signatureRejectionService->method('reject')->willThrowException(
+			new \TypeError('internal signing key path: /private/not-for-client'),
+		);
+		$this->logger->expects($this->once())->method('error')->with(
+			'Unable to process signature rejection',
+			$this->callback(static fn (array $context): bool
+				=> ($context['errorType'] ?? null) === \TypeError::class
+				&& ($context['errorFile'] ?? null) === __FILE__
+				&& is_int($context['errorLine'] ?? null)
+				&& !str_contains(json_encode($context), '/private/not-for-client')
+			),
+		);
+
+		$response = $this->getController()->rejectBySignerUuid('signer-uuid');
+
+		$this->assertSame(Http::STATUS_UNPROCESSABLE_ENTITY, $response->getStatus());
+		$this->assertSame('Unable to process signature rejection.', $response->getData()['message']);
+	}
+
+	public function testRejectPublicApiKeepsExpectedDomainError(): void {
+		$this->signFileService->method('getLibresignFile')->willThrowException(
+			new \OCA\Libresign\Exception\LibresignException('Signature request is closed'),
+		);
+
+		$response = $this->getController()->rejectBySignerUuid('signer-uuid');
+
+		$this->assertSame(Http::STATUS_UNPROCESSABLE_ENTITY, $response->getStatus());
+		$this->assertSame('Signature request is closed', $response->getData()['message']);
+	}
+
 	private function prepareSigning(bool $prepareSignature = true): SignRequest {
 		if ($prepareSignature) {
 			$this->emailSignerElementsService->method('prepareSignature')

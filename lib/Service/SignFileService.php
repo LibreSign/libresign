@@ -31,7 +31,6 @@ use OCA\Libresign\Enum\FileStatus;
 use OCA\Libresign\Enum\IdentifyMethodRequirement;
 use OCA\Libresign\Enum\SignRequestStatus;
 use OCA\Libresign\Events\SignedEventFactory;
-use OCA\Libresign\Events\SigningRequestCompletedEvent;
 use OCA\Libresign\Exception\FooterStampUnavailableException;
 use OCA\Libresign\Exception\LibresignException;
 use OCA\Libresign\Handler\DocMdpHandler;
@@ -56,6 +55,7 @@ use OCA\Libresign\Service\SignRequest\StatusService;
 use OCA\Libresign\Service\Validation\IdentityDocumentValidator;
 use OCA\Libresign\Service\Validation\SignerValidator;
 use OCA\Libresign\Service\Validation\SigningRequestValidator;
+use OCA\Libresign\Service\Webhook\NativeWebhookEventPublisher;
 use OCP\AppFramework\Db\DoesNotExistException;
 use OCP\AppFramework\Db\MultipleObjectsReturnedException;
 use OCP\AppFramework\Utility\ITimeFactory;
@@ -143,6 +143,7 @@ class SignFileService {
 		private TemporarySignatureImageService $temporarySignatureImageService,
 		private NotificationDeliveryMapper $notificationDeliveries,
 		private SigningWorkflowStatusResolver $signingWorkflowStatusResolver,
+		private NativeWebhookEventPublisher $webhooks,
 	) {
 	}
 
@@ -980,16 +981,7 @@ class SignFileService {
 	}
 
 	private function dispatchCompletionIfTransition(FileEntity $request, int $previousStatus): void {
-		$requestId = $request->getId();
-		if ($requestId === null) {
-			return;
-		}
-
-		$request = $this->fileMapper->getById($requestId);
-		$event = SigningRequestCompletedEvent::fromTransition($request, $previousStatus);
-		if ($event !== null) {
-			$this->eventDispatcher->dispatchTyped($event);
-		}
+		$this->webhooks->requestCompleted($request, $previousStatus);
 	}
 
 	protected function dispatchSignedEvent(): void {
@@ -1010,14 +1002,18 @@ class SignFileService {
 			}
 		}
 
-		$event = $this->signedEventFactory->make(
-			$this->signRequest,
-			$this->libreSignFile,
-			$this->getEngine()->getInputFile(),
-			$this->signWithoutPassword,
-			$certificateSerialNumber,
-		);
-		$this->eventDispatcher->dispatchTyped($event);
+		try {
+			$event = $this->signedEventFactory->make(
+				$this->signRequest,
+				$this->libreSignFile,
+				$this->getEngine()->getInputFile(),
+				$this->signWithoutPassword,
+				$certificateSerialNumber,
+			);
+			$this->eventDispatcher->dispatchTyped($event);
+		} finally {
+			$this->webhooks->signerSigned($this->libreSignFile, $this->signRequest);
+		}
 	}
 
 	protected function identifyEngine(File $file): ISignEngineHandler {

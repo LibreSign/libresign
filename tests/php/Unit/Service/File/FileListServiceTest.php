@@ -83,6 +83,28 @@ final class FileListServiceTest extends TestCase {
 		);
 	}
 
+	public function testPublicFileMetadataExcludesInternalReadyTransitionId(): void {
+		$file = self::createFileEntity(1, 'file', 'contract.pdf', [
+			'ready_event_id' => 'private-transition-identifier',
+			'filesCount' => 1,
+			'purpose' => 'signature',
+		]);
+		$this->signRequestMapper->method('getByMultipleFileId')->willReturn([]);
+		$this->signRequestMapper->method('getByFileId')->willReturn([]);
+		$this->signRequestMapper->method('getIdentifyMethodsFromSigners')->willReturn([]);
+		$this->signRequestMapper->method('getVisibleElementsFromSigners')->willReturn([]);
+
+		$service = $this->getService();
+		$summary = $service->formatSingleFile($this->user, $file);
+		$details = $service->formatFileWithChildren($file, [], $this->user);
+
+		foreach ([$summary, $details] as $response) {
+			$this->assertArrayNotHasKey('ready_event_id', $response['metadata']);
+			$this->assertSame('signature', $response['metadata']['purpose']);
+		}
+		$this->assertSame('private-transition-identifier', $file->getMetadata()['ready_event_id']);
+	}
+
 	#[DataProvider('provideNodeTypeScenarios')]
 	public function testFormatSingleFileStructureByNodeType(
 		string $nodeType,

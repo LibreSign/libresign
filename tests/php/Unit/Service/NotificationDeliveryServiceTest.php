@@ -79,6 +79,7 @@ final class NotificationDeliveryServiceTest extends TestCase {
 				new NotificationFailureClassifier(),
 				new NotificationHistoryService($this->createMock(\OCA\Libresign\Db\SignRequestMapper::class)),
 				$this->createMock(LoggerInterface::class),
+				$this->createMock(\OCA\Libresign\Service\Webhook\NativeWebhookEventPublisher::class),
 			),
 			new NotificationEnvelopeCodec($handoffCrypto, $this->createMock(IManager::class)),
 			$this->mode,

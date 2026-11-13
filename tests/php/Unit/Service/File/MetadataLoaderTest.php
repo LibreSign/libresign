@@ -81,6 +81,30 @@ final class MetadataLoaderTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$this->assertEquals('application/pdf', $fileData->mime);
 	}
 
+	public function testValidationMetadataHidesInternalReadyIdWithoutRemovingStoredValue(): void {
+		$file = new File();
+		$file->setId(1);
+		$file->setName('agreement.pdf');
+		$file->setUserId('synthetic-user');
+		$file->setSignedNodeId(123);
+		$file->setMetadata([
+			'p' => 1,
+			'ready_event_id' => 'internal-transition',
+			'status_changed_at' => '2026-11-11T00:00:00+00:00',
+		]);
+		$node = $this->createMock(\OCP\Files\File::class);
+		$node->method('getSize')->willReturn(1024);
+		$node->method('getMimeType')->willReturn('application/pdf');
+		$this->folderService->method('getReadableNodeById')->with('synthetic-user', 123)->willReturn($node);
+
+		$response = new stdClass();
+		$this->getService()->loadMetadata($file, $response);
+
+		$this->assertArrayNotHasKey('ready_event_id', $response->metadata);
+		$this->assertSame('2026-11-11T00:00:00+00:00', $response->metadata['status_changed_at']);
+		$this->assertSame('internal-transition', $file->getMetadata()['ready_event_id']);
+	}
+
 	public function testLoadMetadataWithPages(): void {
 		$file = new File();
 		$file->setId(1);

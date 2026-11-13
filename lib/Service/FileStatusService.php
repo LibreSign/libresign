@@ -18,6 +18,7 @@ use OCP\AppFramework\Db\DoesNotExistException;
 
 class FileStatusService {
 	public const POLICY_SNAPSHOT_FROZEN_AT = 'policy_snapshot_frozen_at';
+	public const READY_EVENT_ID_METADATA_KEY = 'ready_event_id';
 
 	public function __construct(
 		private FileMapper $fileMapper,
@@ -26,14 +27,15 @@ class FileStatusService {
 	}
 
 	public function updateFileStatusIfUpgrade(FileEntity $file, int $newStatus): FileEntity {
-		$currentStatus = $file->getStatus();
-		if ($newStatus > $currentStatus) {
+		if ($newStatus > $file->getStatus()) {
 			$this->markPolicySnapshotFrozen($file, $newStatus);
+			if (!$file->hasParent() && $file->getStatus() === FileStatus::DRAFT->value && $newStatus === FileStatus::ABLE_TO_SIGN->value) {
+				$this->markReadyTransition($file);
+			}
 			$file->setStatus($newStatus);
 			$this->touchStatusChangedAt($file);
 			$this->fileMapper->update($file);
 			$this->statusCacheService->setStatus($file->getUuid(), $newStatus);
-
 			if ($file->hasParent()) {
 				$this->propagateStatusToParent($file->getParentFileId());
 			}
@@ -101,6 +103,9 @@ class FileStatusService {
 
 		if ($parent->getStatus() !== $newStatus) {
 			$this->markPolicySnapshotFrozen($parent, $newStatus);
+			if ($parent->getStatus() === FileStatus::DRAFT->value && $newStatus === FileStatus::ABLE_TO_SIGN->value) {
+				$this->markReadyTransition($parent);
+			}
 			$parent->setStatus($newStatus);
 			$this->touchStatusChangedAt($parent);
 			$this->fileMapper->update($parent);
@@ -206,6 +211,12 @@ class FileStatusService {
 	private static function hasFrozenPolicySnapshot(FileEntity $file): bool {
 		return isset(($file->getMetadata() ?? [])[self::POLICY_SNAPSHOT_FROZEN_AT])
 			|| $file->getStatus() >= FileStatus::ABLE_TO_SIGN->value;
+	}
+
+	public function markReadyTransition(FileEntity $file): void {
+		$metadata = $file->getMetadata() ?? [];
+		$metadata[self::READY_EVENT_ID_METADATA_KEY] = bin2hex(random_bytes(16));
+		$file->setMetadata($metadata);
 	}
 
 	private function touchStatusChangedAt(FileEntity $file): void {

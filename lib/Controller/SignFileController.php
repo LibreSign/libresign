@@ -384,9 +384,20 @@ class SignFileController extends AEnvironmentAwareOCSController implements ISign
 				$comment,
 				$privateComment,
 			);
-		} catch (\Throwable $th) {
+		} catch (LibresignException $e) {
 			return new DataResponse(
-				['message' => $th->getMessage()],
+				['message' => $e->getMessage()],
+				Http::STATUS_UNPROCESSABLE_ENTITY,
+			);
+		} catch (\Throwable $th) {
+			$this->logger->error('Unable to process signature rejection', [
+				'errorType' => get_debug_type($th),
+				'errorFile' => $th->getFile(),
+				'errorLine' => $th->getLine(),
+			]);
+			return new DataResponse(
+				// TRANSLATORS Error shown when a signature rejection fails unexpectedly.
+				['message' => $this->l10n->t('Unable to process signature rejection.')],
 				Http::STATUS_UNPROCESSABLE_ENTITY,
 			);
 		}

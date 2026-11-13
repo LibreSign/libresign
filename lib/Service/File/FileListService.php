@@ -262,7 +262,7 @@ class FileListService {
 			'uuid' => $fileEntity->getUuid(),
 			'name' => $fileEntity->getName(),
 			'status' => $fileEntity->getStatus(),
-			'metadata' => $fileEntity->getMetadata() ?? [],
+			'metadata' => self::publicMetadata($fileEntity),
 			'docmdpLevel' => $fileEntity->getDocmdpLevel(),
 			'createdAt' => $fileEntity->getCreatedAt(),
 			'userId' => $fileEntity->getUserId(),
@@ -353,7 +353,7 @@ class FileListService {
 		IUser $user,
 		?File $envelope = null,
 	): array {
-		$metadata = $fileEntity->getMetadata() ?? [];
+		$metadata = self::publicMetadata($fileEntity);
 		$nodeType = $fileEntity->getNodeType();
 		$filesCount = $nodeType === 'envelope'
 			? max(0, (int)($metadata['filesCount'] ?? 0))
@@ -831,7 +831,7 @@ class FileListService {
 	 * @psalm-suppress MoreSpecificReturnType
 	 */
 	public function formatFileWithChildren(File $mainEntity, array $childFiles, ?IUser $user = null): array {
-		$metadata = $mainEntity->getMetadata() ?? [];
+		$metadata = self::publicMetadata($mainEntity);
 
 		$signRequestEntities = $this->signRequestMapper->getByFileId($mainEntity->getId());
 		$identifyMethods = $this->signRequestMapper->getIdentifyMethodsFromSigners($signRequestEntities);
@@ -1094,7 +1094,7 @@ class FileListService {
 
 		return array_values(array_map(function (File $file) use ($signersByFileId, $identifyMethods, $user, $meSignRequestId) {
 			$signers = $signersByFileId[$file->getId()] ?? [];
-			$metadata = $file->getMetadata() ?? [];
+			$metadata = self::publicMetadata($file);
 			$size = $this->getFileSize($file);
 			$rejectionViewer = $this->rejectionViewer($file, $signers, $identifyMethods, $user, $meSignRequestId);
 			$hiddenRejection = $this->signatureRejectionVisibilityService->hasHiddenRejection($file, $signers, $rejectionViewer);
@@ -1146,6 +1146,13 @@ class FileListService {
 				'signers' => $signersFormatted,
 			];
 		}, $files));
+	}
+
+	/** @return array<string, mixed> */
+	private static function publicMetadata(File $file): array {
+		$metadata = $file->getMetadata() ?? [];
+		unset($metadata[FileStatusService::READY_EVENT_ID_METADATA_KEY]);
+		return $metadata;
 	}
 
 	private function getFileSize(File $file): int {
