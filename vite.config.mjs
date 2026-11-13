@@ -41,8 +41,6 @@ export default createAppConfig({
 			host: '0.0.0.0',
 		},
 		resolve: {
-			// TODO(viewer-compat): Recheck Vue deduplication after cleanup; do not remove blindly (PR #9301).
-			dedupe: ['vue', '@nextcloud/vue'],
 			alias: [
 				{
 					find: /^@libresign\/pdf-elements$/,
