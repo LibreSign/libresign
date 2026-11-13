@@ -50,7 +50,7 @@ final class PolicyControllerTest extends TestCase {
 			->willReturnCallback(static fn (string $key, mixed $default = null): mixed => $default);
 		$this->request
 			->method('getParams')
-			->willReturn([]);
+			->willReturn(['value' => null]);
 		$this->l10n = $this->createMock(IL10N::class);
 		$this->policyService = $this->createMock(PolicyService::class);
 		$this->userSession = $this->createMock(IUserSession::class);
@@ -482,6 +482,57 @@ final class PolicyControllerTest extends TestCase {
 		$this->assertSame(0, $response->getData()['policies']['signature_flow']['everyoneCount']);
 	}
 
+	public function testSetSystemRejectsMissingValueWithoutSaving(): void {
+		$this->policyService->expects($this->never())->method('saveSystem');
+		$request = $this->createMock(IRequest::class);
+		$request->method('getParams')->willReturn([]);
+		$controller = new PolicyController($request, $this->l10n, $this->policyService, $this->requestSignGroupsPolicyGuard, $this->policyManagementScopeService);
+		$response = $controller->setSystem('signature_flow', null);
+		$this->assertSame(Http::STATUS_BAD_REQUEST, $response->getStatus());
+		$this->assertSame(['error' => 'Missing required parameter: value'], $response->getData());
+	}
+
+	/** @param array<string, mixed> $params */
+	private function controllerWithParams(array $params): PolicyController {
+		$request = $this->createMock(IRequest::class);
+		$request->method('getParams')->willReturn($params);
+		return new PolicyController($request, $this->l10n, $this->policyService, $this->requestSignGroupsPolicyGuard, $this->policyManagementScopeService);
+	}
+
+	public function testSetGroupRejectsMissingValueWithoutSaving(): void {
+		$this->groupManager->method('isAdmin')->willReturn(true);
+		$this->policyService->expects($this->never())->method('saveGroupPolicy');
+		$response = $this->controllerWithParams([])->setGroup('finance', 'signature_flow', null);
+		$this->assertSame(Http::STATUS_BAD_REQUEST, $response->getStatus());
+	}
+
+	public function testSetUserPreferenceRejectsMissingValueWithoutSaving(): void {
+		$this->policyService->expects($this->never())->method('saveUserPreference');
+		$response = $this->controllerWithParams([])->setUserPreference('signature_flow', null);
+		$this->assertSame(Http::STATUS_BAD_REQUEST, $response->getStatus());
+	}
+
+	public function testSetUserPolicyForUserRejectsMissingValueWithoutSaving(): void {
+		$this->groupManager->method('isAdmin')->willReturn(true);
+		$this->policyService->expects($this->never())->method('saveUserPolicyForUserId');
+		$response = $this->controllerWithParams([])->setUserPolicyForUser('alice', 'signature_flow', null);
+		$this->assertSame(Http::STATUS_BAD_REQUEST, $response->getStatus());
+	}
+
+	public function testSetSystemAllowsExplicitNullFromRequest(): void {
+		$resolvedPolicy = (new ResolvedPolicy())->setPolicyKey('signature_flow')->setEffectiveValue('none');
+		$this->policyService->expects($this->once())->method('saveSystem')->with('signature_flow', null, false)->willReturn($resolvedPolicy);
+		$response = $this->controllerWithParams(['value' => null])->setSystem('signature_flow', null);
+		$this->assertSame(Http::STATUS_OK, $response->getStatus());
+	}
+
+	public function testSetSystemAcceptsValueFromRequest(): void {
+		$resolvedPolicy = (new ResolvedPolicy())->setPolicyKey('signature_flow')->setEffectiveValue('parallel');
+		$this->policyService->expects($this->once())->method('saveSystem')->with('signature_flow', 'parallel', false)->willReturn($resolvedPolicy);
+		$response = $this->controllerWithParams(['value' => 'parallel'])->setSystem('signature_flow', 'parallel');
+		$this->assertSame(Http::STATUS_OK, $response->getStatus());
+	}
+
 	public function testSetSystemReturnsSavedResolvedPolicy(): void {
 		$resolvedPolicy = (new ResolvedPolicy())
 			->setPolicyKey('signature_flow')
@@ -870,7 +921,7 @@ final class PolicyControllerTest extends TestCase {
 				->setVisibleToChild(true)
 				->setAllowedValues(['ordered_numeric']));
 
-		$response = $controller->setGroup('finance', 'signature_flow');
+		$response = $controller->setGroup('finance', 'signature_flow', 'ordered_numeric');
 
 		$this->assertSame(Http::STATUS_OK, $response->getStatus());
 		$this->assertSame('ordered_numeric', $response->getData()['policy']['value']);
@@ -1128,7 +1179,7 @@ final class PolicyControllerTest extends TestCase {
 				->setVisibleToChild(true)
 				->setAllowedValues(['ordered_numeric']));
 
-		$response = $controller->setGroup('finance', 'signature_flow');
+		$response = $controller->setGroup('finance', 'signature_flow', 'ordered_numeric');
 
 		$this->assertSame(Http::STATUS_OK, $response->getStatus());
 		$this->assertFalse($response->getData()['policy']['allowChildOverride']);
@@ -1767,7 +1818,7 @@ final class PolicyControllerTest extends TestCase {
 			->with('signature_flow', 'parallel')
 			->willReturn($resolvedPolicy);
 
-		$response = $controller->setUserPreference('signature_flow');
+		$response = $controller->setUserPreference('signature_flow', 'parallel');
 
 		$this->assertSame(Http::STATUS_OK, $response->getStatus());
 		$this->assertSame('parallel', $response->getData()['policy']['effectiveValue']);
