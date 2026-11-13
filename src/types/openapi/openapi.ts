@@ -4474,16 +4474,11 @@ export interface operations {
             };
             cookie?: never;
         };
-        requestBody?: {
+        requestBody: {
             content: {
                 "application/json": {
-                    /**
-                     * @description Policy value to persist for the group.
-                     * @default null
-                     */
-                    value?: (boolean | number | string | {
-                        [key: string]: Record<string, never>;
-                    }) | null;
+                    /** @description Policy value to persist for the group. */
+                    value: components["schemas"]["EffectivePolicyValue"];
                     /**
                      * @description Whether users and requests below this group may override the group default.
                      * @default false
@@ -4753,16 +4748,11 @@ export interface operations {
             };
             cookie?: never;
         };
-        requestBody?: {
+        requestBody: {
             content: {
                 "application/json": {
-                    /**
-                     * @description Policy value to persist as assigned target user policy.
-                     * @default null
-                     */
-                    value?: (boolean | number | string | {
-                        [key: string]: Record<string, never>;
-                    }) | null;
+                    /** @description Policy value to persist as assigned target user policy. */
+                    value: components["schemas"]["EffectivePolicyValue"];
                     /**
                      * @description Whether the target user may still override the assigned value in personal preferences.
                      * @default false
@@ -5236,16 +5226,11 @@ export interface operations {
             };
             cookie?: never;
         };
-        requestBody?: {
+        requestBody: {
             content: {
                 "application/json": {
-                    /**
-                     * @description Policy value to persist as the current user's default.
-                     * @default null
-                     */
-                    value?: (boolean | number | string | {
-                        [key: string]: Record<string, never>;
-                    }) | null;
+                    /** @description Policy value to persist as the current user's default. */
+                    value: components["schemas"]["EffectivePolicyValue"];
                 };
             };
         };
