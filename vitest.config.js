@@ -15,8 +15,6 @@ export default defineConfig({
 		},
 	},
 	resolve: {
-		// Keep Viewer and LibreSign components on the same Vue runtime.
-		dedupe: ['vue', '@nextcloud/vue'],
 		alias: [
 			{
 				find: /^@libresign\/pdf-elements$/,
