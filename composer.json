@@ -23,7 +23,8 @@
 		"cs:fix": "php-cs-fixer fix",
 		"rector:check": "rector --dry-run",
 		"rector:fix": "rector",
-		"openapi": "generate-spec --verbose && (npm run typescript:generate || echo 'Please manually regenerate the typescript OpenAPI models')",
+		"openapi": "generate-spec --verbose && npm run typescript:generate",
+		"openapi:spec": "generate-spec --verbose",
 		"psalm": "psalm --no-cache --threads=$(nproc)",
 		"psalm:update-baseline": "psalm --threads=$(nproc) --update-baseline --set-baseline=tests/psalm-baseline.xml",
 		"post-install-cmd": [
@@ -36,6 +37,10 @@
 		"mutation:test": "vendor/bin/infection --configuration=infection.json5",
 		"test:unit": "vendor/bin/phpunit -c tests/php/phpunit.xml --no-coverage --colors=always --fail-on-warning --fail-on-risky --display-deprecations --display-phpunit-deprecations",
 		"test:coverage": "XDEBUG_MODE=coverage vendor/bin/phpunit -c tests/php/phpunit.xml"
+	},
+	"scripts-descriptions": {
+		"openapi": "Generate OpenAPI specifications and TypeScript types (requires Node.js).",
+		"openapi:spec": "Generate only OpenAPI specifications (no Node.js required)."
 	},
 	"extra": {
 		"bamarni-bin": {
