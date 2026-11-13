@@ -18,6 +18,7 @@ use OCA\Libresign\Db\SignRequest;
 use OCA\Libresign\Db\SignRequest as SignRequestEntity;
 use OCA\Libresign\Db\SignRequestMapper;
 use OCA\Libresign\Enum\IdentifyMethodRequirement;
+use OCA\Libresign\Exception\IdDocsUploadValidationException;
 use OCA\Libresign\Exception\LibresignException;
 use OCA\Libresign\Service\Validation\FileInputValidator;
 use OCA\Libresign\Service\Validation\IdentityDocumentValidator;
@@ -49,7 +50,7 @@ class IdDocsService {
 	private function validateTypeOfFile(int $fileIndex, array $file): void {
 		$profileFileTypes = $this->fileTypeMapper->getTypes();
 		if (!array_key_exists($file['type'], $profileFileTypes)) {
-			throw new LibresignException(json_encode([
+			throw new IdDocsUploadValidationException(json_encode([
 				'type' => 'danger',
 				'file' => $fileIndex,
 				// TRANSLATORS Error shown when an uploaded identity document has an unsupported file type.
@@ -61,7 +62,7 @@ class IdDocsService {
 	private function validateIdDoc(int $fileIndex, array $file, IUser $user): void {
 		$profileFileTypes = $this->fileTypeMapper->getTypes();
 		if (!array_key_exists($file['type'], $profileFileTypes)) {
-			throw new LibresignException(json_encode([
+			throw new IdDocsUploadValidationException(json_encode([
 				'type' => 'danger',
 				'file' => $fileIndex,
 				// TRANSLATORS Error shown when an uploaded identity document has an unsupported file type.
@@ -73,8 +74,8 @@ class IdDocsService {
 			$this->identityDocumentValidator->validateFileTypeExists($file['type']);
 			$this->fileInputValidator->validateNewFile($file, FileInputValidator::TYPE_ACCOUNT_DOCUMENT, $user);
 			$this->identityDocumentValidator->validateUserHasNoFileWithThisType($user->getUID(), $file['type']);
-		} catch (\Exception $e) {
-			throw new LibresignException(json_encode([
+		} catch (LibresignException $e) {
+			throw new IdDocsUploadValidationException(json_encode([
 				'type' => 'danger',
 				'file' => $fileIndex,
 				'message' => $e->getMessage()
@@ -94,7 +95,7 @@ class IdDocsService {
 			try {
 				$files[$fileIndex]['file'] = $this->fileInputValidator->normalizeNodeId($fileData['file'], FileInputValidator::TYPE_ACCOUNT_DOCUMENT);
 			} catch (LibresignException $e) {
-				throw new LibresignException(json_encode([
+				throw new IdDocsUploadValidationException(json_encode([
 					'type' => 'danger',
 					'file' => $fileIndex,
 					'message' => $e->getMessage(),
