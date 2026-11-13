@@ -1,0 +1,23 @@
+{
+  "name": "libresign-sdk-generation-evaluation",
+  "version": "1.0.0",
+  "private": true,
+  "license": "AGPL-3.0-or-later",
+  "scripts": {
+    "compile": "tsc --noEmit --strict --skipLibCheck --target ES2020 --module commonjs --moduleResolution node ../../build/sdk-generation/typescript/*.ts types.ts transport.ts live.ts live.test.ts",
+    "test": "tsx transport.ts && node inventory.cjs && tsx --test live.test.ts && node --test generate.test.cjs",
+    "test:anyof": "tsc --noEmit --strict --skipLibCheck --target ES2020 --module commonjs --moduleResolution node anyof-defect.ts",
+    "test:live": "tsx live.ts",
+    "test:nextcloud": "node nextcloud-import.mjs",
+    "test:normalized": "tsc --noEmit --strict --skipLibCheck --target ES2020 --module commonjs --moduleResolution node ../../build/sdk-generation/normalized/typescript/*.ts normalized-types.ts"
+  },
+  "dependencies": {
+    "@nextcloud/axios": "2.6.0",
+    "axios": "1.20.0"
+  },
+  "devDependencies": {
+    "@types/node": "22.15.21",
+    "tsx": "4.19.4",
+    "typescript": "5.8.3"
+  }
+}
