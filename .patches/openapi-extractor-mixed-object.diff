@@ -1,0 +1,76 @@
+--- a/src/OpenApiType.php
++++ b/src/OpenApiType.php
+@@ -82,6 +82,36 @@
+ 	}
+ 
+ 	/**
++	 * OpenAPI 3.0 ignores keywords beside a Reference Object. Description and
++	 * default have to live on a Schema Object that wraps the reference.
++	 */
++	private function hasSchemaObjectKeywords(bool $isParameter): bool {
++		if ($this->type !== null || $this->format !== null || $this->nullable || $this->deprecated) {
++			return true;
++		}
++		if ($this->hasDefaultValue && !$this->hasUnknownDefaultValue) {
++			return true;
++		}
++		if ($this->enum !== null || $this->items !== null || $this->additionalProperties !== null) {
++			return true;
++		}
++		if ($this->description !== null && $this->description !== '' && !$isParameter) {
++			return true;
++		}
++		if ($this->minLength !== null || $this->maxLength !== null || $this->minimum !== null || $this->maximum !== null || $this->minItems !== null || $this->maxItems !== null) {
++			return true;
++		}
++		if ($this->required !== null || ($this->properties !== null && $this->properties !== [])) {
++			return true;
++		}
++		if ($this->oneOf !== null || $this->anyOf !== null || $this->allOf !== null) {
++			return true;
++		}
++
++		return false;
++	}
++
++	/**
+ 	 * @param array<string, array<string, mixed>> $schemas
+ 	 */
+ 	public function toArray(array $schemas, bool $isParameter = false): array|stdClass {
+@@ -93,6 +123,18 @@
+ 				nullable: $this->nullable,
+ 				description: $this->description,
+ 			))->toArray($schemas, $isParameter);
++		}
++
++		if ($this->ref !== null && $this->hasSchemaObjectKeywords($isParameter)) {
++			$reference = new self(
++				context: $this->context,
++				ref: $this->ref,
++			);
++			$schema = clone $this;
++			$schema->ref = null;
++			$schema->allOf = [...($schema->allOf ?? []), $reference];
++
++			return $schema->toArray($schemas, $isParameter);
+ 		}
+ 
+ 		$values = [];
+@@ -243,6 +285,17 @@
+ 			$key = $node->genericTypes[0] instanceof IdentifierTypeNode ? $node->genericTypes[0]->name : $node->genericTypes[0]->type->name;
+ 			$allowedTypes = ['string', 'lowercase-string', 'non-empty-string', 'non-empty-lowercase-string', 'class-string'];
+ 			if (in_array($key, $allowedTypes, true)) {
++				$valueType = $node->genericTypes[1];
++				// array<string, mixed> is an object whose values are unrestricted.
++				// A nested `{type: object}` schema would reject scalars, lists and null.
++				if ($valueType instanceof IdentifierTypeNode && $valueType->name === 'mixed') {
++					return new OpenApiType(
++						context: $context,
++						type: 'object',
++						additionalProperties: true,
++					);
++				}
++
+ 				return new OpenApiType(
+ 					context: $context,
+ 					type: 'object',

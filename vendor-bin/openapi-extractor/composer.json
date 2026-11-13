@@ -1,10 +1,18 @@
 {
 	"require-dev": {
+		"cweagans/composer-patches": "^2.0",
 		"nextcloud/openapi-extractor": "^1.9.1"
 	},
 	"config": {
+		"allow-plugins": {
+			"cweagans/composer-patches": true
+		},
 		"platform": {
 			"php": "8.3"
-		}
+		},
+		"sort-packages": true
+	},
+	"extra": {
+		"patches-file": "patches.json"
 	}
 }

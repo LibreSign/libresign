@@ -1,0 +1,17 @@
+{
+    "_hash": "2da032bfcf4fda50e9d14ed05876e55c2679009f2618b5b0e3c2c0dfd1a22dbd",
+    "patches": {
+        "nextcloud/openapi-extractor": [
+            {
+                "package": "nextcloud/openapi-extractor",
+                "description": "Map array<string, mixed> to unrestricted objects and keep schema keywords outside $ref",
+                "url": "../../.patches/openapi-extractor-mixed-object.diff",
+                "sha256": "ba73374397cf1c7c3c86ceed207c861580f796cdfb391de494b0fb986701af54",
+                "depth": 1,
+                "extra": {
+                    "provenance": "patches-file:patches.json"
+                }
+            }
+        ]
+    }
+}

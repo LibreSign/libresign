@@ -5398,7 +5398,7 @@ export interface operations {
                      * @default null
                      */
                     policy?: {
-                        [key: string]: Record<string, never>;
+                        [key: string]: unknown;
                     } | null;
                 };
             };
@@ -5494,7 +5494,7 @@ export interface operations {
                      * @default null
                      */
                     policy?: {
-                        [key: string]: Record<string, never>;
+                        [key: string]: unknown;
                     } | null;
                     /**
                      * @description The name of file to sign
@@ -5650,7 +5650,7 @@ export interface operations {
                      * @default {}
                      */
                     elements?: {
-                        [key: string]: Record<string, never>;
+                        [key: string]: unknown;
                     };
                     /**
                      * @description Identify value
@@ -5672,7 +5672,7 @@ export interface operations {
                      * @default {}
                      */
                     deviceGeolocation?: {
-                        [key: string]: Record<string, never>;
+                        [key: string]: unknown;
                     };
                 };
             };
@@ -5797,7 +5797,7 @@ export interface operations {
                      * @default {}
                      */
                     elements?: {
-                        [key: string]: Record<string, never>;
+                        [key: string]: unknown;
                     };
                     /**
                      * @description Identify value
@@ -5819,7 +5819,7 @@ export interface operations {
                      * @default {}
                      */
                     deviceGeolocation?: {
-                        [key: string]: Record<string, never>;
+                        [key: string]: unknown;
                     };
                     /**
                      * @description Explicitly save the external email signer's visible signature for future documents
@@ -6216,7 +6216,7 @@ export interface operations {
                 "application/json": {
                     /** @description Element object */
                     elements: {
-                        [key: string]: Record<string, never>;
+                        [key: string]: unknown;
                     };
                 };
             };
@@ -6482,7 +6482,7 @@ export interface operations {
                      * @default {}
                      */
                     file?: {
-                        [key: string]: Record<string, never>;
+                        [key: string]: unknown;
                     };
                 };
             };
