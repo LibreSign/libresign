@@ -9,9 +9,9 @@ declare(strict_types=1);
 namespace OCA\Libresign\Tests\Unit\Controller;
 
 use OCA\Libresign\Controller\IdDocsController;
+use OCA\Libresign\Helper\ValidateHelper;
 use OCA\Libresign\Service\IdDocsService;
 use OCA\Libresign\Service\SignFileService;
-use OCA\Libresign\Service\Validation\IdentityDocumentValidator;
 use OCP\AppFramework\Http;
 use OCP\IL10N;
 use OCP\IRequest;
@@ -57,7 +57,7 @@ class IdDocsControllerTest extends TestCase {
 			$this->createMock(IL10N::class),
 			$service,
 			$session,
-			$this->createMock(IdentityDocumentValidator::class),
+			$this->createMock(ValidateHelper::class),
 			$this->createMock(LoggerInterface::class),
 		);
 
