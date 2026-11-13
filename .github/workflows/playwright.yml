@@ -209,11 +209,17 @@ jobs:
           ./occ app:enable --force activity
           # Exercise the native PDF Viewer path instead of the browser fallback.
           git clone --depth 1 -b ${{ matrix.server-versions }} https://github.com/nextcloud/files_pdfviewer apps/files_pdfviewer
-          # TODO(pdfviewer-assets): Remove this E2E-only fixture once files_pdfviewer
-          # ships the stylesheet referenced by LoadViewerListener.
-          # Its real styles come from Vite chunks; the missing entry point
-          # otherwise causes a browser MIME error on unrelated Nextcloud pages.
-          test -f apps/files_pdfviewer/css/files_pdfviewer-main.css || touch apps/files_pdfviewer/css/files_pdfviewer-main.css
+          # Upstream files_pdfviewer requests a CSS entry its Vite build does not emit.
+          # Actual PDF styles load from Vite chunks. Fail CI if upstream changes
+          # the registration or ships the missing file, forcing fixture cleanup.
+          pdfviewer_css=apps/files_pdfviewer/css/files_pdfviewer-main.css
+          pdfviewer_listener=apps/files_pdfviewer/lib/Listeners/LoadViewerListener.php
+          if [ -f "$pdfviewer_css" ] || \
+              ! grep -Fq "Util::addStyle(Application::APP_ID, 'files_pdfviewer-main');" "$pdfviewer_listener"; then
+            echo "::error title=Review files_pdfviewer CSS workaround::Upstream changed its CSS registration or added the missing asset. Verify browser loading and remove/update this temporary fixture."
+            exit 1
+          fi
+          touch "$pdfviewer_css"
           ./occ app:enable --force files_pdfviewer
 
       - name: Set up LibreSign
