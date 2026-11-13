@@ -492,6 +492,13 @@ final class PolicyControllerTest extends TestCase {
 		$this->assertSame(['error' => 'Missing required parameter: value'], $response->getData());
 	}
 
+	public function testSetSystemRejectsInvalidValueTypeWithoutSaving(): void {
+		$this->policyService->expects($this->never())->method('saveSystem');
+		$response = $this->controllerWithParams(['value' => new \stdClass()])->setSystem('signature_flow', null);
+		$this->assertSame(Http::STATUS_BAD_REQUEST, $response->getStatus());
+		$this->assertSame(['error' => 'Invalid policy value'], $response->getData());
+	}
+
 	/** @param array<string, mixed> $params */
 	private function controllerWithParams(array $params): PolicyController {
 		$request = $this->createMock(IRequest::class);
