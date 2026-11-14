@@ -15,6 +15,8 @@
     <testsuite name="openapi">
       <file>OpenApiFunctionalTagsTest.php</file>
       <file>OpenApiGenerationTest.php</file>
+      <file>OpenApiPolicyNumberUnionTest.php</file>
+      <file>OpenApiRequestHeadersTest.php</file>
     </testsuite>
   </testsuites>
 </phpunit>

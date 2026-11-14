@@ -1072,17 +1072,12 @@
             },
             "EffectivePolicyValue": {
                 "nullable": true,
-                "anyOf": [
+                "oneOf": [
                     {
                         "type": "boolean"
                     },
                     {
-                        "type": "integer",
-                        "format": "int64"
-                    },
-                    {
-                        "type": "number",
-                        "format": "double"
+                        "type": "number"
                     },
                     {
                         "type": "string"
@@ -6613,7 +6608,7 @@
             "post": {
                 "operationId": "file-save",
                 "summary": "Send a file",
-                "description": "Send a new file to Nextcloud and return the fileId used to create a signature request. Files must be uploaded as multipart/form-data with field name 'file[]' or 'files[]'.\n**Note on multiple file uploads:** PHP has a limit on the number of files that can be uploaded in a single request (max_file_uploads directive, default 20). When uploading many files (more than 20), consider uploading them sequentially in multiple requests or use individual file uploads like the Files app does.",
+                "description": "Send a new file to Nextcloud and return the fileId used to create a signature request. File references can be sent as JSON using 'file' (single) or 'files' (list). Binary files use multipart/form-data: 'file' for one file, 'files[]' for several; the legacy 'file[]' field is also accepted. Do not combine these input forms. Multipart clients can send optional expectedFilesCount to reject incomplete batches.\n**Note on multiple file uploads:** PHP has a limit on the number of files that can be uploaded in a single request (max_file_uploads directive, default 20). When uploading many files (more than 20), consider uploading them sequentially in multiple requests or use individual file uploads like the Files app does.",
                 "tags": [
                     "documents"
                 ],
@@ -6780,7 +6775,7 @@
             "post": {
                 "operationId": "file-add-file-to-envelope",
                 "summary": "Add file to envelope",
-                "description": "Add one or more files to an existing envelope that is in DRAFT status. Files must be uploaded as multipart/form-data with field name 'files[]'.",
+                "description": "Add one or more files to an existing envelope that is in DRAFT status. Files must be uploaded as multipart/form-data with field name 'files[]'. Multipart clients can send optional expectedFilesCount to reject incomplete batches.",
                 "tags": [
                     "documents"
                 ],
@@ -8367,6 +8362,14 @@
                         }
                     },
                     {
+                        "name": "libresign-sign-request-uuid",
+                        "in": "header",
+                        "description": "The UUID of the sign request, used to identify the request",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
                         "name": "OCS-APIRequest",
                         "in": "header",
                         "description": "Required to be true for the API request to pass",
@@ -8510,6 +8513,14 @@
                         }
                     },
                     {
+                        "name": "libresign-sign-request-uuid",
+                        "in": "header",
+                        "description": "The UUID of the sign request, used to identify the request",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
                         "name": "OCS-APIRequest",
                         "in": "header",
                         "description": "Required to be true for the API request to pass",
@@ -8631,6 +8642,14 @@
                             "type": "string",
                             "nullable": true,
                             "default": null
+                        }
+                    },
+                    {
+                        "name": "libresign-sign-request-uuid",
+                        "in": "header",
+                        "description": "The UUID of the sign request, used to identify the request",
+                        "schema": {
+                            "type": "string"
                         }
                     },
                     {
@@ -13831,6 +13850,14 @@
                         }
                     },
                     {
+                        "name": "libresign-sign-request-uuid",
+                        "in": "header",
+                        "description": "The UUID of the sign request, used to identify the request",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
                         "name": "OCS-APIRequest",
                         "in": "header",
                         "description": "Required to be true for the API request to pass",
@@ -14319,6 +14346,14 @@
                         }
                     },
                     {
+                        "name": "libresign-sign-request-uuid",
+                        "in": "header",
+                        "description": "The UUID of the sign request, used to identify the request",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
                         "name": "OCS-APIRequest",
                         "in": "header",
                         "description": "Required to be true for the API request to pass",
@@ -14578,6 +14613,14 @@
                         }
                     },
                     {
+                        "name": "libresign-sign-request-uuid",
+                        "in": "header",
+                        "description": "The UUID of the sign request, used to identify the request",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
                         "name": "OCS-APIRequest",
                         "in": "header",
                         "description": "Required to be true for the API request to pass",
@@ -14687,6 +14730,14 @@
                         "schema": {
                             "type": "integer",
                             "format": "int64"
+                        }
+                    },
+                    {
+                        "name": "libresign-sign-request-uuid",
+                        "in": "header",
+                        "description": "The UUID of the sign request, used to identify the request",
+                        "schema": {
+                            "type": "string"
                         }
                     },
                     {

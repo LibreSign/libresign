@@ -678,6 +678,7 @@ describe('RequestPicker component rules', () => {
 			expect(filesStore.upload).toHaveBeenCalled()
 			const [formData] = filesStore.upload.mock.calls[0] as [FormData, { onUploadProgress?: (event: { loaded: number; total: number }) => void } | undefined]
 			expect(formData.get('name')).toBe('document')
+			expect(formData.get('expectedFilesCount')).toBe('1')
 		})
 
 		it('sets upload progress when receiving upload events', async () => {
@@ -744,6 +745,8 @@ describe('RequestPicker component rules', () => {
 			expect(filesStore.upload).toHaveBeenCalled()
 			const [formData] = filesStore.upload.mock.calls[0] as [FormData, { onUploadProgress?: (event: { loaded: number; total: number }) => void } | undefined]
 			expect(formData.get('name')).toBe('My Envelope')
+			expect(formData.get('expectedFilesCount')).toBe('2')
+			expect(formData.getAll('files[]')).toHaveLength(2)
 		})
 
 		it('trims envelope name before upload', async () => {

@@ -308,7 +308,7 @@ export type paths = {
         put?: never;
         /**
          * Send a file
-         * @description Send a new file to Nextcloud and return the fileId used to create a signature request. Files must be uploaded as multipart/form-data with field name 'file[]' or 'files[]'.
+         * @description Send a new file to Nextcloud and return the fileId used to create a signature request. File references can be sent as JSON using 'file' (single) or 'files' (list). Binary files use multipart/form-data: 'file' for one file, 'files[]' for several; the legacy 'file[]' field is also accepted. Do not combine these input forms. Multipart clients can send optional expectedFilesCount to reject incomplete batches.
          *     **Note on multiple file uploads:** PHP has a limit on the number of files that can be uploaded in a single request (max_file_uploads directive, default 20). When uploading many files (more than 20), consider uploading them sequentially in multiple requests or use individual file uploads like the Files app does.
          */
         post: operations["file-save"];
@@ -329,7 +329,7 @@ export type paths = {
         put?: never;
         /**
          * Add file to envelope
-         * @description Add one or more files to an existing envelope that is in DRAFT status. Files must be uploaded as multipart/form-data with field name 'files[]'.
+         * @description Add one or more files to an existing envelope that is in DRAFT status. Files must be uploaded as multipart/form-data with field name 'files[]'. Multipart clients can send optional expectedFilesCount to reject incomplete batches.
          */
         post: operations["file-add-file-to-envelope"];
         delete?: never;
@@ -4340,6 +4340,8 @@ export interface operations {
                 length?: number | null;
             };
             header: {
+                /** @description The UUID of the sign request, used to identify the request */
+                "libresign-sign-request-uuid"?: string;
                 /** @description Required to be true for the API request to pass */
                 "OCS-APIRequest": boolean;
             };
@@ -4384,6 +4386,8 @@ export interface operations {
         parameters: {
             query?: never;
             header: {
+                /** @description The UUID of the sign request, used to identify the request */
+                "libresign-sign-request-uuid"?: string;
                 /** @description Required to be true for the API request to pass */
                 "OCS-APIRequest": boolean;
             };
@@ -4438,6 +4442,8 @@ export interface operations {
                 uuid?: string | null;
             };
             header: {
+                /** @description The UUID of the sign request, used to identify the request */
+                "libresign-sign-request-uuid"?: string;
                 /** @description Required to be true for the API request to pass */
                 "OCS-APIRequest": boolean;
             };
@@ -6656,6 +6662,8 @@ export interface operations {
         parameters: {
             query?: never;
             header: {
+                /** @description The UUID of the sign request, used to identify the request */
+                "libresign-sign-request-uuid"?: string;
                 /** @description Required to be true for the API request to pass */
                 "OCS-APIRequest": boolean;
             };
@@ -6871,6 +6879,8 @@ export interface operations {
         parameters: {
             query?: never;
             header: {
+                /** @description The UUID of the sign request, used to identify the request */
+                "libresign-sign-request-uuid"?: string;
                 /** @description Required to be true for the API request to pass */
                 "OCS-APIRequest": boolean;
             };
@@ -6972,6 +6982,8 @@ export interface operations {
         parameters: {
             query?: never;
             header: {
+                /** @description The UUID of the sign request, used to identify the request */
+                "libresign-sign-request-uuid"?: string;
                 /** @description Required to be true for the API request to pass */
                 "OCS-APIRequest": boolean;
             };
@@ -7018,6 +7030,8 @@ export interface operations {
         parameters: {
             query?: never;
             header: {
+                /** @description The UUID of the sign request, used to identify the request */
+                "libresign-sign-request-uuid"?: string;
                 /** @description Required to be true for the API request to pass */
                 "OCS-APIRequest": boolean;
             };

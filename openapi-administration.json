@@ -565,17 +565,12 @@
             },
             "EffectivePolicyValue": {
                 "nullable": true,
-                "anyOf": [
+                "oneOf": [
                     {
                         "type": "boolean"
                     },
                     {
-                        "type": "integer",
-                        "format": "int64"
-                    },
-                    {
-                        "type": "number",
-                        "format": "double"
+                        "type": "number"
                     },
                     {
                         "type": "string"
