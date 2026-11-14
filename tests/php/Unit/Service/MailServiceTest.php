@@ -282,7 +282,7 @@ final class MailServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$this->service->notifyUnsignedUser($this->mockSignRequest(), 'a@b.coop');
 	}
 
-	public function testRequesterStrategyFallsBackWhenProviderSendingFails(): void {
+	public function testRequesterTransportFailureNeverTriggersDuplicateFallback(): void {
 		$this->mockRequest();
 		$this->mockStrategy(MailSenderStrategyPolicy::STRATEGY_REQUESTER);
 		$this->mockEmailTemplate();
@@ -291,17 +291,10 @@ final class MailServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$this->mailProviderManager->method('has')->willReturn(true);
 		$this->mailProviderManager->method('findServiceByAddress')->willReturn($service);
 		$service->method('sendMessage')
-			->willThrowException(new \RuntimeException('SMTP unavailable'));
-		$this->logger->expects($this->once())
-			->method('warning');
-		$systemMessage = $this->mockSystemMessage();
-		$systemMessage->expects($this->once())
-			->method('setReplyTo')
-			->with(['requester@domain.coop' => 'Requester Name']);
-		$this->mailer->expects($this->once())
-			->method('send')
-			->with($systemMessage);
-
+		$service->method('sendMessage')
+			->willThrowException(new \RuntimeException('Timeout after SMTP DATA'));
+		$this->mailer->expects($this->never())->method('send');
+		$this->expectException(LibresignException::class);
 		$this->service->notifyUnsignedUser($this->mockSignRequest(), 'a@b.coop');
 	}
 
