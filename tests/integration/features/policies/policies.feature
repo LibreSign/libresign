@@ -19,6 +19,20 @@ Feature: policies/policies
       | (jq).ocs.data.policy.sourceScope   | global          |
       | (jq).ocs.data.policy.effectiveValue| ordered_numeric |
 
+    # A missing value is invalid and must not clear the saved system rule.
+    When sending "post" to ocs "/apps/libresign/api/v1/policies/system/signature_flow"
+    Then the response should have a status code 400
+    And the response should be a JSON array with the following mandatory values
+      | key                 | value                             |
+      | (jq).ocs.data.error | Missing required parameter: value |
+
+    When sending "get" to ocs "/apps/libresign/api/v1/policies/system/signature_flow"
+    Then the response should have a status code 200
+    And the response should be a JSON array with the following mandatory values
+      | key                                      | value           |
+      | (jq).ocs.data.policy.value              | ordered_numeric |
+      | (jq).ocs.data.policy.allowChildOverride | true            |
+
     When sending "put" to ocs "/apps/libresign/api/v1/policies/group/admin/signature_flow"
       | value              | ordered_numeric |
       | allowChildOverride | true            |
@@ -73,4 +87,7 @@ Feature: policies/policies
     Then the response should have a status code 200
 
     When sending "post" to ocs "/apps/libresign/api/v1/policies/system/signature_flow"
+      """
+      {"value": null}
+      """
     Then the response should have a status code 200
