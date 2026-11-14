@@ -158,14 +158,20 @@ final class OpenApiSigningRequestContractsTest extends TestCase {
 		self::assertNull($signMethod['default']);
 	}
 
-	public function testIdDocApprovalIsNotMisrepresentedAsARequestBodyField(): void {
+	public function testIdDocApprovalDocumentsTheBodyFlagAndFrontendQuery(): void {
 		$spec = self::loadSpec('openapi-full.json');
-		foreach (['sign_file-request-code-by-signer-uuid', 'sign_file-sign-by-signer-uuid'] as $operationId) {
-			$operation = self::operation($spec, $operationId);
-			$schema = $operation['requestBody']['content']['application/json']['schema'];
-			self::assertArrayNotHasKey('idDocApproval', $schema['properties']);
-			self::assertStringContainsString('?idDocApproval=true', $operation['description'] ?? '');
-		}
+		$operation = self::operation($spec, 'sign_file-request-code-by-signer-uuid');
+		$schema = $operation['requestBody']['content']['application/json']['schema'];
+		$flag = $schema['properties']['idDocApproval'];
+		self::assertSame('string', $flag['type']);
+		self::assertTrue($flag['nullable']);
+		self::assertNull($flag['default']);
+		self::assertArrayNotHasKey('enum', $flag);
+		self::assertStringContainsString('?idDocApproval=true', $operation['description'] ?? '');
+
+		$signOperation = self::operation($spec, 'sign_file-sign-by-signer-uuid');
+		self::assertArrayNotHasKey('idDocApproval', $signOperation['requestBody']['content']['application/json']['schema']['properties']);
+		self::assertStringContainsString('?idDocApproval=true', $signOperation['description'] ?? '');
 	}
 
 	public function testAccountConfigValueUsesARequiredHeterogeneousJsonContract(): void {

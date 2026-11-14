@@ -449,12 +449,14 @@ class SignFileController extends AEnvironmentAwareOCSController implements ISign
 	/**
 	 * Get code to sign the document using UUID
 	 *
-	 * For identification-document approvals send ?idDocApproval=true in the URL query,
-	 * not in the JSON body. The same query is consumed by the signer middleware.
+	 * For identification-document approvals the frontend sends ?idDocApproval=true
+	 * in the URL query. Nextcloud also accepts the same flag in the JSON body.
+	 * The signer middleware reads the combined request parameters.
 	 *
 	 * @param string $uuid UUID of LibreSign file
 	 * @param string|null $identifyMethod Configured signer identification method (for example account, email or sms); omitted methods remain subject to service validation
 	 * @param string|null $signMethod Method used to sign the document, i.e. emailToken, account, clickToSign, smsToken, signalToken, telegramToken, whatsappToken, xmppToken
+	 * @param string|null $idDocApproval Only the literal "true" selects the identification-document approval context. Query or JSON body is accepted.
 	 * @return DataResponse<Http::STATUS_OK, LibresignMessageResponse, array{}>|DataResponse<Http::STATUS_UNPROCESSABLE_ENTITY, LibresignMessageResponse, array{}>
 	 *
 	 * 200: OK
@@ -470,9 +472,10 @@ class SignFileController extends AEnvironmentAwareOCSController implements ISign
 		string $uuid,
 		?string $identifyMethod = null,
 		?string $signMethod = null,
+		?string $idDocApproval = null,
 	): DataResponse {
 		try {
-			if ($this->isIdentificationDocumentApproval()) {
+			if ($this->isIdentificationDocumentApproval($idDocApproval)) {
 				// In this context the uuid is the one of the file, not of a sign request.
 				$libreSignFile = $this->signFileService->getFileByUuid($uuid);
 				$signRequest = $this->signFileService->getSignRequestToSign($libreSignFile, null, $this->userSession->getUser());
@@ -522,9 +525,9 @@ class SignFileController extends AEnvironmentAwareOCSController implements ISign
 		);
 	}
 
-	private function isIdentificationDocumentApproval(): bool {
-		return $this->request->getParam('idDocApproval') === 'true';
-	}
+	private function isIdentificationDocumentApproval(?string $idDocApproval = null): bool {
+		return $idDocApproval === 'true' || $this->request->getParam('idDocApproval') === 'true';
+}
 
 	/**
 	 * @todo validate if can request code

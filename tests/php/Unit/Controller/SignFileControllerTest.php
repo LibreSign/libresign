@@ -35,6 +35,7 @@ use OCP\IL10N;
 use OCP\IRequest;
 use OCP\IUser;
 use OCP\IUserSession;
+use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\LoggerInterface;
@@ -118,10 +119,18 @@ final class SignFileControllerTest extends TestCase {
 	 * the identification document, not with a signer uuid. The code must go
 	 * to the approver's own sign request, resolved the same way sign() does.
 	 */
-	public function testRequestCodeBySignerUuidInIdDocApprovalContextUsesTheApproverSignRequest(): void {
+	public static function idDocApprovalSources(): array {
+		return [
+			'query string' => [null, 'true'],
+			'JSON body' => ['true', null],
+		];
+	}
+
+	#[DataProvider('idDocApprovalSources')]
+	public function testRequestCodeBySignerUuidInIdDocApprovalContextUsesTheApproverSignRequest(?string $bodyValue, ?string $queryValue): void {
 		$approver = $this->createMock(IUser::class);
 		$this->userSession->method('getUser')->willReturn($approver);
-		$this->request->method('getParam')->with('idDocApproval')->willReturn('true');
+		$this->request->method('getParam')->with('idDocApproval')->willReturn($queryValue);
 
 		$idDoc = new FileEntity();
 		$idDoc->setId(10);
@@ -145,7 +154,7 @@ final class SignFileControllerTest extends TestCase {
 			->method('requestCode')
 			->with($approverSignRequest, 'account', 'emailToken');
 
-		$response = $this->getController()->requestCodeBySignerUuid('file-uuid', 'account', 'emailToken');
+		$response = $this->getController()->requestCodeBySignerUuid('file-uuid', 'account', 'emailToken', $bodyValue);
 
 		$this->assertSame(Http::STATUS_OK, $response->getStatus());
 		$this->assertSame('Verification code sent.', $response->getData()['message']);
@@ -225,7 +234,7 @@ final class SignFileControllerTest extends TestCase {
 		);
 
 		$this->assertSame(
-			['uuid', 'identifyMethod', 'signMethod'],
+			['uuid', 'identifyMethod', 'signMethod', 'idDocApproval'],
 			array_map(
 				static fn (\ReflectionParameter $parameter): string => $parameter->getName(),
 				$uuidMethod->getParameters(),
