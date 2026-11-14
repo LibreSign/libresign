@@ -79,7 +79,7 @@
 									<NcIconSvgWrapper :path="mdiEye" :size="20" />
 								</template>
 							</NcButton>
-							<NcButton variant="tertiary" :aria-label="isFileOpen(fileIndex) ? t('libresign', 'Hide details') : t('libresign', 'Show details')" @click.stop="toggleFileDetail(fileIndex)">
+							<NcButton variant="tertiary" :aria-label="detailsToggleLabel(isFileOpen(fileIndex))" @click.stop="toggleFileDetail(fileIndex)">
 								<template #icon>
 									<NcIconSvgWrapper v-if="isFileOpen(fileIndex)" :path="mdiChevronUp" :size="20" />
 									<NcIconSvgWrapper v-else :path="mdiChevronDown" :size="20" />
@@ -120,7 +120,7 @@
 								</span>
 							</template>
 							<template #extra-actions>
-								<NcButton variant="tertiary" :aria-label="isParticipantOpen(section.role, signerIndex) ? t('libresign', 'Hide details') : t('libresign', 'Show details')" @click.stop="toggleParticipantDetail(section.role, signerIndex)">
+								<NcButton variant="tertiary" :aria-label="detailsToggleLabel(isParticipantOpen(section.role, signerIndex))" @click.stop="toggleParticipantDetail(section.role, signerIndex)">
 									<template #icon>
 										<NcIconSvgWrapper v-if="isParticipantOpen(section.role, signerIndex)" :path="mdiChevronUp" :size="20" />
 										<NcIconSvgWrapper v-else :path="mdiChevronDown" :size="20" />
@@ -336,6 +336,15 @@ function toggleDetail(signerIndex: number) {
 
 function isSignerOpen(signerIndex: number) {
 	return isParticipantOpen(PARTICIPANT_ROLE.SIGNER, signerIndex)
+}
+
+function detailsToggleLabel(open: boolean) {
+	if (open) {
+		// TRANSLATORS Accessibility label for collapsing expanded envelope details.
+		return t('libresign', 'Hide details')
+	}
+	// TRANSLATORS Accessibility label for expanding collapsed envelope details.
+	return t('libresign', 'Show details')
 }
 
 function isFileOpen(fileIndex: number) {
