@@ -13,6 +13,15 @@
 						<div class="user-display-name icon-user">
 							<p>{{ user.displayName }}</p>
 						</div>
+						<p v-if="accountError" class="account-error" role="status">
+							{{ t('libresign', 'Email and phone details could not be loaded.') }}
+						</p>
+						<dl v-else class="user-contact">
+							<dt>{{ t('libresign', 'Email') }}</dt>
+							<dd>{{ loadingAccount ? t('libresign', 'Loading …') : emailAddress }}</dd>
+							<dt>{{ t('libresign', 'Phone') }}</dt>
+							<dd>{{ loadingAccount ? t('libresign', 'Loading …') : phoneNumber }}</dd>
+						</dl>
 					</div>
 					<div class="user-password">
 						<h3>{{ t('libresign', 'Certificate') }}</h3>
@@ -31,14 +40,19 @@
 
 <script setup lang="ts">
 import { t } from '@nextcloud/l10n'
+import { computed, onMounted, ref } from 'vue'
 
 import { getCurrentUser } from '@nextcloud/auth'
+import axios from '@nextcloud/axios'
+import { generateOcsUrl } from '@nextcloud/router'
+
 import NcAppContent from '@nextcloud/vue/components/NcAppContent'
 
 import Documents from './partials/Documents.vue'
 import ManagePassword from './partials/ManagePassword.vue'
 import Signatures from './partials/Signatures.vue'
 import UserImage from './partials/UserImage.vue'
+import type { components } from '../../types/openapi/openapi'
 
 defineOptions({
 	name: 'Account',
@@ -49,11 +63,42 @@ type User = {
 	displayName: string
 }
 
+type AccountMeResponse = components['schemas']['AccountMeResponse']
+type OcsResponseData<T> = {
+	ocs: {
+		data: T
+	}
+}
+
 const currentUser = getCurrentUser()
 const user: User = {
 	uid: currentUser?.uid ?? '',
 	displayName: currentUser?.displayName ?? '',
 }
+
+const account = ref<AccountMeResponse | null>(null)
+const loadingAccount = ref(Boolean(currentUser))
+const accountError = ref(false)
+
+const emailAddress = computed(() => account.value?.account.emailAddress?.trim() || t('libresign', 'Not provided'))
+const phoneNumber = computed(() => account.value?.settings.phoneNumber?.trim() || t('libresign', 'Not provided'))
+
+onMounted(async () => {
+	if (!currentUser) {
+		return
+	}
+
+	try {
+		const response = await axios.get<OcsResponseData<AccountMeResponse>>(
+			generateOcsUrl('/apps/libresign/api/v1/account/me'),
+		)
+		account.value = response.data.ocs.data
+	} catch {
+		accountError.value = true
+	} finally {
+		loadingAccount.value = false
+	}
+})
 
 defineExpose({
 	user,
@@ -111,6 +156,24 @@ defineExpose({
 					margin-top: 12px;
 					margin-left: 12px;
 					padding-left: 22px;
+				}
+
+				.user-contact{
+					margin: 0 12px;
+
+					dt{
+						font-weight: bold;
+					}
+
+					dd{
+						margin: 0 0 12px;
+						overflow-wrap: anywhere;
+					}
+				}
+
+				.account-error{
+					margin: 0 12px;
+					overflow-wrap: anywhere;
 				}
 			}
 
