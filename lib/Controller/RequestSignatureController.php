@@ -87,7 +87,6 @@ class RequestSignatureController extends AEnvironmentAwareOCSController {
 		?array $policy = null,
 	): DataResponse {
 		try {
-			$this->rejectLegacyCallbackParameter();
 			$user = $this->userSession->getUser();
 			$result = $this->requestSignatureWorkflowService->createRequest(
 				$user,
@@ -161,7 +160,6 @@ class RequestSignatureController extends AEnvironmentAwareOCSController {
 		array $files = [],
 	): DataResponse {
 		try {
-			$this->rejectLegacyCallbackParameter();
 			$user = $this->userSession->getUser();
 			$signers = is_array($signers) ? $signers : [];
 			$file = is_array($file) ? $file : [];
@@ -204,12 +202,6 @@ class RequestSignatureController extends AEnvironmentAwareOCSController {
 				],
 				Http::STATUS_UNPROCESSABLE_ENTITY
 			);
-		}
-	}
-
-	private function rejectLegacyCallbackParameter(): void {
-		if (array_key_exists('callback', $this->request->getParams())) {
-			throw new LibresignException($this->l10n->t('Per-request callbacks have been removed. Configure Nextcloud Webhook Listeners.'));
 		}
 	}
 
