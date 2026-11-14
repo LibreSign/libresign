@@ -33,6 +33,7 @@ use OCP\AppFramework\Http\Attribute\NoAdminRequired;
 use OCP\AppFramework\Http\Attribute\NoCSRFRequired;
 use OCP\AppFramework\Http\Attribute\OpenAPI;
 use OCP\AppFramework\Http\Attribute\PublicPage;
+use OCP\AppFramework\Http\Attribute\RequestHeader;
 use OCP\AppFramework\Http\DataResponse;
 use OCP\IL10N;
 use OCP\IRequest;
@@ -327,6 +328,7 @@ class SignFileController extends AEnvironmentAwareController implements ISignatu
 	#[RequireSigner]
 	#[PublicPage]
 	#[OpenAPI(tags: ['signing'])]
+	#[RequestHeader(name: 'libresign-sign-request-uuid', description: 'The UUID of the sign request, used to identify the request', indirect: true)]
 	#[ApiRoute(verb: 'POST', url: '/api/{apiVersion}/sign/file_id/{fileId}/code', requirements: ['apiVersion' => '(v1)'])]
 	public function requestCodeByFileId(int $fileId, ?string $identifyMethod, ?string $signMethod, ?string $identify): DataResponse {
 		try {
