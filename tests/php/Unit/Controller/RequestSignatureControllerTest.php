@@ -88,8 +88,8 @@ final class RequestSignatureControllerTest extends TestCase {
 	}
 
 	#[DataProvider('legacyCallbackPayloadScenarios')]
-	public function testLegacyCallbackParameterFailsBeforeSaving(bool $isPatch): void {
-		$this->request->method('getParams')->willReturn(['callback' => 'https://example.test/legacy']);
+	public function testLegacyCallbackParameterFailsBeforeSaving(bool $isPatch, mixed $callback): void {
+		$this->request->method('getParams')->willReturn(['callback' => $callback]);
 		$this->requestSignatureService->expects($this->never())->method('validateNewRequestToFile');
 		$this->requestSignatureService->expects($this->never())->method('save');
 		$this->signingRequestValidator->expects($this->never())->method('validateExistingFile');
@@ -107,8 +107,12 @@ final class RequestSignatureControllerTest extends TestCase {
 
 	public static function legacyCallbackPayloadScenarios(): array {
 		return [
-			'POST create' => [false],
-			'PATCH update' => [true],
+			'POST create with URL' => [false, 'https://example.test/legacy'],
+			'POST create with null' => [false, null],
+			'POST create with empty string' => [false, ''],
+			'PATCH update with URL' => [true, 'https://example.test/legacy'],
+			'PATCH update with null' => [true, null],
+			'PATCH update with empty string' => [true, ''],
 		];
 	}
 
