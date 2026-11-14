@@ -342,6 +342,7 @@ async function upload(files: UploadFile[], selectedEnvelopeName: string | null =
 	uploadStartTime.value = Date.now()
 
 	const formData = new FormData()
+	formData.append('expectedFilesCount', String(files.length))
 
 	if (files.length === 1) {
 		const name = files[0].name.replace(/\.pdf$/i, '')
