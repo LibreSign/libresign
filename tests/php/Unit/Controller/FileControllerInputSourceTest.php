@@ -11,9 +11,9 @@ namespace OCA\Libresign\Tests\Unit\Controller;
 
 use OCA\Libresign\Controller\FileController;
 use OCA\Libresign\Exception\LibresignException;
+use OCA\Libresign\Helper\ValidateHelper;
 use OCA\Libresign\Service\FileService;
 use OCA\Libresign\Service\RequestSignatureService;
-use OCA\Libresign\Helper\ValidateHelper;
 use OCP\AppFramework\Http;
 use OCP\IL10N;
 use OCP\IRequest;
