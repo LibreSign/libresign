@@ -181,7 +181,7 @@ class MailService {
 		}
 		$message->useTemplate($emailTemplate);
 		try {
-			$this->mailer->send($message);
+			$this->sendAndCheck($message);
 		} catch (\Exception $e) {
 			$this->logger->error('Mail with code to sign document could not be sent: ' . $e->getMessage());
 			throw new LibresignException('Mail with code to sign document could not be sent', 1);
