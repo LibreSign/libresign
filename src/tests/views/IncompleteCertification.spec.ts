@@ -25,7 +25,7 @@ vi.mock('@nextcloud/l10n', () => globalThis.mockNextcloudL10n())
 let IncompleteCertification: unknown
 
 beforeAll(async () => {
-	;({ default: IncompleteCertification } = await import('../../views/IncompleteCertification.vue'))
+	({ default: IncompleteCertification } = await import('../../views/IncompleteCertification.vue'))
 })
 
 describe('IncompleteCertification', () => {

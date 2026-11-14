@@ -53,7 +53,7 @@ type DocumentsWrapper = VueWrapper<any> & {
 let Documents: DocumentsComponent
 
 beforeAll(async () => {
-	;({ default: Documents } = await import('../../../../views/Account/partials/Documents.vue'))
+	({ default: Documents } = await import('../../../../views/Account/partials/Documents.vue'))
 })
 
 describe('Documents', () => {

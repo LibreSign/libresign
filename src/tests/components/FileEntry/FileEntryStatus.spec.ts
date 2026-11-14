@@ -41,7 +41,7 @@ vi.mock('vue-select', () => ({
 }))
 
 beforeAll(async () => {
-	;({ default: FileEntryStatus } = await import('../../../views/FilesList/FileEntry/FileEntryStatus.vue'))
+	({ default: FileEntryStatus } = await import('../../../views/FilesList/FileEntry/FileEntryStatus.vue'))
 })
 
 describe('FileEntryStatus', () => {

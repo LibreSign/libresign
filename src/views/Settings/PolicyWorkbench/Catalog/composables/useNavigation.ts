@@ -365,7 +365,7 @@ export function useNavigation(
 	}
 
 	function scrollToCategory(category: RealPolicySettingCategory, event?: MouseEvent) {
-		;(event?.currentTarget as HTMLElement | null)?.blur()
+		(event?.currentTarget as HTMLElement | null)?.blur()
 		const target = categorySectionElements.get(category) ?? document.getElementById(`policy-category-${category}`)
 		if (!target) {
 			return

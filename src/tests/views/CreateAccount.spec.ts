@@ -111,7 +111,7 @@ describe('CreateAccount.vue - Business Logic', () => {
 		wrapper.setData = async (values) => {
 			const vm = wrapper.vm as unknown as CreateAccountVm & Record<string, unknown>
 			for (const [key, value] of Object.entries(values)) {
-				;(vm as Record<string, unknown>)[key] = value
+				(vm as Record<string, unknown>)[key] = value
 				if (key in vm.v$ && typeof value === 'string') {
 					vm.v$[key as keyof CreateAccountVm['v$']].$model = value
 				}

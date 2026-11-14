@@ -47,7 +47,7 @@ vi.mock('../../../utils/viewer.js', () => ({
 let fileStatus: FileStatusModule
 let viewer: ViewerModule
 beforeAll(async () => {
-	;({ default: DocumentValidationDetails } = await import('../../../components/validation/DocumentValidationDetails.vue'))
+	({ default: DocumentValidationDetails } = await import('../../../components/validation/DocumentValidationDetails.vue'))
 	fileStatus = await import('../../../utils/fileStatus.js')
 	viewer = await import('../../../utils/viewer.js')
 })

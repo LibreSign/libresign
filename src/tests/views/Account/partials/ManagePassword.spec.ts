@@ -46,7 +46,7 @@ type ManagePasswordWrapper = VueWrapper<any> & {
 let ManagePassword: ManagePasswordComponent
 
 beforeAll(async () => {
-	;({ default: ManagePassword } = await import('../../../../views/Account/partials/ManagePassword.vue'))
+	({ default: ManagePassword } = await import('../../../../views/Account/partials/ManagePassword.vue'))
 })
 
 describe('ManagePassword', () => {

@@ -39,7 +39,7 @@ vi.mock('../../../store/policies', () => ({
 let AllowedGroups: unknown
 
 beforeAll(async () => {
-	;({ default: AllowedGroups } = await import('../../../views/Settings/AllowedGroups.vue'))
+	({ default: AllowedGroups } = await import('../../../views/Settings/AllowedGroups.vue'))
 })
 
 describe('AllowedGroups', () => {

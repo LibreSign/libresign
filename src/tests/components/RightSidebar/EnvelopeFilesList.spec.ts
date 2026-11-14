@@ -143,7 +143,7 @@ describe('EnvelopeFilesList', () => {
 			setData: (values: Record<string, unknown>) => Promise<void>
 		}).setData = async (values: Record<string, unknown>) => {
 			Object.entries(values).forEach(([key, value]) => {
-				;(localWrapper.vm as unknown as Record<string, unknown>)[key] = value
+				(localWrapper.vm as unknown as Record<string, unknown>)[key] = value
 			})
 			await localWrapper.vm.$nextTick()
 		}

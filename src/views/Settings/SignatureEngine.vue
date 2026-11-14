@@ -67,7 +67,7 @@ const selectedOption = computed<SignatureEngineOption>({
 })
 
 function saveEngine(selected: SignatureEngineOption) {
-	;(globalThis as typeof globalThis & { OCP: AppConfigGlobal }).OCP.AppConfig.setValue(
+	(globalThis as typeof globalThis & { OCP: AppConfigGlobal }).OCP.AppConfig.setValue(
 		'libresign',
 		'signature_engine',
 		selected.id,

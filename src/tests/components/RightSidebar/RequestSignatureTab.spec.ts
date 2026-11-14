@@ -200,7 +200,7 @@ describe('RequestSignatureTab - Critical Business Rules', () => {
 	}
 	const setVmState = async (patch: Record<string, unknown>) => {
 		Object.entries(patch).forEach(([key, value]) => {
-			;(wrapper.vm as unknown as Record<string, unknown>)[key] = value
+			(wrapper.vm as unknown as Record<string, unknown>)[key] = value
 		})
 		await wrapper.vm.$nextTick()
 	}

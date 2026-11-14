@@ -28,7 +28,7 @@ type FileEntrySignersWrapper = VueWrapper<any> & {
 let FileEntrySigners: any
 
 beforeAll(async () => {
-	;({ default: FileEntrySigners } = await import('../../../views/FilesList/FileEntry/FileEntrySigners.vue'))
+	({ default: FileEntrySigners } = await import('../../../views/FilesList/FileEntry/FileEntrySigners.vue'))
 })
 
 describe('FileEntrySigners', () => {
