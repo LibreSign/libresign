@@ -204,7 +204,7 @@ final class OpenApiSigningRequestContractsTest extends TestCase {
 		self::assertTrue($nullableString['nullable']);
 		self::assertSame('#/components/schemas/JsonValue', $byType['array']['items']['$ref']);
 		self::assertSame('#/components/schemas/JsonValue', $byType['object']['additionalProperties']['$ref']);
-		self::assertArrayNotHasKey('additionalProperties', $byType['string']);
+		self::assertArrayNotHasKey('additionalProperties', $nullableString);
 	}
 
 	public function testExistingUnmodifiedOperationsRemainExposed(): void {
