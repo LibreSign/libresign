@@ -194,9 +194,14 @@ final class OpenApiSigningRequestContractsTest extends TestCase {
 		self::assertCount(5, $branches);
 		$byType = [];
 		foreach ($branches as $branch) {
-			$byType[$branch['type']] = $branch;
+			if (isset($branch['type'])) {
+				$byType[$branch['type']] = $branch;
+			}
 		}
-		self::assertTrue($byType['string']['nullable'], 'Null is allowed only through a nullable string alternative');
+		self::assertContains('#/components/schemas/NullableJsonString', array_column($branches, '$ref'));
+		$nullableString = $spec['components']['schemas']['NullableJsonString'];
+		self::assertSame('string', $nullableString['type']);
+		self::assertTrue($nullableString['nullable']);
 		self::assertSame('#/components/schemas/JsonValue', $byType['array']['items']['$ref']);
 		self::assertSame('#/components/schemas/JsonValue', $byType['object']['additionalProperties']['$ref']);
 		self::assertArrayNotHasKey('additionalProperties', $byType['string']);
