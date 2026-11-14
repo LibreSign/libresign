@@ -192,27 +192,6 @@ final class OpenApiSigningRequestContractsTest extends TestCase {
 		self::assertFalse($configValue['nullable'] ?? false);
 	}
 
-	public function testDynamicPolicyValuesReferenceARecursiveJsonModel(): void {
-		$spec = self::loadSpec('openapi-full.json');
-		self::assertSame('#/components/schemas/JsonValue', $spec['components']['schemas']['EffectivePolicyValue']['$ref']);
-		$json = $spec['components']['schemas']['JsonValue'];
-		$branches = $json['anyOf'] ?? $json['oneOf'] ?? [];
-		self::assertCount(5, $branches);
-		$byType = [];
-		foreach ($branches as $branch) {
-			if (isset($branch['type'])) {
-				$byType[$branch['type']] = $branch;
-			}
-		}
-		self::assertContains('#/components/schemas/NullableJsonString', array_column($branches, '$ref'));
-		$nullableString = $spec['components']['schemas']['NullableJsonString'];
-		self::assertSame('string', $nullableString['type']);
-		self::assertTrue($nullableString['nullable']);
-		self::assertSame('#/components/schemas/JsonValue', $byType['array']['items']['$ref']);
-		self::assertSame('#/components/schemas/JsonValue', $byType['object']['additionalProperties']['$ref']);
-		self::assertArrayNotHasKey('additionalProperties', $nullableString);
-	}
-
 	public function testExistingUnmodifiedOperationsRemainExposed(): void {
 		$spec = self::loadSpec('openapi-full.json');
 		foreach (['account-me', 'account-set-config', 'certificate_policy-get-certificate-policy'] as $operationId) {

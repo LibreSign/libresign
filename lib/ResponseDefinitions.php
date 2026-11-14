@@ -449,10 +449,8 @@ namespace OCA\Libresign;
  * Validation and progress contracts
  *
  * @psalm-type LibresignPolicyScope = 'system'|'group'|'user'
- * @psalm-type LibresignNullableJsonString = ?string
- * @psalm-type LibresignJsonValue = LibresignNullableJsonString|bool|numeric|list<LibresignJsonValue>|array<string, LibresignJsonValue>
- * @psalm-type LibresignUserConfigValue = string|bool|numeric|list<LibresignJsonValue>|array<string, LibresignJsonValue>
- * @psalm-type LibresignEffectivePolicyValue = LibresignJsonValue
+ * @psalm-type LibresignUserConfigValue = string|bool|numeric|list<mixed>|array<string, mixed>
+ * @psalm-type LibresignEffectivePolicyValue = null|bool|numeric|string|array<string, mixed>
  * @psalm-type LibresignPolicyActiveContext = array{
  *     type: 'group',
  *     id: non-empty-string,
