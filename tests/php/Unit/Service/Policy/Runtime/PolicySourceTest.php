@@ -919,19 +919,29 @@ final class PolicySourceTest extends TestCase {
 		$this->assertSame(['{"allowGroups":["admin","finance"],"denyGroups":[]}'], $layer->getAllowedValues());
 	}
 
-	public function testLoadSystemPolicyNormalizesLegacyTypedBooleanForIdentificationDocuments(): void {
-		// Pre-refactor installs stored this key as a plain boolean toggle.
-		// The current policy default is an array ({enabled, approvers}), so
-		// reading it must not probe the array getter against a boolean value
-		// stored under the previous policy's type.
-		$this->setStoredAppConfigBool(IdentificationDocumentsPolicy::SYSTEM_APP_CONFIG_KEY, true);
+	#[DataProvider('provideLegacyIdentificationDocumentsBoolean')]
+	public function testLoadSystemPolicyNormalizesLegacyTypedBooleanForIdentificationDocuments(bool $storedValue, bool $expectedEnabled): void {
+		// Pre-refactor installs (and the Nextcloud provisioning API) can still
+		// store this key as a plain boolean toggle. The current policy default
+		// is an array ({enabled, approvers}), so reading it must not probe the
+		// array getter against a boolean value stored under the previous
+		// policy's type, and the administrator's actual true/false intent must
+		// survive the read, not be silently reset to disabled.
+		$this->setStoredAppConfigBool(IdentificationDocumentsPolicy::SYSTEM_APP_CONFIG_KEY, $storedValue);
 
 		$source = $this->getSource();
 		$layer = $source->loadSystemPolicy(IdentificationDocumentsPolicy::KEY);
 
 		$this->assertNotNull($layer);
 		$this->assertSame('global', $layer->getScope());
-		$this->assertSame(['enabled' => false, 'approvers' => ['admin']], $layer->getValue());
+		$this->assertSame(['enabled' => $expectedEnabled, 'approvers' => ['admin']], $layer->getValue());
+	}
+
+	public static function provideLegacyIdentificationDocumentsBoolean(): array {
+		return [
+			'legacy true stays enabled' => [true, true],
+			'legacy false stays disabled' => [false, false],
+		];
 	}
 
 	public function testLoadSystemPolicyTreatsEmptyStoredValueAsNoExplicitSystemValue(): void {
@@ -2537,6 +2547,7 @@ final class PolicySourceTest extends TestCase {
 	private function getSource(): PolicySource {
 		return new PolicySource(
 			$this->appConfig,
+			$this->coreAppConfig,
 			$this->permissionSetMapper,
 			$this->bindingMapper,
 			$this->registry,
