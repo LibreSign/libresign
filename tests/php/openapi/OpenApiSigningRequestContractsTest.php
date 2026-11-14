@@ -158,13 +158,14 @@ final class OpenApiSigningRequestContractsTest extends TestCase {
 		self::assertNull($signMethod['default']);
 	}
 
-	public function testIdDocApprovalIsAnOptionalStringRatherThanNullableEnum(): void {
+	public function testIdDocApprovalIsNotMisrepresentedAsARequestBodyField(): void {
 		$spec = self::loadSpec('openapi-full.json');
-		$flag = self::requestProperty($spec, 'sign_file-request-code-by-signer-uuid', 'idDocApproval');
-		self::assertSame('string', $flag['type']);
-		self::assertTrue($flag['nullable']);
-		self::assertNull($flag['default']);
-		self::assertArrayNotHasKey('enum', $flag);
+		foreach (['sign_file-request-code-by-signer-uuid', 'sign_file-sign-by-signer-uuid'] as $operationId) {
+			$operation = self::operation($spec, $operationId);
+			$schema = $operation['requestBody']['content']['application/json']['schema'];
+			self::assertArrayNotHasKey('idDocApproval', $schema['properties']);
+			self::assertStringContainsString('?idDocApproval=true', $operation['description'] ?? '');
+		}
 	}
 
 	public function testExistingUnmodifiedOperationsRemainExposed(): void {

@@ -113,6 +113,9 @@ class SignFileController extends AEnvironmentAwareOCSController implements ISign
 	/**
 	 * Sign a file using file UUID
 	 *
+	 * Identification-document approvals use the query string ?idDocApproval=true.
+	 * The signer middleware resolves that query before the controller runs.
+	 *
 	 * @param string $uuid UUID of LibreSign file
 	 * @param string $method Signature method
 	 * @param list<LibresignSigningElement> $elements List of visible elements
@@ -152,7 +155,7 @@ class SignFileController extends AEnvironmentAwareOCSController implements ISign
 	): DataResponse {
 		try {
 			$user = $this->userSession->getUser();
-			$isIdDocApproval = $this->request->getParam('idDocApproval') === 'true';
+			$isIdDocApproval = $this->isIdentificationDocumentApproval();
 
 			if ($isIdDocApproval && $signRequestUuid) {
 				$libreSignFile = $this->signFileService->getFileByUuid($signRequestUuid);
@@ -446,10 +449,12 @@ class SignFileController extends AEnvironmentAwareOCSController implements ISign
 	/**
 	 * Get code to sign the document using UUID
 	 *
+	 * For identification-document approvals send ?idDocApproval=true in the URL query,
+	 * not in the JSON body. The same query is consumed by the signer middleware.
+	 *
 	 * @param string $uuid UUID of LibreSign file
 	 * @param string|null $identifyMethod Configured signer identification method (for example account, email or sms); omitted methods remain subject to service validation
 	 * @param string|null $signMethod Method used to sign the document, i.e. emailToken, account, clickToSign, smsToken, signalToken, telegramToken, whatsappToken, xmppToken
-	 * @param string|null $idDocApproval Only the string "true" selects an identification-document file UUID (matches middleware RequireSigner); other values use the signer UUID lookup
 	 * @return DataResponse<Http::STATUS_OK, LibresignMessageResponse, array{}>|DataResponse<Http::STATUS_UNPROCESSABLE_ENTITY, LibresignMessageResponse, array{}>
 	 *
 	 * 200: OK
@@ -465,10 +470,9 @@ class SignFileController extends AEnvironmentAwareOCSController implements ISign
 		string $uuid,
 		?string $identifyMethod = null,
 		?string $signMethod = null,
-		?string $idDocApproval = null,
 	): DataResponse {
 		try {
-			if ($idDocApproval === 'true') {
+			if ($this->isIdentificationDocumentApproval()) {
 				// In this context the uuid is the one of the file, not of a sign request.
 				$libreSignFile = $this->signFileService->getFileByUuid($uuid);
 				$signRequest = $this->signFileService->getSignRequestToSign($libreSignFile, null, $this->userSession->getUser());
@@ -516,6 +520,10 @@ class SignFileController extends AEnvironmentAwareOCSController implements ISign
 			$identifyMethod ?? '',
 			$signMethod ?? '',
 		);
+	}
+
+	private function isIdentificationDocumentApproval(): bool {
+		return $this->request->getParam('idDocApproval') === 'true';
 	}
 
 	/**

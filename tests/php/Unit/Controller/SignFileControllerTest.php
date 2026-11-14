@@ -121,6 +121,7 @@ final class SignFileControllerTest extends TestCase {
 	public function testRequestCodeBySignerUuidInIdDocApprovalContextUsesTheApproverSignRequest(): void {
 		$approver = $this->createMock(IUser::class);
 		$this->userSession->method('getUser')->willReturn($approver);
+		$this->request->method('getParam')->with('idDocApproval')->willReturn('true');
 
 		$idDoc = new FileEntity();
 		$idDoc->setId(10);
@@ -144,7 +145,7 @@ final class SignFileControllerTest extends TestCase {
 			->method('requestCode')
 			->with($approverSignRequest, 'account', 'emailToken');
 
-		$response = $this->getController()->requestCodeBySignerUuid('file-uuid', 'account', 'emailToken', 'true');
+		$response = $this->getController()->requestCodeBySignerUuid('file-uuid', 'account', 'emailToken');
 
 		$this->assertSame(Http::STATUS_OK, $response->getStatus());
 		$this->assertSame('Verification code sent.', $response->getData()['message']);
@@ -174,6 +175,7 @@ final class SignFileControllerTest extends TestCase {
 	}
 
 	public function testSignerUuidCodeRequestForSmsUsesConfiguredMethod(): void {
+		$this->request->method('getParam')->with('idDocApproval')->willReturn('false');
 		$signRequest = new SignRequest();
 		$signRequest->setId(5);
 		$signRequest->setFileId(3);
@@ -189,7 +191,7 @@ final class SignFileControllerTest extends TestCase {
 			->method('requestCode')
 			->with($signRequest, 'sms', 'smsToken');
 
-		$response = $this->getController()->requestCodeBySignerUuid('signer-uuid', 'sms', 'smsToken', 'false');
+		$response = $this->getController()->requestCodeBySignerUuid('signer-uuid', 'sms', 'smsToken');
 		$this->assertSame(Http::STATUS_OK, $response->getStatus());
 	}
 
@@ -223,7 +225,7 @@ final class SignFileControllerTest extends TestCase {
 		);
 
 		$this->assertSame(
-			['uuid', 'identifyMethod', 'signMethod', 'idDocApproval'],
+			['uuid', 'identifyMethod', 'signMethod'],
 			array_map(
 				static fn (\ReflectionParameter $parameter): string => $parameter->getName(),
 				$uuidMethod->getParameters(),
