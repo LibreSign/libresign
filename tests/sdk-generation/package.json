@@ -6,6 +6,7 @@
   "scripts": {
     "compile": "tsc --noEmit --strict --skipLibCheck --target ES2020 --module commonjs --moduleResolution node ../../build/sdk-generation/typescript/*.ts types.ts signing-contracts.ts transport.ts live.ts live.test.ts nextcloud-axios.test.ts",
     "test": "tsx transport.ts && node inventory.cjs && tsx --test live.test.ts && node --test generate.test.cjs && tsx --test nextcloud-axios.test.ts",
+    "test:policy-contract": "tsc --noEmit --strict --skipLibCheck --target ES2020 --module commonjs --moduleResolution node policy-value-contracts.ts",
     "test:anyof": "tsc --noEmit --strict --skipLibCheck --target ES2020 --module commonjs --moduleResolution node anyof-defect.ts union-defects.ts",
     "test:live": "tsx live.ts",
     "test:nextcloud": "node nextcloud-import.mjs",
