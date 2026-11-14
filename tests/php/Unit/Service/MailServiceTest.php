@@ -421,6 +421,34 @@ final class MailServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$this->service->notifyUnsignedUser($this->mockSignRequest(), 'a@b.coop');
 	}
 
+	public function testSendCodeToSignAcceptsSuccessfulSubmission(): void {
+		$this->mockEmailTemplate();
+		$message = $this->mockSystemMessage();
+		$message->expects($this->once())
+			->method('setTo')
+			->with(['recipient@example.com']);
+		$this->mailer->expects($this->once())
+			->method('send')
+			->with($message)
+			->willReturn([]);
+
+		$this->service->sendCodeToSign('recipient@example.com', '', '123456');
+	}
+
+	public function testSendCodeToSignReportsRejectedRecipients(): void {
+		$this->mockEmailTemplate();
+		$message = $this->mockSystemMessage();
+		$this->mailer->expects($this->once())
+			->method('send')
+			->with($message)
+			->willReturn(['recipient@example.com']);
+		$this->logger->expects($this->once())->method('error');
+
+		$this->expectException(LibresignException::class);
+		$this->expectExceptionMessage('Mail with code to sign document could not be sent');
+		$this->service->sendCodeToSign('recipient@example.com', 'Recipient', '123456');
+	}
+
 	private function mockSignRequest(string $displayName = 'John Doe'): SignRequest {
 		$signRequest = new SignRequest();
 		$signRequest->setUuid('asdfg');
