@@ -447,9 +447,9 @@ class SignFileController extends AEnvironmentAwareOCSController implements ISign
 	 * Get code to sign the document using UUID
 	 *
 	 * @param string $uuid UUID of LibreSign file
-	 * @param 'account'|'email'|null $identifyMethod Identify signer method
+	 * @param 'account'|'email'|null $identifyMethod Identify signer method. Omit or pass null when not provided.
 	 * @param string|null $signMethod Method used to sign the document, i.e. emailToken, account, clickToSign, smsToken, signalToken, telegramToken, whatsappToken, xmppToken
-	 * @param 'true'|null $idDocApproval Literal string "true" when the UUID is an identification-document file UUID (matches middleware RequireSigner)
+	 * @param 'true'|null $idDocApproval Literal string "true" when the UUID is an identification-document file UUID (matches middleware RequireSigner). Omit for a signer UUID.
 	 * @return DataResponse<Http::STATUS_OK, LibresignMessageResponse, array{}>|DataResponse<Http::STATUS_UNPROCESSABLE_ENTITY, LibresignMessageResponse, array{}>
 	 *
 	 * 200: OK
@@ -463,8 +463,8 @@ class SignFileController extends AEnvironmentAwareOCSController implements ISign
 	#[ApiRoute(verb: 'POST', url: '/api/{apiVersion}/sign/uuid/{uuid}/code', requirements: ['apiVersion' => '(v1)'])]
 	public function requestCodeBySignerUuid(
 		string $uuid,
-		?string $identifyMethod,
-		?string $signMethod,
+		?string $identifyMethod = null,
+		?string $signMethod = null,
 		?string $idDocApproval = null,
 	): DataResponse {
 		try {
@@ -490,7 +490,7 @@ class SignFileController extends AEnvironmentAwareOCSController implements ISign
 	 * Get code to sign the document using FileID
 	 *
 	 * @param int $fileId Id of LibreSign file
-	 * @param 'account'|'email'|null $identifyMethod Identify signer method
+	 * @param 'account'|'email'|null $identifyMethod Identify signer method. Omit or pass null when not provided.
 	 * @param string|null $signMethod Method used to sign the document, i.e. emailToken, account, clickToSign, smsToken, signalToken, telegramToken, whatsappToken, xmppToken
 	 * @return DataResponse<Http::STATUS_OK, LibresignMessageResponse, array{}>|DataResponse<Http::STATUS_UNPROCESSABLE_ENTITY, LibresignMessageResponse, array{}>
 	 *
@@ -503,7 +503,7 @@ class SignFileController extends AEnvironmentAwareOCSController implements ISign
 	#[PublicPage]
 	#[OpenAPI(tags: ['signing'])]
 	#[ApiRoute(verb: 'POST', url: '/api/{apiVersion}/sign/file_id/{fileId}/code', requirements: ['apiVersion' => '(v1)'])]
-	public function requestCodeByFileId(int $fileId, ?string $identifyMethod, ?string $signMethod): DataResponse {
+	public function requestCodeByFileId(int $fileId, ?string $identifyMethod = null, ?string $signMethod = null): DataResponse {
 		try {
 			$signRequest = $this->signRequestMapper->getByFileIdAndUserId($fileId);
 		} catch (\Throwable) {

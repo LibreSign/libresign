@@ -1,10 +1,24 @@
 {
 	"require-dev": {
-		"nextcloud/openapi-extractor": "^1.9.1"
+		"nextcloud/openapi-extractor": "^1.9.1",
+		"cweagans/composer-patches": "^2.0"
 	},
 	"config": {
 		"platform": {
 			"php": "8.3"
+		},
+		"allow-plugins": {
+			"cweagans/composer-patches": true
+		}
+	},
+	"extra": {
+		"patches": {
+			"nextcloud/openapi-extractor": [
+				{
+					"description": "Preserve null in nullable OpenAPI 3.0 enums",
+					"url": "../../.patches/openapi-nullable-enum.diff"
+				}
+			]
 		}
 	}
 }

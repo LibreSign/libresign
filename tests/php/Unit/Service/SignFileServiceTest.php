@@ -44,6 +44,8 @@ use OCA\Libresign\Service\Envelope\EnvelopeStatusDeterminer;
 use OCA\Libresign\Service\File\SigningWorkflowStatusResolver;
 use OCA\Libresign\Service\FileStatusService;
 use OCA\Libresign\Service\FolderService;
+use OCA\Libresign\Service\IdentifyMethod\Email as EmailIdentifyMethod;
+use OCA\Libresign\Service\IdentifyMethod\IdentifyService;
 use OCA\Libresign\Service\IdentifyMethod\IIdentifyMethod;
 use OCA\Libresign\Service\IdentifyMethod\SignatureMethod\EmailToken;
 use OCA\Libresign\Service\IdentifyMethod\SignatureMethod\ISignatureMethod;
@@ -55,6 +57,7 @@ use OCA\Libresign\Service\Policy\PolicyService;
 use OCA\Libresign\Service\Policy\Provider\CollectMetadata\CollectMetadataPolicy;
 use OCA\Libresign\Service\Policy\Provider\Footer\FooterPolicy;
 use OCA\Libresign\Service\Policy\Provider\Footer\FooterPolicyValue;
+use OCA\Libresign\Service\SessionService;
 use OCA\Libresign\Service\SignatureRejection\SignatureRejectionPolicyService;
 use OCA\Libresign\Service\SignerElementsService;
 use OCA\Libresign\Service\SignFileService;
@@ -72,6 +75,7 @@ use OCP\AppFramework\Db\DoesNotExistException;
 use OCP\AppFramework\Utility\ITimeFactory;
 use OCP\BackgroundJob\IJobList;
 use OCP\EventDispatcher\IEventDispatcher;
+use OCP\Files\IRootFolder;
 use OCP\Files\NotFoundException;
 use OCP\Files\NotPermittedException;
 use OCP\Http\Client\IClientService;
@@ -494,6 +498,56 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			'email',
 			ISignatureMethod::SIGNATURE_METHOD_EMAIL_TOKEN,
 		);
+	}
+
+	/** @return array<string, array{string, string, string}> */
+	public static function providerRequestCodeWithPartialMethods(): array {
+		return [
+			'identify method missing' => ['', ISignatureMethod::SIGNATURE_METHOD_EMAIL_TOKEN, 'Invalid identification method'],
+			'sign method missing' => [IdentifyMethodService::IDENTIFY_EMAIL, '', 'Sending authorization code not enabled.'],
+		];
+	}
+
+	/**
+	 * The controllers forward a missing method as an empty string. The signer
+	 * here has a real email identify method, so the sign method is rejected
+	 * by its own list of available signature methods and no token is built.
+	 */
+	#[DataProvider('providerRequestCodeWithPartialMethods')]
+	public function testRequestCodeWithPartialMethodsIsRejectedBeforeAnyTokenIsRequested(
+		string $identifyMethodName,
+		string $signMethodName,
+		string $expectedMessage,
+	): void {
+		$signRequest = new SignRequest();
+		$signRequest->setId(171);
+
+		$identifyService = $this->createMock(IdentifyService::class);
+		$identifyService->method('getL10n')->willReturn($this->l10n);
+		$identifyMethod = new EmailIdentifyMethod(
+			$identifyService,
+			$this->createMock(IdentifyMethodMapper::class),
+			$this->createMock(IRootFolder::class),
+			$this->createMock(ITimeFactory::class),
+			$this->createMock(SessionService::class),
+			$this->createMock(FileElementMapper::class),
+			$this->createMock(IUserSession::class),
+			$this->createMock(LoggerInterface::class),
+		);
+		$this->assertContains(ISignatureMethod::SIGNATURE_METHOD_EMAIL_TOKEN, $identifyMethod->getAvailableSignatureMethods());
+
+		$this->identifyMethodService
+			->expects($this->once())
+			->method('getIdentifyMethodsFromSignRequestId')
+			->with(171)
+			->willReturn([
+				IdentifyMethodService::IDENTIFY_EMAIL => [$identifyMethod],
+			]);
+
+		$this->expectException(LibresignException::class);
+		$this->expectExceptionMessage($expectedMessage);
+
+		$this->getService()->requestCode($signRequest, $identifyMethodName, $signMethodName);
 	}
 
 	private function getService(array $methods = []): SignFileService|MockObject {

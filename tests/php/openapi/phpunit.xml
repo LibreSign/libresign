@@ -15,6 +15,7 @@
     <testsuite name="openapi">
       <file>OpenApiFunctionalTagsTest.php</file>
       <file>OpenApiGenerationTest.php</file>
+      <file>OpenApiSigningCodeContractTest.php</file>
     </testsuite>
   </testsuites>
 </phpunit>

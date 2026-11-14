@@ -12906,15 +12906,18 @@
                                     "identifyMethod": {
                                         "type": "string",
                                         "nullable": true,
+                                        "default": null,
                                         "enum": [
                                             "account",
-                                            "email"
+                                            "email",
+                                            null
                                         ],
-                                        "description": "Identify signer method"
+                                        "description": "Identify signer method. Omit or pass null when not provided."
                                     },
                                     "signMethod": {
                                         "type": "string",
                                         "nullable": true,
+                                        "default": null,
                                         "description": "Method used to sign the document, i.e. emailToken, account, clickToSign, smsToken, signalToken, telegramToken, whatsappToken, xmppToken"
                                     },
                                     "idDocApproval": {
@@ -12922,9 +12925,10 @@
                                         "nullable": true,
                                         "default": null,
                                         "enum": [
-                                            "true"
+                                            "true",
+                                            null
                                         ],
-                                        "description": "Literal string \"true\" when the UUID is an identification-document file UUID (matches middleware RequireSigner)"
+                                        "description": "Literal string \"true\" when the UUID is an identification-document file UUID (matches middleware RequireSigner). Omit for a signer UUID."
                                     }
                                 }
                             }
@@ -13054,15 +13058,18 @@
                                     "identifyMethod": {
                                         "type": "string",
                                         "nullable": true,
+                                        "default": null,
                                         "enum": [
                                             "account",
-                                            "email"
+                                            "email",
+                                            null
                                         ],
-                                        "description": "Identify signer method"
+                                        "description": "Identify signer method. Omit or pass null when not provided."
                                     },
                                     "signMethod": {
                                         "type": "string",
                                         "nullable": true,
+                                        "default": null,
                                         "description": "Method used to sign the document, i.e. emailToken, account, clickToSign, smsToken, signalToken, telegramToken, whatsappToken, xmppToken"
                                     }
                                 }
