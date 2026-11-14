@@ -32,6 +32,8 @@ final class FileControllerUploadCountTest extends TestCase {
 			'zero files declared' => ['0', 2, false],
 			'leading zero' => ['02', 2, false],
 			'integer overflow' => ['999999999999999999999999', 2, false],
+			'negative count' => ['-1', 2, false],
+			'count with spaces' => [' 2 ', 2, false],
 		];
 	}
 
