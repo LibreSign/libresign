@@ -6,7 +6,7 @@ declare(strict_types=1);
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
 
-namespace OCA\Libresign\Service;
+namespace OCA\Libresign\Service\IdDoc;
 
 use OCA\Libresign\Db\File as FileEntity;
 use OCA\Libresign\Db\FileMapper;
@@ -44,6 +44,9 @@ class IdDocsPolicyService {
 			return false;
 		}
 
+		if ($idDocs->getRejectedAt() !== null) {
+			return false;
+		}
 		if (!$this->isIdentificationDocumentsEnabled($user, $this->getRelatedSignRequest($idDocs))) {
 			return false;
 		}

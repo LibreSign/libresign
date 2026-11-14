@@ -11,7 +11,8 @@ namespace OCA\Libresign\Controller;
 use Exception;
 use OCA\Libresign\AppInfo\Application;
 use OCA\Libresign\Middleware\Attribute\RequireSignRequestUuid;
-use OCA\Libresign\Service\IdDocsService;
+use OCA\Libresign\Service\IdDoc\IdDocRejectionService;
+use OCA\Libresign\Service\IdDoc\IdDocsService;
 use OCA\Libresign\Service\SignFileService;
 use OCA\Libresign\Service\Validation\IdentityDocumentValidator;
 use OCP\AppFramework\Http;
@@ -43,6 +44,7 @@ class IdDocsController extends AEnvironmentAwareOCSController implements ISignat
 		protected SignFileService $signFileService,
 		protected IL10N $l10n,
 		protected IdDocsService $idDocsService,
+		protected IdDocRejectionService $rejectionService,
 		protected IUserSession $userSession,
 		protected IdentityDocumentValidator $identityDocumentValidator,
 		protected LoggerInterface $logger,
@@ -139,6 +141,29 @@ class IdDocsController extends AEnvironmentAwareOCSController implements ISignat
 	}
 
 	/**
+	 * Reject a submitted identification document, preserving the decision for audit.
+	 *
+	 * @param int $nodeId ID of the submitted identification document node.
+	 * @param string $reason Reason supplied by the authorized approver.
+	 *
+	 * @return DataResponse<Http::STATUS_OK, array{rejected: bool}, array{}>|DataResponse<Http::STATUS_BAD_REQUEST, LibresignMessageResponse, array{}>
+	 *
+	 * 200: Rejection recorded and signer notification queued
+	 * 400: Invalid reason, unauthorized reviewer, or document already reviewed
+	 */
+	#[NoAdminRequired]
+	#[OpenAPI(tags: ['identity'])]
+	#[ApiRoute(verb: 'POST', url: '/api/{apiVersion}/id-docs/{nodeId}/reject', requirements: ['apiVersion' => '(v1)'])]
+	public function reject(int $nodeId, string $reason): DataResponse {
+		try {
+			$this->rejectionService->reject($nodeId, $reason, $this->userSession->getUser());
+			return new DataResponse(['rejected' => true]);
+		} catch (\Exception $exception) {
+			return new DataResponse(['message' => $exception->getMessage()], Http::STATUS_BAD_REQUEST);
+		}
+	}
+
+	/**
 	 * List files of unauthenticated account
 	 *
 	 * @param string|null $userId User ID to filter by
@@ -224,7 +249,7 @@ class IdDocsController extends AEnvironmentAwareOCSController implements ISignat
 			if ($sortBy !== null) {
 				$sort[$sortBy] = $sortOrder ?? 'DESC';
 			}
-			$return = $this->idDocsService->list($filter, $page, $length, $sort);
+			$return = $this->idDocsService->list($filter, $page, $length, $sort, includeReviewer: true);
 			return new DataResponse($return, Http::STATUS_OK);
 		} catch (\Throwable $th) {
 			return new DataResponse(

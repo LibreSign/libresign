@@ -30,6 +30,12 @@ final class NotificationEnvelopeCodec {
 
 	public function encode(NotificationMessage $message): string {
 		$payload = match (true) {
+			$message->payload instanceof IdDocRejectionPayload => [
+				'type' => 'id_doc_rejection',
+				'reason' => $message->payload->reason,
+				'accountSigner' => $message->payload->accountSigner,
+				'recipientUserId' => $message->payload->recipientUserId,
+			],
 			$message->payload instanceof MailPayload => [
 				'type' => 'mail',
 				'displayName' => $message->payload->displayName,
@@ -135,6 +141,11 @@ final class NotificationEnvelopeCodec {
 
 	private function restorePayload(array $payload): NotificationPayload {
 		return match ($payload['type'] ?? null) {
+			'id_doc_rejection' => new IdDocRejectionPayload(
+				(string)$payload['reason'],
+				(bool)$payload['accountSigner'],
+				isset($payload['recipientUserId']) ? (string)$payload['recipientUserId'] : null,
+			),
 			'mail' => new MailPayload(
 				isset($payload['displayName']) ? (string)$payload['displayName'] : null,
 				$payload['firstNotification'] === true,

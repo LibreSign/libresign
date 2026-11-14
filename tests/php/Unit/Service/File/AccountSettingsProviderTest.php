@@ -12,7 +12,7 @@ namespace OCA\Libresign\Tests\Unit\Service\File;
 use OCA\Libresign\AppInfo\Application;
 use OCA\Libresign\Service\AccountCertificateService;
 use OCA\Libresign\Service\File\AccountSettingsProvider;
-use OCA\Libresign\Service\IdDocsPolicyService;
+use OCA\Libresign\Service\IdDoc\IdDocsPolicyService;
 use OCA\Libresign\Service\Policy\Model\ResolvedPolicy;
 use OCA\Libresign\Service\Policy\PolicyAuthorizationService;
 use OCA\Libresign\Service\Policy\PolicyService;

@@ -789,6 +789,11 @@ namespace OCA\Libresign;
  *         description: ?string,
  *     },
  *     created_at: string,
+ *     rejection: ?array{
+ *         reason: string,
+ *         at: string,
+ *         by?: string,
+ *     },
  *     file: array{
  *         name: string,
  *         status: 0|1|2|3|4|6,

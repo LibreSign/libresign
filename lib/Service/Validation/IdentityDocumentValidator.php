@@ -13,7 +13,7 @@ use OCA\Libresign\Db\IdDocsMapper;
 use OCA\Libresign\Exception\LibresignException;
 use OCA\Libresign\Helper\JSActions;
 use OCA\Libresign\Service\FileService;
-use OCA\Libresign\Service\IdDocsPolicyService;
+use OCA\Libresign\Service\IdDoc\IdDocsPolicyService;
 use OCP\IL10N;
 use OCP\IUser;
 use OCP\IUserManager;
@@ -46,6 +46,14 @@ class IdentityDocumentValidator {
 
 	public function validateUserHasNoFileWithThisType(string $uid, string $type): void {
 		if ($this->idDocsMapper->getByUserAndType($uid, $type) !== null) {
+			// TRANSLATORS Validation error when the user already has an active identification document of this type.
+			throw new LibresignException($this->l10n->t('A file of this type has been associated.'));
+		}
+	}
+
+	public function validateSignRequestHasNoActiveFileWithType(int $signRequestId, string $type): void {
+		if ($this->idDocsMapper->getActiveBySignRequestAndType($signRequestId, $type) !== null) {
+			// TRANSLATORS Validation error when the signing request already has an active identification document of this type.
 			throw new LibresignException($this->l10n->t('A file of this type has been associated.'));
 		}
 	}
