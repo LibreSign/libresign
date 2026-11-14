@@ -53,8 +53,8 @@ final class Version19005Date20261109110000Test extends TestCase {
 
 	public function testBacksUpOnlyConfiguredCallbacksBeforeDroppingColumn(): void {
 		$rows = [
-			['id' => '12', 'uuid' => 'abc', 'callback' => 'https://example.test/a?a=1,b=2'],
-			['id' => '47', 'uuid' => 'def', 'callback' => 'https://example.test/ç?x="quoted"'],
+			['id' => '12', 'callback' => 'https://example.test/a?a=1,b=2'],
+			['id' => '47', 'callback' => 'https://example.test/ç?x="quoted"'],
 		];
 		$path = tempnam(sys_get_temp_dir(), 'libresign-callback-test-');
 		$this->assertNotFalse($path);
@@ -74,7 +74,7 @@ final class Version19005Date20261109110000Test extends TestCase {
 			$this->runPreSchema($migration, true);
 
 			$fp = fopen($path, 'rb');
-			$this->assertSame(['id', 'uuid', 'callback'], fgetcsv($fp, 0, ',', '"', ''));
+			$this->assertSame(['id', 'callback'], fgetcsv($fp, 0, ',', '"', ''));
 			$this->assertSame(array_values($rows[0]), fgetcsv($fp, 0, ',', '"', ''));
 			$this->assertSame(array_values($rows[1]), fgetcsv($fp, 0, ',', '"', ''));
 			$this->assertFalse(fgetcsv($fp, 0, ',', '"', ''));
@@ -95,7 +95,7 @@ final class Version19005Date20261109110000Test extends TestCase {
 		$config = $this->createMock(IAppConfig::class);
 		$config->expects($this->never())->method('deleteKey');
 		$migration = $this->migration($config, $factory, $this->connectionForRows([
-			['id' => '4', 'uuid' => 'test', 'callback' => 'https://example.test/callback'],
+			['id' => '4', 'callback' => 'https://example.test/callback'],
 		]));
 
 		$this->expectException(\RuntimeException::class);
@@ -179,7 +179,10 @@ final class Version19005Date20261109110000Test extends TestCase {
 		$expr->method('isNotNull')->willReturn('callback IS NOT NULL');
 		$expr->method('neq')->willReturn('callback <> :empty');
 		$query = $this->createMock(IQueryBuilder::class);
-		foreach (['select', 'from', 'where', 'andWhere', 'orderBy'] as $method) {
+		$query->expects($this->once())->method('select')->with('id', 'callback')->willReturnSelf();
+		$query->expects($this->once())->method('where')->with('callback IS NOT NULL')->willReturnSelf();
+		$query->expects($this->once())->method('andWhere')->with('callback <> :empty')->willReturnSelf();
+		foreach (['from', 'orderBy'] as $method) {
 			$query->method($method)->willReturnSelf();
 		}
 		$query->method('expr')->willReturn($expr);
