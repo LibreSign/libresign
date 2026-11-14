@@ -187,6 +187,11 @@ const routes: RouteRecordRaw[] = [
 		component: () => import('../views/Account/Account.vue'),
 	},
 	{
+		path: '/f/certificates',
+		name: 'MyCertificates',
+		component: () => import('../views/Certificates/MyCertificates.vue'),
+	},
+	{
 		path: '/f/preferences',
 		name: 'Preferences',
 		component: () => import('../views/Preferences/Preferences.vue'),
