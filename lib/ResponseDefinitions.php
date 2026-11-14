@@ -451,6 +451,7 @@ namespace OCA\Libresign;
  * @psalm-type LibresignPolicyScope = 'system'|'group'|'user'
  * @psalm-type LibresignUserConfigValue = string|bool|numeric|list<mixed>|array<string, mixed>
  * @psalm-type LibresignEffectivePolicyValue = null|bool|numeric|string|array<string, mixed>
+ * @psalm-type LibresignPolicyValueMap = array<string, LibresignEffectivePolicyValue>
  * @psalm-type LibresignPolicyActiveContext = array{
  *     type: 'group',
  *     id: non-empty-string,

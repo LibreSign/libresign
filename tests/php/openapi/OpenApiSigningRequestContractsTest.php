@@ -192,6 +192,26 @@ final class OpenApiSigningRequestContractsTest extends TestCase {
 		self::assertFalse($configValue['nullable'] ?? false);
 	}
 
+	/** @return array<string, array{string}> */
+	public static function compoundPolicyOperations(): array {
+		return [
+			'system' => ['policy-set-system-compound'],
+			'group' => ['policy-set-group-compound'],
+			'own user' => ['policy-set-user-preference-compound'],
+			'target user' => ['policy-set-user-policy-for-user-compound'],
+		];
+	}
+
+	#[DataProvider('compoundPolicyOperations')]
+	public function testCompoundPoliciesReferenceSharedValueMap(string $operationId): void {
+		$spec = self::loadSpec('openapi-full.json');
+		$values = self::requestProperty($spec, $operationId, 'values');
+		self::assertSame('#/components/schemas/PolicyValueMap', $values['$ref']);
+		$map = $spec['components']['schemas']['PolicyValueMap'];
+		self::assertSame('object', $map['type']);
+		self::assertSame('#/components/schemas/EffectivePolicyValue', $map['additionalProperties']['$ref']);
+	}
+
 	public function testExistingUnmodifiedOperationsRemainExposed(): void {
 		$spec = self::loadSpec('openapi-full.json');
 		foreach (['account-me', 'account-set-config', 'certificate_policy-get-certificate-policy'] as $operationId) {
