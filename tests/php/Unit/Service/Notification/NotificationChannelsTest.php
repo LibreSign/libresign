@@ -53,16 +53,50 @@ final class NotificationChannelsTest extends TestCase {
 
 	public function testMailChannelUsesPreparedInitialTemplateWithoutChangingHistory(): void {
 		$mail = $this->createMock(MailService::class);
-		$mail->expects($this->once())->method('notifyUnsignedUser');
-		$mail->expects($this->once())->method('notifySignDataUpdated');
+		$request = $this->request();
+		$file = $this->file();
+		$mail->expects($this->once())->method('notifyUnsignedUser')
+			->with($request, 'synthetic@example.invalid', 'Review document');
+		$mail->expects($this->once())->method('notifySignDataUpdated')
+			->with($request, 'synthetic@example.invalid', 'Review document');
 		$channel = new MailChannel($mail);
 		$channel->deliver(new NotificationMessage(
-			'business-event', 'sign_request', 'mail', $this->file(), $this->request(),
+			'business-event', 'sign_request', 'mail', $file, $request,
 			'synthetic@example.invalid', new MailPayload(firstNotification: true),
 		));
 		$channel->deliver(new NotificationMessage(
-			'business-event-next', 'sign_request', 'mail', $this->file(), $this->request(),
+			'business-event-next', 'sign_request', 'mail', $file, $request,
 			'synthetic@example.invalid', new MailPayload(firstNotification: false),
+		));
+	}
+
+	public function testMailChannelDeliversSignedFileNotification(): void {
+		$request = $this->request();
+		$file = $this->file();
+		$mail = $this->createMock(MailService::class);
+		$mail->expects($this->once())
+			->method('notifySignedUser')
+			->with($request, 'owner@example.invalid', $file, 'Document owner');
+
+		$channel = new MailChannel($mail);
+		$channel->deliver(new NotificationMessage(
+			'signed-event', 'file_signed', 'mail', $file, $request,
+			'owner@example.invalid', new MailPayload('Document owner'),
+		));
+	}
+
+	public function testMailChannelDeliversCancellationNotification(): void {
+		$request = $this->request();
+		$file = $this->file();
+		$mail = $this->createMock(MailService::class);
+		$mail->expects($this->once())
+			->method('notifyCanceledRequest')
+			->with($request, 'signer@example.invalid', $file);
+
+		$channel = new MailChannel($mail);
+		$channel->deliver(new NotificationMessage(
+			'canceled-event', 'sign_request_canceled', 'mail', $file, $request,
+			'signer@example.invalid', new MailPayload(),
 		));
 	}
 

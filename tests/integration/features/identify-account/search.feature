@@ -173,3 +173,4 @@ Feature: search
       | (jq).ocs.data[0].identify                   | notification-global-off  |
       | (jq).ocs.data[0].method                     | account                  |
       | (jq).ocs.data[0].acceptsEmailNotifications  | false                    |
+    And run the command "config:app:set activity notify_email_libresign_file_to_sign --value=1" with result code 0
