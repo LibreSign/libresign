@@ -45,7 +45,7 @@ vi.mock('@nextcloud/moment', () => ({
 }))
 
 beforeAll(async () => {
-	;({ default: CertificateChain } = await import('../../../components/validation/CertificateChain.vue'))
+	({ default: CertificateChain } = await import('../../../components/validation/CertificateChain.vue'))
 })
 
 describe('CertificateChain', () => {

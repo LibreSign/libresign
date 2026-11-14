@@ -46,7 +46,7 @@ type SignatureWrapper = VueWrapper<any> & {
 let Signature: SignatureComponent
 
 beforeAll(async () => {
-	;({ default: Signature } = await import('../../../../views/Account/partials/Signature.vue'))
+	({ default: Signature } = await import('../../../../views/Account/partials/Signature.vue'))
 })
 
 describe('Signature', () => {

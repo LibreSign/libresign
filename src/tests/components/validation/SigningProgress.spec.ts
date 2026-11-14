@@ -78,7 +78,7 @@ vi.mock('../../../utils/fileStatus.js', () => ({
 }))
 
 beforeAll(async () => {
-	;({ default: SigningProgress } = await import('../../../components/validation/SigningProgress.vue'))
+	({ default: SigningProgress } = await import('../../../components/validation/SigningProgress.vue'))
 	const axiosModule = await import('@nextcloud/axios')
 	axios = axiosModule.default as unknown as AxiosMock
 })

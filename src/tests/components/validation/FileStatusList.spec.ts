@@ -126,7 +126,7 @@ vi.mock('../../../constants.js', () => ({
 }))
 
 beforeAll(async () => {
-	;({ default: FileStatusList } = await import('../../../components/validation/FileStatusList.vue'))
+	({ default: FileStatusList } = await import('../../../components/validation/FileStatusList.vue'))
 	fileStatus = await import('../../../utils/fileStatus.js')
 	;({ FILE_STATUS } = await import('../../../constants.js'))
 	const axiosModule = await import('@nextcloud/axios')

@@ -198,7 +198,7 @@ describe('Validation.vue - Business Logic', () => {
 	let mockAddConfetti: ReturnType<typeof vi.fn>
 	const setVmState = async (patch: Record<string, unknown>) => {
 		Object.entries(patch).forEach(([key, value]) => {
-			;(wrapper.vm as unknown as Record<string, unknown>)[key] = value
+			(wrapper.vm as unknown as Record<string, unknown>)[key] = value
 		})
 		await wrapper.vm.$nextTick()
 	}

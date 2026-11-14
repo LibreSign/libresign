@@ -36,7 +36,7 @@ vi.mock('@nextcloud/moment', () => ({
 }))
 
 beforeAll(async () => {
-	;({ default: SignersList } = await import('../../../components/validation/SignersList.vue'))
+	({ default: SignersList } = await import('../../../components/validation/SignersList.vue'))
 })
 
 describe('SignersList', () => {

@@ -136,7 +136,7 @@ vi.mock('../../../utils/viewer.js', () => ({
 
 let viewer: ViewerModule
 beforeAll(async () => {
-	;({ default: EnvelopeValidation } = await import('../../../components/validation/EnvelopeValidation.vue'))
+	({ default: EnvelopeValidation } = await import('../../../components/validation/EnvelopeValidation.vue'))
 	viewer = await import('../../../utils/viewer.js')
 })
 

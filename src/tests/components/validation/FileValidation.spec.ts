@@ -21,7 +21,7 @@ let FileValidation: FileValidationComponent
 vi.mock('@nextcloud/l10n', () => globalThis.mockNextcloudL10n())
 
 beforeAll(async () => {
-	;({ default: FileValidation } = await import('../../../components/validation/FileValidation.vue'))
+	({ default: FileValidation } = await import('../../../components/validation/FileValidation.vue'))
 })
 
 describe('FileValidation', () => {

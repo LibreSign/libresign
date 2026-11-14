@@ -67,7 +67,7 @@ vi.mock('@nextcloud/capabilities', () => ({
 let SigningOrderDiagram: SigningOrderDiagramComponent
 
 beforeAll(async () => {
-	;({ default: SigningOrderDiagram } = await import('../../../components/SigningOrder/SigningOrderDiagram.vue'))
+	({ default: SigningOrderDiagram } = await import('../../../components/SigningOrder/SigningOrderDiagram.vue'))
 })
 
 describe('SigningOrderDiagram', () => {
