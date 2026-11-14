@@ -11,11 +11,14 @@ namespace OCA\Libresign\Tests\Unit\Service;
 use OCA\Libresign\Db\File;
 use OCA\Libresign\Db\FileMapper;
 use OCA\Libresign\Db\SignRequest;
+use OCA\Libresign\Exception\LibresignException;
 use OCA\Libresign\Service\MailService;
 use OCP\IAppConfig;
 use OCP\IL10N;
 use OCP\IURLGenerator;
+use OCP\Mail\IEMailTemplate;
 use OCP\Mail\IMailer;
+use OCP\Mail\IMessage;
 use PHPUnit\Framework\MockObject\MockObject;
 use Psr\Log\LoggerInterface;
 
@@ -113,4 +116,37 @@ final class MailServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$actual = $this->service->notifyUnsignedUser($signRequest, 'a@b.coop');
 		$this->assertNull($actual);
 	}
+
+	public function testSendCodeToSignAcceptsSuccessfulSubmission(): void {
+		$template = $this->createMock(IEMailTemplate::class);
+		$this->mailer->method('createEMailTemplate')->willReturn($template);
+		$message = $this->createMock(IMessage::class);
+		$this->mailer->method('createMessage')->willReturn($message);
+		$message->expects($this->once())
+			->method('setTo')
+			->with(['recipient@example.com']);
+		$this->mailer->expects($this->once())
+			->method('send')
+			->with($message)
+			->willReturn([]);
+
+		$this->service->sendCodeToSign('recipient@example.com', '', '123456');
+	}
+
+	public function testSendCodeToSignReportsRejectedRecipients(): void {
+		$template = $this->createMock(IEMailTemplate::class);
+		$this->mailer->method('createEMailTemplate')->willReturn($template);
+		$message = $this->createMock(IMessage::class);
+		$this->mailer->method('createMessage')->willReturn($message);
+		$this->mailer->expects($this->once())
+			->method('send')
+			->with($message)
+			->willReturn(['recipient@example.com']);
+		$this->logger->expects($this->once())->method('error');
+
+		$this->expectException(LibresignException::class);
+		$this->expectExceptionMessage('Mail with code to sign document could not be sent');
+		$this->service->sendCodeToSign('recipient@example.com', 'Recipient', '123456');
+	}
+
 }
