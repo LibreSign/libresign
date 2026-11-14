@@ -13,6 +13,7 @@ use OCA\Libresign\Controller\SignFileController;
 use OCA\Libresign\Db\File as FileEntity;
 use OCA\Libresign\Db\SignRequest;
 use OCA\Libresign\Db\SignRequestMapper;
+use OCA\Libresign\Exception\LibresignException;
 use OCA\Libresign\Handler\SigningErrorHandler;
 use OCA\Libresign\Service\AsyncSigningService;
 use OCA\Libresign\Service\EmailSignerElementsService;
@@ -34,6 +35,7 @@ use OCP\IL10N;
 use OCP\IRequest;
 use OCP\IUser;
 use OCP\IUserSession;
+use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\LoggerInterface;
@@ -51,6 +53,7 @@ final class SignFileControllerTest extends TestCase {
 	private WorkerConfiguration&MockObject $workerConfiguration;
 	private AsyncSigningService&MockObject $asyncSigningService;
 	private SignatureRejectionService&MockObject $signatureRejectionService;
+	private SignerGeolocationMetadataValidator&MockObject $signerGeolocationMetadataValidator;
 
 	protected function setUp(): void {
 		$this->request = $this->createMock(IRequest::class);
@@ -66,6 +69,23 @@ final class SignFileControllerTest extends TestCase {
 		$this->workerConfiguration = $this->createMock(WorkerConfiguration::class);
 		$this->asyncSigningService = $this->createMock(AsyncSigningService::class);
 		$this->signatureRejectionService = $this->createMock(SignatureRejectionService::class);
+		$this->signerGeolocationMetadataValidator = $this->createMock(SignerGeolocationMetadataValidator::class);
+	}
+
+	public function testSignerCodeRequestAllowsOmittedOptionalMethods(): void {
+		$this->signRequestMapper->method('getBySignerUuidAndUserId')
+			->willThrowException(new \RuntimeException('not found'));
+		$this->expectException(LibresignException::class);
+		$this->expectExceptionMessage('Invalid data to sign file');
+		$this->getController()->requestCodeBySignerUuid('missing-uuid');
+	}
+
+	public function testFileCodeRequestAllowsOmittedOptionalMethods(): void {
+		$this->signRequestMapper->method('getByFileIdAndUserId')
+			->willThrowException(new \RuntimeException('not found'));
+		$this->expectException(LibresignException::class);
+		$this->expectExceptionMessage('Invalid data to sign file');
+		$this->getController()->requestCodeByFileId(123);
 	}
 
 	private function getController(): SignFileController {
@@ -85,7 +105,7 @@ final class SignFileControllerTest extends TestCase {
 			$this->workerConfiguration,
 			$this->asyncSigningService,
 			$this->createMock(RequestMetadataService::class),
-			$this->createMock(SignerGeolocationMetadataValidator::class),
+			$this->signerGeolocationMetadataValidator,
 			$this->createMock(SignerIpGeolocationPolicyService::class),
 			$this->createMock(SigningErrorHandler::class),
 			$this->signatureRejectionService,
@@ -99,9 +119,18 @@ final class SignFileControllerTest extends TestCase {
 	 * the identification document, not with a signer uuid. The code must go
 	 * to the approver's own sign request, resolved the same way sign() does.
 	 */
-	public function testRequestCodeBySignerUuidInIdDocApprovalContextUsesTheApproverSignRequest(): void {
+	public static function idDocApprovalSources(): array {
+		return [
+			'query string' => [null, 'true'],
+			'JSON body' => ['true', null],
+		];
+	}
+
+	#[DataProvider('idDocApprovalSources')]
+	public function testRequestCodeBySignerUuidInIdDocApprovalContextUsesTheApproverSignRequest(?string $bodyValue, ?string $queryValue): void {
 		$approver = $this->createMock(IUser::class);
 		$this->userSession->method('getUser')->willReturn($approver);
+		$this->request->method('getParam')->with('idDocApproval')->willReturn($queryValue);
 
 		$idDoc = new FileEntity();
 		$idDoc->setId(10);
@@ -125,7 +154,7 @@ final class SignFileControllerTest extends TestCase {
 			->method('requestCode')
 			->with($approverSignRequest, 'account', 'emailToken');
 
-		$response = $this->getController()->requestCodeBySignerUuid('file-uuid', 'account', 'emailToken', 'true');
+		$response = $this->getController()->requestCodeBySignerUuid('file-uuid', 'account', 'emailToken', $bodyValue);
 
 		$this->assertSame(Http::STATUS_OK, $response->getStatus());
 		$this->assertSame('Verification code sent.', $response->getData()['message']);
@@ -151,6 +180,46 @@ final class SignFileControllerTest extends TestCase {
 
 		$response = $this->getController()->requestCodeBySignerUuid('signer-uuid', 'email', 'emailToken');
 
+		$this->assertSame(Http::STATUS_OK, $response->getStatus());
+	}
+
+	public function testSignerUuidCodeRequestForSmsUsesConfiguredMethod(): void {
+		$this->request->method('getParam')->with('idDocApproval')->willReturn('false');
+		$signRequest = new SignRequest();
+		$signRequest->setId(5);
+		$signRequest->setFileId(3);
+		$file = new FileEntity();
+		$file->setId(3);
+		$this->signRequestMapper->expects($this->once())
+			->method('getBySignerUuidAndUserId')
+			->with('signer-uuid')
+			->willReturn($signRequest);
+		$this->signFileService->expects($this->never())->method('getFileByUuid');
+		$this->signFileService->method('getFile')->with(3)->willReturn($file);
+		$this->signFileService->expects($this->once())
+			->method('requestCode')
+			->with($signRequest, 'sms', 'smsToken');
+
+		$response = $this->getController()->requestCodeBySignerUuid('signer-uuid', 'sms', 'smsToken');
+		$this->assertSame(Http::STATUS_OK, $response->getStatus());
+	}
+
+	public function testFileIdCodeRequestForSmsUsesConfiguredMethod(): void {
+		$signRequest = new SignRequest();
+		$signRequest->setId(5);
+		$signRequest->setFileId(3);
+		$file = new FileEntity();
+		$file->setId(3);
+		$this->signRequestMapper->expects($this->once())
+			->method('getByFileIdAndUserId')
+			->with(3)
+			->willReturn($signRequest);
+		$this->signFileService->method('getFile')->with(3)->willReturn($file);
+		$this->signFileService->expects($this->once())
+			->method('requestCode')
+			->with($signRequest, 'sms', 'smsToken');
+
+		$response = $this->getController()->requestCodeByFileId(3, 'sms', 'smsToken');
 		$this->assertSame(Http::STATUS_OK, $response->getStatus());
 	}
 
@@ -291,6 +360,31 @@ final class SignFileControllerTest extends TestCase {
 		$this->signFileService->method('setVisibleElements')->willReturnSelf();
 		$this->signFileService->method('storeUserMetadata')->willReturnSelf();
 		return $signRequest;
+	}
+
+	public function testSigningNormalizesOmittedAndLegacyEmptyGeolocation(): void {
+		$this->prepareSigning();
+		$this->signerGeolocationMetadataValidator->expects($this->exactly(3))
+			->method('normalize')->with(null)->willReturn(null);
+		$controller = $this->getController();
+		$this->assertSame(Http::STATUS_OK, $controller->signBySignerUuid('signer-uuid', 'email')->getStatus());
+		$this->assertSame(Http::STATUS_OK, $controller->signBySignerUuid('signer-uuid', 'email', deviceGeolocation: [])->getStatus());
+		$this->assertSame(Http::STATUS_OK, $controller->signByFileId(3, 'email')->getStatus());
+	}
+
+	public function testSigningPreservesStructuredGeolocationForValidator(): void {
+		$this->prepareSigning();
+		$geolocation = ['status' => 'collected', 'latitude' => -23.5, 'longitude' => -46.6];
+		$this->signerGeolocationMetadataValidator->expects($this->once())
+			->method('normalize')->with($geolocation)->willReturn($geolocation);
+		$this->signerGeolocationMetadataValidator->expects($this->once())
+			->method('validateSubmission')
+			->with($this->isInstanceOf(SignRequest::class), $geolocation);
+		$this->assertSame(Http::STATUS_OK, $this->getController()->signBySignerUuid(
+			'signer-uuid',
+			'email',
+			deviceGeolocation: $geolocation,
+		)->getStatus());
 	}
 
 	public function testSigningWithoutConsentDoesNotSaveEmailSignature(): void {

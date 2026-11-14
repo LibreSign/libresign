@@ -1853,6 +1853,25 @@
                     "observer"
                 ]
             },
+            "PolicyActiveContext": {
+                "type": "object",
+                "required": [
+                    "type",
+                    "id"
+                ],
+                "properties": {
+                    "type": {
+                        "type": "string",
+                        "enum": [
+                            "group"
+                        ]
+                    },
+                    "id": {
+                        "type": "string",
+                        "minLength": 1
+                    }
+                }
+            },
             "PolicyScope": {
                 "type": "string",
                 "enum": [
@@ -2142,6 +2161,12 @@
                     }
                 }
             },
+            "PolicyValueMap": {
+                "type": "object",
+                "additionalProperties": {
+                    "$ref": "#/components/schemas/EffectivePolicyValue"
+                }
+            },
             "ProgressError": {
                 "type": "object",
                 "required": [
@@ -2322,6 +2347,33 @@
                     }
                 }
             },
+            "RequestPolicy": {
+                "type": "object",
+                "properties": {
+                    "overrides": {
+                        "$ref": "#/components/schemas/RequestPolicyOverrides"
+                    },
+                    "activeContext": {
+                        "$ref": "#/components/schemas/PolicyActiveContext"
+                    }
+                }
+            },
+            "RequestPolicyOverrides": {
+                "type": "object",
+                "additionalProperties": {
+                    "anyOf": [
+                        {
+                            "$ref": "#/components/schemas/EffectivePolicyValue"
+                        },
+                        {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/components/schemas/EffectivePolicyValue"
+                            }
+                        }
+                    ]
+                }
+            },
             "RequestedBy": {
                 "type": "object",
                 "required": [
@@ -2335,6 +2387,49 @@
                     "displayName": {
                         "type": "string",
                         "nullable": true
+                    }
+                }
+            },
+            "SavedSignatureElement": {
+                "type": "object",
+                "properties": {
+                    "type": {
+                        "type": "string",
+                        "enum": [
+                            "signature",
+                            "initial",
+                            "date",
+                            "datetime",
+                            "text"
+                        ]
+                    },
+                    "elementId": {
+                        "type": "integer",
+                        "format": "int64"
+                    },
+                    "nodeId": {
+                        "type": "integer",
+                        "format": "int64"
+                    },
+                    "starred": {
+                        "type": "boolean"
+                    },
+                    "file": {
+                        "$ref": "#/components/schemas/SavedSignatureFile"
+                    },
+                    "coordinates": {
+                        "$ref": "#/components/schemas/Coordinate"
+                    }
+                }
+            },
+            "SavedSignatureFile": {
+                "type": "object",
+                "properties": {
+                    "base64": {
+                        "type": "string"
+                    },
+                    "url": {
+                        "type": "string"
                     }
                 }
             },
@@ -2904,6 +2999,22 @@
                     }
                 }
             },
+            "SigningElement": {
+                "type": "object",
+                "required": [
+                    "documentElementId"
+                ],
+                "properties": {
+                    "documentElementId": {
+                        "type": "integer",
+                        "format": "int64"
+                    },
+                    "profileNodeId": {
+                        "type": "integer",
+                        "format": "int64"
+                    }
+                }
+            },
             "SigningJob": {
                 "type": "object",
                 "required": [
@@ -2964,6 +3075,31 @@
                                     "$ref": "#/components/schemas/UserPolicyState"
                                 }
                             }
+                        }
+                    }
+                ]
+            },
+            "UserConfigValue": {
+                "oneOf": [
+                    {
+                        "type": "string"
+                    },
+                    {
+                        "type": "boolean"
+                    },
+                    {
+                        "type": "number"
+                    },
+                    {
+                        "type": "array",
+                        "items": {
+                            "type": "object"
+                        }
+                    },
+                    {
+                        "type": "object",
+                        "additionalProperties": {
+                            "type": "object"
                         }
                     }
                 ]
@@ -4768,6 +4904,25 @@
                         "basic_auth": []
                     }
                 ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object",
+                                "required": [
+                                    "value"
+                                ],
+                                "properties": {
+                                    "value": {
+                                        "$ref": "#/components/schemas/UserConfigValue",
+                                        "description": "Config value as a JSON string, number, boolean, list or nested object. Null is not a storable setting."
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
                 "parameters": [
                     {
                         "name": "apiVersion",
@@ -10489,34 +10644,9 @@
                                 "type": "object",
                                 "properties": {
                                     "values": {
-                                        "type": "object",
-                                        "default": {},
-                                        "description": "Values to persist for the group, keyed by policy identifier.",
-                                        "additionalProperties": {
-                                            "nullable": true,
-                                            "anyOf": [
-                                                {
-                                                    "type": "boolean"
-                                                },
-                                                {
-                                                    "type": "integer",
-                                                    "format": "int64"
-                                                },
-                                                {
-                                                    "type": "number",
-                                                    "format": "double"
-                                                },
-                                                {
-                                                    "type": "string"
-                                                },
-                                                {
-                                                    "type": "object",
-                                                    "additionalProperties": {
-                                                        "type": "object"
-                                                    }
-                                                }
-                                            ]
-                                        }
+                                        "$ref": "#/components/schemas/PolicyValueMap",
+                                        "default": [],
+                                        "description": "Values to persist for the group, keyed by policy identifier."
                                     },
                                     "allowChildOverride": {
                                         "type": "object",
@@ -10720,34 +10850,9 @@
                                 "type": "object",
                                 "properties": {
                                     "values": {
-                                        "type": "object",
-                                        "default": {},
-                                        "description": "Values to persist as the current user's defaults, keyed by policy identifier.",
-                                        "additionalProperties": {
-                                            "nullable": true,
-                                            "anyOf": [
-                                                {
-                                                    "type": "boolean"
-                                                },
-                                                {
-                                                    "type": "integer",
-                                                    "format": "int64"
-                                                },
-                                                {
-                                                    "type": "number",
-                                                    "format": "double"
-                                                },
-                                                {
-                                                    "type": "string"
-                                                },
-                                                {
-                                                    "type": "object",
-                                                    "additionalProperties": {
-                                                        "type": "object"
-                                                    }
-                                                }
-                                            ]
-                                        }
+                                        "$ref": "#/components/schemas/PolicyValueMap",
+                                        "default": [],
+                                        "description": "Values to persist as the current user's defaults, keyed by policy identifier."
                                     }
                                 }
                             }
@@ -10903,34 +11008,9 @@
                                 "type": "object",
                                 "properties": {
                                     "values": {
-                                        "type": "object",
-                                        "default": {},
-                                        "description": "Values to persist for the target user, keyed by policy identifier.",
-                                        "additionalProperties": {
-                                            "nullable": true,
-                                            "anyOf": [
-                                                {
-                                                    "type": "boolean"
-                                                },
-                                                {
-                                                    "type": "integer",
-                                                    "format": "int64"
-                                                },
-                                                {
-                                                    "type": "number",
-                                                    "format": "double"
-                                                },
-                                                {
-                                                    "type": "string"
-                                                },
-                                                {
-                                                    "type": "object",
-                                                    "additionalProperties": {
-                                                        "type": "object"
-                                                    }
-                                                }
-                                            ]
-                                        }
+                                        "$ref": "#/components/schemas/PolicyValueMap",
+                                        "default": [],
+                                        "description": "Values to persist for the target user, keyed by policy identifier."
                                     },
                                     "allowChildOverride": {
                                         "type": "object",
@@ -11478,13 +11558,14 @@
                                         "description": "Numeric code of status * 0 - no signers * 1 - signed * 2 - pending"
                                     },
                                     "policy": {
-                                        "type": "object",
                                         "nullable": true,
                                         "default": null,
                                         "description": "Structured policy payload with request-level overrides and active context.",
-                                        "additionalProperties": {
-                                            "type": "object"
-                                        }
+                                        "allOf": [
+                                            {
+                                                "$ref": "#/components/schemas/RequestPolicy"
+                                            }
+                                        ]
                                     }
                                 }
                             }
@@ -11677,13 +11758,14 @@
                                         "description": "Numeric code of status * 0 - no signers * 1 - signed * 2 - pending"
                                     },
                                     "policy": {
-                                        "type": "object",
                                         "nullable": true,
                                         "default": null,
                                         "description": "Structured policy payload with request-level overrides and active context.",
-                                        "additionalProperties": {
-                                            "type": "object"
-                                        }
+                                        "allOf": [
+                                            {
+                                                "$ref": "#/components/schemas/RequestPolicy"
+                                            }
+                                        ]
                                     },
                                     "name": {
                                         "type": "string",
@@ -12209,11 +12291,11 @@
                                         "description": "Signature method"
                                     },
                                     "elements": {
-                                        "type": "object",
-                                        "default": {},
+                                        "type": "array",
+                                        "default": [],
                                         "description": "List of visible elements",
-                                        "additionalProperties": {
-                                            "type": "object"
+                                        "items": {
+                                            "$ref": "#/components/schemas/SigningElement"
                                         }
                                     },
                                     "identifyValue": {
@@ -12232,12 +12314,14 @@
                                         "description": "Execute signing asynchronously when possible"
                                     },
                                     "deviceGeolocation": {
-                                        "type": "object",
-                                        "default": {},
-                                        "description": "Device-reported geolocation metadata submitted by the signing client",
-                                        "additionalProperties": {
-                                            "type": "object"
-                                        }
+                                        "nullable": true,
+                                        "default": null,
+                                        "description": "Optional device geolocation, omitted when absent; legacy [] is accepted",
+                                        "allOf": [
+                                            {
+                                                "$ref": "#/components/schemas/SignerDeviceGeolocation"
+                                            }
+                                        ]
                                     }
                                 }
                             }
@@ -12346,6 +12430,7 @@
             "post": {
                 "operationId": "sign_file-sign-by-signer-uuid",
                 "summary": "Sign a file using file UUID",
+                "description": "Identification-document approvals use the query string ?idDocApproval=true. The signer middleware resolves that query before the controller runs.",
                 "tags": [
                     "signing"
                 ],
@@ -12373,11 +12458,11 @@
                                         "description": "Signature method"
                                     },
                                     "elements": {
-                                        "type": "object",
-                                        "default": {},
+                                        "type": "array",
+                                        "default": [],
                                         "description": "List of visible elements",
-                                        "additionalProperties": {
-                                            "type": "object"
+                                        "items": {
+                                            "$ref": "#/components/schemas/SigningElement"
                                         }
                                     },
                                     "identifyValue": {
@@ -12396,12 +12481,14 @@
                                         "description": "Execute signing asynchronously when possible"
                                     },
                                     "deviceGeolocation": {
-                                        "type": "object",
-                                        "default": {},
-                                        "description": "Device-reported geolocation metadata submitted by the signing client",
-                                        "additionalProperties": {
-                                            "type": "object"
-                                        }
+                                        "nullable": true,
+                                        "default": null,
+                                        "description": "Optional device geolocation, omitted when absent; legacy [] is accepted",
+                                        "allOf": [
+                                            {
+                                                "$ref": "#/components/schemas/SignerDeviceGeolocation"
+                                            }
+                                        ]
                                     },
                                     "saveSignature": {
                                         "type": "boolean",
@@ -12903,6 +12990,7 @@
             "post": {
                 "operationId": "sign_file-request-code-by-signer-uuid",
                 "summary": "Get code to sign the document using UUID",
+                "description": "For identification-document approvals the frontend sends ?idDocApproval=true in the URL query. Nextcloud also accepts the same flag in the JSON body. The signer middleware reads the combined request parameters.",
                 "tags": [
                     "signing"
                 ],
@@ -12925,25 +13013,20 @@
                                     "identifyMethod": {
                                         "type": "string",
                                         "nullable": true,
-                                        "enum": [
-                                            "account",
-                                            "email"
-                                        ],
-                                        "description": "Identify signer method"
+                                        "default": null,
+                                        "description": "Configured signer identification method (for example account, email or sms); omitted methods remain subject to service validation"
                                     },
                                     "signMethod": {
                                         "type": "string",
                                         "nullable": true,
+                                        "default": null,
                                         "description": "Method used to sign the document, i.e. emailToken, account, clickToSign, smsToken, signalToken, telegramToken, whatsappToken, xmppToken"
                                     },
                                     "idDocApproval": {
                                         "type": "string",
                                         "nullable": true,
                                         "default": null,
-                                        "enum": [
-                                            "true"
-                                        ],
-                                        "description": "Literal string \"true\" when the UUID is an identification-document file UUID (matches middleware RequireSigner)"
+                                        "description": "Only the literal \"true\" selects the identification-document approval context. Query or JSON body is accepted."
                                     }
                                 }
                             }
@@ -13073,15 +13156,13 @@
                                     "identifyMethod": {
                                         "type": "string",
                                         "nullable": true,
-                                        "enum": [
-                                            "account",
-                                            "email"
-                                        ],
-                                        "description": "Identify signer method"
+                                        "default": null,
+                                        "description": "Configured signer identification method (for example account, email or sms); omitted methods remain subject to service validation"
                                     },
                                     "signMethod": {
                                         "type": "string",
                                         "nullable": true,
+                                        "default": null,
                                         "description": "Method used to sign the document, i.e. emailToken, account, clickToSign, smsToken, signalToken, telegramToken, whatsappToken, xmppToken"
                                     }
                                 }
@@ -13222,10 +13303,10 @@
                                 ],
                                 "properties": {
                                     "elements": {
-                                        "type": "object",
-                                        "description": "Element object",
-                                        "additionalProperties": {
-                                            "type": "object"
+                                        "type": "array",
+                                        "description": "Saved signature elements",
+                                        "items": {
+                                            "$ref": "#/components/schemas/SavedSignatureElement"
                                         }
                                     }
                                 }
@@ -13840,12 +13921,9 @@
                                         "description": "The type of signature element"
                                     },
                                     "file": {
-                                        "type": "object",
-                                        "default": {},
-                                        "description": "Element object",
-                                        "additionalProperties": {
-                                            "type": "object"
-                                        }
+                                        "$ref": "#/components/schemas/SavedSignatureFile",
+                                        "default": [],
+                                        "description": "Signature image supplied as base64 or URL"
                                     }
                                 }
                             }

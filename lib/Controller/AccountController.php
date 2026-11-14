@@ -42,6 +42,7 @@ use Psr\Log\LoggerInterface;
  * @psalm-import-type LibresignAccountSettingsUpdateResponse from \OCA\Libresign\ResponseDefinitions
  * @psalm-import-type LibresignActionMessageResponse from \OCA\Libresign\ResponseDefinitions
  * @psalm-import-type LibresignConfigValueResponse from \OCA\Libresign\ResponseDefinitions
+ * @psalm-import-type LibresignUserConfigValue from \OCA\Libresign\ResponseDefinitions
  * @psalm-import-type LibresignCreateToSignResponse from \OCA\Libresign\ResponseDefinitions
  * @psalm-import-type LibresignFile from \OCA\Libresign\ResponseDefinitions
  * @psalm-import-type LibresignMessageResponse from \OCA\Libresign\ResponseDefinitions
@@ -409,7 +410,7 @@ class AccountController extends AEnvironmentAwareOCSController implements ISigna
 	 * Set user config value
 	 *
 	 * @param string $key Config key
-	 * @param mixed $value Config value
+	 * @param LibresignUserConfigValue $value Config value as a JSON string, number, boolean, list or nested object. Null is not a storable setting.
 	 * @return DataResponse<Http::STATUS_OK, LibresignConfigValueResponse, array{}>|DataResponse<Http::STATUS_BAD_REQUEST, LibresignMessageResponse, array{}>
 	 *
 	 * 200: Config updated
@@ -419,19 +420,24 @@ class AccountController extends AEnvironmentAwareOCSController implements ISigna
 	#[NoCSRFRequired]
 	#[OpenAPI(tags: ['identity'])]
 	#[ApiRoute(verb: 'PUT', url: '/api/{apiVersion}/account/config/{key}', requirements: ['apiVersion' => '(v1)'])]
-	public function setConfig(string $key): DataResponse {
+	public function setConfig(string $key, mixed $value): DataResponse {
 		try {
 			$user = $this->userSession->getUser();
 			if (!$user) {
 				throw new \Exception('User not authenticated');
 			}
-			$data = $this->request->getParams();
-			$value = $data['value'] ?? null;
+			if ($value === null) {
+				throw new \InvalidArgumentException('A non-null config value is required.');
+			}
 
 			if (is_bool($value)) {
 				$value = $value ? '1' : '0';
 			} elseif (is_array($value)) {
-				$value = json_encode($value);
+				$value = json_encode($value, JSON_THROW_ON_ERROR);
+			} elseif (is_int($value) || is_float($value)) {
+				$value = (string)$value;
+			} elseif (!is_string($value)) {
+				throw new \InvalidArgumentException('Unsupported configuration value.');
 			}
 
 			$this->userConfig->setValueString($user->getUID(), Application::APP_ID, $key, $value);

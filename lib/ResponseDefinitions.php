@@ -50,6 +50,22 @@ namespace OCA\Libresign;
  * @psalm-type LibresignSignerIpGeolocationStatus = 'resolved'|'not_found'|'unavailable'
  * @psalm-type LibresignSignerIpGeolocationUnavailableReason = 'database_not_ready'|'address_unavailable'|'lookup_failed'
  * @psalm-type LibresignGeoIpDatabaseStatus = 'not_configured'|'not_found'|'not_readable'|'invalid_database'|'unsupported_database'|'ready'
+ * @psalm-type LibresignSigningElement = array{
+ *     documentElementId: int,
+ *     profileNodeId?: int,
+ * }
+ * @psalm-type LibresignSavedSignatureFile = array{
+ *     base64?: string,
+ *     url?: string,
+ * }
+ * @psalm-type LibresignSavedSignatureElement = array{
+ *     type?: 'signature'|'initial'|'date'|'datetime'|'text',
+ *     elementId?: int,
+ *     nodeId?: int,
+ *     starred?: bool,
+ *     file?: LibresignSavedSignatureFile,
+ *     coordinates?: LibresignCoordinate,
+ * }
  * @psalm-type LibresignSignerDeviceGeolocation = array{
  *     status: LibresignGeolocationCollectionStatus,
  *     latitude?: float,
@@ -433,7 +449,18 @@ namespace OCA\Libresign;
  * Validation and progress contracts
  *
  * @psalm-type LibresignPolicyScope = 'system'|'group'|'user'
+ * @psalm-type LibresignUserConfigValue = string|bool|numeric|list<mixed>|array<string, mixed>
  * @psalm-type LibresignEffectivePolicyValue = null|bool|numeric|string|array<string, mixed>
+ * @psalm-type LibresignPolicyValueMap = array<string, LibresignEffectivePolicyValue>
+ * @psalm-type LibresignPolicyActiveContext = array{
+ *     type: 'group',
+ *     id: non-empty-string,
+ * }
+ * @psalm-type LibresignRequestPolicyOverrides = array<string, LibresignEffectivePolicyValue|list<LibresignEffectivePolicyValue>>
+ * @psalm-type LibresignRequestPolicy = array{
+ *     overrides?: LibresignRequestPolicyOverrides,
+ *     activeContext?: LibresignPolicyActiveContext,
+ * }
  * @psalm-type LibresignEffectivePolicyMeta = array{
  *     defaultSystemValue?: LibresignEffectivePolicyValue,
  *     appConfigKey?: string,

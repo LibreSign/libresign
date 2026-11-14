@@ -836,7 +836,10 @@ export type paths = {
         };
         get?: never;
         put?: never;
-        /** Sign a file using file UUID */
+        /**
+         * Sign a file using file UUID
+         * @description Identification-document approvals use the query string ?idDocApproval=true. The signer middleware resolves that query before the controller runs.
+         */
         post: operations["sign_file-sign-by-signer-uuid"];
         delete?: never;
         options?: never;
@@ -904,7 +907,10 @@ export type paths = {
         };
         get?: never;
         put?: never;
-        /** Get code to sign the document using UUID */
+        /**
+         * Get code to sign the document using UUID
+         * @description For identification-document approvals the frontend sends ?idDocApproval=true in the URL query. Nextcloud also accepts the same flag in the JSON body. The signer middleware reads the combined request parameters.
+         */
         post: operations["sign_file-request-code-by-signer-uuid"];
         delete?: never;
         options?: never;
@@ -1958,6 +1964,11 @@ export type components = {
         };
         /** @enum {string} */
         ParticipantRole: "signer" | "observer";
+        PolicyActiveContext: {
+            /** @enum {string} */
+            type: "group";
+            id: string;
+        };
         /** @enum {string} */
         PolicyScope: "system" | "group" | "user";
         PolicySection: {
@@ -2041,6 +2052,9 @@ export type components = {
         PolicySnapshotSignerIpGeolocationValue: {
             mode: components["schemas"]["SignerIpGeolocationPolicyMode"];
         };
+        PolicyValueMap: {
+            [key: string]: components["schemas"]["EffectivePolicyValue"];
+        };
         ProgressError: {
             message: string;
             /** Format: int64 */
@@ -2098,6 +2112,13 @@ export type components = {
         PublicCapabilities: {
             libresign?: components["schemas"]["Capabilities"];
         };
+        RequestPolicy: {
+            overrides?: components["schemas"]["RequestPolicyOverrides"];
+            activeContext?: components["schemas"]["PolicyActiveContext"];
+        };
+        RequestPolicyOverrides: {
+            [key: string]: components["schemas"]["EffectivePolicyValue"] | components["schemas"]["EffectivePolicyValue"][];
+        };
         RequestedBy: {
             userId: string;
             displayName: string | null;
@@ -2109,6 +2130,21 @@ export type components = {
         RootCertificateName: {
             id: string;
             value: (string | string[]) | null;
+        };
+        SavedSignatureElement: {
+            /** @enum {string} */
+            type?: "signature" | "initial" | "date" | "datetime" | "text";
+            /** Format: int64 */
+            elementId?: number;
+            /** Format: int64 */
+            nodeId?: number;
+            starred?: boolean;
+            file?: components["schemas"]["SavedSignatureFile"];
+            coordinates?: components["schemas"]["Coordinate"];
+        };
+        SavedSignatureFile: {
+            base64?: string;
+            url?: string;
         };
         Settings: {
             canSign: boolean;
@@ -2277,6 +2313,12 @@ export type components = {
             statusText: string;
             participantRole?: components["schemas"]["ParticipantRole"];
         };
+        SigningElement: {
+            /** Format: int64 */
+            documentElementId: number;
+            /** Format: int64 */
+            profileNodeId?: number;
+        };
         SigningJob: {
             /** @enum {string} */
             status: "SIGNING_IN_PROGRESS";
@@ -2307,6 +2349,9 @@ export type components = {
             policies: {
                 [key: string]: components["schemas"]["UserPolicyState"];
             };
+        };
+        UserConfigValue: string | boolean | number | Record<string, never>[] | {
+            [key: string]: Record<string, never>;
         };
         UserElement: {
             /** Format: int64 */
@@ -3040,7 +3085,14 @@ export interface operations {
             };
             cookie?: never;
         };
-        requestBody?: never;
+        requestBody: {
+            content: {
+                "application/json": {
+                    /** @description Config value as a JSON string, number, boolean, list or nested object. Null is not a storable setting. */
+                    value: components["schemas"]["UserConfigValue"];
+                };
+            };
+        };
         responses: {
             /** @description Config updated */
             200: {
@@ -5533,13 +5585,9 @@ export interface operations {
                 "application/json": {
                     /**
                      * @description Values to persist for the group, keyed by policy identifier.
-                     * @default {}
+                     * @default []
                      */
-                    values?: {
-                        [key: string]: (boolean | number | string | {
-                            [key: string]: Record<string, never>;
-                        }) | null;
-                    };
+                    values?: components["schemas"]["PolicyValueMap"];
                     /**
                      * @description Whether users and requests below this group may override each saved value, keyed by policy identifier.
                      * @default {}
@@ -5628,13 +5676,9 @@ export interface operations {
                 "application/json": {
                     /**
                      * @description Values to persist as the current user's defaults, keyed by policy identifier.
-                     * @default {}
+                     * @default []
                      */
-                    values?: {
-                        [key: string]: (boolean | number | string | {
-                            [key: string]: Record<string, never>;
-                        }) | null;
-                    };
+                    values?: components["schemas"]["PolicyValueMap"];
                 };
             };
         };
@@ -5704,13 +5748,9 @@ export interface operations {
                 "application/json": {
                     /**
                      * @description Values to persist for the target user, keyed by policy identifier.
-                     * @default {}
+                     * @default []
                      */
-                    values?: {
-                        [key: string]: (boolean | number | string | {
-                            [key: string]: Record<string, never>;
-                        }) | null;
-                    };
+                    values?: components["schemas"]["PolicyValueMap"];
                     /**
                      * @description Whether the target user may still override each assigned value, keyed by policy identifier.
                      * @default {}
@@ -5962,9 +6002,7 @@ export interface operations {
                      * @description Structured policy payload with request-level overrides and active context.
                      * @default null
                      */
-                    policy?: {
-                        [key: string]: Record<string, never>;
-                    } | null;
+                    policy?: components["schemas"]["RequestPolicy"] | null;
                 };
             };
         };
@@ -6058,9 +6096,7 @@ export interface operations {
                      * @description Structured policy payload with request-level overrides and active context.
                      * @default null
                      */
-                    policy?: {
-                        [key: string]: Record<string, never>;
-                    } | null;
+                    policy?: components["schemas"]["RequestPolicy"] | null;
                     /**
                      * @description The name of file to sign
                      * @default null
@@ -6212,11 +6248,9 @@ export interface operations {
                     method: string;
                     /**
                      * @description List of visible elements
-                     * @default {}
+                     * @default []
                      */
-                    elements?: {
-                        [key: string]: Record<string, never>;
-                    };
+                    elements?: components["schemas"]["SigningElement"][];
                     /**
                      * @description Identify value
                      * @default
@@ -6233,12 +6267,10 @@ export interface operations {
                      */
                     async?: boolean;
                     /**
-                     * @description Device-reported geolocation metadata submitted by the signing client
-                     * @default {}
+                     * @description Optional device geolocation, omitted when absent; legacy [] is accepted
+                     * @default null
                      */
-                    deviceGeolocation?: {
-                        [key: string]: Record<string, never>;
-                    };
+                    deviceGeolocation?: components["schemas"]["SignerDeviceGeolocation"] | null;
                 };
             };
         };
@@ -6359,11 +6391,9 @@ export interface operations {
                     method: string;
                     /**
                      * @description List of visible elements
-                     * @default {}
+                     * @default []
                      */
-                    elements?: {
-                        [key: string]: Record<string, never>;
-                    };
+                    elements?: components["schemas"]["SigningElement"][];
                     /**
                      * @description Identify value
                      * @default
@@ -6380,12 +6410,10 @@ export interface operations {
                      */
                     async?: boolean;
                     /**
-                     * @description Device-reported geolocation metadata submitted by the signing client
-                     * @default {}
+                     * @description Optional device geolocation, omitted when absent; legacy [] is accepted
+                     * @default null
                      */
-                    deviceGeolocation?: {
-                        [key: string]: Record<string, never>;
-                    };
+                    deviceGeolocation?: components["schemas"]["SignerDeviceGeolocation"] | null;
                     /**
                      * @description Explicitly save the external email signer's visible signature for future documents
                      * @default false
@@ -6612,18 +6640,20 @@ export interface operations {
             content: {
                 "application/json": {
                     /**
-                     * @description Identify signer method
-                     * @enum {string|null}
+                     * @description Configured signer identification method (for example account, email or sms); omitted methods remain subject to service validation
+                     * @default null
                      */
-                    identifyMethod?: "account" | "email" | null;
-                    /** @description Method used to sign the document, i.e. emailToken, account, clickToSign, smsToken, signalToken, telegramToken, whatsappToken, xmppToken */
+                    identifyMethod?: string | null;
+                    /**
+                     * @description Method used to sign the document, i.e. emailToken, account, clickToSign, smsToken, signalToken, telegramToken, whatsappToken, xmppToken
+                     * @default null
+                     */
                     signMethod?: string | null;
                     /**
-                     * @description Literal string "true" when the UUID is an identification-document file UUID (matches middleware RequireSigner)
+                     * @description Only the literal "true" selects the identification-document approval context. Query or JSON body is accepted.
                      * @default null
-                     * @enum {string|null}
                      */
-                    idDocApproval?: "true" | null;
+                    idDocApproval?: string | null;
                 };
             };
         };
@@ -6678,11 +6708,14 @@ export interface operations {
             content: {
                 "application/json": {
                     /**
-                     * @description Identify signer method
-                     * @enum {string|null}
+                     * @description Configured signer identification method (for example account, email or sms); omitted methods remain subject to service validation
+                     * @default null
                      */
-                    identifyMethod?: "account" | "email" | null;
-                    /** @description Method used to sign the document, i.e. emailToken, account, clickToSign, smsToken, signalToken, telegramToken, whatsappToken, xmppToken */
+                    identifyMethod?: string | null;
+                    /**
+                     * @description Method used to sign the document, i.e. emailToken, account, clickToSign, smsToken, signalToken, telegramToken, whatsappToken, xmppToken
+                     * @default null
+                     */
                     signMethod?: string | null;
                 };
             };
@@ -6781,10 +6814,8 @@ export interface operations {
         requestBody: {
             content: {
                 "application/json": {
-                    /** @description Element object */
-                    elements: {
-                        [key: string]: Record<string, never>;
-                    };
+                    /** @description Saved signature elements */
+                    elements: components["schemas"]["SavedSignatureElement"][];
                 };
             };
         };
@@ -7051,12 +7082,10 @@ export interface operations {
                      */
                     type?: string;
                     /**
-                     * @description Element object
-                     * @default {}
+                     * @description Signature image supplied as base64 or URL
+                     * @default []
                      */
-                    file?: {
-                        [key: string]: Record<string, never>;
-                    };
+                    file?: components["schemas"]["SavedSignatureFile"];
                 };
             };
         };
@@ -8522,13 +8551,9 @@ export interface operations {
                 "application/json": {
                     /**
                      * @description Values to persist, keyed by policy identifier, each as an explicit system rule even when it equals the default. Null removes the explicit system rule of that policy: the built-in default applies and lower layers may override it.
-                     * @default {}
+                     * @default []
                      */
-                    values?: {
-                        [key: string]: (boolean | number | string | {
-                            [key: string]: Record<string, never>;
-                        }) | null;
-                    };
+                    values?: components["schemas"]["PolicyValueMap"];
                     /**
                      * @description Whether lower layers may override each saved value, keyed by policy identifier.
                      * @default {}
