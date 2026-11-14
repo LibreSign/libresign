@@ -82,7 +82,7 @@ class MailNotifyListener implements NotificationModule {
 		string $eventId,
 	): void {
 		try {
-			$email = $this->getRecipientEmail($identifyMethod, SendSignNotificationEvent::FILE_TO_SIGN);
+			$email = $this->resolveEligibleRecipientEmail($identifyMethod, SendSignNotificationEvent::FILE_TO_SIGN);
 			if ($email === null) {
 				return;
 			}
@@ -147,7 +147,7 @@ class MailNotifyListener implements NotificationModule {
 		string $eventId,
 	): void {
 		try {
-			$email = $this->getRecipientEmail($identifyMethod, SignRequestCanceledEvent::SIGN_REQUEST_CANCELED);
+			$email = $this->resolveEligibleRecipientEmail($identifyMethod, SignRequestCanceledEvent::SIGN_REQUEST_CANCELED);
 			if ($email === null) {
 				return;
 			}
@@ -167,34 +167,40 @@ class MailNotifyListener implements NotificationModule {
 		}
 	}
 
-	private function getRecipientEmail(IIdentifyMethod $identifyMethod, string $notificationType): ?string {
+	private function resolveEligibleRecipientEmail(IIdentifyMethod $identifyMethod, string $notificationType): ?string {
 		$entity = $identifyMethod->getEntity();
 		if ($entity->isDeletedAccount()) {
 			return null;
 		}
 
-		if ($identifyMethod->getName() === 'email') {
-			$email = $entity->getIdentifierValue();
-			if ($email === '') {
-				return null;
-			}
-			// Invitations need mail even when a matching account opted out.
-			// Cancellations retain the linked account's preference.
-			if ($notificationType === SendSignNotificationEvent::FILE_TO_SIGN
-				&& $this->notificationPreferenceResolver->isEmailNotificationGloballyDisabled($notificationType)) {
-				return null;
-			}
-			if ($notificationType === SignRequestCanceledEvent::SIGN_REQUEST_CANCELED
-				&& $this->isEmailCancellationDisabled($email)) {
-				return null;
-			}
-			return $email;
-		}
-		if ($identifyMethod->getName() !== 'account') {
+		return match ($identifyMethod->getName()) {
+			'email' => $this->resolveEmailIdentifiedRecipient($entity->getIdentifierValue(), $notificationType),
+			'account' => $this->resolveAccountIdentifiedRecipient($entity->getIdentifierValue(), $notificationType),
+			default => null,
+		};
+	}
+
+	private function resolveEmailIdentifiedRecipient(string $email, string $notificationType): ?string {
+		if ($email === '') {
 			return null;
 		}
 
-		$user = $this->userManager->get($entity->getIdentifierValue());
+		// Email-identified invitations ignore a matching account's personal opt-out,
+		// but still honour the administrator's policy. Cancellations retain the
+		// linked account's preference when its email address uniquely matches.
+		$disabled = match ($notificationType) {
+			SendSignNotificationEvent::FILE_TO_SIGN =>
+				$this->notificationPreferenceResolver->isEmailNotificationGloballyDisabled($notificationType),
+			SignRequestCanceledEvent::SIGN_REQUEST_CANCELED =>
+				$this->isEmailCancellationDisabled($email),
+			default => true,
+		};
+
+		return $disabled ? null : $email;
+	}
+
+	private function resolveAccountIdentifiedRecipient(string $uid, string $notificationType): ?string {
+		$user = $this->userManager->get($uid);
 		if (!$user instanceof IUser) {
 			return null;
 		}
