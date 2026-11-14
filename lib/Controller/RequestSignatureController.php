@@ -27,6 +27,7 @@ use OCP\IUserSession;
 
 /**
  * @psalm-import-type LibresignNewFile from \OCA\Libresign\ResponseDefinitions
+ * @psalm-import-type LibresignEffectivePolicyValue from \OCA\Libresign\ResponseDefinitions
  * @psalm-import-type LibresignNewSigner from \OCA\Libresign\ResponseDefinitions
  * @psalm-import-type LibresignDetailedFile from \OCA\Libresign\ResponseDefinitions
  * @psalm-import-type LibresignDetailedFileResponse from \OCA\Libresign\ResponseDefinitions
@@ -66,7 +67,7 @@ class RequestSignatureController extends AEnvironmentAwareOCSController {
 	 * @param list<LibresignNewFile> $files Multiple files to create an envelope (optional, use either file or files). Each file supports nodeId, url, base64 or path.
 	 * @param string|null $callback URL that will receive a POST after the document is signed
 	 * @param integer|null $status Numeric code of status * 0 - no signers * 1 - signed * 2 - pending
-	 * @param array<string, mixed>|null $policy Structured policy payload with request-level overrides and active context.
+	 * @param array{overrides?: array<string, LibresignEffectivePolicyValue|list<LibresignEffectivePolicyValue>>, activeContext?: array{type?: string, id?: string}}|null $policy Structured policy payload with request-level overrides and active context.
 	 * @return DataResponse<Http::STATUS_OK, LibresignDetailedFileResponse, array{}>|DataResponse<Http::STATUS_UNPROCESSABLE_ENTITY, LibresignMessageResponse|LibresignActionErrorResponse, array{}>
 	 *
 	 * 200: OK
@@ -136,7 +137,7 @@ class RequestSignatureController extends AEnvironmentAwareOCSController {
 	 * @param list<LibresignVisibleElement>|null $visibleElements Visible elements on document
 	 * @param LibresignNewFile|null $file File object. Supports nodeId (a non-negative integer or its canonical decimal string), url, base64 or path when creating a new request.
 	 * @param integer|null $status Numeric code of status * 0 - no signers * 1 - signed * 2 - pending
-	 * @param array<string, mixed>|null $policy Structured policy payload with request-level overrides and active context.
+	 * @param array{overrides?: array<string, LibresignEffectivePolicyValue|list<LibresignEffectivePolicyValue>>, activeContext?: array{type?: string, id?: string}}|null $policy Structured policy payload with request-level overrides and active context.
 	 * @param string|null $name The name of file to sign
 	 * @param LibresignFolderSettings $settings Settings to define how and where the file should be stored
 	 * @param list<LibresignNewFile> $files Multiple files to create an envelope (optional, use either file or files). Each file supports nodeId, url, base64 or path.

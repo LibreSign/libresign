@@ -102,6 +102,38 @@ final class OpenApiSigningRequestContractsTest extends TestCase {
 		self::assertArrayNotHasKey('required', $definition);
 	}
 
+	/** @return array<string, array{string}> */
+	public static function requestPolicyOperations(): array {
+		return [
+			'new request' => ['request_signature-request-signature'],
+			'updated request' => ['request_signature-update-signature-request'],
+		];
+	}
+
+	#[DataProvider('requestPolicyOperations')]
+	public function testRequestPolicyReflectsOverridesAndActiveContext(string $operationId): void {
+		$spec = self::loadSpec('openapi-full.json');
+		$policy = self::requestProperty($spec, $operationId, 'policy');
+		self::assertSame('object', $policy['type']);
+		self::assertTrue($policy['nullable']);
+		self::assertNull($policy['default']);
+		self::assertArrayNotHasKey('required', $policy);
+
+		$overrides = $policy['properties']['overrides'];
+		self::assertSame('object', $overrides['type']);
+		$allowedValues = $overrides['additionalProperties'];
+		$branches = $allowedValues['oneOf'] ?? $allowedValues['anyOf'] ?? [];
+		self::assertNotEmpty($branches);
+		self::assertContains('#/components/schemas/EffectivePolicyValue', array_column($branches, '$ref'));
+		self::assertContains('array', array_column($branches, 'type'));
+
+		$activeContext = $policy['properties']['activeContext'];
+		self::assertSame('object', $activeContext['type']);
+		self::assertSame('string', $activeContext['properties']['type']['type']);
+		self::assertSame('string', $activeContext['properties']['id']['type']);
+		self::assertArrayNotHasKey('required', $activeContext);
+	}
+
 	public function testExistingUnmodifiedOperationsRemainExposed(): void {
 		$spec = self::loadSpec('openapi-full.json');
 		foreach (['account-me', 'account-set-config', 'certificate_policy-get-certificate-policy'] as $operationId) {
