@@ -12,9 +12,11 @@ use OCA\Libresign\Db\File as FileEntity;
 use OCA\Libresign\Db\IdentifyMethod as IdentifyMethodEntity;
 use OCA\Libresign\Db\SignRequest;
 use OCA\Libresign\Db\SignRequestMapper;
+use OCA\Libresign\Events\SendSignNotificationEvent;
 use OCA\Libresign\Events\SignedEvent;
 use OCA\Libresign\Events\SignRequestCanceledEvent;
 use OCA\Libresign\Listener\MailNotifyListener;
+use OCA\Libresign\Service\IdentifyMethod\IdentifyService;
 use OCA\Libresign\Service\IdentifyMethod\IIdentifyMethod;
 use OCA\Libresign\Service\MailService;
 use OCA\Libresign\Service\NotificationPreferenceResolver;
@@ -27,280 +29,246 @@ use PHPUnit\Framework\TestCase;
 use Psr\Log\LoggerInterface;
 
 class MailNotifyListenerTest extends TestCase {
+	private MailService&MockObject $mailService;
 	private IUserManager&MockObject $userManager;
-	private NotificationPreferenceResolver&MockObject $notificationPreferenceResolver;
+	private NotificationPreferenceResolver&MockObject $preferences;
+	private SignRequestMapper&MockObject $signRequestMapper;
 	private MailNotifyListener $listener;
+	private bool $firstNotification = true;
 
 	protected function setUp(): void {
+		$this->mailService = $this->createMock(MailService::class);
 		$this->userManager = $this->createMock(IUserManager::class);
-		$this->notificationPreferenceResolver = $this->createMock(NotificationPreferenceResolver::class);
-		$userSession = $this->createMock(IUserSession::class);
-		$identifyService = $this->createMock(IdentifyService::class);
-		$signRequestMapper = $this->createMock(SignRequestMapper::class);
-		$logger = $this->createMock(LoggerInterface::class);
+		$this->preferences = $this->createMock(NotificationPreferenceResolver::class);
+		$this->signRequestMapper = $this->createMock(SignRequestMapper::class);
+		$this->signRequestMapper->method('incrementNotificationCounter')
+			->willReturnCallback(fn (): bool => $this->firstNotification);
 
 		$this->listener = new MailNotifyListener(
 			$this->userManager,
-			$identifyService,
+			$this->createMock(IdentifyService::class),
 			$this->mailService,
-			$signRequestMapper,
-			$logger,
-			$this->notificationPreferenceResolver,
+			$this->signRequestMapper,
+			$this->createMock(LoggerInterface::class),
+			$this->preferences,
 		);
 	}
 
-	public function testEmailSignerInvitationDoesNotConsultLinkedAccountPreferences(): void {
+	public function testEmailInvitationIgnoresLinkedAccountOptOut(): void {
 		$this->userManager->expects($this->never())->method('getByEmail');
 		$this->userManager->expects($this->never())->method('get');
 		$this->preferences->expects($this->never())->method('isEmailNotificationDisabled');
-
-		$this->listener->handle($this->invitation('email', 'bob@example.org'));
-
-		$message = $this->singleDelivery();
-		$this->assertSame('bob@example.org', $message->recipient);
-		$this->assertSame('sign_request', $message->eventType);
-		$this->assertSame('mail', $message->channel);
-		$this->assertSame('mail', $message->historyMethod);
-		$payload = $message->payload;
-		$this->assertInstanceOf(MailPayload::class, $payload);
-		$this->assertTrue($payload->firstNotification);
-	}
-
-	public function testAdminDisabledEmailChannelSuppressesInvitation(): void {
-		$this->preferences
+		$this->preferences->expects($this->once())
 			->method('isEmailNotificationGloballyDisabled')
-			->willReturnMap([
-				[SendSignNotificationEvent::FILE_TO_SIGN, true],
-			]);
+			->with(SendSignNotificationEvent::FILE_TO_SIGN)
+			->willReturn(false);
+		$this->mailService->expects($this->once())
+			->method('notifyUnsignedUser')
+			->with($this->isInstanceOf(SignRequest::class), 'bob@example.org', 'Review document');
 
 		$this->listener->handle($this->invitation('email', 'bob@example.org'));
-
-		$this->assertSame([], $this->deliveries);
 	}
 
-	public function testExternalEmailSignerReceivesInvitation(): void {
+	public function testEmailInvitationHonorsAdminDisabledChannel(): void {
+		$this->preferences->expects($this->once())
+			->method('isEmailNotificationGloballyDisabled')
+			->with(SendSignNotificationEvent::FILE_TO_SIGN)
+			->willReturn(true);
+		$this->userManager->expects($this->never())->method('getByEmail');
+		$this->signRequestMapper->expects($this->never())->method('getById');
+		$this->mailService->expects($this->never())->method('notifyUnsignedUser');
+		$this->mailService->expects($this->never())->method('notifySignDataUpdated');
+
+		$this->listener->handle($this->invitation('email', 'bob@example.org'));
+	}
+
+	public function testExternalEmailInvitationIsSentWithoutAccountLookup(): void {
+		$this->userManager->expects($this->never())->method('getByEmail');
+		$this->mailService->expects($this->once())
+			->method('notifyUnsignedUser')
+			->with($this->isInstanceOf(SignRequest::class), 'external@example.org', 'Review document');
+
 		$this->listener->handle($this->invitation('email', 'external@example.org'));
-
-		$this->assertSame('external@example.org', $this->singleDelivery()->recipient);
 	}
 
-	public function testEmailObserverReceivesInvitation(): void {
-		$request = $this->request();
-		$request->setParticipantRole('observer');
-
-		$this->listener->handle($this->invitation('email', 'observer@example.org', $request));
-
-		$message = $this->singleDelivery();
-		$this->assertSame('observer@example.org', $message->recipient);
-		$this->assertSame($request, $message->signRequest);
-	}
-
-	public function testReminderKeepsEmailDestinationAndUsesUpdatedMailTemplate(): void {
-		$this->persistedRequest->setMetadata(['notify' => [['method' => 'mail', 'date' => 42]]]);
+	public function testReminderUsesUpdatedMailTemplate(): void {
+		$this->firstNotification = false;
+		$this->mailService->expects($this->never())->method('notifyUnsignedUser');
+		$this->mailService->expects($this->once())
+			->method('notifySignDataUpdated')
+			->with($this->isInstanceOf(SignRequest::class), 'bob@example.org', 'Review document');
 
 		$this->listener->handle($this->invitation('email', 'bob@example.org'));
-
-		$message = $this->singleDelivery();
-		$this->assertSame('bob@example.org', $message->recipient);
-		$payload = $message->payload;
-		$this->assertInstanceOf(MailPayload::class, $payload);
-		$this->assertFalse($payload->firstNotification);
 	}
 
 	public static function accountPreferences(): array {
 		return [
-			'email notifications enabled' => [false, true],
-			'email notifications disabled' => [true, false],
+			'account allows email' => [false, true],
+			'account disables email' => [true, false],
 		];
 	}
 
 	#[DataProvider('accountPreferences')]
-	public function testAccountSignerRespectsMailPreference(bool $disabled, bool $shouldDeliver): void {
-		$account = $this->account('bob-uid', 'bob@example.org');
-		$this->userManager
-			->method('get')
-			->willReturn($account);
-		$this->preferences
+	public function testAccountInvitationUsesUidAndItsPreference(bool $disabled, bool $shouldSend): void {
+		$this->userManager->method('get')->with('account-uid')
+			->willReturn($this->account('account-uid', 'shared@example.org'));
+		$this->userManager->expects($this->never())->method('getByEmail');
+		$this->preferences->expects($this->once())
 			->method('isEmailNotificationDisabled')
-			->willReturnMap([
-				['bob-uid', SendSignNotificationEvent::FILE_TO_SIGN, true, $disabled],
-			]);
+			->with('account-uid', SendSignNotificationEvent::FILE_TO_SIGN, true)
+			->willReturn($disabled);
+		$this->mailService->expects($shouldSend ? $this->once() : $this->never())
+			->method('notifyUnsignedUser')
+			->with($this->anything(), 'shared@example.org', 'Review document');
 
-		$this->listener->handle($this->invitation('account', 'bob-uid'));
-
-		$this->assertCount($shouldDeliver ? 1 : 0, $this->deliveries);
-		if ($shouldDeliver) {
-			$this->assertSame('bob@example.org', $this->singleDelivery()->recipient);
-		}
+		$this->listener->handle($this->invitation('account', 'account-uid'));
 	}
 
-	public function testSharedEmailCannotBypassAccountMailPreference(): void {
-		$account = $this->account('bob-uid', 'shared@example.org');
-		$this->userManager->method('get')->willReturn($account);
-		$this->userManager->method('getByEmail')->willReturn([
-			$account,
-			$this->account('other-uid', 'shared@example.org'),
-		]);
-		$this->preferences
-			->method('isEmailNotificationDisabled')
-			->willReturnMap([
-				['bob-uid', SendSignNotificationEvent::FILE_TO_SIGN, true, true],
-			]);
+	public function testMissingAccountIsSkippedWithoutDereference(): void {
+		$this->userManager->method('get')->with('absent-uid')->willReturn(null);
+		$this->mailService->expects($this->never())->method('notifyUnsignedUser');
 
-		$this->listener->handle($this->invitation('account', 'bob-uid'));
-
-		$this->assertSame([], $this->deliveries);
+		$this->listener->handle($this->invitation('account', 'absent-uid'));
 	}
 
-	public function testMissingAccountDoesNotDispatch(): void {
-		$this->userManager->method('get')->willReturn(null);
+	public function testAccountWithoutEmailIsSkipped(): void {
+		$this->userManager->method('get')->with('account-uid')
+			->willReturn($this->account('account-uid', ''));
+		$this->mailService->expects($this->never())->method('notifyUnsignedUser');
 
-		$this->listener->handle($this->invitation('account', 'deleted-local-user'));
-
-		$this->assertSame([], $this->deliveries);
+		$this->listener->handle($this->invitation('account', 'account-uid'));
 	}
 
-	public function testUnsupportedIdentificationMethodDoesNotDispatch(): void {
-		$this->listener->handle($this->invitation('sms', '5511999999999'));
+	public function testEmptyAndUnsupportedDestinationsAreSkipped(): void {
+		$this->mailService->expects($this->never())->method('notifyUnsignedUser');
 
-		$this->assertSame([], $this->deliveries);
-	}
-
-	public function testEmptyEmailDoesNotDispatch(): void {
 		$this->listener->handle($this->invitation('email', ''));
-
-		$this->assertSame([], $this->deliveries);
+		$this->listener->handle($this->invitation('phone', '+1234567890'));
 	}
 
-	public function testDeletedSignerDoesNotDispatch(): void {
-		$this->listener->handle($this->invitation('email', 'deleted@example.org', null, true));
+	public function testDeletedIdentityDoesNotReceiveInvitationOrCancellation(): void {
+		$this->mailService->expects($this->never())->method('notifyUnsignedUser');
+		$this->mailService->expects($this->never())->method('notifyCanceledRequest');
 
-		$this->assertSame([], $this->deliveries);
+		$this->listener->handle($this->invitation('account', 'deleted-uid', true));
+		$this->listener->handle($this->cancellation('account', 'deleted-uid', true));
 	}
 
-	public static function emailCancellationPreferences(): array {
+	public static function cancellationPreferences(): array {
 		return [
-			'notifications enabled' => [false, true],
-			'notifications disabled' => [true, false],
+			'linked account allows cancellation email' => [false, true],
+			'linked account disables cancellation email' => [true, false],
 		];
 	}
 
-	#[DataProvider('emailCancellationPreferences')]
-	public function testEmailSignerCancellationRespectsExistingAccountPreference(bool $disabled, bool $shouldDeliver): void {
-		$account = $this->account('bob-uid', 'bob@example.org');
-		$this->userManager
-			->method('getByEmail')
-			->willReturn([$account]);
-		$this->preferences
+	#[DataProvider('cancellationPreferences')]
+	public function testEmailCancellationRetainsUniqueLinkedAccountPreference(bool $disabled, bool $shouldSend): void {
+		$this->userManager->method('getByEmail')->with('linked@example.org')
+			->willReturn([$this->account('account-uid', 'linked@example.org')]);
+		$this->preferences->expects($this->once())
 			->method('isEmailNotificationDisabled')
-			->willReturnMap([
-				['bob-uid', SignRequestCanceledEvent::SIGN_REQUEST_CANCELED, true, $disabled],
-			]);
+			->with('account-uid', SignRequestCanceledEvent::SIGN_REQUEST_CANCELED, true)
+			->willReturn($disabled);
+		$this->mailService->expects($shouldSend ? $this->once() : $this->never())
+			->method('notifyCanceledRequest')
+			->with($this->anything(), 'linked@example.org', $this->isInstanceOf(FileEntity::class));
 
-		$this->listener->handle($this->cancellation('email', 'bob@example.org'));
-
-		$this->assertCount($shouldDeliver ? 1 : 0, $this->deliveries);
-		if ($shouldDeliver) {
-			$this->assertSame('bob@example.org', $this->singleDelivery()->recipient);
-			$this->assertSame('sign_request_canceled', $this->singleDelivery()->eventType);
-		}
+		$this->listener->handle($this->cancellation('email', 'linked@example.org'));
 	}
 
-	public function testExternalEmailSignerReceivesCancellation(): void {
-		$this->userManager->method('getByEmail')->with('carol@example.org')->willReturn([]);
+	public function testExternalEmailCancellationIsSent(): void {
+		$this->userManager->method('getByEmail')->with('external@example.org')->willReturn([]);
+		$this->preferences->expects($this->never())->method('isEmailNotificationDisabled');
+		$this->mailService->expects($this->once())
+			->method('notifyCanceledRequest')
+			->with($this->anything(), 'external@example.org', $this->isInstanceOf(FileEntity::class));
 
-		$this->listener->handle($this->cancellation('email', 'carol@example.org'));
+		$this->listener->handle($this->cancellation('email', 'external@example.org'));
+	}
 
-		$this->assertSame('carol@example.org', $this->singleDelivery()->recipient);
+	public function testSharedEmailCancellationIsNotSuppressedByOneUser(): void {
+		$this->userManager->method('getByEmail')->with('shared@example.org')
+			->willReturn([
+				$this->account('first', 'shared@example.org'),
+				$this->account('second', 'shared@example.org'),
+			]);
+		$this->preferences->expects($this->never())->method('isEmailNotificationDisabled');
+		$this->mailService->expects($this->once())
+			->method('notifyCanceledRequest')
+			->with($this->anything(), 'shared@example.org', $this->isInstanceOf(FileEntity::class));
+
+		$this->listener->handle($this->cancellation('email', 'shared@example.org'));
+	}
+
+	#[DataProvider('accountPreferences')]
+	public function testAccountCancellationChecksSelectedUid(bool $disabled, bool $shouldSend): void {
+		$this->userManager->method('get')->with('account-uid')
+			->willReturn($this->account('account-uid', 'shared@example.org'));
+		$this->userManager->expects($this->never())->method('getByEmail');
+		$this->preferences->expects($this->once())
+			->method('isEmailNotificationDisabled')
+			->with('account-uid', SignRequestCanceledEvent::SIGN_REQUEST_CANCELED, true)
+			->willReturn($disabled);
+		$this->mailService->expects($shouldSend ? $this->once() : $this->never())
+			->method('notifyCanceledRequest')
+			->with($this->anything(), 'shared@example.org', $this->isInstanceOf(FileEntity::class));
+
+		$this->listener->handle($this->cancellation('account', 'account-uid'));
 	}
 
 	public static function signedMailPreferences(): array {
 		return [
-			'notification disabled' => [true, false],
-			'notification enabled' => [false, true],
+			'owner enables signed mail' => [false, true],
+			'owner disables signed mail' => [true, false],
 		];
 	}
 
 	#[DataProvider('signedMailPreferences')]
-	public function testSignedMailRespectsNotificationPreference(bool $disabled, bool $shouldDeliver): void {
-		$this->preferences->method('isEmailNotificationDisabled')->willReturn($disabled);
+	public function testSignedFileMailStillUsesOwnerPreference(bool $disabled, bool $shouldSend): void {
+		$this->preferences->expects($this->once())
+			->method('isEmailNotificationDisabled')
+			->with('admin', SignedEvent::FILE_SIGNED, true)
+			->willReturn($disabled);
 		$owner = $this->account('admin', 'admin@example.org');
-
-		$owner = $this->createMock(IUser::class);
-		$owner->method('getEMailAddress')->willReturn('admin@email.tld');
 		$owner->method('getDisplayName')->willReturn('Admin');
-
-		$expectation = $shouldSend ? $this->once() : $this->never();
-		$this->mailService->expects($expectation)
-			->method('notifySignedUser');
-
-		$this->listener->handle($this->createSignedEvent($owner));
-	}
-
-	private function createSignedEvent(IUser $owner): SignedEvent {
-		$signRequest = new SignRequest();
-		$signRequest->setId(42);
-		$signRequest->setFileId(10);
-		$signRequest->setDisplayName('Signer Name');
-
-		$libreSignFile = new FileEntity();
-		$libreSignFile->setId(10);
-		$libreSignFile->setUuid('file-uuid');
-		$libreSignFile->setName('Contract.pdf');
-		$libreSignFile->setUserId('admin');
-
-		$identifyEntity = new IdentifyMethodEntity();
-		$identifyEntity->setIdentifierKey('account');
-		$identifyEntity->setIdentifierValue('signer1');
-
-		$identifyMethod = $this->createMock(IIdentifyMethod::class);
-		$identifyMethod->method('getEntity')->willReturn($identifyEntity);
-
-		$signedFile = $this->createMock(File::class);
-
-		return new SignedEvent(
-			$signRequest,
-			$libreSignFile,
-			$identifyMethod,
+		$this->mailService->expects($shouldSend ? $this->once() : $this->never())
+			->method('notifySignedUser')
+			->with($this->anything(), 'admin@example.org', $this->anything(), 'Admin');
+		$this->listener->handle(new SignedEvent(
+			$this->request(),
+			$this->file(),
+			$this->identifyMethod('account', 'signer-uid'),
 			$owner,
 			$this->createMock(File::class),
 		));
+	}
 
-		$this->assertCount($shouldDeliver ? 1 : 0, $this->deliveries);
-		if ($shouldDeliver) {
-			$this->assertSame('admin@example.org', $this->singleDelivery()->recipient);
-			$this->assertSame('file_signed', $this->singleDelivery()->eventType);
-		}
+	private function invitation(string $method, string $value, bool $deleted = false): SendSignNotificationEvent {
+		return new SendSignNotificationEvent(
+			$this->request(), $this->file(), $this->identifyMethod($method, $value, $deleted),
+		);
+	}
+
+	private function cancellation(string $method, string $value, bool $deleted = false): SignRequestCanceledEvent {
+		return new SignRequestCanceledEvent(
+			$this->request(), $this->file(), $this->identifyMethod($method, $value, $deleted),
+		);
 	}
 
 	private function request(): SignRequest {
 		$request = new SignRequest();
 		$request->setId(42);
-		$request->setUuid('synthetic-request');
-		$request->setDescription('Please sign');
+		$request->setFileId(10);
+		$request->setDescription('Review document');
 		return $request;
 	}
 
-	private function invitation(
-		string $method,
-		string $value,
-		?SignRequest $request = null,
-		bool $deleted = false,
-	): SendSignNotificationEvent {
-		return new SendSignNotificationEvent(
-			$request ?? $this->request(),
-			new FileEntity(),
-			$this->identifyMethod($method, $value, $deleted),
-			'invitation-42',
-		);
-	}
-
-	private function cancellation(string $method, string $value): SignRequestCanceledEvent {
-		return new SignRequestCanceledEvent(
-			$this->request(),
-			new FileEntity(),
-			$this->identifyMethod($method, $value),
-		);
+	private function file(): FileEntity {
+		$file = new FileEntity();
+		$file->setId(10);
+		$file->setUserId('admin');
+		$file->setName('Contract.pdf');
+		return $file;
 	}
 
 	private function identifyMethod(string $method, string $value, bool $deleted = false): IIdentifyMethod {
@@ -319,15 +287,10 @@ class MailNotifyListenerTest extends TestCase {
 		return $identify;
 	}
 
-	private function account(string $uid, string $email): IUser {
+	private function account(string $uid, string $email): IUser&MockObject {
 		$user = $this->createMock(IUser::class);
 		$user->method('getUID')->willReturn($uid);
 		$user->method('getEMailAddress')->willReturn($email);
 		return $user;
-	}
-
-	private function singleDelivery(): NotificationMessage {
-		$this->assertCount(1, $this->deliveries);
-		return $this->deliveries[0];
 	}
 }
