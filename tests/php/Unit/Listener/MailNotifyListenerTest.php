@@ -65,10 +65,10 @@ class MailNotifyListenerTest extends TestCase {
 		);
 	}
 
-	public function testEmailSignerWithExistingAccountReceivesInvitation(): void {
-		$account = $this->account('0F1E2D3C4B5A69788796A5B4C3D2E1F0', 'bob@example.org');
-		$this->userManager->method('getByEmail')->willReturn([$account]);
-		$this->preferences->method('isEmailNotificationDisabled')->willReturn(true);
+	public function testEmailSignerInvitationDoesNotConsultLinkedAccountPreferences(): void {
+		$this->userManager->expects($this->never())->method('getByEmail');
+		$this->userManager->expects($this->never())->method('get');
+		$this->preferences->expects($this->never())->method('isEmailNotificationDisabled');
 
 		$this->listener->handle($this->invitation('email', 'bob@example.org'));
 
