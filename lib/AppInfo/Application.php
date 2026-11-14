@@ -22,7 +22,6 @@ use OCA\Libresign\Listener\LoadAdditionalListener;
 use OCA\Libresign\Listener\MailNotifyListener;
 use OCA\Libresign\Listener\NotificationListener;
 use OCA\Libresign\Listener\RevokeClickToSignCertificateListener;
-use OCA\Libresign\Listener\SignedCallbackListener;
 use OCA\Libresign\Listener\TwofactorGatewayListener;
 use OCA\Libresign\Listener\UserDeletedListener;
 use OCA\Libresign\Middleware\GlobalInjectionMiddleware;
@@ -67,7 +66,6 @@ class Application extends App implements IBootstrap {
 		$context->registerEventListener(LoadSidebar::class, TemplateLoader::class);
 		$context->registerEventListener(BeforeNodeDeletedEvent::class, BeforeNodeDeletedListener::class);
 		$context->registerEventListener(CacheEntryRemovedEvent::class, BeforeNodeDeletedListener::class);
-		$context->registerEventListener(SignedEvent::class, SignedCallbackListener::class);
 
 		// Files newFile listener
 		$context->registerEventListener('OCA\\Files\\Event\\LoadAdditionalScriptsEvent', LoadAdditionalListener::class);

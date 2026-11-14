@@ -59,7 +59,6 @@ final class RequestSignatureWorkflowService {
 		array $settings,
 		array $signers,
 		?int $status,
-		?string $callback,
 		?array $policy = null,
 		?array $visibleElements = null,
 	): array {
@@ -75,7 +74,6 @@ final class RequestSignatureWorkflowService {
 			'file' => $file,
 			'name' => $name,
 			'signers' => $signers,
-			'callback' => $callback,
 			'userManager' => $user,
 			'policyOverrides' => $resolvedPolicy['policyOverrides'],
 			'policyActiveContext' => $resolvedPolicy['policyActiveContext'],
