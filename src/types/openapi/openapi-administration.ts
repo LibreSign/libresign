@@ -563,6 +563,9 @@ export type components = {
             OID: string;
             CPS: string;
         };
+        PolicyValueMap: {
+            [key: string]: components["schemas"]["EffectivePolicyValue"];
+        };
         PublicCapabilities: {
             libresign?: components["schemas"]["Capabilities"];
         };
@@ -2014,13 +2017,9 @@ export interface operations {
                 "application/json": {
                     /**
                      * @description Values to persist, keyed by policy identifier, each as an explicit system rule even when it equals the default. Null removes the explicit system rule of that policy: the built-in default applies and lower layers may override it.
-                     * @default {}
+                     * @default []
                      */
-                    values?: {
-                        [key: string]: (boolean | number | string | {
-                            [key: string]: Record<string, never>;
-                        }) | null;
-                    };
+                    values?: components["schemas"]["PolicyValueMap"];
                     /**
                      * @description Whether lower layers may override each saved value, keyed by policy identifier.
                      * @default {}

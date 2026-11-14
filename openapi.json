@@ -2161,6 +2161,12 @@
                     }
                 }
             },
+            "PolicyValueMap": {
+                "type": "object",
+                "additionalProperties": {
+                    "$ref": "#/components/schemas/EffectivePolicyValue"
+                }
+            },
             "ProgressError": {
                 "type": "object",
                 "required": [
@@ -3069,6 +3075,31 @@
                                     "$ref": "#/components/schemas/UserPolicyState"
                                 }
                             }
+                        }
+                    }
+                ]
+            },
+            "UserConfigValue": {
+                "oneOf": [
+                    {
+                        "type": "string"
+                    },
+                    {
+                        "type": "boolean"
+                    },
+                    {
+                        "type": "number"
+                    },
+                    {
+                        "type": "array",
+                        "items": {
+                            "type": "object"
+                        }
+                    },
+                    {
+                        "type": "object",
+                        "additionalProperties": {
+                            "type": "object"
                         }
                     }
                 ]
@@ -4873,6 +4904,25 @@
                         "basic_auth": []
                     }
                 ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object",
+                                "required": [
+                                    "value"
+                                ],
+                                "properties": {
+                                    "value": {
+                                        "$ref": "#/components/schemas/UserConfigValue",
+                                        "description": "Config value as a JSON string, number, boolean, list or nested object. Null is not a storable setting."
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
                 "parameters": [
                     {
                         "name": "apiVersion",
@@ -10594,34 +10644,9 @@
                                 "type": "object",
                                 "properties": {
                                     "values": {
-                                        "type": "object",
-                                        "default": {},
-                                        "description": "Values to persist for the group, keyed by policy identifier.",
-                                        "additionalProperties": {
-                                            "nullable": true,
-                                            "anyOf": [
-                                                {
-                                                    "type": "boolean"
-                                                },
-                                                {
-                                                    "type": "integer",
-                                                    "format": "int64"
-                                                },
-                                                {
-                                                    "type": "number",
-                                                    "format": "double"
-                                                },
-                                                {
-                                                    "type": "string"
-                                                },
-                                                {
-                                                    "type": "object",
-                                                    "additionalProperties": {
-                                                        "type": "object"
-                                                    }
-                                                }
-                                            ]
-                                        }
+                                        "$ref": "#/components/schemas/PolicyValueMap",
+                                        "default": [],
+                                        "description": "Values to persist for the group, keyed by policy identifier."
                                     },
                                     "allowChildOverride": {
                                         "type": "object",
@@ -10825,34 +10850,9 @@
                                 "type": "object",
                                 "properties": {
                                     "values": {
-                                        "type": "object",
-                                        "default": {},
-                                        "description": "Values to persist as the current user's defaults, keyed by policy identifier.",
-                                        "additionalProperties": {
-                                            "nullable": true,
-                                            "anyOf": [
-                                                {
-                                                    "type": "boolean"
-                                                },
-                                                {
-                                                    "type": "integer",
-                                                    "format": "int64"
-                                                },
-                                                {
-                                                    "type": "number",
-                                                    "format": "double"
-                                                },
-                                                {
-                                                    "type": "string"
-                                                },
-                                                {
-                                                    "type": "object",
-                                                    "additionalProperties": {
-                                                        "type": "object"
-                                                    }
-                                                }
-                                            ]
-                                        }
+                                        "$ref": "#/components/schemas/PolicyValueMap",
+                                        "default": [],
+                                        "description": "Values to persist as the current user's defaults, keyed by policy identifier."
                                     }
                                 }
                             }
@@ -11008,34 +11008,9 @@
                                 "type": "object",
                                 "properties": {
                                     "values": {
-                                        "type": "object",
-                                        "default": {},
-                                        "description": "Values to persist for the target user, keyed by policy identifier.",
-                                        "additionalProperties": {
-                                            "nullable": true,
-                                            "anyOf": [
-                                                {
-                                                    "type": "boolean"
-                                                },
-                                                {
-                                                    "type": "integer",
-                                                    "format": "int64"
-                                                },
-                                                {
-                                                    "type": "number",
-                                                    "format": "double"
-                                                },
-                                                {
-                                                    "type": "string"
-                                                },
-                                                {
-                                                    "type": "object",
-                                                    "additionalProperties": {
-                                                        "type": "object"
-                                                    }
-                                                }
-                                            ]
-                                        }
+                                        "$ref": "#/components/schemas/PolicyValueMap",
+                                        "default": [],
+                                        "description": "Values to persist for the target user, keyed by policy identifier."
                                     },
                                     "allowChildOverride": {
                                         "type": "object",
@@ -12455,6 +12430,7 @@
             "post": {
                 "operationId": "sign_file-sign-by-signer-uuid",
                 "summary": "Sign a file using file UUID",
+                "description": "Identification-document approvals use the query string ?idDocApproval=true. The signer middleware resolves that query before the controller runs.",
                 "tags": [
                     "signing"
                 ],
@@ -13014,6 +12990,7 @@
             "post": {
                 "operationId": "sign_file-request-code-by-signer-uuid",
                 "summary": "Get code to sign the document using UUID",
+                "description": "For identification-document approvals the frontend sends ?idDocApproval=true in the URL query. Nextcloud also accepts the same flag in the JSON body. The signer middleware reads the combined request parameters.",
                 "tags": [
                     "signing"
                 ],
@@ -13049,7 +13026,7 @@
                                         "type": "string",
                                         "nullable": true,
                                         "default": null,
-                                        "description": "Only the string \"true\" selects an identification-document file UUID (matches middleware RequireSigner); other values use the signer UUID lookup"
+                                        "description": "Only the literal \"true\" selects the identification-document approval context. Query or JSON body is accepted."
                                     }
                                 }
                             }

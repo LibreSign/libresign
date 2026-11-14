@@ -831,7 +831,10 @@ export type paths = {
         };
         get?: never;
         put?: never;
-        /** Sign a file using file UUID */
+        /**
+         * Sign a file using file UUID
+         * @description Identification-document approvals use the query string ?idDocApproval=true. The signer middleware resolves that query before the controller runs.
+         */
         post: operations["sign_file-sign-by-signer-uuid"];
         delete?: never;
         options?: never;
@@ -899,7 +902,10 @@ export type paths = {
         };
         get?: never;
         put?: never;
-        /** Get code to sign the document using UUID */
+        /**
+         * Get code to sign the document using UUID
+         * @description For identification-document approvals the frontend sends ?idDocApproval=true in the URL query. Nextcloud also accepts the same flag in the JSON body. The signer middleware reads the combined request parameters.
+         */
         post: operations["sign_file-request-code-by-signer-uuid"];
         delete?: never;
         options?: never;
@@ -1602,6 +1608,9 @@ export type components = {
         PolicySnapshotSignerIpGeolocationValue: {
             mode: components["schemas"]["SignerIpGeolocationPolicyMode"];
         };
+        PolicyValueMap: {
+            [key: string]: components["schemas"]["EffectivePolicyValue"];
+        };
         ProgressError: {
             message: string;
             /** Format: int64 */
@@ -1872,6 +1881,9 @@ export type components = {
             policies: {
                 [key: string]: components["schemas"]["UserPolicyState"];
             };
+        };
+        UserConfigValue: string | boolean | number | Record<string, never>[] | {
+            [key: string]: Record<string, never>;
         };
         UserElement: {
             /** Format: int64 */
@@ -2605,7 +2617,14 @@ export interface operations {
             };
             cookie?: never;
         };
-        requestBody?: never;
+        requestBody: {
+            content: {
+                "application/json": {
+                    /** @description Config value as a JSON string, number, boolean, list or nested object. Null is not a storable setting. */
+                    value: components["schemas"]["UserConfigValue"];
+                };
+            };
+        };
         responses: {
             /** @description Config updated */
             200: {
@@ -5004,13 +5023,9 @@ export interface operations {
                 "application/json": {
                     /**
                      * @description Values to persist for the group, keyed by policy identifier.
-                     * @default {}
+                     * @default []
                      */
-                    values?: {
-                        [key: string]: (boolean | number | string | {
-                            [key: string]: Record<string, never>;
-                        }) | null;
-                    };
+                    values?: components["schemas"]["PolicyValueMap"];
                     /**
                      * @description Whether users and requests below this group may override each saved value, keyed by policy identifier.
                      * @default {}
@@ -5099,13 +5114,9 @@ export interface operations {
                 "application/json": {
                     /**
                      * @description Values to persist as the current user's defaults, keyed by policy identifier.
-                     * @default {}
+                     * @default []
                      */
-                    values?: {
-                        [key: string]: (boolean | number | string | {
-                            [key: string]: Record<string, never>;
-                        }) | null;
-                    };
+                    values?: components["schemas"]["PolicyValueMap"];
                 };
             };
         };
@@ -5175,13 +5186,9 @@ export interface operations {
                 "application/json": {
                     /**
                      * @description Values to persist for the target user, keyed by policy identifier.
-                     * @default {}
+                     * @default []
                      */
-                    values?: {
-                        [key: string]: (boolean | number | string | {
-                            [key: string]: Record<string, never>;
-                        }) | null;
-                    };
+                    values?: components["schemas"]["PolicyValueMap"];
                     /**
                      * @description Whether the target user may still override each assigned value, keyed by policy identifier.
                      * @default {}
@@ -6081,7 +6088,7 @@ export interface operations {
                      */
                     signMethod?: string | null;
                     /**
-                     * @description Only the string "true" selects an identification-document file UUID (matches middleware RequireSigner); other values use the signer UUID lookup
+                     * @description Only the literal "true" selects the identification-document approval context. Query or JSON body is accepted.
                      * @default null
                      */
                     idDocApproval?: string | null;
