@@ -168,6 +168,40 @@ final class OpenApiSigningRequestContractsTest extends TestCase {
 		}
 	}
 
+	public function testAccountConfigValueUsesARequiredHeterogeneousJsonContract(): void {
+		$spec = self::loadSpec('openapi-full.json');
+		$operation = self::operation($spec, 'account-set-config');
+		self::assertTrue($operation['requestBody']['required']);
+		$schema = $operation['requestBody']['content']['application/json']['schema'];
+		self::assertSame(['value'], $schema['required']);
+		self::assertSame('#/components/schemas/UserConfigValue', $schema['properties']['value']['$ref']);
+
+		$configValue = $spec['components']['schemas']['UserConfigValue'];
+		$branches = $configValue['anyOf'] ?? $configValue['oneOf'] ?? [];
+		self::assertContains('boolean', array_column($branches, 'type'));
+		self::assertContains('string', array_column($branches, 'type'));
+		self::assertContains('number', array_column($branches, 'type'));
+		self::assertContains('object', array_column($branches, 'type'));
+		self::assertContains('array', array_column($branches, 'type'));
+		self::assertFalse($configValue['nullable'] ?? false);
+	}
+
+	public function testDynamicPolicyValuesReferenceARecursiveJsonModel(): void {
+		$spec = self::loadSpec('openapi-full.json');
+		self::assertSame('#/components/schemas/JsonValue', $spec['components']['schemas']['EffectivePolicyValue']['$ref']);
+		$json = $spec['components']['schemas']['JsonValue'];
+		$branches = $json['anyOf'] ?? $json['oneOf'] ?? [];
+		self::assertCount(5, $branches);
+		$byType = [];
+		foreach ($branches as $branch) {
+			$byType[$branch['type']] = $branch;
+		}
+		self::assertTrue($byType['string']['nullable'], 'Null is allowed only through a nullable string alternative');
+		self::assertSame('#/components/schemas/JsonValue', $byType['array']['items']['$ref']);
+		self::assertSame('#/components/schemas/JsonValue', $byType['object']['additionalProperties']['$ref']);
+		self::assertArrayNotHasKey('additionalProperties', $byType['string']);
+	}
+
 	public function testExistingUnmodifiedOperationsRemainExposed(): void {
 		$spec = self::loadSpec('openapi-full.json');
 		foreach (['account-me', 'account-set-config', 'certificate_policy-get-certificate-policy'] as $operationId) {
