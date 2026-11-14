@@ -12278,8 +12278,34 @@
                                         "nullable": true,
                                         "default": null,
                                         "description": "Structured policy payload with request-level overrides and active context.",
-                                        "additionalProperties": {
-                                            "type": "object"
+                                        "properties": {
+                                            "overrides": {
+                                                "type": "object",
+                                                "additionalProperties": {
+                                                    "anyOf": [
+                                                        {
+                                                            "$ref": "#/components/schemas/EffectivePolicyValue"
+                                                        },
+                                                        {
+                                                            "type": "array",
+                                                            "items": {
+                                                                "$ref": "#/components/schemas/EffectivePolicyValue"
+                                                            }
+                                                        }
+                                                    ]
+                                                }
+                                            },
+                                            "activeContext": {
+                                                "type": "object",
+                                                "properties": {
+                                                    "type": {
+                                                        "type": "string"
+                                                    },
+                                                    "id": {
+                                                        "type": "string"
+                                                    }
+                                                }
+                                            }
                                         }
                                     }
                                 }
@@ -12477,8 +12503,34 @@
                                         "nullable": true,
                                         "default": null,
                                         "description": "Structured policy payload with request-level overrides and active context.",
-                                        "additionalProperties": {
-                                            "type": "object"
+                                        "properties": {
+                                            "overrides": {
+                                                "type": "object",
+                                                "additionalProperties": {
+                                                    "anyOf": [
+                                                        {
+                                                            "$ref": "#/components/schemas/EffectivePolicyValue"
+                                                        },
+                                                        {
+                                                            "type": "array",
+                                                            "items": {
+                                                                "$ref": "#/components/schemas/EffectivePolicyValue"
+                                                            }
+                                                        }
+                                                    ]
+                                                }
+                                            },
+                                            "activeContext": {
+                                                "type": "object",
+                                                "properties": {
+                                                    "type": {
+                                                        "type": "string"
+                                                    },
+                                                    "id": {
+                                                        "type": "string"
+                                                    }
+                                                }
+                                            }
                                         }
                                     },
                                     "name": {

@@ -5984,7 +5984,13 @@ export interface operations {
                      * @default null
                      */
                     policy?: {
-                        [key: string]: Record<string, never>;
+                        overrides?: {
+                            [key: string]: components["schemas"]["EffectivePolicyValue"] | components["schemas"]["EffectivePolicyValue"][];
+                        };
+                        activeContext?: {
+                            type?: string;
+                            id?: string;
+                        };
                     } | null;
                 };
             };
@@ -6080,7 +6086,13 @@ export interface operations {
                      * @default null
                      */
                     policy?: {
-                        [key: string]: Record<string, never>;
+                        overrides?: {
+                            [key: string]: components["schemas"]["EffectivePolicyValue"] | components["schemas"]["EffectivePolicyValue"][];
+                        };
+                        activeContext?: {
+                            type?: string;
+                            id?: string;
+                        };
                     } | null;
                     /**
                      * @description The name of file to sign
