@@ -40,18 +40,17 @@ final class Version19005Date20261109110000 extends SimpleMigrationStep {
 	public function preSchemaChange(IOutput $output, Closure $schemaClosure, array $options): void {
 		$schema = $schemaClosure();
 		if ($schema->hasTable('libresign_file') && $schema->getTable('libresign_file')->hasColumn('callback')) {
-			$this->backupFileCallbacks();
+			$this->backupFileCallbacks($output);
 		}
 
-		$this->backupLegacyWebhookUrl();
+		$this->backupLegacyWebhookUrl($output);
 	}
 
-	private function backupFileCallbacks(): void {
+	private function backupFileCallbacks(IOutput $output): void {
 		$query = $this->connection->getQueryBuilder();
 		$query->select('id', 'callback')
 			->from('libresign_file')
-			->where($query->expr()->isNotNull('callback'))
-			->andWhere($query->expr()->neq('callback', $query->createNamedParameter('')))
+			->where($query->expr()->nonEmptyString('callback'))
 			->orderBy('id');
 
 		$result = $query->executeQuery();
@@ -61,11 +60,11 @@ final class Version19005Date20261109110000 extends SimpleMigrationStep {
 				return;
 			}
 
-			$folder = $this->appData->getFolder('/');
-			$file = $folder->newFile(self::FILE_BACKUP);
-			$handle = $file->write();
-			if (!is_resource($handle)) {
-				throw new \RuntimeException('Could not open LibreSign callback backup for writing');
+			// Build the CSV before creating AppData, so CSV write failures cannot
+			// persist a partial backup and leave the migration free to drop data.
+			$handle = fopen('php://temp', 'w+');
+			if ($handle === false) {
+				throw new \RuntimeException('Could not open LibreSign callback backup buffer');
 			}
 
 			try {
@@ -78,17 +77,32 @@ final class Version19005Date20261109110000 extends SimpleMigrationStep {
 						throw new \RuntimeException('Could not write LibreSign callback backup row');
 					}
 				} while (($row = $result->fetchAssociative()) !== false);
-			} finally {
-				if (!fclose($handle)) {
-					throw new \RuntimeException('Could not close LibreSign callback backup');
+
+				$bytes = ftell($handle);
+				if ($bytes === false || !rewind($handle)) {
+					throw new \RuntimeException('Could not prepare LibreSign callback backup for storage');
 				}
+
+				// Supplying the populated resource writes synchronously. In contrast,
+				// newFile() without content defers persistence until stream close.
+				$folder = $this->appData->getFolder('/');
+				$file = $folder->newFile(self::FILE_BACKUP, $handle);
+				if ($file->getSize() != $bytes) {
+					throw new \RuntimeException('Could not verify LibreSign callback backup size');
+				}
+				$output->info(
+					'Legacy callback destinations saved to appdata_<instanceid>/libresign/'
+					. self::FILE_BACKUP . ' (may contain credentials; restrict access).',
+				);
+			} finally {
+				fclose($handle);
 			}
 		} finally {
 			$result->closeCursor();
 		}
 	}
 
-	private function backupLegacyWebhookUrl(): void {
+	private function backupLegacyWebhookUrl(IOutput $output): void {
 		if (!in_array('webhook_sign_url', $this->appConfig->getKeys(Application::APP_ID), true)) {
 			return;
 		}
@@ -98,10 +112,15 @@ final class Version19005Date20261109110000 extends SimpleMigrationStep {
 			return;
 		}
 
+		$content = json_encode(['webhook_sign_url' => $url], JSON_THROW_ON_ERROR | JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES);
 		$folder = $this->appData->getFolder('/');
-		$folder->newFile(
-			self::CONFIG_BACKUP,
-			json_encode(['webhook_sign_url' => $url], JSON_THROW_ON_ERROR | JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES),
+		$file = $folder->newFile(self::CONFIG_BACKUP, $content);
+		if ($file->getSize() != strlen($content)) {
+			throw new \RuntimeException('Could not verify LibreSign webhook URL backup size');
+		}
+		$output->info(
+			'Legacy webhook URL saved to appdata_<instanceid>/libresign/'
+			. self::CONFIG_BACKUP . ' (may contain credentials; restrict access).',
 		);
 	}
 
