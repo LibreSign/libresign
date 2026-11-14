@@ -159,6 +159,7 @@ class SignatureElementsController extends AEnvironmentAwareController implements
 	#[NoAdminRequired]
 	#[PublicPage]
 	#[NoCSRFRequired]
+	#[RequestHeader(name: 'libresign-sign-request-uuid', description: 'The UUID of the sign request, used to identify the request', indirect: true)]
 	#[RequireSignRequestUuid(skipIfAuthenticated: true)]
 	#[ApiRoute(verb: 'GET', url: '/api/{apiVersion}/signature/elements/preview/{nodeId}', requirements: ['apiVersion' => '(v1)'])]
 	public function getSignatureElementPreview(int $nodeId) {
@@ -239,6 +240,7 @@ class SignatureElementsController extends AEnvironmentAwareController implements
 	#[NoAdminRequired]
 	#[PublicPage]
 	#[NoCSRFRequired]
+	#[RequestHeader(name: 'libresign-sign-request-uuid', description: 'The UUID of the sign request, used to identify the request', indirect: true)]
 	#[RequireSignRequestUuid(skipIfAuthenticated: true)]
 	#[ApiRoute(verb: 'PATCH', url: '/api/{apiVersion}/signature/elements/{nodeId}', requirements: ['apiVersion' => '(v1)'])]
 	public function patchSignatureElement(int $nodeId, string $type = '', array $file = []): DataResponse {
@@ -295,6 +297,7 @@ class SignatureElementsController extends AEnvironmentAwareController implements
 	#[NoAdminRequired]
 	#[NoCSRFRequired]
 	#[PublicPage]
+	#[RequestHeader(name: 'libresign-sign-request-uuid', description: 'The UUID of the sign request, used to identify the request', indirect: true)]
 	#[RequireSignRequestUuid(skipIfAuthenticated: true)]
 	#[ApiRoute(verb: 'DELETE', url: '/api/{apiVersion}/signature/elements/{nodeId}', requirements: ['apiVersion' => '(v1)'])]
 	public function deleteSignatureElement(int $nodeId): DataResponse {
