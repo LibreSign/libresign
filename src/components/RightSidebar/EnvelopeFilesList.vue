@@ -512,6 +512,7 @@ function addFileToEnvelope() {
 		uploadStartTime.value = Date.now()
 
 		const formData = new FormData()
+		formData.append('expectedFilesCount', String(selectedFileList.length))
 		let aggregateSize = 0
 
 		for (const file of selectedFileList) {
