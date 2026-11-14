@@ -74,6 +74,7 @@ Feature: page/validate
 
   Scenario: Unauthenticated email signer can fetch PDF and gets controlled error after source deletion
     Given as user "admin"
+    And run the command "config:app:set activity notify_email_libresign_file_to_sign --value=1" with result code 0
     And sending "post" to ocs "/apps/libresign/api/v1/policies/system/identify_methods"
       | value | (string){"can_create_account":false,"factors":[{"name":"email","enabled":true,"requirement":"required","signatureMethods":{"clickToSign":{"enabled":true}}}]} |
     And my inbox is empty
