@@ -386,20 +386,12 @@ async function requestCode() {
 				signMethod: activeTokenMethod.value,
 			}
 
-		if (signStore.document.fileId) {
-			await axios.post(
-				generateOcsUrl('/apps/libresign/api/v1/sign/file_id/{fileId}/code', {
-					fileId: signStore.document.fileId,
-				}),
-				params,
-			)
-		} else {
-			// Same route/context decision as signing (Sign.vue).
-			const signRequestUuid = getSigningRouteUuid(signStore.document)
-			if (!signRequestUuid) {
-				throw new Error(t('libresign', 'Document not found'))
-			}
-			await axios.post(signStore.buildRequestCodeUrl(signRequestUuid), params)
+		// Resolve signer or approver context even when a fileId is available.
+		// Both verification code routes require a UUID in the signing middleware.
+		const signRequestUuid = getSigningRouteUuid(signStore.document)
+		if (!signRequestUuid) {
+			// TRANSLATORS Error when the document has no usable signing context.
+			throw new Error(t('libresign', 'Document not found'))
 		}
 		await axios.post(signStore.buildRequestCodeUrl(signRequestUuid), params)
 
