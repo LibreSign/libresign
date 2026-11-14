@@ -450,6 +450,15 @@ namespace OCA\Libresign;
  *
  * @psalm-type LibresignPolicyScope = 'system'|'group'|'user'
  * @psalm-type LibresignEffectivePolicyValue = null|bool|numeric|string|array<string, mixed>
+ * @psalm-type LibresignPolicyActiveContext = array{
+ *     type: 'group',
+ *     id: non-empty-string,
+ * }
+ * @psalm-type LibresignRequestPolicyOverrides = array<string, LibresignEffectivePolicyValue|list<LibresignEffectivePolicyValue>>
+ * @psalm-type LibresignRequestPolicy = array{
+ *     overrides?: LibresignRequestPolicyOverrides,
+ *     activeContext?: LibresignPolicyActiveContext,
+ * }
  * @psalm-type LibresignEffectivePolicyMeta = array{
  *     defaultSystemValue?: LibresignEffectivePolicyValue,
  *     appConfigKey?: string,

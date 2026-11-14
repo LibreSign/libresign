@@ -52,6 +52,7 @@ final class SignFileControllerTest extends TestCase {
 	private WorkerConfiguration&MockObject $workerConfiguration;
 	private AsyncSigningService&MockObject $asyncSigningService;
 	private SignatureRejectionService&MockObject $signatureRejectionService;
+	private SignerGeolocationMetadataValidator&MockObject $signerGeolocationMetadataValidator;
 
 	protected function setUp(): void {
 		$this->request = $this->createMock(IRequest::class);
@@ -67,6 +68,7 @@ final class SignFileControllerTest extends TestCase {
 		$this->workerConfiguration = $this->createMock(WorkerConfiguration::class);
 		$this->asyncSigningService = $this->createMock(AsyncSigningService::class);
 		$this->signatureRejectionService = $this->createMock(SignatureRejectionService::class);
+		$this->signerGeolocationMetadataValidator = $this->createMock(SignerGeolocationMetadataValidator::class);
 	}
 
 	public function testSignerCodeRequestAllowsOmittedOptionalMethods(): void {
@@ -102,7 +104,7 @@ final class SignFileControllerTest extends TestCase {
 			$this->workerConfiguration,
 			$this->asyncSigningService,
 			$this->createMock(RequestMetadataService::class),
-			$this->createMock(SignerGeolocationMetadataValidator::class),
+			$this->signerGeolocationMetadataValidator,
 			$this->createMock(SignerIpGeolocationPolicyService::class),
 			$this->createMock(SigningErrorHandler::class),
 			$this->signatureRejectionService,
@@ -347,6 +349,31 @@ final class SignFileControllerTest extends TestCase {
 		$this->signFileService->method('setVisibleElements')->willReturnSelf();
 		$this->signFileService->method('storeUserMetadata')->willReturnSelf();
 		return $signRequest;
+	}
+
+	public function testSigningNormalizesOmittedAndLegacyEmptyGeolocation(): void {
+		$this->prepareSigning();
+		$this->signerGeolocationMetadataValidator->expects($this->exactly(3))
+			->method('normalize')->with(null)->willReturn(null);
+		$controller = $this->getController();
+		$this->assertSame(Http::STATUS_OK, $controller->signBySignerUuid('signer-uuid', 'email')->getStatus());
+		$this->assertSame(Http::STATUS_OK, $controller->signBySignerUuid('signer-uuid', 'email', deviceGeolocation: [])->getStatus());
+		$this->assertSame(Http::STATUS_OK, $controller->signByFileId(3, 'email')->getStatus());
+	}
+
+	public function testSigningPreservesStructuredGeolocationForValidator(): void {
+		$this->prepareSigning();
+		$geolocation = ['status' => 'collected', 'latitude' => -23.5, 'longitude' => -46.6];
+		$this->signerGeolocationMetadataValidator->expects($this->once())
+			->method('normalize')->with($geolocation)->willReturn($geolocation);
+		$this->signerGeolocationMetadataValidator->expects($this->once())
+			->method('validateSubmission')
+			->with($this->isInstanceOf(SignRequest::class), $geolocation);
+		$this->assertSame(Http::STATUS_OK, $this->getController()->signBySignerUuid(
+			'signer-uuid',
+			'email',
+			deviceGeolocation: $geolocation,
+		)->getStatus());
 	}
 
 	public function testSigningWithoutConsentDoesNotSaveEmailSignature(): void {

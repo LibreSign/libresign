@@ -94,7 +94,7 @@ class SignFileController extends AEnvironmentAwareOCSController implements ISign
 	 * @param string $identifyValue Identify value
 	 * @param string $token Token, commonly send by email
 	 * @param bool $async Execute signing asynchronously when possible
-	 * @param LibresignSignerDeviceGeolocation|list<mixed> $deviceGeolocation Device-reported geolocation metadata, or an empty array when absent
+	 * @param LibresignSignerDeviceGeolocation|null $deviceGeolocation Optional device geolocation, omitted when absent; legacy [] is accepted
 	 * @return DataResponse<Http::STATUS_OK, LibresignSignActionResponse, array{}>|DataResponse<Http::STATUS_UNPROCESSABLE_ENTITY, LibresignSignActionErrorResponse, array{}>
 	 *
 	 * 200: OK
@@ -106,8 +106,8 @@ class SignFileController extends AEnvironmentAwareOCSController implements ISign
 	#[PublicPage]
 	#[OpenAPI(tags: ['signing'])]
 	#[ApiRoute(verb: 'POST', url: '/api/{apiVersion}/sign/file_id/{fileId}', requirements: ['apiVersion' => '(v1)'])]
-	public function signByFileId(int $fileId, string $method, array $elements = [], string $identifyValue = '', string $token = '', bool $async = false, array $deviceGeolocation = []): DataResponse {
-		return $this->sign($method, $elements, $identifyValue, $token, $fileId, null, $async, $deviceGeolocation);
+	public function signByFileId(int $fileId, string $method, array $elements = [], string $identifyValue = '', string $token = '', bool $async = false, ?array $deviceGeolocation = null): DataResponse {
+		return $this->sign($method, $elements, $identifyValue, $token, $fileId, null, $async, $deviceGeolocation ?? []);
 	}
 
 	/**
@@ -119,7 +119,7 @@ class SignFileController extends AEnvironmentAwareOCSController implements ISign
 	 * @param string $identifyValue Identify value
 	 * @param string $token Token, commonly send by email
 	 * @param bool $async Execute signing asynchronously when possible
-	 * @param LibresignSignerDeviceGeolocation|list<mixed> $deviceGeolocation Device-reported geolocation metadata, or an empty array when absent
+	 * @param LibresignSignerDeviceGeolocation|null $deviceGeolocation Optional device geolocation, omitted when absent; legacy [] is accepted
 	 * @param bool $saveSignature Explicitly save the external email signer's visible signature for future documents
 	 * @return DataResponse<Http::STATUS_OK, LibresignSignActionResponse, array{}>|DataResponse<Http::STATUS_UNPROCESSABLE_ENTITY, LibresignSignActionErrorResponse, array{}>
 	 *
@@ -132,8 +132,8 @@ class SignFileController extends AEnvironmentAwareOCSController implements ISign
 	#[PublicPage]
 	#[OpenAPI(tags: ['signing'])]
 	#[ApiRoute(verb: 'POST', url: '/api/{apiVersion}/sign/uuid/{uuid}', requirements: ['apiVersion' => '(v1)'])]
-	public function signBySignerUuid(string $uuid, string $method, array $elements = [], string $identifyValue = '', string $token = '', bool $async = false, array $deviceGeolocation = [], bool $saveSignature = false): DataResponse {
-		return $this->sign($method, $elements, $identifyValue, $token, null, $uuid, $async, $deviceGeolocation, $saveSignature);
+	public function signBySignerUuid(string $uuid, string $method, array $elements = [], string $identifyValue = '', string $token = '', bool $async = false, ?array $deviceGeolocation = null, bool $saveSignature = false): DataResponse {
+		return $this->sign($method, $elements, $identifyValue, $token, null, $uuid, $async, $deviceGeolocation ?? [], $saveSignature);
 	}
 
 	/**
@@ -449,7 +449,7 @@ class SignFileController extends AEnvironmentAwareOCSController implements ISign
 	 * @param string $uuid UUID of LibreSign file
 	 * @param string|null $identifyMethod Configured signer identification method (for example account, email or sms); omitted methods remain subject to service validation
 	 * @param string|null $signMethod Method used to sign the document, i.e. emailToken, account, clickToSign, smsToken, signalToken, telegramToken, whatsappToken, xmppToken
-	 * @param 'true'|null $idDocApproval Literal string "true" when the UUID is an identification-document file UUID (matches middleware RequireSigner)
+	 * @param string|null $idDocApproval Only the string "true" selects an identification-document file UUID (matches middleware RequireSigner); other values use the signer UUID lookup
 	 * @return DataResponse<Http::STATUS_OK, LibresignMessageResponse, array{}>|DataResponse<Http::STATUS_UNPROCESSABLE_ENTITY, LibresignMessageResponse, array{}>
 	 *
 	 * 200: OK

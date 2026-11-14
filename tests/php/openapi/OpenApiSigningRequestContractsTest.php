@@ -64,11 +64,10 @@ final class OpenApiSigningRequestContractsTest extends TestCase {
 	public function testSigningGeolocationHasTypedStatusAndOptionalFields(string $operationId): void {
 		$spec = self::loadSpec('openapi-full.json');
 		$geolocation = self::requestProperty($spec, $operationId, 'deviceGeolocation');
-		self::assertSame([], $geolocation['default']);
-		self::assertSame([
-			['$ref' => '#/components/schemas/SignerDeviceGeolocation'],
-			['type' => 'array', 'items' => ['type' => 'object']],
-		], $geolocation['anyOf']);
+		self::assertNull($geolocation['default']);
+		self::assertTrue($geolocation['nullable']);
+		self::assertSame([['$ref' => '#/components/schemas/SignerDeviceGeolocation']], $geolocation['allOf']);
+		self::assertArrayNotHasKey('anyOf', $geolocation);
 		$device = $spec['components']['schemas']['SignerDeviceGeolocation'];
 		self::assertSame(['status'], $device['required']);
 		self::assertSame('#/components/schemas/GeolocationCollectionStatus', $device['properties']['status']['$ref']);
@@ -114,24 +113,23 @@ final class OpenApiSigningRequestContractsTest extends TestCase {
 	public function testRequestPolicyReflectsOverridesAndActiveContext(string $operationId): void {
 		$spec = self::loadSpec('openapi-full.json');
 		$policy = self::requestProperty($spec, $operationId, 'policy');
-		self::assertSame('object', $policy['type']);
 		self::assertTrue($policy['nullable']);
 		self::assertNull($policy['default']);
-		self::assertArrayNotHasKey('required', $policy);
-
-		$overrides = $policy['properties']['overrides'];
+		self::assertSame([['$ref' => '#/components/schemas/RequestPolicy']], $policy['allOf']);
+		$request = $spec['components']['schemas']['RequestPolicy'];
+		self::assertSame('object', $request['type']);
+		self::assertArrayNotHasKey('required', $request);
+		self::assertSame('#/components/schemas/RequestPolicyOverrides', $request['properties']['overrides']['$ref']);
+		self::assertSame('#/components/schemas/PolicyActiveContext', $request['properties']['activeContext']['$ref']);
+		$overrides = $spec['components']['schemas']['RequestPolicyOverrides'];
 		self::assertSame('object', $overrides['type']);
-		$allowedValues = $overrides['additionalProperties'];
-		$branches = $allowedValues['oneOf'] ?? $allowedValues['anyOf'] ?? [];
-		self::assertNotEmpty($branches);
+		$branches = $overrides['additionalProperties']['anyOf'];
 		self::assertContains('#/components/schemas/EffectivePolicyValue', array_column($branches, '$ref'));
 		self::assertContains('array', array_column($branches, 'type'));
-
-		$activeContext = $policy['properties']['activeContext'];
-		self::assertSame('object', $activeContext['type']);
-		self::assertSame('string', $activeContext['properties']['type']['type']);
-		self::assertSame('string', $activeContext['properties']['id']['type']);
-		self::assertArrayNotHasKey('required', $activeContext);
+		$activeContext = $spec['components']['schemas']['PolicyActiveContext'];
+		self::assertSame(['type', 'id'], $activeContext['required']);
+		self::assertSame(['group'], $activeContext['properties']['type']['enum']);
+		self::assertSame(1, $activeContext['properties']['id']['minLength']);
 	}
 
 	/** @return array<string, array{string}> */
@@ -158,6 +156,15 @@ final class OpenApiSigningRequestContractsTest extends TestCase {
 		self::assertSame('string', $signMethod['type']);
 		self::assertTrue($signMethod['nullable']);
 		self::assertNull($signMethod['default']);
+	}
+
+	public function testIdDocApprovalIsAnOptionalStringRatherThanNullableEnum(): void {
+		$spec = self::loadSpec('openapi-full.json');
+		$flag = self::requestProperty($spec, 'sign_file-request-code-by-signer-uuid', 'idDocApproval');
+		self::assertSame('string', $flag['type']);
+		self::assertTrue($flag['nullable']);
+		self::assertNull($flag['default']);
+		self::assertArrayNotHasKey('enum', $flag);
 	}
 
 	public function testExistingUnmodifiedOperationsRemainExposed(): void {
