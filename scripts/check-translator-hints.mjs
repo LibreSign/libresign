@@ -34,14 +34,50 @@ export function findAmbiguousTranslatorLines(source) {
 	return badLines
 }
 
+const translatorHint = /^\s*(?:\/\/|#|<!--|\/\*+|\*)\s*TRANSLATORS\b(.*)$/
+
+/**
+ * Detect the LibreSign convention: colonless and one hint per translation.
+ *
+ * @param {string} source
+ * @return {{ line: number, message: string }[]}
+ */
+export function findTranslatorHintProblems(source) {
+	const problems = []
+	let previousWasHint = false
+	const lines = source.split(/\r?\n/)
+	for (let index = 0; index < lines.length; index++) {
+		const line = lines[index]
+		const hint = line.match(translatorHint)
+		if (!hint) {
+			if (line.trim()) {
+				previousWasHint = false
+			}
+			continue
+		}
+		if (/^\s*:/.test(hint[1])) {
+			problems.push({ line: index + 1, message: 'Use TRANSLATORS without a colon.' })
+		}
+		if (previousWasHint) {
+			problems.push({ line: index + 1, message: 'Use only one TRANSLATORS hint for a translation.' })
+		}
+		previousWasHint = true
+	}
+	return problems
+}
+
 export function checkTrackedSourceFiles() {
-	const files = execFileSync('git', ['ls-files', '-z', '--', 'src'], { encoding: 'utf8' })
+	const files = execFileSync('git', ['ls-files', '-z', '--', 'src', 'lib', 'appinfo', 'tests', 'scripts'], { encoding: 'utf8' })
 		.split('\0')
-		.filter(path => /\.(?:vue|js|ts)$/.test(path) && !path.startsWith('src/types/openapi/'))
+		.filter(path => /\.(?:vue|js|mjs|ts|php)$/.test(path) && !path.startsWith('src/types/openapi/') && !path.startsWith('scripts/tests/'))
 	const errors = []
 	for (const file of files) {
-		for (const line of findAmbiguousTranslatorLines(readFileSync(file, 'utf8'))) {
+		const content = readFileSync(file, 'utf8')
+		for (const line of findAmbiguousTranslatorLines(content)) {
 			errors.push(`${file}:${line}: multiple t()/n() calls on one line; split the calls and add separate TRANSLATORS hints.`)
+		}
+		for (const problem of findTranslatorHintProblems(content)) {
+			errors.push(`${file}:${problem.line}: ${problem.message}`)
 		}
 	}
 	return errors

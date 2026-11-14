@@ -74,12 +74,13 @@ and [writing guide](https://docs.nextcloud.com/server/stable/developer_manual/de
 - Keep each complete user-facing message inside its own `t()` or `n()` call.
   Do not concatenate translated fragments or put two translation calls on the same
   physical source line. When choosing between messages, use separate branches,
-  each with its own translation call and context hint.
+  each with its own translation call and context hint. Do not repeat a hint
+  multiple times immediately before one translation call.
 - Add a factual `TRANSLATORS` hint for ambiguous terms, placeholders, and
   workflow-specific actions. Place it directly before the corresponding call:
-  `// TRANSLATORS ...` in scripts, or `<!-- TRANSLATORS: ... -->` before the
-  translated element in Vue templates. Nextcloud accepts both
-  `TRANSLATORS` and `TRANSLATORS:`; the colon is not the issue.
+  `// TRANSLATORS ...` in scripts, or `<!-- TRANSLATORS ... -->` before the
+  translated element in Vue templates. Although Nextcloud accepts an optional
+  colon, LibreSign consistently omits the colon after `TRANSLATORS`.
 - Put hints on the actual `t()` calls, not on template references such as
   `{{ actionLabel }}`, whose translations are defined elsewhere.
 - Do not edit generated translations under `l10n/`; they are synchronized.
