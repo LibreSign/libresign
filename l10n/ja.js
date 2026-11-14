@@ -116,6 +116,8 @@ OC.L10N.register(
     "Delete file" : "ファイルを削除",
     "Delete certificate" : "証明書を削除する",
     "Change password" : "パスワードを変更",
+    "Delete {type}" : "{type}を削除",
+    "Edit {type}" : "{type}を編集",
     "Signature" : "署名",
     "Profile picture" : "プロフィール画像",
     "Your password must be greater than 4 digits" : "パスワードは4桁以上である必要があります",
