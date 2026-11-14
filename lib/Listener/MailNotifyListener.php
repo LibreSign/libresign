@@ -67,29 +67,6 @@ class MailNotifyListener implements IEventListener {
 			if ($email === null) {
 				return;
 			}
-			$email = '';
-			if ($identifyMethod->getName() === 'account') {
-				$userId = $identifyMethod->getEntity()->getIdentifierValue();
-				$email = $this->userManager
-					->get($userId)
-					->getEMailAddress();
-			} elseif ($identifyMethod->getName() === 'email') {
-				$email = $identifyMethod->getEntity()->getIdentifierValue();
-			}
-			if (empty($email)) {
-				return;
-			}
-
-			if ($identifyMethod->getName() === 'account') {
-				$users = $this->userManager->getByEmail($email);
-				if (count($users) === 1 && $this->notificationPreferenceResolver->isEmailNotificationDisabled(
-					$users[0]->getUID(),
-					SendSignNotificationEvent::FILE_TO_SIGN,
-					true,
-				)) {
-					return;
-				}
-			}
 
 			$isFirstNotification = $this->signRequestMapper->incrementNotificationCounter($signRequest, 'mail');
 			if ($isFirstNotification) {
@@ -147,29 +124,6 @@ class MailNotifyListener implements IEventListener {
 			$email = $this->resolveEligibleRecipientEmail($identifyMethod, SignRequestCanceledEvent::SIGN_REQUEST_CANCELED);
 			if ($email === null) {
 				return;
-			}
-
-			$email = '';
-			if ($identifyMethod->getName() === 'account') {
-				$userId = $identifyMethod->getEntity()->getIdentifierValue();
-				$user = $this->userManager->get($userId);
-				if ($user) {
-					$email = $user->getEMailAddress();
-				}
-			} elseif ($identifyMethod->getName() === 'email') {
-				$email = $identifyMethod->getEntity()->getIdentifierValue();
-			}
-
-			if (empty($email)) {
-				return;
-			}
-
-			$users = $this->userManager->getByEmail($email);
-			if (count($users) === 1) {
-				$userId = $users[0]->getUID();
-				if ($this->notificationPreferenceResolver->isEmailNotificationDisabled($userId, SignRequestCanceledEvent::SIGN_REQUEST_CANCELED, true)) {
-					return;
-				}
 			}
 
 			$this->mail->notifyCanceledRequest($signRequest, $email, $libreSignFile);
