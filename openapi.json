@@ -1853,6 +1853,25 @@
                     "observer"
                 ]
             },
+            "PolicyActiveContext": {
+                "type": "object",
+                "required": [
+                    "type",
+                    "id"
+                ],
+                "properties": {
+                    "type": {
+                        "type": "string",
+                        "enum": [
+                            "group"
+                        ]
+                    },
+                    "id": {
+                        "type": "string",
+                        "minLength": 1
+                    }
+                }
+            },
             "PolicyScope": {
                 "type": "string",
                 "enum": [
@@ -2320,6 +2339,33 @@
                     "libresign": {
                         "$ref": "#/components/schemas/Capabilities"
                     }
+                }
+            },
+            "RequestPolicy": {
+                "type": "object",
+                "properties": {
+                    "overrides": {
+                        "$ref": "#/components/schemas/RequestPolicyOverrides"
+                    },
+                    "activeContext": {
+                        "$ref": "#/components/schemas/PolicyActiveContext"
+                    }
+                }
+            },
+            "RequestPolicyOverrides": {
+                "type": "object",
+                "additionalProperties": {
+                    "anyOf": [
+                        {
+                            "$ref": "#/components/schemas/EffectivePolicyValue"
+                        },
+                        {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/components/schemas/EffectivePolicyValue"
+                            }
+                        }
+                    ]
                 }
             },
             "RequestedBy": {
@@ -11537,39 +11583,14 @@
                                         "description": "Numeric code of status * 0 - no signers * 1 - signed * 2 - pending"
                                     },
                                     "policy": {
-                                        "type": "object",
                                         "nullable": true,
                                         "default": null,
                                         "description": "Structured policy payload with request-level overrides and active context.",
-                                        "properties": {
-                                            "overrides": {
-                                                "type": "object",
-                                                "additionalProperties": {
-                                                    "anyOf": [
-                                                        {
-                                                            "$ref": "#/components/schemas/EffectivePolicyValue"
-                                                        },
-                                                        {
-                                                            "type": "array",
-                                                            "items": {
-                                                                "$ref": "#/components/schemas/EffectivePolicyValue"
-                                                            }
-                                                        }
-                                                    ]
-                                                }
-                                            },
-                                            "activeContext": {
-                                                "type": "object",
-                                                "properties": {
-                                                    "type": {
-                                                        "type": "string"
-                                                    },
-                                                    "id": {
-                                                        "type": "string"
-                                                    }
-                                                }
+                                        "allOf": [
+                                            {
+                                                "$ref": "#/components/schemas/RequestPolicy"
                                             }
-                                        }
+                                        ]
                                     }
                                 }
                             }
@@ -11762,39 +11783,14 @@
                                         "description": "Numeric code of status * 0 - no signers * 1 - signed * 2 - pending"
                                     },
                                     "policy": {
-                                        "type": "object",
                                         "nullable": true,
                                         "default": null,
                                         "description": "Structured policy payload with request-level overrides and active context.",
-                                        "properties": {
-                                            "overrides": {
-                                                "type": "object",
-                                                "additionalProperties": {
-                                                    "anyOf": [
-                                                        {
-                                                            "$ref": "#/components/schemas/EffectivePolicyValue"
-                                                        },
-                                                        {
-                                                            "type": "array",
-                                                            "items": {
-                                                                "$ref": "#/components/schemas/EffectivePolicyValue"
-                                                            }
-                                                        }
-                                                    ]
-                                                }
-                                            },
-                                            "activeContext": {
-                                                "type": "object",
-                                                "properties": {
-                                                    "type": {
-                                                        "type": "string"
-                                                    },
-                                                    "id": {
-                                                        "type": "string"
-                                                    }
-                                                }
+                                        "allOf": [
+                                            {
+                                                "$ref": "#/components/schemas/RequestPolicy"
                                             }
-                                        }
+                                        ]
                                     },
                                     "name": {
                                         "type": "string",
@@ -12343,17 +12339,12 @@
                                         "description": "Execute signing asynchronously when possible"
                                     },
                                     "deviceGeolocation": {
-                                        "default": [],
-                                        "description": "Device-reported geolocation metadata, or an empty array when absent",
-                                        "anyOf": [
+                                        "nullable": true,
+                                        "default": null,
+                                        "description": "Optional device geolocation, omitted when absent; legacy [] is accepted",
+                                        "allOf": [
                                             {
                                                 "$ref": "#/components/schemas/SignerDeviceGeolocation"
-                                            },
-                                            {
-                                                "type": "array",
-                                                "items": {
-                                                    "type": "object"
-                                                }
                                             }
                                         ]
                                     }
@@ -12514,17 +12505,12 @@
                                         "description": "Execute signing asynchronously when possible"
                                     },
                                     "deviceGeolocation": {
-                                        "default": [],
-                                        "description": "Device-reported geolocation metadata, or an empty array when absent",
-                                        "anyOf": [
+                                        "nullable": true,
+                                        "default": null,
+                                        "description": "Optional device geolocation, omitted when absent; legacy [] is accepted",
+                                        "allOf": [
                                             {
                                                 "$ref": "#/components/schemas/SignerDeviceGeolocation"
-                                            },
-                                            {
-                                                "type": "array",
-                                                "items": {
-                                                    "type": "object"
-                                                }
                                             }
                                         ]
                                     },
@@ -13063,10 +13049,7 @@
                                         "type": "string",
                                         "nullable": true,
                                         "default": null,
-                                        "enum": [
-                                            "true"
-                                        ],
-                                        "description": "Literal string \"true\" when the UUID is an identification-document file UUID (matches middleware RequireSigner)"
+                                        "description": "Only the string \"true\" selects an identification-document file UUID (matches middleware RequireSigner); other values use the signer UUID lookup"
                                     }
                                 }
                             }

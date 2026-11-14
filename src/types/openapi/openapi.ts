@@ -1518,6 +1518,11 @@ export type components = {
         };
         /** @enum {string} */
         ParticipantRole: "signer" | "observer";
+        PolicyActiveContext: {
+            /** @enum {string} */
+            type: "group";
+            id: string;
+        };
         /** @enum {string} */
         PolicyScope: "system" | "group" | "user";
         PolicySnapshotBooleanEntry: {
@@ -1653,6 +1658,13 @@ export type components = {
         };
         PublicCapabilities: {
             libresign?: components["schemas"]["Capabilities"];
+        };
+        RequestPolicy: {
+            overrides?: components["schemas"]["RequestPolicyOverrides"];
+            activeContext?: components["schemas"]["PolicyActiveContext"];
+        };
+        RequestPolicyOverrides: {
+            [key: string]: components["schemas"]["EffectivePolicyValue"] | components["schemas"]["EffectivePolicyValue"][];
         };
         RequestedBy: {
             userId: string;
@@ -5421,15 +5433,7 @@ export interface operations {
                      * @description Structured policy payload with request-level overrides and active context.
                      * @default null
                      */
-                    policy?: {
-                        overrides?: {
-                            [key: string]: components["schemas"]["EffectivePolicyValue"] | components["schemas"]["EffectivePolicyValue"][];
-                        };
-                        activeContext?: {
-                            type?: string;
-                            id?: string;
-                        };
-                    } | null;
+                    policy?: components["schemas"]["RequestPolicy"] | null;
                 };
             };
         };
@@ -5523,15 +5527,7 @@ export interface operations {
                      * @description Structured policy payload with request-level overrides and active context.
                      * @default null
                      */
-                    policy?: {
-                        overrides?: {
-                            [key: string]: components["schemas"]["EffectivePolicyValue"] | components["schemas"]["EffectivePolicyValue"][];
-                        };
-                        activeContext?: {
-                            type?: string;
-                            id?: string;
-                        };
-                    } | null;
+                    policy?: components["schemas"]["RequestPolicy"] | null;
                     /**
                      * @description The name of file to sign
                      * @default null
@@ -5702,10 +5698,10 @@ export interface operations {
                      */
                     async?: boolean;
                     /**
-                     * @description Device-reported geolocation metadata, or an empty array when absent
-                     * @default []
+                     * @description Optional device geolocation, omitted when absent; legacy [] is accepted
+                     * @default null
                      */
-                    deviceGeolocation?: components["schemas"]["SignerDeviceGeolocation"] | Record<string, never>[];
+                    deviceGeolocation?: components["schemas"]["SignerDeviceGeolocation"] | null;
                 };
             };
         };
@@ -5845,10 +5841,10 @@ export interface operations {
                      */
                     async?: boolean;
                     /**
-                     * @description Device-reported geolocation metadata, or an empty array when absent
-                     * @default []
+                     * @description Optional device geolocation, omitted when absent; legacy [] is accepted
+                     * @default null
                      */
-                    deviceGeolocation?: components["schemas"]["SignerDeviceGeolocation"] | Record<string, never>[];
+                    deviceGeolocation?: components["schemas"]["SignerDeviceGeolocation"] | null;
                     /**
                      * @description Explicitly save the external email signer's visible signature for future documents
                      * @default false
@@ -6085,11 +6081,10 @@ export interface operations {
                      */
                     signMethod?: string | null;
                     /**
-                     * @description Literal string "true" when the UUID is an identification-document file UUID (matches middleware RequireSigner)
+                     * @description Only the string "true" selects an identification-document file UUID (matches middleware RequireSigner); other values use the signer UUID lookup
                      * @default null
-                     * @enum {string|null}
                      */
-                    idDocApproval?: "true" | null;
+                    idDocApproval?: string | null;
                 };
             };
         };
