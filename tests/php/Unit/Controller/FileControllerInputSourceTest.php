@@ -101,7 +101,14 @@ final class FileControllerInputSourceTest extends TestCase {
 		$controller = $this->controller();
 		$result = (new ReflectionMethod(FileController::class, 'prepareFilesForSaving'))
 			->invoke($controller, $file, $files, [], $singleUpload, $batchUpload);
-		self::assertSame($expected, $result);
+		// PHP file entries are associative maps: key insertion order is not contractual.
+		$sortUploadKeys = static function (array $entry): array {
+			if (isset($entry['uploadedFile'])) {
+				ksort($entry['uploadedFile']);
+			}
+			return $entry;
+		};
+		self::assertSame(array_map($sortUploadKeys, $expected), array_map($sortUploadKeys, $result));
 	}
 
 	#[DataProvider('conflictingInputs')]
