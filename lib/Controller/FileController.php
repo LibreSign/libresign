@@ -587,6 +587,7 @@ class FileController extends AEnvironmentAwareController {
 	): DataResponse {
 		try {
 			$this->validateHelper->canRequestSign($this->userSession->getUser());
+			$this->assertExclusiveFileInputSources($file, $files, $this->request->getUploadedFile('file'), $this->request->getUploadedFile('files'));
 
 			$uploadedFiles = $this->request->getUploadedFile('files') ?: $this->request->getUploadedFile('file');
 			$normalizedFiles = $this->prepareFilesForSaving($file, $files, $settings, $uploadedFiles);
@@ -816,6 +817,18 @@ class FileController extends AEnvironmentAwareController {
 		}
 
 		return $filesArray;
+	}
+
+	/**
+	 * Reject ambiguous request payloads before processing the uploaded files.
+	 */
+	private function assertExclusiveFileInputSources(array $file, array $files, ?array $singleUploadedFile, ?array $multipleUploadedFiles): void {
+		if (($file && $files)
+			|| ($singleUploadedFile && $multipleUploadedFiles)
+			|| (($file || $files) && ($singleUploadedFile || $multipleUploadedFiles))) {
+			// TRANSLATORS Error shown when a file upload mixes mutually exclusive input formats.
+			throw new LibresignException($this->l10n->t('Use only one file input format per request'));
+		}
 	}
 
 	/**
