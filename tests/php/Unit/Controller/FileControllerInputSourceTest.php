@@ -96,8 +96,10 @@ final class FileControllerInputSourceTest extends TestCase {
 	#[DataProvider('acceptedInputs')]
 	public function testAcceptsOneFileInputSource(array $file, array $files, ?array $singleUpload, ?array $batchUpload, array $expected): void {
 		$controller = $this->controller();
+		(new ReflectionMethod(FileController::class, 'assertExclusiveFileInputSources'))
+			->invoke($controller, $file, $files, $singleUpload, $batchUpload);
 		$result = (new ReflectionMethod(FileController::class, 'prepareFilesForSaving'))
-			->invoke($controller, $file, $files, [], $singleUpload, $batchUpload);
+			->invoke($controller, $file, $files, [], $batchUpload ?: $singleUpload);
 		// PHP file entries are associative maps: key insertion order is not contractual.
 		$sortUploadKeys = static function (array $entry): array {
 			if (isset($entry['uploadedFile'])) {
@@ -113,8 +115,8 @@ final class FileControllerInputSourceTest extends TestCase {
 		$controller = $this->controller();
 		$this->expectException(LibresignException::class);
 		$this->expectExceptionMessage('Use only one file input format per request');
-		(new ReflectionMethod(FileController::class, 'prepareFilesForSaving'))
-			->invoke($controller, $file, $files, [], $singleUpload, $batchUpload);
+		(new ReflectionMethod(FileController::class, 'assertExclusiveFileInputSources'))
+			->invoke($controller, $file, $files, $singleUpload, $batchUpload);
 	}
 
 	public function testConflictingMultipartInputReturns422WithoutSaving(): void {
