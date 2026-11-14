@@ -527,7 +527,7 @@ class SignFileController extends AEnvironmentAwareOCSController implements ISign
 
 	private function isIdentificationDocumentApproval(?string $idDocApproval = null): bool {
 		return $idDocApproval === 'true' || $this->request->getParam('idDocApproval') === 'true';
-}
+	}
 
 	/**
 	 * @todo validate if can request code
