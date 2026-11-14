@@ -3,7 +3,7 @@
     "info": {
         "title": "libresign",
         "version": "0.0.1",
-        "description": "Control document signing workflows inside Nextcloud",
+        "description": "Sign documents and manage signing workflows",
         "license": {
             "name": "agpl"
         }
@@ -4776,7 +4776,7 @@
             "post": {
                 "operationId": "file-save",
                 "summary": "Send a file",
-                "description": "Send a new file to Nextcloud and return the fileId to request signature. File references can be sent as JSON using 'file' (single) or 'files' (list). Binary files use multipart/form-data: 'file' for one file, 'files[]' for several; the legacy 'file[]' field is also accepted. Do not combine these input forms.\n**Note on multiple file uploads:** PHP has a limit on the number of files that can be uploaded in a single request (max_file_uploads directive, default 20). When uploading many files (more than 20), consider uploading them sequentially in multiple requests or use individual file uploads like the Files app does.",
+                "description": "Send a new file to Nextcloud and return the fileId to request signature. Files must be uploaded as multipart/form-data with field name 'file[]' or 'files[]'. Multipart clients can send optional expectedFilesCount to reject incomplete batches.\n**Note on multiple file uploads:** PHP has a limit on the number of files that can be uploaded in a single request (max_file_uploads directive, default 20). When uploading many files (more than 20), consider uploading them sequentially in multiple requests or use individual file uploads like the Files app does.",
                 "tags": [
                     "file"
                 ],
@@ -4915,7 +4915,7 @@
             "post": {
                 "operationId": "file-add-file-to-envelope",
                 "summary": "Add file to envelope",
-                "description": "Add one or more files to an existing envelope that is in DRAFT status. Files must be uploaded as multipart/form-data with field name 'files[]'.",
+                "description": "Add one or more files to an existing envelope that is in DRAFT status. Files must be uploaded as multipart/form-data with field name 'files[]'. Multipart clients can send optional expectedFilesCount to reject incomplete batches.",
                 "tags": [
                     "file"
                 ],
