@@ -198,14 +198,11 @@ class MailNotifyListener implements IEventListener {
 			return null;
 		}
 
-		// Email-identified invitations ignore a matching account's personal opt-out,
-		// but still honour the administrator's policy. Cancellations retain the
-		// linked account's preference when its email address uniquely matches.
 		$disabled = match ($notificationType) {
-			SendSignNotificationEvent::FILE_TO_SIGN =>
-				$this->notificationPreferenceResolver->isEmailNotificationGloballyDisabled($notificationType),
-			SignRequestCanceledEvent::SIGN_REQUEST_CANCELED =>
-				$this->isEmailCancellationDisabled($email),
+			SendSignNotificationEvent::FILE_TO_SIGN
+				=> $this->notificationPreferenceResolver->isEmailNotificationGloballyDisabled($notificationType),
+			SignRequestCanceledEvent::SIGN_REQUEST_CANCELED
+				=> $this->isCancellationDisabledForUniqueLinkedAccount($email),
 			default => true,
 		};
 
@@ -228,9 +225,13 @@ class MailNotifyListener implements IEventListener {
 		return $email;
 	}
 
-	private function isEmailCancellationDisabled(string $email): bool {
+	private function isCancellationDisabledForUniqueLinkedAccount(string $email): bool {
 		$users = $this->userManager->getByEmail($email);
-		return count($users) === 1 && $this->notificationPreferenceResolver->isEmailNotificationDisabled(
+		if (count($users) !== 1) {
+			return false;
+		}
+
+		return $this->notificationPreferenceResolver->isEmailNotificationDisabled(
 			$users[0]->getUID(),
 			SignRequestCanceledEvent::SIGN_REQUEST_CANCELED,
 			true,
