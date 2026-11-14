@@ -500,7 +500,7 @@ export type components = {
             everyoneCount: number;
         };
         EffectivePolicyValue: (boolean | number | string | {
-            [key: string]: Record<string, never>;
+            [key: string]: unknown;
         }) | null;
         EngineHandler: {
             configPath: string;
@@ -2017,9 +2017,7 @@ export interface operations {
                      * @default {}
                      */
                     values?: {
-                        [key: string]: (boolean | number | string | {
-                            [key: string]: Record<string, never>;
-                        }) | null;
+                        [key: string]: components["schemas"]["EffectivePolicyValue"];
                     };
                     /**
                      * @description Whether lower layers may override each saved value, keyed by policy identifier.

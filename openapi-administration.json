@@ -582,9 +582,7 @@
                     },
                     {
                         "type": "object",
-                        "additionalProperties": {
-                            "type": "object"
-                        }
+                        "additionalProperties": true
                     }
                 ]
             },
@@ -3978,8 +3976,12 @@
                                 ],
                                 "properties": {
                                     "value": {
-                                        "$ref": "#/components/schemas/EffectivePolicyValue",
-                                        "description": "Policy value to persist as an explicit system rule, even when it equals the default. Null removes the explicit system rule: the built-in default applies and lower layers may override it."
+                                        "description": "Policy value to persist as an explicit system rule, even when it equals the default. Null removes the explicit system rule: the built-in default applies and lower layers may override it.",
+                                        "allOf": [
+                                            {
+                                                "$ref": "#/components/schemas/EffectivePolicyValue"
+                                            }
+                                        ]
                                     },
                                     "allowChildOverride": {
                                         "type": "boolean",
@@ -4173,29 +4175,7 @@
                                         "default": {},
                                         "description": "Values to persist, keyed by policy identifier, each as an explicit system rule even when it equals the default. Null removes the explicit system rule of that policy: the built-in default applies and lower layers may override it.",
                                         "additionalProperties": {
-                                            "nullable": true,
-                                            "anyOf": [
-                                                {
-                                                    "type": "boolean"
-                                                },
-                                                {
-                                                    "type": "integer",
-                                                    "format": "int64"
-                                                },
-                                                {
-                                                    "type": "number",
-                                                    "format": "double"
-                                                },
-                                                {
-                                                    "type": "string"
-                                                },
-                                                {
-                                                    "type": "object",
-                                                    "additionalProperties": {
-                                                        "type": "object"
-                                                    }
-                                                }
-                                            ]
+                                            "$ref": "#/components/schemas/EffectivePolicyValue"
                                         }
                                     },
                                     "allowChildOverride": {

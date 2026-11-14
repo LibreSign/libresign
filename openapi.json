@@ -816,9 +816,7 @@
                     },
                     {
                         "type": "object",
-                        "additionalProperties": {
-                            "type": "object"
-                        }
+                        "additionalProperties": true
                     }
                 ]
             },
@@ -6091,9 +6089,12 @@
                                 "type": "object",
                                 "properties": {
                                     "file": {
-                                        "$ref": "#/components/schemas/NewFile",
-                                        "default": [],
-                                        "description": "File to save"
+                                        "description": "File to save",
+                                        "allOf": [
+                                            {
+                                                "$ref": "#/components/schemas/NewFile"
+                                            }
+                                        ]
                                     },
                                     "name": {
                                         "type": "string",
@@ -6101,9 +6102,12 @@
                                         "description": "The name of file to sign"
                                     },
                                     "settings": {
-                                        "$ref": "#/components/schemas/FolderSettings",
-                                        "default": [],
-                                        "description": "Settings to define how and where the file should be stored"
+                                        "description": "Settings to define how and where the file should be stored",
+                                        "allOf": [
+                                            {
+                                                "$ref": "#/components/schemas/FolderSettings"
+                                            }
+                                        ]
                                     },
                                     "files": {
                                         "type": "array",
@@ -6669,9 +6673,12 @@
                                         "description": "Metadata of visible elements to associate with the document"
                                     },
                                     "coordinates": {
-                                        "$ref": "#/components/schemas/Coordinate",
-                                        "default": [],
-                                        "description": "Coortinates of a visible element on PDF"
+                                        "description": "Coortinates of a visible element on PDF",
+                                        "allOf": [
+                                            {
+                                                "$ref": "#/components/schemas/Coordinate"
+                                            }
+                                        ]
                                     }
                                 }
                             }
@@ -6852,9 +6859,12 @@
                                         "description": "Metadata of visible elements to associate with the document"
                                     },
                                     "coordinates": {
-                                        "$ref": "#/components/schemas/Coordinate",
-                                        "default": [],
-                                        "description": "Coortinates of a visible element on PDF"
+                                        "description": "Coortinates of a visible element on PDF",
+                                        "allOf": [
+                                            {
+                                                "$ref": "#/components/schemas/Coordinate"
+                                            }
+                                        ]
                                     }
                                 }
                             }
@@ -9312,8 +9322,12 @@
                                 ],
                                 "properties": {
                                     "value": {
-                                        "$ref": "#/components/schemas/EffectivePolicyValue",
-                                        "description": "Policy value to persist for the group."
+                                        "description": "Policy value to persist for the group.",
+                                        "allOf": [
+                                            {
+                                                "$ref": "#/components/schemas/EffectivePolicyValue"
+                                            }
+                                        ]
                                     },
                                     "allowChildOverride": {
                                         "type": "boolean",
@@ -9967,8 +9981,12 @@
                                 ],
                                 "properties": {
                                     "value": {
-                                        "$ref": "#/components/schemas/EffectivePolicyValue",
-                                        "description": "Policy value to persist as assigned target user policy."
+                                        "description": "Policy value to persist as assigned target user policy.",
+                                        "allOf": [
+                                            {
+                                                "$ref": "#/components/schemas/EffectivePolicyValue"
+                                            }
+                                        ]
                                     },
                                     "allowChildOverride": {
                                         "type": "boolean",
@@ -10474,29 +10492,7 @@
                                         "default": {},
                                         "description": "Values to persist for the group, keyed by policy identifier.",
                                         "additionalProperties": {
-                                            "nullable": true,
-                                            "anyOf": [
-                                                {
-                                                    "type": "boolean"
-                                                },
-                                                {
-                                                    "type": "integer",
-                                                    "format": "int64"
-                                                },
-                                                {
-                                                    "type": "number",
-                                                    "format": "double"
-                                                },
-                                                {
-                                                    "type": "string"
-                                                },
-                                                {
-                                                    "type": "object",
-                                                    "additionalProperties": {
-                                                        "type": "object"
-                                                    }
-                                                }
-                                            ]
+                                            "$ref": "#/components/schemas/EffectivePolicyValue"
                                         }
                                     },
                                     "allowChildOverride": {
@@ -10705,29 +10701,7 @@
                                         "default": {},
                                         "description": "Values to persist as the current user's defaults, keyed by policy identifier.",
                                         "additionalProperties": {
-                                            "nullable": true,
-                                            "anyOf": [
-                                                {
-                                                    "type": "boolean"
-                                                },
-                                                {
-                                                    "type": "integer",
-                                                    "format": "int64"
-                                                },
-                                                {
-                                                    "type": "number",
-                                                    "format": "double"
-                                                },
-                                                {
-                                                    "type": "string"
-                                                },
-                                                {
-                                                    "type": "object",
-                                                    "additionalProperties": {
-                                                        "type": "object"
-                                                    }
-                                                }
-                                            ]
+                                            "$ref": "#/components/schemas/EffectivePolicyValue"
                                         }
                                     }
                                 }
@@ -10888,29 +10862,7 @@
                                         "default": {},
                                         "description": "Values to persist for the target user, keyed by policy identifier.",
                                         "additionalProperties": {
-                                            "nullable": true,
-                                            "anyOf": [
-                                                {
-                                                    "type": "boolean"
-                                                },
-                                                {
-                                                    "type": "integer",
-                                                    "format": "int64"
-                                                },
-                                                {
-                                                    "type": "number",
-                                                    "format": "double"
-                                                },
-                                                {
-                                                    "type": "string"
-                                                },
-                                                {
-                                                    "type": "object",
-                                                    "additionalProperties": {
-                                                        "type": "object"
-                                                    }
-                                                }
-                                            ]
+                                            "$ref": "#/components/schemas/EffectivePolicyValue"
                                         }
                                     },
                                     "allowChildOverride": {
@@ -11118,8 +11070,12 @@
                                 ],
                                 "properties": {
                                     "value": {
-                                        "$ref": "#/components/schemas/EffectivePolicyValue",
-                                        "description": "Policy value to persist as the current user's default."
+                                        "description": "Policy value to persist as the current user's default.",
+                                        "allOf": [
+                                            {
+                                                "$ref": "#/components/schemas/EffectivePolicyValue"
+                                            }
+                                        ]
                                     }
                                 }
                             }
@@ -11428,14 +11384,20 @@
                                         "description": "The name of file to sign"
                                     },
                                     "settings": {
-                                        "$ref": "#/components/schemas/FolderSettings",
-                                        "default": [],
-                                        "description": "Settings to define how and where the file should be stored"
+                                        "description": "Settings to define how and where the file should be stored",
+                                        "allOf": [
+                                            {
+                                                "$ref": "#/components/schemas/FolderSettings"
+                                            }
+                                        ]
                                     },
                                     "file": {
-                                        "$ref": "#/components/schemas/NewFile",
-                                        "default": [],
-                                        "description": "File object. Supports nodeId (a non-negative integer or its canonical decimal string, as Nextcloud node ids can exceed a JavaScript number), url, base64 or path."
+                                        "description": "File object. Supports nodeId (a non-negative integer or its canonical decimal string, as Nextcloud node ids can exceed a JavaScript number), url, base64 or path.",
+                                        "allOf": [
+                                            {
+                                                "$ref": "#/components/schemas/NewFile"
+                                            }
+                                        ]
                                     },
                                     "files": {
                                         "type": "array",
@@ -11463,9 +11425,7 @@
                                         "nullable": true,
                                         "default": null,
                                         "description": "Structured policy payload with request-level overrides and active context.",
-                                        "additionalProperties": {
-                                            "type": "object"
-                                        }
+                                        "additionalProperties": true
                                     }
                                 }
                             }
@@ -11662,9 +11622,7 @@
                                         "nullable": true,
                                         "default": null,
                                         "description": "Structured policy payload with request-level overrides and active context.",
-                                        "additionalProperties": {
-                                            "type": "object"
-                                        }
+                                        "additionalProperties": true
                                     },
                                     "name": {
                                         "type": "string",
@@ -11673,9 +11631,12 @@
                                         "description": "The name of file to sign"
                                     },
                                     "settings": {
-                                        "$ref": "#/components/schemas/FolderSettings",
-                                        "default": [],
-                                        "description": "Settings to define how and where the file should be stored"
+                                        "description": "Settings to define how and where the file should be stored",
+                                        "allOf": [
+                                            {
+                                                "$ref": "#/components/schemas/FolderSettings"
+                                            }
+                                        ]
                                     },
                                     "files": {
                                         "type": "array",
@@ -12193,9 +12154,7 @@
                                         "type": "object",
                                         "default": {},
                                         "description": "List of visible elements",
-                                        "additionalProperties": {
-                                            "type": "object"
-                                        }
+                                        "additionalProperties": true
                                     },
                                     "identifyValue": {
                                         "type": "string",
@@ -12216,9 +12175,7 @@
                                         "type": "object",
                                         "default": {},
                                         "description": "Device-reported geolocation metadata submitted by the signing client",
-                                        "additionalProperties": {
-                                            "type": "object"
-                                        }
+                                        "additionalProperties": true
                                     }
                                 }
                             }
@@ -12357,9 +12314,7 @@
                                         "type": "object",
                                         "default": {},
                                         "description": "List of visible elements",
-                                        "additionalProperties": {
-                                            "type": "object"
-                                        }
+                                        "additionalProperties": true
                                     },
                                     "identifyValue": {
                                         "type": "string",
@@ -12380,9 +12335,7 @@
                                         "type": "object",
                                         "default": {},
                                         "description": "Device-reported geolocation metadata submitted by the signing client",
-                                        "additionalProperties": {
-                                            "type": "object"
-                                        }
+                                        "additionalProperties": true
                                     },
                                     "saveSignature": {
                                         "type": "boolean",
@@ -13197,9 +13150,7 @@
                                     "elements": {
                                         "type": "object",
                                         "description": "Element object",
-                                        "additionalProperties": {
-                                            "type": "object"
-                                        }
+                                        "additionalProperties": true
                                     }
                                 }
                             }
@@ -13808,9 +13759,7 @@
                                         "type": "object",
                                         "default": {},
                                         "description": "Element object",
-                                        "additionalProperties": {
-                                            "type": "object"
-                                        }
+                                        "additionalProperties": true
                                     }
                                 }
                             }

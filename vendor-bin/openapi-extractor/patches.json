@@ -1,0 +1,10 @@
+{
+	"patches": {
+		"nextcloud/openapi-extractor": [
+			{
+				"description": "Map array<string, mixed> to unrestricted objects and keep schema keywords outside $ref",
+				"url": "../../.patches/openapi-extractor-mixed-object.diff"
+			}
+		]
+	}
+}
