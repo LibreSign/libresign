@@ -530,6 +530,7 @@ describe('ModalVerificationCode requestCode route (#8365)', () => {
 		signStore.document = {
 			...signStore.document,
 			uuid: 'id-doc-file-uuid',
+			fileId: 42,
 			signers: [{ me: false, sign_request_uuid: 'external-signer-uuid', email: 'external@example.com' }],
 			settings: { isApprover: true },
 		} as typeof signStore.document
@@ -549,6 +550,7 @@ describe('ModalVerificationCode requestCode route (#8365)', () => {
 		signStore.document = {
 			...signStore.document,
 			uuid: 'file-uuid',
+			fileId: 42,
 			signers: [{ me: true, sign_request_uuid: 'my-signer-uuid' }],
 			settings: { isApprover: false },
 		} as typeof signStore.document
@@ -565,6 +567,7 @@ describe('ModalVerificationCode requestCode route (#8365)', () => {
 		signStore.document = {
 			...signStore.document,
 			uuid: 'file-uuid',
+			fileId: 42,
 			signers: [{ me: true, sign_request_uuid: 'my-signer-uuid' }],
 			settings: { isApprover: true },
 		} as typeof signStore.document
@@ -574,5 +577,22 @@ describe('ModalVerificationCode requestCode route (#8365)', () => {
 
 		const [url] = vi.mocked(axios.post).mock.calls[0]
 		expect(url).toBe('/ocs/v2.php/apps/libresign/api/v1/sign/uuid/my-signer-uuid/code')
+	})
+	it('does not request a code with fileId alone when signer UUID is unavailable', async () => {
+		const signStore = useSignStore()
+		signStore.document = {
+			...signStore.document,
+			fileId: 42,
+			uuid: 'file-uuid',
+			signers: [],
+			settings: { isApprover: false },
+		} as typeof signStore.document
+
+		const wrapper = mountToken()
+		await wrapper.vm.requestCode()
+
+		expect(axios.post).not.toHaveBeenCalled()
+		expect(wrapper.vm.tokenRequested).toBe(false)
+		expect(wrapper.vm.loading).toBe(false)
 	})
 })

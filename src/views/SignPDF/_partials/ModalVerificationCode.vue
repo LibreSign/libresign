@@ -402,6 +402,7 @@ async function requestCode() {
 			}
 			await axios.post(signStore.buildRequestCodeUrl(signRequestUuid), params)
 		}
+		await axios.post(signStore.buildRequestCodeUrl(signRequestUuid), params)
 
 		if (props.mode === 'email') {
 			signMethodsStore.setHasEmailConfirmCode(true)
