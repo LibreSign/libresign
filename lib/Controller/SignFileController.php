@@ -447,7 +447,7 @@ class SignFileController extends AEnvironmentAwareOCSController implements ISign
 	 * Get code to sign the document using UUID
 	 *
 	 * @param string $uuid UUID of LibreSign file
-	 * @param 'account'|'email'|null $identifyMethod Identify signer method
+	 * @param string|null $identifyMethod Configured signer identification method (for example account, email or sms); omitted methods remain subject to service validation
 	 * @param string|null $signMethod Method used to sign the document, i.e. emailToken, account, clickToSign, smsToken, signalToken, telegramToken, whatsappToken, xmppToken
 	 * @param 'true'|null $idDocApproval Literal string "true" when the UUID is an identification-document file UUID (matches middleware RequireSigner)
 	 * @return DataResponse<Http::STATUS_OK, LibresignMessageResponse, array{}>|DataResponse<Http::STATUS_UNPROCESSABLE_ENTITY, LibresignMessageResponse, array{}>
@@ -490,7 +490,7 @@ class SignFileController extends AEnvironmentAwareOCSController implements ISign
 	 * Get code to sign the document using FileID
 	 *
 	 * @param int $fileId Id of LibreSign file
-	 * @param 'account'|'email'|null $identifyMethod Identify signer method
+	 * @param string|null $identifyMethod Configured signer identification method (for example account, email or sms); omitted methods remain subject to service validation
 	 * @param string|null $signMethod Method used to sign the document, i.e. emailToken, account, clickToSign, smsToken, signalToken, telegramToken, whatsappToken, xmppToken
 	 * @return DataResponse<Http::STATUS_OK, LibresignMessageResponse, array{}>|DataResponse<Http::STATUS_UNPROCESSABLE_ENTITY, LibresignMessageResponse, array{}>
 	 *

@@ -171,6 +171,45 @@ final class SignFileControllerTest extends TestCase {
 		$this->assertSame(Http::STATUS_OK, $response->getStatus());
 	}
 
+	public function testSignerUuidCodeRequestForSmsUsesConfiguredMethod(): void {
+		$signRequest = new SignRequest();
+		$signRequest->setId(5);
+		$signRequest->setFileId(3);
+		$file = new FileEntity();
+		$file->setId(3);
+		$this->signRequestMapper->expects($this->once())
+			->method('getBySignerUuidAndUserId')
+			->with('signer-uuid')
+			->willReturn($signRequest);
+		$this->signFileService->expects($this->never())->method('getFileByUuid');
+		$this->signFileService->method('getFile')->with(3)->willReturn($file);
+		$this->signFileService->expects($this->once())
+			->method('requestCode')
+			->with($signRequest, 'sms', 'smsToken');
+
+		$response = $this->getController()->requestCodeBySignerUuid('signer-uuid', 'sms', 'smsToken', 'false');
+		$this->assertSame(Http::STATUS_OK, $response->getStatus());
+	}
+
+	public function testFileIdCodeRequestForSmsUsesConfiguredMethod(): void {
+		$signRequest = new SignRequest();
+		$signRequest->setId(5);
+		$signRequest->setFileId(3);
+		$file = new FileEntity();
+		$file->setId(3);
+		$this->signRequestMapper->expects($this->once())
+			->method('getByFileIdAndUserId')
+			->with(3)
+			->willReturn($signRequest);
+		$this->signFileService->method('getFile')->with(3)->willReturn($file);
+		$this->signFileService->expects($this->once())
+			->method('requestCode')
+			->with($signRequest, 'sms', 'smsToken');
+
+		$response = $this->getController()->requestCodeByFileId(3, 'sms', 'smsToken');
+		$this->assertSame(Http::STATUS_OK, $response->getStatus());
+	}
+
 	public function testRequestCodeEndpointsDoNotExposeIdentifyDestinationParameter(): void {
 		$uuidMethod = new \ReflectionMethod(
 			SignFileController::class,

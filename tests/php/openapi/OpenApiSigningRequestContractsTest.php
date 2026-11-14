@@ -134,6 +134,32 @@ final class OpenApiSigningRequestContractsTest extends TestCase {
 		self::assertArrayNotHasKey('required', $activeContext);
 	}
 
+	/** @return array<string, array{string}> */
+	public static function signingCodeOperations(): array {
+		return [
+			'signer UUID' => ['sign_file-request-code-by-signer-uuid'],
+			'file ID' => ['sign_file-request-code-by-file-id'],
+		];
+	}
+
+	#[DataProvider('signingCodeOperations')]
+	public function testSigningCodeIdentificationSupportsConfiguredMethodsAndNull(string $operationId): void {
+		$spec = self::loadSpec('openapi-full.json');
+		$body = self::operation($spec, $operationId)['requestBody'];
+		self::assertFalse($body['required']);
+		$schema = $body['content']['application/json']['schema'];
+		self::assertNotContains('identifyMethod', $schema['required'] ?? []);
+		$identifyMethod = $schema['properties']['identifyMethod'];
+		self::assertSame('string', $identifyMethod['type']);
+		self::assertTrue($identifyMethod['nullable']);
+		self::assertNull($identifyMethod['default']);
+		self::assertArrayNotHasKey('enum', $identifyMethod, 'Configured methods must not be limited to account/email');
+		$signMethod = $schema['properties']['signMethod'];
+		self::assertSame('string', $signMethod['type']);
+		self::assertTrue($signMethod['nullable']);
+		self::assertNull($signMethod['default']);
+	}
+
 	public function testExistingUnmodifiedOperationsRemainExposed(): void {
 		$spec = self::loadSpec('openapi-full.json');
 		foreach (['account-me', 'account-set-config', 'certificate_policy-get-certificate-policy'] as $operationId) {
