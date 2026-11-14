@@ -291,7 +291,6 @@ final class MailServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$this->mailProviderManager->method('has')->willReturn(true);
 		$this->mailProviderManager->method('findServiceByAddress')->willReturn($service);
 		$service->method('sendMessage')
-		$service->method('sendMessage')
 			->willThrowException(new \RuntimeException('Timeout after SMTP DATA'));
 		$this->mailer->expects($this->never())->method('send');
 		$this->expectException(LibresignException::class);
