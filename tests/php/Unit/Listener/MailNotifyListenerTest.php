@@ -69,7 +69,9 @@ class MailNotifyListenerTest extends TestCase {
 	public function testAdminDisabledEmailChannelSuppressesInvitation(): void {
 		$this->preferences
 			->method('isEmailNotificationGloballyDisabled')
-			->willReturn(true);
+			->willReturnMap([
+				[SendSignNotificationEvent::FILE_TO_SIGN, true],
+			]);
 
 		$this->listener->handle($this->invitation('email', 'bob@example.org'));
 
