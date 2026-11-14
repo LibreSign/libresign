@@ -7630,6 +7630,14 @@
                         }
                     },
                     {
+                        "name": "libresign-sign-request-uuid",
+                        "in": "header",
+                        "description": "The UUID of the sign request, used to identify the request",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
                         "name": "OCS-APIRequest",
                         "in": "header",
                         "description": "Required to be true for the API request to pass",
@@ -7773,6 +7781,14 @@
                         }
                     },
                     {
+                        "name": "libresign-sign-request-uuid",
+                        "in": "header",
+                        "description": "The UUID of the sign request, used to identify the request",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
                         "name": "OCS-APIRequest",
                         "in": "header",
                         "description": "Required to be true for the API request to pass",
@@ -7894,6 +7910,14 @@
                             "type": "string",
                             "nullable": true,
                             "default": null
+                        }
+                    },
+                    {
+                        "name": "libresign-sign-request-uuid",
+                        "in": "header",
+                        "description": "The UUID of the sign request, used to identify the request",
+                        "schema": {
+                            "type": "string"
                         }
                     },
                     {
@@ -13094,6 +13118,14 @@
                         }
                     },
                     {
+                        "name": "libresign-sign-request-uuid",
+                        "in": "header",
+                        "description": "The UUID of the sign request, used to identify the request",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
                         "name": "OCS-APIRequest",
                         "in": "header",
                         "description": "Required to be true for the API request to pass",
@@ -13582,6 +13614,14 @@
                         }
                     },
                     {
+                        "name": "libresign-sign-request-uuid",
+                        "in": "header",
+                        "description": "The UUID of the sign request, used to identify the request",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
                         "name": "OCS-APIRequest",
                         "in": "header",
                         "description": "Required to be true for the API request to pass",
@@ -13841,6 +13881,14 @@
                         }
                     },
                     {
+                        "name": "libresign-sign-request-uuid",
+                        "in": "header",
+                        "description": "The UUID of the sign request, used to identify the request",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
                         "name": "OCS-APIRequest",
                         "in": "header",
                         "description": "Required to be true for the API request to pass",
@@ -13950,6 +13998,14 @@
                         "schema": {
                             "type": "integer",
                             "format": "int64"
+                        }
+                    },
+                    {
+                        "name": "libresign-sign-request-uuid",
+                        "in": "header",
+                        "description": "The UUID of the sign request, used to identify the request",
+                        "schema": {
+                            "type": "string"
                         }
                     },
                     {

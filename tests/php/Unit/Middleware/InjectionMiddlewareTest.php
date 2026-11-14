@@ -115,6 +115,31 @@ final class InjectionMiddlewareTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$this->userId = null;
 	}
 
+	/** @return array<string, array{string|null, string, string|null}> */
+	public static function uuidSourceProvider(): array {
+		return [
+			'header without route UUID' => [null, 'header-uuid', 'header-uuid'],
+			'route UUID without header' => ['route-uuid', '', 'route-uuid'],
+			'route UUID takes precedence over header' => ['route-uuid', 'header-uuid', 'route-uuid'],
+			'neither source provided' => [null, '', ''],
+			'unsupported UUID is forwarded to the authorization validator' => [null, 'invalid-uuid', 'invalid-uuid'],
+		];
+	}
+
+	#[DataProvider('uuidSourceProvider')]
+	public function testUuidSourcePrecedence(?string $routeUuid, string $headerUuid, ?string $expectedUuid): void {
+		$this->request->expects($this->once())
+			->method('getHeader')
+			->with('libresign-sign-request-uuid')
+			->willReturn($headerUuid);
+		$this->request->expects($this->once())
+			->method('getParam')
+			->with('uuid', $headerUuid)
+			->willReturn($routeUuid ?? $headerUuid);
+
+		self::assertSame($expectedUuid, self::invokePrivate($this->getInjectionMiddleware(), 'getUuidFromRequest'));
+	}
+
 	public function testGuestSigningUuidReplacesEarlierRequestInSession(): void {
 		$this->userSession->method('getUser')->willReturn(null);
 		$this->session->method('get')->with('libresign-uuid')->willReturn('earlier-sign-request');
