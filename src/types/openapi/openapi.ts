@@ -1287,7 +1287,6 @@ export type components = {
                     signedNodeId: number;
                     url: string;
                 };
-                callback: string | null;
                 uuid: string;
                 signers: components["schemas"]["SignerDetail"][];
             };
@@ -5425,11 +5424,6 @@ export interface operations {
                      * @default []
                      */
                     files?: components["schemas"]["NewFile"][];
-                    /**
-                     * @description URL that will receive a POST after the document is signed
-                     * @default null
-                     */
-                    callback?: string | null;
                     /**
                      * Format: int64
                      * @description Numeric code of status * 0 - no signers * 1 - signed * 2 - pending

@@ -65,7 +65,6 @@ class RequestSignatureController extends AEnvironmentAwareOCSController {
 	 * @param LibresignFolderSettings $settings Settings to define how and where the file should be stored
 	 * @param LibresignNewFile $file File object. Supports nodeId (a non-negative integer or its canonical decimal string, as Nextcloud node ids can exceed a JavaScript number), url, base64 or path.
 	 * @param list<LibresignNewFile> $files Multiple files to create an envelope (optional, use either file or files). Each file supports nodeId, url, base64 or path.
-	 * @param string|null $callback URL that will receive a POST after the document is signed
 	 * @param integer|null $status Numeric code of status * 0 - no signers * 1 - signed * 2 - pending
 	 * @param LibresignRequestPolicy|null $policy Structured policy payload with request-level overrides and active context.
 	 * @return DataResponse<Http::STATUS_OK, LibresignDetailedFileResponse, array{}>|DataResponse<Http::STATUS_UNPROCESSABLE_ENTITY, LibresignMessageResponse|LibresignActionErrorResponse, array{}>
@@ -84,7 +83,6 @@ class RequestSignatureController extends AEnvironmentAwareOCSController {
 		array $settings = [],
 		array $file = [],
 		array $files = [],
-		?string $callback = null,
 		?int $status = 1,
 		?array $policy = null,
 	): DataResponse {
@@ -98,7 +96,6 @@ class RequestSignatureController extends AEnvironmentAwareOCSController {
 				$settings,
 				$signers,
 				$status,
-				$callback,
 				$policy,
 			);
 
@@ -176,7 +173,6 @@ class RequestSignatureController extends AEnvironmentAwareOCSController {
 					$settings,
 					$signers,
 					$status,
-					null,
 					$policy,
 					$visibleElements
 				);

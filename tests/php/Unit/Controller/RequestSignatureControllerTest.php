@@ -130,7 +130,6 @@ final class RequestSignatureControllerTest extends TestCase {
 			settings: [],
 			file: ['nodeId' => 12],
 			files: [],
-			callback: null,
 			status: $status,
 		);
 
