@@ -45,6 +45,8 @@ use Psr\Log\LoggerInterface;
 
 /**
  * @psalm-import-type LibresignMessageResponse from \OCA\Libresign\ResponseDefinitions
+ * @psalm-import-type LibresignSavedSignatureElement from \OCA\Libresign\ResponseDefinitions
+ * @psalm-import-type LibresignSavedSignatureFile from \OCA\Libresign\ResponseDefinitions
  * @psalm-import-type LibresignUserElement from \OCA\Libresign\ResponseDefinitions
  * @psalm-import-type LibresignUserElementsMessageResponse from \OCA\Libresign\ResponseDefinitions
  * @psalm-import-type LibresignUserElementsResponse from \OCA\Libresign\ResponseDefinitions
@@ -73,7 +75,7 @@ class SignatureElementsController extends AEnvironmentAwareOCSController impleme
 	/**
 	 * Create signature element
 	 *
-	 * @param array<string, mixed> $elements Element object
+	 * @param list<LibresignSavedSignatureElement> $elements Saved signature elements
 	 * @return DataResponse<Http::STATUS_OK, LibresignUserElementsMessageResponse, array{}>|DataResponse<Http::STATUS_UNPROCESSABLE_ENTITY, LibresignMessageResponse, array{}>
 	 *
 	 * 200: OK
@@ -314,7 +316,7 @@ class SignatureElementsController extends AEnvironmentAwareOCSController impleme
 	 *
 	 * @param int $nodeId Node id of a Nextcloud file
 	 * @param string $type The type of signature element
-	 * @param array<string, mixed> $file Element object
+	 * @param LibresignSavedSignatureFile $file Signature image supplied as base64 or URL
 	 * @return DataResponse<Http::STATUS_OK, LibresignUserElementsMessageResponse, array{}>|DataResponse<Http::STATUS_UNPROCESSABLE_ENTITY, LibresignMessageResponse, array{}>
 	 *
 	 * 200: OK

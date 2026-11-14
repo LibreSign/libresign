@@ -50,6 +50,22 @@ namespace OCA\Libresign;
  * @psalm-type LibresignSignerIpGeolocationStatus = 'resolved'|'not_found'|'unavailable'
  * @psalm-type LibresignSignerIpGeolocationUnavailableReason = 'database_not_ready'|'address_unavailable'|'lookup_failed'
  * @psalm-type LibresignGeoIpDatabaseStatus = 'not_configured'|'not_found'|'not_readable'|'invalid_database'|'unsupported_database'|'ready'
+ * @psalm-type LibresignSigningElement = array{
+ *     documentElementId: int,
+ *     profileNodeId?: int,
+ * }
+ * @psalm-type LibresignSavedSignatureFile = array{
+ *     base64?: string,
+ *     url?: string,
+ * }
+ * @psalm-type LibresignSavedSignatureElement = array{
+ *     type?: 'signature'|'initial'|'date'|'datetime'|'text',
+ *     elementId?: int,
+ *     nodeId?: int,
+ *     starred?: bool,
+ *     file?: LibresignSavedSignatureFile,
+ *     coordinates?: LibresignCoordinate,
+ * }
  * @psalm-type LibresignSignerDeviceGeolocation = array{
  *     status: LibresignGeolocationCollectionStatus,
  *     latitude?: float,

@@ -13,6 +13,7 @@ use OCA\Libresign\Controller\SignFileController;
 use OCA\Libresign\Db\File as FileEntity;
 use OCA\Libresign\Db\SignRequest;
 use OCA\Libresign\Db\SignRequestMapper;
+use OCA\Libresign\Exception\LibresignException;
 use OCA\Libresign\Handler\SigningErrorHandler;
 use OCA\Libresign\Service\AsyncSigningService;
 use OCA\Libresign\Service\EmailSignerElementsService;
@@ -66,6 +67,22 @@ final class SignFileControllerTest extends TestCase {
 		$this->workerConfiguration = $this->createMock(WorkerConfiguration::class);
 		$this->asyncSigningService = $this->createMock(AsyncSigningService::class);
 		$this->signatureRejectionService = $this->createMock(SignatureRejectionService::class);
+	}
+
+	public function testSignerCodeRequestAllowsOmittedOptionalMethods(): void {
+		$this->signRequestMapper->method('getBySignerUuidAndUserId')
+			->willThrowException(new \RuntimeException('not found'));
+		$this->expectException(LibresignException::class);
+		$this->expectExceptionMessage('Invalid data to sign file');
+		$this->getController()->requestCodeBySignerUuid('missing-uuid');
+	}
+
+	public function testFileCodeRequestAllowsOmittedOptionalMethods(): void {
+		$this->signRequestMapper->method('getByFileIdAndUserId')
+			->willThrowException(new \RuntimeException('not found'));
+		$this->expectException(LibresignException::class);
+		$this->expectExceptionMessage('Invalid data to sign file');
+		$this->getController()->requestCodeByFileId(123);
 	}
 
 	private function getController(): SignFileController {

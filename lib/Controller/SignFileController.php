@@ -54,6 +54,7 @@ use Psr\Log\LoggerInterface;
  * @psalm-import-type LibresignSignActionResponse from ResponseDefinitions
  * @psalm-import-type LibresignSignatureRejectionResponse from ResponseDefinitions
  * @psalm-import-type LibresignSignerDeviceGeolocation from ResponseDefinitions
+ * @psalm-import-type LibresignSigningElement from ResponseDefinitions
  */
 
 class SignFileController extends AEnvironmentAwareOCSController implements ISignatureUuid {
@@ -89,12 +90,11 @@ class SignFileController extends AEnvironmentAwareOCSController implements ISign
 	 *
 	 * @param int $fileId Id of LibreSign file
 	 * @param string $method Signature method
-	 * @param array<string, mixed> $elements List of visible elements
+	 * @param list<LibresignSigningElement> $elements List of visible elements
 	 * @param string $identifyValue Identify value
 	 * @param string $token Token, commonly send by email
 	 * @param bool $async Execute signing asynchronously when possible
-	 * @param LibresignSignerDeviceGeolocation $deviceGeolocation Device-reported geolocation metadata submitted by the signing client
-	 * @psalm-param array<string, mixed> $deviceGeolocation
+	 * @param LibresignSignerDeviceGeolocation|list<mixed> $deviceGeolocation Device-reported geolocation metadata, or an empty array when absent
 	 * @return DataResponse<Http::STATUS_OK, LibresignSignActionResponse, array{}>|DataResponse<Http::STATUS_UNPROCESSABLE_ENTITY, LibresignSignActionErrorResponse, array{}>
 	 *
 	 * 200: OK
@@ -115,13 +115,12 @@ class SignFileController extends AEnvironmentAwareOCSController implements ISign
 	 *
 	 * @param string $uuid UUID of LibreSign file
 	 * @param string $method Signature method
-	 * @param array<string, mixed> $elements List of visible elements
+	 * @param list<LibresignSigningElement> $elements List of visible elements
 	 * @param string $identifyValue Identify value
 	 * @param string $token Token, commonly send by email
 	 * @param bool $async Execute signing asynchronously when possible
-	 * @param LibresignSignerDeviceGeolocation $deviceGeolocation Device-reported geolocation metadata submitted by the signing client
+	 * @param LibresignSignerDeviceGeolocation|list<mixed> $deviceGeolocation Device-reported geolocation metadata, or an empty array when absent
 	 * @param bool $saveSignature Explicitly save the external email signer's visible signature for future documents
-	 * @psalm-param array<string, mixed> $deviceGeolocation
 	 * @return DataResponse<Http::STATUS_OK, LibresignSignActionResponse, array{}>|DataResponse<Http::STATUS_UNPROCESSABLE_ENTITY, LibresignSignActionErrorResponse, array{}>
 	 *
 	 * 200: OK
@@ -464,8 +463,8 @@ class SignFileController extends AEnvironmentAwareOCSController implements ISign
 	#[ApiRoute(verb: 'POST', url: '/api/{apiVersion}/sign/uuid/{uuid}/code', requirements: ['apiVersion' => '(v1)'])]
 	public function requestCodeBySignerUuid(
 		string $uuid,
-		?string $identifyMethod,
-		?string $signMethod,
+		?string $identifyMethod = null,
+		?string $signMethod = null,
 		?string $idDocApproval = null,
 	): DataResponse {
 		try {
@@ -505,7 +504,7 @@ class SignFileController extends AEnvironmentAwareOCSController implements ISign
 	#[PublicPage]
 	#[OpenAPI(tags: ['signing'])]
 	#[ApiRoute(verb: 'POST', url: '/api/{apiVersion}/sign/file_id/{fileId}/code', requirements: ['apiVersion' => '(v1)'])]
-	public function requestCodeByFileId(int $fileId, ?string $identifyMethod, ?string $signMethod): DataResponse {
+	public function requestCodeByFileId(int $fileId, ?string $identifyMethod = null, ?string $signMethod = null): DataResponse {
 		try {
 			$signRequest = $this->signRequestMapper->getByFileIdAndUserId($fileId);
 		} catch (\Throwable) {
