@@ -13,8 +13,7 @@ use OCA\Libresign\Controller\FileController;
 use OCA\Libresign\Exception\LibresignException;
 use OCA\Libresign\Service\FileService;
 use OCA\Libresign\Service\RequestSignatureService;
-use OCA\Libresign\Service\Validation\FileInputValidator;
-use OCA\Libresign\Service\Validation\SigningRequestValidator;
+use OCA\Libresign\Helper\ValidateHelper;
 use OCP\AppFramework\Http;
 use OCP\IL10N;
 use OCP\IRequest;
@@ -90,9 +89,7 @@ final class FileControllerInputSourceTest extends TestCase {
 		$fileService = $this->createMock(FileService::class);
 		$reflection->getProperty('fileService')->setValue($controller, $fileService);
 
-		$validator = $this->createMock(FileInputValidator::class);
-		$validator->method('normalizeNodeId')->willReturnCallback(static fn (array $file): array => $file);
-		$reflection->getProperty('fileInputValidator')->setValue($controller, $validator);
+		$reflection->getProperty('validateHelper')->setValue($controller, $this->createMock(ValidateHelper::class));
 		return $controller;
 	}
 
@@ -136,9 +133,9 @@ final class FileControllerInputSourceTest extends TestCase {
 		$userSession->method('getUser')->willReturn($user);
 		$reflection->getProperty('userSession')->setValue($controller, $userSession);
 
-		$signingValidator = $this->createMock(SigningRequestValidator::class);
+		$signingValidator = $this->createMock(ValidateHelper::class);
 		$signingValidator->expects($this->once())->method('canRequestSign')->with($user);
-		$reflection->getProperty('signingRequestValidator')->setValue($controller, $signingValidator);
+		$reflection->getProperty('validateHelper')->setValue($controller, $signingValidator);
 
 		$requestSignatureService = $this->createMock(RequestSignatureService::class);
 		$requestSignatureService->expects($this->never())->method('saveFiles');
