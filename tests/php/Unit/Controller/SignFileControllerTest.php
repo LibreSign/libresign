@@ -235,7 +235,6 @@ final class SignFileControllerTest extends TestCase {
 		$this->assertSame('Unable to send verification code.', $response->getData()['message']);
 	}
 
-
 	public function testSignerUuidCodeRequestForSmsUsesConfiguredMethod(): void {
 		$this->request->method('getParam')->with('idDocApproval')->willReturn('false');
 		$signRequest = new SignRequest();
