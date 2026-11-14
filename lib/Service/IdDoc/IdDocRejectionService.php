@@ -45,14 +45,14 @@ final class IdDocRejectionService {
 		$this->atomic(function () use ($nodeId, $reason, $approver): void {
 			$doc = $this->idDocs->getByNodeId($nodeId);
 			$file = $this->files->getById($doc->getFileId());
-			if (!$this->policy->canApproverSignIdDoc($approver, $file->getId(), $file->getStatus())) {
-				// TRANSLATORS Authorization error when the reviewer cannot approve or reject this identification document.
-				throw new LibresignException($this->l10n->t('Not allowed'));
-			}
 			if ($doc->getRejectedAt() !== null
 				|| !in_array($file->getStatus(), [FileStatus::ABLE_TO_SIGN->value, FileStatus::PARTIAL_SIGNED->value], true)) {
 				// TRANSLATORS Rejection is only allowed before an identification document is fully approved.
 				throw new LibresignException($this->l10n->t('This document is no longer awaiting approval.'));
+			}
+			if (!$this->policy->canApproverSignIdDoc($approver, $file->getId(), $file->getStatus())) {
+				// TRANSLATORS Authorization error when the reviewer cannot approve or reject this identification document.
+				throw new LibresignException($this->l10n->t('Not allowed'));
 			}
 			if (!$this->idDocs->rejectIfPending(
 				$doc,

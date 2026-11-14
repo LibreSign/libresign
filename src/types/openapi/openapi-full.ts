@@ -4525,7 +4525,7 @@ export interface operations {
             };
         };
         responses: {
-            /** @description Rejection recorded and signer notification queued */
+            /** @description Rejection recorded; notification queued if the signer has a supported delivery channel */
             200: {
                 headers: {
                     [name: string]: unknown;

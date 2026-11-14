@@ -148,7 +148,7 @@ class IdDocsController extends AEnvironmentAwareOCSController implements ISignat
 	 *
 	 * @return DataResponse<Http::STATUS_OK, array{rejected: bool}, array{}>|DataResponse<Http::STATUS_BAD_REQUEST, LibresignMessageResponse, array{}>
 	 *
-	 * 200: Rejection recorded and signer notification queued
+	 * 200: Rejection recorded; notification queued if the signer has a supported delivery channel
 	 * 400: Invalid reason, unauthorized reviewer, or document already reviewed
 	 */
 	#[NoAdminRequired]

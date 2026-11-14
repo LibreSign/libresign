@@ -118,7 +118,8 @@ class IdDocsMapper extends QBMapper {
 			->from($this->getTableName())
 			->where($qb->expr()->eq('user_id', $qb->createNamedParameter($userId)))
 			->andWhere($qb->expr()->eq('file_type', $qb->createNamedParameter($fileType)))
-			->andWhere($qb->expr()->isNull('rejected_at'));
+			->andWhere($qb->expr()->isNull('rejected_at'))
+			->setMaxResults(1);
 		try {
 			return $this->findEntity($qb);
 		} catch (\Throwable) {
@@ -132,7 +133,8 @@ class IdDocsMapper extends QBMapper {
 			->from($this->getTableName())
 			->where($qb->expr()->eq('sign_request_id', $qb->createNamedParameter($signRequestId, IQueryBuilder::PARAM_INT)))
 			->andWhere($qb->expr()->eq('file_type', $qb->createNamedParameter($fileType)))
-			->andWhere($qb->expr()->isNull('rejected_at'));
+			->andWhere($qb->expr()->isNull('rejected_at'))
+			->setMaxResults(1);
 		try {
 			return $this->findEntity($qb);
 		} catch (\OCP\AppFramework\Db\DoesNotExistException) {

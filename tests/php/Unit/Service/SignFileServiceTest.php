@@ -2336,11 +2336,38 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$this->assertSame($signRequest, $result);
 	}
 
+	#[DataProvider('identificationDocumentRejectionSigningCases')]
+	public function testRejectedIdDocCannotBeSignedThroughAnyLookupRoute(bool $useUuid): void {
+		$service = $this->getService();
+		$file = new File();
+		$file->setId(10);
+		$file->setStatus(FileStatus::ABLE_TO_SIGN->value);
+		$file->setNodeType('file');
+		$document = new IdDocs();
+		$document->setRejectedAt(new \DateTime('2026-11-12T12:00:00Z'));
+		$this->idDocsMapper->method('getByFileId')->with(10)->willReturn($document);
+		$this->signRequestService->expects($this->never())->method('createOrUpdateSignRequest');
+		$this->signRequestMapper->expects($this->never())->method('getByUuid');
+		$this->signRequestMapper->expects($this->never())->method('getByFileId');
+		$user = $this->createMock(\OCP\IUser::class);
+		$this->expectException(LibresignException::class);
+		$this->expectExceptionMessage('Rejected identification documents cannot be signed.');
+		$service->getSignRequestToSign($file, $useUuid ? '123e4567-e89b-12d3-a456-426614174000' : null, $user);
+	}
+
+	public static function identificationDocumentRejectionSigningCases(): array {
+		return [
+			'file id' => [false],
+			'sign request uuid' => [true],
+		];
+	}
+
 	public function testGetSignRequestToSignCreatesApproverSignRequest(): void {
 		$service = $this->getService();
 
 		$file = new File();
 		$file->setId(10);
+		$file->setStatus(FileStatus::ABLE_TO_SIGN->value);
 		$file->setNodeType('file');
 
 		$user = $this->createMock(\OCP\IUser::class);
@@ -2360,10 +2387,10 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			->method('userCanApproveValidationDocuments')
 			->with($user, false)
 			->willReturn(true);
-		$this->idDocsMapper->expects($this->once())
-			->method('getByFileId')
-			->with(10)
-			->willReturn(new IdDocs());
+		$this->identityDocumentValidator->expects($this->once())
+			->method('canApproverSignIdDoc')
+			->with($user, 10, $file->getStatus())
+			->willReturn(true);
 		$this->sequentialSigningService->expects($this->exactly(2))
 			->method('setFile')
 			->with($file);
@@ -2497,6 +2524,7 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 
 		$file = new File();
 		$file->setId(10);
+		$file->setStatus(FileStatus::ABLE_TO_SIGN->value);
 		$file->setNodeType('file');
 
 		$user = $this->createMock(\OCP\IUser::class);
@@ -2520,10 +2548,10 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			->method('userCanApproveValidationDocuments')
 			->with($user, false)
 			->willReturn(true);
-		$this->idDocsMapper->expects($this->once())
-			->method('getByFileId')
-			->with(10)
-			->willThrowException(new \Exception('Missing id docs'));
+		$this->identityDocumentValidator->expects($this->once())
+			->method('canApproverSignIdDoc')
+			->with($user, 10, $file->getStatus())
+			->willReturn(false);
 		$this->signRequestService->expects($this->never())
 			->method('createOrUpdateSignRequest');
 		$this->signRequestMapper->expects($this->once())

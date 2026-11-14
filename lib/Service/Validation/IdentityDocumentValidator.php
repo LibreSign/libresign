@@ -81,6 +81,10 @@ class IdentityDocumentValidator {
 		return $this->idDocsPolicyService->userCanApproveValidationDocuments($user, $throw);
 	}
 
+	public function canApproverSignIdDoc(IUser $user, int $fileId, int $status): bool {
+		return $this->idDocsPolicyService->canApproverSignIdDoc($user, $fileId, $status);
+	}
+
 	public function haveValidMail(array $data, ?int $type = null): void {
 		if ($type === FileInputValidator::TYPE_TO_SIGN) {
 			return;

@@ -8060,7 +8060,7 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "Rejection recorded and signer notification queued",
+                        "description": "Rejection recorded; notification queued if the signer has a supported delivery channel",
                         "content": {
                             "application/json": {
                                 "schema": {

@@ -97,6 +97,7 @@ final class IdDocRejectionServiceTest extends TestCase {
 		$this->documents->expects($this->never())->method('rejectIfPending');
 		$this->notifier->expects($this->never())->method('queue');
 		$this->expectException(LibresignException::class);
+		$this->expectExceptionMessage('This document is no longer awaiting approval.');
 		$this->service->reject(11, 'Expired document', $this->createMock(IUser::class));
 	}
 

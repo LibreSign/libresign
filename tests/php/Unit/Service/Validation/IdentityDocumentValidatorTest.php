@@ -111,6 +111,15 @@ final class IdentityDocumentValidatorTest extends \OCA\Libresign\Tests\Unit\Test
 		];
 	}
 
+	public function testIdDocApproverAuthorizationUsesDocumentPolicy(): void {
+		$user = $this->createMock(IUser::class);
+		$this->policyService->expects($this->once())
+			->method('canApproverSignIdDoc')
+			->with($user, 10, 1)
+			->willReturn(false);
+		$this->assertFalse($this->validator->canApproverSignIdDoc($user, 10, 1));
+	}
+
 	public function testApproverBypassesIdentityDocumentStatus(): void {
 		$user = $this->createMock(IUser::class);
 		$this->policyService->method('userCanApproveValidationDocuments')->with($user, false)->willReturn(true);
