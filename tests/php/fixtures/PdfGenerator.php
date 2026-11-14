@@ -55,6 +55,23 @@ class PdfGenerator {
 		return $pdf;
 	}
 
+	/**
+	 * Unsigned PDF with a leftover DocMDP signature dictionary.
+	 * Object 5 is referenced from nowhere unless a referrer is given, such as
+	 * '/Perms << /DocMDP 5 0 R >>' for the catalog.
+	 */
+	public static function createPdfWithStandaloneDocMdpSignature(int $pValue, string $catalogExtra = '', string $extraObject = ''): string {
+		$pdf = "%PDF-1.7\n";
+		$pdf .= "1 0 obj\n<< /Type /Catalog /Pages 2 0 R $catalogExtra >>\nendobj\n";
+		$pdf .= "2 0 obj\n<< /Type /Pages /Kids [3 0 R] /Count 1 >>\nendobj\n";
+		$pdf .= "3 0 obj\n<< /Type /Page /Parent 2 0 R /MediaBox [0 0 612 792] >>\nendobj\n";
+		$pdf .= "5 0 obj\n<< /Type /Sig /Filter /Adobe.PPKLite /SubFilter /adbe.pkcs7.detached /ByteRange [0 0 0 0] /Contents <00>\n";
+		$pdf .= "/Reference [<< /Type /SigRef /TransformMethod /DocMDP /TransformParams << /Type /TransformParams /P $pValue /V /1.2 >> >>] >>\nendobj\n";
+		$pdf .= $extraObject;
+		$pdf .= "xref\n0 6\ntrailer\n<< /Size 6 /Root 1 0 R >>\nstartxref\n" . strlen($pdf) . "\n%%EOF";
+		return $pdf;
+	}
+
 	public static function createPdfWithFormFieldModification(int $pValue): string {
 		$pdf = "%PDF-1.7\n";
 		$pdf .= "1 0 obj\n<< /Type /Catalog /Pages 2 0 R /AcroForm 4 0 R /Perms << /DocMDP 5 0 R >> >>\nendobj\n";
