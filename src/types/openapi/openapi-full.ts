@@ -6637,11 +6637,10 @@ export interface operations {
             content: {
                 "application/json": {
                     /**
-                     * @description Identify signer method
+                     * @description Configured signer identification method (for example account, email or sms); omitted methods remain subject to service validation
                      * @default null
-                     * @enum {string|null}
                      */
-                    identifyMethod?: "account" | "email" | null;
+                    identifyMethod?: string | null;
                     /**
                      * @description Method used to sign the document, i.e. emailToken, account, clickToSign, smsToken, signalToken, telegramToken, whatsappToken, xmppToken
                      * @default null
@@ -6707,11 +6706,10 @@ export interface operations {
             content: {
                 "application/json": {
                     /**
-                     * @description Identify signer method
+                     * @description Configured signer identification method (for example account, email or sms); omitted methods remain subject to service validation
                      * @default null
-                     * @enum {string|null}
                      */
-                    identifyMethod?: "account" | "email" | null;
+                    identifyMethod?: string | null;
                     /**
                      * @description Method used to sign the document, i.e. emailToken, account, clickToSign, smsToken, signalToken, telegramToken, whatsappToken, xmppToken
                      * @default null

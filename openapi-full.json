@@ -13788,11 +13788,7 @@
                                         "type": "string",
                                         "nullable": true,
                                         "default": null,
-                                        "enum": [
-                                            "account",
-                                            "email"
-                                        ],
-                                        "description": "Identify signer method"
+                                        "description": "Configured signer identification method (for example account, email or sms); omitted methods remain subject to service validation"
                                     },
                                     "signMethod": {
                                         "type": "string",
@@ -13938,11 +13934,7 @@
                                         "type": "string",
                                         "nullable": true,
                                         "default": null,
-                                        "enum": [
-                                            "account",
-                                            "email"
-                                        ],
-                                        "description": "Identify signer method"
+                                        "description": "Configured signer identification method (for example account, email or sms); omitted methods remain subject to service validation"
                                     },
                                     "signMethod": {
                                         "type": "string",
