@@ -282,7 +282,7 @@ final class MailServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$this->service->notifyUnsignedUser($this->mockSignRequest(), 'a@b.coop');
 	}
 
-	public function testRequesterTransportFailureNeverTriggersDuplicateFallback(): void {
+	public function testRequesterTransportErrorNeverTriggersDuplicateFallback(): void {
 		$this->mockRequest();
 		$this->mockStrategy(MailSenderStrategyPolicy::STRATEGY_REQUESTER);
 		$this->mockEmailTemplate();
@@ -291,12 +291,52 @@ final class MailServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$this->mailProviderManager->method('has')->willReturn(true);
 		$this->mailProviderManager->method('findServiceByAddress')->willReturn($service);
 		$service->method('sendMessage')
-			->willThrowException(new \RuntimeException('Timeout after SMTP DATA'));
+			->willThrowException(new \RuntimeException('Timeout after DATA'));
 		$this->mailer->expects($this->never())->method('send');
 		$this->expectException(LibresignException::class);
 		$this->service->notifyUnsignedUser($this->mockSignRequest(), 'a@b.coop');
 	}
 
+	public function testRequesterLookupFailureFallsBackBeforeSubmission(): void {
+		$this->mockRequest();
+		$this->mockStrategy(MailSenderStrategyPolicy::STRATEGY_REQUESTER);
+		$this->mockRequesterAccount('requester@domain.coop');
+		$this->mailProviderManager->method('has')->willReturn(true);
+		$this->mailProviderManager->method('findServiceByAddress')
+			->willThrowException(new \RuntimeException('Provider lookup failed'));
+		$this->logger->expects($this->once())->method('warning');
+		$this->mailer->expects($this->once())->method('send');
+
+		$this->service->notifyUnsignedUser($this->mockSignRequest(), 'a@b.coop');
+	}
+
+	public function testRequesterPreparationFailureFallsBackBeforeSubmission(): void {
+		$this->mockRequest();
+		$this->mockStrategy(MailSenderStrategyPolicy::STRATEGY_REQUESTER);
+		$this->mockRequesterAccount('requester@domain.coop');
+		$service = $this->createMockForIntersectionOfInterfaces([IService::class, IMessageSend::class]);
+		$service->method('initiateMessage')
+			->willThrowException(new \RuntimeException('Failed to create message'));
+		$this->mailProviderManager->method('has')->willReturn(true);
+		$this->mailProviderManager->method('findServiceByAddress')->willReturn($service);
+		$this->logger->expects($this->once())->method('warning');
+		$this->mailer->expects($this->once())->method('send');
+
+		$this->service->notifyUnsignedUser($this->mockSignRequest(), 'a@b.coop');
+	}
+
+	public function testRequesterLookupProgrammingErrorDoesNotFallBack(): void {
+		$this->mockRequest();
+		$this->mockStrategy(MailSenderStrategyPolicy::STRATEGY_REQUESTER);
+		$this->mockRequesterAccount('requester@domain.coop');
+		$this->mailProviderManager->method('has')->willReturn(true);
+		$this->mailProviderManager->method('findServiceByAddress')
+			->willThrowException(new \Error('Unexpected programming error'));
+		$this->mailer->expects($this->never())->method('send');
+		$this->expectException(\Error::class);
+
+		$this->service->notifyUnsignedUser($this->mockSignRequest(), 'a@b.coop');
+	}
 	public function testRequesterStrategyFallbackSetsReplyToRequesterWhenNoProviderIsAvailable(): void {
 		$this->mockRequest();
 		$this->mockStrategy(MailSenderStrategyPolicy::STRATEGY_REQUESTER);

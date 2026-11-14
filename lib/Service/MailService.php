@@ -82,8 +82,8 @@ class MailService {
 		try {
 			$this->sendSignRequestNotification($emailTemplate, $data, $email);
 		} catch (\Exception $e) {
-			$this->logger->error('Notify changes in unsigned notification mail could not be sent: ' . $e->getMessage());
-			throw new LibresignException('Notify unsigned notification mail could not be sent', 1);
+			$this->logger->error('Notify changes in unsigned notification mail could not be sent');
+			throw new LibresignException('Notify unsigned notification mail could not be sent', 1, $e);
 		}
 	}
 
@@ -115,8 +115,8 @@ class MailService {
 		try {
 			$this->sendSignRequestNotification($emailTemplate, $data, $email);
 		} catch (\Exception $e) {
-			$this->logger->error('Notify unsigned notification mail could not be sent: ' . $e->getMessage());
-			throw new LibresignException('Notify unsigned notification mail could not be sent', 1);
+			$this->logger->error('Notify unsigned notification mail could not be sent');
+			throw new LibresignException('Notify unsigned notification mail could not be sent', 1, $e);
 		}
 	}
 
@@ -186,7 +186,8 @@ class MailService {
 		// fall back from. Submission exceptions may occur after SMTP acceptance.
 		try {
 			$service = $this->findRequesterMailService($requesterId, $requester);
-		} catch (\Throwable) {
+		} catch (\Exception) {
+			// Account lookup has no transport side effect.
 			$this->logger->warning('Requester mail account lookup failed; using the system mailer');
 			return false;
 		}
@@ -200,14 +201,16 @@ class MailService {
 				->setSubject($emailTemplate->renderSubject())
 				->setBodyHtml($emailTemplate->renderHtml())
 				->setBodyPlain($emailTemplate->renderText());
-		} catch (\Throwable) {
-			$this->logger->warning('Requester mail preparation failed; using the system mailer');
+		} catch (\Exception $e) {
+			$this->logger->warning('Requester mail could not be prepared; using the system mailer');
 			return false;
 		}
 		try {
 			$service->sendMessage($message);
-		} catch (\Throwable $e) {
-			throw new \RuntimeException('Requester mail submission has an unknown outcome', 0, $e);
+		} catch (\Exception $e) {
+			// Stable35 has no notification delivery state ledger; preserve the
+			// unknown outcome in the exception chain without retrying the send.
+			throw new \RuntimeException('Requester mail submission outcome is unknown', 0, $e);
 		}
 		return true;
 	}
