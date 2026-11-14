@@ -8,7 +8,7 @@
 		<div class="crl-management">
 			<div class="crl-management__toolbar">
 				<div class="filter-wrapper" :class="{ 'filter-wrapper--active': hasActiveFilters }">
-					<NcActions :aria-label="hasActiveFilters ? t('libresign', 'Filters ({count})', { count: activeFilterCount }) : t('libresign', 'Filters')">
+					<NcActions :aria-label="filterActionLabel">
 						<template #icon>
 							<NcIconSvgWrapper :path="mdiFilter" :size="20" />
 						</template>
@@ -434,6 +434,14 @@ const reasonCodeOptions: ReasonOption[] = [
 ]
 
 const hasActiveFilters = computed(() => !!(filters.serialNumber || filters.status || filters.owner))
+const filterActionLabel = computed(() => {
+	if (hasActiveFilters.value) {
+		// TRANSLATORS {count} is the number of active filters on the certificate revocation list.
+		return t('libresign', 'Filters ({count})', { count: activeFilterCount.value })
+	}
+	// TRANSLATORS Accessibility label for the button opening certificate revocation list filters.
+	return t('libresign', 'Filters')
+})
 const activeFilterCount = computed(() => {
 	let count = 0
 	if (filters.serialNumber) { count++ }

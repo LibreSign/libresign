@@ -107,6 +107,12 @@ the application/web-server user for intentional Nextcloud runtime writes.
 Some tests can alter Nextcloud state, generated certificates, app data or
 runtime files. Prefer focused commands while diagnosing a small change.
 
+## Translator context hints
+
+Follow the [LibreSign translation guide](https://docs.libresign.coop/developer_manual/translation.html)
+for the code conventions and the maintained contributor examples.
+The `npm run lint:translator-hints` check enforces the source structure.
+
 ## Command discovery and testing map
 
 Use `make help` to discover the project's high-level development tasks. The

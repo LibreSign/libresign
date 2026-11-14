@@ -19,12 +19,12 @@
 				</div>
 				<div v-else-if="!hasInfo" class="infor-container">
 					<div class="section">
-						<!-- TRANSLATORS: "Validate" here is a technical process: checking the cryptographic integrity of the signatures, the certificate chain and revocation status. It does NOT mean approving or authorizing something. Choose a word in your language that conveys "to check" or "to verify", not "to approve" or "to authorize". -->
+						<!-- TRANSLATORS "Validate" here is a technical process: checking the cryptographic integrity of the signatures, the certificate chain and revocation status. It does NOT mean approving or authorizing something. Choose a word in your language that conveys "to check" or "to verify", not "to approve" or "to authorize". -->
 						<h1>{{ t('libresign', 'Validate signature') }}</h1>
 						<NcNoteCard v-if="validationErrorMessage" type="error">
 							{{ validationErrorMessage }}
 						</NcNoteCard>
-						<!-- TRANSLATORS: Same meaning as the previous string: technical process of checking cryptographic integrity of signatures, NOT an approval. -->
+						<!-- TRANSLATORS Same meaning as the previous string: technical process of checking cryptographic integrity of signatures, NOT an approval. -->
 						<div class="upload-dropzone"
 							:class="{ 'upload-dropzone--dragover': isDraggingOver }"
 							@dragover.prevent="handleDragOver"
@@ -53,10 +53,10 @@
 								</NcActionButton>
 							</NcActions>
 						</div>
-						<!-- TRANSLATORS: Same meaning as the first string in this section: technical process of checking cryptographic integrity of signatures, NOT an approval. -->
+						<!-- TRANSLATORS Same meaning as the first string in this section: technical process of checking cryptographic integrity of signatures, NOT an approval. -->
 						<NcDialog v-if="getUUID" :name="t('libresign', 'Validate signature')" is-form
 							@closing="getUUID = false">
-							<!-- TRANSLATORS: Same meaning as the previous string: technical process of checking cryptographic integrity of signatures, NOT an approval. -->
+							<!-- TRANSLATORS Same meaning as the previous string: technical process of checking cryptographic integrity of signatures, NOT an approval. -->
 							<h1>{{ t('libresign', 'Validate signature') }}</h1>
 							<NcTextField v-model="uuidToValidate"
 								autofocus
@@ -68,7 +68,7 @@
 									<template #icon>
 										<NcLoadingIcon v-if="loading" :size="20" />
 									</template>
-									<!-- TRANSLATORS: "Validation" here is the technical process of checking cryptographic integrity of signatures, NOT an approval or authorization. -->
+									<!-- TRANSLATORS "Validation" here is the technical process of checking cryptographic integrity of signatures, NOT an approval or authorization. -->
 									{{ t('libresign', 'Validation') }}
 								</NcButton>
 							</template>
@@ -655,6 +655,11 @@ function getValidityStatusAtSigning(signer: ValidationDisplaySigner) {
 	return 'valid'
 }
 
+function unknownValidationStatusLabel() {
+	// TRANSLATORS Fallback value when the certificate or signature verification result has no label.
+	return t('libresign', 'Unknown')
+}
+
 function getSignatureValidationMessage(signer: ValidationDisplaySigner) {
 	if (!signer.signature_validation) {
 		return t('libresign', 'Signature: Unknown')
@@ -662,7 +667,9 @@ function getSignatureValidationMessage(signer: ValidationDisplaySigner) {
 	if (signer.signature_validation.id === 1) {
 		return t('libresign', 'Document integrity verified')
 	}
-	return t('libresign', 'Signature: {validationStatus}', { validationStatus: signer.signature_validation.label ?? t('libresign', 'Unknown') })
+	const validationStatus = signer.signature_validation.label ?? unknownValidationStatusLabel()
+	// TRANSLATORS {validationStatus} is the result of verifying the document's cryptographic signature.
+	return t('libresign', 'Signature: {validationStatus}', { validationStatus })
 }
 
 function getCertificateTrustMessage(signer: ValidationDisplaySigner) {
@@ -677,7 +684,9 @@ function getCertificateTrustMessage(signer: ValidationDisplaySigner) {
 		return t('libresign', 'Trust Chain: Trusted')
 	}
 
-	return t('libresign', 'Trust chain: {validationStatus}', { validationStatus: signer.certificate_validation.label ?? t('libresign', 'Unknown') })
+	const validationStatus = signer.certificate_validation.label ?? unknownValidationStatusLabel()
+	// TRANSLATORS {validationStatus} is the certificate trust-chain verification result.
+	return t('libresign', 'Trust chain: {validationStatus}', { validationStatus })
 }
 
 function getCrlValidationIconClass(signer: ValidationDisplaySigner) {
