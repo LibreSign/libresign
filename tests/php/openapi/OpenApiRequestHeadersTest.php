@@ -81,12 +81,12 @@ final class OpenApiRequestHeadersTest extends TestCase {
 	}
 
 	/**
-	* Discover authorization attributes directly from the middleware's UUID paths.
-	* Attributes checked in handleUuid share its UUID lookup; beforeController's
-	* guards count only when their direct handler reads the request UUID.
-	*
-	* @return list<string>
-	*/
+	 * Discover authorization attributes directly from the middleware's UUID paths.
+	 * Attributes checked in handleUuid share its UUID lookup; beforeController's
+	 * guards count only when their direct handler reads the request UUID.
+	 *
+	 * @return list<string>
+	 */
 	private static function uuidConsumerAttributesInMiddleware(string $source): array {
 		$handleUuid = self::middlewareMethodSource($source, 'handleUuid');
 		preg_match_all('/getAttributes\((\w+)::class\)/', $handleUuid, $matches);
