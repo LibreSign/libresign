@@ -337,6 +337,7 @@ final class MailServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 
 		$this->service->notifyUnsignedUser($this->mockSignRequest(), 'a@b.coop');
 	}
+
 	public function testRequesterStrategyFallbackSetsReplyToRequesterWhenNoProviderIsAvailable(): void {
 		$this->mockRequest();
 		$this->mockStrategy(MailSenderStrategyPolicy::STRATEGY_REQUESTER);
