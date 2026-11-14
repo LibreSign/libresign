@@ -2338,6 +2338,49 @@
                     }
                 }
             },
+            "SavedSignatureElement": {
+                "type": "object",
+                "properties": {
+                    "type": {
+                        "type": "string",
+                        "enum": [
+                            "signature",
+                            "initial",
+                            "date",
+                            "datetime",
+                            "text"
+                        ]
+                    },
+                    "elementId": {
+                        "type": "integer",
+                        "format": "int64"
+                    },
+                    "nodeId": {
+                        "type": "integer",
+                        "format": "int64"
+                    },
+                    "starred": {
+                        "type": "boolean"
+                    },
+                    "file": {
+                        "$ref": "#/components/schemas/SavedSignatureFile"
+                    },
+                    "coordinates": {
+                        "$ref": "#/components/schemas/Coordinate"
+                    }
+                }
+            },
+            "SavedSignatureFile": {
+                "type": "object",
+                "properties": {
+                    "base64": {
+                        "type": "string"
+                    },
+                    "url": {
+                        "type": "string"
+                    }
+                }
+            },
             "Settings": {
                 "type": "object",
                 "required": [
@@ -2901,6 +2944,22 @@
                     },
                     "participantRole": {
                         "$ref": "#/components/schemas/ParticipantRole"
+                    }
+                }
+            },
+            "SigningElement": {
+                "type": "object",
+                "required": [
+                    "documentElementId"
+                ],
+                "properties": {
+                    "documentElementId": {
+                        "type": "integer",
+                        "format": "int64"
+                    },
+                    "profileNodeId": {
+                        "type": "integer",
+                        "format": "int64"
                     }
                 }
             },
@@ -12209,11 +12268,11 @@
                                         "description": "Signature method"
                                     },
                                     "elements": {
-                                        "type": "object",
-                                        "default": {},
+                                        "type": "array",
+                                        "default": [],
                                         "description": "List of visible elements",
-                                        "additionalProperties": {
-                                            "type": "object"
+                                        "items": {
+                                            "$ref": "#/components/schemas/SigningElement"
                                         }
                                     },
                                     "identifyValue": {
@@ -12232,12 +12291,19 @@
                                         "description": "Execute signing asynchronously when possible"
                                     },
                                     "deviceGeolocation": {
-                                        "type": "object",
-                                        "default": {},
-                                        "description": "Device-reported geolocation metadata submitted by the signing client",
-                                        "additionalProperties": {
-                                            "type": "object"
-                                        }
+                                        "default": [],
+                                        "description": "Device-reported geolocation metadata, or an empty array when absent",
+                                        "anyOf": [
+                                            {
+                                                "$ref": "#/components/schemas/SignerDeviceGeolocation"
+                                            },
+                                            {
+                                                "type": "array",
+                                                "items": {
+                                                    "type": "object"
+                                                }
+                                            }
+                                        ]
                                     }
                                 }
                             }
@@ -12373,11 +12439,11 @@
                                         "description": "Signature method"
                                     },
                                     "elements": {
-                                        "type": "object",
-                                        "default": {},
+                                        "type": "array",
+                                        "default": [],
                                         "description": "List of visible elements",
-                                        "additionalProperties": {
-                                            "type": "object"
+                                        "items": {
+                                            "$ref": "#/components/schemas/SigningElement"
                                         }
                                     },
                                     "identifyValue": {
@@ -12396,12 +12462,19 @@
                                         "description": "Execute signing asynchronously when possible"
                                     },
                                     "deviceGeolocation": {
-                                        "type": "object",
-                                        "default": {},
-                                        "description": "Device-reported geolocation metadata submitted by the signing client",
-                                        "additionalProperties": {
-                                            "type": "object"
-                                        }
+                                        "default": [],
+                                        "description": "Device-reported geolocation metadata, or an empty array when absent",
+                                        "anyOf": [
+                                            {
+                                                "$ref": "#/components/schemas/SignerDeviceGeolocation"
+                                            },
+                                            {
+                                                "type": "array",
+                                                "items": {
+                                                    "type": "object"
+                                                }
+                                            }
+                                        ]
                                     },
                                     "saveSignature": {
                                         "type": "boolean",
@@ -12925,6 +12998,7 @@
                                     "identifyMethod": {
                                         "type": "string",
                                         "nullable": true,
+                                        "default": null,
                                         "enum": [
                                             "account",
                                             "email"
@@ -12934,6 +13008,7 @@
                                     "signMethod": {
                                         "type": "string",
                                         "nullable": true,
+                                        "default": null,
                                         "description": "Method used to sign the document, i.e. emailToken, account, clickToSign, smsToken, signalToken, telegramToken, whatsappToken, xmppToken"
                                     },
                                     "idDocApproval": {
@@ -13073,6 +13148,7 @@
                                     "identifyMethod": {
                                         "type": "string",
                                         "nullable": true,
+                                        "default": null,
                                         "enum": [
                                             "account",
                                             "email"
@@ -13082,6 +13158,7 @@
                                     "signMethod": {
                                         "type": "string",
                                         "nullable": true,
+                                        "default": null,
                                         "description": "Method used to sign the document, i.e. emailToken, account, clickToSign, smsToken, signalToken, telegramToken, whatsappToken, xmppToken"
                                     }
                                 }
@@ -13222,10 +13299,10 @@
                                 ],
                                 "properties": {
                                     "elements": {
-                                        "type": "object",
-                                        "description": "Element object",
-                                        "additionalProperties": {
-                                            "type": "object"
+                                        "type": "array",
+                                        "description": "Saved signature elements",
+                                        "items": {
+                                            "$ref": "#/components/schemas/SavedSignatureElement"
                                         }
                                     }
                                 }
@@ -13840,12 +13917,9 @@
                                         "description": "The type of signature element"
                                     },
                                     "file": {
-                                        "type": "object",
-                                        "default": {},
-                                        "description": "Element object",
-                                        "additionalProperties": {
-                                            "type": "object"
-                                        }
+                                        "$ref": "#/components/schemas/SavedSignatureFile",
+                                        "default": [],
+                                        "description": "Signature image supplied as base64 or URL"
                                     }
                                 }
                             }

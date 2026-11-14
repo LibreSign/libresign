@@ -1,0 +1,111 @@
+<?php
+
+declare(strict_types=1);
+
+/**
+ * SPDX-FileCopyrightText: 2026 LibreCode coop and contributors
+ * SPDX-License-Identifier: AGPL-3.0-or-later
+ */
+
+namespace OCA\Libresign\Tests\OpenApi;
+
+use PHPUnit\Framework\Attributes\DataProvider;
+use PHPUnit\Framework\TestCase;
+
+final class OpenApiSigningRequestContractsTest extends TestCase {
+	private static function loadSpec(string $name): array {
+		$content = file_get_contents(dirname(__DIR__, 3) . '/' . $name);
+		self::assertNotFalse($content);
+		return json_decode($content, true, 512, JSON_THROW_ON_ERROR);
+	}
+
+	private static function operation(array $spec, string $operationId): array {
+		foreach ($spec['paths'] as $path) {
+			foreach ($path as $operation) {
+				if (is_array($operation) && ($operation['operationId'] ?? null) === $operationId) {
+					return $operation;
+				}
+			}
+		}
+		self::fail('Missing operation: ' . $operationId);
+	}
+
+	private static function requestProperty(array $spec, string $operationId, string $name): array {
+		$operation = self::operation($spec, $operationId);
+		$schema = $operation['requestBody']['content']['application/json']['schema'];
+		self::assertArrayHasKey($name, $schema['properties']);
+		return $schema['properties'][$name];
+	}
+
+	public static function signingOperations(): array {
+		return [
+			'file ID' => ['sign_file-sign-by-file-id'],
+			'signer UUID' => ['sign_file-sign-by-signer-uuid'],
+		];
+	}
+
+	#[DataProvider('signingOperations')]
+	public function testSigningElementsAreAnOptionalTypedList(string $operationId): void {
+		$spec = self::loadSpec('openapi-full.json');
+		$operation = self::operation($spec, $operationId);
+		$schema = $operation['requestBody']['content']['application/json']['schema'];
+		self::assertNotContains('elements', $schema['required']);
+		$elements = $schema['properties']['elements'];
+		self::assertSame('array', $elements['type']);
+		self::assertSame([], $elements['default']);
+		self::assertSame('#/components/schemas/SigningElement', $elements['items']['$ref']);
+		$item = $spec['components']['schemas']['SigningElement'];
+		self::assertSame(['documentElementId'], $item['required']);
+		self::assertSame('integer', $item['properties']['documentElementId']['type']);
+		self::assertSame('integer', $item['properties']['profileNodeId']['type']);
+	}
+
+	#[DataProvider('signingOperations')]
+	public function testSigningGeolocationHasTypedStatusAndOptionalFields(string $operationId): void {
+		$spec = self::loadSpec('openapi-full.json');
+		$geolocation = self::requestProperty($spec, $operationId, 'deviceGeolocation');
+		self::assertSame([], $geolocation['default']);
+		self::assertSame([
+			['$ref' => '#/components/schemas/SignerDeviceGeolocation'],
+			['type' => 'array', 'items' => ['type' => 'object']],
+		], $geolocation['anyOf']);
+		$device = $spec['components']['schemas']['SignerDeviceGeolocation'];
+		self::assertSame(['status'], $device['required']);
+		self::assertSame('#/components/schemas/GeolocationCollectionStatus', $device['properties']['status']['$ref']);
+		foreach (['latitude', 'longitude', 'accuracy'] as $name) {
+			self::assertSame('number', $device['properties'][$name]['type']);
+		}
+		self::assertSame('integer', $device['properties']['timestamp']['type']);
+	}
+
+	public function testSavedSignatureCreationAcceptsTypedList(): void {
+		$spec = self::loadSpec('openapi-full.json');
+		$elements = self::requestProperty($spec, 'signature_elements-create-signature-element', 'elements');
+		self::assertSame('array', $elements['type']);
+		self::assertSame('#/components/schemas/SavedSignatureElement', $elements['items']['$ref']);
+		$item = $spec['components']['schemas']['SavedSignatureElement'];
+		self::assertSame(['signature', 'initial', 'date', 'datetime', 'text'], $item['properties']['type']['enum']);
+		self::assertSame('#/components/schemas/SavedSignatureFile', $item['properties']['file']['$ref']);
+		foreach (['elementId', 'nodeId'] as $field) {
+			self::assertSame('integer', $item['properties'][$field]['type']);
+		}
+	}
+
+	public function testSavedSignatureUpdateUsesTypedFile(): void {
+		$spec = self::loadSpec('openapi-full.json');
+		$file = self::requestProperty($spec, 'signature_elements-patch-signature-element', 'file');
+		self::assertSame('#/components/schemas/SavedSignatureFile', $file['$ref']);
+		$definition = $spec['components']['schemas']['SavedSignatureFile'];
+		foreach (['base64', 'url'] as $field) {
+			self::assertSame('string', $definition['properties'][$field]['type']);
+		}
+		self::assertArrayNotHasKey('required', $definition);
+	}
+
+	public function testExistingUnmodifiedOperationsRemainExposed(): void {
+		$spec = self::loadSpec('openapi-full.json');
+		foreach (['account-me', 'account-set-config', 'certificate_policy-get-certificate-policy'] as $operationId) {
+			self::assertNotEmpty(self::operation($spec, $operationId));
+		}
+	}
+}

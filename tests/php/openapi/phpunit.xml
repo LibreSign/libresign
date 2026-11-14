@@ -17,6 +17,7 @@
       <file>OpenApiGenerationTest.php</file>
       <file>OpenApiPolicyNumberUnionTest.php</file>
       <file>OpenApiRequestHeadersTest.php</file>
+      <file>OpenApiSigningRequestContractsTest.php</file>
     </testsuite>
   </testsuites>
 </phpunit>

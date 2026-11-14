@@ -1658,6 +1658,21 @@ export type components = {
             userId: string;
             displayName: string | null;
         };
+        SavedSignatureElement: {
+            /** @enum {string} */
+            type?: "signature" | "initial" | "date" | "datetime" | "text";
+            /** Format: int64 */
+            elementId?: number;
+            /** Format: int64 */
+            nodeId?: number;
+            starred?: boolean;
+            file?: components["schemas"]["SavedSignatureFile"];
+            coordinates?: components["schemas"]["Coordinate"];
+        };
+        SavedSignatureFile: {
+            base64?: string;
+            url?: string;
+        };
         Settings: {
             canSign: boolean;
             canRequestSign: boolean;
@@ -1824,6 +1839,12 @@ export type components = {
             status?: 0 | 1 | 2 | 3 | 4;
             statusText: string;
             participantRole?: components["schemas"]["ParticipantRole"];
+        };
+        SigningElement: {
+            /** Format: int64 */
+            documentElementId: number;
+            /** Format: int64 */
+            profileNodeId?: number;
         };
         SigningJob: {
             /** @enum {string} */
@@ -5650,11 +5671,9 @@ export interface operations {
                     method: string;
                     /**
                      * @description List of visible elements
-                     * @default {}
+                     * @default []
                      */
-                    elements?: {
-                        [key: string]: Record<string, never>;
-                    };
+                    elements?: components["schemas"]["SigningElement"][];
                     /**
                      * @description Identify value
                      * @default
@@ -5671,12 +5690,10 @@ export interface operations {
                      */
                     async?: boolean;
                     /**
-                     * @description Device-reported geolocation metadata submitted by the signing client
-                     * @default {}
+                     * @description Device-reported geolocation metadata, or an empty array when absent
+                     * @default []
                      */
-                    deviceGeolocation?: {
-                        [key: string]: Record<string, never>;
-                    };
+                    deviceGeolocation?: components["schemas"]["SignerDeviceGeolocation"] | Record<string, never>[];
                 };
             };
         };
@@ -5797,11 +5814,9 @@ export interface operations {
                     method: string;
                     /**
                      * @description List of visible elements
-                     * @default {}
+                     * @default []
                      */
-                    elements?: {
-                        [key: string]: Record<string, never>;
-                    };
+                    elements?: components["schemas"]["SigningElement"][];
                     /**
                      * @description Identify value
                      * @default
@@ -5818,12 +5833,10 @@ export interface operations {
                      */
                     async?: boolean;
                     /**
-                     * @description Device-reported geolocation metadata submitted by the signing client
-                     * @default {}
+                     * @description Device-reported geolocation metadata, or an empty array when absent
+                     * @default []
                      */
-                    deviceGeolocation?: {
-                        [key: string]: Record<string, never>;
-                    };
+                    deviceGeolocation?: components["schemas"]["SignerDeviceGeolocation"] | Record<string, never>[];
                     /**
                      * @description Explicitly save the external email signer's visible signature for future documents
                      * @default false
@@ -6051,10 +6064,14 @@ export interface operations {
                 "application/json": {
                     /**
                      * @description Identify signer method
+                     * @default null
                      * @enum {string|null}
                      */
                     identifyMethod?: "account" | "email" | null;
-                    /** @description Method used to sign the document, i.e. emailToken, account, clickToSign, smsToken, signalToken, telegramToken, whatsappToken, xmppToken */
+                    /**
+                     * @description Method used to sign the document, i.e. emailToken, account, clickToSign, smsToken, signalToken, telegramToken, whatsappToken, xmppToken
+                     * @default null
+                     */
                     signMethod?: string | null;
                     /**
                      * @description Literal string "true" when the UUID is an identification-document file UUID (matches middleware RequireSigner)
@@ -6117,10 +6134,14 @@ export interface operations {
                 "application/json": {
                     /**
                      * @description Identify signer method
+                     * @default null
                      * @enum {string|null}
                      */
                     identifyMethod?: "account" | "email" | null;
-                    /** @description Method used to sign the document, i.e. emailToken, account, clickToSign, smsToken, signalToken, telegramToken, whatsappToken, xmppToken */
+                    /**
+                     * @description Method used to sign the document, i.e. emailToken, account, clickToSign, smsToken, signalToken, telegramToken, whatsappToken, xmppToken
+                     * @default null
+                     */
                     signMethod?: string | null;
                 };
             };
@@ -6219,10 +6240,8 @@ export interface operations {
         requestBody: {
             content: {
                 "application/json": {
-                    /** @description Element object */
-                    elements: {
-                        [key: string]: Record<string, never>;
-                    };
+                    /** @description Saved signature elements */
+                    elements: components["schemas"]["SavedSignatureElement"][];
                 };
             };
         };
@@ -6489,12 +6508,10 @@ export interface operations {
                      */
                     type?: string;
                     /**
-                     * @description Element object
-                     * @default {}
+                     * @description Signature image supplied as base64 or URL
+                     * @default []
                      */
-                    file?: {
-                        [key: string]: Record<string, never>;
-                    };
+                    file?: components["schemas"]["SavedSignatureFile"];
                 };
             };
         };

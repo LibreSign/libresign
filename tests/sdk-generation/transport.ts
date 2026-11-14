@@ -4,7 +4,7 @@
  */
 import * as assert from 'node:assert/strict'
 import axios, { AxiosError, type AxiosAdapter, type InternalAxiosRequestConfig } from 'axios'
-import { AppearanceApi, CertificatesApi, DocumentsApi, IdentityApi, PoliciesApi, RequestsApi } from '../../build/sdk-generation/typescript/api'
+import { AppearanceApi, CertificatesApi, DocumentsApi, IdentityApi, PoliciesApi, RequestsApi, SigningApi } from '../../build/sdk-generation/typescript/api'
 import { Configuration } from '../../build/sdk-generation/typescript/configuration'
 
 async function run() {
@@ -42,6 +42,43 @@ async function run() {
   assert.equal(last.url, 'https://example.test/nextcloud/ocs/v2.php/apps/libresign/api/v1/request-signature')
   assert.match(String(last.headers.get('Content-Type')), /application\/json/)
   assert.deepEqual(JSON.parse(String(last.data)), { name: 'Example', file: { nodeId: '123' } })
+  const signing = new SigningApi(configuration, undefined, instance)
+  await signing.signFileSignByFileId({
+    apiVersion: 'v1',
+    fileId: 33,
+    oCSAPIRequest: true,
+    signFileSignByFileIdRequest: {
+      method: 'clickToSign',
+      elements: [{ documentElementId: 100, profileNodeId: 42 }, { documentElementId: 101 }],
+      deviceGeolocation: { status: 'collected', latitude: 10, longitude: -20 },
+    },
+  })
+  assert.equal(last.url, 'https://example.test/nextcloud/ocs/v2.php/apps/libresign/api/v1/sign/file_id/33')
+  assert.equal(last.method, 'post')
+  assert.equal(last.headers.get('OCS-APIRequest'), 'true')
+  assert.match(String(last.headers.get('Content-Type')), /application\/json/)
+  assert.deepEqual(JSON.parse(String(last.data)), {
+    method: 'clickToSign',
+    elements: [{ documentElementId: 100, profileNodeId: 42 }, { documentElementId: 101 }],
+    deviceGeolocation: { status: 'collected', latitude: 10, longitude: -20 },
+  })
+  const appearance = new AppearanceApi(configuration, undefined, instance)
+  await appearance.signatureElementsCreateSignatureElement({
+    apiVersion: 'v1',
+    oCSAPIRequest: true,
+    signatureElementsCreateSignatureElementRequest: { elements: [{ type: 'signature', file: { base64: 'synthetic-data' } }] },
+  })
+  assert.equal(last.url, 'https://example.test/nextcloud/ocs/v2.php/apps/libresign/api/v1/signature/elements')
+  assert.deepEqual(JSON.parse(String(last.data)), { elements: [{ type: 'signature', file: { base64: 'synthetic-data' } }] })
+  await appearance.signatureElementsPatchSignatureElement({
+    apiVersion: 'v1',
+    nodeId: 42,
+    oCSAPIRequest: true,
+    signatureElementsPatchSignatureElementRequest: { type: 'initial', file: { url: 'https://example.test/initial.png' } },
+  })
+  assert.equal(last.url, 'https://example.test/nextcloud/ocs/v2.php/apps/libresign/api/v1/signature/elements/42')
+  assert.equal(last.method, 'patch')
+  assert.deepEqual(JSON.parse(String(last.data)), { type: 'initial', file: { url: 'https://example.test/initial.png' } })
   const certificates = new CertificatesApi(configuration, undefined, instance)
   body = new Uint8Array([37, 80, 68, 70])
   const pdf = await certificates.certificatePolicyGetCertificatePolicy({ responseType: 'arraybuffer' })
