@@ -571,7 +571,9 @@ class FileController extends AEnvironmentAwareOCSController {
 	 * Send a file
 	 *
 	 * Send a new file to Nextcloud and return the fileId used to create a signature request.
-	 * Files must be uploaded as multipart/form-data with field name 'file[]' or 'files[]'.
+	 * File references can be sent as JSON using 'file' (single) or 'files' (list).
+	 * Binary files use multipart/form-data: 'file' for one file, 'files[]' for several;
+	 * the legacy 'file[]' field is also accepted. Do not combine these input forms.
 	 * Multipart clients can send optional expectedFilesCount to reject incomplete batches.
 	 *
 	 * **Note on multiple file uploads:**
@@ -602,9 +604,10 @@ class FileController extends AEnvironmentAwareOCSController {
 		try {
 			$this->signingRequestValidator->canRequestSign($this->userSession->getUser());
 
-			$uploadedFiles = $this->request->getUploadedFile('files') ?: $this->request->getUploadedFile('file');
-			$normalizedFiles = $this->prepareFilesForSaving($file, $files, $settings, $uploadedFiles);
-			if ($uploadedFiles) {
+			$singleUploadedFile = $this->request->getUploadedFile('file');
+			$multipleUploadedFiles = $this->request->getUploadedFile('files');
+			$normalizedFiles = $this->prepareFilesForSaving($file, $files, $settings, $singleUploadedFile, $multipleUploadedFiles);
+			if ($singleUploadedFile || $multipleUploadedFiles) {
 				$this->assertExpectedUploadedFileCount(count($normalizedFiles));
 			}
 
@@ -757,7 +760,15 @@ class FileController extends AEnvironmentAwareOCSController {
 	/**
 	 * @return list<array{fileNode?: Node, name?: string, uploadedFile?: array}> Normalized files array
 	 */
-	private function prepareFilesForSaving(array $file, array $files, array $settings, ?array $uploadedFiles): array {
+	private function prepareFilesForSaving(array $file, array $files, array $settings, ?array $singleUploadedFile, ?array $multipleUploadedFiles): array {
+		if (($file && $files)
+			|| ($singleUploadedFile && $multipleUploadedFiles)
+			|| (($file || $files) && ($singleUploadedFile || $multipleUploadedFiles))) {
+			// TRANSLATORS Error shown when a file upload mixes mutually exclusive input formats.
+			throw new LibresignException($this->l10n->t('Use only one file input format per request'));
+		}
+
+		$uploadedFiles = $multipleUploadedFiles ?: $singleUploadedFile;
 		if ($uploadedFiles) {
 			return $this->processUploadedFiles($uploadedFiles);
 		}
