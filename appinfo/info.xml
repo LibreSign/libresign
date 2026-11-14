@@ -2,22 +2,17 @@
 <info xmlns:xsi= "http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://apps.nextcloud.com/schema/apps/info.xsd">
 	<id>libresign</id>
 	<name>LibreSign</name>
-	<summary>Control document signing workflows inside Nextcloud</summary>
-	<description><![CDATA[**LibreSign helps organizations manage document signing inside Nextcloud.**
+	<summary>Sign documents and manage signing workflows</summary>
+	<description><![CDATA[Request electronic signatures and manage the signing process directly in Nextcloud.
 
-It is built for teams that need clear signing rules, traceable actions, and workflows that follow internal processes and legal requirements.
+- **Flexible workflows:** Collect signatures in sequence or in parallel, assign signer roles, and track progress.
+- **External signers:** Invite recipients by email to sign in their browser without a Nextcloud account, when enabled by the administrator.
+- **API integration:** Connect HR, CRM, and other systems to request signatures and track progress while keeping their existing interfaces and processes. The API is included with LibreSign.
+- **Document verification:** Sign PDFs using digital certificates and check signed documents using QR codes.
+
+LibreSign is free and open-source software. It requires Nextcloud to run, and API access follows Nextcloud authentication and permissions.
 
 LibreSign has been a verified [Digital Public Good](https://digitalpublicgoods.net/r/libresign) since 2025.
-
-**What LibreSign enables**
-
-- Define signing order and signer roles
-- Support internal and external signers
-- Keep a traceable record of requests and validations
-- Use digital certificates for compliant signing workflows
-- Validate documents using QR codes
-- Work directly with Nextcloud files and users
-- Integrate signing with other systems through APIs
 
 **Support LibreSign**
 If your organization uses LibreSign, support its development:
