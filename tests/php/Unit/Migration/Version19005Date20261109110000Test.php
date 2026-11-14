@@ -67,12 +67,12 @@ final class Version19005Date20261109110000Test extends TestCase {
 			->method('newFile')
 			->with(
 				'backup-table-libresign_file_callback_Version19005Date20261109110000.csv',
-				$this->callback(static function ($stream) use (&$csvContent): bool {
-					if (!is_resource($stream)) {
+				$this->callback(static function ($content) use (&$csvContent): bool {
+					if (!is_string($content)) {
 						return false;
 					}
-					$csvContent = stream_get_contents($stream);
-					return $csvContent !== false;
+					$csvContent = $content;
+					return true;
 				}),
 			)->willReturn($file);
 		$appData = $this->createMock(IAppData::class);
