@@ -181,7 +181,9 @@ class MailService {
 		}
 		$message->useTemplate($emailTemplate);
 		try {
-			$this->sendAndCheck($message);
+			if ($this->mailer->send($message) !== []) {
+				throw new \RuntimeException('Mail transport reported rejected recipients');
+			}
 		} catch (\Exception $e) {
 			$this->logger->error('Mail with code to sign document could not be sent: ' . $e->getMessage());
 			throw new LibresignException('Mail with code to sign document could not be sent', 1);
