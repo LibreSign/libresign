@@ -42,6 +42,8 @@ path = [
     "openapi-full.json",
     "openapi.json",
     "package-lock.json",
+    "tests/sdk-generation/package.json",
+    "tests/sdk-generation/package-lock.json",
     "package.json",
     "patches.json",
     "patches.lock.json",
