@@ -1247,7 +1247,7 @@ export type components = {
             everyoneCount: number;
         };
         EffectivePolicyValue: (boolean | number | string | {
-            [key: string]: Record<string, never>;
+            [key: string]: unknown;
         }) | null;
         ErrorItem: {
             message: string;
@@ -1883,7 +1883,7 @@ export type components = {
             };
         };
         UserConfigValue: string | boolean | number | Record<string, never>[] | {
-            [key: string]: Record<string, never>;
+            [key: string]: unknown;
         };
         UserElement: {
             /** Format: int64 */
@@ -3140,20 +3140,14 @@ export interface operations {
         requestBody?: {
             content: {
                 "application/json": {
-                    /**
-                     * @description File to save
-                     * @default []
-                     */
+                    /** @description File to save */
                     file?: components["schemas"]["NewFile"];
                     /**
                      * @description The name of file to sign
                      * @default
                      */
                     name?: string;
-                    /**
-                     * @description Settings to define how and where the file should be stored
-                     * @default []
-                     */
+                    /** @description Settings to define how and where the file should be stored */
                     settings?: components["schemas"]["FolderSettings"];
                     /**
                      * @description Multiple files to create an envelope (optional, use either file or files)
@@ -3408,10 +3402,7 @@ export interface operations {
                      * @default {}
                      */
                     metadata?: Record<string, never>;
-                    /**
-                     * @description Coortinates of a visible element on PDF
-                     * @default []
-                     */
+                    /** @description Coortinates of a visible element on PDF */
                     coordinates?: components["schemas"]["Coordinate"];
                 };
             };
@@ -3563,10 +3554,7 @@ export interface operations {
                      * @default {}
                      */
                     metadata?: Record<string, never>;
-                    /**
-                     * @description Coortinates of a visible element on PDF
-                     * @default []
-                     */
+                    /** @description Coortinates of a visible element on PDF */
                     coordinates?: components["schemas"]["Coordinate"];
                 };
             };
@@ -5021,10 +5009,7 @@ export interface operations {
         requestBody?: {
             content: {
                 "application/json": {
-                    /**
-                     * @description Values to persist for the group, keyed by policy identifier.
-                     * @default []
-                     */
+                    /** @description Values to persist for the group, keyed by policy identifier. */
                     values?: components["schemas"]["PolicyValueMap"];
                     /**
                      * @description Whether users and requests below this group may override each saved value, keyed by policy identifier.
@@ -5112,10 +5097,7 @@ export interface operations {
         requestBody?: {
             content: {
                 "application/json": {
-                    /**
-                     * @description Values to persist as the current user's defaults, keyed by policy identifier.
-                     * @default []
-                     */
+                    /** @description Values to persist as the current user's defaults, keyed by policy identifier. */
                     values?: components["schemas"]["PolicyValueMap"];
                 };
             };
@@ -5184,10 +5166,7 @@ export interface operations {
         requestBody?: {
             content: {
                 "application/json": {
-                    /**
-                     * @description Values to persist for the target user, keyed by policy identifier.
-                     * @default []
-                     */
+                    /** @description Values to persist for the target user, keyed by policy identifier. */
                     values?: components["schemas"]["PolicyValueMap"];
                     /**
                      * @description Whether the target user may still override each assigned value, keyed by policy identifier.
@@ -5410,15 +5389,9 @@ export interface operations {
                      * @default
                      */
                     name?: string;
-                    /**
-                     * @description Settings to define how and where the file should be stored
-                     * @default []
-                     */
+                    /** @description Settings to define how and where the file should be stored */
                     settings?: components["schemas"]["FolderSettings"];
-                    /**
-                     * @description File object. Supports nodeId (a non-negative integer or its canonical decimal string, as Nextcloud node ids can exceed a JavaScript number), url, base64 or path.
-                     * @default []
-                     */
+                    /** @description File object. Supports nodeId (a non-negative integer or its canonical decimal string, as Nextcloud node ids can exceed a JavaScript number), url, base64 or path. */
                     file?: components["schemas"]["NewFile"];
                     /**
                      * @description Multiple files to create an envelope (optional, use either file or files). Each file supports nodeId, url, base64 or path.
@@ -5540,10 +5513,7 @@ export interface operations {
                      * @default null
                      */
                     name?: string | null;
-                    /**
-                     * @description Settings to define how and where the file should be stored
-                     * @default []
-                     */
+                    /** @description Settings to define how and where the file should be stored */
                     settings?: components["schemas"]["FolderSettings"];
                     /**
                      * @description Multiple files to create an envelope (optional, use either file or files). Each file supports nodeId, url, base64 or path.
@@ -6519,10 +6489,7 @@ export interface operations {
                      * @default
                      */
                     type?: string;
-                    /**
-                     * @description Signature image supplied as base64 or URL
-                     * @default []
-                     */
+                    /** @description Signature image supplied as base64 or URL */
                     file?: components["schemas"]["SavedSignatureFile"];
                 };
             };

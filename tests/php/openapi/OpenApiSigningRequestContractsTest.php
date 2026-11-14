@@ -93,7 +93,8 @@ final class OpenApiSigningRequestContractsTest extends TestCase {
 	public function testSavedSignatureUpdateUsesTypedFile(): void {
 		$spec = self::loadSpec('openapi-full.json');
 		$file = self::requestProperty($spec, 'signature_elements-patch-signature-element', 'file');
-		self::assertSame('#/components/schemas/SavedSignatureFile', $file['$ref']);
+		self::assertSame([['$ref' => '#/components/schemas/SavedSignatureFile']], $file['allOf']);
+		self::assertArrayNotHasKey('default', $file);
 		$definition = $spec['components']['schemas']['SavedSignatureFile'];
 		foreach (['base64', 'url'] as $field) {
 			self::assertSame('string', $definition['properties'][$field]['type']);
@@ -180,7 +181,7 @@ final class OpenApiSigningRequestContractsTest extends TestCase {
 		self::assertTrue($operation['requestBody']['required']);
 		$schema = $operation['requestBody']['content']['application/json']['schema'];
 		self::assertSame(['value'], $schema['required']);
-		self::assertSame('#/components/schemas/UserConfigValue', $schema['properties']['value']['$ref']);
+		self::assertSame([['$ref' => '#/components/schemas/UserConfigValue']], $schema['properties']['value']['allOf']);
 
 		$configValue = $spec['components']['schemas']['UserConfigValue'];
 		$branches = $configValue['anyOf'] ?? $configValue['oneOf'] ?? [];
@@ -206,7 +207,8 @@ final class OpenApiSigningRequestContractsTest extends TestCase {
 	public function testCompoundPoliciesReferenceSharedValueMap(string $operationId): void {
 		$spec = self::loadSpec('openapi-full.json');
 		$values = self::requestProperty($spec, $operationId, 'values');
-		self::assertSame('#/components/schemas/PolicyValueMap', $values['$ref']);
+		self::assertSame([['$ref' => '#/components/schemas/PolicyValueMap']], $values['allOf']);
+		self::assertArrayNotHasKey('default', $values);
 		$map = $spec['components']['schemas']['PolicyValueMap'];
 		self::assertSame('object', $map['type']);
 		self::assertSame('#/components/schemas/EffectivePolicyValue', $map['additionalProperties']['$ref']);
