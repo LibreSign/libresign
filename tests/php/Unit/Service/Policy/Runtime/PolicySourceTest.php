@@ -919,6 +919,21 @@ final class PolicySourceTest extends TestCase {
 		$this->assertSame(['{"allowGroups":["admin","finance"],"denyGroups":[]}'], $layer->getAllowedValues());
 	}
 
+	public function testLoadSystemPolicyNormalizesLegacyTypedBooleanForIdentificationDocuments(): void {
+		// Pre-refactor installs stored this key as a plain boolean toggle.
+		// The current policy default is an array ({enabled, approvers}), so
+		// reading it must not probe the array getter against a boolean value
+		// stored under the previous policy's type.
+		$this->setStoredAppConfigBool(IdentificationDocumentsPolicy::SYSTEM_APP_CONFIG_KEY, true);
+
+		$source = $this->getSource();
+		$layer = $source->loadSystemPolicy(IdentificationDocumentsPolicy::KEY);
+
+		$this->assertNotNull($layer);
+		$this->assertSame('global', $layer->getScope());
+		$this->assertSame(['enabled' => false, 'approvers' => ['admin']], $layer->getValue());
+	}
+
 	public function testLoadSystemPolicyTreatsEmptyStoredValueAsNoExplicitSystemValue(): void {
 		// Simulate a state where the policy key exists in appconfig but with
 		// an empty string value – as can happen when the value is written
@@ -2380,6 +2395,10 @@ final class PolicySourceTest extends TestCase {
 
 	private function setStoredAppConfigArray(string $key, array $value): void {
 		$this->coreAppConfig->setValueArray(Application::APP_ID, $key, $value);
+	}
+
+	private function setStoredAppConfigBool(string $key, bool $value): void {
+		$this->coreAppConfig->setValueBool(Application::APP_ID, $key, $value);
 	}
 
 	private function assertStoredAppConfigString(string $key, string $expectedValue): void {
