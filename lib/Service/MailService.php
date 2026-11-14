@@ -82,8 +82,8 @@ class MailService {
 		try {
 			$this->sendSignRequestNotification($emailTemplate, $data, $email);
 		} catch (\Exception $e) {
-			$this->logger->error('Notify changes in unsigned notification mail could not be sent: ' . $e->getMessage());
-			throw new LibresignException('Notify unsigned notification mail could not be sent', 1);
+			$this->logger->error('Notify changes in unsigned notification mail could not be sent');
+			throw new LibresignException('Notify unsigned notification mail could not be sent', 1, $e);
 		}
 	}
 
@@ -115,8 +115,8 @@ class MailService {
 		try {
 			$this->sendSignRequestNotification($emailTemplate, $data, $email);
 		} catch (\Exception $e) {
-			$this->logger->error('Notify unsigned notification mail could not be sent: ' . $e->getMessage());
-			throw new LibresignException('Notify unsigned notification mail could not be sent', 1);
+			$this->logger->error('Notify unsigned notification mail could not be sent');
+			throw new LibresignException('Notify unsigned notification mail could not be sent', 1, $e);
 		}
 	}
 
@@ -182,26 +182,37 @@ class MailService {
 	 * @return bool true when the message was sent through the requester mail account
 	 */
 	private function sendAsRequester(IEMailTemplate $emailTemplate, SignRequest $data, string $email, string $requesterId, ?IUser $requester): bool {
+		// Missing accounts and message preparation failures are safe to
+		// fall back from. Submission exceptions may occur after SMTP acceptance.
 		try {
 			$service = $this->findRequesterMailService($requesterId, $requester);
-			if ($service === null) {
-				return false;
-			}
+		} catch (\Exception) {
+			// Account lookup has no transport side effect.
+			$this->logger->warning('Requester mail account lookup failed; using the system mailer');
+			return false;
+		}
+		if ($service === null) {
+			return false;
+		}
+		try {
 			$message = $service->initiateMessage()
 				->setFrom($service->getPrimaryAddress())
 				->setTo(new Address($email, $data->getDisplayName() ?: null))
 				->setSubject($emailTemplate->renderSubject())
 				->setBodyHtml($emailTemplate->renderHtml())
 				->setBodyPlain($emailTemplate->renderText());
-			$service->sendMessage($message);
-			return true;
-		} catch (\Throwable $e) {
-			$this->logger->warning('Unable to send the notification through the requester mail account, falling back to the system mailer.', [
-				'requester' => $requesterId,
-				'exception' => $e,
-			]);
+		} catch (\Exception $e) {
+			$this->logger->warning('Requester mail could not be prepared; using the system mailer');
 			return false;
 		}
+		try {
+			$service->sendMessage($message);
+		} catch (\Exception $e) {
+			// Stable35 has no notification delivery state ledger; preserve the
+			// unknown outcome in the exception chain without retrying the send.
+			throw new \RuntimeException('Requester mail submission outcome is unknown', 0, $e);
+		}
+		return true;
 	}
 
 	private function findRequesterMailService(string $requesterId, ?IUser $requester): (IService&IMessageSend)|null {
