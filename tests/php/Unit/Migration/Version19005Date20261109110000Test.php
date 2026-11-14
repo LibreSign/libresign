@@ -8,18 +8,20 @@ declare(strict_types=1);
 
 namespace OCA\Libresign\Tests\Unit\Migration;
 
-use Doctrine\DBAL\Schema\Table;
 use OCA\Libresign\AppInfo\Application;
 use OCA\Libresign\Migration\Version19005Date20261109110000;
 use OCP\DB\ISchemaWrapper;
+use OCP\DB\Schema\ITable;
 use OCP\IAppConfig;
 use OCP\Migration\IOutput;
 use PHPUnit\Framework\TestCase;
 
 final class Version19005Date20261109110000Test extends TestCase {
 	public function testDropsCallbackColumnOnlyOnce(): void {
-		$table = new Table('libresign_file');
-		$table->addColumn('callback', 'string', ['notnull' => false]);
+		$table = $this->createMock(ITable::class);
+		$table->expects($this->exactly(2))->method('hasColumn')->with('callback')
+			->willReturnOnConsecutiveCalls(true, false);
+		$table->expects($this->once())->method('dropColumn')->with('callback');
 		$schema = $this->createMock(ISchemaWrapper::class);
 		$schema->method('hasTable')->with('libresign_file')->willReturn(true);
 		$schema->method('getTable')->with('libresign_file')->willReturn($table);
@@ -27,7 +29,6 @@ final class Version19005Date20261109110000Test extends TestCase {
 		$migration = new Version19005Date20261109110000($this->createMock(IAppConfig::class));
 
 		$this->assertSame($schema, $migration->changeSchema($output, static fn (): ISchemaWrapper => $schema, []));
-		$this->assertFalse($table->hasColumn('callback'));
 		$this->assertNull($migration->changeSchema($output, static fn (): ISchemaWrapper => $schema, []));
 	}
 

@@ -412,7 +412,7 @@ class RequestSignatureService {
 	 *     userManager?: IUser,
 	 *     signRequest?: SignRequestEntity,
 	 *     name?: string,
-		 *     uuid?: ?string,
+	 *     uuid?: ?string,
 	 *     status?: int,
 	 *     parentFileId?: int,
 	 *     file?: array{fileId?: int, nodeId?: int, fileNode?: Node},

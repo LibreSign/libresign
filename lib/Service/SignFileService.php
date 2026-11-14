@@ -13,7 +13,6 @@ use DateTimeInterface;
 use Exception;
 use InvalidArgumentException;
 use OC\AppFramework\Http as AppFrameworkHttp;
-use OCA\Libresign\AppInfo\Application;
 use OCA\Libresign\BackgroundJob\SignSingleFileJob;
 use OCA\Libresign\DataObjects\VisibleElementAssoc;
 use OCA\Libresign\Db\File as FileEntity;
