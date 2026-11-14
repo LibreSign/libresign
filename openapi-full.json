@@ -1238,7 +1238,6 @@
                             "statusText",
                             "created_at",
                             "file",
-                            "callback",
                             "uuid",
                             "signers"
                         ],
@@ -1290,10 +1289,6 @@
                                         "type": "string"
                                     }
                                 }
-                            },
-                            "callback": {
-                                "type": "string",
-                                "nullable": true
                             },
                             "uuid": {
                                 "type": "string"
@@ -12280,12 +12275,6 @@
                                         "items": {
                                             "$ref": "#/components/schemas/NewFile"
                                         }
-                                    },
-                                    "callback": {
-                                        "type": "string",
-                                        "nullable": true,
-                                        "default": null,
-                                        "description": "URL that will receive a POST after the document is signed"
                                     },
                                     "status": {
                                         "type": "integer",
