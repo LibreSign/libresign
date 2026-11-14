@@ -702,52 +702,17 @@ class PolicySource implements IPolicySource {
 	}
 
 	private function readSystemValue(string $key, mixed $defaultValue): mixed {
-		try {
-			if (is_int($defaultValue)) {
-				return $this->appConfig->getAppValueInt($key, $defaultValue);
-			}
+		// Look up the value through its own persisted type instead of guessing
+		// a type from $defaultValue and calling the matching typed getter.
+		// Legacy installs may still have this key stored with a previous
+		// policy's type (e.g. a scalar boolean toggle saved before it became a
+		// JSON policy array). Probing the wrong typed getter made AppConfig
+		// log "Config value ... is stored as X but was requested as Y" on
+		// every page load, even though the policy normalizer already accepts
+		// whatever raw shape comes back (see #9456).
+		$storedValues = $this->appConfig->getAllAppValues($key);
 
-			if (is_bool($defaultValue)) {
-				return $this->appConfig->getAppValueBool($key, $defaultValue);
-			}
-
-			if (is_float($defaultValue)) {
-				return $this->appConfig->getAppValueFloat($key, $defaultValue);
-			}
-
-			if (is_array($defaultValue)) {
-				return $this->appConfig->getAppValueArray($key, $defaultValue);
-			}
-
-			return $this->appConfig->getAppValueString($key, (string)$defaultValue);
-		} catch (AppConfigTypeConflictException $exception) {
-			if (is_string($defaultValue)) {
-				try {
-					$arrayValue = $this->appConfig->getAppValueArray($key, []);
-					return json_encode($arrayValue, JSON_THROW_ON_ERROR);
-				} catch (AppConfigTypeConflictException) {
-					return $this->appConfig->getAppValueBool($key, in_array(strtolower(trim($defaultValue)), ['1', 'true', 'yes', 'on'], true));
-				} catch (\JsonException) {
-					return (string)$defaultValue;
-				}
-			}
-
-			if (is_bool($defaultValue)) {
-				return $this->appConfig->getAppValueString($key, $defaultValue ? '1' : '0');
-			}
-
-			if (is_array($defaultValue)) {
-				// Value was stored as a scalar (e.g., by Nextcloud provisioning API).
-				// Return the raw string so the policy normalizer can decode it.
-				try {
-					return $this->appConfig->getAppValueString($key, '');
-				} catch (AppConfigTypeConflictException) {
-					return $defaultValue;
-				}
-			}
-
-			throw $exception;
-		}
+		return array_key_exists($key, $storedValues) ? $storedValues[$key] : $defaultValue;
 	}
 
 	private function writeSystemValue(string $key, mixed $value): void {
