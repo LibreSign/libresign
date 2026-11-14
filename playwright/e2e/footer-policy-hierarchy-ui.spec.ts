@@ -183,21 +183,7 @@ async function selectTarget(dialogScope: Locator, kind: 'group' | 'user', target
 	const labeledInput = dialogScope.getByLabel(labelPattern).first()
 	const targetInput = await combobox.count() ? combobox : labeledInput
 	const selectedTarget = dialogScope.locator('.vs__selected').filter({ hasText: new RegExp(escapeRegExp(target), 'i') }).first()
-	const submitButton = dialogScope.getByRole('button', {
-		name: /Create rule|Create policy rule|Save changes|Save policy rule changes|Save rule changes/i,
-	}).last()
-
-	const isSelectionConfirmed = async () => {
-		if (await selectedTarget.isVisible({ timeout: 1000 }).catch(() => false)) {
-			return true
-		}
-
-		if (await submitButton.isVisible({ timeout: 1000 }).catch(() => false)) {
-			return submitButton.isEnabled().catch(() => false)
-		}
-
-		return false
-	}
+	const isSelectionConfirmed = async () => selectedTarget.isVisible().catch(() => false)
 
 	await expect(targetInput).toBeVisible({ timeout: 8000 })
 	if (await isSelectionConfirmed()) {
@@ -233,13 +219,11 @@ async function selectTarget(dialogScope: Locator, kind: 'group' | 'user', target
 				}
 			}
 
-			await page.keyboard.press('Escape').catch(() => {})
-			await searchInput.press('Tab').catch(() => {})
-			if (await isSelectionConfirmed()) {
+			// Escape can propagate past NcSelectUsers and close the enclosing NcDialog.
+			if (await selectedTarget.waitFor({ state: 'visible', timeout: 3000 }).then(() => true).catch(() => false)) {
 				break
 			}
 		}
-		await expect.poll(isSelectionConfirmed, { timeout: 8000 }).toBe(true)
 	} else {
 		await page.keyboard.type(target)
 		const targetPattern = new RegExp(escapeRegExp(target), 'i')
@@ -254,10 +238,11 @@ async function selectTarget(dialogScope: Locator, kind: 'group' | 'user', target
 			await page.keyboard.press('ArrowDown')
 			await page.keyboard.press('Enter')
 		}
-		await page.keyboard.press('Tab').catch(() => {})
-		await expect.poll(isSelectionConfirmed, { timeout: 8000 }).toBe(true)
 	}
 
+	await expect(selectedTarget).toBeVisible({ timeout: 8000 })
+	await page.keyboard.press('Tab')
+	await expect(dialogScope).toBeVisible()
 	await expect(page.locator('ul[role="listbox"].vs__dropdown-menu--floating')).toHaveCount(0)
 }
 
