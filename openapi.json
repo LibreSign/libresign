@@ -3,7 +3,7 @@
     "info": {
         "title": "libresign",
         "version": "0.0.1",
-        "description": "Control document signing workflows inside Nextcloud",
+        "description": "Sign documents and manage signing workflows",
         "license": {
             "name": "agpl"
         }
