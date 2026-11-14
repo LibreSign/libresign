@@ -255,19 +255,7 @@ async function chooseTarget(dialog: Locator, ariaLabel: 'Target groups' | 'Targe
 	const labeledInput = root.getByLabel(labelPattern).first()
 	const targetInput = await combobox.count() ? combobox : labeledInput
 	const selectedTarget = root.locator('.vs__selected').filter({ hasText: new RegExp(optionText, 'i') }).first()
-	const submitButton = root.getByRole('button', {
-		name: /Create rule|Create policy rule|Save changes|Save policy rule changes|Save rule changes/i,
-	}).last()
-
-	const isSelectionConfirmed = async () => {
-		if (await selectedTarget.isVisible({ timeout: 1000 }).catch(() => false)) {
-			return true
-		}
-		if (await submitButton.isVisible({ timeout: 1000 }).catch(() => false)) {
-			return submitButton.isEnabled().catch(() => false)
-		}
-		return false
-	}
+	const isSelectionConfirmed = async () => selectedTarget.isVisible().catch(() => false)
 
 	await expect(targetInput).toBeVisible({ timeout: 8000 })
 	await targetInput.click()
@@ -295,13 +283,10 @@ async function chooseTarget(dialog: Locator, ariaLabel: 'Target groups' | 'Targe
 				}
 			}
 
-			await page.keyboard.press('Escape').catch(() => {})
-			await searchInput.press('Tab').catch(() => {})
-			if (await isSelectionConfirmed()) {
+			if (await selectedTarget.waitFor({ state: 'visible', timeout: 3000 }).then(() => true).catch(() => false)) {
 				break
 			}
 		}
-		await expect.poll(isSelectionConfirmed, { timeout: 8000 }).toBe(true)
 	} else {
 		await page.keyboard.type(optionText)
 		const matchingOption = page.getByRole('option', { name: new RegExp(optionText, 'i') }).first()
@@ -311,9 +296,10 @@ async function chooseTarget(dialog: Locator, ariaLabel: 'Target groups' | 'Targe
 			await page.keyboard.press('ArrowDown')
 			await page.keyboard.press('Enter')
 		}
-		await page.keyboard.press('Tab').catch(() => {})
-		await expect.poll(isSelectionConfirmed, { timeout: 8000 }).toBe(true)
 	}
+	await expect(selectedTarget).toBeVisible({ timeout: 8000 })
+	await page.keyboard.press('Tab')
+	await expect(root).toBeVisible()
 }
 
 async function resetSystemRuleToBaseline(dialog: Locator) {
