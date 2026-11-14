@@ -31,10 +31,6 @@ describe('Account.vue', () => {
 						props: ['user'],
 						template: '<div class="user-image-stub">{{ user.displayName }}</div>',
 					},
-					ManagePassword: {
-						name: 'ManagePassword',
-						template: '<div class="manage-password-stub"></div>',
-					},
 					Signatures: {
 						name: 'Signatures',
 						template: '<div class="signatures-stub"></div>',
@@ -52,7 +48,6 @@ describe('Account.vue', () => {
 		const wrapper = createWrapper()
 
 		expect(wrapper.text()).toContain('Details')
-		expect(wrapper.text()).toContain('Certificate')
 		expect(wrapper.text()).toContain('Ada Lovelace')
 	})
 
@@ -69,7 +64,6 @@ describe('Account.vue', () => {
 	it('renders the account partial sections', () => {
 		const wrapper = createWrapper()
 
-		expect(wrapper.find('.manage-password-stub').exists()).toBe(true)
 		expect(wrapper.find('.signatures-stub').exists()).toBe(true)
 		expect(wrapper.find('.documents-stub').exists()).toBe(true)
 	})

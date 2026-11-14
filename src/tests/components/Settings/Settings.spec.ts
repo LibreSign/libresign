@@ -367,16 +367,16 @@ describe('Settings', () => {
 			wrapper = createWrapper(false)
 			const items = getItems()
 
-			// Account + Preferences + Rate = 3
-			expect(items.length).toBe(3)
+			// Account + Preferences + My certificates + Rate = 4
+			expect(items.length).toBe(4)
 		})
 
 		it('shows 3 items for admin', () => {
 			wrapper = createWrapper(true)
 			const items = getItems()
 
-			// Account + Preferences + Policies + Administration + Rate = 5
-			expect(items.length).toBe(5)
+			// Account + Preferences + Policies + Administration + My certificates + Rate = 6
+			expect(items.length).toBe(6)
 		})
 	})
 
@@ -765,6 +765,7 @@ describe('Settings', () => {
 			expect(getWrapper().find('.account-icon').exists()).toBe(true)
 			expect(getWrapper().find('.tune-icon').exists()).toBe(true)
 			expect(getWrapper().find('.star-icon').exists()).toBe(true)
+			expect(getWrapper().find('.certificate-icon').exists()).toBe(true)
 		})
 
 		it('renders Account and Rate icons for non-admin', () => {
@@ -772,6 +773,7 @@ describe('Settings', () => {
 
 			expect(getWrapper().find('.account-icon').exists()).toBe(true)
 			expect(getWrapper().find('.star-icon').exists()).toBe(true)
+			expect(getWrapper().find('.certificate-icon').exists()).toBe(true)
 		})
 
 		it('does not render admin icon for non-admin', () => {
@@ -846,7 +848,7 @@ describe('Settings', () => {
 			wrapper = createWrapper(false)
 			const items = getItems()
 
-			expect(items).toHaveLength(3)
+			expect(items).toHaveLength(4)
 
 			const hasAccount = items.some(i => i.props('name')?.includes('Account'))
 			const hasPreferences = items.some(i => i.props('name')?.includes('Preferences'))
@@ -863,7 +865,7 @@ describe('Settings', () => {
 			wrapper = createWrapper(true)
 			const items = getItems()
 
-			expect(items).toHaveLength(5)
+			expect(items).toHaveLength(6)
 
 			const hasAccount = items.some(i => i.props('name')?.includes('Account'))
 			const hasPreferences = items.some(i => i.props('name')?.includes('Preferences'))
@@ -888,7 +890,7 @@ describe('Settings', () => {
 			})
 			const items = getItems()
 
-			expect(items).toHaveLength(2)
+			expect(items).toHaveLength(3)
 
 			const hasAccount = items.some(i => i.props('name')?.includes('Account'))
 			const hasPreferences = items.some(i => i.props('name')?.includes('Preferences'))
@@ -912,7 +914,7 @@ describe('Settings', () => {
 			})
 			const items = getItems()
 
-			expect(items).toHaveLength(2)
+			expect(items).toHaveLength(3)
 
 			const hasPreferences = items.some(i => i.props('name')?.includes('Preferences'))
 			const hasPolicies = items.some(i => i.props('name')?.includes('Policies'))

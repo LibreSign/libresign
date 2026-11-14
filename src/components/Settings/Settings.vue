@@ -32,6 +32,13 @@
 				<NcIconSvgWrapper class="tune-icon" :path="mdiCogOutline" :size="20" />
 			</template>
 		</NcAppNavigationItem>
+		<NcAppNavigationItem
+			:name="t('libresign', 'My certificates')"
+			:to="{name: 'MyCertificates'}">
+			<template #icon>
+				<NcIconSvgWrapper class="certificate-icon" :path="mdiCertificate" :size="20" />
+			</template>
+		</NcAppNavigationItem>
 		<NcAppNavigationItem icon="icon-star" :name="t('libresign', 'Rate LibreSign  ❤️')"
 			href="https://apps.nextcloud.com/apps/libresign#comments">
 			<template #icon>
@@ -66,6 +73,7 @@ import {
 	mdiStar,
 	mdiShieldCheckOutline,
 	mdiTuneVariant,
+	mdiCertificate,
 } from '@mdi/js'
 
 defineOptions({
