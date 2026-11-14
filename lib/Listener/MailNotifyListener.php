@@ -22,13 +22,11 @@ use OCP\EventDispatcher\Event;
 use OCP\EventDispatcher\IEventListener;
 use OCP\IUser;
 use OCP\IUserManager;
-use OCP\IUserSession;
 use Psr\Log\LoggerInterface;
 
 /** @template-implements IEventListener<Event> */
 class MailNotifyListener implements IEventListener {
 	public function __construct(
-		protected IUserSession $userSession,
 		protected IUserManager $userManager,
 		protected IdentifyService $identifyService,
 		protected MailService $mail,
@@ -65,32 +63,9 @@ class MailNotifyListener implements IEventListener {
 		IIdentifyMethod $identifyMethod,
 	): void {
 		try {
-			if ($identifyMethod->getEntity()->isDeletedAccount()) {
+			$email = $this->resolveEligibleRecipientEmail($identifyMethod, SendSignNotificationEvent::FILE_TO_SIGN);
+			if ($email === null) {
 				return;
-			}
-			$email = '';
-			if ($identifyMethod->getName() === 'account') {
-				$userId = $identifyMethod->getEntity()->getIdentifierValue();
-				$email = $this->userManager
-					->get($userId)
-					->getEMailAddress();
-			} elseif ($identifyMethod->getName() === 'email') {
-				$email = $identifyMethod->getEntity()->getIdentifierValue();
-			}
-			if (empty($email)) {
-				return;
-			}
-
-			$users = $this->userManager->getByEmail($email);
-			if (count($users) === 1) {
-				$userId = $users[0]->getUID();
-				if ($this->notificationPreferenceResolver->isEmailNotificationDisabled(
-					$userId,
-					SendSignNotificationEvent::FILE_TO_SIGN,
-					true,
-				)) {
-					return;
-				}
 			}
 
 			$isFirstNotification = $this->signRequestMapper->incrementNotificationCounter($signRequest, 'mail');
@@ -146,31 +121,9 @@ class MailNotifyListener implements IEventListener {
 		FileEntity $libreSignFile,
 	): void {
 		try {
-			if ($identifyMethod->getEntity()->isDeletedAccount()) {
+			$email = $this->resolveEligibleRecipientEmail($identifyMethod, SignRequestCanceledEvent::SIGN_REQUEST_CANCELED);
+			if ($email === null) {
 				return;
-			}
-
-			$email = '';
-			if ($identifyMethod->getName() === 'account') {
-				$userId = $identifyMethod->getEntity()->getIdentifierValue();
-				$user = $this->userManager->get($userId);
-				if ($user) {
-					$email = $user->getEMailAddress();
-				}
-			} elseif ($identifyMethod->getName() === 'email') {
-				$email = $identifyMethod->getEntity()->getIdentifierValue();
-			}
-
-			if (empty($email)) {
-				return;
-			}
-
-			$users = $this->userManager->getByEmail($email);
-			if (count($users) === 1) {
-				$userId = $users[0]->getUID();
-				if ($this->notificationPreferenceResolver->isEmailNotificationDisabled($userId, SignRequestCanceledEvent::SIGN_REQUEST_CANCELED, true)) {
-					return;
-				}
 			}
 
 			$this->mail->notifyCanceledRequest($signRequest, $email, $libreSignFile);
@@ -179,5 +132,63 @@ class MailNotifyListener implements IEventListener {
 			$this->logger->error($e->getMessage(), ['exception' => $e]);
 			return;
 		}
+	}
+
+	private function resolveEligibleRecipientEmail(IIdentifyMethod $identifyMethod, string $notificationType): ?string {
+		$entity = $identifyMethod->getEntity();
+		if ($entity->isDeletedAccount()) {
+			return null;
+		}
+
+		return match ($identifyMethod->getName()) {
+			'email' => $this->resolveEmailIdentifiedRecipient($entity->getIdentifierValue(), $notificationType),
+			'account' => $this->resolveAccountIdentifiedRecipient($entity->getIdentifierValue(), $notificationType),
+			default => null,
+		};
+	}
+
+	private function resolveEmailIdentifiedRecipient(string $email, string $notificationType): ?string {
+		if ($email === '') {
+			return null;
+		}
+
+		$disabled = match ($notificationType) {
+			SendSignNotificationEvent::FILE_TO_SIGN
+				=> $this->notificationPreferenceResolver->isEmailNotificationGloballyDisabled($notificationType),
+			SignRequestCanceledEvent::SIGN_REQUEST_CANCELED
+				=> $this->isCancellationDisabledForUniqueLinkedAccount($email),
+			default => true,
+		};
+
+		return $disabled ? null : $email;
+	}
+
+	private function resolveAccountIdentifiedRecipient(string $uid, string $notificationType): ?string {
+		$user = $this->userManager->get($uid);
+		if (!$user instanceof IUser) {
+			return null;
+		}
+		$email = $user->getEMailAddress();
+		if (empty($email) || $this->notificationPreferenceResolver->isEmailNotificationDisabled(
+			$user->getUID(),
+			$notificationType,
+			true,
+		)) {
+			return null;
+		}
+		return $email;
+	}
+
+	private function isCancellationDisabledForUniqueLinkedAccount(string $email): bool {
+		$users = $this->userManager->getByEmail($email);
+		if (count($users) !== 1) {
+			return false;
+		}
+
+		return $this->notificationPreferenceResolver->isEmailNotificationDisabled(
+			$users[0]->getUID(),
+			SignRequestCanceledEvent::SIGN_REQUEST_CANCELED,
+			true,
+		);
 	}
 }
