@@ -19,9 +19,21 @@
 						</p>
 						<dl v-else class="user-contact">
 							<dt>{{ t('libresign', 'Email') }}</dt>
-							<dd>{{ loadingAccount ? t('libresign', 'Loading …') : emailAddress }}</dd>
+							<dd v-if="loadingAccount">
+								<!-- TRANSLATORS Account email is loading; the ellipsis indicates an operation in progress and must be preserved. -->
+								{{ t('libresign', 'Loading …') }}
+							</dd>
+							<dd v-else>
+								{{ emailAddress }}
+							</dd>
 							<dt>{{ t('libresign', 'Phone') }}</dt>
-							<dd>{{ loadingAccount ? t('libresign', 'Loading …') : phoneNumber }}</dd>
+							<dd v-if="loadingAccount">
+								<!-- TRANSLATORS Account phone number is loading; the ellipsis indicates an operation in progress and must be preserved. -->
+								{{ t('libresign', 'Loading …') }}
+							</dd>
+							<dd v-else>
+								{{ phoneNumber }}
+							</dd>
 						</dl>
 						<p v-if="currentUser" class="user-contact-edit">
 							<!-- TRANSLATORS Opens the signed-in user's contact settings in Nextcloud, not an editor inside LibreSign. -->

@@ -198,14 +198,21 @@ describe('Account.vue', () => {
 
 		const wrapper = createWrapper()
 
-		expect(wrapper.text()).toContain('Loading …')
+		const loadingValues = wrapper.findAll('.user-contact dd')
+		expect(loadingValues).toHaveLength(2)
+		for (const value of loadingValues) {
+			const text = value.element.textContent ?? ''
+			expect(text).toContain('Loading …')
+			expect(text).not.toContain('Loading …')
+			expect(text).not.toContain('Loading...')
+		}
 		expect(wrapper.text()).not.toContain('ada@example.com')
 		expect(wrapper.find('.user-contact-edit a').exists()).toBe(true)
 
 		resolveRequest(accountResponse('ada@example.com', '+1234567890'))
 		await flushPromises()
 
-		expect(wrapper.text()).not.toContain('Loading …')
+		expect(wrapper.find('.user-contact').text()).not.toContain('Loading')
 		expect(wrapper.text()).toContain('ada@example.com')
 		expect(wrapper.text()).toContain('+1234567890')
 	})
