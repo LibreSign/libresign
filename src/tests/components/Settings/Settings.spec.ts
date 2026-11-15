@@ -353,7 +353,7 @@ describe('Settings', () => {
 			expect(adminItem).toBeUndefined()
 		})
 
-		it('shows 3 navigation items for unauthenticated user', () => {
+		it('shows expected navigation items for unauthenticated user', () => {
 			wrapper = createUnauthenticatedWrapper()
 			const items = getItems()
 

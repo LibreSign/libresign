@@ -44,7 +44,7 @@ describe('Account.vue', () => {
 		})
 	}
 
-	it('renders the current user details and certificate section', () => {
+	it('renders the current user details', () => {
 		const wrapper = createWrapper()
 
 		expect(wrapper.text()).toContain('Details')
