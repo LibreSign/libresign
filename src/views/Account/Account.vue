@@ -13,6 +13,32 @@
 						<div class="user-display-name icon-user">
 							<p>{{ user.displayName }}</p>
 						</div>
+						<p v-if="accountError" class="account-error" role="status">
+							<!-- TRANSLATORS Shown when the account contact-detail request fails. -->
+							{{ t('libresign', 'Email and phone details could not be loaded.') }}
+						</p>
+						<dl v-else class="user-contact">
+							<dt>{{ t('libresign', 'Email') }}</dt>
+							<dd v-if="loadingAccount">
+								<!-- TRANSLATORS Account email is loading; the ellipsis indicates an operation in progress and must be preserved. -->
+								{{ t('libresign', 'Loading …') }}
+							</dd>
+							<dd v-else>
+								{{ emailAddress }}
+							</dd>
+							<dt>{{ t('libresign', 'Phone') }}</dt>
+							<dd v-if="loadingAccount">
+								<!-- TRANSLATORS Account phone number is loading; the ellipsis indicates an operation in progress and must be preserved. -->
+								{{ t('libresign', 'Loading …') }}
+							</dd>
+							<dd v-else>
+								{{ phoneNumber }}
+							</dd>
+						</dl>
+						<p v-if="currentUser" class="user-contact-edit">
+							<!-- TRANSLATORS Opens the signed-in user's contact settings in Nextcloud, not an editor inside LibreSign. -->
+							<a :href="contactSettingsUrl">{{ t('libresign', 'Edit contact information') }}</a>
+						</p>
 					</div>
 					<div class="user-password">
 						<h3>{{ t('libresign', 'Certificate') }}</h3>
@@ -31,14 +57,19 @@
 
 <script setup lang="ts">
 import { t } from '@nextcloud/l10n'
+import { computed, onMounted, ref } from 'vue'
 
 import { getCurrentUser } from '@nextcloud/auth'
+import axios from '@nextcloud/axios'
+import { generateOcsUrl, generateUrl } from '@nextcloud/router'
+
 import NcAppContent from '@nextcloud/vue/components/NcAppContent'
 
 import Documents from './partials/Documents.vue'
 import ManagePassword from './partials/ManagePassword.vue'
 import Signatures from './partials/Signatures.vue'
 import UserImage from './partials/UserImage.vue'
+import type { components } from '../../types/openapi/openapi'
 
 defineOptions({
 	name: 'Account',
@@ -49,11 +80,45 @@ type User = {
 	displayName: string
 }
 
+type AccountMeResponse = components['schemas']['AccountMeResponse']
+type OcsResponseData<T> = {
+	ocs: {
+		data: T
+	}
+}
+
 const currentUser = getCurrentUser()
 const user: User = {
 	uid: currentUser?.uid ?? '',
 	displayName: currentUser?.displayName ?? '',
 }
+
+const account = ref<AccountMeResponse | null>(null)
+const loadingAccount = ref(Boolean(currentUser))
+const accountError = ref(false)
+
+// TRANSLATORS Fallback when the account has no email address configured.
+const emailAddress = computed(() => account.value?.account.emailAddress?.trim() || t('libresign', 'Not provided'))
+// TRANSLATORS Fallback when the account has no phone number configured.
+const phoneNumber = computed(() => account.value?.settings.phoneNumber?.trim() || t('libresign', 'Not provided'))
+const contactSettingsUrl = generateUrl('/settings/user/profile-contact')
+
+onMounted(async () => {
+	if (!currentUser) {
+		return
+	}
+
+	try {
+		const response = await axios.get<OcsResponseData<AccountMeResponse>>(
+			generateOcsUrl('/apps/libresign/api/v1/account/me'),
+		)
+		account.value = response.data.ocs.data
+	} catch {
+		accountError.value = true
+	} finally {
+		loadingAccount.value = false
+	}
+})
 
 defineExpose({
 	user,
@@ -111,6 +176,28 @@ defineExpose({
 					margin-top: 12px;
 					margin-left: 12px;
 					padding-left: 22px;
+				}
+
+				.user-contact{
+					margin: 0 12px;
+
+					dt{
+						font-weight: bold;
+					}
+
+					dd{
+						margin: 0 0 12px;
+						overflow-wrap: anywhere;
+					}
+				}
+
+				.account-error{
+					margin: 0 12px;
+					overflow-wrap: anywhere;
+				}
+
+				.user-contact-edit{
+					margin: 0 12px;
 				}
 			}
 
