@@ -9,14 +9,19 @@ declare(strict_types=1);
 namespace OCA\Libresign\Tests\Api\Controller;
 
 use OCA\Libresign\AppInfo\Application;
+use OCA\Libresign\Db\File;
 use OCA\Libresign\Db\FileMapper;
 use OCA\Libresign\Db\SignRequestMapper;
 use OCA\Libresign\Enum\DocMdpLevel;
 use OCA\Libresign\Enum\FileStatus;
 use OCA\Libresign\Service\Policy\Provider\Footer\FooterPolicyValue;
 use OCA\Libresign\Service\RequestSignatureService;
+use OCA\Libresign\Service\RequestSignatureWorkflowService;
 use OCA\Libresign\Tests\Api\ApiTestCase;
 use OCP\IDBConnection;
+use PHPUnit\Framework\Attributes\DataProvider;
+use PHPUnit\Framework\Attributes\PreserveGlobalState;
+use PHPUnit\Framework\Attributes\RunInSeparateProcess;
 
 /**
  * @group DB
@@ -549,6 +554,193 @@ final class RequestSignatureControllerTest extends ApiTestCase {
 		$this->assertSame(DocMdpLevel::NOT_CERTIFIED, $after->getDocmdpLevelEnum());
 		$this->assertSame($before->getMetadata()['policy_snapshot']['docmdp'], $after->getMetadata()['policy_snapshot']['docmdp']);
 		$this->assertCount(2, $this->getSignersFromFileId($file->getId()));
+	}
+
+	/** @return array<string, array{int, ?int, int, int}> */
+	public static function provideFrozenEnvelopeDocMdpCases(): array {
+		return [
+			'frozen override L1, current L3' => [2, 1, 3, 422],
+			'frozen override L2, current L1' => [1, 2, 1, 200],
+			'frozen L2, current L1' => [2, null, 1, 200],
+			'frozen L0, current L1' => [0, null, 1, 200],
+		];
+	}
+
+	#[RunInSeparateProcess]
+	#[PreserveGlobalState(false)]
+	#[DataProvider('provideFrozenEnvelopeDocMdpCases')]
+	public function testUuidPatchChecksEnvelopeSignersAgainstTheFrozenDocMdpOfItsDocuments(
+		int $initialLevel,
+		?int $requestOverride,
+		int $currentLevel,
+		int $expectedStatus,
+	): void {
+		[$envelope, $childrenBefore] = $this->createFrozenDocMdpEnvelope($initialLevel, $requestOverride);
+
+		$this->getMockAppConfig()->setValueInt(Application::APP_ID, 'docmdp_level', $currentLevel);
+		$this->request
+			->withMethod('PATCH')
+			->withPath('/api/v1/request-signature')
+			->withRequestHeader([
+				'Authorization' => 'Basic ' . base64_encode('allowrequestsign:password'),
+				'Content-Type' => 'application/json',
+			])
+			->withRequestBody([
+				'uuid' => $envelope->getUuid(),
+				'signers' => $this->buildEmailSigners(['one@test.coop', 'two@test.coop']),
+			])
+			->expectStatus($expectedStatus);
+
+		$response = $this->assertRequest();
+		$body = json_decode($response->getBody()->getContents(), true);
+		if ($expectedStatus === 422) {
+			$this->assertSame('This document has been certified with no changes allowed. You cannot add more signers to this document.', $body['ocs']['data']['message']);
+		}
+		$expectedSigners = $expectedStatus === 200 ? 2 : 1;
+		$fileMapper = \OCP\Server::get(FileMapper::class);
+		$this->assertCount($expectedSigners, $this->getSignersFromFileId($envelope->getId()));
+		foreach ($childrenBefore as $before) {
+			$after = $fileMapper->getById($before->getId());
+			$this->assertSame($before->getDocmdpLevelEnum(), $after->getDocmdpLevelEnum());
+			$this->assertSame($before->getMetadata()['policy_snapshot']['docmdp'], $after->getMetadata()['policy_snapshot']['docmdp']);
+			$this->assertCount($expectedSigners, $this->getSignersFromFileId($after->getId()));
+		}
+	}
+
+	/** @return array<string, array{int, int, int}> */
+	public static function provideFrozenNodeIdDocMdpCases(): array {
+		return [
+			'frozen L1, current L2' => [1, 2, 422],
+			'frozen L0, current L1' => [0, 1, 200],
+			'frozen L2, current L1' => [2, 1, 200],
+		];
+	}
+
+	#[RunInSeparateProcess]
+	#[PreserveGlobalState(false)]
+	#[DataProvider('provideFrozenNodeIdDocMdpCases')]
+	public function testPostByNodeIdChecksSignersAgainstTheFrozenDocMdpOfTheReusedFile(
+		int $frozenLevel,
+		int $currentLevel,
+		int $expectedStatus,
+	): void {
+		$before = $this->createFrozenDocMdpDraft($frozenLevel);
+		$filesBefore = $this->countFilesOf('allowrequestsign');
+
+		$this->getMockAppConfig()->setValueInt(Application::APP_ID, 'docmdp_level', $currentLevel);
+		$this->request
+			->withMethod('POST')
+			->withPath('/api/v1/request-signature')
+			->withRequestHeader([
+				'Authorization' => 'Basic ' . base64_encode('allowrequestsign:password'),
+				'Content-Type' => 'application/json',
+			])
+			->withRequestBody([
+				'name' => 'reused',
+				'file' => ['nodeId' => $before->getNodeId()],
+				'signers' => $this->buildEmailSigners(['one@test.coop', 'two@test.coop']),
+			])
+			->expectStatus($expectedStatus);
+
+		$response = $this->assertRequest();
+		$body = json_decode($response->getBody()->getContents(), true);
+		if ($expectedStatus === 422) {
+			$this->assertSame('This document has been certified with no changes allowed. You cannot add more signers to this document.', $body['ocs']['data']['message']);
+		} else {
+			$this->assertSame($before->getUuid(), $body['ocs']['data']['uuid']);
+		}
+		$fileMapper = \OCP\Server::get(FileMapper::class);
+		$after = $fileMapper->getByNodeId($before->getNodeId());
+		$this->assertSame($before->getId(), $after->getId());
+		$this->assertSame($filesBefore, $this->countFilesOf('allowrequestsign'));
+		$this->assertSame(DocMdpLevel::from($frozenLevel), $after->getDocmdpLevelEnum());
+		$this->assertSame($before->getMetadata()['policy_snapshot']['docmdp'], $after->getMetadata()['policy_snapshot']['docmdp']);
+		$this->assertCount($expectedStatus === 200 ? 2 : 0, $this->getSignersFromFileId($after->getId()));
+	}
+
+	/**
+	 * Creates a two-document envelope for one signer and sends it, through the
+	 * workflow behind the POST and PATCH endpoints. Creating it is the control
+	 * proving the override, when any, was authorized.
+	 *
+	 * @return array{File, list<File>}
+	 */
+	private function createFrozenDocMdpEnvelope(int $initialLevel, ?int $requestOverride): array {
+		$user = $this->createAccount('allowrequestsign', 'password', 'testGroup');
+		$appConfig = $this->getMockAppConfig();
+		$appConfig->setValueString(Application::APP_ID, 'groups_request_sign', '{"allowGroups":["admin","testGroup"],"denyGroups":[]}');
+		$appConfig->setValueBool(Application::APP_ID, 'notifyUnsignedUser', false);
+		$appConfig->setValueInt(Application::APP_ID, 'docmdp_level', $initialLevel);
+		$policy = null;
+		if ($requestOverride !== null) {
+			$appConfig->setValueString(Application::APP_ID, 'docmdp_level.allow_child_override', '1');
+			$policy = ['overrides' => ['docmdp' => $requestOverride]];
+		}
+		$workflow = \OCP\Server::get(RequestSignatureWorkflowService::class);
+		$created = $workflow->createRequest(
+			$user,
+			[],
+			[
+				['name' => 'first.pdf', 'base64' => base64_encode(file_get_contents(__DIR__ . '/../../fixtures/pdfs/small_valid.pdf'))],
+				['name' => 'second.pdf', 'base64' => base64_encode(file_get_contents(__DIR__ . '/../../fixtures/pdfs/small_valid.pdf'))],
+			],
+			'envelope',
+			[],
+			$this->buildEmailSigners(['one@test.coop']),
+			FileStatus::DRAFT->value,
+			policy: $policy,
+		);
+		$uuid = $created['file']->getUuid();
+		// A new envelope stays a draft until it is sent, which freezes its documents.
+		$workflow->updateExistingRequest($user, $this->buildEmailSigners(['one@test.coop']), $uuid, null, [], FileStatus::ABLE_TO_SIGN->value);
+
+		$fileMapper = \OCP\Server::get(FileMapper::class);
+		$envelope = $fileMapper->getByUuid($uuid);
+		$this->assertTrue($envelope->isEnvelope());
+		$this->assertSame(FileStatus::ABLE_TO_SIGN->value, $envelope->getStatus());
+		$this->assertCount(1, $this->getSignersFromFileId($envelope->getId()));
+		$children = $fileMapper->getChildrenFiles($envelope->getId());
+		$this->assertCount(2, $children);
+		$expected = [
+			'effectiveValue' => $requestOverride ?? $initialLevel,
+			'sourceScope' => $requestOverride === null ? 'global' : 'request',
+		];
+		foreach ($children as $child) {
+			$this->assertSame(DocMdpLevel::from($requestOverride ?? $initialLevel), $child->getDocmdpLevelEnum());
+			$this->assertSame($expected, $child->getMetadata()['policy_snapshot']['docmdp']);
+			$this->assertArrayHasKey('policy_snapshot_frozen_at', $child->getMetadata());
+			$this->assertCount(1, $this->getSignersFromFileId($child->getId()));
+		}
+		return [$envelope, $children];
+	}
+
+	/**
+	 * A request sent with one signer and then emptied returns to draft, but
+	 * stays frozen, so it can be sent again by node id.
+	 */
+	private function createFrozenDocMdpDraft(int $frozenLevel): File {
+		$user = $this->createAccount('allowrequestsign', 'password', 'testGroup');
+		$appConfig = $this->getMockAppConfig();
+		$appConfig->setValueString(Application::APP_ID, 'groups_request_sign', '{"allowGroups":["admin","testGroup"],"denyGroups":[]}');
+		$appConfig->setValueBool(Application::APP_ID, 'notifyUnsignedUser', false);
+		$appConfig->setValueInt(Application::APP_ID, 'docmdp_level', $frozenLevel);
+		$file = $this->requestSignFile([
+			'file' => ['base64' => base64_encode(file_get_contents(__DIR__ . '/../../fixtures/pdfs/small_valid.pdf'))],
+			'name' => 'sent',
+			'signers' => $this->buildEmailSigners(['one@test.coop']),
+			'userManager' => $user,
+		]);
+		foreach (\OCP\Server::get(SignRequestMapper::class)->getByFileId($file->getId()) as $signRequest) {
+			\OCP\Server::get(RequestSignatureService::class)->unassociateToUser($file->getId(), $signRequest->getId());
+		}
+
+		$draft = \OCP\Server::get(FileMapper::class)->getById($file->getId());
+		$this->assertSame(FileStatus::DRAFT->value, $draft->getStatus());
+		$this->assertArrayHasKey('policy_snapshot_frozen_at', $draft->getMetadata());
+		$this->assertSame(DocMdpLevel::from($frozenLevel), $draft->getDocmdpLevelEnum());
+		$this->assertSame($frozenLevel, $draft->getMetadata()['policy_snapshot']['docmdp']['effectiveValue']);
+		$this->assertSame([], $this->getSignersFromFileId($draft->getId()));
+		return $draft;
 	}
 
 	/**
