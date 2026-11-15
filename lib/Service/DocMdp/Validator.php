@@ -86,9 +86,18 @@ class Validator {
 			}
 		}
 
-		$level = $this->docMdpFilePolicyApplier->resolveLevel($file, $data)
-			?? $this->configService->getLevel();
+		$documents = $file?->isEnvelope() ? $this->fileMapper->getChildrenFiles($file->getId()) : [];
+		if ($documents === []) {
+			$documents = [$file];
+		}
+		$levels = array_map(
+			fn (?File $document): int => ($this->docMdpFilePolicyApplier->resolveLevel($document, $data)
+				?? $this->configService->getLevel())->value,
+			$documents,
+		);
 
-		return $level->value;
+		return in_array(DocMdpLevel::CERTIFIED_NO_CHANGES_ALLOWED->value, $levels, true)
+			? DocMdpLevel::CERTIFIED_NO_CHANGES_ALLOWED->value
+			: $levels[0];
 	}
 }
