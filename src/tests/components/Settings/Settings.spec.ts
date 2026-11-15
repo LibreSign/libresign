@@ -364,7 +364,7 @@ describe('Settings', () => {
 	})
 
 	describe('RULE: navigation items count depends on admin status', () => {
-		it('shows 4 items for non-admin', () => {
+		it('shows expected items for non-admin', () => {
 			wrapper = createWrapper(false)
 			const items = getItems()
 
@@ -372,7 +372,7 @@ describe('Settings', () => {
 			expect(items.length).toBe(4)
 		})
 
-		it('shows 6 items for admin', () => {
+		it('shows expected items for admin', () => {
 			wrapper = createWrapper(true)
 			const items = getItems()
 
