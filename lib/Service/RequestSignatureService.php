@@ -437,25 +437,10 @@ class RequestSignatureService {
 			}
 			return $this->upgradeExistingFileStatus($file, $data['status'] ?? 0);
 		}
-		$nodeId = null;
-		if (isset($data['file']['fileNode']) && $data['file']['fileNode'] instanceof Node) {
-			$nodeId = $data['file']['fileNode']->getId();
-		} elseif (!empty($data['file']['nodeId'])) {
-			$nodeId = $data['file']['nodeId'];
-		}
-		if (!is_null($nodeId)) {
-			try {
-				$file = $this->fileMapper->getByNodeId($nodeId);
-			} catch (DoesNotExistException) {
-				$file = null;
-			} catch (MultipleObjectsReturnedException) {
-				// TRANSLATORS Error shown when a document cannot be updated because LibreSign has more than one record for it.
-				throw new LibresignException($this->l10n->t('This document is registered more than once, so it cannot be updated. Please contact your administrator.'), 422);
-			}
-			if ($file !== null) {
-				$this->filePolicyApplier->syncAllPolicies($file, $data);
-				return $this->upgradeExistingFileStatus($file, $data['status'] ?? 0);
-			}
+		$file = $this->getFileOfNode($data);
+		if ($file !== null) {
+			$this->filePolicyApplier->syncAllPolicies($file, $data);
+			return $this->upgradeExistingFileStatus($file, $data['status'] ?? 0);
 		}
 
 		$node = $createdNode ?? $this->fileService->getNodeFromData($data);
@@ -512,6 +497,30 @@ class RequestSignatureService {
 			'becameReady' => $wasDraft && !$file->hasParent()
 				&& $file->getStatus() === FileStatus::ABLE_TO_SIGN->value,
 		];
+	}
+
+	/**
+	 * The file LibreSign already registered for the node a request points at,
+	 * which the request then updates instead of creating another one.
+	 */
+	private function getFileOfNode(array $data): ?FileEntity {
+		$nodeId = null;
+		if (isset($data['file']['fileNode']) && $data['file']['fileNode'] instanceof Node) {
+			$nodeId = $data['file']['fileNode']->getId();
+		} elseif (!empty($data['file']['nodeId'])) {
+			$nodeId = $data['file']['nodeId'];
+		}
+		if (is_null($nodeId)) {
+			return null;
+		}
+		try {
+			return $this->fileMapper->getByNodeId($nodeId);
+		} catch (DoesNotExistException) {
+			return null;
+		} catch (MultipleObjectsReturnedException) {
+			// TRANSLATORS Error shown when a document cannot be updated because LibreSign has more than one record for it.
+			throw new LibresignException($this->l10n->t('This document is registered more than once, so it cannot be updated. Please contact your administrator.'), 422);
+		}
 	}
 
 	private function getFileMetadata(\OCP\Files\Node $node): array {
@@ -703,6 +712,11 @@ class RequestSignatureService {
 			throw new \Exception($this->l10n->t('Signers list needs to be an array'));
 		}
 
+		// persistFile() reuses the file already registered for the node, so the
+		// signers are checked against that request, as on an update by uuid.
+		if (empty($data['uuid'])) {
+			$data['uuid'] = $this->getFileOfNode($data)?->getUuid();
+		}
 		$this->signerValidator->validateIdentifySigners($data);
 		$normalizedSigners = $this->signerValidator->normalizeRequestSigners($data['signers']);
 

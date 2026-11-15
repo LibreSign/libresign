@@ -11,6 +11,7 @@ namespace OCA\Libresign\Service\DocMdp;
 
 use OCA\Libresign\Db\File;
 use OCA\Libresign\Db\FileMapper;
+use OCA\Libresign\Enum\DocMdpLevel;
 use OCA\Libresign\Enum\ParticipantRole;
 use OCA\Libresign\Exception\LibresignException;
 use OCA\Libresign\Service\File\Pdf\PdfValidator;
@@ -100,7 +101,9 @@ class Validator {
 
 	/**
 	 * Signers are checked before the request is saved, so this is the level the
-	 * request will certify with once saved, not the one it stores now.
+	 * request will certify with once saved, not the one it stores now. An
+	 * envelope is not certified itself: each of its documents is, with its own
+	 * level, so one that allows no changes is enough to refuse more signers.
 	 */
 	private function getDocMdpLevel(array $data, ?File &$file): int {
 		if (!empty($data['uuid'])) {
@@ -111,9 +114,18 @@ class Validator {
 			}
 		}
 
-		$level = $this->docMdpFilePolicyApplier->resolveLevel($file, $data)
-			?? $this->configService->getLevel();
+		$documents = $file?->isEnvelope() ? $this->fileMapper->getChildrenFiles($file->getId()) : [];
+		if ($documents === []) {
+			$documents = [$file];
+		}
+		$levels = array_map(
+			fn (?File $document): int => ($this->docMdpFilePolicyApplier->resolveLevel($document, $data)
+				?? $this->configService->getLevel())->value,
+			$documents,
+		);
 
-		return $level->value;
+		return in_array(DocMdpLevel::CERTIFIED_NO_CHANGES_ALLOWED->value, $levels, true)
+			? DocMdpLevel::CERTIFIED_NO_CHANGES_ALLOWED->value
+			: $levels[0];
 	}
 }
