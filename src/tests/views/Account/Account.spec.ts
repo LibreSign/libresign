@@ -31,6 +31,7 @@ vi.mock('@nextcloud/axios', () => ({
 
 vi.mock('@nextcloud/router', () => ({
 	generateOcsUrl: vi.fn((path: string) => path),
+	generateUrl: vi.fn((path: string) => `/index.php${path}`),
 }))
 
 const accountResponse = (emailAddress: string, phoneNumber: string) => ({
@@ -141,6 +142,15 @@ describe('Account.vue', () => {
 		expect(wrapper.text()).not.toContain('null')
 	})
 
+	it('links to the Nextcloud contact settings through a semantic link', async () => {
+		const wrapper = createWrapper()
+		await flushPromises()
+
+		const link = wrapper.get('.user-contact-edit a')
+		expect(link.text()).toBe('Edit contact information')
+		expect(link.attributes('href')).toBe('/index.php/settings/user/profile-contact')
+	})
+
 	it('shows a fallback when the phone is missing', async () => {
 		axiosGetMock.mockResolvedValue(accountResponse('ada@example.com', ''))
 		const wrapper = createWrapper()
@@ -163,6 +173,7 @@ describe('Account.vue', () => {
 		expect(wrapper.text()).toContain('Certificate')
 		expect(wrapper.text()).not.toContain('undefined')
 		expect(wrapper.text()).not.toContain('null')
+		expect(wrapper.find('.user-contact-edit a').exists()).toBe(true)
 	})
 
 	it('shows a safe error state without breaking the account page', async () => {
@@ -176,6 +187,7 @@ describe('Account.vue', () => {
 		expect(wrapper.find('.manage-password-stub').exists()).toBe(true)
 		expect(wrapper.find('.signatures-stub').exists()).toBe(true)
 		expect(wrapper.find('.documents-stub').exists()).toBe(true)
+		expect(wrapper.find('.user-contact-edit a').exists()).toBe(true)
 	})
 
 	it('shows a loading state until the account request resolves', async () => {
@@ -188,6 +200,7 @@ describe('Account.vue', () => {
 
 		expect(wrapper.text()).toContain('Loading …')
 		expect(wrapper.text()).not.toContain('ada@example.com')
+		expect(wrapper.find('.user-contact-edit a').exists()).toBe(true)
 
 		resolveRequest(accountResponse('ada@example.com', '+1234567890'))
 		await flushPromises()

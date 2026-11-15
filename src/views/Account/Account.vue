@@ -22,6 +22,9 @@
 							<dt>{{ t('libresign', 'Phone') }}</dt>
 							<dd>{{ loadingAccount ? t('libresign', 'Loading …') : phoneNumber }}</dd>
 						</dl>
+						<p v-if="currentUser" class="user-contact-edit">
+							<a :href="contactSettingsUrl">{{ t('libresign', 'Edit contact information') }}</a>
+						</p>
 					</div>
 					<div class="user-password">
 						<h3>{{ t('libresign', 'Certificate') }}</h3>
@@ -44,7 +47,7 @@ import { computed, onMounted, ref } from 'vue'
 
 import { getCurrentUser } from '@nextcloud/auth'
 import axios from '@nextcloud/axios'
-import { generateOcsUrl } from '@nextcloud/router'
+import { generateOcsUrl, generateUrl } from '@nextcloud/router'
 
 import NcAppContent from '@nextcloud/vue/components/NcAppContent'
 
@@ -82,6 +85,7 @@ const accountError = ref(false)
 
 const emailAddress = computed(() => account.value?.account.emailAddress?.trim() || t('libresign', 'Not provided'))
 const phoneNumber = computed(() => account.value?.settings.phoneNumber?.trim() || t('libresign', 'Not provided'))
+const contactSettingsUrl = generateUrl('/settings/user/profile-contact')
 
 onMounted(async () => {
 	if (!currentUser) {
@@ -174,6 +178,10 @@ defineExpose({
 				.account-error{
 					margin: 0 12px;
 					overflow-wrap: anywhere;
+				}
+
+				.user-contact-edit{
+					margin: 0 12px;
 				}
 			}
 
