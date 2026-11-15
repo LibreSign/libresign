@@ -14,6 +14,7 @@
 							<p>{{ user.displayName }}</p>
 						</div>
 						<p v-if="accountError" class="account-error" role="status">
+							<!-- TRANSLATORS Shown when the account contact-detail request fails. -->
 							{{ t('libresign', 'Email and phone details could not be loaded.') }}
 						</p>
 						<dl v-else class="user-contact">
@@ -23,6 +24,7 @@
 							<dd>{{ loadingAccount ? t('libresign', 'Loading …') : phoneNumber }}</dd>
 						</dl>
 						<p v-if="currentUser" class="user-contact-edit">
+							<!-- TRANSLATORS Opens the signed-in user's contact settings in Nextcloud, not an editor inside LibreSign. -->
 							<a :href="contactSettingsUrl">{{ t('libresign', 'Edit contact information') }}</a>
 						</p>
 					</div>
@@ -83,7 +85,9 @@ const account = ref<AccountMeResponse | null>(null)
 const loadingAccount = ref(Boolean(currentUser))
 const accountError = ref(false)
 
+// TRANSLATORS Fallback when the account has no email address configured.
 const emailAddress = computed(() => account.value?.account.emailAddress?.trim() || t('libresign', 'Not provided'))
+// TRANSLATORS Fallback when the account has no phone number configured.
 const phoneNumber = computed(() => account.value?.settings.phoneNumber?.trim() || t('libresign', 'Not provided'))
 const contactSettingsUrl = generateUrl('/settings/user/profile-contact')
 
