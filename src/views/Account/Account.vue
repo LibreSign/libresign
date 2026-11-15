@@ -14,10 +14,6 @@
 							<p>{{ user.displayName }}</p>
 						</div>
 					</div>
-					<div class="user-password">
-						<h3>{{ t('libresign', 'Certificate') }}</h3>
-						<ManagePassword />
-					</div>
 				</div>
 			</div>
 
@@ -36,7 +32,6 @@ import { getCurrentUser } from '@nextcloud/auth'
 import NcAppContent from '@nextcloud/vue/components/NcAppContent'
 
 import Documents from './partials/Documents.vue'
-import ManagePassword from './partials/ManagePassword.vue'
 import Signatures from './partials/Signatures.vue'
 import UserImage from './partials/UserImage.vue'
 
@@ -112,11 +107,6 @@ defineExpose({
 					margin-left: 12px;
 					padding-left: 22px;
 				}
-			}
-
-			.user-password{
-				display: flex;
-				flex-direction: column;
 			}
 		}
 
