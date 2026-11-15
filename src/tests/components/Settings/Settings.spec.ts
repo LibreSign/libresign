@@ -801,7 +801,7 @@ describe('Settings', () => {
 			expect(firstItem.props('name')).toContain('Account')
 		})
 
-		it('renders Administration second for admin (if present)', () => {
+		it('renders Preferences second for admin', () => {
 			wrapper = createWrapper(true)
 			const items = getItems()
 			const secondItem = expectItemAt(items, 1)
