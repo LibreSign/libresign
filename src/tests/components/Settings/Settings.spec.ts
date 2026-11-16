@@ -364,7 +364,7 @@ describe('Settings', () => {
 	})
 
 	describe('RULE: navigation items for different roles', () => {
-		it('shows expected items for non-admin', () => {
+		it('shows expected navigation items for non-admin user', () => {
 			wrapper = createWrapper(false)
 			const items = getItems()
 
@@ -374,7 +374,7 @@ describe('Settings', () => {
 			expectItem(findItemByName(items, 'Rate'))
 		})
 
-		it('shows expected items for admin', () => {
+		it('shows expected navigation items for admin user', () => {
 			wrapper = createWrapper(true)
 			const items = getItems()
 
