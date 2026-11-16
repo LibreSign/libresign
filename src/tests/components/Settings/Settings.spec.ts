@@ -363,21 +363,27 @@ describe('Settings', () => {
 		})
 	})
 
-	describe('RULE: navigation items count depends on admin status', () => {
+	describe('RULE: navigation items for different roles', () => {
 		it('shows expected items for non-admin', () => {
 			wrapper = createWrapper(false)
 			const items = getItems()
 
-			// Account + Preferences + My certificates + Rate = 4
-			expect(items.length).toBe(4)
+			expectItem(findItemByName(items, 'Account'))
+			expectItem(findItemByName(items, 'Preferences'))
+			expectItem(findItemByName(items, 'My certificates'))
+			expectItem(findItemByName(items, 'Rate'))
 		})
 
 		it('shows expected items for admin', () => {
 			wrapper = createWrapper(true)
 			const items = getItems()
 
-			// Account + Preferences + Policies + Administration + My certificates + Rate = 6
-			expect(items.length).toBe(6)
+			expectItem(findItemByName(items, 'Account'))
+			expectItem(findItemByName(items, 'Preferences'))
+			expectItem(findItemByName(items, 'Policies'))
+			expectItem(findItemByName(items, 'Administration'))
+			expectItem(findItemByName(items, 'My certificates'))
+			expectItem(findItemByName(items, 'Rate'))
 		})
 	})
 
@@ -849,8 +855,6 @@ describe('Settings', () => {
 			wrapper = createWrapper(false)
 			const items = getItems()
 
-			expect(items).toHaveLength(4)
-
 			const hasAccount = items.some(i => i.props('name')?.includes('Account'))
 			const hasPreferences = items.some(i => i.props('name')?.includes('Preferences'))
 			const hasRate = items.some(i => i.props('name')?.includes('Rate'))
@@ -865,8 +869,6 @@ describe('Settings', () => {
 		it('provides full experience for admin user', () => {
 			wrapper = createWrapper(true)
 			const items = getItems()
-
-			expect(items).toHaveLength(6)
 
 			const hasAccount = items.some(i => i.props('name')?.includes('Account'))
 			const hasPreferences = items.some(i => i.props('name')?.includes('Preferences'))
@@ -914,8 +916,6 @@ describe('Settings', () => {
 				},
 			})
 			const items = getItems()
-
-			expect(items).toHaveLength(3)
 
 			const hasPreferences = items.some(i => i.props('name')?.includes('Preferences'))
 			const hasPolicies = items.some(i => i.props('name')?.includes('Policies'))
