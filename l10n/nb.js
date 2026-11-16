@@ -233,6 +233,8 @@ OC.L10N.register(
     "Error" : "Feil",
     "File" : "Fil",
     "Details" : "Detaljer",
+    "Loading …" : "Laster inn ...",
+    "Phone" : "Telefon",
     "Certificate" : "Sertifikat",
     "Not sent yet" : "Ikke sendt enda",
     "Not defined yet" : "Ikke definert enda",

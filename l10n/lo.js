@@ -289,6 +289,8 @@ OC.L10N.register(
     "Error" : "ຂໍ້ຜິດພາດ",
     "File" : "ໄຟລ໌",
     "Details" : "ລາຍລະອຽດ",
+    "Loading …" : "ກຳລັງໂຫຼດ …",
+    "Phone" : "ໂທລະສັບ",
     "Certificate" : "ໃບຢັ້ງຢືນ",
     "Not sent yet" : "ຍັງບໍ່ທັນໄດ້ສົ່ງ",
     "Not defined yet" : "ຍັງບໍ່ທັນໄດ້ກຳນົດ",

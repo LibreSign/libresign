@@ -811,6 +811,8 @@ OC.L10N.register(
     "In progress" : "Prebieha",
     "File" : "Súbor",
     "Details" : "Podrobnosti",
+    "Loading …" : "Načítava sa …",
+    "Phone" : "Telefón",
     "Certificate" : "Certifikát",
     "Not sent yet" : "Zatiaľ neodoslané",
     "Not defined yet" : "Zatiaľ nie je definované",

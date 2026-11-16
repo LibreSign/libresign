@@ -810,6 +810,8 @@ OC.L10N.register(
     "In progress" : "Ar siúl",
     "File" : "Comhad",
     "Details" : "Sonraí",
+    "Loading …" : "Ag luchtú …",
+    "Phone" : "Fón",
     "Certificate" : "Teastas",
     "Not sent yet" : "Gan seolta fós",
     "Not defined yet" : "Gan sainmhíniú fós",

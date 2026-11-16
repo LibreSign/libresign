@@ -129,6 +129,7 @@ OC.L10N.register(
     "Error" : "Errore",
     "File" : "Archìviu",
     "Details" : "Detàllios",
+    "Phone" : "Telèfonu",
     "Certificate" : "Tzertificadu",
     "Document" : "Documentu",
     "Upload file" : "Càrriga archìviu",

@@ -522,6 +522,8 @@ OC.L10N.register(
     "In progress" : "در حال انجام",
     "File" : "فایل",
     "Details" : "جزئیات",
+    "Loading …" : "در حال بارگذاری…",
+    "Phone" : "تلفن",
     "Certificate" : "گواهی",
     "Not sent yet" : "هنوز ارسال نشده است",
     "Not defined yet" : "هنوز تعریف نشده است",

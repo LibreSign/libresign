@@ -524,6 +524,8 @@ OC.L10N.register(
     "In progress" : "En proceso",
     "File" : "Ficheiro",
     "Details" : "Detalles",
+    "Loading …" : "Cargando …",
+    "Phone" : "Teléfono",
     "Certificate" : "Certificado",
     "Not sent yet" : "Aínda non foi enviada",
     "Not defined yet" : "Aínda non está definido",

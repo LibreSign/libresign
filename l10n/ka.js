@@ -80,6 +80,7 @@ OC.L10N.register(
     "Error" : "Error",
     "File" : "ფაილი",
     "Details" : "Details",
+    "Phone" : "Phone",
     "Certificate" : "Certificate",
     "Upload file" : "Upload file",
     "Delete file" : "Delete file",
