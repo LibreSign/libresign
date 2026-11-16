@@ -825,7 +825,7 @@ describe('Settings', () => {
 			expect(fourthItem.props('name')).toContain('Administration')
 		})
 
-		it('renders Rate last', async () => {
+		it('renders Rate last', () => {
 			wrapper = createWrapper(true)
 			const items = getItems()
 			const lastItem = expectItemAt(items, items.length - 1)

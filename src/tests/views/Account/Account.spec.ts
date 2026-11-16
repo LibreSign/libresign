@@ -61,7 +61,7 @@ describe('Account.vue', () => {
 		})
 	})
 
-	it('renders the account partial sections', () => {
+	it('renders the signatures and documents sections', () => {
 		const wrapper = createWrapper()
 
 		expect(wrapper.find('.signatures-stub').exists()).toBe(true)
