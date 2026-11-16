@@ -536,6 +536,8 @@ OC.L10N.register(
     "In progress" : "Em andamento",
     "File" : "Ficheiro",
     "Details" : "Detalhes",
+    "Loading …" : "Carregando …",
+    "Phone" : "Telefone",
     "Certificate" : "Certificado",
     "Not defined yet" : "Ainda não definido",
     "Document" : "Documento",

@@ -810,6 +810,8 @@ OC.L10N.register(
     "In progress" : "Em andamento",
     "File" : "Arquivo",
     "Details" : "Detalhes",
+    "Loading …" : "Carregando …",
+    "Phone" : "Telefone",
     "Certificate" : "Certificado",
     "Not sent yet" : "Ainda não enviado",
     "Not defined yet" : "Ainda não definido",

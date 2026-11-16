@@ -372,6 +372,8 @@ OC.L10N.register(
     "Error" : "خاتالىق",
     "File" : "ھۆججەت",
     "Details" : "تەپسىلاتى",
+    "Loading …" : "يۈكلەۋاتىدۇ ...",
+    "Phone" : "تېلېفون",
     "Certificate" : "گۇۋاھنامە",
     "Not sent yet" : "تېخى ئەۋەتىلمىدى",
     "Not defined yet" : "تېخى ئېنىقلانمىدى",

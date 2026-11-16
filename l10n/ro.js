@@ -806,6 +806,8 @@ OC.L10N.register(
     "In progress" : "În curs",
     "File" : "Fișier",
     "Details" : "Detalii",
+    "Loading …" : "Se încarcă…",
+    "Phone" : "Telefon",
     "Certificate" : "Certificat",
     "Not sent yet" : "Netrimis încă",
     "Not defined yet" : "Nedefinit încă",

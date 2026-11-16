@@ -665,6 +665,8 @@ OC.L10N.register(
     "In progress" : "Σε εξέλιξη",
     "File" : "Αρχείο",
     "Details" : "Λεπτομέρειες",
+    "Loading …" : "Φόρτωση …",
+    "Phone" : "Τηλέφωνο",
     "Certificate" : "Πιστοποιητικό",
     "Not sent yet" : "Δεν έχει σταλεί ακόμα",
     "Not defined yet" : "Δεν έχει οριστεί ακόμα",

@@ -265,6 +265,8 @@ OC.L10N.register(
     "Error" : "Virhe",
     "File" : "Tiedosto",
     "Details" : "Tiedot",
+    "Loading …" : "Ladataan …",
+    "Phone" : "Puhelin",
     "Certificate" : "Varmenne",
     "Not sent yet" : "Ei vielä lähetetty",
     "Not defined yet" : "Ei vielä määritetty",

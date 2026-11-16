@@ -708,6 +708,8 @@ OC.L10N.register(
     "In progress" : "Sedang berlangsung",
     "File" : "File",
     "Details" : "Rincian",
+    "Loading …" : "Memuat …",
+    "Phone" : "Telepon",
     "Certificate" : "Sertifikat",
     "Not sent yet" : "Belum dikirim",
     "Not defined yet" : "Belum ditetapkan",

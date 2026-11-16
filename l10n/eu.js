@@ -211,6 +211,8 @@ OC.L10N.register(
     "Error" : "Errorea",
     "File" : "Fitxategia",
     "Details" : "Xehetasunak",
+    "Loading …" : "Kargatzen …",
+    "Phone" : "Telefonoa",
     "Certificate" : "Ziurtagiria",
     "Not sent yet" : "Oraindik bidali gabe",
     "Not defined yet" : "Definitu gabe oraindik",

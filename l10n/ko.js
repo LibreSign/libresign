@@ -183,6 +183,7 @@ OC.L10N.register(
     "Error" : "오류",
     "File" : "파일",
     "Details" : "세부사항",
+    "Loading …" : "로딩 중 …",
     "Certificate" : "인증서",
     "Document" : "문서",
     "Delete file" : "파일 삭제",

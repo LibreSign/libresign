@@ -192,6 +192,8 @@ OC.L10N.register(
     "Error" : "错误",
     "File" : "文件",
     "Details" : "详情",
+    "Loading …" : "正在加载 …",
+    "Phone" : "电话",
     "Certificate" : "证书",
     "Document" : "文档",
     "Upload file" : "上传文件",
