@@ -337,6 +337,8 @@ OC.L10N.register(
     "Error" : "Hitilafu",
     "File" : "Faili",
     "Details" : "Maelezo ya kina",
+    "Loading …" : "Inapakia  …",
+    "Phone" : "Simu",
     "Certificate" : "Cheti",
     "Not sent yet" : "Not sent yet",
     "Not defined yet" : "Not defined yet",

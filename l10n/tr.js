@@ -810,6 +810,8 @@ OC.L10N.register(
     "In progress" : "İşleniyor",
     "File" : "Dosya",
     "Details" : "Ayrıntılar",
+    "Loading …" : "Yükleniyor…",
+    "Phone" : "Telefon",
     "Certificate" : "Sertifika",
     "Not sent yet" : "Henüz gönderilmemiş",
     "Not defined yet" : "Henüz tanımlanmamış",

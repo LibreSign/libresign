@@ -116,6 +116,8 @@ OC.L10N.register(
     "Error" : "Error",
     "File" : "Fichier",
     "Details" : "Detalhs",
+    "Loading …" : "Cargament …",
+    "Phone" : "Telefòn",
     "Certificate" : "Certificat",
     "Document" : "Document",
     "Delete file" : "Suprimir fichièr",

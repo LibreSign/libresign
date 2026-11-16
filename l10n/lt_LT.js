@@ -666,6 +666,8 @@ OC.L10N.register(
     "In progress" : "Vykdoma",
     "File" : "Failas",
     "Details" : "Išsamiau",
+    "Loading …" : "Įkeliama …",
+    "Phone" : "Telefonas",
     "Certificate" : "Sertifikatas",
     "Not sent yet" : "Kol kas neišsiųsta",
     "Not defined yet" : "Kol kas neapibrėžta",

@@ -217,6 +217,8 @@ OC.L10N.register(
     "Error" : "Hiba",
     "File" : "Fájl",
     "Details" : "Részletek",
+    "Loading …" : "Betöltés …",
+    "Phone" : "Telefon",
     "Certificate" : "Tanúsítvány",
     "Not sent yet" : "Még nincs elküldve",
     "Not defined yet" : "Még nincs meghatározva",

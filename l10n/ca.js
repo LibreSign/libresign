@@ -206,6 +206,8 @@ OC.L10N.register(
     "Error" : "Error",
     "File" : "Fitxer",
     "Details" : "Detalls",
+    "Loading …" : "S'està carregant ...",
+    "Phone" : "Telèfon",
     "Certificate" : "Certificat",
     "Not sent yet" : "Encara no s'ha enviat",
     "Not defined yet" : "Encara no està definit",

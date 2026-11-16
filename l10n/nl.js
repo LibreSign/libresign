@@ -194,6 +194,8 @@ OC.L10N.register(
     "Error" : "Fout",
     "File" : "Bestand",
     "Details" : "Details",
+    "Loading …" : "Aan het laden …",
+    "Phone" : "Telefoon",
     "Certificate" : "Certificaat",
     "Not defined yet" : "Niet niet bepaald",
     "Document" : "Document",

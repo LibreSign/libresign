@@ -198,6 +198,8 @@ OC.L10N.register(
     "Error" : "Błąd",
     "File" : "Plik",
     "Details" : "Szczegóły",
+    "Loading …" : "Ładowanie …",
+    "Phone" : "Telefon",
     "Certificate" : "Certyfikat",
     "Not sent yet" : "Jeszcze nie wysłano",
     "Not defined yet" : "Jeszcze nie zdefiniowano",

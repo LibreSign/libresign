@@ -103,6 +103,8 @@ OC.L10N.register(
     "Error" : "Villa",
     "File" : "Skrá",
     "Details" : "Details",
+    "Loading …" : "Hleð inn…",
+    "Phone" : "Sími",
     "Certificate" : "Skilríki",
     "Document" : "Skjal",
     "Delete file" : "Eyða skrá",
