@@ -115,6 +115,7 @@ OC.L10N.register(
     "In progress" : "Tetteddu",
     "File" : "Afaylu",
     "Details" : "Talqayt",
+    "Phone" : "Tiliɣri",
     "Certificate" : "Aselkin",
     "Document" : "Isemli",
     "Upload file" : "Ssali-d afaylu",

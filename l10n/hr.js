@@ -176,6 +176,8 @@ OC.L10N.register(
     "Error" : "Pogreška",
     "File" : "Datoteka",
     "Details" : "Pojedinosti",
+    "Loading …" : "Učitavanje …",
+    "Phone" : "Telefon",
     "Certificate" : "Vjerodajnica",
     "Document" : "Dokument",
     "Delete file" : "Izbrisati datoteku",

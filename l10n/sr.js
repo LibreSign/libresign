@@ -298,6 +298,8 @@ OC.L10N.register(
     "Error" : "Грешка",
     "File" : "Фајл",
     "Details" : "Детаљи",
+    "Loading …" : "Учитава се…",
+    "Phone" : "Телефон",
     "Certificate" : "Сертификат",
     "Not sent yet" : "Још увек није послато",
     "Not defined yet" : "Још увек није дефинисано",

@@ -293,6 +293,8 @@ OC.L10N.register(
     "Error" : "Помилка",
     "File" : "Файл",
     "Details" : "Деталі",
+    "Loading …" : "Завантаження …",
+    "Phone" : "Телефон",
     "Certificate" : "Сертифікат",
     "Not sent yet" : "Ще не відправлено",
     "Not defined yet" : "Ще не визначено",

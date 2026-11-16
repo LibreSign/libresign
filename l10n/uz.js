@@ -67,6 +67,7 @@ OC.L10N.register(
     "Error" : "Xatolik",
     "File" : "Fayl",
     "Details" : "Details",
+    "Loading …" : "Yuklanmoqda...",
     "Upload file" : "Upload file",
     "Delete file" : "Faylni o'chirish",
     "Change password" : "Change password",

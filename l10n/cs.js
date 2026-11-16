@@ -523,6 +523,8 @@ OC.L10N.register(
     "In progress" : "Probíhá",
     "File" : "Soubor",
     "Details" : "Podrobnosti",
+    "Loading …" : "Načítání …",
+    "Phone" : "Telefon",
     "Certificate" : "Certifikát",
     "Not sent yet" : "Doposud neodesláno",
     "Not defined yet" : "Doposud nedefinováno",

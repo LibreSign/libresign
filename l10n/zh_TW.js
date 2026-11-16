@@ -568,6 +568,8 @@ OC.L10N.register(
     "In progress" : "進行中",
     "File" : "檔案",
     "Details" : "詳細資訊",
+    "Loading …" : "正在載入……",
+    "Phone" : "電話",
     "Certificate" : "憑證",
     "Not sent yet" : "尚未傳送",
     "Not defined yet" : "尚未定義",

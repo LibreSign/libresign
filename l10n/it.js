@@ -287,6 +287,8 @@ OC.L10N.register(
     "Error" : "Errore",
     "File" : "File",
     "Details" : "Dettagli",
+    "Loading …" : "Caricamento in corso...",
+    "Phone" : "Telefono",
     "Certificate" : "Certificato",
     "Not sent yet" : "Non ancora inviato",
     "Not defined yet" : "Non ancora definito",

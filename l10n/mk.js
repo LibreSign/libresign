@@ -99,6 +99,8 @@ OC.L10N.register(
     "Error" : "Грешка",
     "File" : "Датотека",
     "Details" : "Детали",
+    "Loading …" : "Се вчитува …",
+    "Phone" : "Телефон",
     "Certificate" : "Сертификат",
     "Document" : "Документ",
     "Upload file" : "Прикачи датотека",

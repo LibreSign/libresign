@@ -88,6 +88,7 @@ OC.L10N.register(
     "Error" : "Lỗi",
     "File" : "Tệp Tin",
     "Details" : "Chi tiết",
+    "Loading …" : "Đang tải …",
     "Certificate" : "Chứng chỉ",
     "Document" : "Tài liệu",
     "Upload file" : "Tải lên tập tin",
