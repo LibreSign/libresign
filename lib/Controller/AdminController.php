@@ -346,14 +346,14 @@ class AdminController extends AEnvironmentAwareOCSController {
 	public function signatureBackgroundGet(): FileDisplayResponse {
 		$file = $this->signatureBackgroundService->getImage();
 
-		$response = new FileDisplayResponse($file);
+		$response = new FileDisplayResponse($file, Http::STATUS_OK, [
+			'Content-Disposition' => 'attachment; filename="background.png"',
+			'Content-Type' => 'image/png',
+		]);
 		$csp = new ContentSecurityPolicy();
 		$csp->allowInlineStyle();
 		$response->setContentSecurityPolicy($csp);
 		$response->cacheFor(3600);
-		$response->addHeader('Content-Type', 'image/png');
-		$response->addHeader('Content-Disposition', 'attachment; filename="background.png"');
-		$response->addHeader('Content-Type', 'image/png');
 		return $response;
 	}
 
