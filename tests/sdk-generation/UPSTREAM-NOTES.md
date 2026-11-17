@@ -50,13 +50,14 @@ and OpenAPI Generator mishandles them (G1). Affected schemas, 17 in total:
 - `RequestPolicyOverrides` values: `EffectivePolicyValue | list<EffectivePolicyValue>`;
 - 7 `422` bodies: `MessageResponse | ActionErrorResponse` (notify-signers,
   notify-signer, request-signature, update-signature-request, `removeSigner`,
-  `file-save` and `file-add-file-to-envelope`). The union is real. `{action, errors}` is a
-  `LibresignException` with a JSON message and `{message}` a plain one, both
-  serialized by `afterException`. The other five get the
-  first from `#[RequireManager]` (`canRequestSign()` runs before the method) and
-  the second from their `catch` blocks. The notify endpoints have no
-  `RequireManager`: `NotifyService` calls `canRequestSign()` inside the action
-  and `NotifyController::sendNotification()` rethrows;
+  `file-save` and `file-add-file-to-envelope`). The union is real. The other
+  five get `{action, errors}` from `#[RequireManager]` (`canRequestSign()` runs
+  before the method; `afterException` serializes the `LibresignException`) and
+  `{message}` from a `DataResponse` built in their own `catch` blocks. The
+  notify endpoints have no `RequireManager`: `NotifyService` calls
+  `canRequestSign()` inside the action, `NotifyController::sendNotification()`
+  rethrows, and `afterException` serializes both bodies (a JSON message becomes
+  `{action, errors}`, a plain one `{message}`);
 - 7 error bodies (six 401 and the footer-template 403): an envelope `anyOf`
   whose second branch has an untyped `data: {}`. Cause confirmed: for every
   non-public OCS method the extractor adds an implicit 401 with an untyped

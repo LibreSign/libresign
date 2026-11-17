@@ -23,7 +23,9 @@ extractor/generator side or needs a maintainer decision about the contract
 shape; see [UPSTREAM-NOTES.md](UPSTREAM-NOTES.md). This evaluation selects no
 option and changes no extractor, generator, CI job or permanent SDK. Its only
 LibreSign changes are the annotation, committed OpenAPI and generated type
-changes listed under [Input and toolchain](#input-and-toolchain).
+changes listed under [Input and toolchain](#input-and-toolchain), the frontend
+type alias for the renamed schema and a type predicate in
+`src/services/validationDocument.ts`; none changes runtime behavior.
 
 ## Input and toolchain
 
@@ -109,13 +111,15 @@ The other 14 `anyOf` occurrences are in 4xx bodies. Seven (the 422 responses of
 `update-signature-request`, `removeSigner`, `file-save` and
 `file-add-file-to-envelope`) are real unions of an
 `{action, errors}` body (`ActionErrorResponse`, a `LibresignException` with a
-JSON message) and a `{message}` body (`MessageResponse`), both serialized by the
-middleware's `afterException`. For `request-signature`, `removeSigner`, `file-save` and
-`file-add-file-to-envelope` the
-first comes from `#[RequireManager]`, which runs `canRequestSign()` before the
-method, and the second from the method's own `catch`. The two notify endpoints
-have no `RequireManager`: `NotifyService` calls `canRequestSign()` inside the
-action and `sendNotification()` rethrows the exception. The generator merges
+JSON message) and a `{message}` body (`MessageResponse`). For
+`request-signature` (POST and PATCH), `removeSigner`, `file-save` and
+`file-add-file-to-envelope` the first comes from `#[RequireManager]`, which runs
+`canRequestSign()` before the method and is serialized by the middleware's
+`afterException`; the second is a `DataResponse` built by the method's own
+`catch`. The two notify endpoints have no `RequireManager`: `NotifyService`
+calls `canRequestSign()` inside the action, `sendNotification()` rethrows the
+exception and `afterException` serializes both bodies (JSON message as
+`{action, errors}`, plain message as `{message}`). The generator merges
 the alternatives into one interface (for example
 `NotifySigners422ResponseOcsData` requires `action` and `errors`, which the
 `MessageResponse` alternative does not have). The other seven (six 401 bodies
