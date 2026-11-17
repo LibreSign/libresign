@@ -1,0 +1,99 @@
+# SPDX-FileCopyrightText: 2026 LibreCode coop and contributors
+# SPDX-License-Identifier: AGPL-3.0-or-later
+name: Update 3rdparty PR reference
+
+on:
+  issue_comment:
+    types: [created]
+
+permissions:
+  contents: read
+  pull-requests: read
+
+jobs:
+  authorize:
+    if: github.event.issue.pull_request != '' && github.event.comment.body == '/update-3rdparty'
+    runs-on: ubuntu-latest
+    outputs:
+      head_ref: ${{ steps.pr.outputs.head_ref }
+      target_sha: ${{ steps.pr.outputs.target_sha }
+      source_pr: ${{ steps.pr.outputs.source_pr }
+    steps:
+      - name: Check actor permission
+        uses: skjnldsv/check-actor-permission@69e92a3c4711150929bca9fcf34448c5bf5526e7 # v3.0
+        with:
+          require: write
+      - name: Resolve merged 3rdparty PR
+        id: pr
+        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
+        with:
+          github-token: ${{ github.token }
+          script: |
+            const { data: pr } = await github.rest.pulls.get({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              pull_number: context.issue.number,
+            });
+            if (pr.head.repo?.full_name !== `${context.repo.owner}/${context.repo.repo}`) {
+              core.setFailed('Cannot update PRs from forks');
+              return;
+            }
+            if (!/^(main|stable\d+)$/.test(pr.base.ref)) {
+              core.setFailed(`Unsupported base branch: ${{pr.base.ref}`);
+              return;
+            }
+            const match = (pr.body || '').match(/^\s*-\s*\[[ xX]\]\s*3rdparty:\s*https:\/\/github\.com\/LibreSign\/3rdparty\/pull\/(\d+)\s*$/m);
+            if (!match) {
+              core.setFailed('PR body must reference the 3rdparty PR created by /libresign-pr');
+              return;
+            }
+            const { data: source } = await github.rest.pulls.get({
+              owner: 'LibreSign', repo: '3rdparty', pull_number: Number(match[1]),
+            });
+            if (!source.merged_at || !source.merge_commit_sha) {
+              core.setFailed('The linked 3rdparty PR must be merged first');
+              return;
+            }
+            if (source.base.ref !== pr.base.ref) {
+              core.setFailed('The 3rdparty PR target does not match the LibreSign PR target');
+              return;
+            }
+            core.setOutput('head_ref', pr.head.ref);
+            core.setOutput('target_sha', source.merge_commit_sha);
+            core.setOutput('source_pr', match[1]);
+
+  update:
+    runs-on: ubuntu-latest
+    needs: authorize
+    env:
+      HEAD_REF: ${{ needs.authorize.outputs.head_ref }
+      TARGET_SHA: ${{ needs.authorize.outputs.target_sha }
+      SOURCE_PR: ${{ needs.authorize.outputs.source_pr }
+      PARENT_PR: ${{ github.event.issue.number }
+      GH_TOKEN: ${{ secrets.COMMAND_BOT_PAT }
+    steps:
+      - name: Check credentials
+        run: test -n "$GH_TOKEN"
+      - name: Checkout LibreSign PR branch
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ needs.authorize.outputs.head_ref }
+          token: ${{ secrets.COMMAND_BOT_PAT }
+          persist-credentials: true
+      - name: Update submodule to merged commit
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config --local user.email 'libresign-command@users.noreply.github.com'
+          git config --local user.name 'libresign-command'
+          git update-index --cacheinfo "160000,$TARGET_SHA,3rdparty"
+          if git diff --cached --quiet; then
+            echo 'Submodule already points to the merged commit'
+          else
+            git commit --signoff -m "chore(deps): align 3rdparty with merged PR #$SOURCE_PR"
+            git push origin "HEAD:$HEAD_REF"
+          fi
+      - name: Report submodule update
+        run: |
+          gh pr comment "$PARENT_PR" --repo LibreSign/libresign \
+            --body "3rdparty updated to LibreSign/3rdparty#$SOURCE_PR ($TARGET_SHA)."
