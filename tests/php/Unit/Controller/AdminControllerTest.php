@@ -20,6 +20,7 @@ use OCA\Libresign\Service\Install\InstallService;
 use OCA\Libresign\Service\SetupCheckResultService;
 use OCA\Libresign\Service\SignatureBackgroundService;
 use OCP\AppFramework\Http;
+use OCP\Files\SimpleFS\ISimpleFile;
 use OCP\IAppConfig;
 use OCP\IEventSource;
 use OCP\IEventSourceFactory;
@@ -32,6 +33,7 @@ use PHPUnit\Framework\TestCase;
 class AdminControllerTest extends TestCase {
 	private AdminController $controller;
 	private ActiveSigningsService&MockObject $activeSigningsService;
+	private SignatureBackgroundService&MockObject $signatureBackgroundService;
 	private IRequest&MockObject $request;
 
 	protected function setUp(): void {
@@ -42,7 +44,7 @@ class AdminControllerTest extends TestCase {
 		$eventSourceFactory = $this->createMock(IEventSourceFactory::class);
 		$l10n = $this->createMock(IL10N::class);
 		$session = $this->createMock(ISession::class);
-		$signatureBackgroundService = $this->createMock(SignatureBackgroundService::class);
+		$this->signatureBackgroundService = $this->createMock(SignatureBackgroundService::class);
 		$certificatePolicyService = $this->createMock(CertificatePolicyService::class);
 		$validateService = $this->createMock(ValidateService::class);
 		$identifyMethodService = $this->createMock(IdentifyMethodService::class);
@@ -64,7 +66,7 @@ class AdminControllerTest extends TestCase {
 			$eventSourceFactory,
 			$l10n,
 			$session,
-			$signatureBackgroundService,
+			$this->signatureBackgroundService,
 			$certificatePolicyService,
 			$validateService,
 			$identifyMethodService,
@@ -113,5 +115,19 @@ class AdminControllerTest extends TestCase {
 
 		$this->assertSame(Http::STATUS_INTERNAL_SERVER_ERROR, $response->getStatus());
 		$this->assertSame(['error' => 'boom'], $response->getData());
+	}
+
+	public function testSignatureBackgroundGetSendsTheDocumentedHeaders(): void {
+		$this->signatureBackgroundService
+			->expects($this->once())
+			->method('getImage')
+			->willReturn($this->createMock(ISimpleFile::class));
+
+		$response = $this->controller->signatureBackgroundGet();
+
+		$this->assertSame(Http::STATUS_OK, $response->getStatus());
+		$headers = $response->getHeaders();
+		$this->assertSame('image/png', $headers['Content-Type']);
+		$this->assertSame('attachment; filename="background.png"', $headers['Content-Disposition']);
 	}
 }
