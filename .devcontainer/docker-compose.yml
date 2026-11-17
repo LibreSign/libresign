@@ -11,6 +11,6 @@ services:
   playwright:
     # Keep the browser image aligned with the version installed by npm ci.
     # NCDD's default image is shared and may target a different Playwright.
-    image: mcr.microsoft.com/playwright:v1.65.0-noble
+    image: mcr.microsoft.com/playwright:v1.65.1-noble
     volumes:
       - ../:/var/www/html/apps-extra/libresign
