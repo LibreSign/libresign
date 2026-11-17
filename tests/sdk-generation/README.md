@@ -52,8 +52,10 @@ npm run test:normalized --prefix tests/sdk-generation
 ```
 
 The positive/negative type checks pass, including the object unions that the
-unmodified output merges incorrectly. They also record that schema-valid `null`
-is still rejected by the standalone union. This is partial mitigation, not a Go.
+unmodified output merges incorrectly. They also record that `null` is still
+rejected by the standalone union; how `nullable` should work on a composed schema
+is itself unresolved (see UPSTREAM-NOTES.md E4). This is partial mitigation, not
+a Go.
 `oneOf` and `anyOf` are not equivalent validation contracts: overlapping object
 branches would violate `oneOf`. The transformed file must never replace the
 source contract.

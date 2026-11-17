@@ -50,9 +50,13 @@ and OpenAPI Generator mishandles them (G1). Affected schemas, 15 in total:
 - `RequestPolicyOverrides` values: `EffectivePolicyValue | list<EffectivePolicyValue>`;
 - 5 `422` bodies: `MessageResponse | ActionErrorResponse` (notify-signers,
   notify-signer, request-signature, update-signature-request and
-  `removeSigner`). The union is real: the `RequireManager`/`canRequestSign()`
-  middleware answers `{action, errors}` before the controller runs, and the
-  methods answer `{message}` from their own `catch` blocks;
+  `removeSigner`). The union is real. `{action, errors}` is a
+  `LibresignException` with a JSON message and `{message}` a plain one, both
+  serialized by `afterException`. `request-signature` and `removeSigner` get the
+  first from `#[RequireManager]` (`canRequestSign()` runs before the method) and
+  the second from their `catch` blocks. The notify endpoints have no
+  `RequireManager`: `NotifyService` calls `canRequestSign()` inside the action
+  and `NotifyController::sendNotification()` rethrows;
 - 7 error bodies (six 401 and the footer-template 403): an envelope `anyOf`
   whose second branch has an untyped `data: {}`. Cause confirmed: for every
   non-public OCS method the extractor adds an implicit 401 with an untyped
@@ -66,8 +70,9 @@ and OpenAPI Generator mishandles them (G1). Affected schemas, 15 in total:
   `FileController::deleteFile`, `FooterTemplateController::saveFooterTemplate`
   (403), `RequestSignatureController::removeSigner` and `deleteSignatureRequest`.
   Public methods that declare a 401 (for example `IdDocsController::delete`)
-  generate a single typed response, and the 82 other 401/403 responses are
-  implicit-only. The explicit declarations describe what the code returns, so
+  generate a single typed response, and the 82 other 401/403 responses have an
+  untyped `data: {}`, mostly the implicit ones (a few are explicit `list<empty>`
+  declarations, for example `FileController.php:138`). The explicit declarations describe what the code returns, so
   removing them would only erase the typed body and leave `data: {}`. The
   request to the extractor is therefore to give the implicit 401/403 a typed
   body (or to let the controller refine it), not to let an explicit declaration
@@ -212,6 +217,12 @@ in LibreSign. Candidates, each needing its cause confirmed first:
   `request-signature`, `deleteFile` and `deleteSignatureRequest` was checked and
   is correct: `#[RequireManager]` rejects a user without permission with an
   `{action, errors}` 422 before the method runs;
+- other `#[RequireManager]` methods do not document the 422 `{action, errors}`
+  body of the permission middleware: `FileController::save` and
+  `addFileToEnvelope` document only `MessageResponse` at 422, and
+  `IdentifyController::search` documents no 422. They are outside this change.
+  The same kind of fix applies, but each method's own `catch` blocks must be
+  checked first so the documented union stays exact;
 - **open maintainer decision**: several methods answer HTTP 401 for failures
   that are not authentication failures. `AccountController::signatureGenerate`,
   the `AdminController` certificate generators (`catch \Exception`),
