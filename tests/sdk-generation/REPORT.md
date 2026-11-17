@@ -5,134 +5,223 @@
 
 # Compatibility evaluation
 
-## Decision: No-Go for unmodified input
+## Decision: still No-Go for unmodified input, with a different blocker
 
-OpenAPI Generator 7.27.0's `typescript-axios` output is not a sufficiently
-faithful SDK foundation: `EffectivePolicyValue` is an empty interface and
-accepts invalid arrays. Version 7.15.0 has the same defect. The separate
-normalized-input experiment partially improves unions; it does not change
-this decision or approve any source contract change. Multipart is tracked
-separately in #9435.
+Re-run against `main` at `40ee2280737e54ebf798bbc1f77bf4272cbe9320`. The defect
+that justified the earlier No-Go is fixed: `EffectivePolicyValue` is now
+`boolean | number | string | { [key: string]: object }`, rejects arrays and
+keeps `| null` at the properties that reference it (disjoint `oneOf` contract,
+#9494). Generation, strict compilation, inventory, transport and real
+`@nextcloud/axios` injection all pass.
+
+The decision remains No-Go for unmodified input because three generated models
+(and the 9 error-body models) of the remaining 12 `anyOf` constructs are still
+incorrect
+(see [Remaining model defects](#remaining-model-defects)), and multipart
+bodies are still absent from the contract. Every blocker left is on the
+extractor/generator side or needs a maintainer decision about the contract
+shape; see [UPSTREAM-NOTES.md](UPSTREAM-NOTES.md). This evaluation selects no
+option and changes no PHP controller, extractor, committed OpenAPI, generated
+frontend type, CI job or permanent SDK.
 
 ## Input and toolchain
 
-- Application base: `9aebe13938369e70344a4fb1e16fc331387427ea` (upstream main).
-- `openapi-full.json` SHA-256:
-  `2501bc11fcee0545dfb703a28d93018a80e62f6e14ba81bae549d1b130de9243`.
+- Application base: `40ee2280737e54ebf798bbc1f77bf4272cbe9320` (`main`), plus
+  three LibreSign changes described below: the ID document schema `File` renamed
+  to `IdDocFile`, literal media types for the CRL and the admin background, and
+  error-body annotations aligned with what the controllers return (see
+  [Error bodies aligned with the code](#error-bodies-aligned-with-the-code)).
+- `openapi-full.json` SHA-256 with those changes: `76b093d3325b9504ba7911ba487b9424d7e9821bd2f2f9905d01756371ba8bf9`
+  (`64c52fa2ba243af292eba30055982954bfd8c19136567e50e28c4abcffcc9405` on `main`).
+- Extractor used to produce the contract: `nextcloud/openapi-extractor` 1.9.1.
 - Generator: `openapitools/openapi-generator-cli` 7.27.0 at
   `sha256:949efd0d5cf3c093ef169887b2ebe0879ee2e8074b6476264232ce4fd8ef46d0`;
   `typescript-axios`, `useSingleRequestParameter=true`.
-- Previous comparison: 7.15.0 at
-  `sha256:509f01c3c7eee9d1ad286506a7b6aa4624a95b410be9a238a306d209e900621f`.
-- TypeScript 5.8.3, Axios 1.20.0, `@nextcloud/axios` 2.6.0, tsx 4.19.4;
-  Node 24.22.2, npm 11.19.1. npm dependencies/transitives are locked.
-  Axios matches the application's locked version and satisfies Nextcloud Axios.
-- All deterministic README commands ran with fresh generated directories.
-  Validation succeeded with unused `Capabilities` and `PublicCapabilities`
-  warnings. Two generations had an empty recursive diff including metadata.
+- TypeScript 5.8.3, Axios 1.20.0, `@nextcloud/axios` 2.6.0, jsdom 26.1.0
+  (test only), tsx 4.19.4; Node 24.22.3, npm 11.19.1 (an independent re-run on
+  Node 26.0.0 also passed). Dependencies and
+  transitives are locked.
+- Validation succeeds with the unused `Capabilities`/`PublicCapabilities`
+  warnings. Two generations have an empty recursive diff including metadata.
   No generated source was edited.
-- Warm timings: setup 1.05 s; validation/generation 4.91 s (repeat 5.79 s);
-  strict compilation 2.09 s; transport/inventory 1.06 s; normalized
-  validation/generation 4.71 s and type checks 1.36 s. These are single-machine
-  observations with cached images, not cold CI benchmarks. No CI job is added.
+- Warm timings on one machine with cached images (not a cold CI benchmark):
+  setup about 1 s; validation + generation 4.6 s (repeat 4.1 s); strict
+  compilation 1.4 s; `npm test` 2.3 s; union checks 0.9 s. No CI job is added.
 
-## Unmodified input results
+## Results for the unmodified input
 
 The [inventory](inventory.md) covers 90 operations (69 default, 21
-administration), rather than the issue's original 88: 90 matched, zero inventory
-errors, ten functional classes. The checked-in snapshot matches the new output.
-The check matches method/path, generated documentation and public TypeScript
+administration) across the ten functional tags: 90 matched, zero inventory
+errors. Tag counts: appearance 17, certificates 12, documents 6, identity 14,
+notifications 4, policies 17, requests 5, signing 8, system 3, verification 4.
+This differs from the 88 operations and per-tag counts of the original issue
+(appearance +1, notifications +1) because operations were added after it was
+written. The check matches method/path, generated documentation and public
 class methods; it does not exhaustively validate signatures or serialization.
-Generated Markdown examples still use positional arguments despite the chosen
-single-request-parameter configuration; use actual class signatures.
+Generated Markdown examples still use positional arguments despite
+`useSingleRequestParameter=true`; use the actual class signatures.
 
-Strict compilation with `skipLibCheck` passes. `types.ts` tests number/string
-`NewFile.nodeId` (rejecting boolean), inherited/local `SignerDetail` fields,
-nullable/optional fields and enums. `test:anyof` exits 0 because the generated
-empty interface accepts an invalid policy array. This is a passing reproduction
-of a failed SDK acceptance criterion, so the decision remains No-Go. The fixture
-has no error suppression: missing generated output fails with TS2307; a type
-that rejects arrays fails with TS2322, requiring the report to be reevaluated.
+Strict compilation with `skipLibCheck` passes. `types.ts` checks number/string
+`NewFile.nodeId` (rejecting boolean), inherited and local `SignerDetail`
+fields, nullable/optional fields and enums. `RequestSignatureRequest` no longer
+has `callback` (removed by #9505), so the nullable check uses `status`.
+`anyof-defect.ts` is now a regression guard: arrays and `undefined` are
+rejected by `EffectivePolicyValue`, and `effectiveValue: null` is accepted.
 
 The controlled Axios adapter tests generated calls for account GET and typed
 OCS envelope, encoded policy path and simulated HTTP 403, signature-request
-JSON POST, and non-OCS PDF with explicit `responseType: arraybuffer`. Basic-only
-and bearer-only configurations are independent, with assertions that the other
-credential mechanism is absent. Both root and subdirectory paths pass.
-An instance at `https://instance.test/installed` overrides configuration
-`https://example.test/nextcloud` for both OCS and PDF URLs, proving precedence
-with different values.
+JSON POST, signing, appearance elements and non-OCS PDF with explicit
+`responseType: arraybuffer`. Basic-only and bearer-only configurations are
+independent. Root and subdirectory paths pass, and an instance base URL
+overrides the configuration base path for OCS and PDF URLs.
 
-The real locked `@nextcloud/axios` ESM import probe exits 1 in Node with
-`ReferenceError: window is not defined`: `@nextcloud/auth` imports
-`@nextcloud/browser-storage`, whose `StorageBuilder.build` accesses browser
-storage during initialization. No browser globals are mocked. Real Nextcloud
-Axios injection and its CSRF/session interceptors remain unverified; the
-successful transport tests use ordinary Axios.
+### Real `@nextcloud/axios`
+
+The Node-only import probe (`npm run test:nextcloud`) still fails with
+`ReferenceError: window is not defined`: this is expected for a browser
+package and is kept as the record of that requirement. A new test,
+`nextcloud-axios.test.ts`, installs a jsdom window and injects the real locked
+`@nextcloud/axios` instance into a generated `IdentityApi`. Only the network
+adapter and `fetch` are replaced. It verifies the package defaults reach the
+request (`requesttoken`, `X-Requested-With`), the generated `OCS-APIRequest`
+header, the absolute subdirectory URL, and the package's own 412 "CSRF check
+failed" retry: the retried request carries the refreshed token and
+`/nextcloud/index.php/csrftoken` is the only token URL fetched. A real browser
+and a real Nextcloud server remain unverified (real XHR adapter, cookies,
+maintenance-mode and not-logged-in interceptors).
+
+### Remaining model defects
+
+`union-defects.ts` reproduces these defects with assertions that compile only
+while the defect exists (`@ts-expect-error` for a valid value that is rejected,
+a plain assignment for an invalid value that is accepted). Revisit the report as
+soon as one of them fails (TS2578 or TS2322):
+
+| Schema | Contract | Generated | Effect |
+| --- | --- | --- | --- |
+| `FileListResponse.data[]` items | `anyOf` `FileSummary`, `DetailedFile` | one merged interface requiring `files`, `size` and `visibleElements`; `nodeId` narrowed to `number`; `signers` typed as `SignerDetail` | a valid `FileSummary` is not assignable |
+| `FileRuntimeMetadata` | `anyOf` `ValidateMetadata`, `{ [key]: DynamicMetadataValue }` | only the `ValidateMetadata` fields, with `extension` and `p` required | a valid dynamic metadata object is rejected |
+| `RequestPolicyOverrides` values | `anyOf` `EffectivePolicyValue`, array of it | empty interface `RequestPolicyOverridesValue` | accepts any non-null value |
+
+The other 9 `anyOf` occurrences are in 4xx bodies. Two (the 422 responses of
+`notify-signers` and `notify-signer`) are real unions: `canRequestSign()` throws
+an `{action, errors}` body (`ActionErrorResponse`), other validations a
+`{message}` body (`MessageResponse`), both surfaced by the middleware. The
+generator merges them into one interface (for example
+`NotifySigners422ResponseOcsData` requires `action` and `errors`, which the
+`MessageResponse` alternative does not have). The other seven (six 401 bodies
+and the `footer-template` 403) are envelope-level `anyOf` whose second branch
+has an untyped `data: {}`; they are generated as `...AnyOf1Ocs` models with
+`data: any`. That reads the contract faithfully: the extractor's implicit 401/403
+has no typed body, so `X | {}` accepts anything. The typed branch is not lost by
+the generator; the extractor adds the untyped one next to it. In
+both cases the generator creates models for error bodies but method return
+types only cover the success response, so callers receive errors as
+`AxiosError` and must cast `error.response.data`. The `oneOf` constructs
+(`NewFile.nodeId`, `RootCertificateName.value`, `UserConfigValue`,
+`EffectivePolicyValue` and the inline `rootCert.names[].value` request
+properties) generate correct unions. `UserConfigValue` includes `Array<object>`;
+`allowedValues` and the `values` maps are generated as `EffectivePolicyValue`
+items without the contract's `null`.
+
+The schema formerly named `File` (an ID document record) was renamed to
+`IdDocFile` in LibreSign. With the old name the generator renamed the model to
+`ModelFile` but not its references, so `IdDocsListResponse.data` and
+`IdDocsApprovalListResponse.data` were generated as `Array<any>`, the only
+unbounded `any` in the models. After the rename no `Array<any>` remains and
+`anyof-defect.ts` guards it. The underlying generator defect with reserved
+model names is unchanged (see [UPSTREAM-NOTES.md](UPSTREAM-NOTES.md) G3).
+
+Other generator observations: binary responses are typed
+as the DOM `File` although `responseType: arraybuffer` returns bytes; the
+`OCS-APIRequest` header is a required boolean field named `oCSAPIRequest` of the
+request object on all 87 OCS operations (positional only in the lower-level
+generated functions and Markdown examples; the 3 non-OCS operations have none);
+envelopes are not unwrapped.
+
+### Error bodies aligned with the code
+
+Two groups of documented error bodies did not match what the controllers send.
+They were LibreSign annotations, not package defects, and were corrected:
+
+- `request-signature` (POST) and `update-signature-request` (PATCH) catch every
+  failure and return `{message}` with 422, but documented
+  `MessageResponse | ActionErrorResponse` and the description "Unauthorized".
+  They now document `MessageResponse` and "Request cannot be processed"; two
+  `anyOf` disappeared (14 became 12).
+- `removeSigner` returns `{message}` with 401 or 422 and documented an
+  `ActionErrorResponse` 422; `deleteFile` and `deleteSignatureRequest` documented
+  a 422 they never return (the `RequireManager` middleware answers 401).
+- `DetailedFile.nodeId` is now nullable: `libresign_file.node_id` is nullable
+  and the entity value is copied as is (`FileSummary` already allowed null).
+
+`tests/php/openapi/OpenApiErrorBodyContractTest.php` guards these shapes and
+also records that the two `notify` 422 unions are real.
+
+Open decision for the maintainers, not changed here: six methods return HTTP
+401 for any failure, including validation and business errors
+(`AccountController::signatureGenerate`, the two certificate generators,
+`deleteFile`, `deleteSignatureRequest`, `removeSigner`). A 401 means
+"unauthenticated", so an SDK cannot tell an invalid session from a business
+failure. Changing the status breaks compatibility and the Behat scenarios, so it
+needs its own change.
 
 ## Normalized-input experiment
 
 `normalize-input.cjs` writes only
-`build/sdk-generation/normalized/openapi-full.oneof.json`, renaming all 22
-`anyOf` keywords to `oneOf`. Generation is separate from the main evaluation.
-It produces:
-
-- `EffectivePolicyValue = boolean | number | string | { [key: string]: object }`;
-- `FileListResponseDataInner = DetailedFile | FileSummary`;
-- `FileRuntimeMetadata = ValidateMetadata | { [key: string]: object }`.
-
-`test:normalized` passes strict compilation and positive/negative checks:
-policy primitives/object values and object union members compile; policy arrays,
-undefined and scalar file/metadata values are rejected. It also records a
-remaining defect: schema-valid `null` is rejected by `EffectivePolicyValue`.
-Passing this diagnostic suite does not establish full contract fidelity.
-
-This transformation is **generator-input normalization only**, not an equivalent
-validation contract. In particular, integers match both `integer` and `number`
-alternatives: `anyOf` allows that overlap, while `oneOf` requires exactly one
-match. Never replace committed OpenAPI with this experiment's output.
+`build/sdk-generation/normalized/openapi-full.oneof.json`, renaming the
+remaining 12 `anyOf` keywords to `oneOf`. It generates
+`FileListResponseDataInner = DetailedFile | FileSummary` and
+`FileRuntimeMetadata = ValidateMetadata | { [key: string]: ... }`, and
+`test:normalized` passes. It is generator-input normalization only: object
+branches that overlap would also violate the `oneOf` "exactly one" rule, and
+the transformed file must never replace the committed contract. The earlier
+`integer`/`number` overlap argument no longer applies to policy values.
 
 ## Remaining limits
 
-OCS envelopes are not automatically unwrapped, and callers must pass the OCS
-header argument. Adapter status settlement is simulated; server authorization
-and OCS-level errors inside HTTP 200 are not tested. Basic auth is inspected as
-Axios config, not a real on-wire Authorization header. PDF types are generated
-as `File` although explicit arraybuffer transport returns bytes; callers must
-reconcile those types. No live Nextcloud checks were rerun for this version;
-real account success, binary download, subdirectory deployment and state-changing
-signature requests remain unverified. Tests sample models, not runtime JSON
-validation or numerical limits. No production SDK or frontend migration is
-included.
+OCS envelopes are not automatically unwrapped. Adapter status settlement is
+simulated; server authorization and OCS-level errors inside HTTP 200 are not
+tested. Basic auth is inspected as Axios config, not as a real on-wire header.
+PDF types are generated as `File` although arraybuffer transport returns bytes.
+Live Nextcloud checks in `live.test.ts` use a local stub; no real server was
+exercised in this run. Tests sample models and do not validate runtime JSON or
+numerical limits. No production SDK or frontend migration is included.
 
 ## Multipart limitations
 
-The harness checks the generated signatures and requests, and the controller
-source supplies the expected upload names:
+The contract still has no `multipart/form-data` request body for the six
+operations tracked in #9435, which is closed on GitHub although no generated
+request body exists yet; the merged work (#9452, #9490) added runtime
+validation and endpoint descriptions, not request bodies. Upstream extractor support is open
+(`nextcloud/openapi-extractor` #343 and PR #401). The harness checks
+signatures and requests; controller source supplies the expected upload names:
 
 | operationId | Runtime upload | Generated behavior |
 | --- | --- | --- |
-| `account-upload-pfx` | `file` in `AccountController::uploadPfx` | No typed file parameter or request body; generated call sends no body. |
-| `file-save` | `file` or `files` in `FileController::prepareFilesForSaving` | Typed JSON body supports `NewFile` representations, but exposes no typed multipart upload. |
-| `admin-signature-background-save` | `image` in `AdminController::signatureBackgroundSave` | No typed image parameter or request body; generated call sends no body. |
+| `account-upload-pfx` | `file` in `AccountController::uploadPfx` | No typed file parameter or request body; sends no body. |
+| `file-save` | `file`, `files[]` or legacy `file[]` | Typed JSON body only; no typed multipart upload. |
+| `file-validate-binary` | `file` | No typed file parameter or request body. |
+| `file-add-file-to-envelope` | `files[]` plus optional `expectedFilesCount` | No typed files or request body. |
+| `admin-signature-background-save` | `image` | No typed image parameter or request body. |
+| `admin-save-certificate-policy` | `pdf` | No typed file parameter or request body. |
 
-Generic Axios options may allow a caller to handcraft a request, but that is not
-verified typed multipart support. An official SDK or frontend migration would
-need a reviewed contract/extractor correction and regenerated serialization, or
-another explicitly designed solution. Changes to PHP or OpenAPI extraction are
-outside this evaluation.
+Generic Axios options can carry a handcrafted `FormData`, but that is not
+verified typed multipart support. An official SDK or frontend migration needs
+the extractor support above (or another reviewed design) and a regeneration.
 
 ## Handoff
 
 Maintainers must choose among these options; this evaluation selects none:
 
-1. Conditional Go with reviewed generator-input normalization, addressing the
-   remaining nullable and transport limitations before SDK infrastructure.
-2. Correct the source contract/extractor to emit `oneOf` where semantically
-   valid, explicitly resolving overlapping alternatives rather than blindly
-   renaming keywords.
+1. Conditional Go with a reviewed generator-input normalization of the 12
+   `anyOf` constructs, documented as non-contractual.
+2. Fix the extractor (object unions, duplicated implicit 401/403) and the
+   generator upstream, and adjust LibreSign's own types or annotations where
+   their cause is confirmed to be in LibreSign, then regenerate.
 3. Evaluate another generator against the same acceptance criteria.
 
-Rerun the harness against the approved contract and toolchain. Multipart source
-contract work belongs to #9435. No PHP controller, extractor, committed OpenAPI,
-generated frontend type, CI job or permanent SDK is changed here.
+Multipart needs the upstream extractor work in every option. Detailed
+extractor/generator items and what remains unverified in this repository are
+in [UPSTREAM-NOTES.md](UPSTREAM-NOTES.md). Rerun the harness against the
+approved contract and toolchain before any decision.
