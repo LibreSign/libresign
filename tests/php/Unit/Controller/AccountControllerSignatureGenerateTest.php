@@ -11,7 +11,7 @@ namespace OCA\Libresign\Tests\Unit\Controller;
 
 use OCA\Libresign\Controller\AccountController;
 use OCA\Libresign\Exception\LibresignException;
-use OCA\Libresign\Handler\Pkcs12Handler;
+use OCA\Libresign\Handler\SignEngine\Pkcs12Handler;
 use OCA\Libresign\Service\AccountService;
 use OCP\AppFramework\Http;
 use OCP\IRequest;
