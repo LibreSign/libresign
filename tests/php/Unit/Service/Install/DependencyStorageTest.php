@@ -46,6 +46,11 @@ final class InMemoryDependencyFolder implements ISimpleFolder {
 		return array_values($this->folders);
 	}
 
+	/** @return self[] */
+	public function getFolderListing(): array {
+		return array_values($this->folders);
+	}
+
 	public function fileExists(string $name): bool {
 		return false;
 	}

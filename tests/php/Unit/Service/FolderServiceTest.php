@@ -37,6 +37,11 @@ final class FakeFolder implements ISimpleFolder {
 		return [];
 	}
 
+	/** @return ISimpleFolder[] */
+	public function getFolderListing(): array {
+		return [];
+	}
+
 	public function delete(): void {
 	}
 
