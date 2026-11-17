@@ -13,11 +13,18 @@ use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 
 /**
- * The documented error bodies must match what the controllers return, so that
- * generated clients do not type a body that is never sent.
+ * The documented 422 bodies must match what the API really sends.
+ *
+ * Two sources exist. The #[RequireManager] middleware calls canRequestSign()
+ * before the controller runs and, for a user without permission, answers 422
+ * with an {action, errors} body (ActionErrorResponse). The controller catch
+ * blocks answer {message} (MessageResponse). Documenting only one of them
+ * would type a body that is not the only one sent.
  */
 final class OpenApiErrorBodyContractTest extends TestCase {
 	private const BASE = '/ocs/v2.php/apps/libresign/api/{apiVersion}/';
+	private const MESSAGE = '#/components/schemas/MessageResponse';
+	private const ACTION_ERROR = '#/components/schemas/ActionErrorResponse';
 
 	public static function specificationProvider(): array {
 		return [
@@ -27,46 +34,45 @@ final class OpenApiErrorBodyContractTest extends TestCase {
 	}
 
 	#[DataProvider('specificationProvider')]
-	public function testRequestSignatureOnlyReturnsAMessageWith422(string $file): void {
+	public function testRequestSignatureDocumentsBothBodiesAt422(string $file): void {
 		$paths = $this->load($file)['paths'];
 
 		foreach (['post', 'patch'] as $method) {
-			self::assertSame(
-				'#/components/schemas/MessageResponse',
-				$this->errorData($paths[self::BASE . 'request-signature'][$method], '422')['$ref'] ?? null,
-				$method,
-			);
+			$this->assertBothBodies($paths[self::BASE . 'request-signature'][$method], $method);
 		}
 	}
 
 	#[DataProvider('specificationProvider')]
-	public function testRemoveSignerDocumentsTheMessageItReturns(string $file): void {
-		$operation = $this->load($file)['paths'][self::BASE . 'sign/file_id/{fileId}/{signRequestId}']['delete'];
-
-		self::assertSame('#/components/schemas/MessageResponse', $this->errorData($operation, '422')['$ref'] ?? null);
+	public function testRemoveSignerDocumentsBothBodiesAt422(string $file): void {
+		// The catch block answers {message} with 422 when the exception code is 422.
+		$this->assertBothBodies(
+			$this->load($file)['paths'][self::BASE . 'sign/file_id/{fileId}/{signRequestId}']['delete'],
+			'removeSigner',
+		);
 	}
 
 	#[DataProvider('specificationProvider')]
-	public function testDeleteOperationsDoNotDocumentAnUnreachable422(string $file): void {
+	public function testDeleteOperationsDocumentTheMiddleware422(string $file): void {
+		// Their catch blocks answer 401, but the middleware rejects a user
+		// without permission with 422 before the method runs.
 		$paths = $this->load($file)['paths'];
 
 		foreach (['file/file_id/{fileId}', 'sign/file_id/{fileId}'] as $path) {
-			self::assertArrayNotHasKey('422', $paths[self::BASE . $path]['delete']['responses'], $path);
+			self::assertSame(
+				self::ACTION_ERROR,
+				$this->errorData($paths[self::BASE . $path]['delete'], '422')['$ref'] ?? null,
+				$path,
+			);
 		}
 	}
 
 	#[DataProvider('specificationProvider')]
 	public function testNotifyKeepsBothRealBodiesAt422(string $file): void {
-		// canRequestSign() throws an action/errors body, other validations a message.
+		// canRequestSign() throws an action/errors body, other validations a message body.
 		$paths = $this->load($file)['paths'];
 
 		foreach (['notify/signers', 'notify/signer'] as $path) {
-			$data = $this->errorData($paths[self::BASE . $path]['post'], '422');
-			self::assertEqualsCanonicalizing(
-				['#/components/schemas/MessageResponse', '#/components/schemas/ActionErrorResponse'],
-				array_column($data['anyOf'] ?? [], '$ref'),
-				$path,
-			);
+			$this->assertBothBodies($paths[self::BASE . $path]['post'], $path);
 		}
 	}
 
@@ -76,6 +82,16 @@ final class OpenApiErrorBodyContractTest extends TestCase {
 		$nodeId = $this->load($file)['components']['schemas']['DetailedFile']['properties']['nodeId'];
 
 		self::assertTrue($nodeId['nullable'] ?? false);
+	}
+
+	private function assertBothBodies(array $operation, string $label): void {
+		$data = $this->errorData($operation, '422');
+
+		self::assertEqualsCanonicalizing(
+			[self::MESSAGE, self::ACTION_ERROR],
+			array_column($data['anyOf'] ?? [], '$ref'),
+			$label,
+		);
 	}
 
 	private function errorData(array $operation, string $status): array {

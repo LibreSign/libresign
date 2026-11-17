@@ -3347,6 +3347,20 @@ export interface operations {
                     };
                 };
             };
+            /** @description Failed */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        ocs: {
+                            meta: components["schemas"]["OCSMeta"];
+                            data: components["schemas"]["ActionErrorResponse"];
+                        };
+                    };
+                };
+            };
         };
     };
     "file_element-create-visible-element": {
@@ -5453,7 +5467,7 @@ export interface operations {
                     };
                 };
             };
-            /** @description Request cannot be processed */
+            /** @description Unauthorized */
             422: {
                 headers: {
                     [name: string]: unknown;
@@ -5462,7 +5476,7 @@ export interface operations {
                     "application/json": {
                         ocs: {
                             meta: components["schemas"]["OCSMeta"];
-                            data: components["schemas"]["MessageResponse"];
+                            data: components["schemas"]["MessageResponse"] | components["schemas"]["ActionErrorResponse"];
                         };
                     };
                 };
@@ -5562,7 +5576,7 @@ export interface operations {
                     };
                 };
             };
-            /** @description Request cannot be processed */
+            /** @description Unauthorized */
             422: {
                 headers: {
                     [name: string]: unknown;
@@ -5571,7 +5585,7 @@ export interface operations {
                     "application/json": {
                         ocs: {
                             meta: components["schemas"]["OCSMeta"];
-                            data: components["schemas"]["MessageResponse"];
+                            data: components["schemas"]["MessageResponse"] | components["schemas"]["ActionErrorResponse"];
                         };
                     };
                 };
@@ -5638,7 +5652,7 @@ export interface operations {
                     "application/json": {
                         ocs: {
                             meta: components["schemas"]["OCSMeta"];
-                            data: components["schemas"]["MessageResponse"];
+                            data: components["schemas"]["MessageResponse"] | components["schemas"]["ActionErrorResponse"];
                         };
                     };
                 };
@@ -5768,6 +5782,20 @@ export interface operations {
                         ocs: {
                             meta: components["schemas"]["OCSMeta"];
                             data: unknown;
+                        };
+                    };
+                };
+            };
+            /** @description Failed */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        ocs: {
+                            meta: components["schemas"]["OCSMeta"];
+                            data: components["schemas"]["ActionErrorResponse"];
                         };
                     };
                 };

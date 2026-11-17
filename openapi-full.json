@@ -7267,6 +7267,36 @@
                                 }
                             }
                         }
+                    },
+                    "422": {
+                        "description": "Failed",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "required": [
+                                        "ocs"
+                                    ],
+                                    "properties": {
+                                        "ocs": {
+                                            "type": "object",
+                                            "required": [
+                                                "meta",
+                                                "data"
+                                            ],
+                                            "properties": {
+                                                "meta": {
+                                                    "$ref": "#/components/schemas/OCSMeta"
+                                                },
+                                                "data": {
+                                                    "$ref": "#/components/schemas/ActionErrorResponse"
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
                     }
                 }
             }
@@ -12325,7 +12355,7 @@
                         }
                     },
                     "422": {
-                        "description": "Request cannot be processed",
+                        "description": "Unauthorized",
                         "content": {
                             "application/json": {
                                 "schema": {
@@ -12345,7 +12375,14 @@
                                                     "$ref": "#/components/schemas/OCSMeta"
                                                 },
                                                 "data": {
-                                                    "$ref": "#/components/schemas/MessageResponse"
+                                                    "anyOf": [
+                                                        {
+                                                            "$ref": "#/components/schemas/MessageResponse"
+                                                        },
+                                                        {
+                                                            "$ref": "#/components/schemas/ActionErrorResponse"
+                                                        }
+                                                    ]
                                                 }
                                             }
                                         }
@@ -12537,7 +12574,7 @@
                         }
                     },
                     "422": {
-                        "description": "Request cannot be processed",
+                        "description": "Unauthorized",
                         "content": {
                             "application/json": {
                                 "schema": {
@@ -12557,7 +12594,14 @@
                                                     "$ref": "#/components/schemas/OCSMeta"
                                                 },
                                                 "data": {
-                                                    "$ref": "#/components/schemas/MessageResponse"
+                                                    "anyOf": [
+                                                        {
+                                                            "$ref": "#/components/schemas/MessageResponse"
+                                                        },
+                                                        {
+                                                            "$ref": "#/components/schemas/ActionErrorResponse"
+                                                        }
+                                                    ]
                                                 }
                                             }
                                         }
@@ -12764,7 +12808,14 @@
                                                     "$ref": "#/components/schemas/OCSMeta"
                                                 },
                                                 "data": {
-                                                    "$ref": "#/components/schemas/MessageResponse"
+                                                    "anyOf": [
+                                                        {
+                                                            "$ref": "#/components/schemas/MessageResponse"
+                                                        },
+                                                        {
+                                                            "$ref": "#/components/schemas/ActionErrorResponse"
+                                                        }
+                                                    ]
                                                 }
                                             }
                                         }
@@ -12908,6 +12959,36 @@
                                             }
                                         }
                                     ]
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Failed",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "required": [
+                                        "ocs"
+                                    ],
+                                    "properties": {
+                                        "ocs": {
+                                            "type": "object",
+                                            "required": [
+                                                "meta",
+                                                "data"
+                                            ],
+                                            "properties": {
+                                                "meta": {
+                                                    "$ref": "#/components/schemas/OCSMeta"
+                                                },
+                                                "data": {
+                                                    "$ref": "#/components/schemas/ActionErrorResponse"
+                                                }
+                                            }
+                                        }
+                                    }
                                 }
                             }
                         }
