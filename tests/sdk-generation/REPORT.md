@@ -15,7 +15,7 @@ keeps `| null` at the properties that reference it (disjoint `oneOf` contract,
 `@nextcloud/axios` injection all pass.
 
 The decision remains No-Go for unmodified input because three generated models
-(and the 9 error-body models) of the remaining 12 `anyOf` constructs are still
+(and the 12 error-body models) of the remaining 15 `anyOf` constructs are still
 incorrect
 (see [Remaining model defects](#remaining-model-defects)), and multipart
 bodies are still absent from the contract. Every blocker left is on the
@@ -29,9 +29,9 @@ frontend type, CI job or permanent SDK.
 - Application base: `40ee2280737e54ebf798bbc1f77bf4272cbe9320` (`main`), plus
   three LibreSign changes described below: the ID document schema `File` renamed
   to `IdDocFile`, literal media types for the CRL and the admin background, and
-  error-body annotations aligned with what the controllers return (see
-  [Error bodies aligned with the code](#error-bodies-aligned-with-the-code)).
-- `openapi-full.json` SHA-256 with those changes: `76b093d3325b9504ba7911ba487b9424d7e9821bd2f2f9905d01756371ba8bf9`
+  annotations aligned with what the code returns (see
+  [Annotations aligned with the code](#annotations-aligned-with-the-code)).
+- `openapi-full.json` SHA-256 with those changes: `36635e033a52861d1bb5e0281bb759a7fdf4e05d097d9fd6610e2a29577ab6fa`
   (`64c52fa2ba243af292eba30055982954bfd8c19136567e50e28c4abcffcc9405` on `main`).
 - Extractor used to produce the contract: `nextcloud/openapi-extractor` 1.9.1.
 - Generator: `openapitools/openapi-generator-cli` 7.27.0 at
@@ -103,10 +103,12 @@ soon as one of them fails (TS2578 or TS2322):
 | `FileRuntimeMetadata` | `anyOf` `ValidateMetadata`, `{ [key]: DynamicMetadataValue }` | only the `ValidateMetadata` fields, with `extension` and `p` required | a valid dynamic metadata object is rejected |
 | `RequestPolicyOverrides` values | `anyOf` `EffectivePolicyValue`, array of it | empty interface `RequestPolicyOverridesValue` | accepts any non-null value |
 
-The other 9 `anyOf` occurrences are in 4xx bodies. Two (the 422 responses of
-`notify-signers` and `notify-signer`) are real unions: `canRequestSign()` throws
-an `{action, errors}` body (`ActionErrorResponse`), other validations a
-`{message}` body (`MessageResponse`), both surfaced by the middleware. The
+The other 12 `anyOf` occurrences are in 4xx bodies. Five (the 422 responses of
+`notify-signers`, `notify-signer`, `request-signature`,
+`update-signature-request` and `removeSigner`) are real unions. A user without
+permission is rejected by the `RequireManager`/`canRequestSign()` middleware
+with an `{action, errors}` body (`ActionErrorResponse`) before the controller
+runs; failures inside the method answer `{message}` (`MessageResponse`). The
 generator merges them into one interface (for example
 `NotifySigners422ResponseOcsData` requires `action` and `errors`, which the
 `MessageResponse` alternative does not have). The other seven (six 401 bodies
@@ -139,38 +141,40 @@ request object on all 87 OCS operations (positional only in the lower-level
 generated functions and Markdown examples; the 3 non-OCS operations have none);
 envelopes are not unwrapped.
 
-### Error bodies aligned with the code
+### Annotations aligned with the code
 
-Two groups of documented error bodies did not match what the controllers send.
-They were LibreSign annotations, not package defects, and were corrected:
+Two LibreSign annotations did not match the data and were corrected:
 
-- `request-signature` (POST) and `update-signature-request` (PATCH) catch every
-  failure and return `{message}` with 422, but documented
-  `MessageResponse | ActionErrorResponse` and the description "Unauthorized".
-  They now document `MessageResponse` and "Request cannot be processed"; two
-  `anyOf` disappeared (14 became 12).
-- `removeSigner` returns `{message}` with 401 or 422 and documented an
-  `ActionErrorResponse` 422; `deleteFile` and `deleteSignatureRequest` documented
-  a 422 they never return (the `RequireManager` middleware answers 401).
+- `removeSigner` documented only an `ActionErrorResponse` 422, but its `catch`
+  also answers `{message}` with 422 when the exception code is 422. It now
+  documents `MessageResponse | ActionErrorResponse`, which adds one `anyOf`
+  (14 became 15).
 - `DetailedFile.nodeId` is now nullable: `libresign_file.node_id` is nullable
   and the entity value is copied as is (`FileSummary` already allowed null).
 
-`tests/php/openapi/OpenApiErrorBodyContractTest.php` guards these shapes and
-also records that the two `notify` 422 unions are real.
+`tests/php/openapi/OpenApiErrorBodyContractTest.php` guards these and the other
+422 unions. A review of this branch caught an earlier mistaken narrowing: the
+422 of `request-signature` (POST, PATCH), `removeSigner`, `deleteFile` and
+`deleteSignatureRequest` can also be an `{action, errors}` body, because
+`#[RequireManager]` runs `canRequestSign()` before the method and its `try`
+block (`InjectionMiddleware.php`, `SigningRequestValidator.php`), so the
+original `ActionErrorResponse` documentation was kept.
 
-Open decision for the maintainers, not changed here: six methods return HTTP
-401 for any failure, including validation and business errors
-(`AccountController::signatureGenerate`, the two certificate generators,
-`deleteFile`, `deleteSignatureRequest`, `removeSigner`). A 401 means
-"unauthenticated", so an SDK cannot tell an invalid session from a business
-failure. Changing the status breaks compatibility and the Behat scenarios, so it
-needs its own change.
+Open decision for the maintainers, not changed here: several methods answer
+HTTP 401 for failures that are not authentication failures.
+`signatureGenerate`, the two certificate generators (`catch \Exception`),
+`deleteFile` and `deleteSignatureRequest` (`catch \Throwable`) return 401 for
+every caught failure, including validation and business errors, and
+`removeSigner` returns 401 for any `LibresignException` whose code is not 422.
+A 401 means "unauthenticated", so an SDK cannot tell an invalid session from a
+business failure. Changing the status breaks compatibility and the Behat
+scenarios, so it needs its own change.
 
 ## Normalized-input experiment
 
 `normalize-input.cjs` writes only
 `build/sdk-generation/normalized/openapi-full.oneof.json`, renaming the
-remaining 12 `anyOf` keywords to `oneOf`. It generates
+remaining 15 `anyOf` keywords to `oneOf`. It generates
 `FileListResponseDataInner = DetailedFile | FileSummary` and
 `FileRuntimeMetadata = ValidateMetadata | { [key: string]: ... }`, and
 `test:normalized` passes. It is generator-input normalization only: object
@@ -214,7 +218,7 @@ the extractor support above (or another reviewed design) and a regeneration.
 
 Maintainers must choose among these options; this evaluation selects none:
 
-1. Conditional Go with a reviewed generator-input normalization of the 12
+1. Conditional Go with a reviewed generator-input normalization of the 15
    `anyOf` constructs, documented as non-contractual.
 2. Fix the extractor (object unions, duplicated implicit 401/403) and the
    generator upstream, and adjust LibreSign's own types or annotations where

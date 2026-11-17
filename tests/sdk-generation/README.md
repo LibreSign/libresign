@@ -20,9 +20,11 @@ npm run test:anyof --prefix tests/sdk-generation
 
 `test:anyof` has two parts. `anyof-defect.ts` is a regression guard: the generated
 `EffectivePolicyValue` must keep rejecting arrays and `undefined`. `union-defects.ts`
-**passes while known defects exist**: each `@ts-expect-error` marks a valid contract
-value that the generated model rejects or over-accepts. When a defect is fixed,
-compilation fails with TS2578 and the report must be reevaluated. `npm test` checks
+**passes while known defects exist**: a `@ts-expect-error` marks a valid contract
+value that the generated model rejects, and a plain assignment marks an invalid
+value that it accepts. When a defect is fixed, compilation fails: TS2578 for an
+unused `@ts-expect-error`, TS2322 for an assignment that is now rejected. The
+report must then be reevaluated. `npm test` checks
 transport, generation cleanup, live-check error handling and real `@nextcloud/axios`
 injection under jsdom, and writes the generated operation inventory to
 `build/sdk-generation/inventory.md`.
@@ -40,7 +42,7 @@ See [REPORT.md](REPORT.md) and [inventory.md](inventory.md) for results.
 
 ## Normalized-input experiment
 
-This separate experiment changes all 12 `anyOf` keywords to `oneOf` in a
+This separate experiment changes all 15 `anyOf` keywords to `oneOf` in a
 **disposable generator input**, never in the committed specification:
 
 ```sh
