@@ -4044,57 +4044,90 @@
                             }
                         }
                     },
-                    "401": {
+                    "422": {
+                        "description": "Invalid data to create the PFX file",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "required": [
+                                        "ocs"
+                                    ],
+                                    "properties": {
+                                        "ocs": {
+                                            "type": "object",
+                                            "required": [
+                                                "meta",
+                                                "data"
+                                            ],
+                                            "properties": {
+                                                "meta": {
+                                                    "$ref": "#/components/schemas/OCSMeta"
+                                                },
+                                                "data": {
+                                                    "$ref": "#/components/schemas/MessageResponse"
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "500": {
                         "description": "Failure to create PFX file",
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "anyOf": [
-                                        {
+                                    "type": "object",
+                                    "required": [
+                                        "ocs"
+                                    ],
+                                    "properties": {
+                                        "ocs": {
                                             "type": "object",
                                             "required": [
-                                                "ocs"
+                                                "meta",
+                                                "data"
                                             ],
                                             "properties": {
-                                                "ocs": {
-                                                    "type": "object",
-                                                    "required": [
-                                                        "meta",
-                                                        "data"
-                                                    ],
-                                                    "properties": {
-                                                        "meta": {
-                                                            "$ref": "#/components/schemas/OCSMeta"
-                                                        },
-                                                        "data": {
-                                                            "$ref": "#/components/schemas/MessageResponse"
-                                                        }
-                                                    }
-                                                }
-                                            }
-                                        },
-                                        {
-                                            "type": "object",
-                                            "required": [
-                                                "ocs"
-                                            ],
-                                            "properties": {
-                                                "ocs": {
-                                                    "type": "object",
-                                                    "required": [
-                                                        "meta",
-                                                        "data"
-                                                    ],
-                                                    "properties": {
-                                                        "meta": {
-                                                            "$ref": "#/components/schemas/OCSMeta"
-                                                        },
-                                                        "data": {}
-                                                    }
+                                                "meta": {
+                                                    "$ref": "#/components/schemas/OCSMeta"
+                                                },
+                                                "data": {
+                                                    "$ref": "#/components/schemas/MessageResponse"
                                                 }
                                             }
                                         }
-                                    ]
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Current user is not logged in",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "required": [
+                                        "ocs"
+                                    ],
+                                    "properties": {
+                                        "ocs": {
+                                            "type": "object",
+                                            "required": [
+                                                "meta",
+                                                "data"
+                                            ],
+                                            "properties": {
+                                                "meta": {
+                                                    "$ref": "#/components/schemas/OCSMeta"
+                                                },
+                                                "data": {}
+                                            }
+                                        }
+                                    }
                                 }
                             }
                         }
@@ -6687,61 +6720,6 @@
                             }
                         }
                     },
-                    "401": {
-                        "description": "Failed",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "anyOf": [
-                                        {
-                                            "type": "object",
-                                            "required": [
-                                                "ocs"
-                                            ],
-                                            "properties": {
-                                                "ocs": {
-                                                    "type": "object",
-                                                    "required": [
-                                                        "meta",
-                                                        "data"
-                                                    ],
-                                                    "properties": {
-                                                        "meta": {
-                                                            "$ref": "#/components/schemas/OCSMeta"
-                                                        },
-                                                        "data": {
-                                                            "$ref": "#/components/schemas/MessageResponse"
-                                                        }
-                                                    }
-                                                }
-                                            }
-                                        },
-                                        {
-                                            "type": "object",
-                                            "required": [
-                                                "ocs"
-                                            ],
-                                            "properties": {
-                                                "ocs": {
-                                                    "type": "object",
-                                                    "required": [
-                                                        "meta",
-                                                        "data"
-                                                    ],
-                                                    "properties": {
-                                                        "meta": {
-                                                            "$ref": "#/components/schemas/OCSMeta"
-                                                        },
-                                                        "data": {}
-                                                    }
-                                                }
-                                            }
-                                        }
-                                    ]
-                                }
-                            }
-                        }
-                    },
                     "422": {
                         "description": "Failed",
                         "content": {
@@ -6763,8 +6741,73 @@
                                                     "$ref": "#/components/schemas/OCSMeta"
                                                 },
                                                 "data": {
-                                                    "$ref": "#/components/schemas/ActionErrorResponse"
+                                                    "anyOf": [
+                                                        {
+                                                            "$ref": "#/components/schemas/MessageResponse"
+                                                        },
+                                                        {
+                                                            "$ref": "#/components/schemas/ActionErrorResponse"
+                                                        }
+                                                    ]
                                                 }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Unexpected failure",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "required": [
+                                        "ocs"
+                                    ],
+                                    "properties": {
+                                        "ocs": {
+                                            "type": "object",
+                                            "required": [
+                                                "meta",
+                                                "data"
+                                            ],
+                                            "properties": {
+                                                "meta": {
+                                                    "$ref": "#/components/schemas/OCSMeta"
+                                                },
+                                                "data": {
+                                                    "$ref": "#/components/schemas/MessageResponse"
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Current user is not logged in",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "required": [
+                                        "ocs"
+                                    ],
+                                    "properties": {
+                                        "ocs": {
+                                            "type": "object",
+                                            "required": [
+                                                "meta",
+                                                "data"
+                                            ],
+                                            "properties": {
+                                                "meta": {
+                                                    "$ref": "#/components/schemas/OCSMeta"
+                                                },
+                                                "data": {}
                                             }
                                         }
                                     }
@@ -12041,61 +12084,6 @@
                             }
                         }
                     },
-                    "401": {
-                        "description": "Failed",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "anyOf": [
-                                        {
-                                            "type": "object",
-                                            "required": [
-                                                "ocs"
-                                            ],
-                                            "properties": {
-                                                "ocs": {
-                                                    "type": "object",
-                                                    "required": [
-                                                        "meta",
-                                                        "data"
-                                                    ],
-                                                    "properties": {
-                                                        "meta": {
-                                                            "$ref": "#/components/schemas/OCSMeta"
-                                                        },
-                                                        "data": {
-                                                            "$ref": "#/components/schemas/MessageResponse"
-                                                        }
-                                                    }
-                                                }
-                                            }
-                                        },
-                                        {
-                                            "type": "object",
-                                            "required": [
-                                                "ocs"
-                                            ],
-                                            "properties": {
-                                                "ocs": {
-                                                    "type": "object",
-                                                    "required": [
-                                                        "meta",
-                                                        "data"
-                                                    ],
-                                                    "properties": {
-                                                        "meta": {
-                                                            "$ref": "#/components/schemas/OCSMeta"
-                                                        },
-                                                        "data": {}
-                                                    }
-                                                }
-                                            }
-                                        }
-                                    ]
-                                }
-                            }
-                        }
-                    },
                     "422": {
                         "description": "Failed",
                         "content": {
@@ -12126,6 +12114,34 @@
                                                         }
                                                     ]
                                                 }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Current user is not logged in",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "required": [
+                                        "ocs"
+                                    ],
+                                    "properties": {
+                                        "ocs": {
+                                            "type": "object",
+                                            "required": [
+                                                "meta",
+                                                "data"
+                                            ],
+                                            "properties": {
+                                                "meta": {
+                                                    "$ref": "#/components/schemas/OCSMeta"
+                                                },
+                                                "data": {}
                                             }
                                         }
                                     }
@@ -12217,61 +12233,6 @@
                             }
                         }
                     },
-                    "401": {
-                        "description": "Failed",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "anyOf": [
-                                        {
-                                            "type": "object",
-                                            "required": [
-                                                "ocs"
-                                            ],
-                                            "properties": {
-                                                "ocs": {
-                                                    "type": "object",
-                                                    "required": [
-                                                        "meta",
-                                                        "data"
-                                                    ],
-                                                    "properties": {
-                                                        "meta": {
-                                                            "$ref": "#/components/schemas/OCSMeta"
-                                                        },
-                                                        "data": {
-                                                            "$ref": "#/components/schemas/MessageResponse"
-                                                        }
-                                                    }
-                                                }
-                                            }
-                                        },
-                                        {
-                                            "type": "object",
-                                            "required": [
-                                                "ocs"
-                                            ],
-                                            "properties": {
-                                                "ocs": {
-                                                    "type": "object",
-                                                    "required": [
-                                                        "meta",
-                                                        "data"
-                                                    ],
-                                                    "properties": {
-                                                        "meta": {
-                                                            "$ref": "#/components/schemas/OCSMeta"
-                                                        },
-                                                        "data": {}
-                                                    }
-                                                }
-                                            }
-                                        }
-                                    ]
-                                }
-                            }
-                        }
-                    },
                     "422": {
                         "description": "Failed",
                         "content": {
@@ -12293,8 +12254,73 @@
                                                     "$ref": "#/components/schemas/OCSMeta"
                                                 },
                                                 "data": {
-                                                    "$ref": "#/components/schemas/ActionErrorResponse"
+                                                    "anyOf": [
+                                                        {
+                                                            "$ref": "#/components/schemas/MessageResponse"
+                                                        },
+                                                        {
+                                                            "$ref": "#/components/schemas/ActionErrorResponse"
+                                                        }
+                                                    ]
                                                 }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Unexpected failure",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "required": [
+                                        "ocs"
+                                    ],
+                                    "properties": {
+                                        "ocs": {
+                                            "type": "object",
+                                            "required": [
+                                                "meta",
+                                                "data"
+                                            ],
+                                            "properties": {
+                                                "meta": {
+                                                    "$ref": "#/components/schemas/OCSMeta"
+                                                },
+                                                "data": {
+                                                    "$ref": "#/components/schemas/MessageResponse"
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Current user is not logged in",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "required": [
+                                        "ocs"
+                                    ],
+                                    "properties": {
+                                        "ocs": {
+                                            "type": "object",
+                                            "required": [
+                                                "meta",
+                                                "data"
+                                            ],
+                                            "properties": {
+                                                "meta": {
+                                                    "$ref": "#/components/schemas/OCSMeta"
+                                                },
+                                                "data": {}
                                             }
                                         }
                                     }

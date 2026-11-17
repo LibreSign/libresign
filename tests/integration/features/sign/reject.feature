@@ -884,7 +884,7 @@ Feature: sign-signature-rejection
       | key                   | value                                                    |
       | (jq).ocs.data.message | The signing workflow of this document is already closed. |
     When sending "delete" to ocs "/apps/libresign/api/v1/sign/file_id/<FILE_ID>/<SIGN_REQUEST_ID>"
-    Then the response should have a status code 401
+    Then the response should have a status code 422
     And the response should be a JSON array with the following mandatory values
       | key                   | value                                                    |
       | (jq).ocs.data.message | The signing workflow of this document is already closed. |

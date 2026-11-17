@@ -52,17 +52,57 @@ final class OpenApiErrorBodyContractTest extends TestCase {
 	}
 
 	#[DataProvider('specificationProvider')]
-	public function testDeleteOperationsDocumentTheMiddleware422(string $file): void {
-		// Their catch blocks answer 401, but the middleware rejects a user
-		// without permission with 422 before the method runs.
+	public function testDeleteOperationsDocumentBothBodiesAt422AndTheUnexpectedFailureAt500(string $file): void {
+		// The middleware rejects a user without permission with 422 before the
+		// method runs; the catch block answers {message} with 422 for a business
+		// failure and 500 for an unexpected one.
 		$paths = $this->load($file)['paths'];
 
 		foreach (['file/file_id/{fileId}', 'sign/file_id/{fileId}'] as $path) {
-			self::assertSame(
-				self::ACTION_ERROR,
-				$this->errorData($paths[self::BASE . $path]['delete'], '422')['$ref'] ?? null,
-				$path,
-			);
+			$operation = $paths[self::BASE . $path]['delete'];
+			$this->assertBothBodies($operation, $path);
+			self::assertSame(self::MESSAGE, $this->errorData($operation, '500')['$ref'] ?? null, $path);
+		}
+	}
+
+	#[DataProvider('specificationProvider')]
+	public function testFailuresAreNotDocumentedAsUnauthorized(string $file): void {
+		// 401 means "not authenticated". The operations below used to answer 401
+		// for validation and business failures; only the untyped framework 401
+		// (data: {}) may remain.
+		$paths = $this->load($file)['paths'];
+		$operations = [
+			'account/signature' => 'post',
+			'file/file_id/{fileId}' => 'delete',
+			'sign/file_id/{fileId}' => 'delete',
+			'sign/file_id/{fileId}/{signRequestId}' => 'delete',
+		];
+		if ($file === 'openapi-full.json') {
+			$operations += ['admin/certificate/openssl' => 'post', 'admin/certificate/cfssl' => 'post'];
+		}
+
+		foreach ($operations as $path => $method) {
+			$data = $this->errorData($paths[self::BASE . $path][$method], '401');
+			self::assertArrayNotHasKey('$ref', $data, $path);
+			self::assertArrayNotHasKey('anyOf', $data, $path);
+		}
+	}
+
+	#[DataProvider('specificationProvider')]
+	public function testPfxGenerationDocumentsItsFailures(string $file): void {
+		$operation = $this->load($file)['paths'][self::BASE . 'account/signature']['post'];
+
+		self::assertSame(self::MESSAGE, $this->errorData($operation, '422')['$ref'] ?? null);
+		self::assertSame(self::MESSAGE, $this->errorData($operation, '500')['$ref'] ?? null);
+	}
+
+	public function testCertificateGenerationDocumentsItsFailures(): void {
+		$paths = $this->load('openapi-full.json')['paths'];
+
+		foreach (['admin/certificate/openssl', 'admin/certificate/cfssl'] as $path) {
+			$operation = $paths[self::BASE . $path]['post'];
+			self::assertSame(self::MESSAGE, $this->errorData($operation, '422')['$ref'] ?? null, $path);
+			self::assertSame(self::MESSAGE, $this->errorData($operation, '500')['$ref'] ?? null, $path);
 		}
 	}
 

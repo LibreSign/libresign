@@ -142,10 +142,11 @@ class AccountController extends AEnvironmentAwareOCSController implements ISigna
 	 *
 	 * @param string $signPassword The password that will be used to encrypt the certificate file
 	 *
-	 * @return DataResponse<Http::STATUS_OK, array{}, array{}>|DataResponse<Http::STATUS_UNAUTHORIZED, LibresignMessageResponse, array{}>
+	 * @return DataResponse<Http::STATUS_OK, array{}, array{}>|DataResponse<Http::STATUS_UNPROCESSABLE_ENTITY|Http::STATUS_INTERNAL_SERVER_ERROR, LibresignMessageResponse, array{}>
 	 *
 	 * 200: Settings saved
-	 * 401: Failure to create PFX file
+	 * 422: Invalid data to create the PFX file
+	 * 500: Failure to create PFX file
 	 */
 	#[NoAdminRequired]
 	#[NoCSRFRequired]
@@ -185,7 +186,9 @@ class AccountController extends AEnvironmentAwareOCSController implements ISigna
 				[
 					'message' => $exception->getMessage()
 				],
-				Http::STATUS_UNAUTHORIZED
+				$exception instanceof LibresignException || $exception instanceof InvalidArgumentException
+					? Http::STATUS_UNPROCESSABLE_ENTITY
+					: Http::STATUS_INTERNAL_SERVER_ERROR,
 			);
 		}
 	}
