@@ -42,7 +42,7 @@ See [REPORT.md](REPORT.md) and [inventory.md](inventory.md) for results.
 
 ## Normalized-input experiment
 
-This separate experiment changes all 17 `anyOf` keywords to `oneOf` in a
+This separate experiment changes all 13 `anyOf` keywords to `oneOf` in a
 **disposable generator input**, never in the committed specification:
 
 ```sh
