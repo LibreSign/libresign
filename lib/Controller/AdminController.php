@@ -350,6 +350,9 @@ class AdminController extends AEnvironmentAwareOCSController {
 			'Content-Disposition' => 'attachment; filename="background.png"',
 			'Content-Type' => 'image/png',
 		]);
+		// The constructor always sets Content-Disposition to "inline" using the
+		// file name, so the attachment disposition must be set again afterwards.
+		$response->addHeader('Content-Disposition', 'attachment; filename="background.png"');
 		$csp = new ContentSecurityPolicy();
 		$csp->allowInlineStyle();
 		$response->setContentSecurityPolicy($csp);
