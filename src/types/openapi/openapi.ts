@@ -1956,7 +1956,7 @@ export type components = {
             status: number;
             statusText: string;
             /** Format: int64 */
-            nodeId: number;
+            nodeId: number | null;
             /** Format: int64 */
             totalPages?: number;
             /** Format: int64 */
@@ -1981,7 +1981,7 @@ export type components = {
             status: 0 | 1 | 2 | 3 | 4 | 6;
             statusText: string;
             /** Format: int64 */
-            nodeId: number;
+            nodeId: number | null;
             /** @enum {string} */
             nodeType: "file" | "envelope";
             /** @enum {string} */
@@ -3200,7 +3200,7 @@ export interface operations {
                     "application/json": {
                         ocs: {
                             meta: components["schemas"]["OCSMeta"];
-                            data: components["schemas"]["MessageResponse"];
+                            data: components["schemas"]["MessageResponse"] | components["schemas"]["ActionErrorResponse"];
                         };
                     };
                 };
@@ -3288,7 +3288,7 @@ export interface operations {
                     "application/json": {
                         ocs: {
                             meta: components["schemas"]["OCSMeta"];
-                            data: components["schemas"]["MessageResponse"];
+                            data: components["schemas"]["MessageResponse"] | components["schemas"]["ActionErrorResponse"];
                         };
                     };
                 };
@@ -4093,6 +4093,20 @@ export interface operations {
                         ocs: {
                             meta: components["schemas"]["OCSMeta"];
                             data: unknown;
+                        };
+                    };
+                };
+            };
+            /** @description User is not allowed to request signatures */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        ocs: {
+                            meta: components["schemas"]["OCSMeta"];
+                            data: components["schemas"]["ActionErrorResponse"];
                         };
                     };
                 };

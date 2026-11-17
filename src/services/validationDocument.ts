@@ -476,7 +476,7 @@ export function toValidationDocument(data: unknown): ValidationDocumentState | n
 	if (files.some(file => file === null)) {
 		return null
 	}
-	const normalizedFiles = files.filter((file): file is ValidatedChildFileRecord => file !== null)
+	const normalizedFiles = files.filter((file): file is NonNullable<typeof file> => file !== null)
 
 	const metadata = isValidationMetadata(data.metadata)
 		? data.metadata
