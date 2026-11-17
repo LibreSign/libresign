@@ -257,6 +257,7 @@ OC.L10N.register(
     "Error" : "خطأ",
     "File" : "File",
     "Details" : "التفاصيل",
+    "Phone" : "الهاتف",
     "Certificate" : "الشهادة",
     "Not sent yet" : "لم ترسل بعد",
     "Not defined yet" : "لم تعين بعد",
