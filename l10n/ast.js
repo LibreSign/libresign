@@ -96,6 +96,7 @@ OC.L10N.register(
     "Error" : "Error",
     "File" : "Ficheru",
     "Details" : "Detalles",
+    "Phone" : "Teléfonu",
     "Certificate" : "Certificáu",
     "Document" : "Documentu",
     "Upload file" : "Xubir un ficheru",
