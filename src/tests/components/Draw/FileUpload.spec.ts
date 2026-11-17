@@ -102,6 +102,18 @@ describe('FileUpload.vue - Uploaded signature flow', () => {
 		expect(wrapper.vm.defaultStencilSize).toEqual({ width: 350, height: 100 })
 	})
 
+	it('delegates initial crop selection size to the cropper', async () => {
+		const wrapper = mountComponent()
+
+		wrapper.vm.image = 'data:image/png;base64,uploaded'
+		await wrapper.vm.$nextTick()
+
+		const cropper = wrapper.findComponent({ name: 'Cropper' })
+		expect(cropper.exists()).toBe(true)
+		expect(cropper.props('defaultSize')).toBeUndefined()
+		expect(cropper.props('stencilProps')).toEqual({ aspectRatio: 3.5 })
+	})
+
 	it('loads the selected file as a data URL', () => {
 		const wrapper = mountComponent()
 		const listeners = new Map<string, Array<() => void>>()
