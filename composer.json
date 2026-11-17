@@ -25,8 +25,8 @@
 		"rector:fix": "rector",
 		"openapi": "generate-spec --verbose && npm run typescript:generate",
 		"openapi:spec": "generate-spec --verbose",
-		"psalm": "psalm --no-cache --threads=$(nproc)",
-		"psalm:update-baseline": "psalm --threads=$(nproc) --update-baseline --set-baseline=tests/psalm-baseline.xml",
+		"psalm": "psalm --no-cache",
+		"psalm:update-baseline": "psalm --update-baseline --set-baseline=tests/psalm-baseline.xml",
 		"post-install-cmd": [
 			"@composer bin all install --ansi",
 			"composer dump-autoload -o"
