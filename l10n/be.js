@@ -104,6 +104,8 @@ OC.L10N.register(
     "Error" : "Памылка",
     "File" : "Файл",
     "Details" : "Падрабязнасці",
+    "Loading …" : "Загрузка …",
+    "Phone" : "Тэлефон",
     "Certificate" : "Сертыфікат",
     "Document" : "Дакумент",
     "Upload file" : "Запампаваць файл",
