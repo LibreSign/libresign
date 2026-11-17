@@ -31,7 +31,6 @@ use OCP\IUserSession;
  * @psalm-import-type LibresignNewSigner from \OCA\Libresign\ResponseDefinitions
  * @psalm-import-type LibresignDetailedFile from \OCA\Libresign\ResponseDefinitions
  * @psalm-import-type LibresignDetailedFileResponse from \OCA\Libresign\ResponseDefinitions
- * @psalm-import-type LibresignActionErrorResponse from \OCA\Libresign\ResponseDefinitions
  * @psalm-import-type LibresignMessageResponse from \OCA\Libresign\ResponseDefinitions
  * @psalm-import-type LibresignFolderSettings from \OCA\Libresign\ResponseDefinitions
  * @psalm-import-type LibresignSettings from \OCA\Libresign\ResponseDefinitions
@@ -67,10 +66,10 @@ class RequestSignatureController extends AEnvironmentAwareOCSController {
 	 * @param list<LibresignNewFile> $files Multiple files to create an envelope (optional, use either file or files). Each file supports nodeId, url, base64 or path.
 	 * @param integer|null $status Numeric code of status * 0 - no signers * 1 - signed * 2 - pending
 	 * @param LibresignRequestPolicy|null $policy Structured policy payload with request-level overrides and active context.
-	 * @return DataResponse<Http::STATUS_OK, LibresignDetailedFileResponse, array{}>|DataResponse<Http::STATUS_UNPROCESSABLE_ENTITY, LibresignMessageResponse|LibresignActionErrorResponse, array{}>
+	 * @return DataResponse<Http::STATUS_OK, LibresignDetailedFileResponse, array{}>|DataResponse<Http::STATUS_UNPROCESSABLE_ENTITY, LibresignMessageResponse, array{}>
 	 *
 	 * 200: OK
-	 * 422: Unauthorized
+	 * 422: Request cannot be processed
 	 */
 	#[NoAdminRequired]
 	#[NoCSRFRequired]
@@ -138,10 +137,10 @@ class RequestSignatureController extends AEnvironmentAwareOCSController {
 	 * @param string|null $name The name of file to sign
 	 * @param LibresignFolderSettings $settings Settings to define how and where the file should be stored
 	 * @param list<LibresignNewFile> $files Multiple files to create an envelope (optional, use either file or files). Each file supports nodeId, url, base64 or path.
-	 * @return DataResponse<Http::STATUS_OK, LibresignDetailedFileResponse, array{}>|DataResponse<Http::STATUS_UNPROCESSABLE_ENTITY, LibresignMessageResponse|LibresignActionErrorResponse, array{}>
+	 * @return DataResponse<Http::STATUS_OK, LibresignDetailedFileResponse, array{}>|DataResponse<Http::STATUS_UNPROCESSABLE_ENTITY, LibresignMessageResponse, array{}>
 	 *
 	 * 200: OK
-	 * 422: Unauthorized
+	 * 422: Request cannot be processed
 	 */
 	#[NoAdminRequired]
 	#[NoCSRFRequired]
@@ -212,7 +211,7 @@ class RequestSignatureController extends AEnvironmentAwareOCSController {
 	 *
 	 * @param integer $fileId LibreSign file ID
 	 * @param integer $signRequestId The sign request id
-	 * @return DataResponse<Http::STATUS_OK, LibresignMessageResponse, array{}>|DataResponse<Http::STATUS_UNAUTHORIZED, LibresignMessageResponse, array{}>|DataResponse<Http::STATUS_UNPROCESSABLE_ENTITY, LibresignActionErrorResponse, array{}>
+	 * @return DataResponse<Http::STATUS_OK, LibresignMessageResponse, array{}>|DataResponse<Http::STATUS_UNAUTHORIZED, LibresignMessageResponse, array{}>|DataResponse<Http::STATUS_UNPROCESSABLE_ENTITY, LibresignMessageResponse, array{}>
 	 *
 	 * 200: OK
 	 * 401: Failed
@@ -258,11 +257,10 @@ class RequestSignatureController extends AEnvironmentAwareOCSController {
 	 * You can only request exclusion as any sign
 	 *
 	 * @param integer $fileId LibreSign file ID
-	 * @return DataResponse<Http::STATUS_OK, LibresignMessageResponse, array{}>|DataResponse<Http::STATUS_UNAUTHORIZED, LibresignMessageResponse, array{}>|DataResponse<Http::STATUS_UNPROCESSABLE_ENTITY, LibresignActionErrorResponse, array{}>
+	 * @return DataResponse<Http::STATUS_OK, LibresignMessageResponse, array{}>|DataResponse<Http::STATUS_UNAUTHORIZED, LibresignMessageResponse, array{}>
 	 *
 	 * 200: OK
 	 * 401: Failed
-	 * 422: Failed
 	 */
 	#[NoAdminRequired]
 	#[NoCSRFRequired]

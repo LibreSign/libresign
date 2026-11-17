@@ -44,7 +44,7 @@ use Psr\Log\LoggerInterface;
  * @psalm-import-type LibresignConfigValueResponse from \OCA\Libresign\ResponseDefinitions
  * @psalm-import-type LibresignUserConfigValue from \OCA\Libresign\ResponseDefinitions
  * @psalm-import-type LibresignCreateToSignResponse from \OCA\Libresign\ResponseDefinitions
- * @psalm-import-type LibresignFile from \OCA\Libresign\ResponseDefinitions
+ * @psalm-import-type LibresignIdDocFile from \OCA\Libresign\ResponseDefinitions
  * @psalm-import-type LibresignMessageResponse from \OCA\Libresign\ResponseDefinitions
  * @psalm-import-type LibresignPagination from \OCA\Libresign\ResponseDefinitions
  */

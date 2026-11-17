@@ -778,7 +778,7 @@ namespace OCA\Libresign;
  *     files: list<LibresignFileListItem>,
  *     filesCount: int<0, max>,
  *     id: int,
- *     nodeId: int,
+ *     nodeId: ?int,
  *     uuid: string,
  *     name: non-falsy-string,
  *     status: int,
@@ -805,7 +805,7 @@ namespace OCA\Libresign;
  *
  * Account, elements, and ID document contracts
  *
- * @psalm-type LibresignFile = array{
+ * @psalm-type LibresignIdDocFile = array{
  *     account: array{
  *         userId: string,
  *         displayName: string,
@@ -882,11 +882,11 @@ namespace OCA\Libresign;
  * }
  * @psalm-type LibresignIdDocsListResponse = array{
  *     pagination: LibresignPagination,
- *     data: list<LibresignFile>,
+ *     data: list<LibresignIdDocFile>,
  * }
  * @psalm-type LibresignIdDocsApprovalListResponse = array{
  *     pagination: LibresignPagination,
- *     data: list<LibresignFile>,
+ *     data: list<LibresignIdDocFile>,
  * }
  * @psalm-type LibresignCreateToSignPdfReference = array{
  *     url: string,

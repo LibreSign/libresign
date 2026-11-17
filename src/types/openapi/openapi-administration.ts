@@ -984,10 +984,11 @@ export interface operations {
             /** @description Image returned */
             200: {
                 headers: {
+                    "Content-Disposition"?: "attachment; filename=\"background.png\"";
                     [name: string]: unknown;
                 };
                 content: {
-                    "*/*": string;
+                    "image/png": string;
                 };
             };
             /** @description Current user is not logged in */

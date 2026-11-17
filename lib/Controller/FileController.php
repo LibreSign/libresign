@@ -50,7 +50,7 @@ use OCP\Preview\IMimeIconProvider;
 use Psr\Log\LoggerInterface;
 
 /**
- * @psalm-import-type LibresignFile from \OCA\Libresign\ResponseDefinitions
+ * @psalm-import-type LibresignIdDocFile from \OCA\Libresign\ResponseDefinitions
  * @psalm-import-type LibresignDetailedFile from \OCA\Libresign\ResponseDefinitions
  * @psalm-import-type LibresignDetailedFileResponse from \OCA\Libresign\ResponseDefinitions
  * @psalm-import-type LibresignActionErrorResponse from \OCA\Libresign\ResponseDefinitions
@@ -887,11 +887,10 @@ class FileController extends AEnvironmentAwareOCSController {
 	 *
 	 * @param integer $fileId LibreSign file ID
 	 * @param boolean $deleteFile Whether to delete the physical file from Nextcloud (default: true)
-	 * @return DataResponse<Http::STATUS_OK, LibresignMessageResponse, array{}>|DataResponse<Http::STATUS_UNAUTHORIZED, LibresignMessageResponse, array{}>|DataResponse<Http::STATUS_UNPROCESSABLE_ENTITY, LibresignActionErrorResponse, array{}>
+	 * @return DataResponse<Http::STATUS_OK, LibresignMessageResponse, array{}>|DataResponse<Http::STATUS_UNAUTHORIZED, LibresignMessageResponse, array{}>
 	 *
 	 * 200: OK
 	 * 401: Failed
-	 * 422: Failed
 	 */
 	#[NoAdminRequired]
 	#[NoCSRFRequired]
