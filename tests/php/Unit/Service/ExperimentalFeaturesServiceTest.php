@@ -11,27 +11,34 @@ namespace OCA\Libresign\Tests\Unit\Service;
 use OCA\Libresign\AppInfo\Application;
 use OCA\Libresign\Service\ExperimentalFeaturesService;
 use OCA\Libresign\Tests\Unit\TestCase;
+use PHPUnit\Framework\Attributes\DataProvider;
 
 final class ExperimentalFeaturesServiceTest extends TestCase {
-	public function testExperimentalFeaturesAreDisabledWhenConfigurationIsMissing(): void {
-		$service = new ExperimentalFeaturesService(self::getMockAppConfig());
-
-		$this->assertFalse($service->isEnabled());
+	/**
+	 * @return array<string, array{?bool, bool}>
+	 */
+	public static function provideExperimentalFeatureStates(): array {
+		return [
+			'missing configuration' => [null, false],
+			'explicitly disabled' => [false, false],
+			'explicitly enabled' => [true, true],
+		];
 	}
 
-	public function testExperimentalFeaturesAreDisabledWhenConfigurationIsFalse(): void {
+	#[DataProvider('provideExperimentalFeatureStates')]
+	public function testExperimentalFeaturesSwitch(?bool $configuredValue, bool $expected): void {
 		$appConfig = self::getMockAppConfig();
-		$appConfig->setValueBool(Application::APP_ID, ExperimentalFeaturesService::APP_CONFIG_KEY, false);
+
+		if ($configuredValue !== null) {
+			$appConfig->setValueBool(
+				Application::APP_ID,
+				ExperimentalFeaturesService::APP_CONFIG_KEY,
+				$configuredValue,
+			);
+		}
+
 		$service = new ExperimentalFeaturesService($appConfig);
 
-		$this->assertFalse($service->isEnabled());
-	}
-
-	public function testExperimentalFeaturesAreEnabledWhenConfigurationIsTrue(): void {
-		$appConfig = self::getMockAppConfig();
-		$appConfig->setValueBool(Application::APP_ID, ExperimentalFeaturesService::APP_CONFIG_KEY, true);
-		$service = new ExperimentalFeaturesService($appConfig);
-
-		$this->assertTrue($service->isEnabled());
+		$this->assertSame($expected, $service->isEnabled());
 	}
 }
