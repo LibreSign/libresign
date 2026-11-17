@@ -67,6 +67,24 @@ final class OpenApiErrorBodyContractTest extends TestCase {
 	}
 
 	#[DataProvider('specificationProvider')]
+	public function testFileUploadsDocumentBothBodiesAt422(string $file): void {
+		// The middleware rejects a user without permission before the method; the
+		// catch block answers {message}.
+		$paths = $this->load($file)['paths'];
+
+		$this->assertBothBodies($paths[self::BASE . 'file']['post'], 'file-save');
+		$this->assertBothBodies($paths[self::BASE . 'file/{uuid}/add-file']['post'], 'file-add-file-to-envelope');
+	}
+
+	#[DataProvider('specificationProvider')]
+	public function testIdentifySearchDocumentsTheMiddleware422(string $file): void {
+		// The method has no try block: only the middleware can answer 422.
+		$operation = $this->load($file)['paths'][self::BASE . 'identify-account/search']['get'];
+
+		self::assertSame(self::ACTION_ERROR, $this->errorData($operation, '422')['$ref'] ?? null);
+	}
+
+	#[DataProvider('specificationProvider')]
 	public function testNotifyKeepsBothRealBodiesAt422(string $file): void {
 		// canRequestSign() throws an action/errors body, other validations a message body.
 		$paths = $this->load($file)['paths'];
@@ -77,11 +95,14 @@ final class OpenApiErrorBodyContractTest extends TestCase {
 	}
 
 	#[DataProvider('specificationProvider')]
-	public function testDetailedFileNodeIdIsNullable(string $file): void {
-		// libresign_file.node_id is nullable and the value is copied as is.
-		$nodeId = $this->load($file)['components']['schemas']['DetailedFile']['properties']['nodeId'];
+	public function testFileSchemasWithTheEntityNodeIdAreNullable(string $file): void {
+		// libresign_file.node_id is nullable (BeforeNodeDeletedListener clears it
+		// when the original file is deleted) and the value is copied as is.
+		$schemas = $this->load($file)['components']['schemas'];
 
-		self::assertTrue($nodeId['nullable'] ?? false);
+		foreach (['DetailedFile', 'ValidatedFile', 'ValidatedChildFile'] as $schema) {
+			self::assertTrue($schemas[$schema]['properties']['nodeId']['nullable'] ?? false, $schema);
+		}
 	}
 
 	private function assertBothBodies(array $operation, string $label): void {
