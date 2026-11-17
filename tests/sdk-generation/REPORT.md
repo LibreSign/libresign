@@ -15,14 +15,15 @@ keeps `| null` at the properties that reference it (disjoint `oneOf` contract,
 `@nextcloud/axios` injection all pass.
 
 The decision remains No-Go for unmodified input because three generated models
-(and the 12 error-body models) of the remaining 15 `anyOf` constructs are still
-incorrect
-(see [Remaining model defects](#remaining-model-defects)), and multipart
+and five merged 422 error-body models of the remaining 15 `anyOf` constructs
+are still incorrect (the other seven, envelope 401/403 bodies, read the contract
+faithfully; see [Remaining model defects](#remaining-model-defects)), and multipart
 bodies are still absent from the contract. Every blocker left is on the
 extractor/generator side or needs a maintainer decision about the contract
 shape; see [UPSTREAM-NOTES.md](UPSTREAM-NOTES.md). This evaluation selects no
-option and changes no PHP controller, extractor, committed OpenAPI, generated
-frontend type, CI job or permanent SDK.
+option and changes no extractor, generator, CI job or permanent SDK. Its only
+LibreSign changes are the annotation, committed OpenAPI and generated type
+changes listed under [Input and toolchain](#input-and-toolchain).
 
 ## Input and toolchain
 
@@ -105,11 +106,15 @@ soon as one of them fails (TS2578 or TS2322):
 
 The other 12 `anyOf` occurrences are in 4xx bodies. Five (the 422 responses of
 `notify-signers`, `notify-signer`, `request-signature`,
-`update-signature-request` and `removeSigner`) are real unions. A user without
-permission is rejected by the `RequireManager`/`canRequestSign()` middleware
-with an `{action, errors}` body (`ActionErrorResponse`) before the controller
-runs; failures inside the method answer `{message}` (`MessageResponse`). The
-generator merges them into one interface (for example
+`update-signature-request` and `removeSigner`) are real unions of an
+`{action, errors}` body (`ActionErrorResponse`, a `LibresignException` with a
+JSON message) and a `{message}` body (`MessageResponse`), both serialized by the
+middleware's `afterException`. For `request-signature` and `removeSigner` the
+first comes from `#[RequireManager]`, which runs `canRequestSign()` before the
+method, and the second from the method's own `catch`. The two notify endpoints
+have no `RequireManager`: `NotifyService` calls `canRequestSign()` inside the
+action and `sendNotification()` rethrows the exception. The generator merges
+the alternatives into one interface (for example
 `NotifySigners422ResponseOcsData` requires `action` and `errors`, which the
 `MessageResponse` alternative does not have). The other seven (six 401 bodies
 and the `footer-template` 403) are envelope-level `anyOf` whose second branch
@@ -220,8 +225,8 @@ Maintainers must choose among these options; this evaluation selects none:
 
 1. Conditional Go with a reviewed generator-input normalization of the 15
    `anyOf` constructs, documented as non-contractual.
-2. Fix the extractor (object unions, duplicated implicit 401/403) and the
-   generator upstream, and adjust LibreSign's own types or annotations where
+2. Fix the generator's `anyOf` merge and type the extractor's implicit 401/403
+   body upstream, and adjust LibreSign's own types or annotations where
    their cause is confirmed to be in LibreSign, then regenerate.
 3. Evaluate another generator against the same acceptance criteria.
 
