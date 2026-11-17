@@ -15,7 +15,7 @@ keeps `| null` at the properties that reference it (disjoint `oneOf` contract,
 `@nextcloud/axios` injection all pass.
 
 The decision remains No-Go for unmodified input because three generated models
-and five merged 422 error-body models of the remaining 15 `anyOf` constructs
+and seven merged 422 error-body models of the remaining 17 `anyOf` constructs
 are still incorrect (the other seven, envelope 401/403 bodies, read the contract
 faithfully; see [Remaining model defects](#remaining-model-defects)), and multipart
 bodies are still absent from the contract. Every blocker left is on the
@@ -32,7 +32,7 @@ changes listed under [Input and toolchain](#input-and-toolchain).
   to `IdDocFile`, literal media types for the CRL and the admin background, and
   annotations aligned with what the code returns (see
   [Annotations aligned with the code](#annotations-aligned-with-the-code)).
-- `openapi-full.json` SHA-256 with those changes: `36635e033a52861d1bb5e0281bb759a7fdf4e05d097d9fd6610e2a29577ab6fa`
+- `openapi-full.json` SHA-256 with those changes: `b586418da879f0650b4e9ee4f9b0553c8cb3b72472c80cd998cf395491855387`
   (`64c52fa2ba243af292eba30055982954bfd8c19136567e50e28c4abcffcc9405` on `main`).
 - Extractor used to produce the contract: `nextcloud/openapi-extractor` 1.9.1.
 - Generator: `openapitools/openapi-generator-cli` 7.27.0 at
@@ -104,12 +104,14 @@ soon as one of them fails (TS2578 or TS2322):
 | `FileRuntimeMetadata` | `anyOf` `ValidateMetadata`, `{ [key]: DynamicMetadataValue }` | only the `ValidateMetadata` fields, with `extension` and `p` required | a valid dynamic metadata object is rejected |
 | `RequestPolicyOverrides` values | `anyOf` `EffectivePolicyValue`, array of it | empty interface `RequestPolicyOverridesValue` | accepts any non-null value |
 
-The other 12 `anyOf` occurrences are in 4xx bodies. Five (the 422 responses of
+The other 14 `anyOf` occurrences are in 4xx bodies. Seven (the 422 responses of
 `notify-signers`, `notify-signer`, `request-signature`,
-`update-signature-request` and `removeSigner`) are real unions of an
+`update-signature-request`, `removeSigner`, `file-save` and
+`file-add-file-to-envelope`) are real unions of an
 `{action, errors}` body (`ActionErrorResponse`, a `LibresignException` with a
 JSON message) and a `{message}` body (`MessageResponse`), both serialized by the
-middleware's `afterException`. For `request-signature` and `removeSigner` the
+middleware's `afterException`. For `request-signature`, `removeSigner`, `file-save` and
+`file-add-file-to-envelope` the
 first comes from `#[RequireManager]`, which runs `canRequestSign()` before the
 method, and the second from the method's own `catch`. The two notify endpoints
 have no `RequireManager`: `NotifyService` calls `canRequestSign()` inside the
@@ -148,14 +150,25 @@ envelopes are not unwrapped.
 
 ### Annotations aligned with the code
 
-Two LibreSign annotations did not match the data and were corrected:
+LibreSign annotations that did not match the data were corrected:
 
 - `removeSigner` documented only an `ActionErrorResponse` 422, but its `catch`
-  also answers `{message}` with 422 when the exception code is 422. It now
-  documents `MessageResponse | ActionErrorResponse`, which adds one `anyOf`
-  (14 became 15).
-- `DetailedFile.nodeId` is now nullable: `libresign_file.node_id` is nullable
-  and the entity value is copied as is (`FileSummary` already allowed null).
+  also answers `{message}` with 422 when the exception code is 422.
+  `file-save` and `file-add-file-to-envelope` documented only a
+  `MessageResponse` 422, but `#[RequireManager]` rejects a user without
+  permission with an `{action, errors}` 422 before the method runs. The three
+  now document `MessageResponse | ActionErrorResponse`, which adds three `anyOf`
+  (14 became 17).
+- `identify-account/search` documented no 422 although it has
+  `#[RequireManager]` and no `try` block: it now documents the middleware's
+  `ActionErrorResponse`.
+- `nodeId` is nullable in `DetailedFile`, `ValidatedFile` and
+  `ValidatedChildFile`: `libresign_file.node_id` is nullable (the
+  `BeforeNodeDeletedListener` clears it when the original file is deleted) and
+  the entity value is copied as is (`FileSummary` already allowed null).
+  `src/services/validationDocument.ts` already rejects a validation payload with
+  a null `nodeId`; only the type predicate of its file filter changed, not its
+  behavior.
 
 `tests/php/openapi/OpenApiErrorBodyContractTest.php` guards these and the other
 422 unions. A review of this branch caught an earlier mistaken narrowing: the
@@ -179,7 +192,7 @@ scenarios, so it needs its own change.
 
 `normalize-input.cjs` writes only
 `build/sdk-generation/normalized/openapi-full.oneof.json`, renaming the
-remaining 15 `anyOf` keywords to `oneOf`. It generates
+remaining 17 `anyOf` keywords to `oneOf`. It generates
 `FileListResponseDataInner = DetailedFile | FileSummary` and
 `FileRuntimeMetadata = ValidateMetadata | { [key: string]: ... }`, and
 `test:normalized` passes. It is generator-input normalization only: object
@@ -223,7 +236,7 @@ the extractor support above (or another reviewed design) and a regeneration.
 
 Maintainers must choose among these options; this evaluation selects none:
 
-1. Conditional Go with a reviewed generator-input normalization of the 15
+1. Conditional Go with a reviewed generator-input normalization of the 17
    `anyOf` constructs, documented as non-contractual.
 2. Fix the generator's `anyOf` merge and type the extractor's implicit 401/403
    body upstream, and adjust LibreSign's own types or annotations where

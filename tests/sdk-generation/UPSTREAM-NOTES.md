@@ -43,16 +43,16 @@ single and repeated files (not yet testable, see G5).
 As #9494 showed, the extractor emitted `oneOf` for the policy value once its
 scalar branches became disjoint. Unions that include objects or arrays (the policy-override one pairs a value with
 an array of values) are still emitted as `anyOf`,
-and OpenAPI Generator mishandles them (G1). Affected schemas, 15 in total:
+and OpenAPI Generator mishandles them (G1). Affected schemas, 17 in total:
 
 - `FileListResponse.data[]` items: `FileSummary | DetailedFile`;
 - `FileRuntimeMetadata`: `ValidateMetadata | array<string, DynamicMetadataValue>`;
 - `RequestPolicyOverrides` values: `EffectivePolicyValue | list<EffectivePolicyValue>`;
-- 5 `422` bodies: `MessageResponse | ActionErrorResponse` (notify-signers,
-  notify-signer, request-signature, update-signature-request and
-  `removeSigner`). The union is real. `{action, errors}` is a
+- 7 `422` bodies: `MessageResponse | ActionErrorResponse` (notify-signers,
+  notify-signer, request-signature, update-signature-request, `removeSigner`,
+  `file-save` and `file-add-file-to-envelope`). The union is real. `{action, errors}` is a
   `LibresignException` with a JSON message and `{message}` a plain one, both
-  serialized by `afterException`. `request-signature` and `removeSigner` get the
+  serialized by `afterException`. The other five get the
   first from `#[RequireManager]` (`canRequestSign()` runs before the method) and
   the second from their `catch` blocks. The notify endpoints have no
   `RequireManager`: `NotifyService` calls `canRequestSign()` inside the action
@@ -88,7 +88,7 @@ For the object unions, `anyOf` is semantically correct: without
 matches both (a detailed file can match both `FileSummary` and `DetailedFile`),
 so `oneOf` would be wrong. The defect is the generator's merge (G1), not the
 extractor's choice. Evidence: `npm run test:anyof` (`union-defects.ts`) and
-`npm run test:normalized`, which renames the 15 keywords in a disposable copy
+`npm run test:normalized`, which renames the 17 keywords in a disposable copy
 and passes.
 
 ### E3. `mixed` maps to `{ type: object }`
@@ -137,10 +137,10 @@ The generated interface merges both alternatives and keeps required fields from
 one of them: `FileListResponseDataInner` requires `files`, `size` and
 `visibleElements` and narrows `nodeId` to `number`; `FileRuntimeMetadata` loses
 its dynamic branch; the `RequestPolicyOverridesValue` union becomes an empty
-interface; the five 422 bodies such as `NotifySigners422ResponseOcsData` require
+interface; the seven 422 bodies such as `NotifySigners422ResponseOcsData` require
 `action` and `errors`, and the seven envelope `anyOf` bodies become `data: any`. Upstream status: `OpenAPITools/openapi-generator#8894`
 ("`anyOf` creates same interface as `allOf`", reported against 5.0.1) is open
-and matches the merged-interface cases (`FileListResponseDataInner` and the five
+and matches the merged-interface cases (`FileListResponseDataInner` and the seven
 422 bodies). It does not describe the lost dynamic branch of
 `FileRuntimeMetadata`, the empty `RequestPolicyOverridesValue` or the seven
 envelope cases, where the generator keeps `data: any`; those may need their own
@@ -209,20 +209,19 @@ in LibreSign. Candidates, each needing its cause confirmed first:
 - the 7 error bodies with an untyped `data: {}` (E2): investigated; the
   controllers' explicit 401/403 declarations describe what the code returns, so
   the untyped body is the extractor's and needs no LibreSign change;
-- annotations that did not match the data (done): `removeSigner` now documents
-  `MessageResponse | ActionErrorResponse` for 422 (its `catch` answers
-  `{message}`, the middleware answers `{action, errors}`), and
-  `DetailedFile.nodeId` is nullable like the database column. Guarded by
+- annotations that did not match the data (done): `removeSigner`, `file-save`
+  and `file-add-file-to-envelope` now document `MessageResponse |
+  ActionErrorResponse` for 422 (their `catch` answers `{message}`, the
+  middleware answers `{action, errors}`); `identify-account/search` documents the
+  middleware 422 (`ActionErrorResponse`), it has no `try` block; and `nodeId` is
+  nullable in `DetailedFile`, `ValidatedFile` and `ValidatedChildFile` like the
+  database column. Guarded by
   `tests/php/openapi/OpenApiErrorBodyContractTest.php`. The 422 documentation of
   `request-signature`, `deleteFile` and `deleteSignatureRequest` was checked and
   is correct: `#[RequireManager]` rejects a user without permission with an
-  `{action, errors}` 422 before the method runs;
-- other `#[RequireManager]` methods do not document the 422 `{action, errors}`
-  body of the permission middleware: `FileController::save` and
-  `addFileToEnvelope` document only `MessageResponse` at 422, and
-  `IdentifyController::search` documents no 422. They are outside this change.
-  The same kind of fix applies, but each method's own `catch` blocks must be
-  checked first so the documented union stays exact;
+  `{action, errors}` 422 before the method runs. `SignFileController::signByFileId`
+  is public and documents `SignActionErrorResponse`, which accommodates that
+  payload; unchanged;
 - **open maintainer decision**: several methods answer HTTP 401 for failures
   that are not authentication failures. `AccountController::signatureGenerate`,
   the `AdminController` certificate generators (`catch \Exception`),
@@ -236,9 +235,11 @@ in LibreSign. Candidates, each needing its cause confirmed first:
   `formatSingleFileData` omits it without a user (`FileListService.php:273-275`)
   while `formatFileWithChildren` always sets it (`:881`); not changed because it
   was not established which builder feeds each typed OCS response;
-- `ValidatedFile.nodeId` and `ValidatedChildFile.nodeId` are declared as
-  integers although `BeforeNodeDeletedListener` clears `node_id` of an original
-  file whose signed copy remains; not changed here, worth a separate fix;
+- `src/services/validationDocument.ts` (`isValidatedChildFileRecord` and
+  `isValidationDocumentRecord`) treats a validation payload with a null
+  `nodeId` as invalid, although the backend can send it once the original file
+  was deleted (`FileService.php`, `EnvelopeAssembler.php`). Not changed here: it
+  is a frontend behavior decision, not an annotation;
 - the three `anyOf` schemas in `lib/ResponseDefinitions.php` (E2/G1):
   investigated, no change recommended. `FileSummary|DetailedFile` is a
   per-item approximation, because `FileListService.php:99-103` makes the
