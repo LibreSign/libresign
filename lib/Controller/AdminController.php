@@ -336,7 +336,7 @@ class AdminController extends AEnvironmentAwareOCSController {
 	/**
 	 * Get custom background image
 	 *
-	 * @return FileDisplayResponse<Http::STATUS_OK, array{}>
+	 * @return FileDisplayResponse<Http::STATUS_OK, array{Content-Disposition: 'attachment; filename="background.png"', Content-Type: 'image/png'}>
 	 *
 	 * 200: Image returned
 	 */
