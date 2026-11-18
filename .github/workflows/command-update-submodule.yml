@@ -92,27 +92,39 @@ jobs:
           [[ "$HEAD_SHA" =~ ^[0-9a-f]{40}$ ]]
           [[ "$MERGE_SHA" =~ ^[0-9a-f]{40}$ ]]
           git fetch --no-tags origin "$HEAD_SHA"
-          git -c core.hooksPath=/dev/null checkout --detach "$HEAD_SHA"
+          # Read the untrusted PR tree into the index, without checking out its files.
+          git read-tree "$HEAD_SHA^{tree}"
           mode=$(git ls-files --stage -- "$SUBMODULE_PATH" | awk '{print $1}')
-          if ${{ "$mode" != "160000" }}; then
+          if [[ "$mode" != "160000" ]]; then
             echo "::error::The configured path is not a git submodule"
             exit 1
           fi
           git update-index --cacheinfo "160000,$MERGE_SHA,$SUBMODULE_PATH"
-          if git diff --cached --quiet; then
+          if git diff --cached --quiet "$HEAD_SHA" -- "$SUBMODULE_PATH"; then
             echo 'Submodule already points to the merged commit'
             exit 0
           fi
-          git config --local user.name 'github-actions[bot]'
-          git config --local user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git -c core.hooksPath=/dev/null commit --signoff -m "chore(deps): update $SUBMODULE_PATH from merged PR #$SOURCE_PR"
+          tree_sha=$(git write-tree)
+          new_sha=$(git \
+            -c user.name='github-actions[bot]' \
+            -c user.email='41898282+github-actions[bot]@users.noreply.github.com' \
+            commit-tree "$tree_sha" -p "$HEAD_SHA" \
+            -m "chore(deps): update $SUBMODULE_PATH from merged PR #$SOURCE_PR" \
+            -m 'Signed-off-by: github-actions[bot] <41898282+github-actions[bot]@users.noreply.github.com>')
+          changed_paths=$(git diff-tree --no-commit-id --name-only -r "$HEAD_SHA" "$new_sha")
+          if [[ "$changed_paths" != "$SUBMODULE_PATH" ]]; then
+            echo "::error::Update must change only the configured submodule pointer"
+            exit 1
+          fi
           echo "changed=true" >> "$GITHUB_OUTPUT"
+          echo "commit_sha=$new_sha" >> "$GITHUB_OUTPUT"
 
       - name: Push updated reference and comment
         if: steps.update.outputs.changed == 'true'
         env:
           GH_TOKEN: ${{ secrets.COMMAND_BOT_PAT }} # zizmor: ignore[secrets-outside-env]
           HEAD_REF: ${{ steps.resolve.outputs.head_ref }}
+          NEW_SHA: ${{ steps.update.outputs.commit_sha }}
           MERGE_SHA: ${{ steps.resolve.outputs.merge_sha }}
           SOURCE_PR: ${{ steps.resolve.outputs.source_pr }}
           PR_NUMBER: ${{ github.event.issue.number }}
@@ -121,6 +133,6 @@ jobs:
           set -euo pipefail
           gh auth setup-git
           # A normal push refuses to overwrite a branch that moved meanwhile.
-          git push origin "HEAD:refs/heads/$HEAD_REF"
+          git push origin "$NEW_SHA:refs/heads/$HEAD_REF"
           gh pr comment "$PR_NUMBER" --repo "$GITHUB_REPOSITORY" \
             --body "Updated $SUBMODULE_PATH to $SOURCE_REPOSITORY#$SOURCE_PR ($MERGE_SHA)."
