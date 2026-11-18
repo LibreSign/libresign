@@ -1284,6 +1284,36 @@ describe('files store - critical business rules', () => {
 				}])
 			})
 
+			it('sends the signer language only when it was set explicitly', async () => {
+				const store = useFilesStore()
+				store.selectedFileId = 1
+				store.files[1] = {
+					id: 1,
+					name: 'contract.pdf',
+					signatureFlow: 'parallel',
+					signers: [{
+						identifyMethods: [{ method: 'email', value: 'chosen@example.com', requirement: 'optional' }],
+						language: 'de',
+					}, {
+						identifyMethods: [{ method: 'email', value: 'stored@example.com', requirement: 'optional' }],
+						metadata: { language: 'de' },
+					}],
+				}
+				axiosMock.mockResolvedValue({
+					data: { ocs: { data: { id: 1, nodeId: 99, signatureFlow: 'parallel', signers: [] } } },
+				})
+
+				await store.saveOrUpdateSignatureRequest({ status: 1 })
+
+				const config = axiosMock.mock.calls[0][0]
+				expect(config.data.signers).toEqual([{
+					identifyMethods: [{ method: 'email', value: 'chosen@example.com', requirement: 'optional' }],
+					language: 'de',
+				}, {
+					identifyMethods: [{ method: 'email', value: 'stored@example.com', requirement: 'optional' }],
+				}])
+			})
+
 			it('rehydrates deviceGeolocationRequired from frozen signer metadata', async () => {
 				const store = useFilesStore()
 				store.selectedFileId = 1

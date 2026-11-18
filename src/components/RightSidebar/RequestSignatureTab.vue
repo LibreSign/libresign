@@ -581,6 +581,7 @@ type IdentifySignerToEdit = {
 	deviceGeolocationRequired?: boolean
 	metadata?: {
 		deviceGeolocationRequirement?: string
+		language?: string
 	}
 }
 type SigningOrderDiagramSigner = {
@@ -951,8 +952,15 @@ function toIdentifySignerToEdit(signer: EditableRequestSigner): IdentifySignerTo
 		...(typeof signer.deviceGeolocationRequired === 'boolean'
 			? { deviceGeolocationRequired: signer.deviceGeolocationRequired }
 			: {}),
-		...(signer.metadata?.deviceGeolocationRequirement
-			? { metadata: { deviceGeolocationRequirement: signer.metadata.deviceGeolocationRequirement } }
+		...(signer.metadata?.deviceGeolocationRequirement || signer.metadata?.language
+			? {
+				metadata: {
+					...(signer.metadata.deviceGeolocationRequirement
+						? { deviceGeolocationRequirement: signer.metadata.deviceGeolocationRequirement }
+						: {}),
+					...(signer.metadata.language ? { language: signer.metadata.language } : {}),
+				},
+			}
 			: {}),
 		...(identifyMethods?.length ? { identifyMethods } : {}),
 	}

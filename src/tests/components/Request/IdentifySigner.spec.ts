@@ -21,6 +21,11 @@ vi.mock('@nextcloud/dialogs', () => ({
 	showError: vi.fn(),
 }))
 
+let signerLanguages: string[] = []
+vi.mock('@nextcloud/initial-state', () => ({
+	loadState: vi.fn((_app: string, key: string, fallback?: unknown) => (key === 'signer_languages' ? signerLanguages : fallback)),
+}))
+
 vi.mock('vue-select', () => ({
 	default: {
 		name: 'VSelect',
@@ -46,6 +51,7 @@ type SignerToEdit = {
 	deviceGeolocationRequired?: boolean
 	metadata?: {
 		deviceGeolocationRequirement?: string
+		language?: string
 	}
 }
 
@@ -64,6 +70,10 @@ type IdentifySignerVm = {
 	enableCustomMessage: boolean
 	deviceGeolocationRequired: boolean
 	showGeolocationRequirementToggle: boolean
+	language: string
+	languageOptions: Array<{ id: string, label: string }>
+	selectedLanguage: { id: string, label: string }
+	showLanguageSelect: boolean
 	identify: string
 	identifyMethod?: IdentifyAccountRecord['method']
 	acceptsEmailNotifications?: boolean
@@ -142,6 +152,7 @@ describe('IdentifySigner rules', () => {
 
 	beforeEach(async () => {
 		setActivePinia(createPinia())
+		signerLanguages = []
 		const { useFilesStore: useFilesStoreModule } = await import('../../../store/files.js')
 		filesStore = {
 			disableIdentifySigner: vi.fn<() => void>(),
@@ -810,6 +821,96 @@ describe('IdentifySigner rules', () => {
 			})
 
 			expect(wrapper.vm.deviceGeolocationRequired).toBe(true)
+		})
+	})
+
+	describe('e-mail language', () => {
+		const selectEmailSigner = () => {
+			wrapper.vm.identifyMethod = 'email'
+			wrapper.vm.identify = 'john@example.com'
+			wrapper.vm.displayName = 'John'
+		}
+
+		it('offers the default language first and then the available languages', () => {
+			signerLanguages = ['en', 'de']
+			wrapper = createWrapper()
+			selectEmailSigner()
+
+			expect(wrapper.vm.showLanguageSelect).toBe(true)
+			expect(wrapper.vm.languageOptions.map((option: { id: string }) => option.id)).toEqual(['', 'en', 'de'])
+			expect(wrapper.vm.selectedLanguage.id).toBe('')
+		})
+
+		it('sends the chosen language for the signer e-mails', async () => {
+			signerLanguages = ['en', 'de']
+			wrapper = createWrapper()
+			selectEmailSigner()
+			wrapper.vm.selectedLanguage = { id: 'de', label: 'de' }
+
+			await wrapper.vm.saveSigner()
+
+			expect(filesStore.saveOrUpdateSignatureRequest).toHaveBeenCalledWith({
+				signers: [expect.objectContaining({ language: 'de' })],
+			})
+		})
+
+		it('sends an empty language when the default language is kept', async () => {
+			signerLanguages = ['en', 'de']
+			wrapper = createWrapper()
+			selectEmailSigner()
+
+			await wrapper.vm.saveSigner()
+
+			expect(filesStore.saveOrUpdateSignatureRequest).toHaveBeenCalledWith({
+				signers: [expect.objectContaining({ language: '' })],
+			})
+		})
+
+		it('hides the select and sends no language when only one language is available', async () => {
+			signerLanguages = ['en']
+			wrapper = createWrapper()
+			selectEmailSigner()
+
+			await wrapper.vm.saveSigner()
+
+			expect(wrapper.vm.showLanguageSelect).toBe(false)
+			const payload = filesStore.saveOrUpdateSignatureRequest.mock.calls[0][0] as { signers: Record<string, unknown>[] }
+			expect(payload.signers[0]).not.toHaveProperty('language')
+		})
+
+		it('hides the select for an account that does not accept e-mail notifications', () => {
+			signerLanguages = ['en', 'de']
+			wrapper = createWrapper()
+			wrapper.vm.identifyMethod = 'account'
+			wrapper.vm.acceptsEmailNotifications = false
+
+			expect(wrapper.vm.showLanguageSelect).toBe(false)
+		})
+
+		it('restores the stored language when editing', () => {
+			signerLanguages = ['en', 'de']
+			wrapper = createWrapper({
+				signerToEdit: {
+					displayName: 'John',
+					identifyMethods: [{ method: 'email', value: 'john@example.com' }],
+					metadata: { language: 'de' },
+				},
+			})
+
+			expect(wrapper.vm.language).toBe('de')
+		})
+
+		it('falls back to the default when the stored language is no longer available', () => {
+			signerLanguages = ['en', 'de']
+			wrapper = createWrapper({
+				signerToEdit: {
+					displayName: 'John',
+					identifyMethods: [{ method: 'email', value: 'john@example.com' }],
+					metadata: { language: 'xx' },
+				},
+			})
+
+			expect(wrapper.vm.language).toBe('')
 		})
 	})
 })
