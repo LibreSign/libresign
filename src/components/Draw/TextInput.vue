@@ -48,6 +48,7 @@ import NcButton from '@nextcloud/vue/components/NcButton'
 import NcDialog from '@nextcloud/vue/components/NcDialog'
 import NcTextField from '@nextcloud/vue/components/NcTextField'
 import PreviewSignature from '../PreviewSignature/PreviewSignature.vue'
+import { resolveTextSignatureLayout } from '../../helpers/textSignatureFontSize'
 import type { LibresignCapabilities } from '../../types/index'
 
 defineOptions({
@@ -85,11 +86,31 @@ watch(value, (newValue) => {
 	}
 	context.clearRect(0, 0, currentCanvas.width, currentCanvas.height)
 	context.fillStyle = 'black'
-	context.font = "30px 'Dancing Script'"
+	const text = String(newValue).trim()
+	if (!text) {
+		return
+	}
+	const referenceFontSize = 100
+	context.font = `${referenceFontSize}px 'Dancing Script'`
+	const layout = resolveTextSignatureLayout({
+		canvasWidth: currentCanvas.width,
+		canvasHeight: currentCanvas.height,
+		measuredWidth: context.measureText(text).width,
+		referenceFontSize,
+	})
+	context.font = `${layout.fontSize}px 'Dancing Script'`
+	context.textAlign = 'center'
+	context.textBaseline = 'middle'
+	const centerX = currentCanvas.width / 2
+	if (!layout.wrap) {
+		context.fillText(text, centerX, currentCanvas.height / 2)
+		return
+	}
+
 	const paddingX = 15
 	const maxWidth = Math.max(0, currentCanvas.width - (paddingX * 2))
 	const lineHeight = 36
-	const words = String(newValue).trim().split(/\s+/).filter(Boolean)
+	const words = text.split(/\s+/).filter(Boolean)
 
 	const lines: string[] = []
 	let line = ''
@@ -106,15 +127,11 @@ watch(value, (newValue) => {
 		lines.push(line)
 	}
 
-	context.textAlign = 'center'
-	context.textBaseline = 'middle'
-
 	const totalHeight = lines.length * lineHeight
 	const startY = (currentCanvas.height / 2) - ((totalHeight - lineHeight) / 2)
-	const centerX = currentCanvas.width / 2
 
-	lines.forEach((text, index) => {
-		context.fillText(text, centerX, startY + (index * lineHeight))
+	lines.forEach((lineText, index) => {
+		context.fillText(lineText, centerX, startY + (index * lineHeight))
 	})
 })
 
