@@ -69,7 +69,7 @@ class PhpNativeHandler extends Pkcs12Handler {
 		$visibleElements = $this->getVisibleElements();
 		$metadata = $this->buildMetadata();
 		$timestamp = $this->buildTimestampOptions();
-		$certificationLevel = $this->resolveCertificationLevel(empty($visibleElements));
+		$certificationLevel = $this->resolveCertificationLevel();
 
 		if (empty($visibleElements)) {
 			return $service->sign(SignPdfRequestDto::fromRequired(
@@ -248,7 +248,7 @@ class PhpNativeHandler extends Pkcs12Handler {
 		return $settings;
 	}
 
-	private function resolveCertificationLevel(bool $noVisibleElements): ?CertificationLevel {
+	private function resolveCertificationLevel(): ?CertificationLevel {
 		$level = $this->getDocMdpLevel();
 		if ($level === null && $this->docMdpConfigService->isEnabled()) {
 			$level = $this->docMdpConfigService->getLevel();
@@ -257,13 +257,13 @@ class PhpNativeHandler extends Pkcs12Handler {
 			return null;
 		}
 
-		// Only certify on invisible signatures or on the first visible element
-		if ($noVisibleElements || !$this->hasExistingSignatures($this->getInputFile()->getContent())) {
-			// DocMDP values mirror CertificationLevel: 1=NoChanges, 2=FormFilling, 3=FormFillAndAnnotations
-			return CertificationLevel::fromInt($level->value);
+		// A certification signature must be the first active signature.
+		if ($this->hasExistingSignatures($this->getInputFile()->getContent())) {
+			return null;
 		}
 
-		return null;
+		// DocMDP values mirror CertificationLevel: 1=NoChanges, 2=FormFilling, 3=FormFillAndAnnotations
+		return CertificationLevel::fromInt($level->value);
 	}
 
 	/**
