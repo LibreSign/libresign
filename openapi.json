@@ -1711,6 +1711,9 @@
                     },
                     "deviceGeolocationRequired": {
                         "type": "boolean"
+                    },
+                    "sendSignedCopy": {
+                        "type": "boolean"
                     }
                 }
             },
@@ -2769,6 +2772,9 @@
                             },
                             "rejection": {
                                 "$ref": "#/components/schemas/SignerRejection"
+                            },
+                            "sendSignedCopy": {
+                                "type": "boolean"
                             }
                         }
                     }
@@ -11511,7 +11517,7 @@
                                     "signers": {
                                         "type": "array",
                                         "default": [],
-                                        "description": "Collection of signers who must sign the document. Use identifyMethods as the canonical format. Other supported fields: displayName, description, notify, signingOrder, status, deviceGeolocationRequired",
+                                        "description": "Collection of signers who must sign the document. Use identifyMethods as the canonical format. Other supported fields: displayName, description, notify, signingOrder, status, deviceGeolocationRequired, sendSignedCopy",
                                         "items": {
                                             "$ref": "#/components/schemas/NewSigner"
                                         }

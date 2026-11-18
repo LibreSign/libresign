@@ -15,6 +15,7 @@ use OCA\Libresign\Dashboard\PendingSignaturesWidget;
 use OCA\Libresign\Events\SendSignNotificationEvent;
 use OCA\Libresign\Events\SignatureRejectedEvent;
 use OCA\Libresign\Events\SignedEvent;
+use OCA\Libresign\Events\SigningRequestCompletedEvent;
 use OCA\Libresign\Events\SignRequestCanceledEvent;
 use OCA\Libresign\Files\TemplateLoader;
 use OCA\Libresign\Listener\BeforeNodeDeletedListener;
@@ -22,6 +23,7 @@ use OCA\Libresign\Listener\LoadAdditionalListener;
 use OCA\Libresign\Listener\MailNotifyListener;
 use OCA\Libresign\Listener\NotificationListener;
 use OCA\Libresign\Listener\RevokeClickToSignCertificateListener;
+use OCA\Libresign\Listener\SignedCopyMailListener;
 use OCA\Libresign\Listener\TwofactorGatewayListener;
 use OCA\Libresign\Listener\UserDeletedListener;
 use OCA\Libresign\Middleware\GlobalInjectionMiddleware;
@@ -97,6 +99,8 @@ class Application extends App implements IBootstrap {
 		$context->registerEventListener(SendSignNotificationEvent::class, NotificationEventRouter::class);
 		$context->registerEventListener(SignedEvent::class, NotificationEventRouter::class);
 		$context->registerEventListener(SignRequestCanceledEvent::class, NotificationEventRouter::class);
+
+		$context->registerEventListener(SigningRequestCompletedEvent::class, SignedCopyMailListener::class);
 
 		$context->registerEventListener(UserDeletedEvent::class, UserDeletedListener::class);
 

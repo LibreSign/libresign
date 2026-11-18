@@ -843,6 +843,31 @@ final class FileListServiceTest extends TestCase {
 		], $result['signers'][0]['metadata']);
 	}
 
+	#[DataProvider('providerSendSignedCopyVisibility')]
+	public function testFormatSingleFileExposesSendSignedCopyOnlyToRequester(string $viewer, bool $expected): void {
+		$file = self::createFileEntity(1, 'file', 'doc.pdf');
+		$signer = $this->createSigner(100, 1);
+		$signer->setMetadata(['sendSignedCopy' => true]);
+		$this->user->method('getUID')->willReturn($viewer);
+
+		$this->signRequestMapper->method('getByMultipleFileId')->willReturn([$signer]);
+		$this->signRequestMapper->method('getIdentifyMethodsFromSigners')->willReturn([]);
+		$this->signRequestMapper->method('getVisibleElementsFromSigners')->willReturn([]);
+		$this->signRequestMapper->method('getTextOfSignerStatus')->willReturn('pending');
+
+		$result = $this->getService()->formatSingleFile($this->user, $file);
+
+		$this->assertSame($expected, $result['signers'][0]['sendSignedCopy'] ?? false);
+		$this->assertArrayNotHasKey('metadata', $result['signers'][0]);
+	}
+
+	public static function providerSendSignedCopyVisibility(): array {
+		return [
+			'requester sees the choice' => ['creator123', true],
+			'other viewer does not' => ['other-user', false],
+		];
+	}
+
 	public function testFormatSingleFileIgnoresInvalidOptionalGeolocationRequirement(): void {
 		$file = self::createFileEntity(1, 'file', 'doc.pdf');
 		$signer = $this->createSigner(100, 1);

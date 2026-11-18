@@ -9,10 +9,13 @@ declare(strict_types=1);
 namespace OCA\Libresign\Service\Notification;
 
 use OCA\Libresign\Service\MailService;
+use OCA\Libresign\Service\SignedCopyAttachmentProvider;
+use OCA\Libresign\Service\SignedCopyMailService;
 
 final class MailChannel implements NotificationChannel {
 	public function __construct(
 		private MailService $mail,
+		private SignedCopyAttachmentProvider $signedCopyAttachments,
 	) {
 	}
 
@@ -41,6 +44,14 @@ final class MailChannel implements NotificationChannel {
 				break;
 			case 'sign_request_canceled':
 				$this->mail->notifyCanceledRequest($signRequest, $email, $message->file);
+				break;
+			case SignedCopyMailService::EVENT_TYPE:
+				$this->mail->notifySignedCopy(
+					$message->file,
+					$email,
+					$message->payload->displayName ?? '',
+					$this->signedCopyAttachments->load($message->file, $message->payload->documentIds),
+				);
 				break;
 			default:
 				throw new \InvalidArgumentException('Unsupported mail notification event');

@@ -1488,6 +1488,7 @@ export type components = {
             status?: number;
             participantRole?: components["schemas"]["ParticipantRole"];
             deviceGeolocationRequired?: boolean;
+            sendSignedCopy?: boolean;
         };
         NotificationStatusResponse: {
             /** @enum {string} */
@@ -1789,6 +1790,7 @@ export type components = {
             uid?: string;
             metadata?: components["schemas"]["SignerMetadata"];
             rejection?: components["schemas"]["SignerRejection"];
+            sendSignedCopy?: boolean;
         };
         SignerDeviceGeolocation: {
             status: components["schemas"]["GeolocationCollectionStatus"];
@@ -5400,7 +5402,7 @@ export interface operations {
             content: {
                 "application/json": {
                     /**
-                     * @description Collection of signers who must sign the document. Use identifyMethods as the canonical format. Other supported fields: displayName, description, notify, signingOrder, status, deviceGeolocationRequired
+                     * @description Collection of signers who must sign the document. Use identifyMethods as the canonical format. Other supported fields: displayName, description, notify, signingOrder, status, deviceGeolocationRequired, sendSignedCopy
                      * @default []
                      */
                     signers?: components["schemas"]["NewSigner"][];

@@ -356,6 +356,49 @@ class MailService {
 		}
 	}
 
+	/**
+	 * Sends the fully signed documents of a completed request. Without
+	 * attachments the mail links to the validation page instead.
+	 *
+	 * @param array<string, string> $attachments file name => PDF content
+	 */
+	public function notifySignedCopy(File $request, string $email, string $displayName, array $attachments): void {
+		$emailTemplate = $this->mailer->createEMailTemplate('settings.TestEmail');
+		// TRANSLATORS Email subject sent with the fully signed document after every participant signed. %s is the document or envelope name.
+		$emailTemplate->setSubject($this->l10n->t('LibreSign: "%s" has been signed by everyone', [$request->getName()]));
+		$emailTemplate->addHeader();
+		// TRANSLATORS Email heading shown when every participant signed the document.
+		$emailTemplate->addHeading($this->l10n->t('Signed document'), false);
+		if ($attachments !== []) {
+			$emailTemplate->addBodyText($this->l10n->n(
+				// TRANSLATORS Email body sent with the fully signed document attached. %s is the document or envelope name.
+				'All signatures on "%s" are complete. The signed document is attached.',
+				'All signatures on "%s" are complete. The signed documents are attached.',
+				count($attachments),
+				[$request->getName()],
+			));
+		} else {
+			// TRANSLATORS Email body sent when the fully signed document cannot be attached, for example because it is too large. %s is the document or envelope name.
+			$emailTemplate->addBodyText($this->l10n->t('All signatures on "%s" are complete. The signed document is too large to attach. You can access it using the link below:', [$request->getName()]));
+			$emailTemplate->addBodyButton(
+				// TRANSLATORS Email button label that opens the validation view of the signed document. %s is the document filename.
+				$this->l10n->t('View signed document "%s"', [$request->getName()]),
+				$this->buildValidationLink($request),
+			);
+		}
+		$message = $this->mailer->createMessage();
+		$message->setTo($displayName !== '' ? [$email => $displayName] : [$email]);
+		$replyTo = $this->replyToAddress($this->userManager->get($request->getUserId()));
+		if ($replyTo !== null) {
+			$message->setReplyTo($replyTo);
+		}
+		$message->useTemplate($emailTemplate);
+		foreach ($attachments as $name => $content) {
+			$message->attach($this->mailer->createAttachment($content, (string)$name, 'application/pdf'));
+		}
+		$this->sendAndCheck($message);
+	}
+
 	public function notifyCanceledRequest(SignRequest $signRequest, string $email, File $libreSignFile): void {
 		$emailTemplate = $this->mailer->createEMailTemplate('settings.TestEmail');
 		// TRANSLATORS Email subject shown when the requester cancels a pending signature request.

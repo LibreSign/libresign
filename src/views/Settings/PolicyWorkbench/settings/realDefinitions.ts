@@ -28,6 +28,7 @@ import { signatureFooterRealDefinition } from './signature-footer/realDefinition
 import { signatureHashAlgorithmRealDefinition } from './signature-hash-algorithm/realDefinition'
 import { signatureRejectionRealDefinition } from './signature-rejection/realDefinition'
 import { signatureTextRealDefinition } from './signature-text/realDefinition'
+import { signedCopyMailRealDefinition } from './signed-copy-mail/realDefinition'
 import { signerGeolocationRealDefinition } from './signer-geolocation/realDefinition'
 import { signerIpGeolocationRealDefinition } from './signer-ip-geolocation/realDefinition'
 import {
@@ -76,5 +77,6 @@ export const realDefinitions = {
 	make_validation_url_private: { ...validationAccessRealDefinition, category: 'system-behavior' },
 	signing_mode: { ...signingModeRealDefinition, category: 'system-behavior' },
 	mail_sender_strategy: { ...mailSenderStrategyRealDefinition, category: 'system-behavior' },
+	signed_copy_mail: { ...signedCopyMailRealDefinition, category: 'system-behavior' },
 	notification_delivery_mode: { ...notificationDeliveryRealDefinition, category: 'system-behavior' },
 } satisfies Record<string, RealPolicySettingDefinition>
