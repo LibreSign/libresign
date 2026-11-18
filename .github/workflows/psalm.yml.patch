@@ -59,4 +59,4 @@ diff --git a/.github/workflows/psalm.yml b/.github/workflows/psalm.yml
  
        - name: Run coding standards check
 +        working-directory: apps/${{ env.APP_NAME }}
-         run: composer run psalm -- --threads=1 --monochrome --no-progress --output-format=github
+         run: composer run psalm -- --monochrome --no-progress --output-format=github
