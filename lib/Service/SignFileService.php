@@ -652,6 +652,10 @@ class SignFileService {
 				continue;
 			}
 			$this->signRequest = $signRequestData['signRequest'];
+			if ($this->signRequest->getSigned()) {
+				// Never sign a child twice for the same signer: a retried request would stack signatures
+				continue;
+			}
 			$this->engine = null;
 			$this->setVisibleElements($this->elementsInput);
 			$this->fileToSign = null;
@@ -1664,8 +1668,15 @@ class SignFileService {
 			]), AppFrameworkHttp::STATUS_NOT_FOUND);
 		}
 		$storageUserId = $this->fileMapper->getStorageUserIdByUuid($fileData->getUuid());
+		$previousUserId = $this->folderService->getUserId();
 		$this->folderService->setUserId($storageUserId);
-		$fileToSign = $this->folderService->getFileByNodeId($nodeId);
+		try {
+			$fileToSign = $this->folderService->getFileByNodeId($nodeId);
+		} finally {
+			// Restore the signer context, otherwise later lookups (e.g. visible elements of the next
+			// envelope child) run as the file owner
+			$this->folderService->setUserId($previousUserId);
+		}
 		if (!$fileToSign instanceof File) {
 			throw new LibresignException(json_encode([
 				'action' => JSActions::ACTION_DO_NOTHING,

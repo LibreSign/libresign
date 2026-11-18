@@ -3163,4 +3163,25 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 
 		$this->assertNull(self::invokePrivate($service, 'createdSignedFile'));
 	}
+
+	public function testGetNextcloudFilesRestoresFolderServiceUserId(): void {
+		$fileData = new \OCA\Libresign\Db\File();
+		$fileData->setNodeId(42);
+		$fileData->setUuid('file-uuid');
+
+		$this->fileMapper->method('getStorageUserIdByUuid')->with('file-uuid')->willReturn('owner');
+		$userIds = [];
+		$this->folderService->method('getUserId')->willReturn('signer');
+		$this->folderService->method('setUserId')
+			->willReturnCallback(function (?string $userId) use (&$userIds): void {
+				$userIds[] = $userId;
+			});
+		$this->folderService->method('getFileByNodeId')->with(42)
+			->willReturn($this->createMock(\OCP\Files\File::class));
+
+		$service = $this->getService();
+		$service->getNextcloudFiles($fileData);
+
+		$this->assertSame(['owner', 'signer'], $userIds);
+	}
 }
