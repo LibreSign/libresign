@@ -101,7 +101,7 @@ const formDescription = t('libresign', 'Configure the local MaxMind City databas
 // TRANSLATORS Label for the absolute filesystem path of the GeoIP City database.
 const pathLabel = t('libresign', 'Database path')
 // TRANSLATORS Placeholder showing an example absolute GeoIP database path.
-const pathPlaceholder = t('libresign', '/var/lib/libresign/GeoLite2-City.mmdb')
+const pathPlaceholder = '/var/lib/libresign/GeoLite2-City.mmdb'
 // TRANSLATORS Placeholder shown when GeoIP metadata is not available from the backend yet.
 const metadataUnavailable = t('libresign', 'Unavailable')
 const config = ref<GeoIpConfig | null>(null)
