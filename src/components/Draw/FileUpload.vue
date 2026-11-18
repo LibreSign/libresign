@@ -215,9 +215,11 @@ const stencilProps = computed(() => ({
 // A one-megapixel RGBA canvas stays under the backend's 5000 KiB image limit.
 const canvasConstraints = computed(() => ({
 	maxWidth: Number.isFinite(stencilBaseWidth) && stencilBaseWidth > 0
-		? stencilBaseWidth * 3 : undefined,
+		? stencilBaseWidth * 3
+		: undefined,
 	maxHeight: Number.isFinite(stencilBaseHeight) && stencilBaseHeight > 0
-		? stencilBaseHeight * 3 : undefined,
+		? stencilBaseHeight * 3
+		: undefined,
 	maxArea: 1_000_000,
 }))
 
