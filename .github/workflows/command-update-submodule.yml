@@ -1,0 +1,126 @@
+# SPDX-FileCopyrightText: 2022 Nextcloud GmbH and Nextcloud contributors
+# SPDX-FileCopyrightText: 2026 LibreCode coop and contributors
+# SPDX-License-Identifier: MIT
+name: Update submodule reference
+
+on:
+  issue_comment: # zizmor: ignore[dangerous-triggers]
+    types: [created]
+
+permissions:
+  contents: read
+  pull-requests: read
+
+jobs:
+  update:
+    if: github.event.issue.pull_request != '' && github.event.comment.body == '/update-3rdparty'
+    runs-on: ubuntu-latest
+    env:
+      SUBMODULE_PATH: 3rdparty
+      SOURCE_REPOSITORY: LibreSign/3rdparty
+    steps:
+      - name: Check actor permission
+        uses: skjnldsv/check-actor-permission@69e92a3c4711150929bca9fcf34448c5bf5526e7 # v3.0
+        with:
+          require: write
+
+      # This read-only step never executes code from the pull request.
+      - name: Resolve merged submodule pull request
+        id: resolve
+        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
+        with:
+          github-token: ${{ github.token }}
+          script: |
+            const owner = context.repo.owner;
+            const repo = context.repo.repo;
+            const path = process.env.SUBMODULE_PATH;
+            const sourceRepo = process.env.SOURCE_REPOSITORY;
+            if (!/^[a-zA-Z0-9_.-]+\/[a-zA-Z0-9_.-]+$/.test(sourceRepo) ||
+                !/^[a-zA-Z0-9_.-]+(\/[a-zA-Z0-9_.-]+)*$/.test(path)) {
+              throw new Error('Invalid submodule repository or path configuration');
+            }
+            const { data: pr } = await github.rest.pulls.get({
+              owner, repo, pull_number: context.issue.number,
+            });
+            if (pr.state !== 'open' ||
+                pr.head.repo?.full_name !== context.repo.owner + '/' + context.repo.repo ||
+                !/^(main|stable\d+)$/.test(pr.base.ref)) {
+              throw new Error('Expected an open, in-repository PR targeting main or stable');
+            }
+            const prefix = path + ': https://github.com/' + sourceRepo + '/pull/';
+            const references = (pr.body || '').split(/\r?\n/)
+              .map(line => line.match(/^\s*-\s*\[[ xX]\]\s*(.*)$/))
+              .filter(Boolean)
+              .map(match => match[1].trim())
+              .filter(line => line.startsWith(prefix));
+            if (references.length !== 1) {
+              throw new Error('Expected exactly one linked submodule PR in the body');
+            }
+            const sourcePr = references[0].slice(prefix.length).trim();
+            if (!/^[1-9]\d*$/.test(sourcePr)) {
+              throw new Error('Invalid linked submodule PR number');
+            }
+            const [sourceOwner, sourceName] = sourceRepo.split('/');
+            const { data: source } = await github.rest.pulls.get({
+              owner: sourceOwner, repo: sourceName, pull_number: Number(sourcePr),
+            });
+            if (!source.merged_at || !/^[0-9a-f]{40}$/.test(source.merge_commit_sha || '') ||
+                source.base.ref !== pr.base.ref) {
+              throw new Error('Linked submodule PR must be merged into the same branch');
+            }
+            core.setOutput('head_ref', pr.head.ref);
+            core.setOutput('head_sha', pr.head.sha);
+            core.setOutput('merge_sha', source.merge_commit_sha);
+            core.setOutput('source_pr', sourcePr);
+
+      - name: Checkout trusted default branch
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+          fetch-depth: 0
+          ref: ${{ github.event.repository.default_branch }}
+
+      - name: Stage and commit submodule pointer
+        id: update
+        shell: bash
+        env:
+          HEAD_SHA: ${{ steps.resolve.outputs.head_sha }}
+          MERGE_SHA: ${{ steps.resolve.outputs.merge_sha }}
+          SOURCE_PR: ${{ steps.resolve.outputs.source_pr }}
+        run: |
+          set -euo pipefail
+          [[ "$HEAD_SHA" =~ ^[0-9a-f]{40}$ ]]
+          [[ "$MERGE_SHA" =~ ^[0-9a-f]{40}$ ]]
+          git fetch --no-tags origin "$HEAD_SHA"
+          git -c core.hooksPath=/dev/null checkout --detach "$HEAD_SHA"
+          mode=$(git ls-files --stage -- "$SUBMODULE_PATH" | awk '{print $1}')
+          if ${{ "$mode" != "160000" }}; then
+            echo "::error::The configured path is not a git submodule"
+            exit 1
+          fi
+          git update-index --cacheinfo "160000,$MERGE_SHA,$SUBMODULE_PATH"
+          if git diff --cached --quiet; then
+            echo 'Submodule already points to the merged commit'
+            exit 0
+          fi
+          git config --local user.name 'github-actions[bot]'
+          git config --local user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git -c core.hooksPath=/dev/null commit --signoff -m "chore(deps): update $SUBMODULE_PATH from merged PR #$SOURCE_PR"
+          echo "changed=true" >> "$GITHUB_OUTPUT"
+
+      - name: Push updated reference and comment
+        if: steps.update.outputs.changed == 'true'
+        env:
+          GH_TOKEN: ${{ secrets.COMMAND_BOT_PAT }} # zizmor: ignore[secrets-outside-env]
+          HEAD_REF: ${{ steps.resolve.outputs.head_ref }}
+          MERGE_SHA: ${{ steps.resolve.outputs.merge_sha }}
+          SOURCE_PR: ${{ steps.resolve.outputs.source_pr }}
+          PR_NUMBER: ${{ github.event.issue.number }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          gh auth setup-git
+          # A normal push refuses to overwrite a branch that moved meanwhile.
+          git push origin "HEAD:refs/heads/$HEAD_REF"
+          gh pr comment "$PR_NUMBER" --repo "$GITHUB_REPOSITORY" \
+            --body "Updated $SUBMODULE_PATH to $SOURCE_REPOSITORY#$SOURCE_PR ($MERGE_SHA)."

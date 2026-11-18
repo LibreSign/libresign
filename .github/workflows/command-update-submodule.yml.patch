@@ -1,0 +1,17 @@
+--- a/.github/workflows/command-update-submodule.yml
++++ b/.github/workflows/command-update-submodule.yml
+@@ -13,11 +13,11 @@
+ 
+ jobs:
+   update:
++    if: github.event.issue.pull_request != '' && github.event.comment.body == '/update-3rdparty'
+-    if: github.event.issue.pull_request != '' && vars.SUBMODULE_UPDATE_COMMAND != '' && github.event.comment.body == vars.SUBMODULE_UPDATE_COMMAND
+     runs-on: ubuntu-latest
+     env:
++      SUBMODULE_PATH: 3rdparty
++      SOURCE_REPOSITORY: LibreSign/3rdparty
+-      SUBMODULE_PATH: ${{ vars.SUBMODULE_PATH }}
+-      SOURCE_REPOSITORY: ${{ vars.SUBMODULE_SOURCE_REPOSITORY }}
+     steps:
+       - name: Check actor permission
+         uses: skjnldsv/check-actor-permission@69e92a3c4711150929bca9fcf34448c5bf5526e7 # v3.0
