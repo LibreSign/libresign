@@ -204,7 +204,7 @@ jobs:
           git clone --depth 1 -b ${{ matrix.server-versions }} https://github.com/nextcloud/notifications apps/notifications
           composer --working-dir=apps/notifications install --no-dev
           ./occ app:enable --force notifications
-          git clone --depth 1 -b ${{ matrix.server-versions }} https://github.com/nextcloud/activity apps/activity
+          git clone --depth 1 -b ${{ matrix.server-versions == 'master' && 'main' || matrix.server-versions }} https://github.com/nextcloud/activity apps/activity
           composer --working-dir=apps/activity install --no-dev
           ./occ app:enable --force activity
           # Exercise the native PDF Viewer path instead of the browser fallback.
