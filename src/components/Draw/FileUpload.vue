@@ -22,6 +22,7 @@
 			<Cropper ref="cropper"
 				:src="image"
 				:stencil-props="stencilProps"
+				:canvas="canvasConstraints"
 				image-restriction="none"
 				@change="change" />
 			<div class="zoom-controls">
@@ -208,6 +209,16 @@ const stencilAspectRatio = computed(() => {
 
 const stencilProps = computed(() => ({
 	aspectRatio: stencilAspectRatio.value,
+}))
+
+// Keep the source resolution where possible, but bound the exported PNG.
+// A one-megapixel RGBA canvas stays under the backend's 5000 KiB image limit.
+const canvasConstraints = computed(() => ({
+	maxWidth: Number.isFinite(stencilBaseWidth) && stencilBaseWidth > 0
+		? stencilBaseWidth * 3 : undefined,
+	maxHeight: Number.isFinite(stencilBaseHeight) && stencilBaseHeight > 0
+		? stencilBaseHeight * 3 : undefined,
+	maxArea: 1_000_000,
 }))
 
 function updateZoomLevel(result?: CropperResult) {
