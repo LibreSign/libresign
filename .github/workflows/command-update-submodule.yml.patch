@@ -1,9 +1,8 @@
 --- a/.github/workflows/command-update-submodule.yml
 +++ b/.github/workflows/command-update-submodule.yml
-@@ -1,29 +1,29 @@
- # SPDX-FileCopyrightText: 2022 Nextcloud GmbH and Nextcloud contributors
+@@ -1,28 +1,28 @@
  # SPDX-FileCopyrightText: 2026 LibreCode coop and contributors
- # SPDX-License-Identifier: MIT
+ # SPDX-License-Identifier: AGPL-3.0-or-later
  name: Update submodule reference
  
  on:
