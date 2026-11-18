@@ -1952,6 +1952,12 @@ export type components = {
             totalitems?: string;
             itemsperpage?: string;
         };
+        OrganizationSealResult: {
+            /** @enum {string} */
+            status: "sealed" | "failed";
+            error?: string;
+            at: string;
+        };
         Pagination: {
             /** Format: int64 */
             total: number;
@@ -2398,6 +2404,9 @@ export type components = {
             policy_snapshot?: components["schemas"]["ValidatePolicySnapshot"];
             pdfVersion?: string;
             status_changed_at?: string;
+            organization_seals?: {
+                [key: string]: components["schemas"]["OrganizationSealResult"];
+            };
         };
         ValidatePolicySnapshot: {
             docmdp?: components["schemas"]["PolicySnapshotNumericEntry"];
@@ -2414,6 +2423,7 @@ export type components = {
             rejection_comment_mode?: components["schemas"]["PolicySnapshotSignatureRejectionCommentModeEntry"];
             rejection_visibility?: components["schemas"]["PolicySnapshotSignatureRejectionVisibilityEntry"];
             rejection_comment_visibility?: components["schemas"]["PolicySnapshotSignatureRejectionVisibilityEntry"];
+            organization_seals?: components["schemas"]["PolicySnapshotEntry"];
         };
         ValidatedChildFile: {
             /** Format: int64 */

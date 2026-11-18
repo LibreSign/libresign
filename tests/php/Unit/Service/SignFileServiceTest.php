@@ -50,6 +50,7 @@ use OCA\Libresign\Service\IdentifyMethod\IIdentifyMethod;
 use OCA\Libresign\Service\IdentifyMethod\SignatureMethod\EmailToken;
 use OCA\Libresign\Service\IdentifyMethod\SignatureMethod\ISignatureMethod;
 use OCA\Libresign\Service\IdentifyMethodService;
+use OCA\Libresign\Service\OrganizationSeal\OrganizationSealService;
 use OCA\Libresign\Service\PdfSignatureDetectionService;
 use OCA\Libresign\Service\PfxProvider;
 use OCA\Libresign\Service\Policy\Model\ResolvedPolicy;
@@ -136,6 +137,7 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	private SubjectAlternativeNameService&MockObject $subjectAlternativeNameService;
 	private SignRequestService&MockObject $signRequestService;
 	private PolicyService&MockObject $policyService;
+	private OrganizationSealService&MockObject $organizationSealService;
 	private SignatureRejectionPolicyService&MockObject $signatureRejectionPolicyService;
 	/** @var array<string, mixed> */
 	private array $policyValues = [];
@@ -199,6 +201,7 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		);
 		$this->signRequestService = $this->createMock(SignRequestService::class);
 		$this->policyService = $this->createMock(PolicyService::class);
+		$this->organizationSealService = $this->createMock(OrganizationSealService::class);
 		$this->signatureRejectionPolicyService = $this->createMock(SignatureRejectionPolicyService::class);
 		$this->signatureRejectionPolicyService
 			->method('getBehavior')
@@ -595,6 +598,7 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 					$this->notificationDeliveries,
 					new SigningWorkflowStatusResolver($this->idDocsMapper, $this->signatureRejectionPolicyService),
 					$this->webhooks,
+					$this->organizationSealService,
 				])
 				->onlyMethods($methods)
 				->getMock();
@@ -644,6 +648,7 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			$this->notificationDeliveries,
 			new SigningWorkflowStatusResolver($this->idDocsMapper, $this->signatureRejectionPolicyService),
 			$this->webhooks,
+			$this->organizationSealService,
 		);
 	}
 
@@ -866,6 +871,87 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			->setSignRequest($signRequest)
 			->setLibreSignFile($libreSignFile)
 			->sign();
+	}
+
+	#[DataProvider('providerOrganizationSealsAfterLastSignature')]
+	public function testOrganizationSealsAfterLastSignature(array $requestedSeals, ?string $otherSignerSigned, bool $sealed, string $expectedHash): void {
+		$service = $this->getService(['computeHash']);
+		$service->method('computeHash')->willReturn('sealed-hash');
+
+		$file = new File();
+		$file->setId(5);
+		$signer = new SignRequest();
+		$signer->setFileId(5);
+		$signer->setSigned(new \DateTime());
+		$otherSigner = new SignRequest();
+		$otherSigner->setFileId(5);
+		if ($otherSignerSigned !== null) {
+			$otherSigner->setSigned(new \DateTime($otherSignerSigned));
+		}
+		$this->signRequestMapper->method('getByFileId')->with(5)->willReturn([$signer, $otherSigner]);
+		$signedFile = $this->createMock(\OCP\Files\File::class);
+
+		$this->organizationSealService->method('getRequestedSeals')->with($file)->willReturn($requestedSeals);
+		$this->organizationSealService->expects($sealed ? $this->once() : $this->never())
+			->method('apply')
+			->with($file, $signedFile)
+			->willReturn(true);
+
+		$service->setLibreSignFile($file)->setSignRequest($signer);
+		$hash = self::invokePrivate($service, 'applyOrganizationSealsIfCompleted', [$signedFile, 'signer-hash']);
+
+		$this->assertSame($expectedHash, $hash);
+	}
+
+	public static function providerOrganizationSealsAfterLastSignature(): array {
+		return [
+			'no seal requested' => [[], '2026-01-01', false, 'signer-hash'],
+			'another signer has not signed yet' => [['first'], null, false, 'signer-hash'],
+			'last signature seals and stores the new hash' => [['first'], '2026-01-01', true, 'sealed-hash'],
+		];
+	}
+
+	public function testSignedHashIsKeptWhenNoSealWasApplied(): void {
+		$service = $this->getService(['computeHash']);
+		$service->expects($this->never())->method('computeHash');
+
+		$file = new File();
+		$file->setId(5);
+		$signer = new SignRequest();
+		$signer->setFileId(5);
+		$signer->setSigned(new \DateTime());
+		$this->signRequestMapper->method('getByFileId')->willReturn([$signer]);
+		$this->organizationSealService->method('getRequestedSeals')->willReturn(['first']);
+		$this->organizationSealService->expects($this->once())->method('apply')->willReturn(false);
+
+		$service->setLibreSignFile($file)->setSignRequest($signer);
+		$hash = self::invokePrivate($service, 'applyOrganizationSealsIfCompleted', [$this->createMock(\OCP\Files\File::class), 'signer-hash']);
+
+		$this->assertSame('signer-hash', $hash);
+	}
+
+	public function testSigningStoresTheHashOfTheSealedFile(): void {
+		$service = $this->getService([
+			'getEngine', 'computeHash', 'validateDocMdpAllowsSignatures',
+			'updateSignRequest', 'updateLibreSignFile', 'dispatchSignedEvent', 'applyOrganizationSealsIfCompleted',
+		]);
+		$file = new File();
+		$file->setId(33);
+		$file->setStatus(FileStatus::PARTIAL_SIGNED->value);
+		$signedFile = $this->createMock(\OCP\Files\File::class);
+		$signedFile->method('getId')->willReturn(999);
+		$engine = $this->createMock(Pkcs12Handler::class);
+		$engine->method('sign')->willReturn($signedFile);
+		$service->method('getEngine')->willReturn($engine);
+		$service->method('computeHash')->willReturn('signer-hash');
+		$service->expects($this->once())->method('updateSignRequest')->with('signer-hash');
+		$service->expects($this->once())
+			->method('applyOrganizationSealsIfCompleted')
+			->with($signedFile, 'signer-hash')
+			->willReturn('sealed-hash');
+		$service->expects($this->once())->method('updateLibreSignFile')->with($file, 999, 'sealed-hash');
+
+		$service->signSingleFile($file, new SignRequest());
 	}
 
 	public function testSigningDelegatesCompletionAfterPersistence(): void {
