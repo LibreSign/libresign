@@ -26,6 +26,7 @@ use OCA\Libresign\Service\RequestSignatureService;
 use OCA\Libresign\Service\SessionService;
 use OCA\Libresign\Service\SignerElementsService;
 use OCA\Libresign\Service\SignFileService;
+use OCA\Libresign\Service\SignRequest\SignerLanguageService;
 use OCA\Libresign\Service\Validation\SigningRequestValidator;
 use OCA\Libresign\Tests\Integration\TestCase;
 use OCP\AppFramework\Http\RedirectResponse;
@@ -173,6 +174,7 @@ final class PageControllerTest extends TestCase {
 			eventDispatcher: $this->createMock(IEventDispatcher::class),
 			urlGenerator: $this->urlGenerator,
 			emailSignerElementsService: $this->emailSignerElementsService,
+			signerLanguageService: \OCP\Server::get(SignerLanguageService::class),
 		);
 	}
 
@@ -405,6 +407,7 @@ final class PageControllerTest extends TestCase {
 			eventDispatcher: $this->createMock(IEventDispatcher::class),
 			urlGenerator: $this->urlGenerator,
 			emailSignerElementsService: $this->createMock(EmailSignerElementsService::class),
+			signerLanguageService: \OCP\Server::get(SignerLanguageService::class),
 		);
 
 		$response = $controller->validationFilePublic('validation-file-uuid');

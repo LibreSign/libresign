@@ -26,6 +26,7 @@ use OCA\Libresign\Service\File\Pdf\PdfMetadataExtractor;
 use OCA\Libresign\Service\IdentifyMethod\IIdentifyMethod;
 use OCA\Libresign\Service\Policy\FilePolicyApplier;
 use OCA\Libresign\Service\SignerGeolocation\SignerGeolocationPolicyService;
+use OCA\Libresign\Service\SignRequest\SignerLanguageService;
 use OCA\Libresign\Service\SignRequest\SignRequestService;
 use OCA\Libresign\Service\Validation\FileInputValidator;
 use OCA\Libresign\Service\Validation\SignerValidator;
@@ -81,6 +82,7 @@ class RequestSignatureService {
 		protected IDBConnection $db,
 		protected NotificationDeliveryService $notifications,
 		protected NativeWebhookEventPublisher $webhooks,
+		protected SignerLanguageService $signerLanguageService,
 	) {
 	}
 
@@ -613,6 +615,11 @@ class RequestSignatureService {
 						FILTER_NULL_ON_FAILURE,
 					) ?? false;
 				}
+				// Absent key keeps the stored language; an empty value clears it.
+				$language = null;
+				if (array_key_exists('language', $signer)) {
+					$language = is_string($signer['language']) ? $signer['language'] : '';
+				}
 
 				foreach ($signer['identifyMethods'] as $identifyMethod) {
 					$lastSignRequest = $this->signRequestService->createOrUpdateSignRequest(
@@ -627,7 +634,10 @@ class RequestSignatureService {
 						fileStatus: $fileStatus,
 						signerStatus: $signerStatus,
 						participantRole: $participantRole,
-						afterPersist: function (SignRequestEntity $signRequest) use ($file, $requesterRequiresGeolocation): void {
+						afterPersist: function (SignRequestEntity $signRequest) use ($file, $requesterRequiresGeolocation, $language): void {
+							if ($language !== null) {
+								$this->signerLanguageService->setLanguage($signRequest, $language);
+							}
 							$requiresGeolocation = $requesterRequiresGeolocation;
 							if ($requiresGeolocation === null) {
 								if ($this->signerGeolocationPolicyService->getFrozenRequirement($signRequest) !== null) {

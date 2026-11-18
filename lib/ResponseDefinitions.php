@@ -110,6 +110,7 @@ namespace OCA\Libresign;
  *     status?: int,
  *     participantRole?: LibresignParticipantRole,
  *     deviceGeolocationRequired?: bool,
+ *     language?: string,
  * }
  * @psalm-type LibresignNewFile = array{
  *     base64?: string,
@@ -231,6 +232,7 @@ namespace OCA\Libresign;
  *     geolocation?: LibresignSignerGeolocation,
  *     notify?: list<LibresignNotify>,
  *     certificate_info?: LibresignSignerCertificateInfo,
+ *     language?: string,
  * }
  * @psalm-type LibresignSignerDisplayStatus = 'draft'|'ready_to_sign'|'signed'|'rejected'|'observing'|'not_signed'
  * @psalm-type LibresignSignerSummary = array{

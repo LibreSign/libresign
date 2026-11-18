@@ -16,6 +16,7 @@ use OCA\Libresign\Service\MailService;
 use OCA\Libresign\Service\Policy\Model\ResolvedPolicy;
 use OCA\Libresign\Service\Policy\PolicyService;
 use OCA\Libresign\Service\Policy\Provider\MailSenderStrategy\MailSenderStrategyPolicy;
+use OCA\Libresign\Service\SignRequest\SignerLanguageService;
 use OCP\IAppConfig;
 use OCP\IL10N;
 use OCP\IURLGenerator;
@@ -46,6 +47,7 @@ final class MailServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	private PolicyService&MockObject $policyService;
 	private IMailProviderManager&MockObject $mailProviderManager;
 	private IUserManager&MockObject $userManager;
+	private SignerLanguageService&MockObject $signerLanguageService;
 	private MailService $service;
 
 	public function setUp(): void {
@@ -62,6 +64,7 @@ final class MailServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$this->policyService = $this->createMock(PolicyService::class);
 		$this->mailProviderManager = $this->createMock(IMailProviderManager::class);
 		$this->userManager = $this->createMock(IUserManager::class);
+		$this->signerLanguageService = $this->createMock(SignerLanguageService::class);
 		$this->service = new MailService(
 			$this->logger,
 			$this->mailer,
@@ -72,6 +75,7 @@ final class MailServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			$this->policyService,
 			$this->mailProviderManager,
 			$this->userManager,
+			$this->signerLanguageService,
 		);
 	}
 
@@ -447,6 +451,88 @@ final class MailServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$this->expectException(LibresignException::class);
 		$this->expectExceptionMessage('Mail with code to sign document could not be sent');
 		$this->service->sendCodeToSign('recipient@example.com', 'Recipient', '123456');
+	}
+
+	public function testNotifyUnsignedUserKeepsDefaultLanguageWithoutSignerChoice(): void {
+		$this->mockRequest();
+		$this->mockStrategy(MailSenderStrategyPolicy::STRATEGY_SYSTEM);
+		$emailTemplate = $this->createMock(IEMailTemplate::class);
+		$emailTemplate->expects($this->never())->method('setLanguage');
+		$emailTemplate->expects($this->once())
+			->method('setSubject')
+			->with('LibreSign: A document is ready for your signature');
+		$this->mailer->method('createEMailTemplate')->willReturn($emailTemplate);
+		$this->mockSystemMessage();
+
+		$this->service->notifyUnsignedUser($this->mockSignRequest(), 'a@b.coop');
+	}
+
+	public function testNotifyUnsignedUserUsesSignerLanguage(): void {
+		$this->mockRequest();
+		$this->mockStrategy(MailSenderStrategyPolicy::STRATEGY_SYSTEM);
+		$signRequest = $this->mockSignRequest();
+		$this->mockSignerL10n($signRequest);
+		$emailTemplate = $this->createMock(IEMailTemplate::class);
+		$emailTemplate->expects($this->once())->method('setLanguage')->with('de');
+		$emailTemplate->expects($this->once())
+			->method('setSubject')
+			->with('[de] LibreSign: A document is ready for your signature');
+		$emailTemplate->expects($this->once())
+			->method('addHeading')
+			->with('[de] Document to sign', false);
+		$emailTemplate->expects($this->once())
+			->method('addBodyText')
+			->with('[de] A document is ready for your signature. Open the link below:');
+		$emailTemplate->expects($this->once())
+			->method('addBodyButton')
+			->with('[de] Sign "%s"');
+		$this->mailer->method('createEMailTemplate')->willReturn($emailTemplate);
+		$this->mockSystemMessage();
+		$this->mailer->expects($this->once())->method('send');
+
+		$this->service->notifyUnsignedUser($signRequest, 'a@b.coop');
+	}
+
+	public function testNotifySignDataUpdatedUsesSignerLanguage(): void {
+		$this->mockRequest();
+		$this->mockStrategy(MailSenderStrategyPolicy::STRATEGY_SYSTEM);
+		$signRequest = $this->mockSignRequest();
+		$this->mockSignerL10n($signRequest);
+		$emailTemplate = $this->createMock(IEMailTemplate::class);
+		$emailTemplate->expects($this->once())->method('setLanguage')->with('de');
+		$emailTemplate->expects($this->once())
+			->method('setSubject')
+			->with('[de] LibreSign: Changes were made to a document waiting for your signature');
+		$this->mailer->method('createEMailTemplate')->willReturn($emailTemplate);
+		$this->mockSystemMessage();
+
+		$this->service->notifySignDataUpdated($signRequest, 'a@b.coop');
+	}
+
+	public function testNotifyCanceledRequestUsesSignerLanguage(): void {
+		$this->mockRequest();
+		$signRequest = $this->mockSignRequest();
+		$this->mockSignerL10n($signRequest);
+		$emailTemplate = $this->createMock(IEMailTemplate::class);
+		$emailTemplate->expects($this->once())->method('setLanguage')->with('de');
+		$emailTemplate->expects($this->once())
+			->method('setSubject')
+			->with('[de] LibreSign: A signature request has been canceled');
+		$this->mailer->method('createEMailTemplate')->willReturn($emailTemplate);
+		$this->mockSystemMessage();
+		$this->mailer->expects($this->once())->method('send')->willReturn([]);
+
+		$this->service->notifyCanceledRequest($signRequest, 'a@b.coop', new File());
+	}
+
+	private function mockSignerL10n(SignRequest $signRequest): void {
+		$l10n = $this->createMock(IL10N::class);
+		$l10n->method('getLanguageCode')->willReturn('de');
+		$l10n->method('t')->willReturnCallback(static fn (string $text): string => '[de] ' . $text);
+		$this->signerLanguageService
+			->method('getL10n')
+			->with($signRequest)
+			->willReturn($l10n);
 	}
 
 	private function mockSignRequest(string $displayName = 'John Doe'): SignRequest {
