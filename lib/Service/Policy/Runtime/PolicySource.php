@@ -21,6 +21,8 @@ use OCP\AppFramework\Db\DoesNotExistException;
 use OCP\AppFramework\Services\IAppConfig;
 use OCP\DB\QueryBuilder\IQueryBuilder;
 use OCP\Exceptions\AppConfigTypeConflictException;
+use OCP\Exceptions\AppConfigUnknownKeyException;
+use OCP\IAppConfig as CoreAppConfig;
 use OCP\IDBConnection;
 use OCP\IL10N;
 
@@ -32,6 +34,7 @@ class PolicySource implements IPolicySource {
 		private PolicyRegistry $registry,
 		private IDBConnection $db,
 		private IL10N $l10n,
+		private CoreAppConfig $coreAppConfig,
 	) {
 	}
 
@@ -717,52 +720,73 @@ class PolicySource implements IPolicySource {
 	}
 
 	private function readSystemValue(string $key, mixed $defaultValue): mixed {
-		try {
-			if (is_int($defaultValue)) {
-				return $this->appConfig->getAppValueInt($key, $defaultValue);
-			}
-
-			if (is_bool($defaultValue)) {
-				return $this->appConfig->getAppValueBool($key, $defaultValue);
-			}
-
-			if (is_float($defaultValue)) {
-				return $this->appConfig->getAppValueFloat($key, $defaultValue);
-			}
-
-			if (is_array($defaultValue)) {
-				return $this->appConfig->getAppValueArray($key, $defaultValue);
-			}
-
-			return $this->appConfig->getAppValueString($key, (string)$defaultValue);
-		} catch (AppConfigTypeConflictException $exception) {
-			if (is_string($defaultValue)) {
-				try {
-					$arrayValue = $this->appConfig->getAppValueArray($key, []);
-					return json_encode($arrayValue, JSON_THROW_ON_ERROR);
-				} catch (AppConfigTypeConflictException) {
-					return $this->appConfig->getAppValueBool($key, in_array(strtolower(trim($defaultValue)), ['1', 'true', 'yes', 'on'], true));
-				} catch (\JsonException) {
-					return (string)$defaultValue;
-				}
-			}
-
-			if (is_bool($defaultValue)) {
-				return $this->appConfig->getAppValueString($key, $defaultValue ? '1' : '0');
-			}
-
-			if (is_array($defaultValue)) {
-				// Value was stored as a scalar (e.g., by Nextcloud provisioning API).
-				// Return the raw string so the policy normalizer can decode it.
-				try {
-					return $this->appConfig->getAppValueString($key, '');
-				} catch (AppConfigTypeConflictException) {
-					return $defaultValue;
-				}
-			}
-
-			throw $exception;
+		$storedType = $this->getStoredSystemValueType($key);
+		if ($storedType === CoreAppConfig::VALUE_MIXED || $storedType === $this->getValueTypeOf($defaultValue)) {
+			return $this->readSystemValueAs($key, $defaultValue);
 		}
+
+		// Older releases stored some policies with another type than the one
+		// written today. Nextcloud logs a warning for every read that requests
+		// a type other than the stored one, so read the stored type instead.
+		$storedValue = $this->readSystemValueAs($key, match ($storedType) {
+			CoreAppConfig::VALUE_INT => 0,
+			CoreAppConfig::VALUE_FLOAT => 0.0,
+			CoreAppConfig::VALUE_BOOL => false,
+			CoreAppConfig::VALUE_ARRAY => [],
+			default => '',
+		});
+
+		if (is_string($defaultValue) && is_array($storedValue)) {
+			try {
+				return json_encode($storedValue, JSON_THROW_ON_ERROR);
+			} catch (\JsonException) {
+				return $defaultValue;
+			}
+		}
+
+		if (is_array($defaultValue) && !is_string($storedValue)) {
+			return $defaultValue;
+		}
+
+		return $storedValue;
+	}
+
+	private function getStoredSystemValueType(string $key): int {
+		try {
+			return $this->coreAppConfig->getValueType(Application::APP_ID, $key, false);
+		} catch (AppConfigUnknownKeyException) {
+			return CoreAppConfig::VALUE_MIXED;
+		}
+	}
+
+	private function getValueTypeOf(mixed $value): int {
+		return match (true) {
+			is_int($value) => CoreAppConfig::VALUE_INT,
+			is_bool($value) => CoreAppConfig::VALUE_BOOL,
+			is_float($value) => CoreAppConfig::VALUE_FLOAT,
+			is_array($value) => CoreAppConfig::VALUE_ARRAY,
+			default => CoreAppConfig::VALUE_STRING,
+		};
+	}
+
+	private function readSystemValueAs(string $key, mixed $defaultValue): mixed {
+		if (is_int($defaultValue)) {
+			return $this->appConfig->getAppValueInt($key, $defaultValue);
+		}
+
+		if (is_bool($defaultValue)) {
+			return $this->appConfig->getAppValueBool($key, $defaultValue);
+		}
+
+		if (is_float($defaultValue)) {
+			return $this->appConfig->getAppValueFloat($key, $defaultValue);
+		}
+
+		if (is_array($defaultValue)) {
+			return $this->appConfig->getAppValueArray($key, $defaultValue);
+		}
+
+		return $this->appConfig->getAppValueString($key, (string)$defaultValue);
 	}
 
 	private function writeSystemValue(string $key, mixed $value): void {
