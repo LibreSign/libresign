@@ -1,22 +1,35 @@
 --- a/.github/workflows/command-update-submodule.yml
 +++ b/.github/workflows/command-update-submodule.yml
-@@ -13,11 +13,11 @@
+@@ -1,29 +1,29 @@
+ # SPDX-FileCopyrightText: 2022 Nextcloud GmbH and Nextcloud contributors
+ # SPDX-FileCopyrightText: 2026 LibreCode coop and contributors
+ # SPDX-License-Identifier: MIT
+ name: Update submodule reference
+ 
+ on:
+   issue_comment: # zizmor: ignore[dangerous-triggers]
+     types: [created]
+ 
+ permissions:
+   contents: read
+   pull-requests: read
  
  jobs:
    update:
-+    if: github.event.issue.pull_request != '' && github.event.comment.body == '/update-3rdparty'
 -    if: github.event.issue.pull_request != '' && vars.SUBMODULE_UPDATE_COMMAND != '' && github.event.comment.body == vars.SUBMODULE_UPDATE_COMMAND
++    if: github.event.issue.pull_request != '' && github.event.comment.body == '/update-3rdparty'
      runs-on: ubuntu-latest
-     env:
-+      SUBMODULE_PATH: 3rdparty
-+      SOURCE_REPOSITORY: LibreSign/3rdparty
--      SUBMODULE_PATH: ${{ vars.SUBMODULE_PATH }}
--      SOURCE_REPOSITORY: ${{ vars.SUBMODULE_SOURCE_REPOSITORY }}
      steps:
        - name: Check actor permission
          uses: skjnldsv/check-actor-permission@69e92a3c4711150929bca9fcf34448c5bf5526e7 # v3.0
-@@ -79,3 +79,3 @@
-           persist-credentials: false
-           fetch-depth: 0
-+          ref: main
--          ref: ${{ github.event.repository.default_branch }}
+         with:
+           require: write
+ 
+       - name: Update merged submodule reference
+         uses: LibreCodeCoop/.github/actions/update-submodule@2a75cff7318334499053ced8b72d04bc0f795baf # source pinned
+         with:
+           token: ${{ secrets.COMMAND_BOT_PAT }} # zizmor: ignore[secrets-outside-env]
+-          source-repository: ${{ vars.SUBMODULE_SOURCE_REPOSITORY }}
++          source-repository: LibreSign/3rdparty
+-          submodule-path: ${{ vars.SUBMODULE_PATH }}
++          submodule-path: 3rdparty
