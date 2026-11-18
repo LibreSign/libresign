@@ -59,7 +59,7 @@ vi.mock('vue-advanced-cropper', () => ({
 	Cropper: {
 		name: 'Cropper',
 		template: '<div class="cropper-stub" />',
-		props: ['src', 'defaultSize', 'stencilProps', 'imageRestriction'],
+		props: ['src', 'defaultSize', 'stencilProps', 'imageRestriction', 'canvas'],
 		emits: ['change'],
 		methods: {
 			zoom: vi.fn(),
@@ -99,6 +99,23 @@ describe('FileUpload.vue - Uploaded signature flow', () => {
 		expect(cropper.exists()).toBe(true)
 		expect(cropper.props('defaultSize')).toBeUndefined()
 		expect(cropper.props('stencilProps')).toEqual({ aspectRatio: 3.5 })
+	})
+
+	it('limits exported PNG dimensions while retaining source resolution for small images', async () => {
+		const wrapper = mountComponent()
+		wrapper.vm.image = 'data:image/png;base64,uploaded'
+		await wrapper.vm.$nextTick()
+
+		const cropper = wrapper.findComponent({ name: 'Cropper' })
+		const canvas = cropper.props('canvas')
+
+		expect(canvas).toEqual({
+			maxWidth: 2100,
+			maxHeight: 600,
+			maxArea: 1_000_000,
+		})
+		expect(canvas).not.toHaveProperty('width')
+		expect(canvas).not.toHaveProperty('height')
 	})
 
 	it('loads the selected file as a data URL', () => {
