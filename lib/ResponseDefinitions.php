@@ -955,6 +955,7 @@ namespace OCA\Libresign;
  *             full-signature-height: float,
  *             signature-width: float,
  *             signature-height: float,
+ *             draw-ink-color: string,
  *         },
  *         envelope: array{
  *             is-available: bool,

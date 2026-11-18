@@ -102,7 +102,8 @@ const capabilities = getCapabilities() as LibresignCapabilities
 const signElementsConfig = capabilities.libresign?.config['sign-elements']
 const canvasWidth = Number(signElementsConfig?.['signature-width'])
 const canvasHeight = Number(signElementsConfig?.['signature-height'])
-const color = ref('#000000')
+const defaultInkColor = signElementsConfig?.['draw-ink-color'] || '#000000'
+const color = ref(defaultInkColor)
 const customPalette = [
 	'#000000',
 	'#ff0000',
@@ -196,7 +197,7 @@ onMounted(() => {
 		if (!canvas.value) {
 			return
 		}
-		canvas.value.signaturePad = new SignaturePad(canvas.value)
+		canvas.value.signaturePad = new SignaturePad(canvas.value, { penColor: color.value })
 		canvas.value.signaturePad.addEventListener('endStroke', () => {
 			canSave.value = !canvas.value?.signaturePad?.isEmpty()
 		})
