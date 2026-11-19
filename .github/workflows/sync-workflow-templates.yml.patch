@@ -1,6 +1,7 @@
 --- a/.github/workflows/sync-workflow-templates.yml
 +++ b/.github/workflows/sync-workflow-templates.yml
-@@ -27,6 +27,9 @@ jobs:
+@@ -28,7 +28,10 @@
+       fail-fast: false
        matrix:
          branches:
            - ${{ github.event.repository.default_branch }}
@@ -9,3 +10,4 @@
 +          - stable33
  
      name: Update workflows in ${{ matrix.branches }}
+ 
