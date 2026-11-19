@@ -66,11 +66,11 @@ final class ValidateServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		return [
 			['CN', '', "Parameter 'CN' is required!"],
 			['CN', '   ', "Parameter 'CN' is required!"],
-			['C', 'BRA', "Parameter 'C' should be betweeen 2 and 2."],
-			['C', 'B', "Parameter 'C' should be betweeen 2 and 2."],
-			['ST', str_repeat('a', 129), "Parameter 'ST' should be betweeen 1 and 128."],
-			['L', str_repeat('a', 129), "Parameter 'L' should be betweeen 1 and 128."],
-			['O', str_repeat('a', 65), "Parameter 'O' should be betweeen 1 and 64."],
+			['C', 'BRA', "Parameter 'C' should be between 2 and 2."],
+			['C', 'B', "Parameter 'C' should be between 2 and 2."],
+			['ST', str_repeat('a', 129), "Parameter 'ST' should be between 1 and 128."],
+			['L', str_repeat('a', 129), "Parameter 'L' should be between 1 and 128."],
+			['O', str_repeat('a', 65), "Parameter 'O' should be between 1 and 64."],
 		];
 	}
 
@@ -106,9 +106,9 @@ final class ValidateServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 
 	public static function providerInvalidArrayFields(): array {
 		return [
-			['OU', array_fill(0, 11, 'test'), "Parameter 'OU items' should be betweeen 0 and 10."],
-			['OU', [str_repeat('a', 65)], "Parameter 'OU' should be betweeen 1 and 64."],
-			['OU', ['valid', str_repeat('a', 65)], "Parameter 'OU' should be betweeen 1 and 64."],
+			['OU', array_fill(0, 11, 'test'), "Parameter 'OU items' should be between 0 and 10."],
+			['OU', [str_repeat('a', 65)], "Parameter 'OU' should be between 1 and 64."],
+			['OU', ['valid', str_repeat('a', 65)], "Parameter 'OU' should be between 1 and 64."],
 			['OU', ['valid', []], "Parameter 'OU' is required!"],
 		];
 	}

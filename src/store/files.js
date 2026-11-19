@@ -676,7 +676,7 @@ const _filesStore = defineStore('files', () => {
 				}
 			})
 			.catch((error) => {
-				const message = error.response?.data?.ocs?.data?.message || t('libresign', 'Failed to remove file(s) from envelope')
+				const message = error.response?.data?.ocs?.data?.message || t('libresign', 'Failed to remove one or more files from the envelope')
 				return {
 					success: false,
 					message,
