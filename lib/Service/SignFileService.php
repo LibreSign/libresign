@@ -171,7 +171,7 @@ class SignFileService {
 			});
 			if (!$exists) {
 				// TRANSLATORS Error shown when notifying or signing for a person who was never asked to sign. %s is their email.
-				throw new \Exception($this->l10n->t('No signature was requested to %s', $signer['email']));
+				throw new \Exception($this->l10n->t('No signature was requested from %s', $signer['email']));
 			}
 		});
 	}

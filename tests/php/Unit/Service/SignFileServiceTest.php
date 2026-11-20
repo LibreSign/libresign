@@ -678,7 +678,7 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 				}
 			);
 		$this->signRequestMapper->method('getByFileUuid')->willReturn([$signRequest]);
-		$this->expectExceptionMessage('No signature was requested to %');
+		$this->expectExceptionMessage('No signature was requested from %');
 		$this->getService()->canDeleteRequestSignature([
 			'uuid' => 'valid',
 			'signers' => [
