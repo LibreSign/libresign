@@ -12,6 +12,7 @@ use OCA\Libresign\Db\File;
 use OCA\Libresign\Db\FileMapper;
 use OCA\Libresign\Db\IdDocs;
 use OCA\Libresign\Db\IdDocsMapper;
+use OCA\Libresign\Db\IdentifyMethod as IdentifyMethodEntity;
 use OCA\Libresign\Db\SignRequest;
 use OCA\Libresign\Db\SignRequestMapper;
 use OCA\Libresign\Enum\FileStatus;
@@ -92,6 +93,68 @@ final class SignerValidatorTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			'empty' => ['', false],
 			'malformed' => ['not-a-uuid', false],
 		];
+	}
+
+	#[DataProvider('signatureMethodWithStoredCodeCases')]
+	public function testValidateCredentialsUsesStoredIdentifyMethodWhenGivenItsSignatureMethod(
+		string $signatureMethod,
+		string $identifyMethod,
+		string $storedValue,
+		string $givenValue,
+	): void {
+		$storedEntity = new IdentifyMethodEntity();
+		$storedEntity->setIdentifierValue($storedValue);
+		$stored = $this->createMock(IIdentifyMethod::class);
+		$stored->method('getEntity')->willReturn($storedEntity);
+		$stored->expects($this->once())->method('setCodeSentByUser')->with('123456');
+		$stored->expects($this->once())->method('validateToSign');
+
+		$newEntity = new IdentifyMethodEntity();
+		$newEntity->setIdentifierValue($givenValue);
+		$withoutStoredCode = $this->createMock(IIdentifyMethod::class);
+		$withoutStoredCode->method('getEntity')->willReturn($newEntity);
+		$withoutStoredCode->method('validateToSign')
+			->willThrowException(new LibresignException('Invalid code.'));
+
+		$this->identifyMethodService->method('exists')->willReturn(true);
+		$this->identifyMethodService->method('getIdentifyMethodsFromSignRequestId')
+			->willReturn([$identifyMethod => [$stored]]);
+		$this->identifyMethodService->method('getSignMethodsOfIdentifiedFactors')
+			->willReturn([$signatureMethod => ['identifyMethod' => $identifyMethod]]);
+		$this->identifyMethodService->method('setCurrentIdentifyMethod')->willReturnSelf();
+		$this->identifyMethodService->method('getInstanceOfIdentifyMethod')->willReturn($withoutStoredCode);
+
+		$signRequest = new SignRequest();
+		$signRequest->setId(1);
+		$this->validator->validateCredentials($signRequest, $signatureMethod, $givenValue, '123456');
+	}
+
+	public static function signatureMethodWithStoredCodeCases(): array {
+		return [
+			'email token with identify value' => ['emailToken', 'email', 'alice@example.com', 'alice@example.com'],
+			'email token without identify value' => ['emailToken', 'email', 'alice@example.com', ''],
+			'sms token with identify value' => ['smsToken', 'sms', '+5511999999999', '+5511999999999'],
+		];
+	}
+
+	public function testValidateCredentialsKeepsInstantiatingMethodsWithoutAnOwnerIdentifyMethod(): void {
+		$instance = $this->createMock(IIdentifyMethod::class);
+		$instance->expects($this->once())->method('setCodeSentByUser')->with('secret');
+		$instance->expects($this->once())->method('validateToSign');
+		$account = $this->createMock(IIdentifyMethod::class);
+		$account->expects($this->never())->method('validateToSign');
+		$this->identifyMethodService->method('exists')->willReturn(true);
+		$this->identifyMethodService->method('getIdentifyMethodsFromSignRequestId')
+			->willReturn(['account' => [$account]]);
+		$this->identifyMethodService->method('getSignMethodsOfIdentifiedFactors')
+			->willReturn(['password' => ['label' => 'Password']]);
+		$this->identifyMethodService->method('setCurrentIdentifyMethod')->willReturnSelf();
+		$this->identifyMethodService->expects($this->once())->method('getInstanceOfIdentifyMethod')
+			->with('password', '')->willReturn($instance);
+
+		$signRequest = new SignRequest();
+		$signRequest->setId(1);
+		$this->validator->validateCredentials($signRequest, 'password', '', 'secret');
 	}
 
 	public function testNormalizesIdentifyMethodsWithoutChangingPublicShape(): void {
