@@ -70,7 +70,7 @@
     "@vueuse/integrations": "^15.0.0",
     "blueimp-md5": "^2.19.0",
     "codemirror": "^6.0.2",
-    "debounce": "^3.0.0",
+    "debounce": "^4.0.0",
     "js-confetti": "^0.13.1",
     "pinia": "^4.1.0",
     "signature_pad": "^5.1.4",
