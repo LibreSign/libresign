@@ -289,7 +289,7 @@ class AccountController extends AEnvironmentAwareOCSController implements ISigna
 	#[NoAdminRequired]
 	#[NoCSRFRequired]
 	#[OpenAPI(tags: ['identity'])]
-	#[ApiRoute(verb: 'delete', url: '/api/{apiVersion}/account/pfx', requirements: ['apiVersion' => '(v1)'])]
+	#[ApiRoute(verb: 'DELETE', url: '/api/{apiVersion}/account/pfx', requirements: ['apiVersion' => '(v1)'])]
 	public function deletePfx(): DataResponse {
 		$this->accountService->deletePfx($this->userSession->getUser());
 		return new DataResponse(
