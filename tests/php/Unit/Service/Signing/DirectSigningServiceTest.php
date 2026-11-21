@@ -188,7 +188,7 @@ final class DirectSigningServiceTest extends TestCase {
 	}
 
 	#[DataProvider('allowedSignatureMethods')]
-	public function testCreatesAnOrdinarySigningRequestAndReturnsItsSignedPdf(string $method, string $token, string $displayName, string $expectedDisplayName): void {
+	public function testCreatesAnOrdinarySigningRequestAndReturnsItsSignedPdf(string $method, string $token, string $displayName, string $expectedDisplayName, ?array $policy = null): void {
 		$this->displayName = $displayName;
 		$this->setIdentificationPolicy([['name' => 'account', 'enabled' => true, 'signatureMethods' => [$method => ['enabled' => true]]]]);
 		$file = new File();
@@ -204,6 +204,8 @@ final class DirectSigningServiceTest extends TestCase {
 				&& $request['signers'][0]['identifyMethods'][0]['value'] === 'account-a'
 				&& $request['signers'][0]['notify'] === 0
 				&& $request['signers'][0]['displayName'] === $expectedDisplayName
+				&& $request['policyOverrides'] === ($policy['overrides'] ?? [])
+				&& $request['policyActiveContext'] === ($policy['activeContext'] ?? null)
 				&& $request['visibleElements'] === []));
 		$this->requests->expects(self::once())->method('save')->willReturn($file);
 		$this->signing->method('getSignRequestToSign')->with($file, null, $this->user)->willReturn($signRequest);
@@ -217,7 +219,7 @@ final class DirectSigningServiceTest extends TestCase {
 		$expected = ['content' => '%PDF-1.7', 'filename' => 'signed.pdf', 'uuid' => 'file-uuid'];
 		$this->pdf->method('getSignedPdf')->with(45, $this->user)->willReturn($expected);
 
-		self::assertSame($expected, $this->service->sign($this->user, ['nodeId' => 4], 'contract.pdf', $method, $token));
+		self::assertSame($expected, $this->service->sign($this->user, ['nodeId' => 4], 'contract.pdf', $method, $token, [], $policy));
 	}
 
 	public static function allowedSignatureMethods(): iterable {
@@ -225,6 +227,10 @@ final class DirectSigningServiceTest extends TestCase {
 		yield 'accented display name at limit' => ['clickToSign', '', str_repeat('é', 64), str_repeat('é', 64)];
 		yield 'long multibyte display name' => ['clickToSign', '', str_repeat('界', 65), str_repeat('界', 64)];
 		yield 'certificate password' => ['password', 'secret', 'Account A', 'Account A'];
+		yield 'policy overrides and active context' => ['clickToSign', '', 'Account A', 'Account A', [
+			'overrides' => ['signature_flow' => 'parallel'],
+			'activeContext' => ['scope' => 'user'],
+		]];
 	}
 
 	public function testRejectedSignerDoesNotExecuteTheSignature(): void {

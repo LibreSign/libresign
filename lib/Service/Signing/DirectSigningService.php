@@ -83,7 +83,6 @@ class DirectSigningService {
 				'notify' => 0,
 			]],
 			FileStatus::ABLE_TO_SIGN->value,
-			null,
 			$policy,
 			[],
 		);
