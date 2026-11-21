@@ -125,7 +125,7 @@ class IdDocsService {
 		// later lookups by the stored user_id expect them; without an IUser the
 		// node would be written to the unauthenticated appdata folder instead.
 		$owner = $this->getOwnerOfSignedFile($signRequest);
-		foreach ($files as $fileData) {
+		foreach ($files as $fileIndex => $fileData) {
 			$dataToSave = $fileData;
 			$dataToSave['signRequest'] = $signRequest;
 			$dataToSave['name'] = $fileData['name'] ?? $fileData['type'];
