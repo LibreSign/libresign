@@ -353,7 +353,7 @@ describe('files store - critical business rules', () => {
 					signers: [{ status: 1, identifyMethods: [{ method: 'account', value: 'testuser', requirement: 'required' }] }],
 				} } },
 			})
-			axiosMock.get.mockRejectedValueOnce(new Error('Authorization detail temporarily unavailable'))
+			axiosMock.get.mockRejectedValue(new Error('Authorization detail temporarily unavailable'))
 
 			const result = await store.saveOrUpdateSignatureRequest({ status: 1 })
 
