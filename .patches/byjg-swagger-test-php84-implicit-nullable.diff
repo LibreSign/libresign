@@ -46,6 +46,20 @@
 
 --- a/src/Base/Body.php
 +++ b/src/Base/Body.php
+@@ -140,5 +140,5 @@
+ 
+         if (!is_numeric($body)) {
+-            throw new NotMatchedException("Expected '$name' to be numeric, but found '$body'. ", $this->structure);
++            throw new NotMatchedException("Expected '$name' to be numeric, but found " . var_export($body, true) . ". ", $this->structure);
+         }
+ 
+@@ -164,5 +164,5 @@
+ 
+         if (!is_bool($body)) {
+-            throw new NotMatchedException("Expected '$name' to be boolean, but found '$body'. ", $this->structure);
++            throw new NotMatchedException("Expected '$name' to be boolean, but found " . var_export($body, true) . ". ", $this->structure);
+         }
+ 
 @@ -328,6 +328,50 @@
          return true;
      }
