@@ -45,6 +45,7 @@
 							<template #icon>
 								<NcIconSvgWrapper :path="mdiCloseCircleOutline" :size="20" />
 							</template>
+							<!-- TRANSLATORS Status filter for identification documents that an approver refused. -->
 							{{ t('libresign', 'Rejected') }}
 						</NcActionButton>
 
@@ -118,6 +119,7 @@
 								{{ doc.file_type.name }}
 							</td>
 							<td>
+								<!-- TRANSLATORS Status displayed for an identification document rejected by a reviewer. -->
 								{{ doc.rejection ? t('libresign', 'Rejected') : doc.file.status === FILE_STATUS.PARTIAL_SIGNED ? t('libresign', 'waiting for approval') : doc.file.statusText }}
 								<p v-if="doc.rejection" class="rejection-explanation">
 									{{ doc.rejection.reason }}
@@ -168,6 +170,7 @@
 										<template #icon>
 											<NcIconSvgWrapper :path="mdiCloseCircleOutline" :size="20" />
 										</template>
+										<!-- TRANSLATORS Action to refuse an identification document submitted for approval. -->
 										{{ t('libresign', 'Reject') }}
 									</NcActionButton>
 									<NcActionButton v-if="!doc.rejection" @click="deleteDocument(doc)">
@@ -191,12 +194,16 @@
 				</div>
 			</div>
 		</div>
+		<!-- TRANSLATORS Title of the confirmation dialog for rejecting an identification document. -->
 		<NcDialog v-if="rejectionDocument"
 			:name="t('libresign', 'Reject identification document')"
 			size="normal"
 			:no-close="rejecting"
 			@closing="closeRejectDialog">
+			<!-- TRANSLATORS Explains why an approver must supply a rejection reason and what happens next to the signer's document. -->
 			<p>{{ t('libresign', 'Explain why this document cannot be approved. The signer will receive the reason and can upload a replacement.') }}</p>
+			<!-- TRANSLATORS Label for the required text field explaining why the approver rejected a submitted document. -->
+			<!-- TRANSLATORS Placeholder suggesting an expired identification document as a possible rejection reason. -->
 			<NcTextArea v-model="rejectionReason"
 				:label="t('libresign', 'Rejection reason')"
 				:placeholder="t('libresign', 'For example: The document has expired.')"
@@ -204,11 +211,13 @@
 				:disabled="rejecting" />
 			<template #actions>
 				<NcButton :disabled="rejecting" @click="closeRejectDialog">
+					<!-- TRANSLATORS Action to close the rejection dialog without rejecting the document. -->
 					{{ t('libresign', 'Cancel') }}
 				</NcButton>
 				<NcButton variant="primary"
 					:disabled="rejecting || !rejectionReason.trim() || rejectionReason.trim().length > 1024"
 					@click="rejectDocument">
+					<!-- TRANSLATORS Action to confirm the rejection of an identification document after entering a reason. -->
 					{{ t('libresign', 'Reject document') }}
 				</NcButton>
 			</template>
@@ -298,6 +307,7 @@ const STATUS_OPTIONS: StatusOption[] = [
 	{ value: 'signed', label: t('libresign', 'Approved') },
 	// TRANSLATORS Filter status label meaning the document is still waiting for validation or approval.
 	{ value: 'pending', label: t('libresign', 'Pending') },
+	// TRANSLATORS Filter status label indicating that an approver has rejected an identification document.
 	{ value: 'rejected', label: t('libresign', 'Rejected') },
 ]
 
@@ -502,9 +512,11 @@ async function rejectDocument() {
 		)
 		rejectionDocument.value = null
 		rejectionReason.value = ''
+		// TRANSLATORS Confirmation shown to an approver after rejecting an identification document.
 		showSuccess(t('libresign', 'Identification document rejected.'))
 		await loadDocuments()
 	} catch (error: unknown) {
+		// TRANSLATORS Fallback error shown when a document rejection request fails.
 		showError(getErrorMessage(error) || t('libresign', 'Unable to reject document'))
 	} finally {
 		rejecting.value = false

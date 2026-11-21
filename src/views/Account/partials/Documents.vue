@@ -28,6 +28,7 @@
 						</div>
 					</div>
 					<NcNoteCard v-if="doc.rejection" type="warning">
+						<!-- TRANSLATORS Warning to the signer after document rejection. {reason} is the explanation supplied by the reviewer. -->
 						{{ t('libresign', 'Document rejected: {reason}. Upload a replacement.', { reason: doc.rejection.reason }) }}
 					</NcNoteCard>
 					<div class="document-actions">
