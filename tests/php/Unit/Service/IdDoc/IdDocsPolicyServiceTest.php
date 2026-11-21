@@ -109,6 +109,24 @@ final class IdDocsPolicyServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$this->assertSame($expectedResult, $result);
 	}
 
+	public function testRejectedIdentificationDocumentCannotBeApprovedEvenWhenFileStatusIsSignable(): void {
+		$user = $this->createMock(IUser::class);
+		$idDoc = new IdDocs();
+		$idDoc->setFileId(123);
+		$idDoc->setRejectedAt(new \DateTime('2026-11-11T13:00:00+00:00'));
+		$this->idDocsMapper->expects($this->once())
+			->method('getByFileId')
+			->with(123)
+			->willReturn($idDoc);
+		$this->policyService->expects($this->never())->method('resolveForUser');
+		$this->groupManager->expects($this->never())->method('getUserGroupIds');
+		$this->assertFalse($this->getService()->canApproverSignIdDoc(
+			$user,
+			123,
+			FileStatus::ABLE_TO_SIGN->value,
+		));
+	}
+
 	public function testIsIdentificationDocumentsEnabledPrefersDocumentSnapshot(): void {
 		$user = $this->createMock(IUser::class);
 		$signRequest = new SignRequest();

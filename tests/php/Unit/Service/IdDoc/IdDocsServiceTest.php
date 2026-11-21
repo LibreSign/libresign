@@ -11,6 +11,7 @@ namespace OCA\Libresign\Tests\Unit\Service\IdDoc;
 use OC\AppFramework\Utility\TimeFactory;
 use OCA\Libresign\Db\FileMapper;
 use OCA\Libresign\Db\FileTypeMapper;
+use OCA\Libresign\Db\IdDocs;
 use OCA\Libresign\Db\IdDocsMapper;
 use OCA\Libresign\Db\IdentifyMethodMapper;
 use OCA\Libresign\Db\SignRequest;
@@ -26,6 +27,7 @@ use OCP\IAppConfig;
 use OCP\IL10N;
 use OCP\IUser;
 use OCP\IUserManager;
+use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\MockObject\MockObject;
 
 /**
@@ -158,6 +160,59 @@ final class IdDocsServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 
 		$service = $this->getIdDocsService();
 		$service->deleteIdDoc(123, $user);
+	}
+
+
+	#[DataProvider('rejectedAccountDocumentActors')]
+	public function testRejectedAccountDocumentCannotBeDeletedEvenByReviewer(bool $isReviewer): void {
+		$user = $this->createMock(IUser::class);
+		$user->method('getUID')->willReturn($isReviewer ? 'reviewer-1' : 'signer-1');
+		$this->identityDocumentValidator->method('userCanApproveValidationDocuments')
+			->with($user, false)->willReturn($isReviewer);
+		$document = new IdDocs();
+		$document->setFileId(10);
+		$document->setRejectedAt(new \DateTime('2026-11-20T00:00:00Z'));
+		$document->setRejectedBy('reviewer-1');
+		$document->setRejectionReason('Expired identification document');
+		if ($isReviewer) {
+			$this->idDocsMapper->expects($this->once())->method('getByNodeId')
+				->with(123)->willReturn($document);
+		} else {
+			$this->identityDocumentValidator->expects($this->once())
+				->method('validateIdDocIsOwnedByUser')->with(123, 'signer-1');
+			$this->idDocsMapper->expects($this->once())->method('getByUserIdAndNodeId')
+				->with('signer-1', 123)->willReturn($document);
+		}
+		$this->idDocsMapper->expects($this->never())->method('delete');
+		$this->fileMapper->expects($this->never())->method('delete');
+		$this->expectException(LibresignException::class);
+		$this->expectExceptionMessage('Rejected documents are retained for audit purposes.');
+		$this->getIdDocsService()->deleteIdDoc(123, $user);
+	}
+
+	public static function rejectedAccountDocumentActors(): array {
+		return [
+			'authorized reviewer cannot erase audit history' => [true],
+			'document owner cannot erase audit history' => [false],
+		];
+	}
+
+	public function testRejectedGuestDocumentCannotBeDeletedUsingItsOriginalSignRequest(): void {
+		$signRequest = new SignRequest();
+		$signRequest->setId(55);
+		$document = new IdDocs();
+		$document->setFileId(10);
+		$document->setRejectedAt(new \DateTime('2026-11-20T00:00:00Z'));
+		$document->setRejectionReason('Unreadable scan');
+		$this->identityDocumentValidator->expects($this->once())
+			->method('validateIdDocBelongsToSignRequest')->with(123, 55);
+		$this->idDocsMapper->expects($this->once())
+			->method('getBySignRequestIdAndNodeId')->with(55, 123)->willReturn($document);
+		$this->idDocsMapper->expects($this->never())->method('delete');
+		$this->fileMapper->expects($this->never())->method('delete');
+		$this->expectException(LibresignException::class);
+		$this->expectExceptionMessage('Rejected documents are retained for audit purposes.');
+		$this->getIdDocsService()->deleteIdDocBySignRequest(123, $signRequest);
 	}
 
 	public function testDeleteIdDocBySignRequestValidatesAndDeletes(): void {
