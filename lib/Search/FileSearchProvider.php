@@ -88,11 +88,11 @@ class FileSearchProvider implements IProvider {
 		$files = array_slice($files, 0, $limit);
 		$results = array_map(fn (File $file) => $this->formatResult($file, $user), $files);
 
-		return SearchResult::paginated(
-			$this->l10n->t('LibreSign documents'),
-			$results,
-			$offset + $limit
-		);
+		$name = $this->l10n->t('LibreSign documents');
+		if ($hasNextPage) {
+			return SearchResult::paginated($name, $results, $offset + $limit);
+		}
+		return SearchResult::complete($name, $results);
 	}
 
 	private function formatResult(File $file, IUser $user): SearchResultEntry {
