@@ -17,6 +17,7 @@ use OCA\Libresign\Db\SignRequest as SignRequestEntity;
 use OCA\Libresign\Db\SignRequestMapper;
 use OCA\Libresign\Enum\FileStatus;
 use OCA\Libresign\Enum\SignatureFlow;
+use OCA\Libresign\Exception\FileProcessingValidationException;
 use OCA\Libresign\Exception\LibresignException;
 use OCA\Libresign\Handler\DocMdpHandler;
 use OCA\Libresign\Helper\FileUploadHelper;
@@ -337,7 +338,7 @@ class RequestSignatureService {
 				$file = null;
 			} catch (MultipleObjectsReturnedException) {
 				// TRANSLATORS Error shown when a document has multiple LibreSign records.
-				throw new LibresignException($this->l10n->t('This document is registered more than once, so it cannot be updated. Please contact your administrator.'), 422);
+				throw new FileProcessingValidationException($this->l10n->t('This document is registered more than once, so it cannot be updated. Please contact your administrator.'), 422);
 			}
 			if ($file !== null) {
 				$this->updateSignatureFlowIfAllowed($file, $data);
