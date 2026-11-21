@@ -6,11 +6,11 @@ declare(strict_types=1);
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
 
-namespace OCA\Libresign\Tests\Unit\Service;
+namespace OCA\Libresign\Tests\Unit\Service\IdDoc;
 
 use OCA\Libresign\Db\IdentifyMethod;
 use OCA\Libresign\Db\IdentifyMethodMapper;
-use OCA\Libresign\Service\IdDocRejectionRecipientResolver;
+use OCA\Libresign\Service\IdDoc\IdDocRejectionRecipientResolver;
 use OCA\Libresign\Tests\Unit\TestCase;
 use OCP\IUser;
 use OCP\IUserManager;

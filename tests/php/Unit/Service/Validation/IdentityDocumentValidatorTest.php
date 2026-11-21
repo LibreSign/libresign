@@ -12,7 +12,7 @@ use OCA\Libresign\Db\FileTypeMapper;
 use OCA\Libresign\Db\IdDocsMapper;
 use OCA\Libresign\Exception\LibresignException;
 use OCA\Libresign\Service\FileService;
-use OCA\Libresign\Service\IdDocsPolicyService;
+use OCA\Libresign\Service\IdDoc\IdDocsPolicyService;
 use OCA\Libresign\Service\Validation\IdentityDocumentValidator;
 use OCP\IL10N;
 use OCP\IUser;

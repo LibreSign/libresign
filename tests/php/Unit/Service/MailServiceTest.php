@@ -12,7 +12,7 @@ use OCA\Libresign\Db\File;
 use OCA\Libresign\Db\FileMapper;
 use OCA\Libresign\Db\SignRequest;
 use OCA\Libresign\Exception\LibresignException;
-use OCA\Libresign\Service\IdDocRejectionEmailTemplateBuilder;
+use OCA\Libresign\Service\IdDoc\IdDocRejectionEmailTemplateBuilder;
 use OCA\Libresign\Service\MailService;
 use OCA\Libresign\Service\Policy\Model\ResolvedPolicy;
 use OCA\Libresign\Service\Policy\PolicyService;

@@ -6,7 +6,7 @@ declare(strict_types=1);
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
 
-namespace OCA\Libresign\Tests\Unit\Service;
+namespace OCA\Libresign\Tests\Unit\Service\IdDoc;
 
 use OC\AppFramework\Utility\TimeFactory;
 use OCA\Libresign\Db\FileMapper;
@@ -18,7 +18,7 @@ use OCA\Libresign\Db\SignRequestMapper;
 use OCA\Libresign\Exception\FileProcessingValidationException;
 use OCA\Libresign\Exception\IdDocsUploadValidationException;
 use OCA\Libresign\Exception\LibresignException;
-use OCA\Libresign\Service\IdDocsService;
+use OCA\Libresign\Service\IdDoc\IdDocsService;
 use OCA\Libresign\Service\RequestSignatureService;
 use OCA\Libresign\Service\Validation\FileInputValidator;
 use OCA\Libresign\Service\Validation\IdentityDocumentValidator;

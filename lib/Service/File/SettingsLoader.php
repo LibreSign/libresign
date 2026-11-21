@@ -13,7 +13,7 @@ use OCA\Libresign\Db\File;
 use OCA\Libresign\Db\IdDocsMapper;
 use OCA\Libresign\Db\SignRequest;
 use OCA\Libresign\Enum\FileStatus;
-use OCA\Libresign\Service\IdDocsPolicyService;
+use OCA\Libresign\Service\IdDoc\IdDocsPolicyService;
 use OCA\Libresign\Service\IdentifyMethodService;
 use OCP\IUser;
 
