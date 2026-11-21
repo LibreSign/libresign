@@ -919,6 +919,31 @@ final class PolicySourceTest extends TestCase {
 		$this->assertSame(['{"allowGroups":["admin","finance"],"denyGroups":[]}'], $layer->getAllowedValues());
 	}
 
+	#[DataProvider('provideLegacyIdentificationDocumentsBoolean')]
+	public function testLoadSystemPolicyNormalizesLegacyTypedBooleanForIdentificationDocuments(bool $storedValue, bool $expectedEnabled): void {
+		// Pre-refactor installs (and the Nextcloud provisioning API) can still
+		// store this key as a plain boolean toggle. The current policy default
+		// is an array ({enabled, approvers}), so reading it must not probe the
+		// array getter against a boolean value stored under the previous
+		// policy's type, and the administrator's actual true/false intent must
+		// survive the read, not be silently reset to disabled.
+		$this->setStoredAppConfigBool(IdentificationDocumentsPolicy::SYSTEM_APP_CONFIG_KEY, $storedValue);
+
+		$source = $this->getSource();
+		$layer = $source->loadSystemPolicy(IdentificationDocumentsPolicy::KEY);
+
+		$this->assertNotNull($layer);
+		$this->assertSame('global', $layer->getScope());
+		$this->assertSame(['enabled' => $expectedEnabled, 'approvers' => ['admin']], $layer->getValue());
+	}
+
+	public static function provideLegacyIdentificationDocumentsBoolean(): array {
+		return [
+			'legacy true stays enabled' => [true, true],
+			'legacy false stays disabled' => [false, false],
+		];
+	}
+
 	public function testLoadSystemPolicyTreatsEmptyStoredValueAsNoExplicitSystemValue(): void {
 		// Simulate a state where the policy key exists in appconfig but with
 		// an empty string value – as can happen when the value is written
@@ -2382,6 +2407,10 @@ final class PolicySourceTest extends TestCase {
 		$this->coreAppConfig->setValueArray(Application::APP_ID, $key, $value);
 	}
 
+	private function setStoredAppConfigBool(string $key, bool $value): void {
+		$this->coreAppConfig->setValueBool(Application::APP_ID, $key, $value);
+	}
+
 	private function assertStoredAppConfigString(string $key, string $expectedValue): void {
 		$this->assertSame($expectedValue, $this->coreAppConfig->getValueString(Application::APP_ID, $key, ''));
 	}
@@ -2518,6 +2547,7 @@ final class PolicySourceTest extends TestCase {
 	private function getSource(): PolicySource {
 		return new PolicySource(
 			$this->appConfig,
+			$this->coreAppConfig,
 			$this->permissionSetMapper,
 			$this->bindingMapper,
 			$this->registry,

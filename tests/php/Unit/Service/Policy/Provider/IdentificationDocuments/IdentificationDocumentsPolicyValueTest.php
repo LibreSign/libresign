@@ -56,6 +56,61 @@ final class IdentificationDocumentsPolicyValueTest extends TestCase {
 				true,
 				['enabled' => true, 'approvers' => ['admin']],
 			],
+			'legacy raw boolean true preserves enabled' => [
+				true,
+				false,
+				['enabled' => true, 'approvers' => ['admin']],
+			],
+			'legacy raw boolean false preserves disabled' => [
+				false,
+				true,
+				['enabled' => false, 'approvers' => ['admin']],
+			],
+			'legacy raw int 1 preserves enabled' => [
+				1,
+				false,
+				['enabled' => true, 'approvers' => ['admin']],
+			],
+			'legacy raw int 0 preserves disabled' => [
+				0,
+				true,
+				['enabled' => false, 'approvers' => ['admin']],
+			],
+			'legacy raw string "1" preserves enabled' => [
+				'1',
+				false,
+				['enabled' => true, 'approvers' => ['admin']],
+			],
+			'legacy raw string "true" preserves enabled' => [
+				'true',
+				false,
+				['enabled' => true, 'approvers' => ['admin']],
+			],
+			'legacy raw string "0" preserves disabled' => [
+				'0',
+				true,
+				['enabled' => false, 'approvers' => ['admin']],
+			],
+			'legacy raw string "false" preserves disabled' => [
+				'false',
+				true,
+				['enabled' => false, 'approvers' => ['admin']],
+			],
+			'unrecognized string falls back to default' => [
+				'invalid',
+				true,
+				['enabled' => true, 'approvers' => ['admin']],
+			],
+			'empty string falls back to default' => [
+				'',
+				true,
+				['enabled' => true, 'approvers' => ['admin']],
+			],
+			'JSON-encoded string payload decodes' => [
+				'{"enabled":true,"approvers":["legal"]}',
+				false,
+				['enabled' => true, 'approvers' => ['legal']],
+			],
 		];
 	}
 

@@ -21,12 +21,15 @@ use OCP\AppFramework\Db\DoesNotExistException;
 use OCP\AppFramework\Services\IAppConfig;
 use OCP\DB\QueryBuilder\IQueryBuilder;
 use OCP\Exceptions\AppConfigTypeConflictException;
+use OCP\Exceptions\AppConfigUnknownKeyException;
+use OCP\IAppConfig as CoreAppConfig;
 use OCP\IDBConnection;
 use OCP\IL10N;
 
 class PolicySource implements IPolicySource {
 	public function __construct(
 		private IAppConfig $appConfig,
+		private CoreAppConfig $coreAppConfig,
 		private PermissionSetMapper $permissionSetMapper,
 		private PermissionSetBindingMapper $bindingMapper,
 		private PolicyRegistry $registry,
@@ -717,52 +720,29 @@ class PolicySource implements IPolicySource {
 	}
 
 	private function readSystemValue(string $key, mixed $defaultValue): mixed {
+		// Ask AppConfig for the value's own persisted type instead of guessing
+		// a type from $defaultValue and calling the matching typed getter.
+		// Legacy installs may still have this key stored with a previous
+		// policy's type (e.g. a scalar boolean toggle saved before it became a
+		// JSON policy array). Probing the wrong typed getter made AppConfig
+		// log "Config value ... is stored as X but was requested as Y" on
+		// every page load, even though the policy normalizer already accepts
+		// whatever raw shape comes back (see #9456). getValueType() with
+		// lazy:false matches how these policy keys are always written and
+		// avoids forcing a lazy AppConfig load on every policy resolution.
 		try {
-			if (is_int($defaultValue)) {
-				return $this->appConfig->getAppValueInt($key, $defaultValue);
-			}
-
-			if (is_bool($defaultValue)) {
-				return $this->appConfig->getAppValueBool($key, $defaultValue);
-			}
-
-			if (is_float($defaultValue)) {
-				return $this->appConfig->getAppValueFloat($key, $defaultValue);
-			}
-
-			if (is_array($defaultValue)) {
-				return $this->appConfig->getAppValueArray($key, $defaultValue);
-			}
-
-			return $this->appConfig->getAppValueString($key, (string)$defaultValue);
-		} catch (AppConfigTypeConflictException $exception) {
-			if (is_string($defaultValue)) {
-				try {
-					$arrayValue = $this->appConfig->getAppValueArray($key, []);
-					return json_encode($arrayValue, JSON_THROW_ON_ERROR);
-				} catch (AppConfigTypeConflictException) {
-					return $this->appConfig->getAppValueBool($key, in_array(strtolower(trim($defaultValue)), ['1', 'true', 'yes', 'on'], true));
-				} catch (\JsonException) {
-					return (string)$defaultValue;
-				}
-			}
-
-			if (is_bool($defaultValue)) {
-				return $this->appConfig->getAppValueString($key, $defaultValue ? '1' : '0');
-			}
-
-			if (is_array($defaultValue)) {
-				// Value was stored as a scalar (e.g., by Nextcloud provisioning API).
-				// Return the raw string so the policy normalizer can decode it.
-				try {
-					return $this->appConfig->getAppValueString($key, '');
-				} catch (AppConfigTypeConflictException) {
-					return $defaultValue;
-				}
-			}
-
-			throw $exception;
+			$storedType = $this->coreAppConfig->getValueType(Application::APP_ID, $key, false);
+		} catch (AppConfigUnknownKeyException) {
+			return $defaultValue;
 		}
+
+		return match ($storedType & ~CoreAppConfig::VALUE_SENSITIVE) {
+			CoreAppConfig::VALUE_INT => $this->appConfig->getAppValueInt($key, is_int($defaultValue) ? $defaultValue : 0),
+			CoreAppConfig::VALUE_FLOAT => $this->appConfig->getAppValueFloat($key, is_float($defaultValue) ? $defaultValue : 0.0),
+			CoreAppConfig::VALUE_BOOL => $this->appConfig->getAppValueBool($key, is_bool($defaultValue) ? $defaultValue : false),
+			CoreAppConfig::VALUE_ARRAY => $this->appConfig->getAppValueArray($key, is_array($defaultValue) ? $defaultValue : []),
+			default => $this->appConfig->getAppValueString($key, is_string($defaultValue) ? $defaultValue : (string)$defaultValue),
+		};
 	}
 
 	private function writeSystemValue(string $key, mixed $value): void {
