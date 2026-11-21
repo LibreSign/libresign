@@ -18,6 +18,7 @@ use OCA\Libresign\Db\SignRequest;
 use OCA\Libresign\Db\SignRequest as SignRequestEntity;
 use OCA\Libresign\Db\SignRequestMapper;
 use OCA\Libresign\Enum\IdentifyMethodRequirement;
+use OCA\Libresign\Exception\IdDocsUploadValidationException;
 use OCA\Libresign\Exception\LibresignException;
 use OCA\Libresign\Helper\ValidateHelper;
 use OCP\AppFramework\Utility\ITimeFactory;
@@ -47,7 +48,7 @@ class IdDocsService {
 	private function validateTypeOfFile(int $fileIndex, array $file): void {
 		$profileFileTypes = $this->fileTypeMapper->getTypes();
 		if (!array_key_exists($file['type'], $profileFileTypes)) {
-			throw new LibresignException(json_encode([
+			throw new IdDocsUploadValidationException(json_encode([
 				'type' => 'danger',
 				'file' => $fileIndex,
 				// TRANSLATORS Error shown when an uploaded identity document has an unsupported file type.
@@ -59,7 +60,7 @@ class IdDocsService {
 	private function validateIdDoc(int $fileIndex, array $file, IUser $user): void {
 		$profileFileTypes = $this->fileTypeMapper->getTypes();
 		if (!array_key_exists($file['type'], $profileFileTypes)) {
-			throw new LibresignException(json_encode([
+			throw new IdDocsUploadValidationException(json_encode([
 				'type' => 'danger',
 				'file' => $fileIndex,
 				// TRANSLATORS Error shown when an uploaded identity document has an unsupported file type.

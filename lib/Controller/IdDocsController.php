@@ -77,18 +77,28 @@ class IdDocsController extends AEnvironmentAwareController implements ISignature
 			}
 			return new DataResponse();
 		} catch (\Exception $exception) {
-			$exceptionData = json_decode($exception->getMessage());
-			if (isset($exceptionData->file)) {
+			$exceptionData = $exception instanceof IdDocsUploadValidationException
+				? json_decode($exception->getMessage())
+				: null;
+			if (is_object($exceptionData)
+				&& isset($exceptionData->file, $exceptionData->message)
+				&& is_int($exceptionData->file)
+				&& is_string($exceptionData->message)
+				&& in_array($exceptionData->type ?? 'danger', ['info', 'warning', 'danger'], true)) {
 				$message = [
 					'file' => $exceptionData->file,
 					'type' => $exceptionData->type ?? 'danger',
 					'message' => $exceptionData->message
 				];
 			} else {
+				$this->logger->error('Failed to upload identity document', [
+					'exception' => $exception,
+				]);
 				$message = [
 					'file' => null,
 					'type' => 'danger',
-					'message' => $exception->getMessage()
+					// TRANSLATORS Generic error shown when uploading identity documents fails unexpectedly.
+					'message' => $this->l10n->t('Unable to upload identification document.'),
 				];
 			}
 			return new DataResponse(
