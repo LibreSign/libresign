@@ -15,6 +15,9 @@ use OCA\Libresign\Db\IdDocsMapper;
 use OCA\Libresign\Db\IdentifyMethodMapper;
 use OCA\Libresign\Db\SignRequest;
 use OCA\Libresign\Db\SignRequestMapper;
+use OCA\Libresign\Exception\FileProcessingValidationException;
+use OCA\Libresign\Exception\IdDocsUploadValidationException;
+use OCA\Libresign\Exception\LibresignException;
 use OCA\Libresign\Helper\ValidateHelper;
 use OCA\Libresign\Service\IdDocsService;
 use OCA\Libresign\Service\RequestSignatureService;
@@ -311,7 +314,7 @@ final class IdDocsServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$user = $this->createMock(IUser::class);
 		$user->method('getUID')->willReturn('synthetic-user');
 		$this->fileTypeMapper->method('getTypes')->willReturn(['IDENTIFICATION' => []]);
-		$this->fileInputValidator->method('validateNewFile')
+		$this->validateHelper->method('validateNewFile')
 			->willThrowException(new LibresignException('Invalid fileID.'));
 
 		try {
@@ -331,7 +334,7 @@ final class IdDocsServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	public function testValidateIdDocsDoesNotReclassifyUnexpectedInfrastructureFailure(): void {
 		$user = $this->createMock(IUser::class);
 		$this->fileTypeMapper->method('getTypes')->willReturn(['IDENTIFICATION' => []]);
-		$this->fileInputValidator->method('validateNewFile')
+		$this->validateHelper->method('validateNewFile')
 			->willThrowException(new \RuntimeException('internal-canary-123'));
 
 		$this->expectException(\RuntimeException::class);
@@ -341,6 +344,53 @@ final class IdDocsServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			[['type' => 'IDENTIFICATION', 'file' => ['nodeId' => 12]]],
 			$user,
 		);
+	}
+
+	public static function saveFileErrorCases(): array {
+		return [
+			'authenticated: classified file validation' => [true, true],
+			'external signer: classified file validation' => [false, true],
+			'authenticated: unclassified LibresignException' => [true, false],
+			'external signer: unclassified LibresignException' => [false, false],
+		];
+	}
+
+	#[\PHPUnit\Framework\Attributes\DataProvider('saveFileErrorCases')]
+	public function testSaveFileOnlyExposesExplicitlyClassifiedErrors(bool $authenticated, bool $safe): void {
+		$files = [2 => ['type' => 'IDENTIFICATION', 'file' => ['base64' => 'ZmFrZQ==']]];
+		if (!$authenticated) {
+			$files[3] = ['type' => 'IDENTIFICATION', 'file' => ['base64' => 'ZmFrZQ==']];
+		}
+		$this->fileTypeMapper->method('getTypes')->willReturn(['IDENTIFICATION' => []]);
+
+		$exception = $safe
+			? new FileProcessingValidationException('Invalid URL file')
+			: new LibresignException('internal-canary-123: unexpected storage failure');
+		$this->requestSignatureService->expects($this->once())
+			->method('saveFile')
+			->willThrowException($exception);
+
+		$service = $this->getIdDocsService();
+		try {
+			if ($authenticated) {
+				$service->addIdDocs($files, $this->createMock(IUser::class));
+			} else {
+				$signRequest = new SignRequest();
+				$signRequest->setId(55);
+				$service->addFilesToDocumentFolder($files, $signRequest);
+			}
+			$this->fail('Expected a failed upload');
+		} catch (IdDocsUploadValidationException $e) {
+			$this->assertTrue($safe, 'Unclassified failures must not become user-visible validation errors');
+			$this->assertSame(
+				['type' => 'danger', 'file' => 2, 'message' => 'Invalid URL file'],
+				json_decode($e->getMessage(), true),
+			);
+			$this->assertSame($exception, $e->getPrevious());
+		} catch (LibresignException $e) {
+			$this->assertFalse($safe, 'Classified errors must retain their file-indexed details');
+			$this->assertSame($exception, $e);
+		}
 	}
 
 }
