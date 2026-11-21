@@ -109,7 +109,7 @@ final class IdDocRejectionService {
 			if (is_string($email) && filter_var($email, FILTER_VALIDATE_EMAIL)) {
 				$this->notifications->dispatch(new NotificationMessage(
 					$eventId, 'id_doc_rejected', 'mail', $file, $signRequest, $email,
-					new IdDocRejectionPayload($reason, $userId !== null),
+					new IdDocRejectionPayload($reason, $recipient['uid'] !== null, $recipient['uid']),
 				), $this->mail);
 			}
 			$uid = $recipient['uid'];

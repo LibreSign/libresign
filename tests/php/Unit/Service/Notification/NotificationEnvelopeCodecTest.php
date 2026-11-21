@@ -13,6 +13,7 @@ use OCA\Libresign\Db\NotificationDelivery;
 use OCA\Libresign\Db\SignRequest;
 use OCA\Libresign\Service\Notification\DataPayload;
 use OCA\Libresign\Service\Notification\GatewayPayload;
+use OCA\Libresign\Service\Notification\IdDocRejectionPayload;
 use OCA\Libresign\Service\Notification\MailPayload;
 use OCA\Libresign\Service\Notification\NotificationEnvelopeCodec;
 use OCA\Libresign\Service\Notification\NotificationMessage;
@@ -73,6 +74,54 @@ final class NotificationEnvelopeCodecTest extends TestCase {
 		$this->assertInstanceOf(MailPayload::class, $restored->payload);
 		$this->assertTrue($restored->payload->firstNotification);
 		$this->assertSame('mail', $restored->historyMethod);
+	}
+
+	public function testRejectionEnvelopePreservesRecipientAccountForLocaleSelection(): void {
+		$original = $this->message();
+		$queued = new NotificationMessage(
+			'id-doc-rejected:31', 'id_doc_rejected', 'mail', $original->file,
+			$original->signRequest, 'signer@example.invalid',
+			new IdDocRejectionPayload('Illegible <scan>', true, 'recipient-uid'),
+		);
+		$delivery = new NotificationDelivery();
+		$delivery->setFileId(31);
+		$delivery->setSignRequestId(42);
+		$delivery->setEventType('id_doc_rejected');
+		$delivery->setChannel('mail');
+		$delivery->setRecipientEnc('sealed:' . base64_encode('signer@example.invalid'));
+		$delivery->setMessageEnc($this->codec()->encode($queued));
+
+		$restored = $this->codec()->decode($delivery);
+		$this->assertInstanceOf(IdDocRejectionPayload::class, $restored->payload);
+		$this->assertSame('Illegible <scan>', $restored->payload->reason);
+		$this->assertTrue($restored->payload->accountSigner);
+		$this->assertSame('recipient-uid', $restored->payload->recipientUserId);
+	}
+
+	public function testRejectionEnvelopeAcceptsExistingQueuedPayloadWithoutRecipientAccount(): void {
+		$original = $this->message();
+		$queued = new NotificationMessage(
+			'id-doc-rejected:31', 'id_doc_rejected', 'mail', $original->file,
+			$original->signRequest, 'signer@example.invalid',
+			new IdDocRejectionPayload('Expired document', false),
+		);
+		$codec = $this->codec();
+		$encoded = $codec->encode($queued);
+		$data = json_decode(base64_decode(substr($encoded, 7), true), true, 32, JSON_THROW_ON_ERROR);
+		unset($data['payload']['recipientUserId']);
+
+		$delivery = new NotificationDelivery();
+		$delivery->setFileId(31);
+		$delivery->setSignRequestId(42);
+		$delivery->setEventType('id_doc_rejected');
+		$delivery->setChannel('mail');
+		$delivery->setRecipientEnc('sealed:' . base64_encode('signer@example.invalid'));
+		$delivery->setMessageEnc('sealed:' . base64_encode(json_encode($data, JSON_THROW_ON_ERROR)));
+
+		$restored = $codec->decode($delivery);
+		$this->assertInstanceOf(IdDocRejectionPayload::class, $restored->payload);
+		$this->assertSame('Expired document', $restored->payload->reason);
+		$this->assertNull($restored->payload->recipientUserId);
 	}
 
 	public function testRejectsNotificationForAnotherDeliveryIdentity(): void {
