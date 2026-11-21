@@ -14,9 +14,22 @@ use OCP\IAppConfig;
 final class InMemoryAppConfig implements IAppConfig {
 	/** @var array<string, array<string, string|int|float|bool|array>> */
 	private array $values = [];
+	/** @var list<string> */
+	private array $typeConflicts = [];
 
 	public function reset(): void {
 		$this->values = [];
+		$this->typeConflicts = [];
+	}
+
+	/**
+	 * Reads that requested another type than the stored one. Nextcloud logs
+	 * a warning for each of them before throwing the type conflict.
+	 *
+	 * @return list<string>
+	 */
+	public function getTypeConflicts(): array {
+		return $this->typeConflicts;
 	}
 
 	public function getApps(): array {
@@ -221,6 +234,7 @@ final class InMemoryAppConfig implements IAppConfig {
 
 		$value = $this->values[$app][$key];
 		if (gettype($value) !== $expectedType) {
+			$this->typeConflicts[] = sprintf('%s/%s is stored as %s but was requested as %s', $app, $key, gettype($value), $expectedType);
 			throw new AppConfigTypeConflictException(
 				sprintf('App config value %s/%s is not of type %s', $app, $key, $expectedType),
 			);

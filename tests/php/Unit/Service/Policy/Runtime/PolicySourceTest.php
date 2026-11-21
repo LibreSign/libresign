@@ -48,6 +48,7 @@ use OCA\Libresign\Service\Policy\Provider\Worker\WorkerConfigPolicy;
 use OCA\Libresign\Service\Policy\Runtime\DefaultPolicyResolver;
 use OCA\Libresign\Service\Policy\Runtime\PolicyRegistry;
 use OCA\Libresign\Service\Policy\Runtime\PolicySource;
+use OCA\Libresign\Tests\Unit\InMemoryAppConfig;
 use OCA\Libresign\Tests\Unit\TestCase;
 use OCP\AppFramework\Db\DoesNotExistException;
 use OCP\AppFramework\Services\IAppConfig as ScopedIAppConfig;
@@ -917,6 +918,42 @@ final class PolicySourceTest extends TestCase {
 		$this->assertSame('{"allowGroups":["admin","finance"],"denyGroups":[]}', $layer->getValue());
 		$this->assertFalse($layer->isAllowChildOverride());
 		$this->assertSame(['{"allowGroups":["admin","finance"],"denyGroups":[]}'], $layer->getAllowedValues());
+	}
+
+	/**
+	 * Older releases stored some policies with another AppConfig type than the
+	 * policy API writes today. Nextcloud logs a warning for every read that
+	 * requests a type other than the stored one, so these values must be read
+	 * with their stored type.
+	 */
+	#[DataProvider('providerLegacyTypedSystemValues')]
+	public function testLoadSystemPolicyReadsLegacyTypedValueWithItsStoredType(
+		string $policyKey,
+		string|bool|array $storedValue,
+		mixed $expectedRawValue,
+	): void {
+		match (true) {
+			is_bool($storedValue) => $this->coreAppConfig->setValueBool(Application::APP_ID, $policyKey, $storedValue),
+			is_array($storedValue) => $this->setStoredAppConfigArray($policyKey, $storedValue),
+			default => $this->setStoredAppConfigString($policyKey, $storedValue),
+		};
+		$this->setStoredAppConfigString($policyKey . '.allow_child_override', '0');
+
+		$layer = $this->getSource()->loadSystemPolicy($policyKey);
+
+		$this->assertInstanceOf(InMemoryAppConfig::class, $this->coreAppConfig);
+		$this->assertSame([], $this->coreAppConfig->getTypeConflicts());
+		$this->assertNotNull($layer);
+		$this->assertSame('global', $layer->getScope());
+		$this->assertSame($this->registry->get($policyKey)->normalizeValue($expectedRawValue), $layer->getValue());
+	}
+
+	public static function providerLegacyTypedSystemValues(): iterable {
+		yield 'request sign groups stored as array' => [RequestSignGroupsPolicy::KEY, ['finance', 'admin'], ['finance', 'admin']];
+		yield 'footer stored as boolean' => [FooterPolicy::KEY, false, false];
+		// A legacy boolean carries no approvers, so the policy keeps its default.
+		yield 'identification documents stored as boolean' => [IdentificationDocumentsPolicy::KEY, true, null];
+		yield 'identification documents stored as array' => [IdentificationDocumentsPolicy::KEY, ['enabled' => true, 'approvers' => ['legal']], ['enabled' => true, 'approvers' => ['legal']]];
 	}
 
 	public function testLoadSystemPolicyTreatsEmptyStoredValueAsNoExplicitSystemValue(): void {
@@ -2523,6 +2560,7 @@ final class PolicySourceTest extends TestCase {
 			$this->registry,
 			$this->db,
 			$this->l10n,
+			$this->coreAppConfig,
 		);
 	}
 }
