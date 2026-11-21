@@ -450,6 +450,9 @@ final class IdDocsServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	#[\PHPUnit\Framework\Attributes\DataProvider('saveFileErrorCases')]
 	public function testSaveFileOnlyExposesExplicitlyClassifiedErrors(bool $authenticated, bool $safe): void {
 		$files = [2 => ['type' => 'IDENTIFICATION', 'file' => ['base64' => 'ZmFrZQ==']]];
+		if (!$authenticated) {
+			$files[3] = ['type' => 'IDENTIFICATION', 'file' => ['base64' => 'ZmFrZQ==']];
+		}
 		$this->fileTypeMapper->method('getTypes')->willReturn(['IDENTIFICATION' => []]);
 		$this->fileInputValidator->method('normalizeNodeId')->willReturnArgument(0);
 
