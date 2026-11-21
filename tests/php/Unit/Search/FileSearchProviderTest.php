@@ -31,7 +31,7 @@ class FileSearchProviderTest extends TestCase {
 	private SignRequestMapper&MockObject $fileMapper;
 	private FileSearchProvider $provider;
 
-	protected function setUp(): void {
+	public function setUp(): void {
 		parent::setUp();
 
 		$this->l10n = $this->createMock(IL10N::class);
