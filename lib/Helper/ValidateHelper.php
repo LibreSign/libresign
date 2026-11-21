@@ -21,6 +21,7 @@ use OCA\Libresign\Db\SignRequest;
 use OCA\Libresign\Db\SignRequestMapper;
 use OCA\Libresign\Db\UserElementMapper;
 use OCA\Libresign\Enum\FileStatus;
+use OCA\Libresign\Exception\FileProcessingValidationException;
 use OCA\Libresign\Exception\LibresignException;
 use OCA\Libresign\Service\DocMdp\Validator as DocMdpValidator;
 use OCA\Libresign\Service\FileService;
@@ -580,14 +581,14 @@ class ValidateHelper {
 			case self::TYPE_TO_SIGN:
 				if ($mimetype !== 'application/pdf') {
 					// TRANSLATORS Validation error when a fileID must point to a PDF for the given LibreSign file role. First %s is the role label; second %s is the expected format.
-					throw new LibresignException($this->l10n->t('File type: %s. Must be a fileID of %s format.', [$this->getTypeOfFile($type), 'PDF']));
+					throw new FileProcessingValidationException($this->l10n->t('File type: %s. Must be a fileID of %s format.', [$this->getTypeOfFile($type), 'PDF']));
 				}
 				break;
 			case self::TYPE_VISIBLE_ELEMENT_PDF:
 			case self::TYPE_VISIBLE_ELEMENT_USER:
 				if ($mimetype !== 'image/png') {
 					// TRANSLATORS Validation error when a fileID must point to a PNG for the given LibreSign file role. First %s is the role label; second %s is the expected format.
-					throw new LibresignException($this->l10n->t('File type: %s. Must be a fileID of %s format.', [$this->getTypeOfFile($type), 'png']));
+					throw new FileProcessingValidationException($this->l10n->t('File type: %s. Must be a fileID of %s format.', [$this->getTypeOfFile($type), 'png']));
 				}
 				break;
 		}
