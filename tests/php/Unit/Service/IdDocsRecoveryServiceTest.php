@@ -26,6 +26,9 @@ use PHPUnit\Framework\TestCase;
 use Psr\Log\LoggerInterface;
 
 final class IdDocsRecoveryServiceTest extends TestCase {
+	private const VALID_HASH = 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa';
+	private const OTHER_HASH = 'bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb';
+
 	private IdDocsMapper&MockObject $idDocsMapper;
 	private FileMapper&MockObject $fileMapper;
 	private FolderService&MockObject $folderService;
@@ -82,7 +85,7 @@ final class IdDocsRecoveryServiceTest extends TestCase {
 		return $folder;
 	}
 
-	private function source(string $hash = 'abc'): File&MockObject {
+	private function source(string|false $hash = self::VALID_HASH): File&MockObject {
 		$source = $this->createMock(File::class);
 		$source->method('getName')->willReturn('IDENTIFICATION.pdf');
 		$source->method('fopen')->willReturnCallback(static fn () => fopen('php://memory', 'r'));
@@ -90,7 +93,7 @@ final class IdDocsRecoveryServiceTest extends TestCase {
 		return $source;
 	}
 
-	private function copy(int $id, string $hash = 'abc'): File&MockObject {
+	private function copy(int $id, string|false $hash = self::VALID_HASH): File&MockObject {
 		$copy = $this->createMock(File::class);
 		$copy->method('getId')->willReturn($id);
 		$copy->method('hash')->with('sha256')->willReturn($hash);
@@ -98,11 +101,12 @@ final class IdDocsRecoveryServiceTest extends TestCase {
 	}
 
 	/** Make the mocked connection run the transactional callback. */
-	private function lockedFile(int $nodeId, ?int $signedNodeId = null): FileEntity {
+	private function lockedFile(int $nodeId, ?int $signedNodeId = null, string $owner = 'owner'): FileEntity {
 		$file = new FileEntity();
 		$file->setId(10);
 		$file->setNodeId($nodeId);
 		$file->setSignedNodeId($signedNodeId);
+		$file->setUserId($owner);
 		$this->fileMapper->method('getByIdForUpdate')->with(10)->willReturn($file);
 		return $file;
 	}
@@ -110,6 +114,7 @@ final class IdDocsRecoveryServiceTest extends TestCase {
 	public static function provideSkippedRows(): array {
 		return [
 			'missing file record' => [['file_exists' => false, 'node_id' => null], IdDocsRecoveryService::STATUS_UNRECOVERABLE, 'file record missing'],
+			'missing file node' => [['node_id' => null], IdDocsRecoveryService::STATUS_UNRECOVERABLE, 'file node missing'],
 			'signed copy present' => [['signed_node_id' => 101], IdDocsRecoveryService::STATUS_AMBIGUOUS, 'document has a signed copy'],
 			'owner not stored' => [['owner' => null], IdDocsRecoveryService::STATUS_UNRECOVERABLE, 'owner missing'],
 			'owner account deleted' => [['owner' => 'deleted', 'signed_document_owner' => 'deleted'], IdDocsRecoveryService::STATUS_UNRECOVERABLE, 'owner account missing'],
@@ -218,19 +223,23 @@ final class IdDocsRecoveryServiceTest extends TestCase {
 
 	public static function provideFailedRecoveries(): array {
 		return [
-			'content differs' => ['different', true, 100, null, 'content verification failed'],
-			'copy not readable by owner' => ['abc', false, 100, null, 'copy not readable in owner storage'],
-			'record changed concurrently' => ['abc', true, 999, null, 'file record changed during recovery'],
-			'record signed concurrently' => ['abc', true, 100, 555, 'file record changed during recovery'],
+			'content differs' => [self::OTHER_HASH, true, 100, null, 'content verification failed'],
+			'copy hash unavailable' => [false, true, 100, null, 'content verification failed'],
+			'both hashes unavailable' => [false, true, 100, null, 'content verification failed', 'owner', false],
+			'source hash unavailable' => [self::VALID_HASH, true, 100, null, 'content verification failed', 'owner', false],
+			'copy not readable by owner' => [self::VALID_HASH, false, 100, null, 'copy not readable in owner storage'],
+			'record changed concurrently' => [self::VALID_HASH, true, 999, null, 'file record changed during recovery'],
+			'record signed concurrently' => [self::VALID_HASH, true, 100, 555, 'file record changed during recovery'],
+			'owner changed concurrently' => [self::VALID_HASH, true, 100, null, 'file record changed during recovery', 'another-owner'],
 		];
 	}
 
 	#[DataProvider('provideFailedRecoveries')]
-	public function testFailedRecoveryRemovesTheCopyAndKeepsTheRecord(string $copyHash, bool $copyReadable, int $lockedNodeId, ?int $lockedSignedNodeId, string $reason): void {
+	public function testFailedRecoveryRemovesTheCopyAndKeepsTheRecord(string|false $copyHash, bool $copyReadable, int $lockedNodeId, ?int $lockedSignedNodeId, string $reason, string $lockedOwner = 'owner', string|false $sourceHash = self::VALID_HASH): void {
 		$this->owner();
 		$this->idDocsMapper->method('getExternalSignerDocuments')->willReturn([self::row()]);
 		$this->fileMapper->method('countByNodeId')->willReturn(1);
-		$this->folderService->method('getUnauthenticatedFileByNodeId')->willReturn($this->source());
+		$this->folderService->method('getUnauthenticatedFileByNodeId')->willReturn($this->source($sourceHash));
 		$copy = $this->copy(200, $copyHash);
 		$folder = $this->targetFolder();
 		$folder->method('newFile')->willReturn($copy);
@@ -240,7 +249,7 @@ final class IdDocsRecoveryServiceTest extends TestCase {
 			['owner', 100, null],
 			['owner', 200, $copyReadable ? $copy : null],
 		]);
-		$this->lockedFile($lockedNodeId, $lockedSignedNodeId);
+		$this->lockedFile($lockedNodeId, $lockedSignedNodeId, $lockedOwner);
 		$this->fileMapper->expects($this->never())->method('update');
 
 		$result = $this->service()->run(true)[0];

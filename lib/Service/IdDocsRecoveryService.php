@@ -76,8 +76,11 @@ class IdDocsRecoveryService {
 		];
 		$skip = static fn (string $status, string $reason): array => [$result + ['status' => $status, 'reason' => $reason], null, null];
 
-		if (!$row['file_exists'] || $row['node_id'] === null) {
+		if (!$row['file_exists']) {
 			return $skip(self::STATUS_UNRECOVERABLE, 'file record missing');
+		}
+		if ($row['node_id'] === null) {
+			return $skip(self::STATUS_UNRECOVERABLE, 'file node missing');
 		}
 		if ($row['signed_node_id'] !== null) {
 			return $skip(self::STATUS_AMBIGUOUS, 'document has a signed copy');
@@ -140,7 +143,8 @@ class IdDocsRecoveryService {
 					fclose($stream);
 				}
 			}
-			if ($copy->hash('sha256') !== $source->hash('sha256')) {
+			$sourceHash = $source->hash('sha256');
+			if (preg_match('/\A[0-9a-f]{64}\z/i', (string)$sourceHash) !== 1 || $sourceHash !== $copy->hash('sha256')) {
 				return $this->fail($result, 'content verification failed', $folder);
 			}
 			$newNodeId = $copy->getId();
@@ -148,9 +152,10 @@ class IdDocsRecoveryService {
 				return $this->fail($result, 'copy not readable in owner storage', $folder);
 			}
 			$oldNodeId = (int)$result['nodeId'];
-			$updated = $this->atomic(function () use ($result, $oldNodeId, $newNodeId): bool {
+			$ownerId = $owner->getUID();
+			$updated = $this->atomic(function () use ($result, $oldNodeId, $newNodeId, $ownerId): bool {
 				$file = $this->fileMapper->getByIdForUpdate($result['fileId']);
-				if ($file->getNodeId() !== $oldNodeId || $file->getSignedNodeId() !== null) {
+				if ($file->getNodeId() !== $oldNodeId || $file->getSignedNodeId() !== null || $file->getUserId() !== $ownerId) {
 					return false;
 				}
 				$file->setNodeId($newNodeId);
