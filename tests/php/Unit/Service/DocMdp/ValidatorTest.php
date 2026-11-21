@@ -16,7 +16,9 @@ use OCA\Libresign\Exception\LibresignException;
 use OCA\Libresign\Service\DocMdp\ConfigService;
 use OCA\Libresign\Service\DocMdp\Validator;
 use OCA\Libresign\Service\File\Pdf\PdfValidator;
+use OCP\AppFramework\Db\MultipleObjectsReturnedException;
 use OCP\Files\IRootFolder;
+use OCP\Files\Node;
 use OCP\IL10N;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\MockObject\MockObject;
@@ -220,17 +222,40 @@ final class ValidatorTest extends TestCase {
 		];
 	}
 
-	public function testFrozenLevelIsUsedForExistingDocumentByNodeId(): void {
+	#[DataProvider('provideExistingDocumentNodeReferences')]
+	public function testFrozenLevelIsUsedForExistingDocumentByNodeId(bool $useNodeObject): void {
 		$file = new File();
 		$file->setStatus(FileStatus::ABLE_TO_SIGN->value);
 		$file->setDocmdpLevelEnum(DocMdpLevel::CERTIFIED_NO_CHANGES_ALLOWED);
 		$this->fileMapper->method('getByNodeId')->with(123)->willReturn($file);
 		$this->configService->method('getLevel')->willReturn(DocMdpLevel::CERTIFIED_FORM_FILLING);
 
+		$node = $this->createMock(Node::class);
+		$node->method('getId')->willReturn(123);
+		$reference = $useNodeObject ? ['fileNode' => $node] : ['nodeId' => 123];
+
 		$this->expectException(LibresignException::class);
 		$this->createValidator()->validateSignersCount([
-			'file' => ['nodeId' => 123],
+			'file' => $reference,
 			'signers' => [['id' => 1], ['id' => 2]],
+		]);
+	}
+
+	public static function provideExistingDocumentNodeReferences(): array {
+		return [
+			'nodeId' => [false],
+			'fileNode object' => [true],
+		];
+	}
+
+	public function testAmbiguousExistingDocumentIsRejectedBeforeSignerValidation(): void {
+		$this->fileMapper->method('getByNodeId')->with(123)
+			->willThrowException(new MultipleObjectsReturnedException());
+		$this->expectException(LibresignException::class);
+		$this->expectExceptionCode(422);
+		$this->createValidator()->validateSignersCount([
+			'file' => ['nodeId' => 123],
+			'signers' => [['id' => 1]],
 		]);
 	}
 
