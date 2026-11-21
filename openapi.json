@@ -536,7 +536,8 @@
                     },
                     "nodeId": {
                         "type": "integer",
-                        "format": "int64"
+                        "format": "int64",
+                        "nullable": true
                     },
                     "uuid": {
                         "type": "string"
@@ -852,126 +853,6 @@
                         "type": "array",
                         "items": {
                             "$ref": "#/components/schemas/ErrorItem"
-                        }
-                    }
-                }
-            },
-            "File": {
-                "type": "object",
-                "required": [
-                    "account",
-                    "file_type",
-                    "created_at",
-                    "file"
-                ],
-                "properties": {
-                    "account": {
-                        "type": "object",
-                        "required": [
-                            "userId",
-                            "displayName"
-                        ],
-                        "properties": {
-                            "userId": {
-                                "type": "string"
-                            },
-                            "displayName": {
-                                "type": "string"
-                            }
-                        }
-                    },
-                    "file_type": {
-                        "type": "object",
-                        "required": [
-                            "type",
-                            "name",
-                            "description"
-                        ],
-                        "properties": {
-                            "type": {
-                                "type": "string"
-                            },
-                            "name": {
-                                "type": "string"
-                            },
-                            "description": {
-                                "type": "string",
-                                "nullable": true
-                            }
-                        }
-                    },
-                    "created_at": {
-                        "type": "string"
-                    },
-                    "file": {
-                        "type": "object",
-                        "required": [
-                            "name",
-                            "status",
-                            "statusText",
-                            "created_at",
-                            "file",
-                            "uuid",
-                            "signers"
-                        ],
-                        "properties": {
-                            "name": {
-                                "type": "string"
-                            },
-                            "status": {
-                                "type": "integer",
-                                "format": "int64",
-                                "enum": [
-                                    0,
-                                    1,
-                                    2,
-                                    3,
-                                    4,
-                                    6
-                                ]
-                            },
-                            "statusText": {
-                                "type": "string"
-                            },
-                            "created_at": {
-                                "type": "string"
-                            },
-                            "file": {
-                                "type": "object",
-                                "required": [
-                                    "type",
-                                    "nodeId",
-                                    "signedNodeId",
-                                    "url"
-                                ],
-                                "properties": {
-                                    "type": {
-                                        "type": "string"
-                                    },
-                                    "nodeId": {
-                                        "type": "integer",
-                                        "format": "int64",
-                                        "minimum": 0
-                                    },
-                                    "signedNodeId": {
-                                        "type": "integer",
-                                        "format": "int64",
-                                        "minimum": 0
-                                    },
-                                    "url": {
-                                        "type": "string"
-                                    }
-                                }
-                            },
-                            "uuid": {
-                                "type": "string"
-                            },
-                            "signers": {
-                                "type": "array",
-                                "items": {
-                                    "$ref": "#/components/schemas/SignerDetail"
-                                }
-                            }
                         }
                     }
                 }
@@ -1405,6 +1286,126 @@
                     }
                 ]
             },
+            "IdDocFile": {
+                "type": "object",
+                "required": [
+                    "account",
+                    "file_type",
+                    "created_at",
+                    "file"
+                ],
+                "properties": {
+                    "account": {
+                        "type": "object",
+                        "required": [
+                            "userId",
+                            "displayName"
+                        ],
+                        "properties": {
+                            "userId": {
+                                "type": "string"
+                            },
+                            "displayName": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "file_type": {
+                        "type": "object",
+                        "required": [
+                            "type",
+                            "name",
+                            "description"
+                        ],
+                        "properties": {
+                            "type": {
+                                "type": "string"
+                            },
+                            "name": {
+                                "type": "string"
+                            },
+                            "description": {
+                                "type": "string",
+                                "nullable": true
+                            }
+                        }
+                    },
+                    "created_at": {
+                        "type": "string"
+                    },
+                    "file": {
+                        "type": "object",
+                        "required": [
+                            "name",
+                            "status",
+                            "statusText",
+                            "created_at",
+                            "file",
+                            "uuid",
+                            "signers"
+                        ],
+                        "properties": {
+                            "name": {
+                                "type": "string"
+                            },
+                            "status": {
+                                "type": "integer",
+                                "format": "int64",
+                                "enum": [
+                                    0,
+                                    1,
+                                    2,
+                                    3,
+                                    4,
+                                    6
+                                ]
+                            },
+                            "statusText": {
+                                "type": "string"
+                            },
+                            "created_at": {
+                                "type": "string"
+                            },
+                            "file": {
+                                "type": "object",
+                                "required": [
+                                    "type",
+                                    "nodeId",
+                                    "signedNodeId",
+                                    "url"
+                                ],
+                                "properties": {
+                                    "type": {
+                                        "type": "string"
+                                    },
+                                    "nodeId": {
+                                        "type": "integer",
+                                        "format": "int64",
+                                        "minimum": 0
+                                    },
+                                    "signedNodeId": {
+                                        "type": "integer",
+                                        "format": "int64",
+                                        "minimum": 0
+                                    },
+                                    "url": {
+                                        "type": "string"
+                                    }
+                                }
+                            },
+                            "uuid": {
+                                "type": "string"
+                            },
+                            "signers": {
+                                "type": "array",
+                                "items": {
+                                    "$ref": "#/components/schemas/SignerDetail"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
             "IdDocs": {
                 "type": "object",
                 "required": [
@@ -1435,7 +1436,7 @@
                     "data": {
                         "type": "array",
                         "items": {
-                            "$ref": "#/components/schemas/File"
+                            "$ref": "#/components/schemas/IdDocFile"
                         }
                     }
                 }
@@ -1453,7 +1454,7 @@
                     "data": {
                         "type": "array",
                         "items": {
-                            "$ref": "#/components/schemas/File"
+                            "$ref": "#/components/schemas/IdDocFile"
                         }
                     }
                 }
@@ -3360,7 +3361,8 @@
                     },
                     "nodeId": {
                         "type": "integer",
-                        "format": "int64"
+                        "format": "int64",
+                        "nullable": true
                     },
                     "totalPages": {
                         "type": "integer",
@@ -3456,6 +3458,7 @@
                     "nodeId": {
                         "type": "integer",
                         "format": "int64",
+                        "nullable": true,
                         "minimum": 0
                     },
                     "nodeType": {
@@ -3740,7 +3743,7 @@
                     "200": {
                         "description": "CRL retrieved successfully in DER format",
                         "content": {
-                            "*/*": {
+                            "application/pkix-crl": {
                                 "schema": {
                                     "type": "string",
                                     "format": "binary"
@@ -4041,57 +4044,90 @@
                             }
                         }
                     },
-                    "401": {
+                    "422": {
+                        "description": "Invalid data to create the PFX file",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "required": [
+                                        "ocs"
+                                    ],
+                                    "properties": {
+                                        "ocs": {
+                                            "type": "object",
+                                            "required": [
+                                                "meta",
+                                                "data"
+                                            ],
+                                            "properties": {
+                                                "meta": {
+                                                    "$ref": "#/components/schemas/OCSMeta"
+                                                },
+                                                "data": {
+                                                    "$ref": "#/components/schemas/MessageResponse"
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "500": {
                         "description": "Failure to create PFX file",
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "anyOf": [
-                                        {
+                                    "type": "object",
+                                    "required": [
+                                        "ocs"
+                                    ],
+                                    "properties": {
+                                        "ocs": {
                                             "type": "object",
                                             "required": [
-                                                "ocs"
+                                                "meta",
+                                                "data"
                                             ],
                                             "properties": {
-                                                "ocs": {
-                                                    "type": "object",
-                                                    "required": [
-                                                        "meta",
-                                                        "data"
-                                                    ],
-                                                    "properties": {
-                                                        "meta": {
-                                                            "$ref": "#/components/schemas/OCSMeta"
-                                                        },
-                                                        "data": {
-                                                            "$ref": "#/components/schemas/MessageResponse"
-                                                        }
-                                                    }
-                                                }
-                                            }
-                                        },
-                                        {
-                                            "type": "object",
-                                            "required": [
-                                                "ocs"
-                                            ],
-                                            "properties": {
-                                                "ocs": {
-                                                    "type": "object",
-                                                    "required": [
-                                                        "meta",
-                                                        "data"
-                                                    ],
-                                                    "properties": {
-                                                        "meta": {
-                                                            "$ref": "#/components/schemas/OCSMeta"
-                                                        },
-                                                        "data": {}
-                                                    }
+                                                "meta": {
+                                                    "$ref": "#/components/schemas/OCSMeta"
+                                                },
+                                                "data": {
+                                                    "$ref": "#/components/schemas/MessageResponse"
                                                 }
                                             }
                                         }
-                                    ]
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Current user is not logged in",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "required": [
+                                        "ocs"
+                                    ],
+                                    "properties": {
+                                        "ocs": {
+                                            "type": "object",
+                                            "required": [
+                                                "meta",
+                                                "data"
+                                            ],
+                                            "properties": {
+                                                "meta": {
+                                                    "$ref": "#/components/schemas/OCSMeta"
+                                                },
+                                                "data": {}
+                                            }
+                                        }
+                                    }
                                 }
                             }
                         }
@@ -6339,7 +6375,14 @@
                                                     "$ref": "#/components/schemas/OCSMeta"
                                                 },
                                                 "data": {
-                                                    "$ref": "#/components/schemas/MessageResponse"
+                                                    "anyOf": [
+                                                        {
+                                                            "$ref": "#/components/schemas/MessageResponse"
+                                                        },
+                                                        {
+                                                            "$ref": "#/components/schemas/ActionErrorResponse"
+                                                        }
+                                                    ]
                                                 }
                                             }
                                         }
@@ -6540,7 +6583,14 @@
                                                     "$ref": "#/components/schemas/OCSMeta"
                                                 },
                                                 "data": {
-                                                    "$ref": "#/components/schemas/MessageResponse"
+                                                    "anyOf": [
+                                                        {
+                                                            "$ref": "#/components/schemas/MessageResponse"
+                                                        },
+                                                        {
+                                                            "$ref": "#/components/schemas/ActionErrorResponse"
+                                                        }
+                                                    ]
                                                 }
                                             }
                                         }
@@ -6670,61 +6720,6 @@
                             }
                         }
                     },
-                    "401": {
-                        "description": "Failed",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "anyOf": [
-                                        {
-                                            "type": "object",
-                                            "required": [
-                                                "ocs"
-                                            ],
-                                            "properties": {
-                                                "ocs": {
-                                                    "type": "object",
-                                                    "required": [
-                                                        "meta",
-                                                        "data"
-                                                    ],
-                                                    "properties": {
-                                                        "meta": {
-                                                            "$ref": "#/components/schemas/OCSMeta"
-                                                        },
-                                                        "data": {
-                                                            "$ref": "#/components/schemas/MessageResponse"
-                                                        }
-                                                    }
-                                                }
-                                            }
-                                        },
-                                        {
-                                            "type": "object",
-                                            "required": [
-                                                "ocs"
-                                            ],
-                                            "properties": {
-                                                "ocs": {
-                                                    "type": "object",
-                                                    "required": [
-                                                        "meta",
-                                                        "data"
-                                                    ],
-                                                    "properties": {
-                                                        "meta": {
-                                                            "$ref": "#/components/schemas/OCSMeta"
-                                                        },
-                                                        "data": {}
-                                                    }
-                                                }
-                                            }
-                                        }
-                                    ]
-                                }
-                            }
-                        }
-                    },
                     "422": {
                         "description": "Failed",
                         "content": {
@@ -6746,8 +6741,73 @@
                                                     "$ref": "#/components/schemas/OCSMeta"
                                                 },
                                                 "data": {
-                                                    "$ref": "#/components/schemas/ActionErrorResponse"
+                                                    "anyOf": [
+                                                        {
+                                                            "$ref": "#/components/schemas/MessageResponse"
+                                                        },
+                                                        {
+                                                            "$ref": "#/components/schemas/ActionErrorResponse"
+                                                        }
+                                                    ]
                                                 }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Unexpected failure",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "required": [
+                                        "ocs"
+                                    ],
+                                    "properties": {
+                                        "ocs": {
+                                            "type": "object",
+                                            "required": [
+                                                "meta",
+                                                "data"
+                                            ],
+                                            "properties": {
+                                                "meta": {
+                                                    "$ref": "#/components/schemas/OCSMeta"
+                                                },
+                                                "data": {
+                                                    "$ref": "#/components/schemas/MessageResponse"
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Current user is not logged in",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "required": [
+                                        "ocs"
+                                    ],
+                                    "properties": {
+                                        "ocs": {
+                                            "type": "object",
+                                            "required": [
+                                                "meta",
+                                                "data"
+                                            ],
+                                            "properties": {
+                                                "meta": {
+                                                    "$ref": "#/components/schemas/OCSMeta"
+                                                },
+                                                "data": {}
                                             }
                                         }
                                     }
@@ -8433,6 +8493,36 @@
                                                 },
                                                 "data": {
                                                     "$ref": "#/components/schemas/IdentifyAccountsResponse"
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "User is not allowed to request signatures",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "required": [
+                                        "ocs"
+                                    ],
+                                    "properties": {
+                                        "ocs": {
+                                            "type": "object",
+                                            "required": [
+                                                "meta",
+                                                "data"
+                                            ],
+                                            "properties": {
+                                                "meta": {
+                                                    "$ref": "#/components/schemas/OCSMeta"
+                                                },
+                                                "data": {
+                                                    "$ref": "#/components/schemas/ActionErrorResponse"
                                                 }
                                             }
                                         }
@@ -11994,61 +12084,6 @@
                             }
                         }
                     },
-                    "401": {
-                        "description": "Failed",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "anyOf": [
-                                        {
-                                            "type": "object",
-                                            "required": [
-                                                "ocs"
-                                            ],
-                                            "properties": {
-                                                "ocs": {
-                                                    "type": "object",
-                                                    "required": [
-                                                        "meta",
-                                                        "data"
-                                                    ],
-                                                    "properties": {
-                                                        "meta": {
-                                                            "$ref": "#/components/schemas/OCSMeta"
-                                                        },
-                                                        "data": {
-                                                            "$ref": "#/components/schemas/MessageResponse"
-                                                        }
-                                                    }
-                                                }
-                                            }
-                                        },
-                                        {
-                                            "type": "object",
-                                            "required": [
-                                                "ocs"
-                                            ],
-                                            "properties": {
-                                                "ocs": {
-                                                    "type": "object",
-                                                    "required": [
-                                                        "meta",
-                                                        "data"
-                                                    ],
-                                                    "properties": {
-                                                        "meta": {
-                                                            "$ref": "#/components/schemas/OCSMeta"
-                                                        },
-                                                        "data": {}
-                                                    }
-                                                }
-                                            }
-                                        }
-                                    ]
-                                }
-                            }
-                        }
-                    },
                     "422": {
                         "description": "Failed",
                         "content": {
@@ -12070,8 +12105,43 @@
                                                     "$ref": "#/components/schemas/OCSMeta"
                                                 },
                                                 "data": {
-                                                    "$ref": "#/components/schemas/ActionErrorResponse"
+                                                    "anyOf": [
+                                                        {
+                                                            "$ref": "#/components/schemas/MessageResponse"
+                                                        },
+                                                        {
+                                                            "$ref": "#/components/schemas/ActionErrorResponse"
+                                                        }
+                                                    ]
                                                 }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Current user is not logged in",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "required": [
+                                        "ocs"
+                                    ],
+                                    "properties": {
+                                        "ocs": {
+                                            "type": "object",
+                                            "required": [
+                                                "meta",
+                                                "data"
+                                            ],
+                                            "properties": {
+                                                "meta": {
+                                                    "$ref": "#/components/schemas/OCSMeta"
+                                                },
+                                                "data": {}
                                             }
                                         }
                                     }
@@ -12163,61 +12233,6 @@
                             }
                         }
                     },
-                    "401": {
-                        "description": "Failed",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "anyOf": [
-                                        {
-                                            "type": "object",
-                                            "required": [
-                                                "ocs"
-                                            ],
-                                            "properties": {
-                                                "ocs": {
-                                                    "type": "object",
-                                                    "required": [
-                                                        "meta",
-                                                        "data"
-                                                    ],
-                                                    "properties": {
-                                                        "meta": {
-                                                            "$ref": "#/components/schemas/OCSMeta"
-                                                        },
-                                                        "data": {
-                                                            "$ref": "#/components/schemas/MessageResponse"
-                                                        }
-                                                    }
-                                                }
-                                            }
-                                        },
-                                        {
-                                            "type": "object",
-                                            "required": [
-                                                "ocs"
-                                            ],
-                                            "properties": {
-                                                "ocs": {
-                                                    "type": "object",
-                                                    "required": [
-                                                        "meta",
-                                                        "data"
-                                                    ],
-                                                    "properties": {
-                                                        "meta": {
-                                                            "$ref": "#/components/schemas/OCSMeta"
-                                                        },
-                                                        "data": {}
-                                                    }
-                                                }
-                                            }
-                                        }
-                                    ]
-                                }
-                            }
-                        }
-                    },
                     "422": {
                         "description": "Failed",
                         "content": {
@@ -12239,8 +12254,73 @@
                                                     "$ref": "#/components/schemas/OCSMeta"
                                                 },
                                                 "data": {
-                                                    "$ref": "#/components/schemas/ActionErrorResponse"
+                                                    "anyOf": [
+                                                        {
+                                                            "$ref": "#/components/schemas/MessageResponse"
+                                                        },
+                                                        {
+                                                            "$ref": "#/components/schemas/ActionErrorResponse"
+                                                        }
+                                                    ]
                                                 }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Unexpected failure",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "required": [
+                                        "ocs"
+                                    ],
+                                    "properties": {
+                                        "ocs": {
+                                            "type": "object",
+                                            "required": [
+                                                "meta",
+                                                "data"
+                                            ],
+                                            "properties": {
+                                                "meta": {
+                                                    "$ref": "#/components/schemas/OCSMeta"
+                                                },
+                                                "data": {
+                                                    "$ref": "#/components/schemas/MessageResponse"
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Current user is not logged in",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "required": [
+                                        "ocs"
+                                    ],
+                                    "properties": {
+                                        "ocs": {
+                                            "type": "object",
+                                            "required": [
+                                                "meta",
+                                                "data"
+                                            ],
+                                            "properties": {
+                                                "meta": {
+                                                    "$ref": "#/components/schemas/OCSMeta"
+                                                },
+                                                "data": {}
                                             }
                                         }
                                     }

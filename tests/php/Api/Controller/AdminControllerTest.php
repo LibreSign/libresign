@@ -50,7 +50,7 @@ final class AdminControllerTest extends ApiTestCase {
 				],
 				'configPath' => ''
 			])
-			->expectStatus(401);
+			->expectStatus(422);
 
 		// Make and test request mach with schema
 		$this->assertRequest();

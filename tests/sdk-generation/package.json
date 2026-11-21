@@ -4,9 +4,9 @@
   "private": true,
   "license": "AGPL-3.0-or-later",
   "scripts": {
-    "compile": "tsc --noEmit --strict --skipLibCheck --target ES2020 --module commonjs --moduleResolution node ../../build/sdk-generation/typescript/*.ts types.ts signing-contracts.ts transport.ts live.ts live.test.ts",
-    "test": "tsx transport.ts && node inventory.cjs && tsx --test live.test.ts && node --test generate.test.cjs",
-    "test:anyof": "tsc --noEmit --strict --skipLibCheck --target ES2020 --module commonjs --moduleResolution node anyof-defect.ts",
+    "compile": "tsc --noEmit --strict --skipLibCheck --target ES2020 --module commonjs --moduleResolution node ../../build/sdk-generation/typescript/*.ts types.ts signing-contracts.ts transport.ts live.ts live.test.ts nextcloud-axios.test.ts",
+    "test": "tsx transport.ts && node inventory.cjs && tsx --test live.test.ts && node --test generate.test.cjs && tsx --test nextcloud-axios.test.ts",
+    "test:anyof": "tsc --noEmit --strict --skipLibCheck --target ES2020 --module commonjs --moduleResolution node anyof-defect.ts union-defects.ts",
     "test:live": "tsx live.ts",
     "test:nextcloud": "node nextcloud-import.mjs",
     "test:normalized": "tsc --noEmit --strict --skipLibCheck --target ES2020 --module commonjs --moduleResolution node ../../build/sdk-generation/normalized/typescript/*.ts normalized-types.ts"
@@ -16,7 +16,9 @@
     "axios": "1.20.0"
   },
   "devDependencies": {
+    "@types/jsdom": "21.1.7",
     "@types/node": "22.15.21",
+    "jsdom": "26.1.0",
     "tsx": "4.19.4",
     "typescript": "5.8.3"
   }
