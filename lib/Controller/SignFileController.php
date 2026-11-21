@@ -173,7 +173,6 @@ class SignFileController extends AEnvironmentAwareController implements ISignatu
 				}
 			}
 
-
 			if ($async && $this->workerConfiguration->isAsyncSigningEnabled()) {
 				$response = $this->signAsync($libreSignFile, $signRequest, $user, $userIdentifier, $method, $token, $elements, $metadata);
 			} else {
