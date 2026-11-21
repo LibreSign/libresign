@@ -431,6 +431,16 @@ class RequestSignatureService {
 		if (!empty($data['uuid'])) {
 			$file = $this->fileMapper->getByUuid($data['uuid']);
 			$this->filePolicyApplier->syncCoreFlowPolicies($file, $data);
+			if ($file->isEnvelope()
+				&& $file->getStatus() === FileStatus::DRAFT->value
+				&& ($data['status'] ?? null) === FileStatus::ABLE_TO_SIGN->value
+			) {
+				// Resolve each draft document before freezing the envelope:
+				// its frozen state also applies to children that have not transitioned yet.
+				foreach ($this->fileMapper->getChildrenFiles($file->getId()) as $child) {
+					$this->filePolicyApplier->syncCoreFlowPolicies($child, $data);
+				}
+			}
 			if (!empty($data['name'])) {
 				$file->setName($data['name']);
 				$this->fileService->update($file);
