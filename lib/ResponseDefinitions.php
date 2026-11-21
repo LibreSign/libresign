@@ -90,6 +90,26 @@ namespace OCA\Libresign;
  *     device?: LibresignSignerDeviceGeolocation,
  *     ip?: LibresignSignerIpGeolocation,
  * }
+ * @psalm-type LibresignExternalSigningField = array{
+ *     key: string,
+ *     label: string,
+ *     type: 'url'|'password',
+ *     required: bool,
+ *     secret: bool,
+ *     validation: array{schemes?: list<string>, allowLoopbackHttp?: bool, allowUserInfo?: bool},
+ * }
+ * @psalm-type LibresignExternalSigningDriver = array{
+ *     id: string,
+ *     name: string,
+ *     description: string,
+ *     experimental: bool,
+ *     available: bool,
+ *     unavailableReason: ?string,
+ *     fields: list<LibresignExternalSigningField>,
+ * }
+ * @psalm-type LibresignExternalSigningDriversResponse = array{
+ *     drivers: list<LibresignExternalSigningDriver>,
+ * }
  * @psalm-type LibresignGeoIpConfig = array{
  *     path: ?string,
  *     status: LibresignGeoIpDatabaseStatus,
