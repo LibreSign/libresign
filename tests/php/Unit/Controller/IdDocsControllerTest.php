@@ -9,6 +9,7 @@ declare(strict_types=1);
 namespace OCA\Libresign\Tests\Unit\Controller;
 
 use OCA\Libresign\Controller\IdDocsController;
+use OCA\Libresign\Exception\FileProcessingValidationException;
 use OCA\Libresign\Exception\IdDocsUploadValidationException;
 use OCA\Libresign\Exception\LibresignException;
 use OCA\Libresign\Service\IdDocsService;
@@ -62,7 +63,12 @@ class IdDocsControllerTest extends TestCase {
 				$genericError,
 				true,
 			],
-			'generic LibresignException containing file shaped JSON' => [
+				'raw file processing exception is not trusted by the controller' => [
+				new FileProcessingValidationException('internal-canary-123'),
+				$genericError,
+				true,
+			],
+		'generic LibresignException containing file shaped JSON' => [
 				new LibresignException(json_encode(['file' => 0, 'type' => 'danger', 'message' => 'internal-canary-123'])),
 				$genericError,
 				true,
