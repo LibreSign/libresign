@@ -1319,9 +1319,7 @@ class SignFileService {
 			return null;
 		}
 
-		try {
-			$this->idDocsMapper->getByFileId($file->getId());
-		} catch (\Throwable) {
+		if (!$this->identityDocumentValidator->canApproverSignIdDoc($user, $file->getId(), $file->getStatus())) {
 			return null;
 		}
 
@@ -1375,6 +1373,15 @@ class SignFileService {
 
 	public function getSignRequestToSign(FileEntity $libresignFile, ?string $signRequestUuid, ?IUser $user): SignRequestEntity {
 		$this->signingRequestValidator->fileCanBeSigned($libresignFile);
+		try {
+			$idDoc = $this->idDocsMapper->getByFileId($libresignFile->getId());
+			if ($idDoc instanceof IdDocs && $idDoc->getRejectedAt() !== null) {
+				// TRANSLATORS Error when a rejected identification document is submitted for signing by any route.
+				throw new LibresignException($this->l10n->t('Rejected identification documents cannot be signed.'));
+			}
+		} catch (DoesNotExistException) {
+			// Ordinary signing files are not identification documents.
+		}
 		try {
 			if (!empty($signRequestUuid)) {
 				$signRequest = $this->getSignRequestByUuid($signRequestUuid);

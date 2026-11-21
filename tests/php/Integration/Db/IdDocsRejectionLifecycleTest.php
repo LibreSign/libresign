@@ -180,6 +180,19 @@ final class IdDocsRejectionLifecycleTest extends TestCase {
 		$this->assertSame($firstFile->getId(), $this->documents->getByFileId($firstFile->getId())->getFileId());
 	}
 
+	#[DataProvider('signerTypes')]
+	public function testLegacyDuplicateActiveDocumentsStillBlockFurtherUploads(bool $accountSigner): void {
+		[$request] = $this->submittedDocument($accountSigner);
+		$duplicateFile = $this->newFile(3);
+		$this->documents->save(
+			$duplicateFile->getId(),
+			$request->getId(),
+			$accountSigner ? 'synthetic-signer' : null,
+			'IDENTIFICATION',
+		);
+		$this->assertReplacementIsBlocked($accountSigner, $request->getId());
+	}
+
 	/** @return array{SignRequest, File, IdDocs} */
 	private function submittedDocument(bool $accountSigner): array {
 		$file = $this->newFile(1);
