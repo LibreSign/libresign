@@ -245,4 +245,14 @@ final class SignFileControllerTest extends TestCase {
 		return $signRequest;
 	}
 
+	public function testSigningWithoutConsentDoesNotSaveEmailSignature(): void {
+		$this->prepareSigning();
+		$this->emailSignerElementsService->expects($this->never())->method('prepareSignature');
+		$this->emailSignerElementsService->expects($this->never())->method('saveSignature');
+
+		$response = $this->getController()->signBySignerUuid('signer-uuid', 'email');
+
+		$this->assertSame(Http::STATUS_OK, $response->getStatus());
+	}
+
 }
