@@ -249,15 +249,18 @@ class PhpNativeHandler extends Pkcs12Handler {
 	}
 
 	private function resolveCertificationLevel(bool $noVisibleElements): ?CertificationLevel {
-		if (!$this->docMdpConfigService->isEnabled()) {
+		$level = $this->getDocMdpLevel();
+		if ($level === null && $this->docMdpConfigService->isEnabled()) {
+			$level = $this->docMdpConfigService->getLevel();
+		}
+		if ($level === null || !$level->isCertifying()) {
 			return null;
 		}
 
-		// DocMDP values mirror CertificationLevel: 1=NoChanges, 2=FormFilling, 3=FormFillAndAnnotations
-		$level = $this->docMdpConfigService->getLevel()->value;
 		// Only certify on invisible signatures or on the first visible element
 		if ($noVisibleElements || !$this->hasExistingSignatures($this->getInputFile()->getContent())) {
-			return CertificationLevel::fromInt($level);
+			// DocMDP values mirror CertificationLevel: 1=NoChanges, 2=FormFilling, 3=FormFillAndAnnotations
+			return CertificationLevel::fromInt($level->value);
 		}
 
 		return null;

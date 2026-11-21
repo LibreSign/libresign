@@ -194,11 +194,12 @@ class JSignPdfHandler extends Pkcs12Handler {
 	}
 
 	private function getCertificationLevel(): ?string {
-		if (!$this->docMdpConfigService->isEnabled()) {
-			return null;
+		$level = $this->getDocMdpLevel();
+		if ($level === null && $this->docMdpConfigService->isEnabled()) {
+			$level = $this->docMdpConfigService->getLevel();
 		}
 
-		return $this->docMdpConfigService->getLevel()->name;
+		return $level !== null && $level->isCertifying() ? $level->name : null;
 	}
 
 	#[\Override]
@@ -214,6 +215,9 @@ class JSignPdfHandler extends Pkcs12Handler {
 	public function getSignedContent(): string {
 		$normalizedPdf = $this->normalizePdfVersion($this->getInputFile()->getContent());
 		$hashAlgorithm = $this->hashAlgorithmResolver->forSignature($this->extractPdfVersion($normalizedPdf));
+		// Options only accumulate on the params, so a reused handler would carry
+		// the certification level of the previous document into this one.
+		$this->jSignParam = null;
 		$param = $this->getJSignParam();
 		$param->setCertificate($this->getCertificate())
 			->setPdf($normalizedPdf)

@@ -9,6 +9,7 @@ declare(strict_types=1);
 
 namespace OCA\Libresign\Tests\Unit\Db;
 
+use OC\DB\ConnectionAdapter;
 use OCA\Libresign\Db\Crl;
 use OCA\Libresign\Db\CrlMapper;
 use OCA\Libresign\Enum\CRLStatus;
@@ -21,10 +22,14 @@ use PHPUnit\Framework\Attributes\DataProvider;
  */
 final class CrlMapperDbTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	private CrlMapper $crlMapper;
+	private IDBConnection $connection;
 
 	public function setUp(): void {
 		parent::setUp();
-		$this->crlMapper = Server::get(CrlMapper::class);
+		$connection = Server::get(ConnectionAdapter::class);
+		self::assertInstanceOf(IDBConnection::class, $connection);
+		$this->connection = $connection;
+		$this->crlMapper = new CrlMapper($connection);
 		$this->cleanupCrlTable();
 	}
 
@@ -83,11 +88,7 @@ final class CrlMapperDbTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	}
 
 	private function cleanupCrlTable(): void {
-		$connection = Server::get(IDBConnection::class);
-		if ($connection === null) {
-			return;
-		}
-		$connection->getQueryBuilder()
+		$this->connection->getQueryBuilder()
 			->delete('libresign_crl')
 			->executeStatement();
 	}

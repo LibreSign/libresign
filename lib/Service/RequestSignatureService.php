@@ -351,6 +351,16 @@ class RequestSignatureService {
 		if (!empty($data['uuid'])) {
 			$file = $this->fileMapper->getByUuid($data['uuid']);
 			$this->filePolicyApplier->syncCoreFlowPolicies($file, $data);
+			if ($file->isEnvelope()
+				&& $file->getStatus() === FileStatus::DRAFT->value
+				&& ($data['status'] ?? null) === FileStatus::ABLE_TO_SIGN->value
+			) {
+				// Resolve each draft document before freezing the envelope:
+				// its frozen state also applies to children that have not transitioned yet.
+				foreach ($this->fileMapper->getChildrenFiles($file->getId()) as $child) {
+					$this->filePolicyApplier->syncCoreFlowPolicies($child, $data);
+				}
+			}
 			if (!empty($data['name'])) {
 				$file->setName($data['name']);
 				$this->fileService->update($file);
@@ -418,6 +428,30 @@ class RequestSignatureService {
 
 		$this->fileMapper->insert($file);
 		return $file;
+	}
+
+	/**
+	 * The file LibreSign already registered for the node a request points at,
+	 * which the request then updates instead of creating another one.
+	 */
+	private function getFileOfNode(array $data): ?FileEntity {
+		$nodeId = null;
+		if (isset($data['file']['fileNode']) && $data['file']['fileNode'] instanceof Node) {
+			$nodeId = $data['file']['fileNode']->getId();
+		} elseif (!empty($data['file']['nodeId'])) {
+			$nodeId = $data['file']['nodeId'];
+		}
+		if (is_null($nodeId)) {
+			return null;
+		}
+		try {
+			return $this->fileMapper->getByNodeId($nodeId);
+		} catch (DoesNotExistException) {
+			return null;
+		} catch (MultipleObjectsReturnedException) {
+			// TRANSLATORS Error shown when a document cannot be updated because LibreSign has more than one record for it.
+			throw new LibresignException($this->l10n->t('This document is registered more than once, so it cannot be updated. Please contact your administrator.'), 422);
+		}
 	}
 
 	private function getFileMetadata(\OCP\Files\Node $node): array {

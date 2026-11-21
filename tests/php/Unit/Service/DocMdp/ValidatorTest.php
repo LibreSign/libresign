@@ -13,6 +13,7 @@ use OCA\Libresign\Db\FileMapper;
 use OCA\Libresign\Enum\DocMdpLevel;
 use OCA\Libresign\Exception\LibresignException;
 use OCA\Libresign\Service\DocMdp\ConfigService;
+use OCA\Libresign\Service\DocMdp\LevelResolver;
 use OCA\Libresign\Service\DocMdp\Validator;
 use OCA\Libresign\Service\File\Pdf\PdfValidator;
 use OCP\Files\IRootFolder;
@@ -27,6 +28,7 @@ final class ValidatorTest extends TestCase {
 	private ConfigService&MockObject $configService;
 	private PdfValidator&MockObject $pdfValidator;
 	private IRootFolder&MockObject $root;
+	private LevelResolver&MockObject $levelResolver;
 
 	protected function setUp(): void {
 		$this->l10n = $this->createMock(IL10N::class);
@@ -37,6 +39,7 @@ final class ValidatorTest extends TestCase {
 		$this->configService = $this->createMock(ConfigService::class);
 		$this->pdfValidator = $this->createMock(PdfValidator::class);
 		$this->root = $this->createMock(IRootFolder::class);
+		$this->levelResolver = $this->createMock(LevelResolver::class);
 	}
 
 	private function createValidator(): Validator {
@@ -46,6 +49,7 @@ final class ValidatorTest extends TestCase {
 			$this->configService,
 			$this->pdfValidator,
 			$this->root,
+			$this->levelResolver,
 		);
 	}
 
@@ -64,6 +68,10 @@ final class ValidatorTest extends TestCase {
 			->method('getByUuid')
 			->with('uuid-1')
 			->willReturn($file);
+		$this->levelResolver
+			->method('resolveLevel')
+			->with($this->identicalTo($file))
+			->willReturn($docMdpLevel);
 
 		$validator = $this->createValidator();
 
@@ -141,26 +149,58 @@ final class ValidatorTest extends TestCase {
 		$this->addToAssertionCount(1);
 	}
 
-	public function testValidateSignersCountUsesConfigWhenUuidMissing(): void {
+	public function testValidateSignersCountUsesTheLevelResolvedForANewRequest(): void {
+		$data = [
+			'policyOverrides' => ['docmdp' => DocMdpLevel::CERTIFIED_NO_CHANGES_ALLOWED->value],
+			'signers' => [
+				['identifyMethods' => [['method' => 'email', 'value' => 'one@example.com']]],
+				['identifyMethods' => [['method' => 'email', 'value' => 'two@example.com']]],
+			],
+		];
 		$this->fileMapper
 			->expects($this->never())
 			->method('getByUuid');
+		$this->levelResolver
+			->expects($this->once())
+			->method('resolveLevel')
+			->with(null, $data)
+			->willReturn(DocMdpLevel::CERTIFIED_NO_CHANGES_ALLOWED);
 		$this->configService
 			->method('getLevel')
-			->willReturn(DocMdpLevel::CERTIFIED_NO_CHANGES_ALLOWED);
+			->willReturn(DocMdpLevel::CERTIFIED_FORM_FILLING);
 
 		$validator = $this->createValidator();
 		$this->expectException(LibresignException::class);
 
-		$validator->validateSignersCount([
+		$validator->validateSignersCount($data);
+	}
+
+	public function testValidateSignersCountKeepsAStoredUncertifiedLevel(): void {
+		$file = new File();
+		$file->setDocmdpLevel(0);
+
+		$this->fileMapper
+			->method('getByUuid')
+			->with('uuid-1')
+			->willReturn($file);
+		$this->levelResolver
+			->method('resolveLevel')
+			->willReturn(DocMdpLevel::NOT_CERTIFIED);
+		$this->configService
+			->method('getLevel')
+			->willReturn(DocMdpLevel::CERTIFIED_NO_CHANGES_ALLOWED);
+
+		$this->createValidator()->validateSignersCount([
+			'uuid' => 'uuid-1',
 			'signers' => [
 				['identifyMethods' => [['method' => 'email', 'value' => 'one@example.com']]],
 				['identifyMethods' => [['method' => 'email', 'value' => 'two@example.com']]],
 			],
 		]);
+		$this->addToAssertionCount(1);
 	}
 
-	public function testValidateSignersCountFallsBackToConfigWhenDocMdpLevelZero(): void {
+	public function testValidateSignersCountUsesTheCurrentLevelWhenNoneIsStored(): void {
 		$file = new File();
 		$file->setDocmdpLevel(0);
 		$file->setSignedHash('hash');
@@ -169,6 +209,9 @@ final class ValidatorTest extends TestCase {
 			->method('getByUuid')
 			->with('uuid-1')
 			->willReturn($file);
+		$this->levelResolver
+			->method('resolveLevel')
+			->willReturn(null);
 		$this->configService
 			->method('getLevel')
 			->willReturn(DocMdpLevel::CERTIFIED_NO_CHANGES_ALLOWED);
@@ -180,7 +223,6 @@ final class ValidatorTest extends TestCase {
 			'uuid' => 'uuid-1',
 			'signers' => [
 				['identifyMethods' => [['method' => 'email', 'value' => 'one@example.com']]],
-				['identifyMethods' => [['method' => 'email', 'value' => 'two@example.com']]],
 			],
 		]);
 	}

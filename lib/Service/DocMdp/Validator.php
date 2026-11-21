@@ -11,10 +11,13 @@ namespace OCA\Libresign\Service\DocMdp;
 
 use OCA\Libresign\Db\File;
 use OCA\Libresign\Db\FileMapper;
+use OCA\Libresign\Enum\DocMdpLevel;
 use OCA\Libresign\Exception\LibresignException;
 use OCA\Libresign\Service\File\Pdf\PdfValidator;
 use OCP\AppFramework\Db\DoesNotExistException;
+use OCP\AppFramework\Db\MultipleObjectsReturnedException;
 use OCP\Files\IRootFolder;
+use OCP\Files\Node;
 use OCP\IL10N;
 
 class Validator {
@@ -24,6 +27,7 @@ class Validator {
 		private ConfigService $configService,
 		private PdfValidator $pdfValidator,
 		private IRootFolder $root,
+		private LevelResolver $levelResolver,
 	) {
 	}
 
@@ -76,21 +80,39 @@ class Validator {
 	}
 
 	private function getDocMdpLevel(array $data, ?File &$file): int {
-		$docMdpLevel = null;
-
 		if (!empty($data['uuid'])) {
 			try {
 				$file = $this->fileMapper->getByUuid($data['uuid']);
-				$docMdpLevel = $file->getDocmdpLevel();
 			} catch (DoesNotExistException) {
-				// File doesn't exist, use global configured level
+				// File doesn't exist, resolve the level of a new request
+			}
+		} elseif (isset($data['file']) && is_array($data['file'])) {
+			$node = $data['file']['fileNode'] ?? null;
+			$nodeId = $node instanceof Node ? $node->getId() : ($data['file']['nodeId'] ?? null);
+			if (is_int($nodeId) || (is_string($nodeId) && ctype_digit($nodeId))) {
+				try {
+					$file = $this->fileMapper->getByNodeId((int)$nodeId);
+				} catch (DoesNotExistException) {
+					// A new node has no stored certification level yet.
+				} catch (MultipleObjectsReturnedException) {
+					// TRANSLATORS Error when a document has multiple LibreSign records.
+					throw new LibresignException($this->l10n->t('This document is registered more than once, so it cannot be updated. Please contact your administrator.'), 422);
+				}
 			}
 		}
 
-		if ($docMdpLevel === null || $docMdpLevel === 0) {
-			return $this->configService->getLevel()->value;
+		$documents = $file?->isEnvelope() ? $this->fileMapper->getChildrenFiles($file->getId()) : [];
+		if ($documents === []) {
+			$documents = [$file];
 		}
+		$levels = array_map(
+			fn (?File $document): int => ($this->levelResolver->resolveLevel($document, $data, $this->fileMapper)
+				?? $this->configService->getLevel())->value,
+			$documents,
+		);
 
-		return $docMdpLevel;
+		return in_array(DocMdpLevel::CERTIFIED_NO_CHANGES_ALLOWED->value, $levels, true)
+			? DocMdpLevel::CERTIFIED_NO_CHANGES_ALLOWED->value
+			: $levels[0];
 	}
 }

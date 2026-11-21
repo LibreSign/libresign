@@ -317,6 +317,26 @@ final class PhpNativeHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		];
 	}
 
+	#[DataProvider('providerTheGivenLevelWinsOverTheCurrentLevel')]
+	public function testTheGivenLevelWinsOverTheCurrentLevel(?DocMdpLevel $givenLevel, DocMdpLevel $currentLevel, ?CertificationLevel $expected): void {
+		$this->docMdpConfigService->method('isEnabled')->willReturn($currentLevel->isCertifying());
+		$this->docMdpConfigService->method('getLevel')->willReturn($currentLevel);
+
+		$handler = $this->getHandler();
+		$handler->setDocMdpLevel($givenLevel);
+
+		$this->assertSame($expected, $this->callPrivateMethod($handler, 'resolveCertificationLevel', true));
+	}
+
+	public static function providerTheGivenLevelWinsOverTheCurrentLevel(): array {
+		return [
+			'another certifying level' => [DocMdpLevel::CERTIFIED_FORM_FILLING_AND_ANNOTATIONS, DocMdpLevel::CERTIFIED_NO_CHANGES_ALLOWED, CertificationLevel::FormFillSignaturesAndAnnotations],
+			'not certified while the current level certifies' => [DocMdpLevel::NOT_CERTIFIED, DocMdpLevel::CERTIFIED_FORM_FILLING, null],
+			'certified while the current level does not' => [DocMdpLevel::CERTIFIED_NO_CHANGES_ALLOWED, DocMdpLevel::NOT_CERTIFIED, CertificationLevel::NoChangesAllowed],
+			'no level given falls back to the current level' => [null, DocMdpLevel::CERTIFIED_FORM_FILLING, CertificationLevel::FormFillAndSignatures],
+		];
+	}
+
 	public function testBuildAppearanceForElementSetsSignatureImageInGraphicAndDescriptionMode(): void {
 		$imagePath = realpath(__DIR__ . '/../../../../../img/app-dark.png');
 		$this->assertNotFalse($imagePath, 'Test image must exist');
