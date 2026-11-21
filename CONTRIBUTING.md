@@ -68,22 +68,8 @@ When updating your branch with changes from `main`, rebasing is preferred when p
 
 ### Vendored Composer dependencies
 
-Dependency upgrades for the `3rdparty` Git submodule are reviewed in
-[LibreSign/3rdparty](https://github.com/LibreSign/3rdparty/pulls), not by
-editing PHP-Scoper's generated files in this repository.
-
-Maintainers should follow the
-[3rdparty dependency update runbook](https://github.com/LibreSign/3rdparty/blob/main/README.md#updating-dependencies):
-`/composer-update` on the 3rdparty PR, green source CI,
-`/libresign-pr` to create the corresponding LibreSign PR,
-merge the 3rdparty PR, then `/update-3rdparty` on the LibreSign PR
-to reference the source **merge SHA**. Review the new LibreSign CI before
-merging the destination PR.
-
-If 3rdparty has already been merged, create a narrowly scoped LibreSign PR
-pointing to the already merged SHA. Preserve incremental signed, DCO-compliant
-commits; do not amend or force-push a reviewed branch. Verify the new merge
-commit's DCO and cryptographic signature separately from the PR checks.
+Maintainers updating the `3rdparty` submodule should follow the
+[dependency update procedure in the Developer Manual](https://docs.libresign.coop/main/developer_manual/dependency-updates.html).
 
 ### Translation
 
