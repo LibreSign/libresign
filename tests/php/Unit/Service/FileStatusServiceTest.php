@@ -11,7 +11,9 @@ namespace OCA\Libresign\Tests\Unit\Service;
 use DateTimeInterface;
 use OCA\Libresign\Db\File as FileEntity;
 use OCA\Libresign\Db\FileMapper;
+use OCA\Libresign\Enum\DocMdpLevel;
 use OCA\Libresign\Enum\FileStatus;
+use OCA\Libresign\Service\DocMdp\ConfigService as DocMdpConfigService;
 use OCA\Libresign\Service\FileStatusService;
 use OCA\Libresign\Service\SignRequest\StatusCacheService;
 use PHPUnit\Framework\Attributes\DataProvider;
@@ -22,11 +24,16 @@ class FileStatusServiceTest extends TestCase {
 	private FileMapper|MockObject $fileMapper;
 	private StatusCacheService|MockObject $statusCacheService;
 	private FileStatusService $service;
+	private DocMdpConfigService&MockObject $docMdpConfigService;
+	private DocMdpLevel $currentLevel;
 
 	protected function setUp(): void {
 		$this->fileMapper = $this->createMock(FileMapper::class);
 		$this->statusCacheService = $this->createMock(StatusCacheService::class);
-		$this->service = new FileStatusService($this->fileMapper, $this->statusCacheService);
+		$this->currentLevel = DocMdpLevel::CERTIFIED_FORM_FILLING;
+		$this->docMdpConfigService = $this->createMock(DocMdpConfigService::class);
+		$this->docMdpConfigService->method('getLevel')->willReturnCallback(fn (): DocMdpLevel => $this->currentLevel);
+		$this->service = new FileStatusService($this->fileMapper, $this->statusCacheService, $this->docMdpConfigService);
 	}
 
 	#[DataProvider('dataFileStatusUpgrade')]
@@ -75,6 +82,46 @@ class FileStatusServiceTest extends TestCase {
 			[$signed, $partial, false],
 			[$deleted, $draft, false],
 		];
+	}
+
+	public function testFirstSendFreezesCurrentLevelAndResendCannotReResolveIt(): void {
+		$file = new FileEntity();
+		$file->setStatus(FileStatus::DRAFT->value);
+		$file->setDocmdpLevelEnum(DocMdpLevel::CERTIFIED_NO_CHANGES_ALLOWED);
+
+		$this->service->updateFileStatusIfUpgrade($file, FileStatus::ABLE_TO_SIGN->value);
+		$this->assertSame(DocMdpLevel::CERTIFIED_FORM_FILLING, $file->getDocmdpLevelEnum());
+
+		$this->currentLevel = DocMdpLevel::CERTIFIED_NO_CHANGES_ALLOWED;
+		$file->setStatus(FileStatus::DRAFT->value);
+		$this->service->updateFileStatusIfUpgrade($file, FileStatus::ABLE_TO_SIGN->value);
+
+		$this->assertSame(DocMdpLevel::CERTIFIED_FORM_FILLING, $file->getDocmdpLevelEnum());
+		$this->assertTrue(($file->getMetadata() ?? [])['docmdp_level_frozen']);
+	}
+
+	public function testEnvelopeChildrenFreezeTheCurrentLevelWhenSent(): void {
+		$envelope = new FileEntity();
+		$envelope->setId(1);
+		$envelope->setNodeType('envelope');
+		$envelope->setStatus(FileStatus::ABLE_TO_SIGN->value);
+		$children = [];
+		foreach ([10, 11] as $id) {
+			$child = new FileEntity();
+			$child->setId($id);
+			$child->setStatus(FileStatus::DRAFT->value);
+			$child->setDocmdpLevelEnum(DocMdpLevel::CERTIFIED_NO_CHANGES_ALLOWED);
+			$children[] = $child;
+		}
+		$this->fileMapper->method('getById')->willReturn($envelope);
+		$this->fileMapper->method('getChildrenFiles')->willReturn($children);
+
+		$this->service->propagateStatusToChildren(1, FileStatus::ABLE_TO_SIGN->value);
+
+		foreach ($children as $child) {
+			$this->assertSame(DocMdpLevel::CERTIFIED_FORM_FILLING, $child->getDocmdpLevelEnum());
+			$this->assertTrue(($child->getMetadata() ?? [])['docmdp_level_frozen']);
+		}
 	}
 
 	#[DataProvider('dataCanNotifySigners')]

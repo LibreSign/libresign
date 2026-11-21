@@ -190,6 +190,11 @@ class JSignPdfHandler extends Pkcs12Handler {
 	}
 
 	private function getCertificationLevel(): ?string {
+		$stored = $this->getDocMdpLevel();
+		if ($stored !== null) {
+			return $stored->isCertifying() ? $stored->name : null;
+		}
+
 		if (!$this->docMdpConfigService->isEnabled()) {
 			return null;
 		}
@@ -210,7 +215,9 @@ class JSignPdfHandler extends Pkcs12Handler {
 	public function getSignedContent(): string {
 		$normalizedPdf = $this->normalizePdfVersion($this->getInputFile()->getContent());
 		$hashAlgorithm = $this->hashAlgorithmResolver->forSignature($this->extractPdfVersion($normalizedPdf));
-		$param = $this->getJSignParam();
+		// A handler may sign several files. Never reuse options left by a
+		// previous certification (including -cl) for a different document.
+		$param = clone $this->getJSignParam();
 		$param->setCertificate($this->getCertificate())
 			->setPdf($normalizedPdf)
 			->setPassword($this->getPassword());
@@ -227,7 +234,7 @@ class JSignPdfHandler extends Pkcs12Handler {
 			$param->setTsaPassword($tsaPassword);
 		}
 
-		$signed = $this->signUsingVisibleElements($normalizedPdf, $hashAlgorithm);
+		$signed = $this->signUsingVisibleElements($normalizedPdf, $hashAlgorithm, $param);
 		if ($signed) {
 			return $signed;
 		}
@@ -238,7 +245,7 @@ class JSignPdfHandler extends Pkcs12Handler {
 		return $this->signWrapper($jSignPdf);
 	}
 
-	private function signUsingVisibleElements(string $normalizedPdf, string $hashAlgorithm): string {
+	private function signUsingVisibleElements(string $normalizedPdf, string $hashAlgorithm, JSignParam $originalParam): string {
 		$visibleElements = $this->getVisibleElements();
 		if ($visibleElements) {
 			$jSignPdf = $this->getJSignPdf();
@@ -274,8 +281,6 @@ class JSignPdfHandler extends Pkcs12Handler {
 			$certificationLevel = $this->getCertificationLevel();
 			$applyCertification = $certificationLevel !== null && !$this->hasExistingSignatures($normalizedPdf);
 			$elementIndex = 0;
-
-			$originalParam = $this->getJSignParam();
 
 			foreach ($visibleElements as $element) {
 				$elementIndex++;

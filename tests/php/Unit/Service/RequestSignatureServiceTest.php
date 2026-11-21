@@ -16,6 +16,7 @@ use OCA\Libresign\Db\IdentifyMethod;
 use OCA\Libresign\Db\IdentifyMethodMapper;
 use OCA\Libresign\Db\SignRequest;
 use OCA\Libresign\Db\SignRequestMapper;
+use OCA\Libresign\Enum\DocMdpLevel;
 use OCA\Libresign\Enum\SignatureFlow;
 use OCA\Libresign\Exception\LibresignException;
 use OCA\Libresign\Handler\DocMdpHandler;
@@ -235,6 +236,7 @@ final class RequestSignatureServiceTest extends \OCA\Libresign\Tests\Unit\TestCa
 
 	public function testSaveFileCreatesNewRecordOnlyForMissingNode(): void {
 		$this->appConfig->method('getValueString')->willReturn(SignatureFlow::NONE->value);
+		$this->docMdpConfigService->method('getLevel')->willReturn(DocMdpLevel::NOT_CERTIFIED);
 		$this->fileMapper->method('getByNodeId')
 			->willThrowException(new \OCP\AppFramework\Db\DoesNotExistException('not found'));
 		$node = $this->createMock(\OCP\Files\File::class);
