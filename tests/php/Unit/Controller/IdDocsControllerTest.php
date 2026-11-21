@@ -63,12 +63,12 @@ class IdDocsControllerTest extends TestCase {
 				$genericError,
 				true,
 			],
-				'raw file processing exception is not trusted by the controller' => [
+			'raw file processing exception is not trusted by the controller' => [
 				new FileProcessingValidationException('internal-canary-123'),
 				$genericError,
 				true,
 			],
-		'generic LibresignException containing file shaped JSON' => [
+			'generic LibresignException containing file shaped JSON' => [
 				new LibresignException(json_encode(['file' => 0, 'type' => 'danger', 'message' => 'internal-canary-123'])),
 				$genericError,
 				true,
