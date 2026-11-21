@@ -228,7 +228,7 @@ final class RequestSignatureServiceTest extends \OCA\Libresign\Tests\Unit\TestCa
 		try {
 			$this->getService()->saveFile(['file' => ['nodeId' => 171], 'userManager' => $this->user]);
 			$this->fail('Duplicate file records must be rejected.');
-		} catch (LibresignException $e) {
+		} catch (\OCA\Libresign\Exception\FileProcessingValidationException $e) {
 			$this->assertSame(422, $e->getCode());
 			$this->assertStringNotContainsString('SELECT', $e->getMessage());
 		}
