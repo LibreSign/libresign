@@ -20,9 +20,21 @@ jobs:
         with:
           require: write
 
+      - name: Create scoped GitHub App token
+        id: workflow-app-token
+        uses: actions/create-github-app-token@64ab729a6294000f5aa4a4bc0b73d1f32bc45510 # v3.3.0
+        with:
+          client-id: ${{ vars.WORKFLOW_SYNC_APP_CLIENT_ID }}
+          private-key: ${{ secrets.WORKFLOW_SYNC_APP_PRIVATE_KEY }}
+          owner: ${{ github.repository_owner }}
+          repositories: ${{ github.event.repository.name }}
+          permission-contents: write
+          permission-pull-requests: write
+          permission-workflows: write
+
       - name: Update merged submodule reference
         uses: LibreCodeCoop/.github/actions/update-submodule@2a75cff7318334499053ced8b72d04bc0f795baf # source pinned
         with:
-          token: ${{ secrets.COMMAND_BOT_PAT }} # zizmor: ignore[secrets-outside-env]
+          token: ${{ steps.workflow-app-token.outputs.token }}
           source-repository: LibreSign/3rdparty
           submodule-path: 3rdparty
