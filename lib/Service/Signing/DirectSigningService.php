@@ -132,8 +132,8 @@ class DirectSigningService {
 	 * @return array<string, mixed>
 	 */
 	private function resolveDirectSigningSource(IUser $user, array $source): array {
-		if (isset($source['base64'])) {
-			return $source;
+		if (($source['base64'] ?? '') !== '') {
+			return ['base64' => $source['base64']];
 		}
 
 		$source = $this->fileInputValidator->normalizeNodeId($source);
@@ -169,6 +169,9 @@ class DirectSigningService {
 		}
 		if ($method === 'password' && $token === '') {
 			throw new LibresignException('The certificate password is required.', Http::STATUS_BAD_REQUEST);
+		}
+		if (array_key_exists('base64', $file) && !is_string($file['base64'])) {
+			throw new LibresignException('Provide exactly one PDF as file.base64, file.nodeId, or file.path.', Http::STATUS_BAD_REQUEST);
 		}
 		$inputs = 0;
 		foreach (['base64', 'nodeId', 'path'] as $key) {

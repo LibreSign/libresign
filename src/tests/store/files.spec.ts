@@ -1198,14 +1198,19 @@ describe('files store - critical business rules', () => {
 			expect(store.selectedFileId).toBe(0)
 		})
 
-		it('does not select a different file returned by a filtered refresh', async () => {
+		it('selects a signed copy whose record retains the original nodeId', async () => {
 			const store = useFilesStore()
-			vi.spyOn(store, 'getAllFiles').mockResolvedValue({
-				91: { id: 91, nodeId: 999, name: 'other.pdf' },
+			const getAllFiles = vi.spyOn(store, 'getAllFiles').mockResolvedValue({
+				91: { id: 91, nodeId: 999, name: 'original.pdf', status: 3 },
 			})
 
-			expect(await store.selectFileByNodeId(222)).toBeNull()
-			expect(store.selectedFileId).toBe(0)
+			expect(await store.selectFileByNodeId(222)).toBe(91)
+			expect(getAllFiles).toHaveBeenCalledWith({
+				'nodeIds[]': [222],
+				force_fetch: true,
+			})
+			expect(store.selectedFileId).toBe(91)
+			expect(store.files[91]).toMatchObject({ id: 91, nodeId: 999, status: 3 })
 		})
 
 		it('fetches file when nodeId missing', async () => {

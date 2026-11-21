@@ -433,9 +433,6 @@ const _filesStore = defineStore('files', () => {
 			})
 
 			for (const [, file] of Object.entries(allFiles)) {
-				if (String(file.nodeId) !== String(nodeId)) {
-					continue
-				}
 				store.addFile(file)
 				fileId = file.id
 				break
