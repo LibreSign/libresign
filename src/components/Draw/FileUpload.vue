@@ -18,11 +18,11 @@
 				@change="fileSelect">
 		</div>
 
-		<div v-if="hasImage" ref="cropperContainer" class="cropper-container">
+		<div v-if="hasImage" class="cropper-container">
 			<Cropper ref="cropper"
 				:src="image"
-				:default-size="defaultStencilSize"
 				:stencil-props="stencilProps"
+				:canvas="canvasConstraints"
 				image-restriction="none"
 				@change="change" />
 			<div class="zoom-controls">
@@ -110,7 +110,7 @@ import {
 	mdiMagnifyMinusOutline,
 	mdiMagnifyPlusOutline,
 } from '@mdi/js'
-import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
+import { computed, nextTick, ref, watch } from 'vue'
 import { Cropper } from 'vue-advanced-cropper'
 import { getCapabilities } from '@nextcloud/capabilities'
 
@@ -145,11 +145,6 @@ type CropperInstance = {
 	getResult?: () => CropperResult
 }
 
-type ResizeObserverLike = {
-	disconnect: () => void
-	observe: (target: Element) => void
-}
-
 defineOptions({
 	name: 'FileUpload',
 })
@@ -180,13 +175,10 @@ const confirmSignatureDialogTitle = t('libresign', 'Confirm your signature')
 
 const file = ref<HTMLInputElement | null>(null)
 const cropper = ref<CropperInstance | null>(null)
-const cropperContainer = ref<HTMLElement | null>(null)
-const resizeObserver = ref<ResizeObserverLike | null>(null)
 
 const modal = ref(false)
 const image = ref('')
 const imageData = ref('')
-const containerWidth = ref(0)
 const pendingFitCenter = ref(false)
 const zoomLevel = ref(1)
 const zoomMin = 0.1
@@ -219,36 +211,17 @@ const stencilProps = computed(() => ({
 	aspectRatio: stencilAspectRatio.value,
 }))
 
-const defaultStencilSize = computed(() => {
-	if (!containerWidth.value) {
-		return {
-			width: stencilBaseWidth,
-			height: stencilBaseHeight,
-		}
-	}
-	const availableWidth = Math.max(0, containerWidth.value - 24)
-	const scale = Math.min(1, availableWidth / stencilBaseWidth)
-	return {
-		width: Math.floor(stencilBaseWidth * scale),
-		height: Math.floor(stencilBaseHeight * scale),
-	}
-})
-
-function initResizeObserver() {
-	if (!window.ResizeObserver || !cropperContainer.value) {
-		return
-	}
-	if (!resizeObserver.value) {
-		resizeObserver.value = new window.ResizeObserver(() => updateContainerWidth()) as ResizeObserverLike
-	} else {
-		resizeObserver.value.disconnect()
-	}
-	resizeObserver.value.observe(cropperContainer.value)
-}
-
-function updateContainerWidth() {
-	containerWidth.value = cropperContainer.value?.offsetWidth || 0
-}
+// Keep the source resolution where possible, but bound the exported PNG.
+// A one-megapixel RGBA canvas stays under the backend's 5000 KiB image limit.
+const canvasConstraints = computed(() => ({
+	maxWidth: Number.isFinite(stencilBaseWidth) && stencilBaseWidth > 0
+		? stencilBaseWidth * 3
+		: undefined,
+	maxHeight: Number.isFinite(stencilBaseHeight) && stencilBaseHeight > 0
+		? stencilBaseHeight * 3
+		: undefined,
+	maxArea: 1_000_000,
+}))
 
 function updateZoomLevel(result?: CropperResult) {
 	if (result) {
@@ -387,35 +360,12 @@ function close() {
 	emit('close')
 }
 
-onMounted(() => {
-	updateContainerWidth()
-	if (window.ResizeObserver) {
-		void nextTick(() => {
-			initResizeObserver()
-		})
-	} else {
-		window.addEventListener('resize', updateContainerWidth)
-	}
-})
-
-onBeforeUnmount(() => {
-	resizeObserver.value?.disconnect()
-	window.removeEventListener('resize', updateContainerWidth)
-})
-
 watch(hasImage, value => {
-	if (value) {
-		void nextTick(() => {
-			updateContainerWidth()
-			initResizeObserver()
-		})
-		return
+	if (!value) {
+		zoomLevel.value = 1
+		pendingFitCenter.value = false
+		imageData.value = ''
 	}
-	resizeObserver.value?.disconnect()
-	containerWidth.value = 0
-	zoomLevel.value = 1
-	pendingFitCenter.value = false
-	imageData.value = ''
 })
 
 defineExpose({
@@ -425,12 +375,9 @@ defineExpose({
 	mdiFitToPageOutline,
 	file,
 	cropper,
-	cropperContainer,
-	resizeObserver,
 	modal,
 	image,
 	imageData,
-	containerWidth,
 	pendingFitCenter,
 	zoomLevel,
 	zoomMin,
@@ -443,9 +390,6 @@ defineExpose({
 	zoomPercentValue,
 	stencilAspectRatio,
 	stencilProps,
-	defaultStencilSize,
-	initResizeObserver,
-	updateContainerWidth,
 	updateZoomLevel,
 	updateZoomLevelFromResult,
 	zoomBy,

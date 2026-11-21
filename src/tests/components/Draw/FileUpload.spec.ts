@@ -59,7 +59,7 @@ vi.mock('vue-advanced-cropper', () => ({
 	Cropper: {
 		name: 'Cropper',
 		template: '<div class="cropper-stub" />',
-		props: ['src', 'defaultSize', 'stencilProps', 'imageRestriction'],
+		props: ['src', 'defaultSize', 'stencilProps', 'imageRestriction', 'canvas'],
 		emits: ['change'],
 		methods: {
 			zoom: vi.fn(),
@@ -75,31 +75,47 @@ vi.mock('vue-advanced-cropper', () => ({
 describe('FileUpload.vue - Uploaded signature flow', () => {
 	beforeEach(() => {
 		vi.clearAllMocks()
-		vi.stubGlobal('ResizeObserver', class {
-			observe = vi.fn()
-			disconnect = vi.fn()
-		})
 	})
 
 	function mountComponent() {
 		return mount(FileUpload)
 	}
 
-	it('initializes stencil dimensions from capabilities', () => {
+	it('keeps the configured signature aspect ratio', () => {
 		const wrapper = mountComponent()
 
 		expect(wrapper.vm.stencilBaseWidth).toBe(700)
 		expect(wrapper.vm.stencilBaseHeight).toBe(200)
-		expect(wrapper.vm.defaultStencilSize).toEqual({ width: 700, height: 200 })
+		expect(wrapper.vm.stencilAspectRatio).toBe(3.5)
 	})
 
-	it('scales the default stencil size to fit the cropper container', async () => {
+	it('delegates initial crop selection size to the cropper', async () => {
 		const wrapper = mountComponent()
 
-		wrapper.vm.containerWidth = 374
+		wrapper.vm.image = 'data:image/png;base64,uploaded'
 		await wrapper.vm.$nextTick()
 
-		expect(wrapper.vm.defaultStencilSize).toEqual({ width: 350, height: 100 })
+		const cropper = wrapper.findComponent({ name: 'Cropper' })
+		expect(cropper.exists()).toBe(true)
+		expect(cropper.props('defaultSize')).toBeUndefined()
+		expect(cropper.props('stencilProps')).toEqual({ aspectRatio: 3.5 })
+	})
+
+	it('limits exported PNG dimensions while retaining source resolution for small images', async () => {
+		const wrapper = mountComponent()
+		wrapper.vm.image = 'data:image/png;base64,uploaded'
+		await wrapper.vm.$nextTick()
+
+		const cropper = wrapper.findComponent({ name: 'Cropper' })
+		const canvas = cropper.props('canvas')
+
+		expect(canvas).toEqual({
+			maxWidth: 2100,
+			maxHeight: 600,
+			maxArea: 1_000_000,
+		})
+		expect(canvas).not.toHaveProperty('width')
+		expect(canvas).not.toHaveProperty('height')
 	})
 
 	it('loads the selected file as a data URL', () => {
@@ -233,22 +249,19 @@ describe('FileUpload.vue - Uploaded signature flow', () => {
 	})
 
 	it('resets crop state when the image is cleared', async () => {
-		const disconnect = vi.fn()
 		const wrapper = mountComponent()
 
-		wrapper.vm.resizeObserver = { observe: vi.fn(), disconnect }
-		wrapper.vm.containerWidth = 480
 		wrapper.vm.zoomLevel = 2.4
 		wrapper.vm.pendingFitCenter = true
 		wrapper.vm.image = 'data:image/png;base64,existing'
+		wrapper.vm.imageData = 'data:image/png;base64,old-crop'
 		await wrapper.vm.$nextTick()
 
 		wrapper.vm.image = ''
 		await wrapper.vm.$nextTick()
 
-		expect(disconnect).toHaveBeenCalled()
-		expect(wrapper.vm.containerWidth).toBe(0)
 		expect(wrapper.vm.zoomLevel).toBe(1)
 		expect(wrapper.vm.pendingFitCenter).toBe(false)
+		expect(wrapper.vm.imageData).toBe('')
 	})
 })
