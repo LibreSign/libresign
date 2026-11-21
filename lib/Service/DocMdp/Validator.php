@@ -71,22 +71,44 @@ class Validator {
 		$this->pdfValidator->validate($content, $fileName);
 	}
 
+	/**
+	 * A frozen document certifies with its recorded level. A draft which has
+	 * never been sent still uses the current setting, as does a legacy row
+	 * with an ambiguous (unrecorded) level 0.
+	 */
 	private function getDocMdpLevel(array $data, ?File &$file): int {
-		$docMdpLevel = null;
-
-		if (!empty($data['uuid'])) {
-			try {
+		try {
+			if (!empty($data['uuid'])) {
 				$file = $this->fileMapper->getByUuid($data['uuid']);
-				$docMdpLevel = $file->getDocmdpLevel();
-			} catch (DoesNotExistException) {
-				// File doesn't exist, use global configured level
+			} elseif (!empty($data['file']['nodeId'])) {
+				$file = $this->fileMapper->getByNodeId((int)$data['file']['nodeId']);
 			}
+		} catch (DoesNotExistException) {
+			// A new request has no stored DocMDP policy yet.
 		}
 
-		if ($docMdpLevel === null || $docMdpLevel === 0) {
+		if ($file === null) {
 			return $this->configService->getLevel()->value;
 		}
 
-		return $docMdpLevel;
+		$documents = $file->getNodeType() === 'envelope'
+			? $this->fileMapper->getChildrenFiles($file->getId())
+			: [$file];
+		$firstLevel = null;
+		$strict = null;
+		foreach ($documents as $document) {
+			$level = (StoredLevel::forSigning($document)
+				?? $this->configService->getLevel())->value;
+			$firstLevel ??= $level;
+			if ($level === 1 && ($strict === null || $document->getSignedHash())) {
+				$strict = $document;
+			}
+		}
+		if ($strict !== null) {
+			$file = $strict;
+			return 1;
+		}
+
+		return $firstLevel ?? $this->configService->getLevel()->value;
 	}
 }
