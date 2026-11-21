@@ -21,8 +21,11 @@ async function promptEnvelopeName() {
 	const envelopeName = await spawnDialog(
 		EditNameDialog,
 		{
+			// TRANSLATORS Dialog title asking for the name of a new envelope containing selected PDFs.
 			title: t('libresign', 'Envelope name'),
+			// TRANSLATORS Field label for entering the new envelope name.
 			label: t('libresign', 'Enter a name for the envelope'),
+			// TRANSLATORS Placeholder in the envelope name field.
 			placeholder: t('libresign', 'Envelope name'),
 		},
 	)
@@ -31,6 +34,7 @@ async function promptEnvelopeName() {
 
 export const action = {
 	id: 'open-in-libresign',
+	// TRANSLATORS Nextcloud Files context-menu action that opens the selected file in the LibreSign sidebar.
 	displayName: () => t('libresign', 'Open in LibreSign'),
 	iconSvgInline: () => SvgIcon,
 

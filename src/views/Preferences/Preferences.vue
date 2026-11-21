@@ -69,6 +69,7 @@
 			</NcSettingsSection>
 
 			<!-- TRANSLATORS Title and description of the preferences section with personal options that apply when the user requests signatures. -->
+			<!-- TRANSLATORS Section title and description for personal signature request preferences. -->
 			<NcSettingsSection
 				:name="t('libresign', 'Signature requests')"
 				:description="t('libresign', 'Options that apply when you request signatures.')">

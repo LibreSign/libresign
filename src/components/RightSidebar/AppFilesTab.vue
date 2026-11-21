@@ -140,9 +140,11 @@ async function signPdfNow() {
 					{ readyToSign: true },
 				)
 				if (response && 'success' in response && response.success === false) {
+					// TRANSLATORS Error when the signed-in account cannot be added as a signer from the Nextcloud Files sidebar.
 					showError(('message' in response && response.message) || t('libresign', 'Cannot add your account as signer'))
 				}
 			} catch {
+				// TRANSLATORS Error shown if preparing the current account as signer in the Nextcloud Files sidebar fails.
 				showError(t('libresign', 'Failed to add signer'))
 			}
 		}

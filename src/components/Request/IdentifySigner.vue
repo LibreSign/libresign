@@ -19,6 +19,7 @@
 		</NcNoteCard>
 
 		<NcNoteCard v-if="disabled" type="warning" class="disabled-warning">
+			<!-- TRANSLATORS Warning when the selected signing identity method is disabled; {method} is its display name. -->
 			{{ t('libresign', 'This signer cannot be used because the identification method "{method}" has been disabled by the administrator.', { method: identifyMethodLabel }) }}
 		</NcNoteCard>
 
