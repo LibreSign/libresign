@@ -42,14 +42,24 @@
 				</div>
 			</template>
 			<template #no-options="{ search }">
+				<!-- TRANSLATORS Placeholder message in signer search before a query has been typed. -->
 				{{ search ? noResultText : t('libresign', 'No recommendations. Start typing.') }}
 			</template>
 		</NcSelect>
+		<div v-if="canUseMyAccount && !selectedSigner" class="account-or-email__self">
+			<NcButton variant="tertiary-no-background"
+				size="small"
+				@click="useMyAccount">
+				<!-- TRANSLATORS Current account shortcut for the regular signer selection form. -->
+				{{ t('libresign', 'Use my account') }}
+			</NcButton>
+		</div>
 	</div>
 </template>
 
 <script setup lang="ts">
 import { t } from '@nextcloud/l10n'
+import { getCurrentUser } from '@nextcloud/auth'
 import { computed, nextTick, onMounted, ref, watch } from 'vue'
 import svgAccount from '@mdi/svg/svg/account.svg?raw'
 import svgEmail from '@mdi/svg/svg/email.svg?raw'
@@ -61,6 +71,7 @@ import axios from '@nextcloud/axios'
 import { generateOcsUrl } from '@nextcloud/router'
 import NcAvatar from '@nextcloud/vue/components/NcAvatar'
 import NcSelect from '@nextcloud/vue/components/NcSelect'
+import NcButton from '@nextcloud/vue/components/NcButton'
 import NcIconSvgWrapper from '@nextcloud/vue/components/NcIconSvgWrapper'
 import svgSignal from '../../../img/logo-signal-app.svg?raw'
 import svgTelegram from '../../../img/logo-telegram-app.svg?raw'
@@ -74,10 +85,13 @@ const props = withDefaults(defineProps<{
 	method?: string
 	placeholder?: string
 	participantRole?: ParticipantRole
+	allowSelf?: boolean
 }>(), {
 	method: 'all',
+	// TRANSLATORS Default placeholder for the signer-name input field.
 	placeholder: t('libresign', 'Name'),
 	participantRole: PARTICIPANT_ROLE.SIGNER,
+	allowSelf: false,
 })
 
 const emit = defineEmits<{
@@ -115,6 +129,32 @@ const searchLabel = computed(() => isObserver.value
 	// TRANSLATORS Label for the signer search field in the add-participant modal.
 	: t('libresign', 'Search signer'))
 const selectPlaceholder = computed(() => isObserver.value ? searchLabel.value : props.placeholder)
+
+const canUseMyAccount = computed(() => props.allowSelf
+	&& props.method === 'account'
+	&& !isObserver.value
+	&& Boolean(getCurrentUser()?.uid))
+
+function useMyAccount() {
+	if (!canUseMyAccount.value || selectedSigner.value) {
+		return
+	}
+	const user = getCurrentUser()
+	if (!user?.uid) {
+		return
+	}
+	onSelectedSignerChange({
+		identify: user.uid,
+		method: 'account',
+		displayName: user.displayName || user.uid,
+		// TRANSLATORS Short label identifying the currently logged-in account.
+		subname: t('libresign', 'Your account'),
+		isNoUser: false,
+		shareType: 0,
+		iconName: 'account',
+	})
+}
+
 const mandatoryErrorText = computed(() => isObserver.value
 	// TRANSLATORS Validation error when no observer was selected.
 	? t('libresign', 'Observer is mandatory')
@@ -123,6 +163,7 @@ const mandatoryErrorText = computed(() => isObserver.value
 
 const noResultText = computed(() => {
 	if (loading.value) {
+		// TRANSLATORS Status displayed while searching for signers or observers.
 		return t('libresign', 'Searching …')
 	}
 
@@ -243,7 +284,7 @@ async function _asyncFind(search: string) {
 }
 
 const asyncFind = debounce((search: string) => {
-	_asyncFind(search)
+	void _asyncFind(search)
 }, 500)
 
 function focusInput() {
@@ -263,6 +304,8 @@ onMounted(() => {
 defineExpose({
 	loading,
 	options,
+	canUseMyAccount,
+	useMyAccount,
 	selectedSigner,
 	haveError,
 	activeRequestId,
@@ -291,6 +334,10 @@ defineExpose({
 	margin-bottom: 4px;
 	label[for="sharing-search-input"] {
 		margin-bottom: 2px;
+	}
+	&__self {
+		display: flex;
+		justify-content: flex-end;
 	}
 	&__input {
 		width: 100%;

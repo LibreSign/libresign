@@ -2,5 +2,13 @@
   "trailingComma": "es6",
   "arrowParens": "always",
   "endOfLine": "lf",
-  "useTabs": false
+  "useTabs": false,
+  "overrides": [
+    {
+      "files": "playwright/**/*.ts",
+      "options": {
+        "useTabs": true
+      }
+    }
+  ]
 }

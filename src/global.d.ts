@@ -13,6 +13,7 @@ declare global {
 
 	interface LibreSignGlobalNamespace {
 		fileInfo?: unknown
+		pendingSelfSignNodeId?: number | string
 		pendingEnvelope?: {
 			nodeType?: string
 			files?: Array<{

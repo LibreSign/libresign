@@ -4,12 +4,23 @@
  */
 
 import { beforeEach, describe, expect, it, vi } from 'vitest'
-import { mount } from '@vue/test-utils'
+import { flushPromises, mount } from '@vue/test-utils'
 import type { VueWrapper } from '@vue/test-utils'
 import { createPinia, setActivePinia } from 'pinia'
+import { loadState } from '@nextcloud/initial-state'
 import AppFilesTab from '../../../components/RightSidebar/AppFilesTab.vue'
 import { useFilesStore } from '../../../store/files.js'
 import { useSidebarStore } from '../../../store/sidebar.js'
+import { usePoliciesStore } from '../../../store/policies.ts'
+
+const addSelfMock = vi.hoisted(() => vi.fn(async () => ({ id: 3 })))
+vi.mock('../../../services/selfSigning.ts', () => ({
+	addCurrentAccountAsSigner: addSelfMock,
+}))
+
+vi.mock('@nextcloud/initial-state', () => ({ loadState: vi.fn((_app, _key, fallback) => fallback) }))
+const spawnDialogMock = vi.hoisted(() => vi.fn<(...args: unknown[]) => Promise<boolean | 'prepare' | undefined>>())
+vi.mock('@nextcloud/vue/functions/dialog', () => ({ spawnDialog: spawnDialogMock }))
 
 vi.mock('@nextcloud/auth', () => ({
 	getCurrentUser: vi.fn(() => ({ uid: 'testuser' })),
@@ -83,7 +94,10 @@ type AppFilesTabVm = {
 	updateSidebarTitle: (envelopeName?: string) => void
 	sidebarTitleObserver: TitleObserver | null
 	disconnectTitleObserver: () => void
+	signPdfNow: () => Promise<void>
 	update: (fileInfo: FileInfo) => Promise<void>
+	onPrepareSelfSign: (payload: { nodeId: number | string }) => void
+	preparePendingSelfSign: (id: number | string) => Promise<void>
 	handleLibreSignFileChangeWithPath: (path: string, eventType: string) => Promise<void>
 	handleLibreSignFileChangeAtCurretntFolder: () => Promise<void>
 	handleLibreSignFileChange: (payload: { path?: string, nodeId?: number }, eventType: string) => Promise<void>
@@ -164,6 +178,88 @@ describe('AppFilesTab', () => {
 				const result = await wrapper.vm.checkAndLoadPendingEnvelope()
 				expect(result).toBe(false)
 			}
+		})
+	})
+
+	it('refreshes signed metadata and the Files list after direct signing succeeds', async () => {
+		vi.mocked(loadState).mockImplementation((_app, key, fallback) => {
+			if (key === 'certificate_ok' || key === 'can_request_sign') { return true }
+			if (key === 'effective_policies') { return { policies: { identify_methods: { effectiveValue: { factors: [{ name: 'account', enabled: true, signatureMethods: { clickToSign: { enabled: true } } }] } } } } }
+			return fallback
+		})
+		spawnDialogMock.mockResolvedValueOnce(true)
+		const source = { id: -456, nodeId: 456, name: 'source.pdf', signers: [] }
+		vi.spyOn(filesStore, 'getFile').mockReturnValue(source as ReturnType<typeof filesStore.getFile>)
+		vi.spyOn(filesStore, 'selectFileByNodeId').mockResolvedValue(45)
+		vi.spyOn(filesStore, 'getAllFiles').mockResolvedValue({ 45: { ...source, id: 45, status: 3 } } as Awaited<ReturnType<typeof filesStore.getAllFiles>>)
+		vi.spyOn(filesStore, 'addFile').mockResolvedValue(undefined)
+		vi.spyOn(filesStore, 'fetchFileDetail').mockResolvedValue(null)
+		wrapper = createWrapper()
+		await wrapper.vm.update({ id: 456, name: 'source.pdf' })
+		await wrapper.vm.signPdfNow()
+		expect(emit).toHaveBeenCalledWith('libresign:file:created', { nodeId: 456 })
+		expect(filesStore.fetchFileDetail).toHaveBeenCalledWith({ fileId: 45, force: true })
+		vi.mocked(loadState).mockImplementation((_app, _key, fallback) => fallback)
+	})
+
+	it('does not add the account to another PDF if selection changes during policy loading', async () => {
+		let releasePolicy: (() => void) | undefined
+		const pendingPolicy = new Promise<void>((resolve) => { releasePolicy = resolve })
+		vi.spyOn(usePoliciesStore(), 'fetchEffectivePolicies').mockReturnValue(pendingPolicy)
+		vi.spyOn(filesStore, 'getFile').mockReturnValue({ id: -456, nodeId: 456, signers: [] } as ReturnType<typeof filesStore.getFile>)
+		window.OCA = { Libresign: { pendingSelfSignNodeId: 456 } }
+		wrapper = createWrapper()
+		const pending = wrapper.vm.preparePendingSelfSign(456)
+		vi.spyOn(filesStore, 'getFile').mockReturnValue({ id: 789, nodeId: 789, signers: [] } as ReturnType<typeof filesStore.getFile>)
+		releasePolicy?.()
+		await pending
+		expect(addSelfMock).not.toHaveBeenCalled()
+	})
+
+	it('consumes a new self-sign click for an already active node without deferring another request', async () => {
+		wrapper = createWrapper()
+		vi.spyOn(filesStore, 'getFile').mockReturnValue({ id: -456, nodeId: 456, name: 'document.pdf', signers: [] } as ReturnType<typeof filesStore.getFile>)
+		vi.spyOn(usePoliciesStore(), 'fetchEffectivePolicies').mockResolvedValue(undefined)
+		window.OCA = { Libresign: { pendingSelfSignNodeId: 456 } }
+		wrapper.vm.onPrepareSelfSign({ nodeId: 123 })
+		expect(addSelfMock).not.toHaveBeenCalled()
+		wrapper.vm.onPrepareSelfSign({ nodeId: 456 })
+		await flushPromises()
+		expect(addSelfMock).toHaveBeenCalledOnce()
+		expect(window.OCA.Libresign.pendingSelfSignNodeId).toBeUndefined()
+		await wrapper.vm.preparePendingSelfSign(456)
+		expect(addSelfMock).toHaveBeenCalledOnce()
+	})
+
+	describe('RULE: Files self-sign intent is consumed once for the matching node', () => {
+		it('adds the logged-in account only for the requested PDF node', async () => {
+			const policiesStore = usePoliciesStore()
+			vi.spyOn(policiesStore, 'fetchEffectivePolicies').mockResolvedValue()
+			vi.spyOn(policiesStore, 'getEffectiveValue').mockReturnValue([{ name: 'account', enabled: true }] as never)
+			addSelfMock.mockClear()
+			vi.spyOn(filesStore, 'getFile').mockReturnValue({ id: -456, nodeId: 456, signers: [] } as ReturnType<typeof filesStore.getFile>)
+			window.OCA = { Libresign: { pendingSelfSignNodeId: 456 } }
+			wrapper = createWrapper()
+			await wrapper.vm.preparePendingSelfSign(123)
+			expect(addSelfMock).not.toHaveBeenCalled()
+			await wrapper.vm.preparePendingSelfSign(456)
+			expect(addSelfMock).toHaveBeenCalledOnce()
+			expect(addSelfMock).toHaveBeenCalledExactlyOnceWith(
+				expect.anything(), expect.anything(), { readyToSign: true },
+			)
+			expect(window.OCA.Libresign.pendingSelfSignNodeId).toBeUndefined()
+			await wrapper.vm.preparePendingSelfSign(456)
+			expect(addSelfMock).toHaveBeenCalledOnce()
+		})
+		it('matches string node identifiers without integer precision loss', async () => {
+			vi.spyOn(usePoliciesStore(), 'fetchEffectivePolicies').mockResolvedValue()
+			addSelfMock.mockClear()
+			vi.spyOn(filesStore, 'getFile').mockReturnValue({ id: -1, nodeId: '9007199254740993', signers: [] } as ReturnType<typeof filesStore.getFile>)
+			window.OCA = { Libresign: { pendingSelfSignNodeId: '9007199254740993' } }
+			wrapper = createWrapper()
+			await wrapper.vm.preparePendingSelfSign('9007199254740993')
+			expect(addSelfMock).toHaveBeenCalledOnce()
+			expect(window.OCA.Libresign.pendingSelfSignNodeId).toBeUndefined()
 		})
 	})
 
