@@ -18,8 +18,8 @@ use OCA\Libresign\Enum\FileStatus;
  * global fallback; newly saved level 0 is explicitly not certified.
  */
 final class StoredLevel {
-	private const string CAPTURED = 'docmdp_level_captured';
-	private const string FROZEN = 'docmdp_level_frozen';
+	private const CAPTURED = 'docmdp_level_captured';
+	private const FROZEN = 'docmdp_level_frozen';
 
 	public static function isSignableStatus(int $status): bool {
 		return in_array($status, [
