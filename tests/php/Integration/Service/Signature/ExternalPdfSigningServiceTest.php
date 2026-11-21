@@ -9,6 +9,7 @@ declare(strict_types=1);
 namespace OCA\Libresign\Tests\Integration\Service\Signature;
 
 use OCA\Libresign\Handler\DocMdpHandler;
+use PHPUnit\Framework\Attributes\DataProvider;
 use OCA\Libresign\Service\Signature\Exception\ExternalSigningException;
 use OCA\Libresign\Service\Signature\ExternalPdfSigningService;
 use OCA\Libresign\Service\Signature\PdfSignatureValidationService;
@@ -21,6 +22,7 @@ use SignerPHP\PdfSigner\Application\DTO\CertificationLevel;
 use SignerPHP\PdfSigner\Application\DTO\PdfContentDto;
 use SignerPHP\PdfSigner\Application\DTO\SignatureActorDto;
 use SignerPHP\PdfSigner\Application\DTO\SignatureMetadataDto;
+use SignerPHP\PdfSigner\Application\DTO\SignatureProfile;
 use SignerPHP\PdfSigner\Application\DTO\SigningCertificateDto;
 use SignerPHP\PdfSigner\Application\DTO\SigningContextDto;
 use SignerPHP\PdfSigner\Application\DTO\SigningOptionsDto;
@@ -447,6 +449,93 @@ final class ExternalPdfSigningServiceTest extends TestCase {
 			$this->buildContext($certified, $identity['certificate'], [$identity['ca']]),
 		);
 		$this->assertSame(hash('sha256', $certified), $prepared->preparationInputSha256);
+	}
+
+	/**
+	 * The pinned external signer supports basic PDF, not the PAdES
+	 * conformance contract. Each profile is checked at preparation.
+	 *
+	 * @return array<string, array{SignatureProfile, bool}>
+	 */
+	public static function externalSignatureProfiles(): array {
+		return [
+			'PDF basic' => [SignatureProfile::PdfBasic, true],
+			'PAdES B' => [SignatureProfile::PadesBaselineB, false],
+			'PAdES T' => [SignatureProfile::PadesBaselineT, false],
+			'PAdES LT' => [SignatureProfile::PadesBaselineLT, false],
+			'PAdES LTA' => [SignatureProfile::PadesBaselineLTA, false],
+		];
+	}
+
+	#[DataProvider('externalSignatureProfiles')]
+	public function testExternalSignatureProfileContract(SignatureProfile $profile, bool $supported): void {
+		$identity = $this->generateIdentity('rsa');
+		$pdf = $this->makePdf('External signing profile ' . $profile->value);
+		$context = new SigningContextDto(
+			new PdfContentDto($pdf),
+			new SigningOptionsDto(
+				signatureProfile: $profile,
+				useDefaultAppearance: false,
+			),
+			new SigningCertificateDto($identity['certificate'], [$identity['ca']]),
+		);
+
+		if (! $supported) {
+			$this->expectException(ExternalSigningException::class);
+			$this->expectExceptionMessage('PAdES profile is not supported');
+		}
+		$prepared = $this->service->prepare($context);
+		if ($supported) {
+			$signature = $this->externalSign($prepared->upstream->payload->input(), $identity['privateKey'], 'rsa');
+			$this->assertCompletedOutputValid($prepared, $signature, $pdf, $identity['certificate'], 1);
+		}
+	}
+
+	public function testUnsignedDocumentCanBeCertifiedAndDocMdpIsPresent(): void {
+		$identity = $this->generateIdentity('rsa');
+		$pdf = $this->makePdf('Certification must be present');
+		$prepared = $this->service->prepare(
+			$this->buildContext($pdf, $identity['certificate'], [$identity['ca']], CertificationLevel::FormFillAndSignatures),
+		);
+		$signature = $this->externalSign($prepared->upstream->payload->input(), $identity['privateKey'], 'rsa');
+		$completed = $this->service->complete($prepared, $signature, $pdf, $identity['certificate']);
+		$this->assertCount(1, $this->extractSignatures($completed));
+		$this->assertTrue($this->independentOpensslVerify(
+			$this->extractSignatures($completed)[0]['cms'],
+			$this->extractSignatures($completed)[0]['content'],
+		));
+		$resource = $this->toResource($completed);
+		try {
+			$docMdp = (new DocMdpHandler($this->l10n()))->extractDocMdpData($resource);
+			$this->assertTrue($docMdp['docmdp']['isCertifying']);
+			$this->assertSame(2, $docMdp['docmdp']['level']);
+		} finally {
+			fclose($resource);
+		}
+	}
+
+	public function testCertificationAfterApprovalSignatureIsRejected(): void {
+		$identity = $this->generateIdentity('rsa');
+		$pdf = $this->makePdf('Approval before certification');
+		$prepared = $this->service->prepare($this->buildContext($pdf, $identity['certificate'], [$identity['ca']]));
+		$signature = $this->externalSign($prepared->upstream->payload->input(), $identity['privateKey'], 'rsa');
+		$approved = $this->service->complete($prepared, $signature, $pdf, $identity['certificate']);
+		$this->expectException(ExternalSigningException::class);
+		$this->expectExceptionMessage('cannot be added after an existing signature');
+		$this->service->prepare(
+			$this->buildContext($approved, $identity['certificate'], [$identity['ca']], CertificationLevel::FormFillAndSignatures),
+		);
+	}
+
+	public function testSecondCertificationIsRejectedEvenWhenDocMdpAllowsApprovals(): void {
+		$identity = $this->generateIdentity('rsa');
+		$certified = $this->makeCertifiedPdf($identity, CertificationLevel::FormFillAndSignatures);
+		$this->assertTrue((new DocMdpHandler($this->l10n()))->allowsAdditionalSignatures($this->toResource($certified)));
+		$this->expectException(ExternalSigningException::class);
+		$this->expectExceptionMessage('cannot be added after an existing signature');
+		$this->service->prepare(
+			$this->buildContext($certified, $identity['certificate'], [$identity['ca']], CertificationLevel::FormFillAndSignatures),
+		);
 	}
 
 	public function testUnsupportedTimestampOptionRejected(): void {

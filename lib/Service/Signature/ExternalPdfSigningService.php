@@ -13,6 +13,7 @@ use OCA\Libresign\Service\Signature\Exception\ExternalSigningException;
 use OCA\Libresign\Vendor\phpseclib4\File\CMS\SignedData;
 use SignerPHP\PdfSigner\Application\DTO\HashAlgorithm;
 use SignerPHP\PdfSigner\Application\DTO\SigningContextDto;
+use SignerPHP\PdfSigner\Application\DTO\SignatureProfile;
 use SignerPHP\PdfSigner\Infrastructure\Native\Service\ExternalPdfSigningService as UpstreamExternalPdfSigningService;
 
 /**
@@ -87,6 +88,7 @@ final class ExternalPdfSigningService {
 	): PreparedExternalOperation {
 		$this->assertSupportedOptions($context);
 		$this->assertDocMdpAllowsAdditionalSignatures($context->pdf->content);
+		$this->assertCertificationCanBeIntroduced($context);
 
 		$upstream = (new UpstreamExternalPdfSigningService())->prepare($context, $digestAlgorithm);
 
@@ -140,10 +142,36 @@ final class ExternalPdfSigningService {
 	 * @throws ExternalSigningException on unsupported options
 	 */
 	private function assertSupportedOptions(SigningContextDto $context): void {
+		// The currently pinned external signer does not provide conformant
+		// PAdES CMS attributes. Keep profile construction upstream.
+		if ($context->options->signatureProfile !== SignatureProfile::PdfBasic) {
+			throw new ExternalSigningException(
+				'The requested PAdES profile is not supported by the pinned external signing engine.',
+			);
+		}
 		if ($context->options->timestamp !== null) {
 			throw new ExternalSigningException(
 				'RFC3161 timestamping is not supported by the external prepare API.'
 				. ' Remove the timestamp option or sign through the synchronous engine.',
+			);
+		}
+	}
+
+	/**
+	 * A certification signature must be the document's first signature.
+	 * Existing signed PDFs may accept additional approval signatures, but
+	 * must never silently downgrade a requested certification to approval.
+	 *
+	 * @throws ExternalSigningException when a signed PDF requests certification
+	 */
+	private function assertCertificationCanBeIntroduced(SigningContextDto $context): void {
+		if ($context->options->certificationLevel === null) {
+			return;
+		}
+
+		if ($this->signatureValidation->validateFromString($context->pdf->content) !== []) {
+			throw new ExternalSigningException(
+				'A certification signature cannot be added after an existing signature.',
 			);
 		}
 	}
