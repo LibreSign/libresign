@@ -45,6 +45,7 @@ use OCA\Libresign\Service\Envelope\EnvelopeStatusDeterminer;
 use OCA\Libresign\Service\File\SigningWorkflowStatusResolver;
 use OCA\Libresign\Service\IdentifyMethod\IIdentifyMethod;
 use OCA\Libresign\Service\IdentifyMethod\SignatureMethod\IToken;
+use OCA\Libresign\Service\OrganizationSeal\OrganizationSealService;
 use OCA\Libresign\Service\Policy\PolicyService;
 use OCA\Libresign\Service\Policy\Provider\CollectMetadata\CollectMetadataPolicy;
 use OCA\Libresign\Service\Policy\Provider\Footer\FooterPolicy;
@@ -141,6 +142,7 @@ class SignFileService {
 		private NotificationDeliveryMapper $notificationDeliveries,
 		private SigningWorkflowStatusResolver $signingWorkflowStatusResolver,
 		private NativeWebhookEventPublisher $webhooks,
+		private OrganizationSealService $organizationSealService,
 	) {
 	}
 
@@ -514,6 +516,7 @@ class SignFileService {
 
 			$hash = $this->computeHash($signedFile);
 			$this->updateSignRequest($hash);
+			$hash = $this->applyOrganizationSealsIfCompleted($signedFile, $hash);
 			$this->updateLibreSignFile($libreSignFile, $signedFile->getId(), $hash);
 
 			$this->dispatchSignedEvent();
@@ -679,6 +682,7 @@ class SignFileService {
 			$envelopeLastSignedDate = $this->getEngine()->getLastSignedDate();
 
 			$this->updateSignRequest($hash);
+			$hash = $this->applyOrganizationSealsIfCompleted($signedFile, $hash);
 			$this->updateLibreSignFile($this->libreSignFile, $signedFile->getId(), $hash);
 
 			$this->dispatchSignedEvent();
@@ -905,6 +909,28 @@ class SignFileService {
 				$this->signRequest->getFileId(),
 				$this->signRequest->getSigningOrder()
 			);
+	}
+
+	/**
+	 * Once the last signer has signed, apply the organization seals chosen
+	 * for the request to the signed file.
+	 *
+	 * @return string the hash of the signed file to store
+	 */
+	protected function applyOrganizationSealsIfCompleted(File $signedFile, string $hash): string {
+		if ($this->organizationSealService->getRequestedSeals($this->libreSignFile) === []) {
+			return $hash;
+		}
+
+		if ($this->evaluateStatusFromSigners($this->libreSignFile) !== FileStatus::SIGNED->value) {
+			return $hash;
+		}
+
+		if (!$this->organizationSealService->apply($this->libreSignFile, $signedFile)) {
+			return $hash;
+		}
+
+		return $this->computeHash($signedFile);
 	}
 
 	private function storeCertificateInfoInMetadata(array $certificateInfo): void {

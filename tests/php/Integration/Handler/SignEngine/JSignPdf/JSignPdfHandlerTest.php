@@ -1232,6 +1232,53 @@ final class JSignPdfHandlerTest extends \OCA\Libresign\Tests\Integration\AppData
 		$this->assertSame(self::expectedJSignParameters($expectedParameters), $paramsAsOptions);
 	}
 
+	/**
+	 * The handler keeps its parameters between signatures. A signature that
+	 * does not certify must not reuse the level of an earlier one.
+	 */
+	public function testCertificationLevelIsNotReusedByTheNextSignature(): void {
+		if (self::$certificateEngineFactory === null || empty(self::$certificateContent)) {
+			$this->markTestSkipped('Certificate initialization failed');
+		}
+		$this->resolvedPolicyValues[TsaPolicy::KEY] = TsaPolicyValue::encode(['url' => '']);
+		$this->appConfig->setValueString('libresign', 'java_path', __FILE__);
+		$this->appConfig->setValueString('libresign', 'jsignpdf_temp_path', sys_get_temp_dir());
+		$this->appConfig->setValueString('libresign', 'jsignpdf_path', __DIR__);
+		$this->persistHashAlgorithmPolicy('SHA256');
+
+		$unsignedFile = $this->createMock(\OC\Files\Node\File::class);
+		$unsignedFile->method('getContent')->willReturn('%PDF-1.6');
+		$signedFile = $this->createMock(\OC\Files\Node\File::class);
+		$signedFile->method('getContent')->willReturn("%PDF-1.6\n/ByteRange [0 0 0 0]");
+
+		$paramsSeen = [];
+		$mock = $this->createMock(JSignPDF::class);
+		$mock->method('setParam')
+			->willReturnCallback(function (JSignParam $param) use (&$paramsSeen): void {
+				$paramsSeen[] = $param->getJSignParameters();
+			});
+		$mock->method('sign')->willReturn('content');
+
+		$docMdpConfigService = $this->createMock(DocMdpConfigService::class);
+		$docMdpConfigService->method('isEnabled')->willReturn(true);
+		$docMdpConfigService->method('getLevel')->willReturn(DocMdpLevel::CERTIFIED_FORM_FILLING_AND_ANNOTATIONS);
+
+		$jSignPdfHandler = $this->getInstance();
+		$this->setDocMdpConfigService($jSignPdfHandler, $docMdpConfigService);
+		$jSignPdfHandler->setVisibleElements([]);
+		$jSignPdfHandler->setJSignPdf($mock);
+		$jSignPdfHandler->setCertificate(self::$certificateContent);
+		$jSignPdfHandler->setPassword('password');
+		$jSignPdfHandler->setInputFile($unsignedFile);
+		$jSignPdfHandler->getSignedContent();
+		$jSignPdfHandler->setInputFile($signedFile);
+		$jSignPdfHandler->getSignedContent();
+
+		$this->assertCount(2, $paramsSeen);
+		$this->assertStringContainsString("'-cl' '" . DocMdpLevel::CERTIFIED_FORM_FILLING_AND_ANNOTATIONS->name . "'", $paramsSeen[0]);
+		$this->assertStringNotContainsString(DocMdpLevel::CERTIFIED_FORM_FILLING_AND_ANNOTATIONS->name, $paramsSeen[1]);
+	}
+
 	public static function providerCertificationLevelWithoutVisibleElements(): array {
 		$element = self::getElement([
 			'page' => 1,
@@ -1254,7 +1301,7 @@ final class JSignPdfHandlerTest extends \OCA\Libresign\Tests\Integration\AppData
 				[],
 				"%PDF-1.6\n/ByteRange [0 0 0 0]",
 				$tsa,
-				['--tsa-server-url' => 'https://tsa.example.test/tsr', '--tsa-hash-algorithm' => 'SHA-256', '--hash-algorithm' => 'SHA256'],
+				['-cl' => DocMdpLevel::NOT_CERTIFIED->name, '--tsa-server-url' => 'https://tsa.example.test/tsr', '--tsa-hash-algorithm' => 'SHA-256', '--hash-algorithm' => 'SHA256'],
 			],
 			'no certification when DocMDP is disabled, even with a visible element on a signed PDF' => [
 				false,

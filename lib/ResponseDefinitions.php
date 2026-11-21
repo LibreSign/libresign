@@ -551,6 +551,11 @@ namespace OCA\Libresign;
  *     effectiveValue: string,
  *     sourceScope: string,
  * }
+ * @psalm-type LibresignOrganizationSealResult = array{
+ *     status: 'sealed'|'failed',
+ *     error?: string,
+ *     at: string,
+ * }
  * @psalm-type LibresignPolicySnapshotLegalInformationEntry = array{
  *     effectiveValue: string,
  *     sourceScope: string,
@@ -628,6 +633,7 @@ namespace OCA\Libresign;
  *     rejection_comment_mode?: LibresignPolicySnapshotSignatureRejectionCommentModeEntry,
  *     rejection_visibility?: LibresignPolicySnapshotSignatureRejectionVisibilityEntry,
  *     rejection_comment_visibility?: LibresignPolicySnapshotSignatureRejectionVisibilityEntry,
+ *     organization_seals?: LibresignPolicySnapshotEntry,
  * }
  * @psalm-type LibresignValidateMetadata = array{
  *     extension: string,
@@ -637,6 +643,7 @@ namespace OCA\Libresign;
  *     policy_snapshot?: LibresignValidatePolicySnapshot,
  *     pdfVersion?: string,
  *     status_changed_at?: string,
+ *     organization_seals?: array<string, LibresignOrganizationSealResult>,
  * }
  * @psalm-type LibresignFileRuntimeMetadata = LibresignValidateMetadata|array<string, LibresignDynamicMetadataValue>
  * @psalm-type LibresignValidationPageResolution = array{

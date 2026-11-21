@@ -11,6 +11,7 @@ namespace OCA\Libresign\Handler\SignEngine\JSignPdf;
 use Imagick;
 use ImagickPixel;
 use OCA\Libresign\AppInfo\Application;
+use OCA\Libresign\Enum\DocMdpLevel;
 use OCA\Libresign\Exception\LibresignException;
 use OCA\Libresign\Handler\CertificateEngine\CertificateEngineFactory;
 use OCA\Libresign\Handler\SignEngine\Pkcs12Handler;
@@ -221,8 +222,12 @@ class JSignPdfHandler extends Pkcs12Handler {
 
 		$parameters = [];
 		$certificationLevel = $this->getCertificationLevel();
-		if ($certificationLevel !== null && !$this->getVisibleElements() && !$this->hasExistingSignatures($normalizedPdf)) {
-			$parameters['-cl'] = $certificationLevel;
+		if ($certificationLevel !== null) {
+			// The parameters are kept on this handler between signatures, so a
+			// signature that does not certify clears the level of an earlier one.
+			$parameters['-cl'] = !$this->getVisibleElements() && !$this->hasExistingSignatures($normalizedPdf)
+				? $certificationLevel
+				: DocMdpLevel::NOT_CERTIFIED->name;
 		}
 		$parameters += $this->getTsaParameters();
 		$param->addJSignParameters($parameters);

@@ -23,6 +23,7 @@ use OCA\Libresign\Service\Policy\Provider\IdentificationDocuments\Identification
 use OCA\Libresign\Service\Policy\Provider\IdentifyMethods\IdentifyMethodsPolicy;
 use OCA\Libresign\Service\Policy\Provider\LegalInformation\LegalInformationPolicy;
 use OCA\Libresign\Service\Policy\Provider\ObserverProfile\ObserverProfilePolicy;
+use OCA\Libresign\Service\Policy\Provider\OrganizationSeals\OrganizationSealsPolicy;
 use OCA\Libresign\Service\Policy\Provider\Signature\SignatureFlowPolicy;
 use OCA\Libresign\Service\Policy\Provider\SignatureRejection\FilePolicy\SignatureRejectionFilePolicyApplier;
 use OCA\Libresign\Service\Policy\Provider\SignatureRejection\SignatureRejectionPolicy;
@@ -85,7 +86,7 @@ final class FilePolicyApplierTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		];
 
 		$this->policyService
-			->expects($this->exactly(14))
+			->expects($this->exactly(15))
 			->method('resolveForUser')
 			->willReturnCallback(function (string $policyKey) use ($identificationDocumentsValue, $identifyMethodsPolicyValue): ResolvedPolicy {
 				return match ($policyKey) {
@@ -138,6 +139,11 @@ final class FilePolicyApplierTest extends \OCA\Libresign\Tests\Unit\TestCase {
 						],
 						'system',
 					),
+					OrganizationSealsPolicy::KEY => $this->createResolvedPolicy(
+						OrganizationSealsPolicy::KEY,
+						'[]',
+						'system',
+					),
 					SignatureRejectionPolicy::KEY_ENABLED,
 					SignatureRejectionPolicy::KEY_BEHAVIOR,
 					SignatureRejectionPolicy::KEY_COMMENT_MODE,
@@ -185,6 +191,10 @@ final class FilePolicyApplierTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			'effectiveValue' => true,
 			'sourceScope' => 'system',
 		], $metadata['policy_snapshot'][ObserverProfilePolicy::KEY] ?? null);
+		$this->assertSame([
+			'effectiveValue' => '[]',
+			'sourceScope' => 'system',
+		], $metadata['policy_snapshot'][OrganizationSealsPolicy::KEY] ?? null);
 		// Every rejection setting is frozen on its own, one snapshot entry per key.
 		foreach (SignatureRejectionPolicyConfig::defaults()->toKeyedValues() as $policyKey => $effectiveValue) {
 			$this->assertSame([
@@ -201,7 +211,7 @@ final class FilePolicyApplierTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$file->setDocmdpLevelEnum(DocMdpLevel::NOT_CERTIFIED);
 
 		$this->policyService
-			->expects($this->exactly(11))
+			->expects($this->exactly(12))
 			->method('resolveForUserId')
 			->willReturnCallback(function (string $policyKey): ResolvedPolicy {
 				return match ($policyKey) {
@@ -239,6 +249,11 @@ final class FilePolicyApplierTest extends \OCA\Libresign\Tests\Unit\TestCase {
 						],
 						'system',
 					),
+					OrganizationSealsPolicy::KEY => $this->createResolvedPolicy(
+						OrganizationSealsPolicy::KEY,
+						'[]',
+						'system',
+					),
 					SignatureRejectionPolicy::KEY_ENABLED,
 					SignatureRejectionPolicy::KEY_BEHAVIOR,
 					SignatureRejectionPolicy::KEY_COMMENT_MODE,
@@ -253,7 +268,7 @@ final class FilePolicyApplierTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			});
 
 		$this->fileService
-			->expects($this->exactly(7))
+			->expects($this->exactly(8))
 			->method('update')
 			->with($this->identicalTo($file));
 
@@ -307,7 +322,7 @@ final class FilePolicyApplierTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		]);
 
 		$this->policyService
-			->expects($this->exactly(13))
+			->expects($this->exactly(14))
 			->method('resolveForUserId')
 			->willReturnCallback(function (string $policyKey): ResolvedPolicy {
 				return match ($policyKey) {
@@ -365,6 +380,11 @@ final class FilePolicyApplierTest extends \OCA\Libresign\Tests\Unit\TestCase {
 						],
 						'system',
 					),
+					OrganizationSealsPolicy::KEY => $this->createResolvedPolicy(
+						OrganizationSealsPolicy::KEY,
+						'[]',
+						'system',
+					),
 					SignatureRejectionPolicy::KEY_ENABLED,
 					SignatureRejectionPolicy::KEY_BEHAVIOR,
 					SignatureRejectionPolicy::KEY_COMMENT_MODE,
@@ -379,7 +399,7 @@ final class FilePolicyApplierTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			});
 
 		$this->fileService
-			->expects($this->exactly(4))
+			->expects($this->exactly(5))
 			->method('update');
 
 		$this->getApplier()->syncAllPolicies($file, []);

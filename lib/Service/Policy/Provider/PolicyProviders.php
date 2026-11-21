@@ -24,6 +24,7 @@ use OCA\Libresign\Service\Policy\Provider\LegalInformation\LegalInformationPolic
 use OCA\Libresign\Service\Policy\Provider\MailSenderStrategy\MailSenderStrategyPolicy;
 use OCA\Libresign\Service\Policy\Provider\NotificationDelivery\NotificationDeliveryModePolicy;
 use OCA\Libresign\Service\Policy\Provider\ObserverProfile\ObserverProfilePolicy;
+use OCA\Libresign\Service\Policy\Provider\OrganizationSeals\OrganizationSealsPolicy;
 use OCA\Libresign\Service\Policy\Provider\Reminder\ReminderPolicy;
 use OCA\Libresign\Service\Policy\Provider\RequestSignGroups\RequestSignGroupsPolicy;
 use OCA\Libresign\Service\Policy\Provider\Signature\SignatureFlowPolicy;
@@ -70,6 +71,7 @@ final class PolicyProviders {
 		IdentificationDocumentsPolicy::KEY => IdentificationDocumentsPolicy::class,
 		IdentifyMethodsPolicy::KEY => IdentifyMethodsPolicy::class,
 		ObserverProfilePolicy::KEY => ObserverProfilePolicy::class,
+		OrganizationSealsPolicy::KEY => OrganizationSealsPolicy::class,
 		SignatureTextPolicy::KEY => SignatureTextPolicy::class,
 		SignerGeolocationPolicy::KEY => SignerGeolocationPolicy::class,
 		SignerIpGeolocationPolicy::KEY => SignerIpGeolocationPolicy::class,

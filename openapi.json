@@ -1803,6 +1803,28 @@
                     }
                 }
             },
+            "OrganizationSealResult": {
+                "type": "object",
+                "required": [
+                    "status",
+                    "at"
+                ],
+                "properties": {
+                    "status": {
+                        "type": "string",
+                        "enum": [
+                            "sealed",
+                            "failed"
+                        ]
+                    },
+                    "error": {
+                        "type": "string"
+                    },
+                    "at": {
+                        "type": "string"
+                    }
+                }
+            },
             "Pagination": {
                 "type": "object",
                 "required": [
@@ -3277,6 +3299,12 @@
                     },
                     "status_changed_at": {
                         "type": "string"
+                    },
+                    "organization_seals": {
+                        "type": "object",
+                        "additionalProperties": {
+                            "$ref": "#/components/schemas/OrganizationSealResult"
+                        }
                     }
                 }
             },
@@ -3324,6 +3352,9 @@
                     },
                     "rejection_comment_visibility": {
                         "$ref": "#/components/schemas/PolicySnapshotSignatureRejectionVisibilityEntry"
+                    },
+                    "organization_seals": {
+                        "$ref": "#/components/schemas/PolicySnapshotEntry"
                     }
                 }
             },
