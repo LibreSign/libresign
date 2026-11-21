@@ -126,13 +126,20 @@ final class ExternalPdfSigningServiceTest extends TestCase {
 	 * operation explicitly and invokes LibreSign's service — its real
 	 * validation dependency included — proving the prepared state survives
 	 * process termination through the full service path.
+	 *
+	 * @return array<string, array{SignatureProfile}>
 	 */
-	public function testCompletionAcrossSeparatePhpProcess(): void {
+	public static function resumableProfiles(): array {
+		return ['PDF basic' => [SignatureProfile::PdfBasic], 'PAdES B-B' => [SignatureProfile::PadesBaselineB]];
+	}
+
+	#[DataProvider('resumableProfiles')]
+	public function testCompletionAcrossSeparatePhpProcess(SignatureProfile $profile): void {
 		$identity = $this->generateIdentity('rsa');
-		$pdf = $this->makePdf('Resumable state across processes');
+		$pdf = $this->makePdf('Resumable state across processes ' . $profile->value);
 
 		$prepared = $this->service->prepare(
-			$this->buildContext($pdf, $identity['certificate'], [$identity['ca']]),
+			$this->buildContext($pdf, $identity['certificate'], [$identity['ca']], signatureProfile: $profile),
 		);
 
 		$stateFile = $this->tempManager->getTemporaryFile();
@@ -214,6 +221,9 @@ final class ExternalPdfSigningServiceTest extends TestCase {
 			$this->independentOpensslVerify($signatures[0]['cms'], $signatures[0]['content']),
 			'the subprocess-completed document must carry a valid signature',
 		);
+		if ($profile === SignatureProfile::PadesBaselineB) {
+			$this->assertPadesSigningCertificateV2($signatures[0]['cms'], $identity['certificate']);
+		}
 	}
 
 	public function testSecondSignaturePreservesFirstSignature(): void {
@@ -452,15 +462,156 @@ final class ExternalPdfSigningServiceTest extends TestCase {
 	}
 
 	/**
-	 * The pinned external signer supports basic PDF, not the PAdES
-	 * conformance contract. Each profile is checked at preparation.
+	 * The B-B profile must work with both external private-key algorithms.
+	 * Verify CMS independently and prove the certificate digest is bound
+	 * inside the signed ESSCertIDv2 attribute, not merely present in /Cert.
+	 *
+	 * @return array<string, array{string}>
+	 */
+	public static function padesAlgorithms(): array {
+		return ['RSA' => ['rsa'], 'ECDSA' => ['ec']];
+	}
+
+	#[DataProvider('padesAlgorithms')]
+	public function testPadesBaselineBExternalLifecycleAndSignedAttributes(string $keyType): void {
+		$identity = $this->generateIdentity($keyType);
+		$pdf = $this->makePdf('PAdES B-B ' . $keyType . ' independent validation');
+		$prepared = $this->service->prepare(
+			$this->buildContext($pdf, $identity['certificate'], [$identity['ca']], signatureProfile: SignatureProfile::PadesBaselineB),
+		);
+		$this->assertSame('sha256', $prepared->upstream->payload->digestAlgorithm->value);
+		$this->assertSame($keyType === 'ec' ? 'ecdsa' : 'rsa-pkcs1-v1_5', $prepared->upstream->payload->signatureAlgorithm->value);
+		$this->assertSame(32, strlen($prepared->upstream->payload->input()));
+
+		$signature = $this->externalSign($prepared->upstream->payload->input(), $identity['privateKey'], $keyType);
+		$completed = $this->service->complete($prepared, $signature, $pdf, $identity['certificate']);
+		$this->assertSame($this->completeIndependently($prepared, $signature), $completed);
+		$this->assertStringContainsString('/ETSI.CAdES.detached', $completed);
+		$entries = $this->extractSignatures($completed);
+		$this->assertCount(1, $entries);
+		$this->assertTrue($this->independentOpensslVerify($entries[0]['cms'], $entries[0]['content']));
+
+		// The signature must bind the entire latest PDF revision via ByteRange.
+		preg_match('/\\/ByteRange\\s*\\[\\s*(\\d+)\\s+(\\d+)\\s+(\\d+)\\s+(\\d+)\\s*\\]/', $completed, $range);
+		$this->assertCount(5, $range);
+		$this->assertSame(0, (int)$range[1]);
+		$this->assertSame(strlen($completed), (int)$range[3] + (int)$range[4]);
+		$this->assertSame(strlen($entries[0]['content']), (int)$range[2] + (int)$range[4]);
+
+		$this->assertPadesSigningCertificateV2($entries[0]['cms'], $identity['certificate']);
+
+		// A PDF mutation inside the signed ByteRange breaks verification.
+		$tampered = str_replace('independent validation', 'independent validatioN', $completed);
+		$this->assertNotSame($completed, $tampered);
+		$tamperedEntries = $this->extractSignatures($tampered);
+		$this->assertFalse($this->independentOpensslVerify($tamperedEntries[0]['cms'], $tamperedEntries[0]['content']));
+	}
+
+	private function assertPadesSigningCertificateV2(string $cms, string $certificatePem): void {
+		$cmsFile = $this->tempManager->getTemporaryFile();
+		file_put_contents($cmsFile, $cms);
+		exec(
+			'openssl asn1parse -inform DER -in ' . escapeshellarg($cmsFile) . ' -i 2>&1',
+			$asn1Lines,
+			$exitCode,
+		);
+		$this->assertSame(0, $exitCode, implode("\n", $asn1Lines));
+		$asn1 = implode("\n", $asn1Lines);
+		$this->assertMatchesRegularExpression('/OBJECT\\s*:\\s*(?:id-smime-aa-signingCertificateV2|1\\.2\\.840\\.113549\\.1\\.9\\.16\\.2\\.47)/', $asn1);
+		$this->assertDoesNotMatchRegularExpression('/OBJECT\\s*:\\s*signingTime(?:\\s|$)/m', $asn1);
+		$this->assertMatchesRegularExpression('/OBJECT\\s*:\\s*messageDigest/', $asn1);
+		$this->assertMatchesRegularExpression('/OBJECT\\s*:\\s*contentType/', $asn1);
+
+		$der = base64_decode((string)preg_replace('/-----BEGIN CERTIFICATE-----|-----END CERTIFICATE-----|\\s+/', '', $certificatePem), true);
+		$this->assertNotFalse($der);
+		$certHash = strtoupper(hash('sha256', $der));
+		$this->assertMatchesRegularExpression('/OCTET STRING\\s*\\[HEX DUMP\\]:' . preg_quote($certHash, '/') . '\\b/', $asn1);
+	}
+
+	public function testPadesBaselineBPreservesExistingSignatureAndDocMdpRules(): void {
+		$identity = $this->generateIdentity('rsa');
+		$pdf = $this->makePdf('PAdES B-B sequential signing');
+		$first = $this->service->prepare($this->buildContext($pdf, $identity['certificate'], [$identity['ca']], signatureProfile: SignatureProfile::PadesBaselineB));
+		$signedOnce = $this->service->complete($first, $this->externalSign($first->upstream->payload->input(), $identity['privateKey'], 'rsa'), $pdf, $identity['certificate']);
+		$second = $this->service->prepare($this->buildContext($signedOnce, $identity['certificate'], [$identity['ca']], signatureProfile: SignatureProfile::PadesBaselineB));
+		$signedTwice = $this->service->complete($second, $this->externalSign($second->upstream->payload->input(), $identity['privateKey'], 'rsa'), $signedOnce, $identity['certificate']);
+		$before = $this->extractSignatures($signedOnce);
+		$after = $this->extractSignatures($signedTwice);
+		$this->assertCount(2, $after);
+		$this->assertSame($before[0]['cms'], $after[0]['cms']);
+		foreach ($after as $entry) {
+			$this->assertTrue($this->independentOpensslVerify($entry['cms'], $entry['content']));
+			$this->assertPadesSigningCertificateV2($entry['cms'], $identity['certificate']);
+		}
+
+		$certified = $this->makeCertifiedPdf($identity, CertificationLevel::NoChangesAllowed);
+		$this->expectException(ExternalSigningException::class);
+		$this->expectExceptionMessage('forbids additional signatures');
+		$this->service->prepare($this->buildContext($certified, $identity['certificate'], [$identity['ca']], signatureProfile: SignatureProfile::PadesBaselineB));
+	}
+
+	public function testPadesBaselineBRejectsSignatureFromWrongKeyAndCertificateSubstitution(): void {
+		$signer = $this->generateIdentity('rsa');
+		$other = $this->generateIdentity('rsa');
+		$pdf = $this->makePdf('PAdES B-B signer mismatch');
+		$prepared = $this->service->prepare(
+			$this->buildContext($pdf, $signer['certificate'], [$signer['ca']], signatureProfile: SignatureProfile::PadesBaselineB),
+		);
+		$validSignature = $this->externalSign($prepared->upstream->payload->input(), $signer['privateKey'], 'rsa');
+		$this->assertTrue($this->independentOpensslCmsVerifies($prepared, $validSignature, $pdf));
+
+		try {
+			$this->service->complete($prepared, $validSignature, $pdf, $other['certificate']);
+			$this->fail('A different expected certificate must be rejected.');
+		} catch (ExternalSigningException $exception) {
+			$this->assertStringContainsString('unexpected certificate', $exception->getMessage());
+		}
+
+		$wrongSignature = $this->externalSign($prepared->upstream->payload->input(), $other['privateKey'], 'rsa');
+		$this->assertFalse($this->independentOpensslCmsVerifies($prepared, $wrongSignature, $pdf));
+		$this->expectException(ExternalSigningException::class);
+		$this->service->complete($prepared, $wrongSignature, $pdf, $signer['certificate']);
+	}
+
+	public function testPadesBaselineBCertificationAndTimestampRestriction(): void {
+		$identity = $this->generateIdentity('rsa');
+		$pdf = $this->makePdf('PAdES B-B certified');
+		$prepared = $this->service->prepare($this->buildContext($pdf, $identity['certificate'], [$identity['ca']], CertificationLevel::FormFillAndSignatures, SignatureProfile::PadesBaselineB));
+		$completed = $this->service->complete($prepared, $this->externalSign($prepared->upstream->payload->input(), $identity['privateKey'], 'rsa'), $pdf, $identity['certificate']);
+		$this->assertTrue($this->independentOpensslVerify($this->extractSignatures($completed)[0]['cms'], $this->extractSignatures($completed)[0]['content']));
+		$resource = $this->toResource($completed);
+		try {
+			$docMdp = (new DocMdpHandler($this->l10n()))->extractDocMdpData($resource);
+			$this->assertTrue($docMdp['docmdp']['isCertifying']);
+			$this->assertSame(2, $docMdp['docmdp']['level']);
+		} finally {
+			fclose($resource);
+		}
+
+		$withTimestamp = new SigningContextDto(
+			new PdfContentDto($pdf),
+			new SigningOptionsDto(
+				signatureProfile: SignatureProfile::PadesBaselineB,
+				timestamp: new TimestampOptionsDto('https://ts.invalid.example'),
+				useDefaultAppearance: false,
+			),
+			new SigningCertificateDto($identity['certificate'], [$identity['ca']]),
+		);
+		$this->expectException(ExternalSigningException::class);
+		$this->expectExceptionMessage('timestamping is not supported');
+		$this->service->prepare($withTimestamp);
+	}
+
+	/**
+	 * The pinned engine supports PDF basic and PAdES B-B (without a
+	 * timestamp). Higher PAdES profiles are rejected at preparation.
 	 *
 	 * @return array<string, array{SignatureProfile, bool}>
 	 */
 	public static function externalSignatureProfiles(): array {
 		return [
 			'PDF basic' => [SignatureProfile::PdfBasic, true],
-			'PAdES B' => [SignatureProfile::PadesBaselineB, false],
+			'PAdES B' => [SignatureProfile::PadesBaselineB, true],
 			'PAdES T' => [SignatureProfile::PadesBaselineT, false],
 			'PAdES LT' => [SignatureProfile::PadesBaselineLT, false],
 			'PAdES LTA' => [SignatureProfile::PadesBaselineLTA, false],
@@ -1127,6 +1278,7 @@ final class ExternalPdfSigningServiceTest extends TestCase {
 		string $certificatePem,
 		array $chainPem,
 		?CertificationLevel $certificationLevel = null,
+		SignatureProfile $signatureProfile = SignatureProfile::PdfBasic,
 	): SigningContextDto {
 		return new SigningContextDto(
 			new PdfContentDto($pdf),
@@ -1136,6 +1288,7 @@ final class ExternalPdfSigningServiceTest extends TestCase {
 					actor: new SignatureActorDto(name: 'Integration Test Signer'),
 				),
 				certificationLevel: $certificationLevel,
+				signatureProfile: $signatureProfile,
 				useDefaultAppearance: false,
 			),
 			new SigningCertificateDto($certificatePem, $chainPem),

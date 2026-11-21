@@ -142,9 +142,11 @@ final class ExternalPdfSigningService {
 	 * @throws ExternalSigningException on unsupported options
 	 */
 	private function assertSupportedOptions(SigningContextDto $context): void {
-		// The currently pinned external signer does not provide conformant
-		// PAdES CMS attributes. Keep profile construction upstream.
-		if ($context->options->signatureProfile !== SignatureProfile::PdfBasic) {
+		// SignerPHP 0.4.0 builds the PAdES B-B signed-certificate
+		// attribute and ETSI.CAdES.detached subfilter in its external
+		// prepare/complete flow. Higher profiles need features (notably
+		// timestamps and validation evidence) this flow does not provide.
+		if (! in_array($context->options->signatureProfile, [SignatureProfile::PdfBasic, SignatureProfile::PadesBaselineB], true)) {
 			throw new ExternalSigningException(
 				'The requested PAdES profile is not supported by the pinned external signing engine.',
 			);
