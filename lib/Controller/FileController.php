@@ -50,7 +50,7 @@ use OCP\Preview\IMimeIconProvider;
 use Psr\Log\LoggerInterface;
 
 /**
- * @psalm-import-type LibresignFile from \OCA\Libresign\ResponseDefinitions
+ * @psalm-import-type LibresignIdDocFile from \OCA\Libresign\ResponseDefinitions
  * @psalm-import-type LibresignDetailedFile from \OCA\Libresign\ResponseDefinitions
  * @psalm-import-type LibresignDetailedFileResponse from \OCA\Libresign\ResponseDefinitions
  * @psalm-import-type LibresignActionErrorResponse from \OCA\Libresign\ResponseDefinitions
@@ -585,7 +585,7 @@ class FileController extends AEnvironmentAwareOCSController {
 	 * @param string $name The name of file to sign
 	 * @param LibresignFolderSettings $settings Settings to define how and where the file should be stored
 	 * @param list<LibresignNewFile> $files Multiple files to create an envelope (optional, use either file or files)
-	 * @return DataResponse<Http::STATUS_OK, LibresignDetailedFileResponse, array{}>|DataResponse<Http::STATUS_UNPROCESSABLE_ENTITY, LibresignMessageResponse, array{}>
+	 * @return DataResponse<Http::STATUS_OK, LibresignDetailedFileResponse, array{}>|DataResponse<Http::STATUS_UNPROCESSABLE_ENTITY, LibresignMessageResponse|LibresignActionErrorResponse, array{}>
 	 *
 	 * 200: OK
 	 * 422: Failed to save data
@@ -630,7 +630,7 @@ class FileController extends AEnvironmentAwareOCSController {
 	 * Multipart clients can send optional expectedFilesCount to reject incomplete batches.
 	 *
 	 * @param string $uuid The UUID of the envelope
-	 * @return DataResponse<Http::STATUS_OK, LibresignDetailedFileResponse, array{}>|DataResponse<Http::STATUS_BAD_REQUEST|Http::STATUS_NOT_FOUND|Http::STATUS_UNPROCESSABLE_ENTITY, LibresignMessageResponse, array{}>
+	 * @return DataResponse<Http::STATUS_OK, LibresignDetailedFileResponse, array{}>|DataResponse<Http::STATUS_BAD_REQUEST|Http::STATUS_NOT_FOUND, LibresignMessageResponse, array{}>|DataResponse<Http::STATUS_UNPROCESSABLE_ENTITY, LibresignMessageResponse|LibresignActionErrorResponse, array{}>
 	 *
 	 * 200: Files added successfully
 	 * 400: Invalid request

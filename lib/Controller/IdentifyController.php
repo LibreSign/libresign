@@ -32,6 +32,7 @@ use OCP\Collaboration\Collaborators\ISearch;
 use OCP\IRequest;
 
 /**
+ * @psalm-import-type LibresignActionErrorResponse from \OCA\Libresign\ResponseDefinitions
  * @psalm-import-type LibresignIdentifyAccount from \OCA\Libresign\ResponseDefinitions
  * @psalm-import-type LibresignIdentifyAccountsResponse from \OCA\Libresign\ResponseDefinitions
  */
@@ -59,9 +60,10 @@ class IdentifyController extends AEnvironmentAwareOCSController {
 	 * @param string $method filter by method (email, account, sms, signal, telegram, whatsapp, whatsappbusiness, xmpp)
 	 * @param int $page the number of page to return. Default: 1
 	 * @param int $limit Total of elements to return. Default: 25
-	 * @return DataResponse<Http::STATUS_OK, LibresignIdentifyAccountsResponse, array{}>
+	 * @return DataResponse<Http::STATUS_OK, LibresignIdentifyAccountsResponse, array{}>|DataResponse<Http::STATUS_UNPROCESSABLE_ENTITY, LibresignActionErrorResponse, array{}>
 	 *
 	 * 200: Certificate saved with success
+	 * 422: User is not allowed to request signatures
 	 */
 	#[NoAdminRequired]
 	#[RequireManager]

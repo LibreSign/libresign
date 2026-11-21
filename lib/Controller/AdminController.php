@@ -336,7 +336,7 @@ class AdminController extends AEnvironmentAwareOCSController {
 	/**
 	 * Get custom background image
 	 *
-	 * @return FileDisplayResponse<Http::STATUS_OK, array{}>
+	 * @return FileDisplayResponse<Http::STATUS_OK, array{Content-Disposition: 'attachment; filename="background.png"', Content-Type: 'image/png'}>
 	 *
 	 * 200: Image returned
 	 */
@@ -346,14 +346,17 @@ class AdminController extends AEnvironmentAwareOCSController {
 	public function signatureBackgroundGet(): FileDisplayResponse {
 		$file = $this->signatureBackgroundService->getImage();
 
-		$response = new FileDisplayResponse($file);
+		$response = new FileDisplayResponse($file, Http::STATUS_OK, [
+			'Content-Disposition' => 'attachment; filename="background.png"',
+			'Content-Type' => 'image/png',
+		]);
+		// The constructor always sets Content-Disposition to "inline" using the
+		// file name, so the attachment disposition must be set again afterwards.
+		$response->addHeader('Content-Disposition', 'attachment; filename="background.png"');
 		$csp = new ContentSecurityPolicy();
 		$csp->allowInlineStyle();
 		$response->setContentSecurityPolicy($csp);
 		$response->cacheFor(3600);
-		$response->addHeader('Content-Type', 'image/png');
-		$response->addHeader('Content-Disposition', 'attachment; filename="background.png"');
-		$response->addHeader('Content-Type', 'image/png');
 		return $response;
 	}
 
