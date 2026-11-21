@@ -43,8 +43,9 @@ use PHPUnit\Framework\Attributes\RunInSeparateProcess;
  * reproduces Nextcloud's own type-conflict logging.
  */
 #[Group('DB')]
-final class PolicySourceLegacyAppConfigTypeTest extends \Test\TestCase {
+final class PolicySourceTest extends \Test\TestCase {
 	private const OVERRIDE_SUFFIX = '.allow_child_override';
+	private const LAZY_PROBE_KEY = 'ls9456_lazy_probe';
 
 	private IDBConnection $connection;
 	private RealAppConfig $realAppConfig;
@@ -102,7 +103,7 @@ final class PolicySourceLegacyAppConfigTypeTest extends \Test\TestCase {
 			$keys[] = $key;
 			$keys[] = $key . self::OVERRIDE_SUFFIX;
 		}
-		return $keys;
+		return [...$keys, self::LAZY_PROBE_KEY];
 	}
 
 	#[DataProvider('provideLegacyPolicyValues')]
@@ -170,6 +171,34 @@ final class PolicySourceLegacyAppConfigTypeTest extends \Test\TestCase {
 				IAppConfig::VALUE_BOOL,
 				['enabled' => false, 'approvers' => ['admin']],
 			],
+			'identification_documents stored as legacy string true' => [
+				IdentificationDocumentsPolicy::KEY,
+				IdentificationDocumentsPolicy::SYSTEM_APP_CONFIG_KEY,
+				'1',
+				IAppConfig::VALUE_STRING,
+				['enabled' => true, 'approvers' => ['admin']],
+			],
+			'identification_documents stored as legacy string false' => [
+				IdentificationDocumentsPolicy::KEY,
+				IdentificationDocumentsPolicy::SYSTEM_APP_CONFIG_KEY,
+				'0',
+				IAppConfig::VALUE_STRING,
+				['enabled' => false, 'approvers' => ['admin']],
+			],
+			'identification_documents stored as JSON string' => [
+				IdentificationDocumentsPolicy::KEY,
+				IdentificationDocumentsPolicy::SYSTEM_APP_CONFIG_KEY,
+				'{"enabled":true,"approvers":["reviewer"]}',
+				IAppConfig::VALUE_STRING,
+				['enabled' => true, 'approvers' => ['reviewer']],
+			],
+			'control: identification_documents stored as its current array type' => [
+				IdentificationDocumentsPolicy::KEY,
+				IdentificationDocumentsPolicy::SYSTEM_APP_CONFIG_KEY,
+				'{"enabled":true,"approvers":["admin"]}',
+				IAppConfig::VALUE_ARRAY,
+				['enabled' => true, 'approvers' => ['admin']],
+			],
 			'add_footer stored as a legacy boolean false' => [
 				FooterPolicy::KEY,
 				FooterPolicy::SYSTEM_APP_CONFIG_KEY,
@@ -196,24 +225,19 @@ final class PolicySourceLegacyAppConfigTypeTest extends \Test\TestCase {
 	#[RunInSeparateProcess]
 	#[PreserveGlobalState(false)]
 	public function testLoadSystemPolicyDoesNotTriggerUnrelatedLazyAppConfigLoad(): void {
-		$lazyProbeKey = 'ls9456_lazy_probe';
-		$this->realAppConfig->setValueString(Application::APP_ID, $lazyProbeKey, 'probe', lazy: true);
+		$this->realAppConfig->setValueString(Application::APP_ID, self::LAZY_PROBE_KEY, 'probe', lazy: true);
 		$this->insertRow(SignatureFlowPolicy::SYSTEM_APP_CONFIG_KEY, 'ordered_numeric', IAppConfig::VALUE_STRING, 0);
 		$this->realAppConfig->clearCache();
 		$this->logger->reset();
 
-		try {
-			$source = Server::get(PolicySource::class);
-			$source->loadSystemPolicy(SignatureFlowPolicy::KEY);
+		$source = Server::get(PolicySource::class);
+		$source->loadSystemPolicy(SignatureFlowPolicy::KEY);
 
-			self::assertFalse(
-				$this->logger->hasRecordMatching('The loading of lazy AppConfig values have been triggered'),
-				'Reading a non-lazy system policy must not force lazy AppConfig values to load: '
-					. json_encode($this->logger->getRecords()),
-			);
-		} finally {
-			$this->realAppConfig->deleteKey(Application::APP_ID, $lazyProbeKey);
-		}
+		self::assertFalse(
+			$this->logger->hasRecordMatching('The loading of lazy AppConfig values have been triggered'),
+			'Reading a non-lazy system policy must not force lazy AppConfig values to load: '
+				. json_encode($this->logger->getRecords()),
+		);
 	}
 
 	/** @return array<string, mixed>|null */
