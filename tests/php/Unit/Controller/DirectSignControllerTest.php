@@ -51,6 +51,51 @@ final class DirectSignControllerTest extends TestCase {
 		self::assertSame('/api/{apiVersion}/sign/direct', $method->getAttributes(ApiRoute::class)[0]->getArguments()['url']);
 	}
 
+	#[DataProvider('openApiSpecifications')]
+	public function testPublishedOpenApiDescribesTheBinaryDirectSigningContract(string $filename): void {
+		$contents = file_get_contents(__DIR__ . '/../../../../' . $filename);
+		self::assertNotFalse($contents);
+		$specification = json_decode($contents, true, 512, JSON_THROW_ON_ERROR);
+		$endpoint = $specification['paths']['/ocs/v2.php/apps/libresign/api/{apiVersion}/sign/direct']['post'] ?? null;
+		self::assertIsArray($endpoint, $filename . ' must document the direct signing endpoint');
+		self::assertSame('direct_sign-sign-direct', $endpoint['operationId']);
+		self::assertContains('signing', $endpoint['tags']);
+		self::assertContains(['basic_auth' => []], $endpoint['security']);
+		self::assertContains(['bearer_auth' => []], $endpoint['security']);
+		self::assertSame('v1', $endpoint['parameters'][0]['schema']['default']);
+		self::assertContains('v1', $endpoint['parameters'][0]['schema']['enum']);
+		self::assertTrue($endpoint['parameters'][1]['required']);
+		self::assertSame('OCS-APIRequest', $endpoint['parameters'][1]['name']);
+
+		$properties = $endpoint['requestBody']['content']['application/json']['schema']['properties'];
+		self::assertEqualsCanonicalizing(
+			['file', 'name', 'method', 'token', 'settings', 'policy'],
+			array_keys($properties),
+		);
+		self::assertSame('clickToSign', $properties['method']['default']);
+		self::assertArrayNotHasKey('signers', $properties);
+		self::assertArrayNotHasKey('visibleElements', $properties);
+		self::assertArrayNotHasKey('callback', $properties);
+
+		self::assertSame(
+			['type' => 'string', 'format' => 'binary'],
+			$endpoint['responses']['200']['content']['application/pdf']['schema'],
+		);
+		foreach (['400', '403', '409', '422', '500'] as $status) {
+			self::assertSame(
+				'string',
+				$endpoint['responses'][$status]['content']['application/json']['schema']['properties']['ocs']['properties']['data']['properties']['message']['type'],
+				$filename . ': undocumented error status ' . $status,
+			);
+		}
+		self::assertStringContainsString('idempotency', $endpoint['description']);
+	}
+
+	public static function openApiSpecifications(): iterable {
+		yield 'public schema' => ['openapi.json'];
+		yield 'full schema' => ['openapi-full.json'];
+	}
+
 	public function testReturnsBinaryPdfAndDoesNotSignOnBehalfOfCallerSuppliedPerson(): void {
 		$pdf = '%PDF-1.7 example bytes';
 		$this->signing->expects(self::once())->method('sign')
