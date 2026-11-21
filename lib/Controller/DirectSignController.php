@@ -81,11 +81,7 @@ final class DirectSignController extends AEnvironmentAwareOCSController {
 		}
 
 		try {
-			foreach (['signers', 'visibleElements', 'files', 'callback', 'identifyValue', 'uuid'] as $unsupported) {
-				if ($this->request->getParam($unsupported) !== null) {
-					throw new LibresignException('Unsupported direct signing parameter: ' . $unsupported, Http::STATUS_BAD_REQUEST);
-				}
-			}
+			$this->assertNoUnsupportedParameters();
 			$signed = $this->directSigningService->sign(
 				$user,
 				$file,
@@ -107,6 +103,14 @@ final class DirectSignController extends AEnvironmentAwareOCSController {
 		} catch (\Throwable $e) {
 			$this->logger->error('Direct signing failed', ['exception' => $e]);
 			return new DataResponse(['message' => 'Unable to complete the direct signing request.'], Http::STATUS_INTERNAL_SERVER_ERROR);
+		}
+	}
+
+	private function assertNoUnsupportedParameters(): void {
+		foreach (['signers', 'visibleElements', 'files', 'callback', 'identifyValue', 'uuid'] as $unsupported) {
+			if ($this->request->getParam($unsupported) !== null) {
+				throw new LibresignException('Unsupported direct signing parameter: ' . $unsupported, Http::STATUS_BAD_REQUEST);
+			}
 		}
 	}
 }
