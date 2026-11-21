@@ -1,34 +1,19 @@
 --- a/.github/workflows/command-update-submodule.yml
 +++ b/.github/workflows/command-update-submodule.yml
-@@ -1,28 +1,28 @@
- # SPDX-FileCopyrightText: 2026 LibreCode coop and contributors
- # SPDX-License-Identifier: AGPL-3.0-or-later
- name: Update submodule reference
- 
- on:
-   issue_comment: # zizmor: ignore[dangerous-triggers]
-     types: [created]
- 
- permissions:
-   contents: read
-   pull-requests: read
+@@ -12,7 +12,7 @@
  
  jobs:
    update:
--    if: github.event.issue.pull_request != '' && vars.SUBMODULE_UPDATE_COMMAND != '' && github.event.comment.body == vars.SUBMODULE_UPDATE_COMMAND
 +    if: github.event.issue.pull_request != '' && github.event.comment.body == '/update-3rdparty'
+-    if: github.event.issue.pull_request != '' && vars.SUBMODULE_UPDATE_COMMAND != '' && github.event.comment.body == vars.SUBMODULE_UPDATE_COMMAND
      runs-on: ubuntu-latest
      steps:
        - name: Check actor permission
-         uses: skjnldsv/check-actor-permission@69e92a3c4711150929bca9fcf34448c5bf5526e7 # v3.0
-         with:
-           require: write
- 
-       - name: Update merged submodule reference
+@@ -36,5 +36,5 @@
          uses: LibreCodeCoop/.github/actions/update-submodule@2a75cff7318334499053ced8b72d04bc0f795baf # source pinned
          with:
-           token: ${{ secrets.COMMAND_BOT_PAT }} # zizmor: ignore[secrets-outside-env]
--          source-repository: ${{ vars.SUBMODULE_SOURCE_REPOSITORY }}
+           token: ${{ steps.workflow-app-token.outputs.token }}
 +          source-repository: LibreSign/3rdparty
--          submodule-path: ${{ vars.SUBMODULE_PATH }}
 +          submodule-path: 3rdparty
+-          source-repository: ${{ vars.SUBMODULE_SOURCE_REPOSITORY }}
+-          submodule-path: ${{ vars.SUBMODULE_PATH }}
