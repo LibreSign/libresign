@@ -726,7 +726,7 @@ class PolicySource implements IPolicySource {
 			CoreAppConfig::VALUE_FLOAT => $this->appConfig->getAppValueFloat($key, is_float($defaultValue) ? $defaultValue : 0.0),
 			CoreAppConfig::VALUE_BOOL => $this->appConfig->getAppValueBool($key, is_bool($defaultValue) ? $defaultValue : false),
 			CoreAppConfig::VALUE_ARRAY => $this->appConfig->getAppValueArray($key, is_array($defaultValue) ? $defaultValue : []),
-			default => $this->appConfig->getAppValueString($key, is_string($defaultValue) ? $defaultValue : (string)$defaultValue),
+			default => $this->appConfig->getAppValueString($key, is_string($defaultValue) ? $defaultValue : ''),
 		};
 	}
 
