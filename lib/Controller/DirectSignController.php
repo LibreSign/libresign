@@ -22,9 +22,6 @@ use OCP\IRequest;
 use OCP\IUserSession;
 use Psr\Log\LoggerInterface;
 
-/**
- * @psalm-import-type LibresignFolderSettings from \OCA\Libresign\ResponseDefinitions
- */
 final class DirectSignController extends AEnvironmentAwareController {
 	public function __construct(
 		IRequest $request,
@@ -54,7 +51,7 @@ final class DirectSignController extends AEnvironmentAwareController {
 	 * @param string $name PDF filename ending in .pdf
 	 * @param 'clickToSign'|'password' $method Account signature method
 	 * @param string $token Token or certificate password if required by method
-	 * @param LibresignFolderSettings $settings Optional request file settings
+	 * @param array{folderName?: string, path?: string, separator?: string, folderPatterns?: array{name: string, setting?: string}, envelopeFolderId?: int} $settings Optional request file settings
 	 * @param array<string, mixed>|null $policy Authorized request-level policy overrides
 	 *
 	 * @return DataDownloadResponse<Http::STATUS_OK, 'application/pdf', array{}>|DataResponse<Http::STATUS_BAD_REQUEST|Http::STATUS_FORBIDDEN|Http::STATUS_CONFLICT|Http::STATUS_UNPROCESSABLE_ENTITY|Http::STATUS_INTERNAL_SERVER_ERROR, array{message: string}, array{}>
