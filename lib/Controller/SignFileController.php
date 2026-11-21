@@ -20,19 +20,10 @@ use OCA\Libresign\Middleware\Attribute\RequireManager;
 use OCA\Libresign\Middleware\Attribute\RequireSigner;
 use OCA\Libresign\ResponseDefinitions;
 use OCA\Libresign\Service\AsyncSigningService;
-use OCA\Libresign\Service\EmailSignerElementsService;
-use OCA\Libresign\Service\File\SettingsLoader;
-use OCA\Libresign\Service\FileService;
-use OCA\Libresign\Service\IdentifyMethodService;
-use OCA\Libresign\Service\RequestMetadataService;
 use OCA\Libresign\Service\SignatureRejection\SignatureRejectionService;
-use OCA\Libresign\Service\SignerGeolocation\SignerGeolocationMetadataValidator;
-use OCA\Libresign\Service\SignerIpGeolocation\SignerIpGeolocationPolicyService;
 use OCA\Libresign\Service\SignFileService;
-use OCA\Libresign\Service\Validation\IdentityDocumentValidator;
-use OCA\Libresign\Service\Validation\SignerValidator;
+use OCA\Libresign\Service\SigningPreparationService;
 use OCA\Libresign\Service\Validation\SigningRequestValidator;
-use OCA\Libresign\Service\Validation\VisibleElementValidator;
 use OCA\Libresign\Service\Worker\WorkerConfiguration;
 use OCP\AppFramework\Http;
 use OCP\AppFramework\Http\Attribute\ApiRoute;
@@ -40,7 +31,6 @@ use OCP\AppFramework\Http\Attribute\NoAdminRequired;
 use OCP\AppFramework\Http\Attribute\NoCSRFRequired;
 use OCP\AppFramework\Http\Attribute\OpenAPI;
 use OCP\AppFramework\Http\Attribute\PublicPage;
-use OCP\AppFramework\Http\Attribute\RequestHeader;
 use OCP\AppFramework\Http\DataResponse;
 use OCP\IL10N;
 use OCP\IRequest;
@@ -54,32 +44,22 @@ use Psr\Log\LoggerInterface;
  * @psalm-import-type LibresignSignActionResponse from ResponseDefinitions
  * @psalm-import-type LibresignSignatureRejectionResponse from ResponseDefinitions
  * @psalm-import-type LibresignSignerDeviceGeolocation from ResponseDefinitions
- * @psalm-import-type LibresignSigningElement from ResponseDefinitions
  */
 
-class SignFileController extends AEnvironmentAwareOCSController implements ISignatureUuid {
+class SignFileController extends AEnvironmentAwareController implements ISignatureUuid {
 	use LibresignTrait;
 	public function __construct(
 		IRequest $request,
 		protected IL10N $l10n,
 		private SignRequestMapper $signRequestMapper,
 		protected IUserSession $userSession,
-		private IdentityDocumentValidator $identityDocumentValidator,
-		private VisibleElementValidator $visibleElementValidator,
-		private SignerValidator $signerValidator,
 		private SigningRequestValidator $signingRequestValidator,
 		protected SignFileService $signFileService,
-		private IdentifyMethodService $identifyMethodService,
-		private FileService $fileService,
-		private SettingsLoader $settingsLoader,
+		private SigningPreparationService $signingPreparationService,
 		private WorkerConfiguration $workerConfiguration,
 		private AsyncSigningService $asyncSigningService,
-		private RequestMetadataService $requestMetadataService,
-		private SignerGeolocationMetadataValidator $signerGeolocationMetadataValidator,
-		private SignerIpGeolocationPolicyService $signerIpGeolocationPolicyService,
 		private SigningErrorHandler $errorHandler,
 		private SignatureRejectionService $signatureRejectionService,
-		private EmailSignerElementsService $emailSignerElementsService,
 		private LoggerInterface $logger,
 	) {
 		parent::__construct(Application::APP_ID, $request);
@@ -90,14 +70,16 @@ class SignFileController extends AEnvironmentAwareOCSController implements ISign
 	 *
 	 * @param int $fileId Id of LibreSign file
 	 * @param string $method Signature method
-	 * @param list<LibresignSigningElement> $elements List of visible elements
+	 * @param array<string, mixed> $elements List of visible elements
 	 * @param string $identifyValue Identify value
 	 * @param string $token Token, commonly send by email
 	 * @param bool $async Execute signing asynchronously when possible
-	 * @param LibresignSignerDeviceGeolocation|null $deviceGeolocation Optional device geolocation, omitted when absent; legacy [] is accepted
+	 * @param LibresignSignerDeviceGeolocation $deviceGeolocation Device-reported geolocation metadata submitted by the signing client
+	 * @psalm-param array<string, mixed> $deviceGeolocation
 	 * @return DataResponse<Http::STATUS_OK, LibresignSignActionResponse, array{}>|DataResponse<Http::STATUS_UNPROCESSABLE_ENTITY, LibresignSignActionErrorResponse, array{}>
 	 *
 	 * 200: OK
+	 * 404: Invalid data
 	 * 422: Error
 	 */
 	#[NoAdminRequired]
@@ -106,27 +88,25 @@ class SignFileController extends AEnvironmentAwareOCSController implements ISign
 	#[PublicPage]
 	#[OpenAPI(tags: ['signing'])]
 	#[ApiRoute(verb: 'POST', url: '/api/{apiVersion}/sign/file_id/{fileId}', requirements: ['apiVersion' => '(v1)'])]
-	public function signByFileId(int $fileId, string $method, array $elements = [], string $identifyValue = '', string $token = '', bool $async = false, ?array $deviceGeolocation = null): DataResponse {
-		return $this->sign($method, $elements, $identifyValue, $token, $fileId, null, $async, $deviceGeolocation ?? []);
+	public function signByFileId(int $fileId, string $method, array $elements = [], string $identifyValue = '', string $token = '', bool $async = false, array $deviceGeolocation = []): DataResponse {
+		return $this->sign($method, $elements, $identifyValue, $token, $fileId, null, $async, $deviceGeolocation);
 	}
 
 	/**
 	 * Sign a file using file UUID
 	 *
-	 * Identification-document approvals use the query string ?idDocApproval=true.
-	 * The signer middleware resolves that query before the controller runs.
-	 *
 	 * @param string $uuid UUID of LibreSign file
 	 * @param string $method Signature method
-	 * @param list<LibresignSigningElement> $elements List of visible elements
+	 * @param array<string, mixed> $elements List of visible elements
 	 * @param string $identifyValue Identify value
 	 * @param string $token Token, commonly send by email
 	 * @param bool $async Execute signing asynchronously when possible
-	 * @param LibresignSignerDeviceGeolocation|null $deviceGeolocation Optional device geolocation, omitted when absent; legacy [] is accepted
-	 * @param bool $saveSignature Explicitly save the external email signer's visible signature for future documents
+	 * @param LibresignSignerDeviceGeolocation $deviceGeolocation Device-reported geolocation metadata submitted by the signing client
+	 * @psalm-param array<string, mixed> $deviceGeolocation
 	 * @return DataResponse<Http::STATUS_OK, LibresignSignActionResponse, array{}>|DataResponse<Http::STATUS_UNPROCESSABLE_ENTITY, LibresignSignActionErrorResponse, array{}>
 	 *
 	 * 200: OK
+	 * 404: Invalid data
 	 * 422: Error
 	 */
 	#[NoAdminRequired]
@@ -135,8 +115,8 @@ class SignFileController extends AEnvironmentAwareOCSController implements ISign
 	#[PublicPage]
 	#[OpenAPI(tags: ['signing'])]
 	#[ApiRoute(verb: 'POST', url: '/api/{apiVersion}/sign/uuid/{uuid}', requirements: ['apiVersion' => '(v1)'])]
-	public function signBySignerUuid(string $uuid, string $method, array $elements = [], string $identifyValue = '', string $token = '', bool $async = false, ?array $deviceGeolocation = null, bool $saveSignature = false): DataResponse {
-		return $this->sign($method, $elements, $identifyValue, $token, null, $uuid, $async, $deviceGeolocation ?? [], $saveSignature);
+	public function signBySignerUuid(string $uuid, string $method, array $elements = [], string $identifyValue = '', string $token = '', bool $async = false, array $deviceGeolocation = []): DataResponse {
+		return $this->sign($method, $elements, $identifyValue, $token, null, $uuid, $async, $deviceGeolocation);
 	}
 
 	/**
@@ -151,11 +131,10 @@ class SignFileController extends AEnvironmentAwareOCSController implements ISign
 		?string $signRequestUuid = null,
 		bool $async = false,
 		array $deviceGeolocation = [],
-		bool $saveSignature = false,
 	): DataResponse {
 		try {
 			$user = $this->userSession->getUser();
-			$isIdDocApproval = $this->isIdentificationDocumentApproval();
+			$isIdDocApproval = $this->request->getParam('idDocApproval') === 'true';
 
 			if ($isIdDocApproval && $signRequestUuid) {
 				$libreSignFile = $this->signFileService->getFileByUuid($signRequestUuid);
@@ -165,92 +144,27 @@ class SignFileController extends AEnvironmentAwareOCSController implements ISign
 				$signRequest = $this->signFileService->getSignRequestToSign($libreSignFile, $signRequestUuid, $user);
 			}
 
-			$this->identityDocumentValidator->canSignWithIdentificationDocumentStatus(
-				$user,
-				$this->settingsLoader->getIdentificationDocumentsStatus($user, $signRequest)
-			);
-
-			$this->visibleElementValidator->validateVisibleElementsRelation($elements, $signRequest, $user);
-			$this->signerValidator->validateCredentials($signRequest, $method, $identifyValue, $token);
-
-			$userIdentifier = $this->identifyMethodService->getUserIdentifier($signRequest->getId());
-			$metadata = $this->requestMetadataService->collectMetadata();
-			$normalizedDeviceGeolocation = $this->signerGeolocationMetadataValidator->normalize(
-				$deviceGeolocation === [] ? null : $deviceGeolocation,
-			);
-			$this->signerGeolocationMetadataValidator->validateSubmission($signRequest, $normalizedDeviceGeolocation);
-			if ($normalizedDeviceGeolocation !== null) {
-				$metadata = $this->signerGeolocationMetadataValidator->mergeDeviceIntoMetadata(
-					$metadata,
-					$normalizedDeviceGeolocation,
-				);
-			}
-
-			// GeoIP must run before the async/sync split so background workers never
-			// resolve location from a non-signer connection.
-			$ipGeolocation = $this->signerIpGeolocationPolicyService->collectMetadata(
-				$libreSignFile,
-				$this->request,
-			);
-			if ($ipGeolocation !== null) {
-				$metadata = $this->signerIpGeolocationPolicyService->mergeIntoMetadata(
-					$metadata,
-					$ipGeolocation,
-				);
-			}
-
-			$signature = null;
-			$signatureSaveFailed = false;
-			if ($saveSignature && !$user instanceof IUser) {
-				try {
-					$signature = $this->emailSignerElementsService->prepareSignature($signRequest, $token, $elements, true);
-					$signatureSaveFailed = $signature === null;
-				} catch (\Throwable $e) {
-					$this->logger->warning('Unable to prepare signature elements of email signer', ['exception' => $e]);
-					$signatureSaveFailed = true;
-				}
-			}
-
-			$this->signFileService->prepareForSigning(
+			$prepared = $this->signingPreparationService->prepare(
 				$libreSignFile,
 				$signRequest,
 				$user,
-				$userIdentifier,
-				$signRequest->getDisplayName(),
-				$method !== 'password',
-				$method === 'password' ? $token : null,
 				$method,
+				$identifyValue,
+				$token,
+				$elements,
+				$deviceGeolocation,
 			);
+			$userIdentifier = $prepared['userIdentifier'];
+			$metadata = $prepared['metadata'];
 
 			if ($async && $this->workerConfiguration->isAsyncSigningEnabled()) {
-				$response = $this->signAsync($libreSignFile, $signRequest, $user, $userIdentifier, $method, $token, $elements, $metadata);
-			} else {
-				$response = $this->signSync($libreSignFile, $elements, $metadata);
+				return $this->signAsync($libreSignFile, $signRequest, $user, $userIdentifier, $method, $token, $elements, $metadata);
 			}
-			if ($response->getStatus() === Http::STATUS_OK && $saveSignature && !$user instanceof IUser) {
-				if ($signature !== null && !$this->saveEmailSignerElements($signature)) {
-					$signatureSaveFailed = true;
-				}
-				$data = $response->getData();
-				$data['signatureSaveStatus'] = $signatureSaveFailed ? 'failed' : 'saved';
-				$response->setData($data);
-			}
-			return $response;
+
+			return $this->signSync($libreSignFile, $elements, $metadata);
 		} catch (\Throwable $e) {
 			$data = $this->errorHandler->handleException($e);
 			return new DataResponse($data, Http::STATUS_UNPROCESSABLE_ENTITY);
-		}
-	}
-
-	/** @param array{key: string, elements: array<string, string>} $signature */
-	private function saveEmailSignerElements(array $signature): bool {
-		try {
-			$this->emailSignerElementsService->saveSignature($signature);
-			return true;
-		} catch (\Throwable $e) {
-			// A failed optional save must never undo successful document signing.
-			$this->logger->warning('Unable to save signature elements of email signer', ['exception' => $e]);
-			return false;
 		}
 	}
 
@@ -387,20 +301,9 @@ class SignFileController extends AEnvironmentAwareOCSController implements ISign
 				$comment,
 				$privateComment,
 			);
-		} catch (LibresignException $e) {
-			return new DataResponse(
-				['message' => $e->getMessage()],
-				Http::STATUS_UNPROCESSABLE_ENTITY,
-			);
 		} catch (\Throwable $th) {
-			$this->logger->error('Unable to process signature rejection', [
-				'errorType' => get_debug_type($th),
-				'errorFile' => $th->getFile(),
-				'errorLine' => $th->getLine(),
-			]);
 			return new DataResponse(
-				// TRANSLATORS Error shown when a signature rejection fails unexpectedly.
-				['message' => $this->l10n->t('Unable to process signature rejection.')],
+				['message' => $th->getMessage()],
 				Http::STATUS_UNPROCESSABLE_ENTITY,
 			);
 		}
@@ -449,14 +352,9 @@ class SignFileController extends AEnvironmentAwareOCSController implements ISign
 	/**
 	 * Get code to sign the document using UUID
 	 *
-	 * For identification-document approvals the frontend sends ?idDocApproval=true
-	 * in the URL query. Nextcloud also accepts the same flag in the JSON body.
-	 * The signer middleware reads the combined request parameters.
-	 *
 	 * @param string $uuid UUID of LibreSign file
-	 * @param string|null $identifyMethod Configured signer identification method (for example account, email or sms); omitted methods remain subject to service validation
+	 * @param 'account'|'email'|null $identifyMethod Identify signer method
 	 * @param string|null $signMethod Method used to sign the document, i.e. emailToken, account, clickToSign, smsToken, signalToken, telegramToken, whatsappToken, xmppToken
-	 * @param string|null $idDocApproval Only the literal "true" selects the identification-document approval context. Query or JSON body is accepted.
 	 * @return DataResponse<Http::STATUS_OK, LibresignMessageResponse, array{}>|DataResponse<Http::STATUS_UNPROCESSABLE_ENTITY, LibresignMessageResponse, array{}>
 	 *
 	 * 200: OK
@@ -468,14 +366,9 @@ class SignFileController extends AEnvironmentAwareOCSController implements ISign
 	#[PublicPage]
 	#[OpenAPI(tags: ['signing'])]
 	#[ApiRoute(verb: 'POST', url: '/api/{apiVersion}/sign/uuid/{uuid}/code', requirements: ['apiVersion' => '(v1)'])]
-	public function requestCodeBySignerUuid(
-		string $uuid,
-		?string $identifyMethod = null,
-		?string $signMethod = null,
-		?string $idDocApproval = null,
-	): DataResponse {
+	public function requestCodeBySignerUuid(string $uuid, ?string $identifyMethod, ?string $signMethod): DataResponse {
 		try {
-			if ($this->isIdentificationDocumentApproval($idDocApproval)) {
+			if ($this->request->getParam('idDocApproval') === 'true') {
 				// In this context the uuid is the one of the file, not of a sign request.
 				$libreSignFile = $this->signFileService->getFileByUuid($uuid);
 				$signRequest = $this->signFileService->getSignRequestToSign($libreSignFile, null, $this->userSession->getUser());
@@ -497,7 +390,7 @@ class SignFileController extends AEnvironmentAwareOCSController implements ISign
 	 * Get code to sign the document using FileID
 	 *
 	 * @param int $fileId Id of LibreSign file
-	 * @param string|null $identifyMethod Configured signer identification method (for example account, email or sms); omitted methods remain subject to service validation
+	 * @param 'account'|'email'|null $identifyMethod Identify signer method
 	 * @param string|null $signMethod Method used to sign the document, i.e. emailToken, account, clickToSign, smsToken, signalToken, telegramToken, whatsappToken, xmppToken
 	 * @return DataResponse<Http::STATUS_OK, LibresignMessageResponse, array{}>|DataResponse<Http::STATUS_UNPROCESSABLE_ENTITY, LibresignMessageResponse, array{}>
 	 *
@@ -506,12 +399,11 @@ class SignFileController extends AEnvironmentAwareOCSController implements ISign
 	 */
 	#[NoAdminRequired]
 	#[NoCSRFRequired]
-	#[RequestHeader(name: 'libresign-sign-request-uuid', description: 'The UUID of the sign request, used to identify the request', indirect: true)]
 	#[RequireSigner]
 	#[PublicPage]
 	#[OpenAPI(tags: ['signing'])]
 	#[ApiRoute(verb: 'POST', url: '/api/{apiVersion}/sign/file_id/{fileId}/code', requirements: ['apiVersion' => '(v1)'])]
-	public function requestCodeByFileId(int $fileId, ?string $identifyMethod = null, ?string $signMethod = null): DataResponse {
+	public function requestCodeByFileId(int $fileId, ?string $identifyMethod, ?string $signMethod): DataResponse {
 		try {
 			$signRequest = $this->signRequestMapper->getByFileIdAndUserId($fileId);
 		} catch (\Throwable) {
@@ -523,10 +415,6 @@ class SignFileController extends AEnvironmentAwareOCSController implements ISign
 			$identifyMethod ?? '',
 			$signMethod ?? '',
 		);
-	}
-
-	private function isIdentificationDocumentApproval(?string $idDocApproval = null): bool {
-		return $idDocApproval === 'true' || $this->request->getParam('idDocApproval') === 'true';
 	}
 
 	/**
