@@ -273,10 +273,12 @@ final class JSignPdfHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$inputFile->method('getContent')
 			->willReturn($pdfContent);
 		$paramsSeen = [];
+		$passwordsSeen = [];
 		$mock = $this->createMock(JSignPDF::class);
 		$mock->method('setParam')
-			->willReturnCallback(function (JSignParam $param) use (&$paramsSeen): void {
+			->willReturnCallback(function (JSignParam $param) use (&$paramsSeen, &$passwordsSeen): void {
 				$paramsSeen[] = $param->getJSignParameters();
+				$passwordsSeen[] = $param->getPassword();
 			});
 		$mock->method('sign')->willReturn('content');
 
@@ -307,7 +309,7 @@ final class JSignPdfHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$jSignPdfHandler->setPassword('password');
 		$actual = $jSignPdfHandler->getSignedContent();
 		$this->assertEquals('content', $actual);
-		$this->assertEquals('password', $jSignPdfHandler->getJSignParam()->getPassword());
+		$this->assertSame(['password'], $passwordsSeen);
 		$this->assertCount(1, $paramsSeen);
 		$paramsAsOptions = preg_replace('/\\/\S+_merged.png/', 'merged.png', $paramsSeen[0]);
 		$paramsAsOptions = preg_replace('/\\/\S+_text_image.png/', 'text_image.png', (string)$paramsAsOptions);
@@ -1144,6 +1146,45 @@ final class JSignPdfHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 				[],
 			],
 		];
+	}
+
+	public function testReusedHandlerDoesNotCarryCertificationIntoNextDocument(): void {
+		if (self::$certificateEngineFactory === null || self::$certificateContent === '') {
+			$this->markTestSkipped('Certificate initialization failed');
+		}
+		$this->appConfig->setValueString(Application::APP_ID, 'signature_hash_algorithm', 'SHA256');
+		$this->appConfig->setValueString(Application::APP_ID, 'java_path', __FILE__);
+		$this->appConfig->setValueString(Application::APP_ID, 'jsignpdf_temp_path', sys_get_temp_dir());
+		$this->appConfig->setValueString(Application::APP_ID, 'jsignpdf_path', __DIR__);
+
+		$inputFile = $this->createMock(\OC\Files\Node\File::class);
+		$inputFile->method('getContent')->willReturn('%PDF-1.6');
+		$paramsSeen = [];
+		$jSignPdf = $this->createMock(JSignPDF::class);
+		$jSignPdf->method('setParam')
+			->willReturnCallback(function (JSignParam $param) use (&$paramsSeen): void {
+				$paramsSeen[] = $param->getJSignParameters();
+			});
+		$jSignPdf->method('sign')->willReturn('content');
+		$config = $this->createMock(DocMdpConfigService::class);
+		$config->method('isEnabled')->willReturn(true);
+		$config->method('getLevel')->willReturn(DocMdpLevel::CERTIFIED_FORM_FILLING);
+		$handler = $this->getInstance();
+		$this->setDocMdpConfigService($handler, $config);
+		$handler->setJSignPdf($jSignPdf);
+		$handler->setInputFile($inputFile);
+		$handler->setCertificate(self::$certificateContent);
+		$handler->setPassword('password');
+		$handler->setVisibleElements([]);
+
+		$handler->setDocMdpLevel(DocMdpLevel::CERTIFIED_NO_CHANGES_ALLOWED);
+		$handler->getSignedContent();
+		$handler->setDocMdpLevel(DocMdpLevel::NOT_CERTIFIED);
+		$handler->getSignedContent();
+
+		$this->assertCount(2, $paramsSeen);
+		$this->assertStringContainsString('CERTIFIED_NO_CHANGES_ALLOWED', $paramsSeen[0]);
+		$this->assertStringNotContainsString("'-cl'", $paramsSeen[1]);
 	}
 
 	#[DataProvider('providerCertificationLevelWithoutVisibleElements')]

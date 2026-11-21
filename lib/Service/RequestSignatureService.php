@@ -22,6 +22,7 @@ use OCA\Libresign\Handler\DocMdpHandler;
 use OCA\Libresign\Helper\FileUploadHelper;
 use OCA\Libresign\Helper\ValidateHelper;
 use OCA\Libresign\Service\DocMdp\ConfigService as DocMdpConfigService;
+use OCA\Libresign\Service\DocMdp\StoredLevel;
 use OCA\Libresign\Service\Envelope\EnvelopeFileRelocator;
 use OCA\Libresign\Service\Envelope\EnvelopeService;
 use OCA\Libresign\Service\File\Pdf\PdfMetadataExtractor;
@@ -421,10 +422,9 @@ class RequestSignatureService {
 	}
 
 	private function setDocMdpLevelFromGlobalConfig(FileEntity $file): void {
-		if ($this->docMdpConfigService->isEnabled()) {
-			$docmdpLevel = $this->docMdpConfigService->getLevel();
-			$file->setDocmdpLevelEnum($docmdpLevel);
-		}
+		// Persist an explicit level 0 too. Without provenance, historic rows
+		// using the old column default still fall back to the global setting.
+		StoredLevel::initialize($file, $this->docMdpConfigService->getLevel());
 	}
 
 	private function getFileMetadata(\OCP\Files\Node $node): array {

@@ -10,6 +10,7 @@ namespace OCA\Libresign\Handler\SignEngine;
 
 use InvalidArgumentException;
 use OCA\Libresign\DataObjects\VisibleElementAssoc;
+use OCA\Libresign\Enum\DocMdpLevel;
 use OCA\Libresign\Exception\EmptyCertificateException;
 use OCA\Libresign\Exception\LibresignException;
 use OCA\Libresign\Handler\CertificateEngine\CertificateEngineFactory;
@@ -30,6 +31,16 @@ abstract class SignEngineHandler implements ISignEngineHandler {
 	/** @var VisibleElementAssoc[] */
 	private array $visibleElements = [];
 	private array $signatureParams = [];
+	private ?DocMdpLevel $docMdpLevel = null;
+
+	public function setDocMdpLevel(?DocMdpLevel $docMdpLevel): self {
+		$this->docMdpLevel = $docMdpLevel;
+		return $this;
+	}
+
+	public function getDocMdpLevel(): ?DocMdpLevel {
+		return $this->docMdpLevel;
+	}
 
 	public function __construct(
 		private IL10N $l10n,
