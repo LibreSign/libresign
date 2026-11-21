@@ -768,6 +768,7 @@ final class RequestSignatureControllerTest extends ApiTestCase {
 			[],
 			$this->buildEmailSigners(['one@test.coop']),
 			FileStatus::DRAFT->value,
+			callback: null,
 			policy: $policy,
 		);
 		$uuid = $created['file']->getUuid();

@@ -16,7 +16,9 @@ use OCA\Libresign\Exception\LibresignException;
 use OCA\Libresign\Service\File\Pdf\PdfValidator;
 use OCA\Libresign\Service\Policy\Provider\DocMdp\FilePolicy\DocMdpFilePolicyApplier;
 use OCP\AppFramework\Db\DoesNotExistException;
+use OCP\AppFramework\Db\MultipleObjectsReturnedException;
 use OCP\Files\IRootFolder;
+use OCP\Files\Node;
 use OCP\IL10N;
 
 class Validator {
@@ -84,6 +86,19 @@ class Validator {
 				$file = $this->fileMapper->getByUuid($data['uuid']);
 			} catch (DoesNotExistException) {
 				// File doesn't exist, resolve the level of a new request
+			}
+		} elseif (isset($data['file']) && is_array($data['file'])) {
+			$node = $data['file']['fileNode'] ?? null;
+			$nodeId = $node instanceof Node ? $node->getId() : ($data['file']['nodeId'] ?? null);
+			if (is_int($nodeId) || (is_string($nodeId) && ctype_digit($nodeId))) {
+				try {
+					$file = $this->fileMapper->getByNodeId((int)$nodeId);
+				} catch (DoesNotExistException) {
+					// A new node has no stored certification level yet.
+				} catch (MultipleObjectsReturnedException) {
+					// TRANSLATORS Error when a document has multiple LibreSign records.
+					throw new LibresignException($this->l10n->t('This document is registered more than once, so it cannot be updated. Please contact your administrator.'), 422);
+				}
 			}
 		}
 

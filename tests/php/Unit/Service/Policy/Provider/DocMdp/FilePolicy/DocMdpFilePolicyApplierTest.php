@@ -13,7 +13,6 @@ use OCA\Libresign\Enum\DocMdpLevel;
 use OCA\Libresign\Enum\FileStatus;
 use OCA\Libresign\Exception\LibresignException;
 use OCA\Libresign\Service\FileService;
-use OCA\Libresign\Service\Policy\Model\PolicySpec;
 use OCA\Libresign\Service\Policy\Model\ResolvedPolicy;
 use OCA\Libresign\Service\Policy\PolicyService;
 use OCA\Libresign\Service\Policy\Provider\DocMdp\DocMdpPolicy;
@@ -32,7 +31,6 @@ final class DocMdpFilePolicyApplierTest extends \OCA\Libresign\Tests\Unit\TestCa
 	public function setUp(): void {
 		parent::setUp();
 		$this->policyService = $this->createMock(PolicyService::class);
-		$this->policyService->method('getRequestLifecycle')->willReturn(PolicySpec::LIFECYCLE_REQUEST_SNAPSHOT);
 		$this->fileService = $this->createMock(FileService::class);
 		$this->l10n = $this->createMock(IL10N::class);
 		$this->l10n->method('t')->willReturnArgument(0);
