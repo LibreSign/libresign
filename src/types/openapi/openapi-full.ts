@@ -3208,7 +3208,10 @@ export interface operations {
                         /** Format: int64 */
                         envelopeFolderId?: number;
                     };
-                    /** @description Authorized request-level policy overrides */
+                    /**
+                     * @description Authorized request-level policy overrides
+                     * @default null
+                     */
                     policy?: {
                         [key: string]: Record<string, never>;
                     } | null;
@@ -3237,6 +3240,20 @@ export interface operations {
                             data: {
                                 message: string;
                             };
+                        };
+                    };
+                };
+            };
+            /** @description Current user is not logged in */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        ocs: {
+                            meta: components["schemas"]["OCSMeta"];
+                            data: unknown;
                         };
                     };
                 };
