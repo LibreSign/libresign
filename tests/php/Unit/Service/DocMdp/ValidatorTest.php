@@ -11,6 +11,7 @@ namespace OCA\Libresign\Tests\Unit\Service\DocMdp;
 use OCA\Libresign\Db\File;
 use OCA\Libresign\Db\FileMapper;
 use OCA\Libresign\Enum\DocMdpLevel;
+use OCA\Libresign\Enum\FileStatus;
 use OCA\Libresign\Exception\LibresignException;
 use OCA\Libresign\Service\DocMdp\ConfigService;
 use OCA\Libresign\Service\DocMdp\Validator;
@@ -58,6 +59,7 @@ final class ValidatorTest extends TestCase {
 	): void {
 		$file = new File();
 		$file->setDocmdpLevel($docMdpLevel->value);
+		$file->setStatus(FileStatus::ABLE_TO_SIGN->value);
 		$file->setSignedHash($signedHash);
 
 		$this->fileMapper
@@ -182,6 +184,74 @@ final class ValidatorTest extends TestCase {
 				['identifyMethods' => [['method' => 'email', 'value' => 'one@example.com']]],
 				['identifyMethods' => [['method' => 'email', 'value' => 'two@example.com']]],
 			],
+		]);
+	}
+
+	#[DataProvider('providerStoredLevelOverridesCurrentConfig')]
+	public function testFrozenStoredLevelOverridesCurrentConfig(
+		DocMdpLevel $stored,
+		DocMdpLevel $current,
+		bool $reject,
+	): void {
+		$file = new File();
+		$file->setStatus(FileStatus::ABLE_TO_SIGN->value);
+		$file->setDocmdpLevelEnum($stored);
+		$file->setMetadata(['docmdp_level_captured' => true, 'docmdp_level_frozen' => true]);
+		$this->fileMapper->method('getByUuid')->with('uuid-1')->willReturn($file);
+		$this->configService->method('getLevel')->willReturn($current);
+
+		if ($reject) {
+			$this->expectException(LibresignException::class);
+		}
+		$this->createValidator()->validateSignersCount([
+			'uuid' => 'uuid-1',
+			'signers' => [['id' => 1], ['id' => 2]],
+		]);
+		if (!$reject) {
+			$this->addToAssertionCount(1);
+		}
+	}
+
+	public static function providerStoredLevelOverridesCurrentConfig(): array {
+		return [
+			'frozen L1 with current L2 rejects' => [DocMdpLevel::CERTIFIED_NO_CHANGES_ALLOWED, DocMdpLevel::CERTIFIED_FORM_FILLING, true],
+			'frozen L2 with current L1 permits' => [DocMdpLevel::CERTIFIED_FORM_FILLING, DocMdpLevel::CERTIFIED_NO_CHANGES_ALLOWED, false],
+			'explicit frozen L0 with current L1 permits' => [DocMdpLevel::NOT_CERTIFIED, DocMdpLevel::CERTIFIED_NO_CHANGES_ALLOWED, false],
+		];
+	}
+
+	public function testFrozenLevelIsUsedForExistingDocumentByNodeId(): void {
+		$file = new File();
+		$file->setStatus(FileStatus::ABLE_TO_SIGN->value);
+		$file->setDocmdpLevelEnum(DocMdpLevel::CERTIFIED_NO_CHANGES_ALLOWED);
+		$this->fileMapper->method('getByNodeId')->with(123)->willReturn($file);
+		$this->configService->method('getLevel')->willReturn(DocMdpLevel::CERTIFIED_FORM_FILLING);
+
+		$this->expectException(LibresignException::class);
+		$this->createValidator()->validateSignersCount([
+			'file' => ['nodeId' => 123],
+			'signers' => [['id' => 1], ['id' => 2]],
+		]);
+	}
+
+	public function testEnvelopeUsesItsMostRestrictiveDocumentLevel(): void {
+		$envelope = new File();
+		$envelope->setId(50);
+		$envelope->setNodeType('envelope');
+		$first = new File();
+		$first->setStatus(FileStatus::ABLE_TO_SIGN->value);
+		$first->setDocmdpLevelEnum(DocMdpLevel::CERTIFIED_FORM_FILLING);
+		$second = new File();
+		$second->setStatus(FileStatus::ABLE_TO_SIGN->value);
+		$second->setDocmdpLevelEnum(DocMdpLevel::CERTIFIED_NO_CHANGES_ALLOWED);
+		$this->fileMapper->method('getByUuid')->willReturn($envelope);
+		$this->fileMapper->method('getChildrenFiles')->with(50)->willReturn([$first, $second]);
+		$this->configService->method('getLevel')->willReturn(DocMdpLevel::CERTIFIED_FORM_FILLING);
+
+		$this->expectException(LibresignException::class);
+		$this->createValidator()->validateSignersCount([
+			'uuid' => 'envelope',
+			'signers' => [['id' => 1], ['id' => 2]],
 		]);
 	}
 
