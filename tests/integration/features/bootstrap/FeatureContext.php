@@ -100,25 +100,60 @@ class FeatureContext extends NextcloudApiContext implements OpenedEmailStorageAw
 		$this->fields['SIGN_REQUEST_UUID'] = $matches['uuid'];
 	}
 
+
 	#[\Behat\Step\Then('the direct-sign response should contain a signed PDF named :filename')]
 	public function assertDirectSignedPdfResponse(string $filename): void {
-		Assert::assertSame(200, $this->response->getStatusCode());
-		Assert::assertStringContainsString('application/pdf', $this->response->getHeaderLine('Content-Type'));
-		Assert::assertSame('no-store', $this->response->getHeaderLine('Cache-Control'));
-		Assert::assertNotSame('', $this->response->getHeaderLine('X-LibreSign-File-UUID'));
+		Assert::same($this->response->getStatusCode(), 200);
+		Assert::contains($this->response->getHeaderLine('Content-Type'), 'application/pdf');
+		Assert::same($this->response->getHeaderLine('Cache-Control'), 'no-store');
+		Assert::stringNotEmpty($this->response->getHeaderLine('X-LibreSign-File-UUID'));
 		$disposition = $this->response->getHeaderLine('Content-Disposition');
-		Assert::assertStringContainsString('attachment;', $disposition);
-		Assert::assertMatchesRegularExpression(
-			'/filename="?' . preg_quote(pathinfo($filename, PATHINFO_FILENAME), '/') . '(?:\.signed_\d+)?\.pdf"?/i',
+		Assert::contains($disposition, 'attachment;');
+		Assert::regex(
 			$disposition,
+			'/filename="?' . preg_quote(pathinfo($filename, PATHINFO_FILENAME), '/') . '(?:\.signed_\d+)?\.pdf"?/i',
 		);
 
 		$body = $this->response->getBody();
 		$body->rewind();
 		$pdf = $body->getContents();
-		Assert::assertStringStartsWith('%PDF-', $pdf, 'Response body is not a PDF');
-		Assert::assertStringContainsString('/ByteRange', $pdf, 'Response PDF has no embedded signature');
-		Assert::assertGreaterThan(1024, strlen($pdf), 'Signed PDF is unexpectedly small');
+		Assert::startsWith($pdf, '%PDF-');
+		Assert::contains($pdf, '/ByteRange');
+		Assert::greaterThan(strlen($pdf), 1024);
+	}
+
+	#[Given('I retrieve the Nextcloud node ID for :path as :alias')]
+	public function retrieveNodeIdForPdf(string $path, string $alias): void {
+		$this->sendWebDavRequest('admin', 'PROPFIND', $path, <<<'XML'
+			<?xml version="1.0"?>
+			<d:propfind xmlns:d="DAV:" xmlns:oc="http://owncloud.org/ns">
+			  <d:prop><oc:fileid/></d:prop>
+			</d:propfind>
+			XML, ['Depth' => '0']);
+		$this->fetchWebDavPropertyTo('oc:fileid', $alias);
+		$id = trim($this->fields[$alias]);
+		Assert::regex($id, '/^[1-9][0-9]*$/', 'Nextcloud WebDAV fileid must be positive');
+		$this->fields[$alias] = $id;
+	}
+
+	#[\Behat\Step\When('I directly sign PDF :filename using the stored WebDAV node ID :alias')]
+	public function signPdfUsingWebDavNodeId(string $filename, string $alias): void {
+		Assert::keyExists($this->fields, $alias, 'WebDAV node ID was not fetched');
+		$nodeId = $this->fields[$alias];
+		Assert::regex($nodeId, '/^[1-9][0-9]*$/', 'Invalid WebDAV node ID');
+		$this->sendOCSRequest('post', '/apps/libresign/api/v1/sign/direct', [
+			'file' => ['nodeId' => (int)$nodeId],
+			'name' => $filename,
+			'method' => 'clickToSign',
+		]);
+	}
+
+	#[Given('user :user uploads the valid PDF fixture to :path')]
+	public function uploadValidPdfFixture(string $user, string $path): void {
+		$pdf = file_get_contents(__DIR__ . '/../../../php/fixtures/pdfs/small_valid.pdf');
+		Assert::stringNotEmpty($pdf, 'The PDF fixture must exist');
+		$this->sendWebDavRequest($user, 'PUT', $path, $pdf);
+		Assert::inArray($this->response->getStatusCode(), [201, 204]);
 	}
 
 	#[Given('I send a file to be signed')]
@@ -227,44 +262,6 @@ class FeatureContext extends NextcloudApiContext implements OpenedEmailStorageAw
 		preg_match('/f\/sign\/(?<uuid>[\w-]+)\/pdf$/', $found['link'], $matches);
 		Assert::keyExists($matches, 'uuid', 'UUID not found on email');
 		$this->fields['SIGN_REQUEST_UUID'] = $matches['uuid'];
-	}
-
-	#[Given('I retrieve the Nextcloud node ID for :path as :alias')]
-	public function retrieveNodeIdForPdf(string $path, string $alias): void {
-		$this->davRequest('admin', 'PROPFIND', $path, <<<'XML'
-			<?xml version="1.0"?>
-			<d:propfind xmlns:d="DAV:" xmlns:oc="http://owncloud.org/ns">
-			  <d:prop><oc:fileid/></d:prop>
-			</d:propfind>
-			XML, ['Depth' => '0']);
-		$xml = $this->parseXml();
-		$xml->registerXPathNamespace('oc', 'http://owncloud.org/ns');
-		$result = $xml->xpath('//oc:fileid');
-		Assert::assertNotEmpty($result, 'Nextcloud WebDAV fileid property is missing');
-		$id = trim((string)$result[0]);
-		Assert::assertMatchesRegularExpression('/^[1-9][0-9]*$/', $id, 'Nextcloud WebDAV fileid must be positive');
-		$this->fields[$alias] = $id;
-	}
-
-	#[\Behat\Step\When('I directly sign PDF :filename using the stored WebDAV node ID :alias')]
-	public function signPdfUsingWebDavNodeId(string $filename, string $alias): void {
-		Assert::assertArrayHasKey($alias, $this->fields, 'WebDAV node ID was not fetched');
-		$nodeId = $this->fields[$alias];
-		Assert::assertMatchesRegularExpression('/^[1-9][0-9]*$/', $nodeId, 'Invalid WebDAV node ID');
-		$this->sendOCSRequest('post', '/apps/libresign/api/v1/sign/direct', [
-			'file' => ['nodeId' => (int)$nodeId],
-			'name' => $filename,
-			'method' => 'clickToSign',
-		]);
-	}
-
-	#[Given('user :user uploads the valid PDF fixture to :path')]
-	public function uploadValidPdfFixture(string $user, string $path): void {
-		$pdf = file_get_contents(__DIR__ . '/../../../php/fixtures/pdfs/small_valid.pdf');
-		Assert::assertNotFalse($pdf, 'The PDF fixture must exist');
-		$this->setCurrentUser($user);
-		$this->davRequest($user, 'PUT', $path, $pdf);
-		Assert::assertContains($this->response->getStatusCode(), [201, 204]);
 	}
 
 	#[Given('user :user uploads file :source to :path')]
