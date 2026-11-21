@@ -17,6 +17,7 @@ trait OrderCertificatesTrait {
 		}
 
 		$this->ensureValidStructure($certificates);
+		$certificates = $this->removeDuplicateNames($certificates);
 
 		if (count($certificates) === 1) {
 			return $certificates;
@@ -65,11 +66,14 @@ trait OrderCertificatesTrait {
 				throw new InvalidArgumentException('Invalid certificate structure. Certificate must have "subject", "issuer", and "name".');
 			}
 		}
+	}
 
-		$names = array_column($certificates, 'name');
-		if (count($names) !== count(array_unique($names))) {
-			throw new InvalidArgumentException('Duplicate certificate names detected');
+	private function removeDuplicateNames(array $certificates): array {
+		$unique = [];
+		foreach ($certificates as $cert) {
+			$unique[$cert['name']] ??= $cert;
 		}
+		return array_values($unique);
 	}
 
 	private function findLeafCertificate(array $certificates): ?array {

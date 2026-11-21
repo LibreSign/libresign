@@ -534,7 +534,7 @@ final class OrderCertificatesTraitTest extends \OCA\Libresign\Tests\Unit\TestCas
 		];
 	}
 
-	public function testDuplicateCertificateNames(): void {
+	public function testDuplicateCertificateNamesKeepFirstOccurrence(): void {
 		$certificates = [
 			[
 				'name' => '/CN=Duplicate',
@@ -548,8 +548,33 @@ final class OrderCertificatesTraitTest extends \OCA\Libresign\Tests\Unit\TestCas
 			],
 		];
 
-		$this->expectExceptionMessage('Duplicate certificate names detected');
-		$this->orderCertificates->orderCertificates($certificates);
+		$result = $this->orderCertificates->orderCertificates($certificates);
+
+		$this->assertSame([$certificates[0]], $result);
+	}
+
+	public function testChainWithDuplicatedIntermediateIsOrdered(): void {
+		$root = ['C' => 'ES', 'O' => 'IZENPE S.A.', 'CN' => 'Izenpe.com'];
+		$intermediate = ['C' => 'ES', 'O' => 'IZENPE S.A.', 'CN' => 'CA de Ciudadanos y Entidades (4)'];
+		$leaf = [
+			'name' => '/C=ES/CN=Signer',
+			'subject' => ['C' => 'ES', 'CN' => 'Signer'],
+			'issuer' => $intermediate,
+		];
+		$intermediateCert = [
+			'name' => '/C=ES/O=IZENPE S.A./CN=CA de Ciudadanos y Entidades (4)',
+			'subject' => $intermediate,
+			'issuer' => $root,
+		];
+		$rootCert = [
+			'name' => '/C=ES/O=IZENPE S.A./CN=Izenpe.com',
+			'subject' => $root,
+			'issuer' => $root,
+		];
+
+		$result = $this->orderCertificates->orderCertificates([$intermediateCert, $leaf, $intermediateCert, $rootCert]);
+
+		$this->assertSame(['/C=ES/CN=Signer', $intermediateCert['name'], $rootCert['name']], array_column($result, 'name'));
 	}
 
 	public function testRealChainFromUser(): void {
