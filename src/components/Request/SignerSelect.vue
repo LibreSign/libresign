@@ -18,8 +18,8 @@
 			:error="haveError"
 			:aria-label-combobox="selectPlaceholder"
 			:placeholder="selectPlaceholder"
-			:options="availableOptions"
-			@search="onSearch"
+			:options="options"
+			@search="asyncFind"
 			@update:modelValue="onSelectedSignerChange">
 			<template #option="slotProps">
 				<div class="account-or-email__option">
@@ -45,6 +45,14 @@
 				{{ search ? noResultText : t('libresign', 'No recommendations. Start typing.') }}
 			</template>
 		</NcSelect>
+		<div v-if="canUseMyAccount && !selectedSigner" class="account-or-email__self">
+			<NcButton variant="tertiary-no-background"
+				size="small"
+				@click="useMyAccount">
+				<!-- TRANSLATORS Current account shortcut for the regular signer selection form. -->
+				{{ t('libresign', 'Use my account') }}
+			</NcButton>
+		</div>
 	</div>
 </template>
 
@@ -62,6 +70,7 @@ import axios from '@nextcloud/axios'
 import { generateOcsUrl } from '@nextcloud/router'
 import NcAvatar from '@nextcloud/vue/components/NcAvatar'
 import NcSelect from '@nextcloud/vue/components/NcSelect'
+import NcButton from '@nextcloud/vue/components/NcButton'
 import NcIconSvgWrapper from '@nextcloud/vue/components/NcIconSvgWrapper'
 import svgSignal from '../../../img/logo-signal-app.svg?raw'
 import svgTelegram from '../../../img/logo-telegram-app.svg?raw'
@@ -107,7 +116,6 @@ type OptionPayload = IdentifyAccountRecord | OptionSlotProps | undefined
 const select = ref<{ $el?: HTMLElement } | null>(null)
 const loading = ref(false)
 const options = ref<IdentifyAccountRecord[]>([])
-const searchQuery = ref('')
 const selectedSigner = ref<IdentifyAccountRecord | null>(null)
 const haveError = ref(false)
 const activeRequestId = ref(0)
@@ -120,15 +128,22 @@ const searchLabel = computed(() => isObserver.value
 	: t('libresign', 'Search signer'))
 const selectPlaceholder = computed(() => isObserver.value ? searchLabel.value : props.placeholder)
 
-// The signed-in account is a regular choice in the existing account picker,
-// not an extra prominent action in the signer dialog.
-const availableOptions = computed<IdentifyAccountRecord[]>(() => {
-	const user = getCurrentUser()
-	if (!props.allowSelf || props.method !== 'account' || isObserver.value || !user?.uid) {
-		return options.value
-	}
+// Selecting the signed-in account fills the normal signer form without
+// persisting anything until Save is explicitly pressed.
+const canUseMyAccount = computed(() => props.allowSelf
+	&& props.method === 'account'
+	&& !isObserver.value
+	&& Boolean(getCurrentUser()?.uid))
 
-	const ownAccount: IdentifyAccountRecord = {
+function useMyAccount() {
+	if (!canUseMyAccount.value || selectedSigner.value) {
+		return
+	}
+	const user = getCurrentUser()
+	if (!user?.uid) {
+		return
+	}
+	onSelectedSignerChange({
 		identify: user.uid,
 		method: 'account',
 		displayName: user.displayName || user.uid,
@@ -136,13 +151,8 @@ const availableOptions = computed<IdentifyAccountRecord[]>(() => {
 		isNoUser: false,
 		shareType: 0,
 		iconName: 'account',
-	}
-	const query = searchQuery.value.trim().toLocaleLowerCase()
-	if (query && ![ownAccount.identify, ownAccount.displayName].some(value => value.toLocaleLowerCase().includes(query))) {
-		return options.value
-	}
-	return [ownAccount, ...options.value.filter(option => option.identify !== user.uid)]
-})
+	})
+}
 
 const mandatoryErrorText = computed(() => isObserver.value
 	// TRANSLATORS Validation error when no observer was selected.
@@ -164,7 +174,6 @@ const noResultText = computed(() => {
 
 function handleMethodChange() {
 	options.value = []
-	searchQuery.value = ''
 	selectedSigner.value = null
 	haveError.value = false
 	loading.value = false
@@ -276,11 +285,6 @@ const asyncFind = debounce((search: string) => {
 	void _asyncFind(search)
 }, 500)
 
-function onSearch(search: string) {
-	searchQuery.value = search
-	asyncFind(search)
-}
-
 function focusInput() {
 	if (selectedSigner.value) {
 		return
@@ -298,8 +302,8 @@ onMounted(() => {
 defineExpose({
 	loading,
 	options,
-	searchQuery,
-	availableOptions,
+	canUseMyAccount,
+	useMyAccount,
 	selectedSigner,
 	haveError,
 	activeRequestId,
@@ -317,7 +321,6 @@ defineExpose({
 	getOptionIcon,
 	_asyncFind,
 	asyncFind,
-	onSearch,
 	focusInput,
 })
 </script>
@@ -329,6 +332,10 @@ defineExpose({
 	margin-bottom: 4px;
 	label[for="sharing-search-input"] {
 		margin-bottom: 2px;
+	}
+	&__self {
+		display: flex;
+		justify-content: flex-end;
 	}
 	&__input {
 		width: 100%;
