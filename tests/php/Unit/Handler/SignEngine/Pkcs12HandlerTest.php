@@ -10,6 +10,7 @@ namespace OCA\Libresign\Tests\Unit\Handler\SignEngine;
  */
 
 use OCA\Libresign\AppInfo\Application;
+use OCA\Libresign\Enum\DocMdpLevel;
 use OCA\Libresign\Handler\CertificateEngine\CertificateEngineFactory;
 use OCA\Libresign\Handler\CertificateEngine\IEngineHandler;
 use OCA\Libresign\Handler\DocMdpHandler;
@@ -131,6 +132,35 @@ final class Pkcs12HandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			$this->crlService,
 			$this->pdfSignatureValidationService,
 		);
+	}
+
+	public function testSignForwardsFrozenDocMdpLevelToNativeEngine(): void {
+		$appConfig = $this->createMock(IAppConfig::class);
+		$appConfig->method('getValueString')->willReturn('PhpNative');
+		$handler = new Pkcs12Handler(
+			$this->folderService,
+			$appConfig,
+			$this->certificateEngineFactory,
+			$this->l10n,
+			$this->footerHandler,
+			$this->logger,
+			$this->caIdentifierService,
+			$this->docMdpHandler,
+			$this->crlService,
+			$this->pdfSignatureValidationService,
+		);
+		$engine = $this->getMockBuilder(PhpNativeHandler::class)
+			->disableOriginalConstructor()
+			->onlyMethods(['getSignedContent'])
+			->getMock();
+		$engine->method('getSignedContent')->willReturn('signed');
+		(new \ReflectionProperty(Pkcs12Handler::class, 'phpNativeHandler'))->setValue($handler, $engine);
+
+		$handler->setInputFile($this->createMock(\OCP\Files\File::class));
+		$handler->setDocMdpLevel(DocMdpLevel::CERTIFIED_NO_CHANGES_ALLOWED);
+		$handler->sign();
+
+		$this->assertSame(DocMdpLevel::CERTIFIED_NO_CHANGES_ALLOWED, $engine->getDocMdpLevel());
 	}
 
 	public function testSavePfxWhenNoPermission(): void {
