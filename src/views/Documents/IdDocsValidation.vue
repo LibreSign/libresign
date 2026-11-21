@@ -119,8 +119,7 @@
 								{{ doc.file_type.name }}
 							</td>
 							<td>
-								<!-- TRANSLATORS Status displayed for an identification document rejected by a reviewer. -->
-								{{ doc.rejection ? t('libresign', 'Rejected') : doc.file.status === FILE_STATUS.PARTIAL_SIGNED ? t('libresign', 'waiting for approval') : doc.file.statusText }}
+								{{ doc.rejection ? rejectedStatusLabel : doc.file.status === FILE_STATUS.PARTIAL_SIGNED ? waitingApprovalStatusLabel : doc.file.statusText }}
 								<p v-if="doc.rejection" class="rejection-explanation">
 									{{ doc.rejection.reason }}
 								</p>
@@ -202,11 +201,9 @@
 			@closing="closeRejectDialog">
 			<!-- TRANSLATORS Explains why an approver must supply a rejection reason and what happens next to the signer's document. -->
 			<p>{{ t('libresign', 'Explain why this document cannot be approved. The signer will receive the reason and can upload a replacement.') }}</p>
-			<!-- TRANSLATORS Label for the required text field explaining why the approver rejected a submitted document. -->
-			<!-- TRANSLATORS Placeholder suggesting an expired identification document as a possible rejection reason. -->
 			<NcTextArea v-model="rejectionReason"
-				:label="t('libresign', 'Rejection reason')"
-				:placeholder="t('libresign', 'For example: The document has expired.')"
+				:label="rejectionReasonLabel"
+				:placeholder="rejectionReasonPlaceholder"
 				:maxlength="1024"
 				:disabled="rejecting" />
 			<template #actions>
@@ -302,6 +299,14 @@ defineOptions({
 const SORT_FIELDS: readonly SortField[] = ['owner', 'file_type', 'status']
 // TRANSLATORS Button for opening a submitted document so a reviewer can inspect it and record approval.
 const reviewAndApproveLabel = t('libresign', 'Review and approve')
+// TRANSLATORS Status displayed for an identification document rejected by a reviewer.
+const rejectedStatusLabel = t('libresign', 'Rejected')
+// TRANSLATORS Status displayed for an identification document awaiting approval.
+const waitingApprovalStatusLabel = t('libresign', 'waiting for approval')
+// TRANSLATORS Label for the required text field explaining why the approver rejected a submitted document.
+const rejectionReasonLabel = t('libresign', 'Rejection reason')
+// TRANSLATORS Placeholder suggesting an expired identification document as a possible rejection reason.
+const rejectionReasonPlaceholder = t('libresign', 'For example: The document has expired.')
 const STATUS_OPTIONS: StatusOption[] = [
 	// TRANSLATORS Filter status label meaning the document already has the required signature approval result.
 	{ value: 'signed', label: t('libresign', 'Approved') },
