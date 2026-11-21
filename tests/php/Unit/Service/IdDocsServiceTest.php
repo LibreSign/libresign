@@ -373,7 +373,9 @@ final class IdDocsServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$service = $this->getIdDocsService();
 		try {
 			if ($authenticated) {
-				$service->addIdDocs($files, $this->createMock(IUser::class));
+				$user = $this->createMock(IUser::class);
+				$user->method('getUID')->willReturn('synthetic-user');
+				$service->addIdDocs($files, $user);
 			} else {
 				$signRequest = new SignRequest();
 				$signRequest->setId(55);
