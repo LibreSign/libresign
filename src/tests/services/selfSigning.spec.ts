@@ -24,6 +24,7 @@ describe('self-signing preparation', () => {
 		canAddSigner: vi.fn(() => true),
 		getFile: vi.fn(() => ({ signers: [] as unknown[] })),
 		saveOrUpdateSignatureRequest: save,
+		fetchFileDetail: vi.fn(async () => ({ id: 7 })),
 	}
 
 	beforeEach(() => {
@@ -67,6 +68,28 @@ describe('self-signing preparation', () => {
 				identifyMethods: [{ method: 'account', value: 'admin', requirement: 'optional' }],
 			})],
 		})
+	})
+
+	it('activates direct self-signing with no notification and loads server signing permission', async () => {
+		const result = await addCurrentAccountAsSigner(store(), allowedPolicy, { readyToSign: true })
+		expect(result).toMatchObject({ success: true })
+		expect(save).toHaveBeenCalledExactlyOnceWith({
+			status: 1,
+			signers: [expect.objectContaining({
+				status: 1,
+				notify: 0,
+				participantRole: 'signer',
+				identifyMethods: [{ method: 'account', value: 'admin', requirement: 'optional' }],
+			})],
+		})
+		expect(fakeStore.fetchFileDetail).toHaveBeenCalledExactlyOnceWith({ fileId: 7, force: true })
+	})
+
+	it('does not fetch a signing session if activation was rejected', async () => {
+		save.mockResolvedValueOnce({ success: false, message: 'Denied' } as never)
+		await expect(addCurrentAccountAsSigner(store(), allowedPolicy, { readyToSign: true }))
+			.resolves.toMatchObject({ success: false })
+		expect(fakeStore.fetchFileDetail).not.toHaveBeenCalled()
 	})
 
 	it('does not write when the identity policy denies account signing', async () => {

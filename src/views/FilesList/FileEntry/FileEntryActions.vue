@@ -234,7 +234,7 @@ async function onActionClick(action: Pick<MenuAction, 'id'>) {
 		if (action.id === 'sign-myself') {
 			await policiesStore.fetchEffectivePolicies()
 			try {
-				const response = await addCurrentAccountAsSigner(filesStore, policiesStore.getEffectiveValue('identify_methods'))
+				const response = await addCurrentAccountAsSigner(filesStore, policiesStore.getEffectiveValue('identify_methods'), { readyToSign: true })
 				if (response && 'success' in response && response.success === false) {
 					showError(('message' in response && response.message) || t('libresign', 'Cannot add your account as signer'))
 				}

@@ -178,6 +178,7 @@ describe('AppFilesTab', () => {
 		it('adds the logged-in account only for the requested PDF node', async () => {
 			const policiesStore = usePoliciesStore()
 			vi.spyOn(policiesStore, 'fetchEffectivePolicies').mockResolvedValue()
+			vi.spyOn(policiesStore, 'getEffectiveValue').mockReturnValue([{ name: 'account', enabled: true }] as never)
 			addSelfMock.mockClear()
 			window.OCA = { Libresign: { pendingSelfSignNodeId: 456 } }
 			wrapper = createWrapper()
@@ -185,6 +186,9 @@ describe('AppFilesTab', () => {
 			expect(addSelfMock).not.toHaveBeenCalled()
 			await wrapper.vm.preparePendingSelfSign(456)
 			expect(addSelfMock).toHaveBeenCalledOnce()
+			expect(addSelfMock).toHaveBeenCalledExactlyOnceWith(
+				expect.anything(), expect.anything(), { readyToSign: true },
+			)
 			expect(window.OCA.Libresign.pendingSelfSignNodeId).toBeUndefined()
 			await wrapper.vm.preparePendingSelfSign(456)
 			expect(addSelfMock).toHaveBeenCalledOnce()

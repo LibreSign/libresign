@@ -5,7 +5,7 @@
 
 import { getCurrentUser } from '@nextcloud/auth'
 
-import { SIGN_REQUEST_STATUS } from '../constants.js'
+import { FILE_STATUS, SIGN_REQUEST_STATUS } from '../constants.js'
 import { useFilesStore } from '../store/files.js'
 import type { EffectivePolicyValue } from '../types/index'
 import { getSignRequestStatusText } from '../utils/getSignRequestStatusText.ts'
@@ -36,12 +36,15 @@ export function canIncludeCurrentAccount(
 }
 
 /**
- * Create a regular draft signing participant. This never signs the document,
- * sends a request, or bypasses backend permissions and request policies.
+ * Add the authenticated account using ordinary request persistence.
+ * The direct self-sign entry point starts an active request so the existing
+ * Sign document action becomes available, but never signs the PDF itself.
+ * The regular account picker keeps the default draft behavior.
  */
 export async function addCurrentAccountAsSigner(
 	filesStore: FilesStore,
 	identifyMethodsPolicy: EffectivePolicyValue,
+	options: { readyToSign?: boolean } = {},
 ) {
 	if (!canIncludeCurrentAccount(filesStore, identifyMethodsPolicy)) {
 		return { success: false as const }
@@ -53,8 +56,9 @@ export async function addCurrentAccountAsSigner(
 		displayName: (user.displayName || user.uid).slice(0, 64),
 		description: '',
 		participantRole: PARTICIPANT_ROLE.SIGNER,
-		status: SIGN_REQUEST_STATUS.DRAFT,
-		statusText: getSignRequestStatusText(SIGN_REQUEST_STATUS.DRAFT),
+		...(options.readyToSign ? { notify: 0 } : {}),
+		status: options.readyToSign ? SIGN_REQUEST_STATUS.ABLE_TO_SIGN : SIGN_REQUEST_STATUS.DRAFT,
+		statusText: getSignRequestStatusText(options.readyToSign ? SIGN_REQUEST_STATUS.ABLE_TO_SIGN : SIGN_REQUEST_STATUS.DRAFT),
 		identifyMethods: [{
 			method: 'account',
 			value: user.uid,
@@ -62,5 +66,14 @@ export async function addCurrentAccountAsSigner(
 		}],
 	})
 
-	return filesStore.saveOrUpdateSignatureRequest({ signers })
+	const response = await filesStore.saveOrUpdateSignatureRequest({
+		signers,
+		...(options.readyToSign ? { status: FILE_STATUS.ABLE_TO_SIGN } : {}),
+	})
+	if (options.readyToSign && response && 'id' in response && typeof response.id === 'number') {
+		// The validate endpoint supplies the authenticated signer's UUID,
+		// identity settings, and canSign permission for the normal sign flow.
+		await filesStore.fetchFileDetail({ fileId: response.id, force: true })
+	}
+	return response
 }
