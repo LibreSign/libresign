@@ -171,6 +171,7 @@ OC.L10N.register(
     "Last 7 days" : "Last 7 days",
     "Last 30 days" : "Last 30 days",
     "Other" : "Other",
+    "_%n day_::_%n days_" : ["%n day","%n days"],
     "Custom URL" : "Custom URL",
     "Custom template" : "Custom template",
     "Default background" : "Default background",
