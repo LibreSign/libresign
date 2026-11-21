@@ -165,6 +165,7 @@ OC.L10N.register(
     "_{count} file_::_{count} files_" : ["{count} datņu","{count} datne","{count} datnes"],
     "Today" : "Šodien",
     "Other" : "Cits",
+    "_%n day_::_%n days_" : ["%n dienas","%n diena","%n dienas"],
     "Public" : "Publiska",
     "User" : "Lietotājs",
     "Add new" : "Pievienot jaunu",
