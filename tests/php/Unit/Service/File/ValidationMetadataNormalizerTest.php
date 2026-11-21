@@ -62,6 +62,16 @@ final class ValidationMetadataNormalizerTest extends \OCA\Libresign\Tests\Unit\T
 					'extension' => 'pdf',
 				],
 			],
+			'removes internal DocMDP snapshot flags from public metadata' => [
+				'metadata' => [
+					'docmdp_level_captured' => true,
+					'docmdp_level_frozen' => true,
+				],
+				'fileName' => 'contract.pdf',
+				'totalPages' => 1,
+				'expectedSubset' => ['p' => 1, 'extension' => 'pdf'],
+				'missingKeys' => ['docmdp_level_captured', 'docmdp_level_frozen'],
+			],
 			'removes optional keys with invalid types' => [
 				'metadata' => [
 					'original_file_deleted' => '1',

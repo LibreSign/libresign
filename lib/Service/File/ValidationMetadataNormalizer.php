@@ -25,6 +25,8 @@ final class ValidationMetadataNormalizer {
 	 */
 	public static function normalize(array $metadata, string $fileName, int $totalPages): array {
 		$normalized = $metadata;
+		// These flags are persistence details, not part of the validation API.
+		unset($normalized['docmdp_level_captured'], $normalized['docmdp_level_frozen']);
 		$normalized['p'] = self::normalizePageCount($totalPages);
 		$normalized['extension'] = self::normalizeExtension($normalized, $fileName);
 
