@@ -725,7 +725,7 @@ final class RequestSignatureControllerTest extends ApiTestCase {
 			$updatedChild = $fileMapper->getById($child->getId());
 			$this->assertSame($expectedFileStatus, $updatedChild->getStatus());
 			$this->assertSame(DocMdpLevel::from($expectedLevel), $updatedChild->getDocmdpLevelEnum());
-			$this->assertSame($expectedSnapshot, $updatedChild->getMetadata()['policy_snapshot']['docmdp']);
+			$this->assertEquals($expectedSnapshot, $updatedChild->getMetadata()['policy_snapshot']['docmdp']);
 			$this->assertCount($expectedSigners, $this->getSignersFromFileId($child->getId()));
 			if ($accepted) {
 				$this->assertArrayHasKey('policy_snapshot_frozen_at', $updatedChild->getMetadata());
@@ -820,7 +820,7 @@ final class RequestSignatureControllerTest extends ApiTestCase {
 		$uuid = $created['file']->getUuid();
 		// A new envelope stays a draft until it is sent, which freezes its documents.
 		if ($freeze) {
-			$workflow->updateExistingRequest($user, $this->buildEmailSigners(['one@test.coop']), $uuid, null, [], FileStatus::ABLE_TO_SIGN->value);
+			$workflow->updateExistingRequest($user, $this->buildEmailSigners(['one@test.coop']), $uuid, null, [], FileStatus::ABLE_TO_SIGN->value, $policy);
 		}
 
 		$fileMapper = \OCP\Server::get(FileMapper::class);
@@ -839,7 +839,7 @@ final class RequestSignatureControllerTest extends ApiTestCase {
 		];
 		foreach ($children as $child) {
 			$this->assertSame(DocMdpLevel::from($requestOverride ?? $initialLevel), $child->getDocmdpLevelEnum());
-			$this->assertSame($expected, $child->getMetadata()['policy_snapshot']['docmdp']);
+			$this->assertEquals($expected, $child->getMetadata()['policy_snapshot']['docmdp']);
 			$this->assertSame($freeze ? FileStatus::ABLE_TO_SIGN->value : FileStatus::DRAFT->value, $child->getStatus());
 			if ($freeze) {
 				$this->assertArrayHasKey('policy_snapshot_frozen_at', $child->getMetadata());
