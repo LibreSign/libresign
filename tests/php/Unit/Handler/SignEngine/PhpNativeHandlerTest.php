@@ -211,6 +211,37 @@ final class PhpNativeHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		];
 	}
 
+	#[DataProvider('providerStoredCertification')]
+	public function testFrozenDocMdpLevelOverridesLiveConfiguration(
+		DocMdpLevel $stored,
+		DocMdpLevel $current,
+		?CertificationLevel $expected,
+	): void {
+		$this->docMdpConfigService->method('isEnabled')->willReturn($current->isCertifying());
+		$this->docMdpConfigService->method('getLevel')->willReturn($current);
+		$handler = $this->getHandler();
+		$handler->setDocMdpLevel($stored);
+
+		$actual = $this->callPrivateMethod($handler, 'resolveCertificationLevel', true);
+		$this->assertEquals($expected, $actual);
+	}
+
+	public static function providerStoredCertification(): array {
+		return [
+			'form filling persisted while global forbids changes' => [
+				DocMdpLevel::CERTIFIED_FORM_FILLING, DocMdpLevel::CERTIFIED_NO_CHANGES_ALLOWED,
+				CertificationLevel::fromInt(2),
+			],
+			'no certification persisted while global now certifies' => [
+				DocMdpLevel::NOT_CERTIFIED, DocMdpLevel::CERTIFIED_FORM_FILLING, null,
+			],
+			'certification persisted while global now disables it' => [
+				DocMdpLevel::CERTIFIED_NO_CHANGES_ALLOWED, DocMdpLevel::NOT_CERTIFIED,
+				CertificationLevel::fromInt(1),
+			],
+		];
+	}
+
 	#[DataProvider('providerResolveCertificationLevel')]
 	public function testResolveCertificationLevel(
 		bool $docMdpEnabled,
