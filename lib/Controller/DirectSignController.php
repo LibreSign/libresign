@@ -22,6 +22,9 @@ use OCP\IRequest;
 use OCP\IUserSession;
 use Psr\Log\LoggerInterface;
 
+/**
+ * @psalm-import-type LibresignFolderSettings from \OCA\Libresign\ResponseDefinitions
+ */
 final class DirectSignController extends AEnvironmentAwareController {
 	public function __construct(
 		IRequest $request,
@@ -47,11 +50,11 @@ final class DirectSignController extends AEnvironmentAwareController {
 	 * No visible signature elements are requested, but an enabled PDF footer
 	 * policy may still change the visual presentation of the document.
 	 *
-	 * @param array<string, mixed> $file One PDF: {base64}, {nodeId}, or {path}
+	 * @param array{base64?: string, nodeId?: non-negative-int|numeric-string, path?: string} $file One PDF: exactly one of base64, nodeId or path
 	 * @param string $name PDF filename ending in .pdf
-	 * @param string $method Account signature method: clickToSign or password
+	 * @param 'clickToSign'|'password' $method Account signature method
 	 * @param string $token Token or certificate password if required by method
-	 * @param array<string, mixed> $settings Optional request file settings
+	 * @param LibresignFolderSettings $settings Optional request file settings
 	 * @param array<string, mixed>|null $policy Authorized request-level policy overrides
 	 *
 	 * @return DataDownloadResponse<Http::STATUS_OK, 'application/pdf', array{}>|DataResponse<Http::STATUS_BAD_REQUEST|Http::STATUS_FORBIDDEN|Http::STATUS_CONFLICT|Http::STATUS_UNPROCESSABLE_ENTITY|Http::STATUS_INTERNAL_SERVER_ERROR, array{message: string}, array{}>
@@ -68,8 +71,8 @@ final class DirectSignController extends AEnvironmentAwareController {
 	#[OpenAPI(tags: ['signing'])]
 	#[ApiRoute(verb: 'POST', url: '/api/{apiVersion}/sign/direct', requirements: ['apiVersion' => '(v1)'])]
 	public function signDirect(
-		array $file = [],
-		string $name = '',
+		array $file,
+		string $name,
 		string $method = 'clickToSign',
 		string $token = '',
 		array $settings = [],
