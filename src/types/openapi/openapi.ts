@@ -2703,26 +2703,23 @@ export interface operations {
             };
             cookie?: never;
         };
-        requestBody?: {
+        requestBody: {
             content: {
                 "application/json": {
-                    /**
-                     * @description One PDF: {base64}, {nodeId}, or {path}
-                     * @default {}
-                     */
-                    file?: {
-                        [key: string]: Record<string, never>;
+                    /** @description One PDF: exactly one of base64, nodeId or path */
+                    file: {
+                        base64?: string;
+                        nodeId?: number | string;
+                        path?: string;
                     };
+                    /** @description PDF filename ending in .pdf */
+                    name: string;
                     /**
-                     * @description PDF filename ending in .pdf
-                     * @default
-                     */
-                    name?: string;
-                    /**
-                     * @description Account signature method: clickToSign or password
+                     * @description Account signature method
                      * @default clickToSign
+                     * @enum {string}
                      */
-                    method?: string;
+                    method?: "clickToSign" | "password";
                     /**
                      * @description Token or certificate password if required by method
                      * @default
@@ -2733,7 +2730,15 @@ export interface operations {
                      * @default {}
                      */
                     settings?: {
-                        [key: string]: Record<string, never>;
+                        folderName?: string;
+                        path?: string;
+                        separator?: string;
+                        folderPatterns?: {
+                            name: string;
+                            setting?: string;
+                        };
+                        /** Format: int64 */
+                        envelopeFolderId?: number;
                     };
                     /** @description Authorized request-level policy overrides */
                     policy?: {

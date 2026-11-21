@@ -5602,29 +5602,52 @@
                     }
                 ],
                 "requestBody": {
-                    "required": false,
+                    "required": true,
                     "content": {
                         "application/json": {
                             "schema": {
                                 "type": "object",
+                                "required": [
+                                    "file",
+                                    "name"
+                                ],
                                 "properties": {
                                     "file": {
                                         "type": "object",
-                                        "default": {},
-                                        "description": "One PDF: {base64}, {nodeId}, or {path}",
-                                        "additionalProperties": {
-                                            "type": "object"
+                                        "description": "One PDF: exactly one of base64, nodeId or path",
+                                        "properties": {
+                                            "base64": {
+                                                "type": "string"
+                                            },
+                                            "nodeId": {
+                                                "oneOf": [
+                                                    {
+                                                        "type": "integer",
+                                                        "format": "int64",
+                                                        "minimum": 0
+                                                    },
+                                                    {
+                                                        "type": "string"
+                                                    }
+                                                ]
+                                            },
+                                            "path": {
+                                                "type": "string"
+                                            }
                                         }
                                     },
                                     "name": {
                                         "type": "string",
-                                        "default": "",
                                         "description": "PDF filename ending in .pdf"
                                     },
                                     "method": {
                                         "type": "string",
                                         "default": "clickToSign",
-                                        "description": "Account signature method: clickToSign or password"
+                                        "enum": [
+                                            "clickToSign",
+                                            "password"
+                                        ],
+                                        "description": "Account signature method"
                                     },
                                     "token": {
                                         "type": "string",
@@ -5635,8 +5658,34 @@
                                         "type": "object",
                                         "default": {},
                                         "description": "Optional request file settings",
-                                        "additionalProperties": {
-                                            "type": "object"
+                                        "properties": {
+                                            "folderName": {
+                                                "type": "string"
+                                            },
+                                            "path": {
+                                                "type": "string"
+                                            },
+                                            "separator": {
+                                                "type": "string"
+                                            },
+                                            "folderPatterns": {
+                                                "type": "object",
+                                                "required": [
+                                                    "name"
+                                                ],
+                                                "properties": {
+                                                    "name": {
+                                                        "type": "string"
+                                                    },
+                                                    "setting": {
+                                                        "type": "string"
+                                                    }
+                                                }
+                                            },
+                                            "envelopeFolderId": {
+                                                "type": "integer",
+                                                "format": "int64"
+                                            }
                                         }
                                     },
                                     "policy": {
