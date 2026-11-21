@@ -46,7 +46,7 @@ class IdDocsService {
 	private function validateTypeOfFile(int $fileIndex, array $file): void {
 		$profileFileTypes = $this->fileTypeMapper->getTypes();
 		if (!array_key_exists($file['type'], $profileFileTypes)) {
-			throw new LibresignException(json_encode([
+			throw new IdDocsUploadValidationException(json_encode([
 				'type' => 'danger',
 				'file' => $fileIndex,
 				'message' => $this->l10n->t('Invalid file type.')
@@ -57,7 +57,7 @@ class IdDocsService {
 	private function validateIdDoc(int $fileIndex, array $file, IUser $user): void {
 		$profileFileTypes = $this->fileTypeMapper->getTypes();
 		if (!array_key_exists($file['type'], $profileFileTypes)) {
-			throw new LibresignException(json_encode([
+			throw new IdDocsUploadValidationException(json_encode([
 				'type' => 'danger',
 				'file' => $fileIndex,
 				'message' => $this->l10n->t('Invalid file type.')
