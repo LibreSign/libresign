@@ -29,7 +29,7 @@ class DocMdpFilePolicyApplier extends AbstractFilePolicyApplier {
 	#[\Override]
 	public function sync(FileEntity $file, array $data): void {
 		$requestOverrides = $this->getOverrides($data);
-		if ($this->isPolicySnapshotFrozen($file, DocMdpPolicy::KEY)) {
+		if ($this->isPolicySnapshotFrozen($file)) {
 			$this->assertFrozenLevelIsKept($file, $requestOverrides);
 			return;
 		}
@@ -62,7 +62,7 @@ class DocMdpFilePolicyApplier extends AbstractFilePolicyApplier {
 			return $this->toLevel($this->resolveForRequester($data));
 		}
 
-		if (!$this->isPolicySnapshotFrozen($file, DocMdpPolicy::KEY)) {
+		if (!$this->isPolicySnapshotFrozen($file)) {
 			return $this->toLevel($this->resolveForFileOwner($file, $data));
 		}
 
