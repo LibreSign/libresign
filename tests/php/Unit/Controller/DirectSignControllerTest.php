@@ -67,12 +67,22 @@ final class DirectSignControllerTest extends TestCase {
 		self::assertTrue($endpoint['parameters'][1]['required']);
 		self::assertSame('OCS-APIRequest', $endpoint['parameters'][1]['name']);
 
-		$properties = $endpoint['requestBody']['content']['application/json']['schema']['properties'];
+		self::assertTrue($endpoint['requestBody']['required'], $filename . ': JSON request body must be required');
+		$schema = $endpoint['requestBody']['content']['application/json']['schema'];
+		self::assertEqualsCanonicalizing(['file', 'name'], $schema['required'], $filename . ': file and name must be required');
+		$properties = $schema['properties'];
 		self::assertEqualsCanonicalizing(
 			['file', 'name', 'method', 'token', 'settings', 'policy'],
 			array_keys($properties),
 		);
 		self::assertSame('clickToSign', $properties['method']['default']);
+		self::assertSame(['clickToSign', 'password'], $properties['method']['enum']);
+		self::assertSame('object', $properties['file']['type']);
+		self::assertSame('string', $properties['file']['properties']['base64']['type']);
+		self::assertSame('string', $properties['file']['properties']['path']['type']);
+		self::assertSame('object', $properties['settings']['type']);
+		self::assertArrayHasKey('folderName', $properties['settings']['properties']);
+		self::assertArrayNotHasKey('additionalProperties', $properties['file']);
 		self::assertArrayNotHasKey('signers', $properties);
 		self::assertArrayNotHasKey('visibleElements', $properties);
 		self::assertArrayNotHasKey('callback', $properties);
@@ -121,7 +131,7 @@ final class DirectSignControllerTest extends TestCase {
 			static fn (string $name, mixed $default = null): mixed => $name === $parameter ? $value : $default,
 		);
 		$this->signing->expects(self::never())->method('sign');
-		$response = $this->controller->signDirect(name: 'contract.pdf', method: 'clickToSign');
+		$response = $this->controller->signDirect(file: ['base64' => 'pdf-data'], name: 'contract.pdf', method: 'clickToSign');
 		self::assertInstanceOf(DataResponse::class, $response);
 		self::assertSame(Http::STATUS_BAD_REQUEST, $response->getStatus());
 	}
@@ -141,14 +151,14 @@ final class DirectSignControllerTest extends TestCase {
 		$this->signing->expects(self::never())->method('sign');
 		$controller = new DirectSignController($this->request, $session, $this->signing, $this->logger);
 
-		self::assertSame(Http::STATUS_FORBIDDEN, $controller->signDirect()->getStatus());
+		self::assertSame(Http::STATUS_FORBIDDEN, $controller->signDirect(file: ['base64' => 'pdf-data'], name: 'contract.pdf')->getStatus());
 	}
 
 	public function testPreservesSignedStatusConflictWithoutLeakingOtherFailures(): void {
 		$this->signing->method('sign')->willThrowException(
 			new LibresignException('The signing request has not completed.', Http::STATUS_CONFLICT),
 		);
-		$response = $this->controller->signDirect(name: 'contract.pdf', method: 'clickToSign');
+		$response = $this->controller->signDirect(file: ['base64' => 'pdf-data'], name: 'contract.pdf', method: 'clickToSign');
 		self::assertSame(Http::STATUS_CONFLICT, $response->getStatus());
 		self::assertSame('The signing request has not completed.', $response->getData()['message']);
 	}
@@ -156,7 +166,7 @@ final class DirectSignControllerTest extends TestCase {
 	public function testUnexpectedErrorsAreLoggedButNotReturnedToClient(): void {
 		$this->signing->method('sign')->willThrowException(new \RuntimeException('sensitive detail'));
 		$this->logger->expects(self::once())->method('error');
-		$response = $this->controller->signDirect(name: 'contract.pdf', method: 'clickToSign');
+		$response = $this->controller->signDirect(file: ['base64' => 'pdf-data'], name: 'contract.pdf', method: 'clickToSign');
 		self::assertSame(Http::STATUS_INTERNAL_SERVER_ERROR, $response->getStatus());
 		self::assertStringNotContainsString('sensitive', $response->getData()['message']);
 	}
