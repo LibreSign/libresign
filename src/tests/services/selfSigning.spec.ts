@@ -70,7 +70,7 @@ describe('self-signing preparation', () => {
 		})
 	})
 
-	it('activates direct self-signing with no notification and loads server signing permission', async () => {
+	it('activates self-signing with no notification using centralized permission refresh', async () => {
 		const result = await addCurrentAccountAsSigner(store(), allowedPolicy, { readyToSign: true })
 		expect(result).toMatchObject({ success: true })
 		expect(save).toHaveBeenCalledExactlyOnceWith({
@@ -82,7 +82,7 @@ describe('self-signing preparation', () => {
 				identifyMethods: [{ method: 'account', value: 'admin', requirement: 'optional' }],
 			})],
 		})
-		expect(fakeStore.fetchFileDetail).toHaveBeenCalledExactlyOnceWith({ fileId: 7, force: true })
+		expect(fakeStore.fetchFileDetail).not.toHaveBeenCalled()
 	})
 
 	it('does not fetch a signing session if activation was rejected', async () => {

@@ -70,10 +70,5 @@ export async function addCurrentAccountAsSigner(
 		signers,
 		...(options.readyToSign ? { status: FILE_STATUS.ABLE_TO_SIGN } : {}),
 	})
-	if (options.readyToSign && response && 'id' in response && typeof response.id === 'number') {
-		// The validate endpoint supplies the authenticated signer's UUID,
-		// identity settings, and canSign permission for the normal sign flow.
-		await filesStore.fetchFileDetail({ fileId: response.id, force: true })
-	}
 	return response
 }
