@@ -14,6 +14,7 @@ use OCA\Libresign\Db\FileMapper;
 use OCA\Libresign\Db\IdDocs;
 use OCA\Libresign\Db\IdDocsMapper;
 use OCA\Libresign\Enum\FileStatus;
+use OCA\Libresign\Exception\LibresignException;
 use OCA\Libresign\Service\IdDoc\IdDocRejectionNotifier;
 use OCA\Libresign\Service\IdDoc\IdDocRejectionService;
 use OCA\Libresign\Service\IdDoc\IdDocsPolicyService;
@@ -154,6 +155,31 @@ final class IdDocsRejectionControllerTest extends TestCase {
 		$response = $controller->listUnauthenticatedSignerDocuments('another-account', null, 2, 20);
 		$this->assertSame(Http::STATUS_OK, $response->getStatus());
 		$this->assertSame(['data' => [], 'pagination' => []], $response->getData());
+	}
+
+	public function testRejectedAccountDocumentDeleteReturnsAuditRetentionError(): void {
+		$user = $this->createMock(IUser::class);
+		$session = $this->createMock(IUserSession::class);
+		$session->method('getUser')->willReturn($user);
+		$service = $this->createMock(IdDocsService::class);
+		$service->expects($this->once())->method('deleteIdDoc')->with(71, $user)
+			->willThrowException(new LibresignException('Rejected documents are retained for audit purposes.'));
+		$controller = new IdDocsController(
+			$this->createMock(IRequest::class),
+			$this->createMock(SignFileService::class),
+			$this->createMock(IL10N::class),
+			$service,
+			$this->newRejectionService(),
+			$session,
+			$this->createMock(IdentityDocumentValidator::class),
+			$this->createMock(LoggerInterface::class),
+		);
+		$response = $controller->delete(71);
+		$this->assertSame(Http::STATUS_UNAUTHORIZED, $response->getStatus());
+		$this->assertSame(
+			['messages' => ['Rejected documents are retained for audit purposes.']],
+			$response->getData(),
+		);
 	}
 
 	public function testAuthenticatedNonReviewerCannotRejectOrReadDocument(): void {
