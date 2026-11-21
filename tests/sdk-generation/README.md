@@ -80,3 +80,12 @@ development proxy; do not use it with remote systems. The PDF check reports a
 mark the run as failed but still allow the invalid-credentials check to run.
 That check requires HTTP 401; HTTP 403 and 429 do not count as authentication
 success for this negative test.
+
+## Policy value contract regression
+
+After regenerating the OpenAPI TypeScript types, run
+`npm run test:policy-contract --prefix tests/sdk-generation` to check all eight
+policy write contracts and the shared response value. This check uses the
+published-contract types directly, independently of SDK generator workarounds.
+It accepts heterogeneous nested object properties and explicit null, while
+rejecting missing required values, top-level lists, functions and undefined.
