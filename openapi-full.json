@@ -2126,6 +2126,9 @@
                     },
                     "deviceGeolocationRequired": {
                         "type": "boolean"
+                    },
+                    "language": {
+                        "type": "string"
                     }
                 }
             },
@@ -3395,6 +3398,9 @@
                     },
                     "certificate_info": {
                         "$ref": "#/components/schemas/SignerCertificateInfo"
+                    },
+                    "language": {
+                        "type": "string"
                     }
                 }
             },
@@ -12248,7 +12254,7 @@
                                     "signers": {
                                         "type": "array",
                                         "default": [],
-                                        "description": "Collection of signers who must sign the document. Use identifyMethods as the canonical format. Other supported fields: displayName, description, notify, signingOrder, status, deviceGeolocationRequired",
+                                        "description": "Collection of signers who must sign the document. Use identifyMethods as the canonical format. Other supported fields: displayName, description, notify, signingOrder, status, deviceGeolocationRequired, language (language code for the e-mails to the signer; empty uses the default)",
                                         "items": {
                                             "$ref": "#/components/schemas/NewSigner"
                                         }

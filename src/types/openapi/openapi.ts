@@ -1488,6 +1488,7 @@ export type components = {
             status?: number;
             participantRole?: components["schemas"]["ParticipantRole"];
             deviceGeolocationRequired?: boolean;
+            language?: string;
         };
         NotificationStatusResponse: {
             /** @enum {string} */
@@ -1838,6 +1839,7 @@ export type components = {
             geolocation?: components["schemas"]["SignerGeolocation"];
             notify?: components["schemas"]["Notify"][];
             certificate_info?: components["schemas"]["SignerCertificateInfo"];
+            language?: string;
         };
         SignerRejection: {
             rejectedAt: string;
@@ -5400,7 +5402,7 @@ export interface operations {
             content: {
                 "application/json": {
                     /**
-                     * @description Collection of signers who must sign the document. Use identifyMethods as the canonical format. Other supported fields: displayName, description, notify, signingOrder, status, deviceGeolocationRequired
+                     * @description Collection of signers who must sign the document. Use identifyMethods as the canonical format. Other supported fields: displayName, description, notify, signingOrder, status, deviceGeolocationRequired, language (language code for the e-mails to the signer; empty uses the default)
                      * @default []
                      */
                     signers?: components["schemas"]["NewSigner"][];

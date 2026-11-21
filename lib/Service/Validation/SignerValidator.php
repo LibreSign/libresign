@@ -24,6 +24,7 @@ use OCA\Libresign\Service\IdentifyMethod\RuntimeRequirementValidator;
 use OCA\Libresign\Service\IdentifyMethodService;
 use OCA\Libresign\Service\Policy\Provider\ObserverProfile\ObserverProfilePolicyService;
 use OCA\Libresign\Service\SequentialSigningService;
+use OCA\Libresign\Service\SignRequest\SignerLanguageService;
 use OCP\AppFramework\Db\DoesNotExistException;
 use OCP\AppFramework\Http;
 use OCP\IL10N;
@@ -40,6 +41,7 @@ class SignerValidator {
 		private DocMdpValidator $docMdpValidator,
 		private RuntimeRequirementValidator $runtimeRequirementValidator,
 		private ObserverProfilePolicyService $observerProfilePolicyService,
+		private SignerLanguageService $signerLanguageService,
 	) {
 	}
 
@@ -61,6 +63,7 @@ class SignerValidator {
 				throw new LibresignException('Display name must not be longer than 64 characters');
 			}
 			$this->validateParticipantRole($signer, $data);
+			$this->validateLanguage($signer);
 			foreach ($this->normalizeSignerIdentifyMethods($signer) as $method) {
 				$this->validateIdentifyMethodForRequest($method['name'], $method['value']);
 			}
@@ -251,6 +254,20 @@ class SignerValidator {
 		) {
 			// TRANSLATORS Validation error when observer participants are submitted while the feature is disabled by policy.
 			throw new LibresignException($this->l10n->t('Observer participants are not enabled'));
+		}
+	}
+
+	private function validateLanguage(array $signer): void {
+		if (!array_key_exists('language', $signer)) {
+			return;
+		}
+		$language = $signer['language'];
+		if ($language === null || $language === '') {
+			return;
+		}
+		if (!is_string($language) || !$this->signerLanguageService->isAvailable($language)) {
+			// TRANSLATORS Validation error when the language chosen for a signer's e-mails is not available.
+			throw new LibresignException($this->l10n->t('Invalid language'));
 		}
 	}
 

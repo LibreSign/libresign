@@ -15,6 +15,7 @@ use OCA\Libresign\Handler\CertificateEngine\CertificateEngineFactory;
 use OCA\Libresign\Service\AccountService;
 use OCA\Libresign\Service\IdentifyMethodService;
 use OCA\Libresign\Service\Policy\PolicyService;
+use OCA\Libresign\Service\SignRequest\SignerLanguageService;
 use OCA\Libresign\Service\Validation\SigningRequestValidator;
 use OCP\App\IAppManager;
 use OCP\AppFramework\Services\IInitialState;
@@ -38,6 +39,7 @@ class TemplateLoader implements IEventListener {
 		private PolicyService $policyService,
 		private IAppManager $appManager,
 		private TemplateLoaderAssets $assets,
+		private SignerLanguageService $signerLanguageService,
 	) {
 	}
 
@@ -71,6 +73,7 @@ class TemplateLoader implements IEventListener {
 				'policies' => $this->policyService->resolveKnownPolicyStates(),
 			],
 			'can_request_sign' => $this->canRequestSign(),
+			'signer_languages' => $this->signerLanguageService->getAvailableLanguages(),
 		];
 	}
 

@@ -32,6 +32,7 @@ use OCA\Libresign\Service\RequestSignatureService;
 use OCA\Libresign\Service\SessionService;
 use OCA\Libresign\Service\SignerElementsService;
 use OCA\Libresign\Service\SignFileService;
+use OCA\Libresign\Service\SignRequest\SignerLanguageService;
 use OCA\Libresign\Service\Validation\SigningRequestValidator;
 use OCA\Viewer\Event\LoadViewer;
 use OCP\AppFramework\Db\DoesNotExistException;
@@ -84,6 +85,7 @@ class PageController extends AEnvironmentPageAwareController {
 		private IEventDispatcher $eventDispatcher,
 		private IURLGenerator $urlGenerator,
 		private EmailSignerElementsService $emailSignerElementsService,
+		private SignerLanguageService $signerLanguageService,
 	) {
 		parent::__construct(
 			request: $request,
@@ -116,6 +118,7 @@ class PageController extends AEnvironmentPageAwareController {
 		} catch (LibresignException) {
 			$this->initialState->provideInitialState('can_request_sign', false);
 		}
+		$this->initialState->provideInitialState('signer_languages', $this->signerLanguageService->getAvailableLanguages());
 
 		$this->provideSignerSignatues();
 		$this->initialState->provideInitialState('effective_policies', [

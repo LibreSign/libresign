@@ -28,6 +28,7 @@ use OCA\Libresign\Service\Policy\PolicyService;
 use OCA\Libresign\Service\Policy\Provider\ObserverProfile\ObserverProfilePolicy;
 use OCA\Libresign\Service\Policy\Provider\ObserverProfile\ObserverProfilePolicyService;
 use OCA\Libresign\Service\SequentialSigningService;
+use OCA\Libresign\Service\SignRequest\SignerLanguageService;
 use OCA\Libresign\Service\Validation\SignerValidator;
 use OCP\AppFramework\Db\DoesNotExistException;
 use OCP\IL10N;
@@ -43,6 +44,7 @@ final class SignerValidatorTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	private DocMdpValidator $docMdpValidator;
 	private PolicyService&MockObject $policyService;
 	private ObserverProfilePolicyService $observerProfilePolicyService;
+	private SignerLanguageService&MockObject $signerLanguageService;
 	private SignerValidator $validator;
 
 	#[\Override]
@@ -61,6 +63,7 @@ final class SignerValidatorTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			->setEffectiveValue(true);
 		$this->policyService->method('resolve')->with(ObserverProfilePolicy::KEY)->willReturn($resolvedPolicy);
 		$this->observerProfilePolicyService = new ObserverProfilePolicyService($this->policyService);
+		$this->signerLanguageService = $this->createMock(SignerLanguageService::class);
 		$this->validator = new SignerValidator(
 			$l10n,
 			$this->signRequestMapper,
@@ -71,6 +74,7 @@ final class SignerValidatorTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			$this->docMdpValidator,
 			$this->createMock(RuntimeRequirementValidator::class),
 			$this->observerProfilePolicyService,
+			$this->signerLanguageService,
 		);
 	}
 
@@ -131,6 +135,42 @@ final class SignerValidatorTest extends \OCA\Libresign\Tests\Unit\TestCase {
 				'identifyMethods' => [['method' => 'email', 'value' => 'alice@example.com']],
 			]],
 		]);
+	}
+
+	#[DataProvider('signerLanguageCases')]
+	public function testValidateIdentifySignersChecksSignerLanguage(mixed $language, bool $valid): void {
+		$identifyMethod = $this->createMock(IIdentifyMethod::class);
+		$identifyMethod->method('getSignatureMethods')->willReturn([$this->createMock(ISignatureMethod::class)]);
+		$this->identifyMethodService->method('getInstanceOfIdentifyMethod')->willReturn($identifyMethod);
+		$this->signerLanguageService
+			->method('isAvailable')
+			->willReturnCallback(static fn (string $code): bool => in_array($code, ['de', 'pt_BR'], true));
+
+		if (!$valid) {
+			$this->expectException(LibresignException::class);
+			$this->expectExceptionMessage('Invalid language');
+		}
+		$this->validator->validateIdentifySigners([
+			'signers' => [[
+				'language' => $language,
+				'identifyMethods' => [['method' => 'email', 'value' => 'alice@example.com']],
+			]],
+		]);
+		if ($valid) {
+			$this->addToAssertionCount(1);
+		}
+	}
+
+	public static function signerLanguageCases(): array {
+		return [
+			'available language' => ['de', true],
+			'available regional language' => ['pt_BR', true],
+			'empty value clears the choice' => ['', true],
+			'null clears the choice' => [null, true],
+			'unknown language' => ['xx', false],
+			'not a string' => [['de'], false],
+			'number' => [1, false],
+		];
 	}
 
 	public function testIdentifySignerChecksDocMdpAndIdentifyMethod(): void {
@@ -394,6 +434,7 @@ final class SignerValidatorTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			$this->docMdpValidator,
 			$this->createMock(RuntimeRequirementValidator::class),
 			$this->observerProfilePolicyService,
+			$this->signerLanguageService,
 		);
 	}
 

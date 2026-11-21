@@ -17,6 +17,7 @@ use OCA\Libresign\Handler\CertificateEngine\IEngineHandler;
 use OCA\Libresign\Service\AccountService;
 use OCA\Libresign\Service\IdentifyMethodService;
 use OCA\Libresign\Service\Policy\PolicyService;
+use OCA\Libresign\Service\SignRequest\SignerLanguageService;
 use OCA\Libresign\Service\Validation\SigningRequestValidator;
 use OCA\Libresign\Tests\Unit\TestCase;
 use OCP\App\IAppManager;
@@ -37,6 +38,7 @@ final class TemplateLoaderTest extends TestCase {
 	private PolicyService&MockObject $policyService;
 	private IAppManager&MockObject $appManager;
 	private TemplateLoaderAssets&MockObject $assets;
+	private SignerLanguageService&MockObject $signerLanguageService;
 
 	#[\Override]
 	public function setUp(): void {
@@ -50,9 +52,13 @@ final class TemplateLoaderTest extends TestCase {
 		$this->policyService = $this->createMock(PolicyService::class);
 		$this->appManager = $this->createMock(IAppManager::class);
 		$this->assets = $this->createMock(TemplateLoaderAssets::class);
+		$this->signerLanguageService = $this->createMock(SignerLanguageService::class);
 	}
 
 	public function testHandleProvidesInitialStatePayload(): void {
+		$this->signerLanguageService
+			->method('getAvailableLanguages')
+			->willReturn(['de', 'en']);
 		$engine = $this->createMock(IEngineHandler::class);
 		$engine->method('isSetupOk')->willReturn(true);
 		$this->certificateEngineFactory
@@ -107,7 +113,7 @@ final class TemplateLoaderTest extends TestCase {
 
 		$capturedState = [];
 		$this->initialState
-			->expects($this->exactly(3))
+			->expects($this->exactly(4))
 			->method('provideInitialState')
 			->willReturnCallback(static function (string $key, mixed $value) use (&$capturedState): void {
 				$capturedState[$key] = $value;
@@ -136,6 +142,7 @@ final class TemplateLoaderTest extends TestCase {
 				],
 			],
 			'can_request_sign' => true,
+			'signer_languages' => ['de', 'en'],
 		];
 		ksort($capturedState);
 		ksort($expectedState);
@@ -198,7 +205,7 @@ final class TemplateLoaderTest extends TestCase {
 
 		$capturedState = [];
 		$this->initialState
-			->expects($this->exactly(3))
+			->expects($this->exactly(4))
 			->method('provideInitialState')
 			->willReturnCallback(static function (string $key, mixed $value) use (&$capturedState): void {
 				$capturedState[$key] = $value;
@@ -223,6 +230,7 @@ final class TemplateLoaderTest extends TestCase {
 			$this->policyService,
 			$this->appManager,
 			$this->assets,
+			$this->signerLanguageService,
 		);
 	}
 

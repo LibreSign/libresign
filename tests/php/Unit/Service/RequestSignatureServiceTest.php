@@ -34,6 +34,7 @@ use OCA\Libresign\Service\RequestSignatureService;
 use OCA\Libresign\Service\SequentialSigningService;
 use OCA\Libresign\Service\SignerGeolocation\SignerGeolocationPolicyService;
 use OCA\Libresign\Service\SignerRemovalService;
+use OCA\Libresign\Service\SignRequest\SignerLanguageService;
 use OCA\Libresign\Service\SignRequest\SignRequestService;
 use OCA\Libresign\Service\SignRequest\StatusCacheService;
 use OCA\Libresign\Service\SignRequest\StatusService;
@@ -51,6 +52,7 @@ use OCP\IAppConfig;
 use OCP\IL10N;
 use OCP\IUser;
 use OCP\IUserManager;
+use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\MockObject\MockObject;
 use Psr\Log\LoggerInterface;
 
@@ -89,6 +91,7 @@ final class RequestSignatureServiceTest extends \OCA\Libresign\Tests\Unit\TestCa
 	private \OCP\IDBConnection&MockObject $db;
 	private \OCA\Libresign\Service\NotificationDeliveryService&MockObject $notifications;
 	private NativeWebhookEventPublisher&MockObject $webhooks;
+	private SignerLanguageService&MockObject $signerLanguageService;
 
 	public function setUp(): void {
 		parent::setUp();
@@ -130,6 +133,7 @@ final class RequestSignatureServiceTest extends \OCA\Libresign\Tests\Unit\TestCa
 		$this->db = $this->createMock(\OCP\IDBConnection::class);
 		$this->notifications = $this->createMock(\OCA\Libresign\Service\NotificationDeliveryService::class);
 		$this->webhooks = $this->createMock(NativeWebhookEventPublisher::class);
+		$this->signerLanguageService = $this->createMock(SignerLanguageService::class);
 	}
 
 	private function getService(array $methods = []): RequestSignatureService|MockObject {
@@ -168,6 +172,7 @@ final class RequestSignatureServiceTest extends \OCA\Libresign\Tests\Unit\TestCa
 					$this->db,
 					$this->notifications,
 					$this->webhooks,
+					$this->signerLanguageService,
 				])
 				->onlyMethods($methods)
 				->getMock();
@@ -206,6 +211,7 @@ final class RequestSignatureServiceTest extends \OCA\Libresign\Tests\Unit\TestCa
 			$this->db,
 			$this->notifications,
 			$this->webhooks,
+			$this->signerLanguageService,
 		);
 	}
 
@@ -1049,6 +1055,76 @@ final class RequestSignatureServiceTest extends \OCA\Libresign\Tests\Unit\TestCa
 		$this->assertCount(2, $actual);
 	}
 
+	#[DataProvider('signerLanguageCases')]
+	public function testAssociateToSignersStoresSignerLanguageForEachIdentifyMethod(array $signerFields, ?string $expected): void {
+		$file = new \OCA\Libresign\Db\File();
+		$file->setId(77);
+		$data = [
+			'status' => 9,
+			'signers' => [[
+				'displayName' => 'John Doe',
+				'identifyMethods' => [
+					['method' => 'email', 'value' => 'john@example.com'],
+					['method' => 'account', 'value' => 'john'],
+				],
+				...$signerFields,
+			]],
+		];
+
+		$this->signerValidator
+			->method('normalizeRequestSigners')
+			->willReturnCallback(static fn (array $signers): array => $signers);
+		$this->signRequestMapper->method('getByFileId')->with(77)->willReturn([]);
+		$this->sequentialSigningService->method('determineSigningOrder')->willReturn(1);
+		$this->signerGeolocationPolicyService->method('getFrozenRequirement')->willReturn(null);
+
+		$signRequestCounter = 0;
+		$this->signRequestService
+			->method('createOrUpdateSignRequest')
+			->willReturnCallback(function (
+				array $identifyMethods,
+				string $displayName,
+				?string $description,
+				bool $notify,
+				int $fileId,
+				int $signingOrder = 0,
+				?int $fileStatus = null,
+				?int $signerStatus = null,
+				ParticipantRole $participantRole = ParticipantRole::SIGNER,
+				?callable $afterPersist = null,
+			) use (&$signRequestCounter): SignRequest {
+				$signRequest = new SignRequest();
+				$signRequest->setId(500 + ++$signRequestCounter);
+				if ($afterPersist !== null) {
+					$afterPersist($signRequest);
+				}
+				return $signRequest;
+			});
+
+		$stored = [];
+		$this->signerLanguageService
+			->expects($expected === null ? $this->never() : $this->exactly(2))
+			->method('setLanguage')
+			->willReturnCallback(static function (SignRequest $signRequest, string $language) use (&$stored): void {
+				$stored[$signRequest->getId()] = $language;
+			});
+
+		self::invokePrivate($this->getService(), 'associateToSigners', [$data, $file]);
+
+		if ($expected !== null) {
+			$this->assertSame([501 => $expected, 502 => $expected], $stored);
+		}
+	}
+
+	public static function signerLanguageCases(): array {
+		return [
+			'language chosen' => [['language' => 'de'], 'de'],
+			'empty value clears the language' => [['language' => ''], ''],
+			'null clears the language' => [['language' => null], ''],
+			'omitted keeps the stored language' => [[], null],
+		];
+	}
+
 	public function testAssociateToSignersPreservesFrozenGeolocationWhenFlagOmitted(): void {
 		$file = new \OCA\Libresign\Db\File();
 		$file->setId(77);
@@ -1236,6 +1312,7 @@ final class RequestSignatureServiceTest extends \OCA\Libresign\Tests\Unit\TestCa
 				$this->createMock(\OCP\IDBConnection::class),
 				$this->createMock(\OCA\Libresign\Service\NotificationDeliveryService::class),
 				$this->webhooks,
+				$this->signerLanguageService,
 			])
 			->onlyMethods(['unassociateToUser'])
 			->getMock();
@@ -1315,6 +1392,7 @@ final class RequestSignatureServiceTest extends \OCA\Libresign\Tests\Unit\TestCa
 				$this->createMock(\OCP\IDBConnection::class),
 				$this->createMock(\OCA\Libresign\Service\NotificationDeliveryService::class),
 				$this->webhooks,
+				$this->signerLanguageService,
 			])
 			->onlyMethods(['unassociateToUser'])
 			->getMock();

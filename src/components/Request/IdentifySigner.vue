@@ -49,6 +49,16 @@
 				resize="none" />
 		</div>
 
+		<div v-if="signerSelected && showLanguageSelect && !disabled" class="language-wrapper">
+			<NcSelect v-model="selectedLanguage"
+				input-id="signer-language"
+				:input-label="languageLabel"
+				:options="languageOptions"
+				:clearable="false"
+				label="label"
+				track-by="id" />
+		</div>
+
 		<div v-if="signerSelected && showGeolocationRequirementToggle && !disabled" class="geolocation-wrapper">
 			<NcCheckboxRadioSwitch v-model="deviceGeolocationRequired"
 				type="switch">
@@ -74,7 +84,8 @@
 </template>
 
 <script setup lang="ts">
-import { t } from '@nextcloud/l10n'
+import { loadState } from '@nextcloud/initial-state'
+import { getLanguage, t } from '@nextcloud/l10n'
 import { computed, onBeforeMount, ref } from 'vue'
 
 import svgAccount from '@mdi/svg/svg/account.svg?raw'
@@ -87,6 +98,7 @@ import NcButton from '@nextcloud/vue/components/NcButton'
 import NcCheckboxRadioSwitch from '@nextcloud/vue/components/NcCheckboxRadioSwitch'
 import NcIconSvgWrapper from '@nextcloud/vue/components/NcIconSvgWrapper'
 import NcNoteCard from '@nextcloud/vue/components/NcNoteCard'
+import NcSelect from '@nextcloud/vue/components/NcSelect'
 import NcTextArea from '@nextcloud/vue/components/NcTextArea'
 import NcTextField from '@nextcloud/vue/components/NcTextField'
 import { showError } from '@nextcloud/dialogs'
@@ -166,7 +178,13 @@ type SignerToEdit = {
 	deviceGeolocationRequired?: boolean
 	metadata?: {
 		deviceGeolocationRequirement?: string
+		language?: string
 	}
+}
+
+type LanguageOption = {
+	id: string
+	label: string
 }
 
 type FilesStore = ReturnType<typeof useFilesStore>
@@ -195,6 +213,11 @@ const customMessageLabel = t('libresign', 'Custom message')
 const saveSignerButtonLabel = t('libresign', 'Save')
 // TRANSLATORS Primary button label to update an existing signer.
 const updateSignerButtonLabel = t('libresign', 'Update')
+// TRANSLATORS Field label for the language of the e-mails sent to this signer.
+const languageLabel = t('libresign', 'E-mail language')
+// TRANSLATORS Option keeping the default language for the e-mails sent to this signer.
+const defaultLanguageLabel = t('libresign', 'Default language')
+const availableLanguages = loadState<string[]>('libresign', 'signer_languages', [])
 
 const filesStore = useFilesStore()
 const policiesStore = usePoliciesStore()
@@ -205,6 +228,7 @@ const displayName = ref('')
 const description = ref('')
 const enableCustomMessage = ref(false)
 const deviceGeolocationRequired = ref(false)
+const language = ref('')
 const identify = ref('')
 const identifyMethod = ref<IdentifyAccountRecord['method'] | undefined>()
 const acceptsEmailNotifications = ref<boolean | undefined>()
@@ -225,6 +249,27 @@ const signerGeolocationMode = computed(() => {
 })
 const showGeolocationRequirementToggle = computed(() => signerGeolocationMode.value === 'optional')
 
+function getLanguageName(code: string): string {
+	try {
+		return new Intl.DisplayNames([getLanguage()], { type: 'language' }).of(code.replace('_', '-')) ?? code
+	} catch {
+		return code
+	}
+}
+
+const languageOptions = computed<LanguageOption[]>(() => [
+	{ id: '', label: defaultLanguageLabel },
+	...availableLanguages
+		.map((code) => ({ id: code, label: getLanguageName(code) }))
+		.sort((a, b) => a.label.localeCompare(b.label)),
+])
+const selectedLanguage = computed<LanguageOption>({
+	get: () => languageOptions.value.find((option) => option.id === language.value) ?? languageOptions.value[0],
+	set: (option) => {
+		language.value = option?.id ?? ''
+	},
+})
+
 const signerSelected = computed(() => identify.value.length > 0)
 const isNewSigner = computed(() => !props.signerToEdit || Object.keys(props.signerToEdit).length === 0)
 const saveButtonText = computed(() => isNewSigner.value ? saveSignerButtonLabel : updateSignerButtonLabel)
@@ -244,6 +289,7 @@ const showCustomMessage = computed(() => {
 	}
 	return !!identifyMethod.value
 })
+const showLanguageSelect = computed(() => showCustomMessage.value && availableLanguages.length > 1)
 
 function resetNameValidation() {
 	nameHelperText.value = ''
@@ -255,6 +301,7 @@ function resetSelectedSignerState() {
 	description.value = ''
 	enableCustomMessage.value = false
 	deviceGeolocationRequired.value = false
+	language.value = ''
 	identify.value = ''
 	identifyMethod.value = undefined
 	acceptsEmailNotifications.value = undefined
@@ -375,6 +422,8 @@ async function saveSigner() {
 		...(deviceGeolocationRequired.value || showGeolocationRequirementToggle.value
 			? { deviceGeolocationRequired: deviceGeolocationRequired.value }
 			: {}),
+		// An empty language tells the backend to use the default one again.
+		...(showLanguageSelect.value ? { language: language.value } : {}),
 		status: SIGN_REQUEST_STATUS.DRAFT,
 		statusText: getSignRequestStatusText(SIGN_REQUEST_STATUS.DRAFT),
 		identifyMethods: [
@@ -433,6 +482,8 @@ onBeforeMount(() => {
 	enableCustomMessage.value = !!props.signerToEdit.description
 	deviceGeolocationRequired.value = props.signerToEdit.deviceGeolocationRequired === true
 		|| props.signerToEdit.metadata?.deviceGeolocationRequirement === 'required'
+	const storedLanguage = props.signerToEdit.metadata?.language ?? ''
+	language.value = availableLanguages.includes(storedLanguage) ? storedLanguage : ''
 	identify.value = getSignerToEditIdentify(props.signerToEdit)
 	if (Object.keys(props.signerToEdit).length > 0 && props.signerToEdit.identifyMethods?.length) {
 		const method = props.signerToEdit.identifyMethods[0]
@@ -451,6 +502,10 @@ defineExpose({
 	enableCustomMessage,
 	deviceGeolocationRequired,
 	showGeolocationRequirementToggle,
+	language,
+	languageOptions,
+	selectedLanguage,
+	showLanguageSelect,
 	identify,
 	identifyMethod,
 	acceptsEmailNotifications,
@@ -497,6 +552,7 @@ defineExpose({
 		}
 	}
 	.description-wrapper,
+	.language-wrapper,
 	.geolocation-wrapper {
 		width: 100%;
 		margin-block-end: 16px;

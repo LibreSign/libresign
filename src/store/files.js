@@ -64,9 +64,11 @@ import { isCurrentUserObserver, isSigningParticipant } from '../utils/participan
  * 	signed?: string | null | boolean | unknown[]
  * 	sign_request_uuid?: string | null
  * 	deviceGeolocationRequired?: boolean
+ * 	language?: string
  * 	metadata?: {
  * 		deviceGeolocationRequirement?: string
  * 		geolocation?: Record<string, unknown>
+ * 		language?: string
  * 	}
  * }} EditableSignerDraft
  */
@@ -1000,6 +1002,7 @@ const _filesStore = defineStore('files', () => {
 					...(typeof deviceGeolocationRequired === 'boolean'
 						? { deviceGeolocationRequired }
 						: {}),
+					...(typeof signer.language === 'string' ? { language: signer.language } : {}),
 				}
 			})
 			.filter((signer) => signer && signer.identifyMethods?.length)

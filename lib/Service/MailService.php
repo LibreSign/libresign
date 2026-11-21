@@ -16,6 +16,7 @@ use OCA\Libresign\Exception\LibresignException;
 use OCA\Libresign\Exception\MailTransportException;
 use OCA\Libresign\Service\Policy\PolicyService;
 use OCA\Libresign\Service\Policy\Provider\MailSenderStrategy\MailSenderStrategyPolicy;
+use OCA\Libresign\Service\SignRequest\SignerLanguageService;
 use OCP\IAppConfig;
 use OCP\IL10N;
 use OCP\IURLGenerator;
@@ -44,6 +45,7 @@ class MailService {
 		private PolicyService $policyService,
 		private IMailProviderManager $mailProviderManager,
 		private IUserManager $userManager,
+		private SignerLanguageService $signerLanguageService,
 	) {
 	}
 
@@ -58,20 +60,38 @@ class MailService {
 	}
 
 	/**
+	 * Translations for a mail to a participant: the language the requester
+	 * chose for them, or the default one.
+	 */
+	private function getParticipantL10n(SignRequest $signRequest): IL10N {
+		return $this->signerLanguageService->getL10n($signRequest) ?? $this->l10n;
+	}
+
+	private function createParticipantEmailTemplate(IL10N $l10n): IEMailTemplate {
+		$emailTemplate = $this->mailer->createEMailTemplate('settings.TestEmail');
+		if ($l10n !== $this->l10n) {
+			$emailTemplate->setLanguage($l10n->getLanguageCode());
+		}
+		return $emailTemplate;
+	}
+
+	/**
 	 * @psalm-suppress MixedMethodCall
 	 */
 	public function notifySignDataUpdated(SignRequest $data, string $email, ?string $description = null): void {
 		$file = $this->getFileById($data->getFileId());
 		$isObserver = $data->isObserver();
+		$l10n = $this->getParticipantL10n($data);
 
-		$emailTemplate = $this->mailer->createEMailTemplate('settings.TestEmail');
+		$emailTemplate = $this->createParticipantEmailTemplate($l10n);
 		$this->applyParticipantNotificationHeader(
 			$emailTemplate,
+			$l10n,
 			$isObserver,
 			// TRANSLATORS Email subject notifying an observer that a document changed and should be reviewed again.
-			$this->l10n->t('LibreSign: Changes were made to a document'),
+			$l10n->t('LibreSign: Changes were made to a document'),
 			// TRANSLATORS Email subject notifying a signer that a pending signature request changed and should be reviewed again.
-			$this->l10n->t('LibreSign: Changes were made to a document waiting for your signature'),
+			$l10n->t('LibreSign: Changes were made to a document waiting for your signature'),
 		);
 
 		if (!empty($description)) {
@@ -81,13 +101,14 @@ class MailService {
 
 		$this->applyParticipantNotificationAction(
 			$emailTemplate,
+			$l10n,
 			$data,
 			$file,
 			$isObserver,
 			// TRANSLATORS Email body telling an observer to reopen the document because some request details changed.
-			$this->l10n->t('Changes were made to a document. Open the link below:'),
+			$l10n->t('Changes were made to a document. Open the link below:'),
 			// TRANSLATORS Email body telling the signer to reopen the request because some request details changed.
-			$this->l10n->t('Changes were made to a document you need to sign. Open the link below:'),
+			$l10n->t('Changes were made to a document you need to sign. Open the link below:'),
 		);
 		try {
 			$this->sendSignRequestNotification($emailTemplate, $data, $email);
@@ -103,15 +124,17 @@ class MailService {
 	public function notifyUnsignedUser(SignRequest $data, string $email, ?string $description = null): void {
 		$file = $this->getFileById($data->getFileId());
 		$isObserver = $data->isObserver();
+		$l10n = $this->getParticipantL10n($data);
 
-		$emailTemplate = $this->mailer->createEMailTemplate('settings.TestEmail');
+		$emailTemplate = $this->createParticipantEmailTemplate($l10n);
 		$this->applyParticipantNotificationHeader(
 			$emailTemplate,
+			$l10n,
 			$isObserver,
 			// TRANSLATORS Email subject notifying an observer that a document is available to view.
-			$this->l10n->t('LibreSign: A document is ready to view'),
+			$l10n->t('LibreSign: A document is ready to view'),
 			// TRANSLATORS Email subject notifying a signer that a document is ready for their digital signature.
-			$this->l10n->t('LibreSign: A document is ready for your signature'),
+			$l10n->t('LibreSign: A document is ready for your signature'),
 		);
 
 		if (!empty($description)) {
@@ -121,13 +144,14 @@ class MailService {
 
 		$this->applyParticipantNotificationAction(
 			$emailTemplate,
+			$l10n,
 			$data,
 			$file,
 			$isObserver,
 			// TRANSLATORS Email body inviting an observer to open the document and view it.
-			$this->l10n->t('A document is ready to view. Open the link below:'),
+			$l10n->t('A document is ready to view. Open the link below:'),
 			// TRANSLATORS Email body inviting the signer to open the document and sign it.
-			$this->l10n->t('A document is ready for your signature. Open the link below:'),
+			$l10n->t('A document is ready for your signature. Open the link below:'),
 		);
 		try {
 			$this->sendSignRequestNotification($emailTemplate, $data, $email);
@@ -139,6 +163,7 @@ class MailService {
 
 	private function applyParticipantNotificationHeader(
 		IEMailTemplate $emailTemplate,
+		IL10N $l10n,
 		bool $isObserver,
 		string $observerSubject,
 		string $signerSubject,
@@ -148,15 +173,16 @@ class MailService {
 		$emailTemplate->addHeading(
 			$isObserver
 				// TRANSLATORS Email heading shown above a document available for viewing.
-				? $this->l10n->t('Document to view')
+				? $l10n->t('Document to view')
 				// TRANSLATORS Email heading shown above a document awaiting the recipient's signature.
-				: $this->l10n->t('Document to sign'),
+				: $l10n->t('Document to sign'),
 			false,
 		);
 	}
 
 	private function applyParticipantNotificationAction(
 		IEMailTemplate $emailTemplate,
+		IL10N $l10n,
 		SignRequest $data,
 		File $file,
 		bool $isObserver,
@@ -167,7 +193,7 @@ class MailService {
 		if ($isObserver) {
 			$emailTemplate->addBodyButton(
 				// TRANSLATORS Email button label that opens the document validation view. %s is the document filename.
-				$this->l10n->t('View "%s"', [$file->getName()]),
+				$l10n->t('View "%s"', [$file->getName()]),
 				$this->buildValidationLink($file),
 			);
 			return;
@@ -175,7 +201,7 @@ class MailService {
 
 		$emailTemplate->addBodyButton(
 			// TRANSLATORS Email button label that opens the signing page. %s is the document filename.
-			$this->l10n->t('Sign "%s"', [$file->getName()]),
+			$l10n->t('Sign "%s"', [$file->getName()]),
 			$this->urlGenerator->linkToRouteAbsolute('libresign.page.sign', ['uuid' => $data->getUuid()]),
 		);
 	}
@@ -357,14 +383,15 @@ class MailService {
 	}
 
 	public function notifyCanceledRequest(SignRequest $signRequest, string $email, File $libreSignFile): void {
-		$emailTemplate = $this->mailer->createEMailTemplate('settings.TestEmail');
+		$l10n = $this->getParticipantL10n($signRequest);
+		$emailTemplate = $this->createParticipantEmailTemplate($l10n);
 		// TRANSLATORS Email subject shown when the requester cancels a pending signature request.
-		$emailTemplate->setSubject($this->l10n->t('LibreSign: A signature request has been canceled'));
+		$emailTemplate->setSubject($l10n->t('LibreSign: A signature request has been canceled'));
 		$emailTemplate->addHeader();
 		// TRANSLATORS Email heading shown when a signature request is no longer active.
-		$emailTemplate->addHeading($this->l10n->t('Signature request canceled'), false);
+		$emailTemplate->addHeading($l10n->t('Signature request canceled'), false);
 		// TRANSLATORS Email body text shown after cancellation. %s is the document filename that no longer needs a signature.
-		$emailTemplate->addBodyText($this->l10n->t('The request for you to sign "%s" has been canceled.', [$libreSignFile->getName()]));
+		$emailTemplate->addBodyText($l10n->t('The request for you to sign "%s" has been canceled.', [$libreSignFile->getName()]));
 		$message = $this->mailer->createMessage();
 		if ($signRequest->getDisplayName()) {
 			$message->setTo([$email => $signRequest->getDisplayName()]);
