@@ -15,6 +15,7 @@ use OCA\Libresign\Tests\Unit\TestCase;
 use OCP\App\IAppManager;
 use OCP\Files\IMimeTypeDetector;
 use OCP\Files\IRootFolder;
+use OCP\Files\Folder;
 use OCP\IL10N;
 use OCP\IURLGenerator;
 use OCP\IUser;
@@ -41,11 +42,16 @@ class FileSearchProviderTest extends TestCase {
 		$this->appManager->method('isEnabledForUser')->willReturn(true);
 
 		$this->fileMapper = $this->createMock(SignRequestMapper::class);
+		$userFolder = $this->createMock(Folder::class);
+		$userFolder->method('getById')->willReturn([]);
+		$rootFolder = $this->createMock(IRootFolder::class);
+		$rootFolder->method('getUserFolder')->willReturn($userFolder);
+
 
 		$this->provider = new FileSearchProvider(
 			$this->l10n,
 			$this->createMock(IURLGenerator::class),
-			$this->createMock(IRootFolder::class),
+			$rootFolder,
 			$this->appManager,
 			$this->createMock(IMimeTypeDetector::class),
 			$this->fileMapper,
