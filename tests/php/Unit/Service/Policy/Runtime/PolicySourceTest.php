@@ -48,6 +48,7 @@ use OCA\Libresign\Service\Policy\Provider\Worker\WorkerConfigPolicy;
 use OCA\Libresign\Service\Policy\Runtime\DefaultPolicyResolver;
 use OCA\Libresign\Service\Policy\Runtime\PolicyRegistry;
 use OCA\Libresign\Service\Policy\Runtime\PolicySource;
+use OCA\Libresign\Service\Policy\Runtime\PolicyAppConfigValueReader;
 use OCA\Libresign\Tests\Unit\TestCase;
 use OCP\AppFramework\Db\DoesNotExistException;
 use OCP\AppFramework\Services\IAppConfig as ScopedIAppConfig;
@@ -2547,7 +2548,7 @@ final class PolicySourceTest extends TestCase {
 	private function getSource(): PolicySource {
 		return new PolicySource(
 			$this->appConfig,
-			$this->coreAppConfig,
+			new PolicyAppConfigValueReader($this->coreAppConfig),
 			$this->permissionSetMapper,
 			$this->bindingMapper,
 			$this->registry,
