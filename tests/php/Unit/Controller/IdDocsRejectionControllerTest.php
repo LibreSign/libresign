@@ -156,6 +156,43 @@ final class IdDocsRejectionControllerTest extends TestCase {
 		$this->assertSame(['data' => [], 'pagination' => []], $response->getData());
 	}
 
+
+	public function testAuthorizedReviewerCanReadRejectionAuditFields(): void {
+		$user = $this->createMock(IUser::class);
+		$session = $this->createMock(IUserSession::class);
+		$session->method('getUser')->willReturn($user);
+		$validator = $this->createMock(IdentityDocumentValidator::class);
+		$validator->expects($this->once())->method('userCanApproveValidationDocuments')
+			->with($user);
+		$expected = [
+			'data' => [['rejection' => ['reason' => 'Expired ID', 'by' => 'reviewer-1']]],
+			'pagination' => [],
+		];
+		$service = $this->createMock(IdDocsService::class);
+		$service->expects($this->once())->method('list')
+			->with(
+				['userId' => 'signer-1', 'signRequestId' => 77],
+				2,
+				20,
+				['status' => 'ASC'],
+				true,
+			)
+			->willReturn($expected);
+		$controller = new IdDocsController(
+			$this->createMock(IRequest::class),
+			$this->createMock(SignFileService::class),
+			$this->createMock(IL10N::class),
+			$service,
+			$this->newRejectionService(),
+			$session,
+			$validator,
+			$this->createMock(LoggerInterface::class),
+		);
+		$response = $controller->listToApproval('signer-1', 77, 2, 20, 'status', 'ASC');
+		$this->assertSame(Http::STATUS_OK, $response->getStatus());
+		$this->assertSame($expected, $response->getData());
+	}
+
 	public function testUserWithoutApprovalPermissionCannotReadReviewerAuditDetails(): void {
 		$user = $this->createMock(IUser::class);
 		$session = $this->createMock(IUserSession::class);
