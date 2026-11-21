@@ -9,13 +9,20 @@ declare(strict_types=1);
 namespace OCA\Libresign\Tests\Unit\Controller;
 
 use OCA\Libresign\Controller\IdDocsController;
+use OCA\Libresign\Db\FileMapper;
+use OCA\Libresign\Db\IdDocsMapper;
 use OCA\Libresign\Exception\FileProcessingValidationException;
 use OCA\Libresign\Exception\IdDocsUploadValidationException;
 use OCA\Libresign\Exception\LibresignException;
-use OCA\Libresign\Service\IdDocsService;
+use OCA\Libresign\Service\IdDoc\IdDocRejectionNotifier;
+use OCA\Libresign\Service\IdDoc\IdDocRejectionService;
+use OCA\Libresign\Service\IdDoc\IdDocsPolicyService;
+use OCA\Libresign\Service\IdDoc\IdDocsService;
 use OCA\Libresign\Service\SignFileService;
 use OCA\Libresign\Service\Validation\IdentityDocumentValidator;
 use OCP\AppFramework\Http;
+use OCP\AppFramework\Utility\ITimeFactory;
+use OCP\IDBConnection;
 use OCP\IL10N;
 use OCP\IRequest;
 use OCP\IUser;
@@ -109,6 +116,7 @@ class IdDocsControllerTest extends TestCase {
 			$this->createMock(SignFileService::class),
 			$l10n,
 			$service,
+			$this->newRejectionService(),
 			$session,
 			$this->createMock(IdentityDocumentValidator::class),
 			$logger,
@@ -118,5 +126,26 @@ class IdDocsControllerTest extends TestCase {
 		$this->assertSame(Http::STATUS_UNAUTHORIZED, $response->getStatus());
 		$this->assertSame($expected, $response->getData());
 		$this->assertStringNotContainsString('internal-canary-123', json_encode($response->getData()));
+	}
+
+	private function newRejectionService(
+		?IdDocsPolicyService $policy = null,
+		?IdDocsMapper $documents = null,
+		?FileMapper $files = null,
+		?IdDocRejectionNotifier $notifier = null,
+	): IdDocRejectionService {
+		$clock = $this->createMock(ITimeFactory::class);
+		$clock->method('getDateTime')->willReturn(new \DateTime('2026-11-21T12:00:00Z'));
+		$l10n = $this->createMock(IL10N::class);
+		$l10n->method('t')->willReturnArgument(0);
+		return new IdDocRejectionService(
+			$policy ?? $this->createMock(IdDocsPolicyService::class),
+			$documents ?? $this->createMock(IdDocsMapper::class),
+			$files ?? $this->createMock(FileMapper::class),
+			$clock,
+			$l10n,
+			$this->createMock(IDBConnection::class),
+			$notifier ?? $this->createMock(IdDocRejectionNotifier::class),
+		);
 	}
 }
