@@ -12,6 +12,7 @@ use OCA\Libresign\Db\File;
 use OCA\Libresign\Db\FileMapper;
 use OCA\Libresign\Db\SignRequest;
 use OCA\Libresign\Exception\LibresignException;
+use OCA\Libresign\Exception\MailTransportException;
 use OCA\Libresign\Service\MailService;
 use OCA\Libresign\Service\Policy\Model\ResolvedPolicy;
 use OCA\Libresign\Service\Policy\PolicyService;
@@ -21,6 +22,7 @@ use OCP\IL10N;
 use OCP\IURLGenerator;
 use OCP\IUser;
 use OCP\IUserManager;
+use OCP\Mail\IAttachment;
 use OCP\Mail\IEMailTemplate;
 use OCP\Mail\IMailer;
 use OCP\Mail\IMessage as ISystemMessage;
@@ -447,6 +449,72 @@ final class MailServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$this->expectException(LibresignException::class);
 		$this->expectExceptionMessage('Mail with code to sign document could not be sent');
 		$this->service->sendCodeToSign('recipient@example.com', 'Recipient', '123456');
+	}
+
+	public function testNotifySignedCopyAttachesDocumentsAndRepliesToRequester(): void {
+		$this->mockEmailTemplate();
+		$this->mockRequesterAccount('requester@example.com');
+		$this->l10n->method('n')->willReturnArgument(1);
+		$attachment = $this->createMock(IAttachment::class);
+		$this->mailer->expects($this->exactly(2))
+			->method('createAttachment')
+			->willReturnCallback(function (string $content, string $name, string $type) use ($attachment): IAttachment {
+				$this->assertSame('application/pdf', $type);
+				$this->assertContains([$name, $content], [['a.pdf', 'pdf-a'], ['b.pdf', 'pdf-b']]);
+				return $attachment;
+			});
+		$message = $this->mockSystemMessage();
+		$message->expects($this->once())
+			->method('setTo')
+			->with(['signer@example.com' => 'Signer']);
+		$message->expects($this->once())
+			->method('setReplyTo')
+			->with(['requester@example.com' => 'Requester Name']);
+		$message->expects($this->exactly(2))->method('attach')->with($attachment);
+		$this->mailer->expects($this->once())->method('send')->with($message)->willReturn([]);
+
+		$this->service->notifySignedCopy(
+			$this->mockCompletedRequest(),
+			'signer@example.com',
+			'Signer',
+			['a.pdf' => 'pdf-a', 'b.pdf' => 'pdf-b'],
+		);
+	}
+
+	public function testNotifySignedCopyWithoutAttachmentsLinksToValidationPage(): void {
+		$emailTemplate = $this->createMock(IEMailTemplate::class);
+		$emailTemplate->expects($this->once())
+			->method('addBodyButton')
+			->with('View signed document "%s"', 'https://example.com/validation/file-uuid');
+		$this->mailer->method('createEMailTemplate')->willReturn($emailTemplate);
+		$this->urlGenerator->method('linkToRouteAbsolute')
+			->with('libresign.page.validationFilePublic', ['uuid' => 'file-uuid'])
+			->willReturn('https://example.com/validation/file-uuid');
+		$message = $this->mockSystemMessage();
+		$message->expects($this->once())->method('setTo')->with(['archive@example.com']);
+		$message->expects($this->never())->method('setReplyTo');
+		$message->expects($this->never())->method('attach');
+		$this->mailer->expects($this->never())->method('createAttachment');
+		$this->mailer->expects($this->once())->method('send')->willReturn([]);
+
+		$this->service->notifySignedCopy($this->mockCompletedRequest(), 'archive@example.com', '', []);
+	}
+
+	public function testNotifySignedCopyReportsRejectedRecipient(): void {
+		$this->mockEmailTemplate();
+		$this->mockSystemMessage();
+		$this->mailer->method('send')->willReturn(['archive@example.com']);
+
+		$this->expectException(MailTransportException::class);
+		$this->service->notifySignedCopy($this->mockCompletedRequest(), 'archive@example.com', '', []);
+	}
+
+	private function mockCompletedRequest(): File {
+		$file = new File();
+		$file->setName('Contract');
+		$file->setUuid('file-uuid');
+		$file->setUserId('requester');
+		return $file;
 	}
 
 	private function mockSignRequest(string $displayName = 'John Doe'): SignRequest {

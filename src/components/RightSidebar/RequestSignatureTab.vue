@@ -579,6 +579,7 @@ type IdentifySignerToEdit = {
 	participantRole?: ParticipantRole
 	identifyMethods?: IdentifySignerMethod[]
 	deviceGeolocationRequired?: boolean
+	sendSignedCopy?: boolean
 	metadata?: {
 		deviceGeolocationRequirement?: string
 	}
@@ -951,6 +952,7 @@ function toIdentifySignerToEdit(signer: EditableRequestSigner): IdentifySignerTo
 		...(typeof signer.deviceGeolocationRequired === 'boolean'
 			? { deviceGeolocationRequired: signer.deviceGeolocationRequired }
 			: {}),
+		...(signer.sendSignedCopy === true ? { sendSignedCopy: true } : {}),
 		...(signer.metadata?.deviceGeolocationRequirement
 			? { metadata: { deviceGeolocationRequirement: signer.metadata.deviceGeolocationRequirement } }
 			: {}),

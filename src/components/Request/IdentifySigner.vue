@@ -57,6 +57,14 @@
 			</NcCheckboxRadioSwitch>
 		</div>
 
+		<div v-if="signerSelected && showSignedCopyToggle && !disabled" class="signed-copy-wrapper">
+			<NcCheckboxRadioSwitch v-model="sendSignedCopy"
+				type="switch">
+				<!-- TRANSLATORS Switch label letting the requester choose that this signer receives the fully signed document by email after the last signature. -->
+				{{ t('libresign', 'Email the signed document to this signer') }}
+			</NcCheckboxRadioSwitch>
+		</div>
+
 		<div v-if="!disabled" class="identifySigner__footer">
 			<div class="button-group">
 				<NcButton @click="filesStore.disableIdentifySigner()">
@@ -98,6 +106,7 @@ import svgTelegram from '../../../img/logo-telegram-app.svg?raw'
 import { SIGN_REQUEST_STATUS } from '../../constants.js'
 import { useFilesStore } from '../../store/files.js'
 import { usePoliciesStore } from '../../store/policies.ts'
+import { normalizeSignedCopyMailPolicyConfig, SIGNED_COPY_MAIL_POLICY_KEY } from '../../views/Settings/PolicyWorkbench/settings/signed-copy-mail/model.ts'
 import { resolveSignerGeolocationMode } from '../../views/Settings/PolicyWorkbench/settings/signer-geolocation/model.ts'
 import { getSignRequestStatusText } from '../../utils/getSignRequestStatusText.ts'
 import { isObserverParticipant, PARTICIPANT_ROLE, type ParticipantRole } from '../../utils/participantRole.ts'
@@ -164,6 +173,7 @@ type SignerToEdit = {
 	participantRole?: ParticipantRole
 	identifyMethods?: SignerMethodValue[]
 	deviceGeolocationRequired?: boolean
+	sendSignedCopy?: boolean
 	metadata?: {
 		deviceGeolocationRequirement?: string
 	}
@@ -205,6 +215,7 @@ const displayName = ref('')
 const description = ref('')
 const enableCustomMessage = ref(false)
 const deviceGeolocationRequired = ref(false)
+const sendSignedCopy = ref(false)
 const identify = ref('')
 const identifyMethod = ref<IdentifyAccountRecord['method'] | undefined>()
 const acceptsEmailNotifications = ref<boolean | undefined>()
@@ -224,6 +235,8 @@ const signerGeolocationMode = computed(() => {
 		?? 'disabled'
 })
 const showGeolocationRequirementToggle = computed(() => signerGeolocationMode.value === 'optional')
+const showSignedCopyToggle = computed(() => !isObserver.value
+	&& normalizeSignedCopyMailPolicyConfig(policiesStore.getEffectiveValue(SIGNED_COPY_MAIL_POLICY_KEY)).enabled)
 
 const signerSelected = computed(() => identify.value.length > 0)
 const isNewSigner = computed(() => !props.signerToEdit || Object.keys(props.signerToEdit).length === 0)
@@ -255,6 +268,7 @@ function resetSelectedSignerState() {
 	description.value = ''
 	enableCustomMessage.value = false
 	deviceGeolocationRequired.value = false
+	sendSignedCopy.value = false
 	identify.value = ''
 	identifyMethod.value = undefined
 	acceptsEmailNotifications.value = undefined
@@ -375,6 +389,9 @@ async function saveSigner() {
 		...(deviceGeolocationRequired.value || showGeolocationRequirementToggle.value
 			? { deviceGeolocationRequired: deviceGeolocationRequired.value }
 			: {}),
+		...(sendSignedCopy.value || showSignedCopyToggle.value
+			? { sendSignedCopy: sendSignedCopy.value && !isObserver.value }
+			: {}),
 		status: SIGN_REQUEST_STATUS.DRAFT,
 		statusText: getSignRequestStatusText(SIGN_REQUEST_STATUS.DRAFT),
 		identifyMethods: [
@@ -433,6 +450,7 @@ onBeforeMount(() => {
 	enableCustomMessage.value = !!props.signerToEdit.description
 	deviceGeolocationRequired.value = props.signerToEdit.deviceGeolocationRequired === true
 		|| props.signerToEdit.metadata?.deviceGeolocationRequirement === 'required'
+	sendSignedCopy.value = props.signerToEdit.sendSignedCopy === true
 	identify.value = getSignerToEditIdentify(props.signerToEdit)
 	if (Object.keys(props.signerToEdit).length > 0 && props.signerToEdit.identifyMethods?.length) {
 		const method = props.signerToEdit.identifyMethods[0]
@@ -451,6 +469,8 @@ defineExpose({
 	enableCustomMessage,
 	deviceGeolocationRequired,
 	showGeolocationRequirementToggle,
+	sendSignedCopy,
+	showSignedCopyToggle,
 	identify,
 	identifyMethod,
 	acceptsEmailNotifications,
@@ -497,7 +517,8 @@ defineExpose({
 		}
 	}
 	.description-wrapper,
-	.geolocation-wrapper {
+	.geolocation-wrapper,
+	.signed-copy-wrapper {
 		width: 100%;
 		margin-block-end: 16px;
 

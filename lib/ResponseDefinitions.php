@@ -110,6 +110,7 @@ namespace OCA\Libresign;
  *     status?: int,
  *     participantRole?: LibresignParticipantRole,
  *     deviceGeolocationRequired?: bool,
+ *     sendSignedCopy?: bool,
  * }
  * @psalm-type LibresignNewFile = array{
  *     base64?: string,
@@ -271,6 +272,7 @@ namespace OCA\Libresign;
  *     uid?: string,
  *     metadata?: LibresignSignerMetadata,
  *     rejection?: LibresignSignerRejection,
+ *     sendSignedCopy?: bool,
  * }
  *
  * Notification delivery status

@@ -34,6 +34,7 @@ final class NotificationEnvelopeCodec {
 				'type' => 'mail',
 				'displayName' => $message->payload->displayName,
 				'firstNotification' => $message->payload->firstNotification,
+				'documentIds' => $message->payload->documentIds,
 			],
 			$message->payload instanceof GatewayPayload => [
 				'type' => 'gateway',
@@ -138,6 +139,9 @@ final class NotificationEnvelopeCodec {
 			'mail' => new MailPayload(
 				isset($payload['displayName']) ? (string)$payload['displayName'] : null,
 				$payload['firstNotification'] === true,
+				array_values(array_map('intval', is_array($payload['documentIds'] ?? [])
+					? $payload['documentIds'] ?? []
+					: throw new \UnexpectedValueException('Invalid mail delivery documents'))),
 			),
 			'gateway' => new GatewayPayload(
 				(string)$payload['gatewayName'],

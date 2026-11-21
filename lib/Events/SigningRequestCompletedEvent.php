@@ -35,6 +35,10 @@ final class SigningRequestCompletedEvent extends Event implements IWebhookCompat
 		return new self($request->getUuid(), $request->isEnvelope() ? 'envelope' : 'document');
 	}
 
+	public function getRequestUuid(): string {
+		return $this->requestUuid;
+	}
+
 	#[\Override]
 	public function getWebhookSerializable(): array {
 		return [

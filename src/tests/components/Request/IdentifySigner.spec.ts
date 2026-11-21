@@ -44,6 +44,7 @@ type SignerToEdit = {
 	description?: string
 	identifyMethods?: Array<{ method: string; value: string }>
 	deviceGeolocationRequired?: boolean
+	sendSignedCopy?: boolean
 	metadata?: {
 		deviceGeolocationRequirement?: string
 	}
@@ -64,6 +65,8 @@ type IdentifySignerVm = {
 	enableCustomMessage: boolean
 	deviceGeolocationRequired: boolean
 	showGeolocationRequirementToggle: boolean
+	sendSignedCopy: boolean
+	showSignedCopyToggle: boolean
 	identify: string
 	identifyMethod?: IdentifyAccountRecord['method']
 	acceptsEmailNotifications?: boolean
@@ -810,6 +813,72 @@ describe('IdentifySigner rules', () => {
 			})
 
 			expect(wrapper.vm.deviceGeolocationRequired).toBe(true)
+		})
+	})
+
+	describe('signed copy toggle', () => {
+		function mockSignedCopyPolicy(enabled: boolean) {
+			policiesStore.getEffectiveValue.mockImplementation((key: string) => key === 'signed_copy_mail'
+				? JSON.stringify({ enabled, archive_addresses: [] })
+				: { mode: 'disabled' })
+		}
+
+		it('hides the toggle while the policy is disabled', () => {
+			mockSignedCopyPolicy(false)
+			wrapper = createWrapper()
+
+			expect(wrapper.vm.showSignedCopyToggle).toBe(false)
+		})
+
+		it('shows the toggle unticked while the policy is enabled', () => {
+			mockSignedCopyPolicy(true)
+			wrapper = createWrapper()
+
+			expect(wrapper.vm.showSignedCopyToggle).toBe(true)
+			expect(wrapper.vm.sendSignedCopy).toBe(false)
+		})
+
+		it('sends the choice when saving a signer', async () => {
+			mockSignedCopyPolicy(true)
+			wrapper = createWrapper()
+			wrapper.vm.identifyMethod = 'email'
+			wrapper.vm.identify = 'john@example.com'
+			wrapper.vm.displayName = 'John'
+			wrapper.vm.sendSignedCopy = true
+
+			await wrapper.vm.saveSigner()
+
+			expect(filesStore.saveOrUpdateSignatureRequest).toHaveBeenCalledWith({
+				signers: [expect.objectContaining({
+					sendSignedCopy: true,
+				})],
+			})
+		})
+
+		it('omits the choice while the policy is disabled', async () => {
+			mockSignedCopyPolicy(false)
+			wrapper = createWrapper()
+			wrapper.vm.identifyMethod = 'email'
+			wrapper.vm.identify = 'john@example.com'
+			wrapper.vm.displayName = 'John'
+
+			await wrapper.vm.saveSigner()
+
+			const signers = filesStore.saveOrUpdateSignatureRequest.mock.calls[0][0].signers
+			expect(signers[0]).not.toHaveProperty('sendSignedCopy')
+		})
+
+		it('restores the stored choice when editing', () => {
+			mockSignedCopyPolicy(true)
+			wrapper = createWrapper({
+				signerToEdit: {
+					displayName: 'John',
+					identifyMethods: [{ method: 'email', value: 'john@example.com' }],
+					sendSignedCopy: true,
+				},
+			})
+
+			expect(wrapper.vm.sendSignedCopy).toBe(true)
 		})
 	})
 })
