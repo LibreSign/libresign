@@ -13,6 +13,8 @@ use DateTimeInterface;
 use OCA\Libresign\Db\File as FileEntity;
 use OCA\Libresign\Db\FileMapper;
 use OCA\Libresign\Enum\FileStatus;
+use OCA\Libresign\Service\DocMdp\ConfigService as DocMdpConfigService;
+use OCA\Libresign\Service\DocMdp\StoredLevel;
 use OCA\Libresign\Service\SignRequest\StatusCacheService;
 use OCP\AppFramework\Db\DoesNotExistException;
 
@@ -20,12 +22,14 @@ class FileStatusService {
 	public function __construct(
 		private FileMapper $fileMapper,
 		private StatusCacheService $statusCacheService,
+		private DocMdpConfigService $docMdpConfigService,
 	) {
 	}
 
 	public function updateFileStatusIfUpgrade(FileEntity $file, int $newStatus): FileEntity {
 		$currentStatus = $file->getStatus();
 		if ($newStatus > $currentStatus) {
+			$this->freezeDocMdpOnFirstSend($file, $newStatus);
 			$file->setStatus($newStatus);
 			$this->touchStatusChangedAt($file);
 			$this->fileMapper->update($file);
@@ -88,6 +92,7 @@ class FileStatusService {
 		}
 
 		if ($parent->getStatus() !== $newStatus) {
+			$this->freezeDocMdpOnFirstSend($parent, $newStatus);
 			$parent->setStatus($newStatus);
 			$this->touchStatusChangedAt($parent);
 			$this->fileMapper->update($parent);
@@ -122,11 +127,21 @@ class FileStatusService {
 
 		foreach ($children as $child) {
 			if ($child->getStatus() !== $newStatus) {
+				$this->freezeDocMdpOnFirstSend($child, $newStatus);
 				$child->setStatus($newStatus);
 				$this->touchStatusChangedAt($child);
 				$this->fileMapper->update($child);
 				$this->statusCacheService->setStatus($child->getUuid(), $newStatus);
 			}
+		}
+	}
+
+	private function freezeDocMdpOnFirstSend(FileEntity $file, int $newStatus): void {
+		if ($file->getStatus() === FileStatus::DRAFT->value
+			&& StoredLevel::isSignableStatus($newStatus)
+			&& !StoredLevel::isFrozen($file)
+		) {
+			StoredLevel::freeze($file, $this->docMdpConfigService->getLevel());
 		}
 	}
 

@@ -38,6 +38,7 @@ use OCA\Libresign\Handler\SignEngine\SignEngineFactory;
 use OCA\Libresign\Handler\SignEngine\SignEngineHandler;
 use OCA\Libresign\Helper\JSActions;
 use OCA\Libresign\Helper\ValidateHelper;
+use OCA\Libresign\Service\DocMdp\StoredLevel;
 use OCA\Libresign\Service\Envelope\EnvelopeStatusDeterminer;
 use OCA\Libresign\Service\IdentifyMethod\IIdentifyMethod;
 use OCA\Libresign\Service\IdentifyMethod\SignatureMethod\IToken;
@@ -1185,7 +1186,10 @@ class SignFileService {
 		$this->engine
 			->setInputFile($this->getFileToSign())
 			->setCertificate($this->getOrGeneratePfxContent($this->engine))
-			->setPassword($this->password);
+			->setPassword($this->password)
+			->setDocMdpLevel(
+				isset($this->libreSignFile) ? StoredLevel::forSigning($this->libreSignFile) : null
+			);
 
 		if ($this->engine::class === Pkcs12Handler::class) {
 			$this->restoreMissingVisibleElementImages();
