@@ -10,6 +10,7 @@ declare(strict_types=1);
 namespace OCA\Libresign\Tests\Unit\Migration;
 
 use DateTime;
+use OC\DB\ConnectionAdapter;
 use OCA\Libresign\Db\Crl;
 use OCA\Libresign\Db\CrlMapper;
 use OCA\Libresign\Enum\CRLStatus;
@@ -28,10 +29,10 @@ final class Version18005Date20260923000000Test extends TestCase {
 	#[\Override]
 	public function setUp(): void {
 		parent::setUp();
-		$connection = Server::get(IDBConnection::class);
+		$connection = Server::get(ConnectionAdapter::class);
 		self::assertInstanceOf(IDBConnection::class, $connection);
 		$this->connection = $connection;
-		$this->crlMapper = Server::get(CrlMapper::class);
+		$this->crlMapper = new CrlMapper($connection);
 		$this->deleteFixtures();
 	}
 

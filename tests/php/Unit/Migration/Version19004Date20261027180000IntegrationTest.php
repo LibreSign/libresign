@@ -8,6 +8,7 @@ declare(strict_types=1);
 
 namespace OCA\Libresign\Tests\Unit\Migration;
 
+use OC\DB\ConnectionAdapter;
 use OC\Migration\NullOutput;
 use OCA\Libresign\AppInfo\Application;
 use OCA\Libresign\Migration\Version19004Date20261027180000;
@@ -52,7 +53,9 @@ final class Version19004Date20261027180000IntegrationTest extends \Test\TestCase
 
 	public function setUp(): void {
 		parent::setUp();
-		$this->connection = Server::get(IDBConnection::class);
+		$connection = Server::get(ConnectionAdapter::class);
+		self::assertInstanceOf(IDBConnection::class, $connection);
+		$this->connection = $connection;
 		$this->appConfig = Server::get(IAppConfig::class);
 
 		foreach ([...array_keys(self::VALUES), ...self::OVERRIDE_KEYS] as $key) {
