@@ -250,7 +250,7 @@ final class ValidatorTest extends TestCase {
 
 	public function testAmbiguousExistingDocumentIsRejectedBeforeSignerValidation(): void {
 		$this->fileMapper->method('getByNodeId')->with(123)
-			->willThrowException(new MultipleObjectsReturnedException());
+			->willThrowException(new MultipleObjectsReturnedException('Multiple records for node 123'));
 		$this->expectException(LibresignException::class);
 		$this->expectExceptionCode(422);
 		$this->createValidator()->validateSignersCount([
