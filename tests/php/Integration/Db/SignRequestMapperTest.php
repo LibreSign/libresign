@@ -18,7 +18,7 @@ use OCP\Server;
 /**
  * @group DB
  */
-final class SignRequestMapperSearchPaginationTest extends \OCA\Libresign\Tests\Integration\TestCase {
+final class SignRequestMapperTest extends \OCA\Libresign\Tests\Integration\TestCase {
 	private FileMapper $fileMapper;
 	private SignRequestMapper $signRequestMapper;
 	private IUser $user;
