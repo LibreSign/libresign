@@ -19,22 +19,22 @@ use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 
 final class IdDocRejectionMailChannelTest extends TestCase {
-    private function request(): SignRequest {
-        $request = new SignRequest();
-        $request->setId(42);
-        $request->setUuid('synthetic-request');
-        $request->setDescription('Review document');
-        return $request;
-    }
+	private function request(): SignRequest {
+		$request = new SignRequest();
+		$request->setId(42);
+		$request->setUuid('synthetic-request');
+		$request->setDescription('Review document');
+		return $request;
+	}
 
-    private function file(): File {
-        $file = new File();
-        $file->setId(31);
-        $file->setName('Synthetic.pdf');
-        $file->setUuid('synthetic-file');
-        $file->setUserId('synthetic-owner');
-        return $file;
-    }
+	private function file(): File {
+		$file = new File();
+		$file->setId(31);
+		$file->setName('Synthetic.pdf');
+		$file->setUuid('synthetic-file');
+		$file->setUserId('synthetic-owner');
+		return $file;
+	}
 
 	#[DataProvider('rejectedDocumentRecipients')]
 	public function testMailChannelDeliversRejectionReasonToExpectedSigner(
