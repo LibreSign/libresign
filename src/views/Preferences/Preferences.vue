@@ -110,6 +110,24 @@
 							<p>{{ t('libresign', 'Show a warning when one or more signers will sign without a visible signature on the PDF.') }}</p>
 						</div>
 					</div>
+					<div class="preferences-view__editor-shell" :class="{ 'preferences-view__editor-shell--saved': isAutoSaveSavedFor(DIRECT_SIGN_CONFIRMATION_KEY) }">
+						<NcNoteCard v-if="errorMessageFor(DIRECT_SIGN_CONFIRMATION_KEY)" type="error">
+							{{ errorMessageFor(DIRECT_SIGN_CONFIRMATION_KEY) }}
+						</NcNoteCard>
+						<NcCheckboxRadioSwitch
+							id="preferences-confirm-direct-signing"
+							type="switch"
+							:model-value="confirmDirectSigning"
+							:disabled="isAutoSaveSavingFor(DIRECT_SIGN_CONFIRMATION_KEY)"
+							@update:model-value="onConfirmDirectSigningChange">
+							<!-- TRANSLATORS User preference to show a confirmation dialog before the immediate signing operation. -->
+							{{ t('libresign', 'Confirm before signing a PDF immediately') }}
+						</NcCheckboxRadioSwitch>
+						<div class="preferences-view__option-copy">
+							<!-- TRANSLATORS Explains that the immediate signature action signs the PDF without visible signature fields and that users can restore the confirmation here. -->
+							<p>{{ t('libresign', 'Ask for confirmation before using Sign PDF now. Turn this on to restore a dismissed confirmation.') }}</p>
+						</div>
+					</div>
 				</div>
 			</NcSettingsSection>
 		</div>
@@ -377,6 +395,31 @@ async function undoAutoSaveByKey(policyKey: string): Promise<void> {
 
 // This is a plain user preference, not a policy, so it uses the user config store.
 const WARN_WITHOUT_VISIBLE_SIGNATURE_FIELDS_KEY = 'warn_without_visible_signature_fields'
+const DIRECT_SIGN_CONFIRMATION_KEY = 'skip_direct_sign_confirmation'
+const confirmDirectSigning = ref(userConfigStore.skip_direct_sign_confirmation !== true)
+
+async function onConfirmDirectSigningChange(enabled: boolean): Promise<void> {
+	const previous = confirmDirectSigning.value
+	if (enabled === previous) {
+		return
+	}
+	confirmDirectSigning.value = enabled
+	autoSaveSavingByKey[DIRECT_SIGN_CONFIRMATION_KEY] = true
+	autoSaveSavedByKey[DIRECT_SIGN_CONFIRMATION_KEY] = false
+	errorMessageByKey[DIRECT_SIGN_CONFIRMATION_KEY] = ''
+	try {
+		await userConfigStore.update(DIRECT_SIGN_CONFIRMATION_KEY, !enabled)
+		setAutoSaveSavedFeedback(DIRECT_SIGN_CONFIRMATION_KEY)
+	} catch (error) {
+		logger.error(`Failed to save ${DIRECT_SIGN_CONFIRMATION_KEY} preference`, { error })
+		confirmDirectSigning.value = previous
+		userConfigStore.onUpdate(DIRECT_SIGN_CONFIRMATION_KEY, !previous)
+		errorMessageByKey[DIRECT_SIGN_CONFIRMATION_KEY] = savePreferenceErrorText()
+	} finally {
+		autoSaveSavingByKey[DIRECT_SIGN_CONFIRMATION_KEY] = false
+	}
+}
+
 const warnWithoutVisibleSignatureFields = ref(userConfigStore.warn_without_visible_signature_fields !== false)
 
 async function onWarnWithoutVisibleSignatureFieldsChange(enabled: boolean): Promise<void> {
@@ -499,6 +542,8 @@ defineExpose({
 	undoAutoSaveByKey,
 	warnWithoutVisibleSignatureFields,
 	onWarnWithoutVisibleSignatureFieldsChange,
+	confirmDirectSigning,
+	onConfirmDirectSigningChange,
 })
 </script>
 

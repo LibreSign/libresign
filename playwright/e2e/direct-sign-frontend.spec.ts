@@ -19,58 +19,91 @@ async function enableDirectSigning(page: import('@playwright/test').Page) {
 	await setSystemPolicy(page.request, 'identify_methods', JSON.stringify({
 		factors: [{ name: 'account', enabled: true, requirement: 'required', signatureMethods: { clickToSign: { enabled: true } } }],
 	}))
+	const reset = await page.request.put('./ocs/v2.php/apps/libresign/api/v1/account/config/skip_direct_sign_confirmation', {
+		data: { value: false },
+		headers: { 'OCS-APIRequest': 'true' },
+	})
+	expect(reset.ok()).toBe(true)
 }
 
-async function confirmSigningAndDownload(page: import('@playwright/test').Page, expectedFilename: string) {
+async function confirmSigningAndDownload(page: import('@playwright/test').Page, filename: string, remember = false) {
 	const dialog = page.getByRole('dialog', { name: 'Sign PDF now' })
 	await expect(dialog).toBeVisible()
 	await expect(dialog).toContainText('without visible signature fields')
+	if (remember) {
+		await dialog.getByText('Do not show this confirmation again', { exact: true }).click()
+		await expect(dialog.getByRole('checkbox', { name: 'Do not show this confirmation again' })).toBeChecked()
+	}
 	const responsePromise = page.waitForResponse(response => response.url().includes('/api/v1/sign/direct') && response.request().method() === 'POST')
 	const downloadPromise = page.waitForEvent('download')
 	await dialog.getByRole('button', { name: 'Sign now', exact: true }).click()
 	const response = await responsePromise
 	expect(response.status()).toBe(200)
 	expect(response.headers()['content-type']).toContain('application/pdf')
-	const download = await downloadPromise
-	expect(download.suggestedFilename()).toBe(expectedFilename)
+	expect((await downloadPromise).suggestedFilename()).toBe(filename)
 	await expect(dialog).toHaveCount(0)
 }
 
-test('Sign PDF now uploads once, signs and downloads without entering the request wizard', async ({ page }) => {
-	await enableDirectSigning(page)
-	await page.goto('./apps/libresign')
-	const action = page.getByRole('button', { name: 'Sign PDF now' })
-	await expect(action).toBeVisible()
+async function pickPdfFromRequestMenu(page: import('@playwright/test').Page, filename: string) {
+	const menu = page.locator('.files-list__header').getByRole('button', { name: 'Request', exact: true })
+	await menu.click()
 	const chooserPromise = page.waitForEvent('filechooser')
-	await action.click()
-	const chooser = await chooserPromise
-	await chooser.setFiles({
-		name: 'direct-upload.pdf',
+	await page.getByText('Sign PDF now', { exact: true }).last().click()
+	await (await chooserPromise).setFiles({
+		name: filename,
 		mimeType: 'application/pdf',
 		buffer: await getSmallValidPdfBuffer(),
 	})
-	await confirmSigningAndDownload(page, 'direct-upload.pdf')
-	await expect(page.getByRole('button', { name: 'Request signatures' })).toHaveCount(0)
+}
+
+test('LibreSign keeps its request screen uncluttered and signs from the Files Request menu', async ({ page }) => {
+	await enableDirectSigning(page)
+	await page.goto('./apps/libresign/f/request')
+	await expect(page.getByRole('button', { name: 'Sign PDF now' })).toHaveCount(0)
+	await page.goto('./apps/libresign/f/filelist/sign')
+	await pickPdfFromRequestMenu(page, 'direct-upload.pdf')
+	await confirmSigningAndDownload(page, 'direct-upload.pdf', true)
+
+	await page.goto('./apps/libresign/f/preferences')
+	const confirmationSwitch = page.getByRole('switch', { name: 'Confirm before signing a PDF immediately' })
+	await expect(confirmationSwitch).not.toBeChecked()
+	await page.goto('./apps/libresign/f/filelist/sign')
+	const downloadPromise = page.waitForEvent('download')
+	await pickPdfFromRequestMenu(page, 'another-direct.pdf')
+	expect((await downloadPromise).suggestedFilename()).toBe('another-direct.pdf')
+	await expect(page.getByRole('dialog', { name: 'Sign PDF now' })).toHaveCount(0)
+
+	await page.goto('./apps/libresign/f/preferences')
+	const restoreResponse = page.waitForResponse(response => response.url().includes('/account/config/skip_direct_sign_confirmation')
+		&& response.request().method() === 'PUT')
+	await page.getByText('Confirm before signing a PDF immediately', { exact: true }).click()
+	expect((await restoreResponse).status()).toBe(200)
+	await expect(confirmationSwitch).toBeChecked()
+	await page.goto('./apps/libresign/f/filelist/sign')
+	await pickPdfFromRequestMenu(page, 'confirmation-restored.pdf')
+	await expect(page.getByRole('dialog', { name: 'Sign PDF now' })).toBeVisible()
+	await page.getByRole('dialog', { name: 'Sign PDF now' }).getByRole('button', { name: 'Cancel' }).click()
 })
 
-test('Nextcloud Files keeps Sign myself and offers a separate immediate signing path', async ({ page }) => {
+test('Nextcloud Files uses two context actions and puts immediate signing inside the sidebar', async ({ page }) => {
 	await enableDirectSigning(page)
 	await ensureFilesHomeInitialized(page.request)
 	const filename = `direct-files-${Date.now()}.pdf`
 	await page.goto('./apps/files')
 	await waitForFilesAction(page, 'open-in-libresign')
-	await uploadFileToFilesApp(page, {
-		name: filename,
-		mimeType: 'application/pdf',
-		buffer: await getSmallValidPdfBuffer(),
-	})
+	await uploadFileToFilesApp(page, { name: filename, mimeType: 'application/pdf', buffer: await getSmallValidPdfBuffer() })
 	const table = page.getByRole('table', { name: /List of your files and folders/i })
 	const checkbox = table.getByRole('checkbox', { name: `Toggle selection for file "${filename}"` })
 	await expect(checkbox).toHaveCount(1, { timeout: 30_000 })
 	await checkbox.locator('xpath=ancestor::tr[1]').click({ button: 'right' })
 	const menu = page.getByRole('menu').last()
 	await expect(menu.getByRole('menuitem', { name: 'Sign myself' })).toBeVisible()
-	await menu.getByRole('menuitem', { name: 'Sign PDF now' }).click()
+	await expect(menu.getByRole('menuitem', { name: 'Sign PDF now' })).toHaveCount(0)
+	await menu.getByRole('menuitem', { name: 'Open in LibreSign' }).click()
+	const sidebar = page.locator('#request-signature-tab')
+	const immediateAction = page.getByRole('button', { name: 'Sign PDF now' })
+	await expect(sidebar).toBeVisible()
+	await expect(immediateAction).toBeVisible()
+	await immediateAction.click()
 	await confirmSigningAndDownload(page, filename)
-	await expect(page.getByRole('tab', { name: 'LibreSign' })).toHaveCount(0)
 })
