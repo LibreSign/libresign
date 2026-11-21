@@ -11,6 +11,7 @@ namespace OCA\Libresign;
 use OCA\Libresign\Service\Envelope\EnvelopeService;
 use OCA\Libresign\Service\Policy\PolicyService;
 use OCA\Libresign\Service\Policy\Provider\Confetti\ConfettiPolicy;
+use OCA\Libresign\Service\Policy\Provider\DrawInkColor\DrawInkColorPolicy;
 use OCA\Libresign\Service\SignatureTextService;
 use OCA\Libresign\Service\SignerElementsService;
 use OCP\App\IAppManager;
@@ -51,6 +52,7 @@ class Capabilities implements IPublicCapability {
 					'full-signature-height' => $this->signatureTextService->getFullSignatureHeight(),
 					'signature-width' => $this->signatureTextService->getSignatureWidth(),
 					'signature-height' => $this->signatureTextService->getSignatureHeight(),
+					'draw-ink-color' => (string)$this->policyService->resolve(DrawInkColorPolicy::KEY)->getEffectiveValue(),
 				],
 				'envelope' => [
 					'is-available' => $this->envelopeService->isEnabled(),

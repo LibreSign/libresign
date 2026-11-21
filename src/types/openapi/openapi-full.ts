@@ -1423,6 +1423,7 @@ export type components = {
                     "signature-width": number;
                     /** Format: double */
                     "signature-height": number;
+                    "draw-ink-color": string;
                 };
                 envelope: {
                     "is-available": boolean;

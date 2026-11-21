@@ -25,6 +25,7 @@ const expectedTopLevelKeys = [
 	'signature_stamp',
 	'show_confetti_after_signing',
 	'persist_email_signer_signatures',
+	'draw_ink_color',
 	'collect_metadata',
 	'signer_device_geolocation',
 	'signer_ip_geolocation',
