@@ -147,8 +147,6 @@ async function preparePendingSelfSign(nodeId: number | string): Promise<void> {
 	if (pendingNodeId === undefined || String(pendingNodeId) !== String(nodeId)) {
 		return
 	}
-	// Consume the explicit user intent once: a retry or sidebar refresh must
-	// never create a second signer or silently resubmit the request.
 	delete window.OCA.Libresign.pendingSelfSignNodeId
 	try {
 		await policiesStore.fetchEffectivePolicies()
@@ -158,9 +156,11 @@ async function preparePendingSelfSign(nodeId: number | string): Promise<void> {
 			{ readyToSign: true },
 		)
 		if (response && 'success' in response && response.success === false) {
+			// TRANSLATORS Error shown when the signed-in account cannot join a signature request.
 			showError(('message' in response && response.message) || t('libresign', 'Cannot add your account as signer'))
 		}
 	} catch {
+		// TRANSLATORS Error shown when adding the current account to a signature request fails.
 		showError(t('libresign', 'Failed to add signer'))
 	}
 }

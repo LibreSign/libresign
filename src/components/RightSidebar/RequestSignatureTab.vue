@@ -199,7 +199,9 @@
 			:type="item.issue.type"
 			:show-alert="true"
 			class="notification-issue">
-			<p class="notification-issue__signer"><strong><bdi dir="auto">{{ item.name }}</bdi></strong></p>
+			<p class="notification-issue__signer">
+				<strong><bdi dir="auto">{{ item.name }}</bdi></strong>
+			</p>
 			<p>{{ item.issue.message }}</p>
 			<details v-if="item.issue.channels.length > 0" class="notification-issue__details">
 				<summary>{{ t('libresign', 'View sending details') }}</summary>
