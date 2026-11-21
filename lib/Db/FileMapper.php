@@ -238,6 +238,25 @@ class FileMapper extends CachedQBMapper {
 		return $file;
 	}
 
+	/**
+	 * Count the records that reference a node, bypassing the entity cache.
+	 */
+	public function countByNodeId(int $nodeId): int {
+		$qb = $this->db->getQueryBuilder();
+		$qb->select($qb->func()->count('*', 'total'))
+			->from($this->getTableName())
+			->where(
+				$qb->expr()->orX(
+					$qb->expr()->eq('node_id', $qb->createNamedParameter($nodeId, IQueryBuilder::PARAM_INT)),
+					$qb->expr()->eq('signed_node_id', $qb->createNamedParameter($nodeId, IQueryBuilder::PARAM_INT))
+				)
+			);
+		$result = $qb->executeQuery();
+		$total = (int)$result->fetchOne();
+		$result->closeCursor();
+		return $total;
+	}
+
 	public function nodeIdExists(int $nodeId): bool {
 		$qb = $this->db->getQueryBuilder();
 
