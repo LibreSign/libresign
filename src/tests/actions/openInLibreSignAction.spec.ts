@@ -3,7 +3,10 @@
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
 
+import { emit } from '@nextcloud/event-bus'
 import { describe, expect, it, beforeEach, vi, afterEach } from 'vitest'
+
+vi.mock('@nextcloud/event-bus', () => ({ emit: vi.fn() }))
 
 // Mock @nextcloud/logger to avoid import-time errors with @nextcloud/vue
 vi.mock('@nextcloud/logger', () => ({
@@ -170,6 +173,7 @@ describe('openInLibreSignAction rules', () => {
 			const pdf = { type: 'file', mime: 'application/pdf', fileid: 77 }
 			await selfAction.exec({ nodes: [pdf] })
 			expect(window.OCA.Libresign.pendingSelfSignNodeId).toBe(77)
+			expect(emit).toHaveBeenCalledWith('libresign:prepare-self-sign', { nodeId: 77 })
 			expect(mockSidebar.open).toHaveBeenCalledWith(pdf, 'libresign')
 			expect(mockSidebar.setActiveTab).toHaveBeenCalledWith('libresign')
 		})

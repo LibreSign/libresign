@@ -4,6 +4,7 @@
  */
 import { registerFileAction, getSidebar } from '@nextcloud/files'
 import { getCapabilities } from '@nextcloud/capabilities'
+import { emit } from '@nextcloud/event-bus'
 import { loadState } from '@nextcloud/initial-state'
 import { t } from '@nextcloud/l10n'
 import { spawnDialog } from '@nextcloud/vue/functions/dialog'
@@ -154,6 +155,7 @@ export const signMyselfAction = {
 			const sidebar = getSidebar()
 			await sidebar.open(node, 'libresign')
 			sidebar.setActiveTab('libresign')
+			emit('libresign:prepare-self-sign', { nodeId })
 		} catch (error) {
 			delete window.OCA.Libresign.pendingSelfSignNodeId
 			throw error
