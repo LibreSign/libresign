@@ -11,7 +11,7 @@ namespace OCA\Libresign\Tests\Unit\Controller;
 use OCA\Libresign\Controller\DirectSignController;
 use OCA\Libresign\Exception\LibresignException;
 use OCA\Libresign\Middleware\Attribute\RequireManager;
-use OCA\Libresign\Service\DirectSigningService;
+use OCA\Libresign\Service\Signing\DirectSigningService;
 use OCP\AppFramework\Http;
 use OCP\AppFramework\Http\Attribute\ApiRoute;
 use OCP\AppFramework\Http\Attribute\PublicPage;
@@ -20,6 +20,7 @@ use OCP\AppFramework\Http\DataResponse;
 use OCP\IRequest;
 use OCP\IUser;
 use OCP\IUserSession;
+use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\LoggerInterface;
@@ -47,7 +48,7 @@ final class DirectSignControllerTest extends TestCase {
 		self::assertCount(1, $method->getAttributes(RequireManager::class));
 		self::assertCount(0, $method->getAttributes(PublicPage::class));
 		self::assertCount(1, $method->getAttributes(ApiRoute::class));
-		self::assertSame('/api/{apiVersion}/sign', $method->getAttributes(ApiRoute::class)[0]->getArguments()['url']);
+		self::assertSame('/api/{apiVersion}/sign/direct', $method->getAttributes(ApiRoute::class)[0]->getArguments()['url']);
 	}
 
 	public function testReturnsBinaryPdfAndDoesNotSignOnBehalfOfCallerSuppliedPerson(): void {
@@ -69,12 +70,33 @@ final class DirectSignControllerTest extends TestCase {
 		self::assertSame('no-store', $response->getHeaders()['Cache-Control']);
 	}
 
-	public function testRejectsCallerSuppliedSignerBeforeCreatingRequest(): void {
-		$this->request->method('getParam')->willReturnMap([['signers', null, [['email' => 'other@example.test']]]]);
+	#[DataProvider('unsupportedDirectSignParameters')]
+	public function testRejectsUnsupportedParametersBeforeCreatingRequest(string $parameter, mixed $value): void {
+		$this->request->method('getParam')->willReturnCallback(
+			static fn (string $name, mixed $default = null): mixed => $name === $parameter ? $value : $default,
+		);
 		$this->signing->expects(self::never())->method('sign');
 		$response = $this->controller->signDirect(name: 'contract.pdf', method: 'clickToSign');
 		self::assertInstanceOf(DataResponse::class, $response);
 		self::assertSame(Http::STATUS_BAD_REQUEST, $response->getStatus());
+	}
+
+	public static function unsupportedDirectSignParameters(): iterable {
+		yield 'other signers' => ['signers', [['email' => 'other@example.test']]];
+		yield 'visible signature positions' => ['visibleElements', []];
+		yield 'multiple files' => ['files', []];
+		yield 'callback' => ['callback', 'https://example.invalid/notify'];
+		yield 'arbitrary identity' => ['identifyValue', 'another-account'];
+		yield 'existing request UUID' => ['uuid', 'existing-uuid'];
+	}
+
+	public function testRejectsUnauthenticatedRequest(): void {
+		$session = $this->createMock(IUserSession::class);
+		$session->method('getUser')->willReturn(null);
+		$this->signing->expects(self::never())->method('sign');
+		$controller = new DirectSignController($this->request, $session, $this->signing, $this->logger);
+
+		self::assertSame(Http::STATUS_FORBIDDEN, $controller->signDirect()->getStatus());
 	}
 
 	public function testPreservesSignedStatusConflictWithoutLeakingOtherFailures(): void {

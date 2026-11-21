@@ -404,9 +404,7 @@ class IdentifyMethodService {
 			return $cachedCatalogSettings;
 		}
 
-		// getDefaultSettings() mutates the signature-method map. Resolve the
-		// catalog using clones so it never changes the account/signature
-		// methods used later in this request to authorize actual signing.
+		// Build catalog defaults without mutating live identify methods.
 		$this->identifyMethodsCatalogSettings = [
 			(clone $this->account)->getDefaultSettings(),
 			(clone $this->email)->getDefaultSettings(),
@@ -497,8 +495,6 @@ class IdentifyMethodService {
 	 * @psalm-return list<LibresignPolicySnapshotIdentifyMethodFactor>
 	 */
 	public function getDefaultIdentifyMethodsPolicy(): array {
-		// Defaults are a policy seed, not live signer state. Never reset the
-		// signature methods of the singleton account/email instances.
 		return [
 			$this->buildDefaultPolicyFactorFromSettings((clone $this->account)->getDefaultSettings()),
 			$this->buildDefaultPolicyFactorFromSettings((clone $this->email)->getDefaultSettings()),

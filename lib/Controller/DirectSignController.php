@@ -11,7 +11,7 @@ namespace OCA\Libresign\Controller;
 use OCA\Libresign\AppInfo\Application;
 use OCA\Libresign\Exception\LibresignException;
 use OCA\Libresign\Middleware\Attribute\RequireManager;
-use OCA\Libresign\Service\DirectSigningService;
+use OCA\Libresign\Service\Signing\DirectSigningService;
 use OCP\AppFramework\Http;
 use OCP\AppFramework\Http\Attribute\ApiRoute;
 use OCP\AppFramework\Http\Attribute\NoAdminRequired;
@@ -34,7 +34,7 @@ final class DirectSignController extends AEnvironmentAwareController {
 	}
 
 	/**
-	 * Create and sign a PDF as the authenticated account in a single call.
+	 * Sign one PDF immediately and return the signed document.
 	 *
 	 * The authenticated user must be authorized to request signatures and
 	 * have the requested account signature method enabled. This endpoint
@@ -68,7 +68,7 @@ final class DirectSignController extends AEnvironmentAwareController {
 	#[NoCSRFRequired]
 	#[RequireManager]
 	#[OpenAPI(tags: ['signing'])]
-	#[ApiRoute(verb: 'POST', url: '/api/{apiVersion}/sign', requirements: ['apiVersion' => '(v1)'])]
+	#[ApiRoute(verb: 'POST', url: '/api/{apiVersion}/sign/direct', requirements: ['apiVersion' => '(v1)'])]
 	public function signDirect(
 		array $file = [],
 		string $name = '',

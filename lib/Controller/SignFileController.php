@@ -22,7 +22,7 @@ use OCA\Libresign\ResponseDefinitions;
 use OCA\Libresign\Service\AsyncSigningService;
 use OCA\Libresign\Service\SignatureRejection\SignatureRejectionService;
 use OCA\Libresign\Service\SignFileService;
-use OCA\Libresign\Service\SigningPreparationService;
+use OCA\Libresign\Service\Signing\SigningPreparationService;
 use OCA\Libresign\Service\Validation\SigningRequestValidator;
 use OCA\Libresign\Service\Worker\WorkerConfiguration;
 use OCP\AppFramework\Http;

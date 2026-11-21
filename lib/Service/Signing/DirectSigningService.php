@@ -6,25 +6,22 @@ declare(strict_types=1);
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
 
-namespace OCA\Libresign\Service;
+namespace OCA\Libresign\Service\Signing;
 
-use OCA\Libresign\Db\File as LibreSignFile;
-use OCA\Libresign\Db\FileMapper;
 use OCA\Libresign\Enum\FileStatus;
 use OCA\Libresign\Exception\LibresignException;
+use OCA\Libresign\Service\IdentifyMethodService;
 use OCA\Libresign\Service\Policy\PolicyService;
 use OCA\Libresign\Service\Policy\Provider\IdentifyMethods\IdentifyMethodsPolicy;
 use OCA\Libresign\Service\Policy\Provider\IdentifyMethods\IdentifyMethodsPolicyValue;
+use OCA\Libresign\Service\RequestSignatureWorkflowService;
+use OCA\Libresign\Service\SignFileService;
 use OCA\Libresign\Service\Validation\SignerValidator;
 use OCP\AppFramework\Http;
-use OCP\Files\File;
 use OCP\IUser;
 
 /**
- * Thin orchestration of the existing request and signing lifecycle.
- *
- * This does not define a new kind of signature or persist separate direct-sign
- * records. All state belongs to the ordinary LibreSign File and SignRequest.
+ * Sign a new request synchronously using the existing LibreSign lifecycle.
  */
 class DirectSigningService {
 	public function __construct(
@@ -33,15 +30,13 @@ class DirectSigningService {
 		private SignerValidator $signerValidator,
 		private IdentifyMethodService $identifyMethodService,
 		private SigningPreparationService $signingPreparationService,
-		private FileMapper $fileMapper,
-		private FolderService $folderService,
+		private SignedPdfProvider $signedPdfProvider,
 		private PolicyService $policyService,
 	) {
 	}
 
 	/**
-	 * Create and sign a single PDF on behalf of the authenticated account.
-	 * The request persists in the normal LibreSign document history.
+	 * Create a request, sign it as the authenticated account and return the PDF.
 	 *
 	 * @param array<string, mixed> $file
 	 * @param array<string, mixed> $settings
@@ -57,11 +52,9 @@ class DirectSigningService {
 		array $settings = [],
 		?array $policy = null,
 	): array {
-		$this->validateInput($file, $name, $method);
+		$this->validateInput($file, $name, $method, $token);
 		$this->assertAccountSigningEnabled($user, $method);
 
-		// Do not introduce another signing lifecycle. Normal request creation
-		// enforces the current actor's permissions, policy and file validation.
 		$result = $this->requestWorkflow->createRequest(
 			$user,
 			$file,
@@ -86,8 +79,6 @@ class DirectSigningService {
 		$createdFile = $result['file'];
 
 		$signRequest = $this->signFileService->getSignRequestToSign($createdFile, null, $user);
-		// Interactive signing performs this in the signer middleware; the new
-		// request does not exist yet when the direct HTTP request is received.
 		$this->signerValidator->validateSigner($signRequest->getUuid(), $user);
 		$this->identifyMethodService->clearCache();
 
@@ -104,23 +95,24 @@ class DirectSigningService {
 			->storeUserMetadata($prepared['metadata'])
 			->sign();
 
-		return $this->readSignedPdf((int)$createdFile->getId(), $user);
+		return $this->signedPdfProvider->getSignedPdf((int)$createdFile->getId(), $user);
 	}
 
 	/** @param array<string, mixed> $file */
-	private function validateInput(array $file, string $name, string $method): void {
+	private function validateInput(array $file, string $name, string $method, string $token): void {
 		if (trim($name) === '' || !str_ends_with(strtolower($name), '.pdf')) {
 			throw new LibresignException('A PDF filename is required.', Http::STATUS_BAD_REQUEST);
 		}
 		if (!in_array($method, ['clickToSign', 'password'], true)) {
 			throw new LibresignException('An allowed account signature method is required.', Http::STATUS_BAD_REQUEST);
 		}
+		if ($method === 'password' && $token === '') {
+			throw new LibresignException('The certificate password is required.', Http::STATUS_BAD_REQUEST);
+		}
 		$inputs = 0;
 		foreach (['base64', 'nodeId', 'path'] as $key) {
 			$inputs += isset($file[$key]) && $file[$key] !== '' ? 1 : 0;
 		}
-		// Do not fetch external URLs or accept envelopes in a single-PDF
-		// command. The workflow will validate the selected file input.
 		if ($inputs !== 1 || array_diff(array_keys($file), ['base64', 'nodeId', 'path']) !== []) {
 			throw new LibresignException('Provide exactly one PDF as file.base64, file.nodeId, or file.path.', Http::STATUS_BAD_REQUEST);
 		}
@@ -139,27 +131,5 @@ class DirectSigningService {
 			}
 		}
 		throw new LibresignException('Account signing is not allowed by the effective identification policy.', Http::STATUS_FORBIDDEN);
-	}
-
-	/** @return array{content: string, filename: string, uuid: string} */
-	private function readSignedPdf(int $fileId, IUser $user): array {
-		$file = $this->fileMapper->getById($fileId);
-		if (!$file instanceof LibreSignFile
-			|| $file->getUserId() !== $user->getUID()
-			|| $file->getStatus() !== FileStatus::SIGNED->value
-			|| !$file->getSignedHash()
-			|| !$file->getSignedNodeId()) {
-			throw new LibresignException('The signing request has not completed.', Http::STATUS_CONFLICT);
-		}
-		$node = $this->folderService->getReadableNodeById($user->getUID(), $file->getSignedNodeId());
-		if (!$node instanceof File || $node->getMimeType() !== 'application/pdf') {
-			throw new LibresignException('The signed PDF is not accessible to this account.', Http::STATUS_FORBIDDEN);
-		}
-
-		$content = $node->getContent();
-		if (!str_starts_with($content, '%PDF-')) {
-			throw new LibresignException('The signed PDF could not be read.', Http::STATUS_INTERNAL_SERVER_ERROR);
-		}
-		return ['content' => $content, 'filename' => $node->getName(), 'uuid' => (string)$file->getUuid()];
 	}
 }

@@ -56,7 +56,7 @@ final class SignFileControllerTest extends TestCase {
 			$this->userSession,
 			$this->signingRequestValidator,
 			$this->signFileService,
-			$this->createMock(\OCA\Libresign\Service\SigningPreparationService::class),
+			$this->createMock(\OCA\Libresign\Service\Signing\SigningPreparationService::class),
 			$this->createMock(WorkerConfiguration::class),
 			$this->createMock(AsyncSigningService::class),
 			$this->createMock(SigningErrorHandler::class),
