@@ -156,6 +156,31 @@ final class IdDocsRejectionControllerTest extends TestCase {
 		$this->assertSame(['data' => [], 'pagination' => []], $response->getData());
 	}
 
+	public function testAuthenticatedNonReviewerCannotRejectOrReadDocument(): void {
+		$user = $this->createMock(IUser::class);
+		$session = $this->createMock(IUserSession::class);
+		$session->method('getUser')->willReturn($user);
+		$policy = $this->createMock(IdDocsPolicyService::class);
+		$policy->expects($this->once())->method('userCanApproveValidationDocuments')
+			->with($user, false)->willReturn(false);
+		$documents = $this->createMock(IdDocsMapper::class);
+		$documents->expects($this->never())->method('getByNodeId');
+		$notifier = $this->createMock(IdDocRejectionNotifier::class);
+		$notifier->expects($this->never())->method('queue');
+		$controller = new IdDocsController(
+			$this->createMock(IRequest::class),
+			$this->createMock(SignFileService::class),
+			$this->createMock(IL10N::class),
+			$this->createMock(IdDocsService::class),
+			$this->newRejectionService($policy, $documents, null, $notifier),
+			$session,
+			$this->createMock(IdentityDocumentValidator::class),
+			$this->createMock(LoggerInterface::class),
+		);
+		$response = $controller->reject(71, 'Expired identification document.');
+		$this->assertSame(Http::STATUS_BAD_REQUEST, $response->getStatus());
+		$this->assertSame(['message' => 'Not allowed'], $response->getData());
+	}
 
 	public function testAuthorizedReviewerCanReadRejectionAuditFields(): void {
 		$user = $this->createMock(IUser::class);
