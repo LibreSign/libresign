@@ -162,7 +162,6 @@ final class IdDocsServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$service->deleteIdDoc(123, $user);
 	}
 
-
 	#[DataProvider('rejectedAccountDocumentActors')]
 	public function testRejectedAccountDocumentCannotBeDeletedEvenByReviewer(bool $isReviewer): void {
 		$user = $this->createMock(IUser::class);
