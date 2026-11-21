@@ -9,7 +9,6 @@ declare(strict_types=1);
 namespace OCA\Libresign\Tests\Integration\Service\Signature;
 
 use OCA\Libresign\Handler\DocMdpHandler;
-use PHPUnit\Framework\Attributes\DataProvider;
 use OCA\Libresign\Service\Signature\Exception\ExternalSigningException;
 use OCA\Libresign\Service\Signature\ExternalPdfSigningService;
 use OCA\Libresign\Service\Signature\PdfSignatureValidationService;
@@ -17,6 +16,7 @@ use OCA\Libresign\Service\Signature\PreparedExternalOperation;
 use OCA\Libresign\Tests\Integration\TestCase;
 use OCA\Libresign\Vendor\phpseclib4\File\X509;
 use OCP\ITempManager;
+use PHPUnit\Framework\Attributes\DataProvider;
 use Psr\Log\LoggerInterface;
 use SignerPHP\PdfSigner\Application\DTO\CertificationLevel;
 use SignerPHP\PdfSigner\Application\DTO\PdfContentDto;

@@ -12,8 +12,8 @@ use OCA\Libresign\Handler\DocMdpHandler;
 use OCA\Libresign\Service\Signature\Exception\ExternalSigningException;
 use OCA\Libresign\Vendor\phpseclib4\File\CMS\SignedData;
 use SignerPHP\PdfSigner\Application\DTO\HashAlgorithm;
-use SignerPHP\PdfSigner\Application\DTO\SigningContextDto;
 use SignerPHP\PdfSigner\Application\DTO\SignatureProfile;
+use SignerPHP\PdfSigner\Application\DTO\SigningContextDto;
 use SignerPHP\PdfSigner\Infrastructure\Native\Service\ExternalPdfSigningService as UpstreamExternalPdfSigningService;
 
 /**
