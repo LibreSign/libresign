@@ -9,6 +9,7 @@ declare(strict_types=1);
 
 namespace OCA\Libresign\Service\File;
 
+use OCA\Libresign\Exception\FileProcessingValidationException;
 use OCA\Libresign\Exception\LibresignException;
 use OCA\Libresign\Service\FolderService;
 use OCP\Http\Client\IClientService;
@@ -33,21 +34,21 @@ class FileContentProvider {
 	public function getContentFromUrl(string $url): string {
 		if (!filter_var($url, FILTER_VALIDATE_URL)) {
 			// TRANSLATORS Error shown when a document URL provided for signing is invalid.
-			throw new LibresignException($this->l10n->t('Invalid URL file'), 422);
+			throw new FileProcessingValidationException($this->l10n->t('Invalid URL file'), 422);
 		}
 
 		try {
 			$response = $this->client->newClient()->get($url);
 		} catch (\Throwable) {
 			// TRANSLATORS Error shown when a document URL provided for signing is invalid.
-			throw new LibresignException($this->l10n->t('Invalid URL file'), 422);
+			throw new FileProcessingValidationException($this->l10n->t('Invalid URL file'), 422);
 		}
 
 		$content = (string)$response->getBody();
 
 		if (!$content) {
 			// TRANSLATORS Error shown when the downloaded or provided document content is empty.
-			throw new LibresignException($this->l10n->t('Empty file'), 422);
+			throw new FileProcessingValidationException($this->l10n->t('Empty file'), 422);
 		}
 
 		$mimetypeFromHeader = $response->getHeader('Content-Type');
@@ -61,7 +62,7 @@ class FileContentProvider {
 		// application/octet-stream is a generic fallback — trust content detection
 		if ($mimetypeFromHeader !== 'application/octet-stream' && $mimetypeFromHeader !== $mimeTypeFromContent) {
 			// TRANSLATORS Error shown when a document URL provided for signing is invalid.
-			throw new LibresignException($this->l10n->t('Invalid URL file'), 422);
+			throw new FileProcessingValidationException($this->l10n->t('Invalid URL file'), 422);
 		}
 
 		return $content;
@@ -87,7 +88,7 @@ class FileContentProvider {
 
 			if ($mimeTypeFromType !== $mimeTypeFromContent) {
 				// TRANSLATORS Error shown when a document URL provided for signing is invalid.
-				throw new LibresignException($this->l10n->t('Invalid URL file'), 422);
+				throw new FileProcessingValidationException($this->l10n->t('Invalid URL file'), 422);
 			}
 
 			$this->mimeService->setMimeType($mimeTypeFromContent);
@@ -116,7 +117,7 @@ class FileContentProvider {
 		}
 
 		// TRANSLATORS Error shown when creating a signature request without any document source (upload, path, URL, or file id).
-		throw new LibresignException($this->l10n->t('No file source provided'), 422);
+		throw new FileProcessingValidationException($this->l10n->t('No file source provided'), 422);
 	}
 
 	/**
