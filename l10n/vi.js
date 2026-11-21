@@ -172,6 +172,7 @@ OC.L10N.register(
     "Last 7 days" : "7 ngày trước",
     "Last 30 days" : "30 ngày trước",
     "Other" : "Khác",
+    "_%n day_::_%n days_" : ["%n ngày"],
     "Default background" : "Nền mặc định",
     "Custom background" : "Tùy chỉnh nền",
     "No background" : "Không có nền",

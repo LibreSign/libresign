@@ -124,6 +124,7 @@ OC.L10N.register(
     "Last 30 days" : "Oxirgi 30 kun",
     "Other" : "Boshqa",
     "default" : "standart",
+    "_%n day_::_%n days_" : ["%n kun"],
     "Public" : "Ommaviy",
     "User" : "Foydalanuvchi",
     "Add new" : "Yangi yaratish",

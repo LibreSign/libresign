@@ -482,7 +482,7 @@ OC.L10N.register(
     "Other" : "Muu",
     "default" : "oletus",
     "{value} seconds" : "{value} sekuntia",
-    "{value} days" : "{value} päivää",
+    "_%n day_::_%n days_" : ["%n päivä","%n päivää"],
     "This information will appear on the validation page" : "Tämä tieto näkyy validointisivulla",
     "Custom template" : "Mukautettu malli",
     "Default background" : "Oletustausta",
@@ -534,6 +534,7 @@ OC.L10N.register(
     "Invalid URL" : "Virheellinen URL",
     "Format: https://example.com/tsa" : "Muoto: https://example.com/tsa",
     "Name is mandatory" : "Nimi on pakollinen",
-    "Sign the document." : "Allekirjoita asiakirja."
+    "Sign the document." : "Allekirjoita asiakirja.",
+    "{value} days" : "{value} päivää"
 },
 "nplurals=2; plural=(n != 1);");

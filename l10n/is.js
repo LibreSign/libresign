@@ -213,7 +213,7 @@ OC.L10N.register(
     "Last year ({year})" : "Síðasta ár ({year})",
     "Other" : "Annað",
     "default" : "sjálfgefið",
-    "{value} days" : "{value} dagar",
+    "_%n day_::_%n days_" : ["%n dagur","%n dagar"],
     "Default background" : "Sjálfgefinn bakgrunnur",
     "Custom background" : "Sérsniðinn bakgrunnur",
     "No background" : "Enginn bakgrunnur",
@@ -225,6 +225,7 @@ OC.L10N.register(
     "Not scheduled" : "Ekki tímasett",
     "Reminders" : "Áminningar",
     "Invalid URL" : "Ógild slóð",
-    "Name is mandatory" : "Nafn er nauðsynlegt"
+    "Name is mandatory" : "Nafn er nauðsynlegt",
+    "{value} days" : "{value} dagar"
 },
 "nplurals=2; plural=(n % 10 != 1 || n % 100 == 11);");

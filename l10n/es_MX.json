@@ -188,6 +188,7 @@
     "This year ({year})" : "Este año ({year})",
     "Last year ({year})" : "El año pasado ({year})",
     "Other" : "Otro",
+    "_%n day_::_%n days_" : ["%n día","%n días","%n días"],
     "Custom URL" : "URL personalizada",
     "Default background" : "Fondo predeterminado",
     "Custom background" : "Fondo personalizado",
