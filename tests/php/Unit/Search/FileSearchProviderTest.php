@@ -13,9 +13,9 @@ use OCA\Libresign\Db\SignRequestMapper;
 use OCA\Libresign\Search\FileSearchProvider;
 use OCA\Libresign\Tests\Unit\TestCase;
 use OCP\App\IAppManager;
+use OCP\Files\Folder;
 use OCP\Files\IMimeTypeDetector;
 use OCP\Files\IRootFolder;
-use OCP\Files\Folder;
 use OCP\IL10N;
 use OCP\IURLGenerator;
 use OCP\IUser;
@@ -46,7 +46,6 @@ class FileSearchProviderTest extends TestCase {
 		$userFolder->method('getById')->willReturn([]);
 		$rootFolder = $this->createMock(IRootFolder::class);
 		$rootFolder->method('getUserFolder')->willReturn($userFolder);
-
 
 		$this->provider = new FileSearchProvider(
 			$this->l10n,
