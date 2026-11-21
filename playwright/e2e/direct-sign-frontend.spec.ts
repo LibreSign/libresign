@@ -29,7 +29,7 @@ async function enableDirectSigning(page: import('@playwright/test').Page) {
 async function confirmSigningAndDownload(page: import('@playwright/test').Page, filename: string, remember = false) {
 	const dialog = page.getByRole('dialog', { name: 'Sign PDF now' })
 	await expect(dialog).toBeVisible()
-	await expect(dialog).toContainText('without visible signature fields')
+	await expect(dialog).toContainText('No visible signature field will be added.')
 	if (remember) {
 		await dialog.getByText('Do not show this confirmation again', { exact: true }).click()
 		await expect(dialog.getByRole('checkbox', { name: 'Do not show this confirmation again' })).toBeChecked()
@@ -85,6 +85,24 @@ test('LibreSign keeps its request screen uncluttered and signs from the Files Re
 	await page.getByRole('dialog', { name: 'Sign PDF now' }).getByRole('button', { name: 'Cancel' }).click()
 })
 
+test('LibreSign offers PDF preparation instead of direct signing without calling the endpoint', async ({ page }) => {
+	await enableDirectSigning(page)
+	await page.goto('./apps/libresign/f/filelist/sign')
+	const directCalls: string[] = []
+	page.on('request', request => {
+		if (request.url().includes('/api/v1/sign/direct')) {
+			directCalls.push(request.url())
+		}
+	})
+	await pickPdfFromRequestMenu(page, `prepare-${Date.now()}.pdf`)
+	const dialog = page.getByRole('dialog', { name: 'Sign PDF now' })
+	await expect(dialog.getByText('Need to place a visible signature or invite someone else?', { exact: false })).toBeVisible()
+	await dialog.getByRole('button', { name: 'Prepare signing' }).click()
+	await expect(dialog).toHaveCount(0)
+	await expect(page.getByRole('button', { name: 'Sign document' })).toBeVisible()
+	expect(directCalls).toEqual([])
+})
+
 test('Nextcloud Files uses two context actions and puts immediate signing inside the sidebar', async ({ page }) => {
 	await enableDirectSigning(page)
 	await ensureFilesHomeInitialized(page.request)
@@ -106,4 +124,30 @@ test('Nextcloud Files uses two context actions and puts immediate signing inside
 	await expect(immediateAction).toBeVisible()
 	await immediateAction.click()
 	await confirmSigningAndDownload(page, filename)
+})
+
+test('Nextcloud Files can prepare signing from the direct-sign dialog without invoking the direct endpoint', async ({ page }) => {
+	await enableDirectSigning(page)
+	await ensureFilesHomeInitialized(page.request)
+	const filename = `prepare-files-${Date.now()}.pdf`
+	await page.goto('./apps/files')
+	await waitForFilesAction(page, 'open-in-libresign')
+	await uploadFileToFilesApp(page, { name: filename, mimeType: 'application/pdf', buffer: await getSmallValidPdfBuffer() })
+	const table = page.getByRole('table', { name: /List of your files and folders/i })
+	const checkbox = table.getByRole('checkbox', { name: `Toggle selection for file "${filename}"` })
+	await expect(checkbox).toHaveCount(1, { timeout: 30_000 })
+	await checkbox.locator('xpath=ancestor::tr[1]').click({ button: 'right' })
+	await page.getByRole('menu').last().getByRole('menuitem', { name: 'Open in LibreSign' }).click()
+	await expect(page.getByRole('button', { name: 'Sign PDF now' })).toBeVisible()
+	const directCalls: string[] = []
+	page.on('request', request => {
+		if (request.url().includes('/api/v1/sign/direct')) {
+			directCalls.push(request.url())
+		}
+	})
+	await page.getByRole('button', { name: 'Sign PDF now' }).click()
+	await page.getByRole('dialog', { name: 'Sign PDF now' }).getByRole('button', { name: 'Prepare signing' }).click()
+	await expect(page.getByRole('button', { name: 'Sign document' })).toBeVisible()
+	await expect(page.getByRole('button', { name: 'Sign PDF now' })).toHaveCount(0)
+	expect(directCalls).toEqual([])
 })

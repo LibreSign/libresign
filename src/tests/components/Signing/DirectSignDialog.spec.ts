@@ -51,10 +51,10 @@ describe('immediate signature confirmation', () => {
 	it('waits for explicit confirmation before calling the API', async () => {
 		const wrapper = dialog()
 		expect(sign).not.toHaveBeenCalled()
-		expect(buttons(wrapper)[1].label).toBe('Sign now')
+		expect(buttons(wrapper).find(button => button.label === 'Sign now')!.label).toBe('Sign now')
 		const pdf = new Blob(['signed'], { type: 'application/pdf' })
 		sign.mockResolvedValueOnce({ pdf, filename: 'document.pdf' })
-		await buttons(wrapper)[1].callback()
+		await buttons(wrapper).find(button => button.label === 'Sign now')!.callback()
 		expect(sign).toHaveBeenCalledExactlyOnceWith(expect.objectContaining({ name: 'document.pdf', nodeId: 42 }))
 		expect(download).toHaveBeenCalledExactlyOnceWith(pdf, 'document.pdf')
 		expect(showSuccess).toHaveBeenCalledOnce()
@@ -69,7 +69,7 @@ describe('immediate signature confirmation', () => {
 		await nextTick()
 		const pdf = new Blob(['signed'], { type: 'application/pdf' })
 		sign.mockResolvedValueOnce({ pdf, filename: 'document.pdf' })
-		await buttons(wrapper)[1].callback()
+		await buttons(wrapper).find(button => button.label === 'Sign now')!.callback()
 		expect(update).toHaveBeenCalledWith('skip_direct_sign_confirmation', true)
 	})
 
@@ -93,7 +93,20 @@ describe('immediate signature confirmation', () => {
 		await flushPromises()
 		expect(wrapper.findComponent({ name: 'NcDialog' }).exists()).toBe(true)
 		expect(wrapper.text()).toContain('signing result is unknown')
-		expect(buttons(wrapper)[1].disabled).toBe(true)
+		expect(buttons(wrapper).find(button => button.label === 'Sign now')!.disabled).toBe(true)
+	})
+
+	it('can prepare signing without invoking the direct endpoint or saving the skip preference', async () => {
+		const config = useUserConfigStore()
+		const update = vi.spyOn(config, 'update').mockResolvedValue(undefined)
+		const wrapper = dialog()
+		wrapper.findComponent({ name: 'NcCheckboxRadioSwitch' }).vm.$emit('update:modelValue', true)
+		await nextTick()
+		const prepare = buttons(wrapper).find(button => button.label === 'Prepare signing')!
+		prepare.callback()
+		expect(wrapper.emitted('close')?.[0]).toEqual(['prepare'])
+		expect(sign).not.toHaveBeenCalled()
+		expect(update).not.toHaveBeenCalled()
 	})
 
 	it('allows cancellation without creating a signing request', () => {
@@ -106,29 +119,47 @@ describe('immediate signature confirmation', () => {
 	it('explains server validation failures without claiming a completed signature', async () => {
 		const wrapper = dialog()
 		sign.mockRejectedValueOnce({ response: { status: 403 } })
-		await buttons(wrapper)[1].callback()
+		await buttons(wrapper).find(button => button.label === 'Sign now')!.callback()
 		await nextTick()
 		expect(wrapper.text()).toContain('Could not sign this PDF')
 		expect(wrapper.emitted('close')).toBeUndefined()
 		expect(download).not.toHaveBeenCalled()
 	})
 
+	it('offers preparation on a pre-request authorization failure', async () => {
+		const wrapper = dialog()
+		sign.mockRejectedValueOnce({ response: { status: 403 } })
+		await buttons(wrapper).find(button => button.label === 'Sign now')!.callback()
+		await nextTick()
+		expect(buttons(wrapper).find(button => button.label === 'Prepare signing')).toBeDefined()
+		expect(wrapper.text()).toContain('Choose Prepare signing')
+	})
+
+	it('does not offer preparation after an uncertain validation error', async () => {
+		const wrapper = dialog()
+		sign.mockRejectedValueOnce({ response: { status: 422 } })
+		await buttons(wrapper).find(button => button.label === 'Sign now')!.callback()
+		await nextTick()
+		expect(buttons(wrapper).find(button => button.label === 'Prepare signing')).toBeUndefined()
+		expect(buttons(wrapper).find(button => button.label === 'Sign now')!.disabled).toBe(true)
+	})
+
 	it('blocks retries after server errors because the request may have been persisted', async () => {
 		const wrapper = dialog()
 		sign.mockRejectedValueOnce({ response: { status: 500 } })
-		await buttons(wrapper)[1].callback()
+		await buttons(wrapper).find(button => button.label === 'Sign now')!.callback()
 		await nextTick()
-		expect(buttons(wrapper)[1].disabled).toBe(true)
+		expect(buttons(wrapper).find(button => button.label === 'Sign now')!.disabled).toBe(true)
 	})
 
 	it('blocks retries if the network outcome is unknown', async () => {
 		const wrapper = dialog()
 		sign.mockRejectedValueOnce(new Error('connection lost'))
-		await buttons(wrapper)[1].callback()
+		await buttons(wrapper).find(button => button.label === 'Sign now')!.callback()
 		await nextTick()
-		expect(buttons(wrapper)[1].disabled).toBe(true)
+		expect(buttons(wrapper).find(button => button.label === 'Sign now')!.disabled).toBe(true)
 		expect(wrapper.text()).toContain('signing result is unknown')
-		await buttons(wrapper)[1].callback()
+		await buttons(wrapper).find(button => button.label === 'Sign now')!.callback()
 		expect(sign).toHaveBeenCalledTimes(1)
 	})
 })

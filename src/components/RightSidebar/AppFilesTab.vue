@@ -129,8 +129,22 @@ async function signPdfNow() {
 	isDirectSigning.value = true
 	try {
 		const signed = await spawnDialog(DirectSignDialog, target)
-		if (signed) {
+		if (signed === true) {
 			directlySignedNodeId.value = target.nodeId
+		} else if (signed === 'prepare') {
+			try {
+				await policiesStore.fetchEffectivePolicies()
+				const response = await addCurrentAccountAsSigner(
+					filesStore,
+					policiesStore.getEffectiveValue('identify_methods'),
+					{ readyToSign: true },
+				)
+				if (response && 'success' in response && response.success === false) {
+					showError(('message' in response && response.message) || t('libresign', 'Cannot add your account as signer'))
+				}
+			} catch {
+				showError(t('libresign', 'Failed to add signer'))
+			}
 		}
 	} finally {
 		isDirectSigning.value = false
