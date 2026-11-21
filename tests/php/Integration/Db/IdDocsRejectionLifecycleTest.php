@@ -184,9 +184,13 @@ final class IdDocsRejectionLifecycleTest extends TestCase {
 	public function testLegacyDuplicateActiveDocumentsStillBlockFurtherUploads(bool $accountSigner): void {
 		[$request] = $this->submittedDocument($accountSigner);
 		$duplicateFile = $this->newFile(3);
+		// A legacy account can have active documents of one type across
+		// distinct sign requests; a guest's documents share one request.
+		// Do not manufacture a duplicate violating the historical DB unique key.
+		$duplicateRequest = $accountSigner ? $this->newRequest($duplicateFile, 3) : $request;
 		$this->documents->save(
 			$duplicateFile->getId(),
-			$request->getId(),
+			$duplicateRequest->getId(),
 			$accountSigner ? 'synthetic-signer' : null,
 			'IDENTIFICATION',
 		);
