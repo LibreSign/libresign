@@ -118,4 +118,14 @@ export default [
 			'vue/no-unused-properties': 'off', // ~11 hits; public API / shared editor props
 		},
 	},
+
+	{
+		name: 'libresign/playwright-indentation',
+		files: ['playwright/**/*.ts'],
+		rules: {
+			// Enforce the existing tab-indented Playwright convention without
+			// lifting the app-wide formatting migration exemptions.
+			'@stylistic/indent': ['error', 'tab'],
+		},
+	},
 ]
