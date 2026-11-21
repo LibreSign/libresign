@@ -19,6 +19,42 @@ final class IdentificationDocumentsPolicyValue {
 	 * @return array{enabled: bool, approvers: list<string>}
 	 */
 	public static function normalize(mixed $rawValue, bool $enabledDefault = false): array {
+		if (is_bool($rawValue) || is_int($rawValue)) {
+			return [
+				'enabled' => (bool)$rawValue,
+				'approvers' => self::DEFAULT_APPROVERS,
+			];
+		}
+
+		if (is_string($rawValue)) {
+			$trimmed = trim($rawValue);
+			if ($trimmed === '') {
+				return [
+					'enabled' => $enabledDefault,
+					'approvers' => self::DEFAULT_APPROVERS,
+				];
+			}
+
+			$decoded = json_decode($trimmed, true);
+			if (is_array($decoded)) {
+				return self::normalize($decoded, $enabledDefault);
+			}
+
+			$lower = strtolower($trimmed);
+			$enabled = match (true) {
+				in_array($lower, ['1', 'true', 'yes', 'on'], true) => true,
+				in_array($lower, ['0', 'false', 'no', 'off'], true) => false,
+				// Unrecognized scalar: preserve the caller's default rather
+				// than silently treating garbage input as "disabled".
+				default => $enabledDefault,
+			};
+
+			return [
+				'enabled' => $enabled,
+				'approvers' => self::DEFAULT_APPROVERS,
+			];
+		}
+
 		if (!is_array($rawValue)) {
 			return [
 				'enabled' => $enabledDefault,
