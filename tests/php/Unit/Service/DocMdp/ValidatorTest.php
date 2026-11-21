@@ -13,9 +13,9 @@ use OCA\Libresign\Db\FileMapper;
 use OCA\Libresign\Enum\DocMdpLevel;
 use OCA\Libresign\Exception\LibresignException;
 use OCA\Libresign\Service\DocMdp\ConfigService;
+use OCA\Libresign\Service\DocMdp\LevelResolver;
 use OCA\Libresign\Service\DocMdp\Validator;
 use OCA\Libresign\Service\File\Pdf\PdfValidator;
-use OCA\Libresign\Service\Policy\Provider\DocMdp\FilePolicy\DocMdpFilePolicyApplier;
 use OCP\Files\IRootFolder;
 use OCP\IL10N;
 use PHPUnit\Framework\Attributes\DataProvider;
@@ -28,7 +28,7 @@ final class ValidatorTest extends TestCase {
 	private ConfigService&MockObject $configService;
 	private PdfValidator&MockObject $pdfValidator;
 	private IRootFolder&MockObject $root;
-	private DocMdpFilePolicyApplier&MockObject $docMdpFilePolicyApplier;
+	private LevelResolver&MockObject $levelResolver;
 
 	protected function setUp(): void {
 		$this->l10n = $this->createMock(IL10N::class);
@@ -39,7 +39,7 @@ final class ValidatorTest extends TestCase {
 		$this->configService = $this->createMock(ConfigService::class);
 		$this->pdfValidator = $this->createMock(PdfValidator::class);
 		$this->root = $this->createMock(IRootFolder::class);
-		$this->docMdpFilePolicyApplier = $this->createMock(DocMdpFilePolicyApplier::class);
+		$this->levelResolver = $this->createMock(LevelResolver::class);
 	}
 
 	private function createValidator(): Validator {
@@ -49,7 +49,7 @@ final class ValidatorTest extends TestCase {
 			$this->configService,
 			$this->pdfValidator,
 			$this->root,
-			$this->docMdpFilePolicyApplier,
+			$this->levelResolver,
 		);
 	}
 
@@ -68,7 +68,7 @@ final class ValidatorTest extends TestCase {
 			->method('getByUuid')
 			->with('uuid-1')
 			->willReturn($file);
-		$this->docMdpFilePolicyApplier
+		$this->levelResolver
 			->method('resolveLevel')
 			->with($this->identicalTo($file))
 			->willReturn($docMdpLevel);
@@ -160,7 +160,7 @@ final class ValidatorTest extends TestCase {
 		$this->fileMapper
 			->expects($this->never())
 			->method('getByUuid');
-		$this->docMdpFilePolicyApplier
+		$this->levelResolver
 			->expects($this->once())
 			->method('resolveLevel')
 			->with(null, $data)
@@ -183,7 +183,7 @@ final class ValidatorTest extends TestCase {
 			->method('getByUuid')
 			->with('uuid-1')
 			->willReturn($file);
-		$this->docMdpFilePolicyApplier
+		$this->levelResolver
 			->method('resolveLevel')
 			->willReturn(DocMdpLevel::NOT_CERTIFIED);
 		$this->configService
@@ -209,7 +209,7 @@ final class ValidatorTest extends TestCase {
 			->method('getByUuid')
 			->with('uuid-1')
 			->willReturn($file);
-		$this->docMdpFilePolicyApplier
+		$this->levelResolver
 			->method('resolveLevel')
 			->willReturn(null);
 		$this->configService

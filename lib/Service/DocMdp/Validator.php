@@ -14,7 +14,6 @@ use OCA\Libresign\Db\FileMapper;
 use OCA\Libresign\Enum\DocMdpLevel;
 use OCA\Libresign\Exception\LibresignException;
 use OCA\Libresign\Service\File\Pdf\PdfValidator;
-use OCA\Libresign\Service\Policy\Provider\DocMdp\FilePolicy\DocMdpFilePolicyApplier;
 use OCP\AppFramework\Db\DoesNotExistException;
 use OCP\AppFramework\Db\MultipleObjectsReturnedException;
 use OCP\Files\IRootFolder;
@@ -28,7 +27,7 @@ class Validator {
 		private ConfigService $configService,
 		private PdfValidator $pdfValidator,
 		private IRootFolder $root,
-		private DocMdpFilePolicyApplier $docMdpFilePolicyApplier,
+		private LevelResolver $levelResolver,
 	) {
 	}
 
@@ -107,7 +106,7 @@ class Validator {
 			$documents = [$file];
 		}
 		$levels = array_map(
-			fn (?File $document): int => ($this->docMdpFilePolicyApplier->resolveLevel($document, $data)
+			fn (?File $document): int => ($this->levelResolver->resolveLevel($document, $data, $this->fileMapper)
 				?? $this->configService->getLevel())->value,
 			$documents,
 		);

@@ -11,6 +11,7 @@ namespace OCA\Libresign\Service\Policy\Provider\DocMdp\FilePolicy;
 use OCA\Libresign\Db\File as FileEntity;
 use OCA\Libresign\Enum\DocMdpLevel;
 use OCA\Libresign\Exception\LibresignException;
+use OCA\Libresign\Service\DocMdp\LevelResolver;
 use OCA\Libresign\Service\Policy\AbstractFilePolicyApplier;
 use OCA\Libresign\Service\Policy\Model\ResolvedPolicy;
 use OCA\Libresign\Service\Policy\Provider\DocMdp\DocMdpPolicy;
@@ -58,18 +59,8 @@ class DocMdpFilePolicyApplier extends AbstractFilePolicyApplier {
 	 * which case the current level applies.
 	 */
 	public function resolveLevel(?FileEntity $file, array $data): ?DocMdpLevel {
-		if ($file === null) {
-			return $this->toLevel($this->resolveForRequester($data));
-		}
-
-		if (!$this->isPolicySnapshotFrozen($file)) {
-			return $this->toLevel($this->resolveForFileOwner($file, $data));
-		}
-
-		$policySnapshot = ($file->getMetadata() ?? [])['policy_snapshot'] ?? null;
-		return is_array($policySnapshot) && array_key_exists(DocMdpPolicy::KEY, $policySnapshot)
-			? $file->getDocmdpLevelEnum()
-			: null;
+		return (new LevelResolver($this->policyService))
+			->resolveLevel($file, $data, $this->snapshotFileMapper);
 	}
 
 	private function resolveForRequester(array $data): ResolvedPolicy {
