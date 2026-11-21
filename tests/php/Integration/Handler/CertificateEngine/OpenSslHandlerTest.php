@@ -540,6 +540,25 @@ final class OpenSslHandlerTest extends \OCA\Libresign\Tests\Integration\AppDataT
 		$this->assertSame(['C' => 'DE', 'CN' => 'Test Signer', 'L' => 'Berlin'], $leafSubject);
 	}
 
+	public function testLeafCertificateInheritsMissingRootFieldsWithoutOverridingSigner(): void {
+		$rootInstance = $this->getInstance();
+		$rootInstance->setCountry('DE');
+		$rootInstance->setLocality('Berlin');
+		$rootInstance->setOrganizationalUnit(['Root Unit']);
+		$rootInstance->generateRootCert('Test Root CA', []);
+
+		$signerInstance = $this->getInstance();
+		$signerInstance->setCommonName('Test Signer');
+		$signerInstance->setCountry('BR');
+		$signerInstance->setPassword('123456');
+		$certificate = $signerInstance->generateCertificate();
+		$parsed = $signerInstance->readCertificate($certificate, '123456');
+
+		$subject = array_intersect_key($parsed['subject'], array_flip(['CN', 'C', 'L', 'OU', 'O', 'ST']));
+		ksort($subject);
+		$this->assertSame(['C' => 'BR', 'CN' => 'Test Signer', 'L' => 'Berlin', 'OU' => 'Root Unit'], $subject);
+	}
+
 	public function testLeafCsrUsesGeneratedConfig(): void {
 		$rootInstance = $this->getInstance();
 		$rootInstance->generateRootCert('Test Root CA', []);

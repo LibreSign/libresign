@@ -236,11 +236,20 @@ class OpenSslHandler extends AEngineHandler implements IEngineHandler {
 				'OU' => 'organizationalUnit',
 			];
 			foreach ($parsedRoot['subject'] as $k => $v) {
-				if (isset($map[$k])) {
-					$setter = 'set' . ucfirst($map[$k]);
-					if (method_exists($this, $setter)) {
-						$this->$setter($v);
-					}
+				if (!isset($map[$k])) {
+					continue;
+				}
+
+				$getter = 'get' . ucfirst($map[$k]);
+				if ($this->$getter()) {
+					continue;
+				}
+
+				$setter = 'set' . ucfirst($map[$k]);
+				if ($k === 'OU') {
+					$this->$setter(is_array($v) ? $v : [$v]);
+				} elseif (is_string($v)) {
+					$this->$setter($v);
 				}
 			}
 		}
