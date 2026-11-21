@@ -34,8 +34,7 @@
 				<!-- TRANSLATORS Button to add a person who must sign this document. -->
 				{{ t('libresign', 'Add signer') }}
 			</NcButton>
-			<!-- TRANSLATORS Accessible label for the menu that adds a signer or an observer. -->
-			<!-- TRANSLATORS Short label for the menu of participant types. -->
+			<!-- TRANSLATORS Accessible label and short menu name for adding a signer or an observer. -->
 			<NcActions v-else
 				:aria-label="t('libresign', 'Add participant')"
 				:menu-name="t('libresign', 'Add')"
