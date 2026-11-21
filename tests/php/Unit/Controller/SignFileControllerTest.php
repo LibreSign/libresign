@@ -13,6 +13,7 @@ use OCA\Libresign\Controller\SignFileController;
 use OCA\Libresign\Db\File as FileEntity;
 use OCA\Libresign\Db\SignRequest;
 use OCA\Libresign\Db\SignRequestMapper;
+use OCA\Libresign\Exception\LibresignException;
 use OCA\Libresign\Handler\SigningErrorHandler;
 use OCA\Libresign\Service\AsyncSigningService;
 use OCA\Libresign\Service\EmailSignerElementsService;
@@ -26,6 +27,7 @@ use OCP\IL10N;
 use OCP\IRequest;
 use OCP\IUser;
 use OCP\IUserSession;
+use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\LoggerInterface;
@@ -59,6 +61,22 @@ final class SignFileControllerTest extends TestCase {
 		$this->asyncSigningService = $this->createMock(AsyncSigningService::class);
 	}
 
+	public function testSignerCodeRequestAllowsOmittedOptionalMethods(): void {
+		$this->signRequestMapper->method('getBySignerUuidAndUserId')
+			->willThrowException(new \RuntimeException('not found'));
+		$this->expectException(LibresignException::class);
+		$this->expectExceptionMessage('Invalid data to sign file');
+		$this->getController()->requestCodeBySignerUuid('missing-uuid');
+	}
+
+	public function testFileCodeRequestAllowsOmittedOptionalMethods(): void {
+		$this->signRequestMapper->method('getByFileIdAndUserId')
+			->willThrowException(new \RuntimeException('not found'));
+		$this->expectException(LibresignException::class);
+		$this->expectExceptionMessage('Invalid data to sign file');
+		$this->getController()->requestCodeByFileId(123);
+	}
+
 	private function getController(): SignFileController {
 		return new SignFileController(
 			$this->request,
@@ -82,12 +100,18 @@ final class SignFileControllerTest extends TestCase {
 	 * the identification document, not with a signer uuid. The code must go
 	 * to the approver's own sign request, resolved the same way sign() does.
 	 */
-	public function testRequestCodeBySignerUuidInIdDocApprovalContextUsesTheApproverSignRequest(): void {
+	public static function idDocApprovalSources(): array {
+		return [
+			'query string' => [null, 'true'],
+			'JSON body' => ['true', null],
+		];
+	}
+
+	#[DataProvider('idDocApprovalSources')]
+	public function testRequestCodeBySignerUuidInIdDocApprovalContextUsesTheApproverSignRequest(?string $bodyValue, ?string $queryValue): void {
 		$approver = $this->createMock(IUser::class);
 		$this->userSession->method('getUser')->willReturn($approver);
-		$this->request->method('getParam')->willReturnMap([
-			['idDocApproval', null, 'true'],
-		]);
+		$this->request->method('getParam')->with('idDocApproval')->willReturn($queryValue);
 
 		$idDoc = new FileEntity();
 		$idDoc->setId(10);
@@ -111,7 +135,7 @@ final class SignFileControllerTest extends TestCase {
 			->method('requestCode')
 			->with($approverSignRequest, 'account', 'emailToken');
 
-		$response = $this->getController()->requestCodeBySignerUuid('file-uuid', 'account', 'emailToken');
+		$response = $this->getController()->requestCodeBySignerUuid('file-uuid', 'account', 'emailToken', $bodyValue);
 
 		$this->assertSame(Http::STATUS_OK, $response->getStatus());
 		$this->assertSame('Verification code sent.', $response->getData()['message']);
@@ -155,7 +179,7 @@ final class SignFileControllerTest extends TestCase {
 		);
 
 		$this->assertSame(
-			['uuid', 'identifyMethod', 'signMethod'],
+			['uuid', 'identifyMethod', 'signMethod', 'idDocApproval'],
 			array_map(
 				static fn (\ReflectionParameter $parameter): string => $parameter->getName(),
 				$uuidMethod->getParameters(),
@@ -255,4 +279,108 @@ final class SignFileControllerTest extends TestCase {
 		$this->assertSame(Http::STATUS_OK, $response->getStatus());
 	}
 
+	public function testExplicitConsentSavesOnlyAfterSuccessfulSigning(): void {
+		$signRequest = $this->prepareSigning(false);
+		$signed = false;
+		$this->signFileService->expects($this->once())->method('sign')
+			->willReturnCallback(static function () use (&$signed): void {
+				$signed = true;
+			});
+		$elements = [['documentElementId' => 1, 'profileNodeId' => 10]];
+		$this->emailSignerElementsService->expects($this->once())->method('prepareSignature')
+			->with($signRequest, '123456', $elements, true)
+			->willReturnCallback(function () use (&$signed): array {
+				$this->assertFalse($signed);
+				return ['key' => 'email-key', 'elements' => ['signature' => 'image']];
+			});
+		$this->emailSignerElementsService->expects($this->once())->method('saveSignature')
+			->with(['key' => 'email-key', 'elements' => ['signature' => 'image']])
+			->willReturnCallback(function () use (&$signed): void {
+				$this->assertTrue($signed);
+			});
+
+		$response = $this->getController()->signBySignerUuid('signer-uuid', 'email', $elements, token: '123456', saveSignature: true);
+
+		$this->assertSame(Http::STATUS_OK, $response->getStatus());
+		$this->assertSame('saved', $response->getData()['signatureSaveStatus']);
+	}
+
+	public function testFailedSigningDoesNotSaveEvenWithConsent(): void {
+		$this->prepareSigning();
+		$this->signFileService->method('sign')->willThrowException(new \RuntimeException('Signing failed'));
+		$this->emailSignerElementsService->expects($this->never())->method('saveSignature');
+
+		$response = $this->getController()->signBySignerUuid('signer-uuid', 'email', saveSignature: true);
+
+		$this->assertSame(Http::STATUS_UNPROCESSABLE_ENTITY, $response->getStatus());
+	}
+
+	public function testInvalidCredentialsDoNotSaveEvenWithConsent(): void {
+		$this->prepareSigning();
+		$this->signingPreparationService = $this->createMock(SigningPreparationService::class);
+		$this->signingPreparationService->expects($this->once())->method('prepare')->willThrowException(new \RuntimeException('Invalid code'));
+		$this->emailSignerElementsService->expects($this->never())->method('prepareSignature');
+		$this->emailSignerElementsService->expects($this->never())->method('saveSignature');
+
+		$response = $this->getController()->signBySignerUuid('signer-uuid', 'email', saveSignature: true);
+
+		$this->assertSame(Http::STATUS_UNPROCESSABLE_ENTITY, $response->getStatus());
+	}
+
+	public function testAccountSignersDoNotUseEmailSignatureStorage(): void {
+		$this->prepareSigning();
+		$this->userSession->method('getUser')->willReturn($this->createMock(IUser::class));
+		$this->emailSignerElementsService->expects($this->never())->method('prepareSignature');
+		$this->emailSignerElementsService->expects($this->never())->method('saveSignature');
+
+		$response = $this->getController()->signBySignerUuid('signer-uuid', 'email', saveSignature: true);
+
+		$this->assertSame(Http::STATUS_OK, $response->getStatus());
+	}
+
+	public function testFailureToRememberSignatureDoesNotUndoSuccessfulSigning(): void {
+		$this->prepareSigning();
+		$this->emailSignerElementsService->method('saveSignature')->willThrowException(new \RuntimeException('Storage failed'));
+		$this->logger->expects($this->once())->method('warning');
+
+		$response = $this->getController()->signBySignerUuid('signer-uuid', 'email', saveSignature: true);
+
+		$this->assertSame(Http::STATUS_OK, $response->getStatus());
+		$this->assertSame('failed', $response->getData()['signatureSaveStatus']);
+	}
+
+	public function testAsyncSigningCanSaveWithExplicitConsent(): void {
+		$this->prepareSigning();
+		$this->workerConfiguration->method('isAsyncSigningEnabled')->willReturn(true);
+		$this->emailSignerElementsService->expects($this->once())->method('saveSignature');
+
+		$response = $this->getController()->signBySignerUuid('signer-uuid', 'email', async: true, saveSignature: true);
+
+		$this->assertSame(Http::STATUS_OK, $response->getStatus());
+		$this->assertSame('SIGNING_IN_PROGRESS', $response->getData()['job']['status']);
+	}
+
+	public function testFailedAsyncEnqueueDoesNotSaveEmailSignature(): void {
+		$this->prepareSigning();
+		$this->workerConfiguration->method('isAsyncSigningEnabled')->willReturn(true);
+		$this->asyncSigningService->method('enqueueSigningJob')->willThrowException(new \RuntimeException('Queue unavailable'));
+		$this->emailSignerElementsService->expects($this->never())->method('saveSignature');
+
+		$response = $this->getController()->signBySignerUuid('signer-uuid', 'email', async: true, saveSignature: true);
+
+		$this->assertSame(Http::STATUS_UNPROCESSABLE_ENTITY, $response->getStatus());
+	}
+
+	public function testPreparationFailureDoesNotBlockSigning(): void {
+		$this->prepareSigning(false);
+		$this->emailSignerElementsService->method('prepareSignature')->willThrowException(new \RuntimeException('Session storage unavailable'));
+		$this->emailSignerElementsService->expects($this->never())->method('saveSignature');
+		$this->logger->expects($this->once())->method('warning');
+		$this->signFileService->expects($this->once())->method('sign');
+
+		$response = $this->getController()->signBySignerUuid('signer-uuid', 'email', saveSignature: true);
+
+		$this->assertSame(Http::STATUS_OK, $response->getStatus());
+		$this->assertSame('failed', $response->getData()['signatureSaveStatus']);
+	}
 }
