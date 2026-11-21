@@ -44,9 +44,9 @@ use OCA\Libresign\Service\Policy\Provider\ValidationAccess\ValidationAccessPolic
 use OCA\Libresign\Service\Policy\Provider\Worker\SigningModePolicy;
 use OCA\Libresign\Service\Policy\Provider\Worker\WorkerConfigPolicy;
 use OCA\Libresign\Service\Policy\Runtime\DefaultPolicyResolver;
+use OCA\Libresign\Service\Policy\Runtime\PolicyAppConfigValueReader;
 use OCA\Libresign\Service\Policy\Runtime\PolicyRegistry;
 use OCA\Libresign\Service\Policy\Runtime\PolicySource;
-use OCA\Libresign\Service\Policy\Runtime\PolicyAppConfigValueReader;
 use OCA\Libresign\Tests\Unit\TestCase;
 use OCP\AppFramework\Db\DoesNotExistException;
 use OCP\AppFramework\Services\IAppConfig as ScopedIAppConfig;

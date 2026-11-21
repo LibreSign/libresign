@@ -16,7 +16,9 @@ use OCP\IAppConfig;
  * Read policy configuration using its persisted Nextcloud AppConfig type.
  */
 final class PolicyAppConfigValueReader {
-	public function __construct(private IAppConfig $appConfig) {
+	public function __construct(
+		private IAppConfig $appConfig,
+	) {
 	}
 
 	public function readUsingStoredType(string $key, mixed $defaultValue): mixed {
