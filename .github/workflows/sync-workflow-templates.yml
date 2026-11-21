@@ -151,6 +151,7 @@ jobs:
           source: source/workflow-templates
           target: target
           catalog-commit: ${{ steps.catalog-revision.outputs.sha }}
+          include: appstore-build-publish.yml,block-unconventional-commits.yml,command-update-submodule.yml,first-merged-pr-comment.yml,lint-eslint.yml,lint-info-xml.yml,lint-php-cs.yml,lint-stylelint.yml,lint-typescript.yml,nightly-release.yml,node-test.yml,npm-audit-fix.yml,openapi.yml,reuse.yml,sync-workflow-templates.yml
 
       - name: Create Pull Request
         if: ${{ steps.sync.outputs.changed == 'true' }}
