@@ -287,6 +287,13 @@ class SignerValidator {
 			return $identifyMethod;
 		}
 		$signMethods = $this->identifyMethodService->getSignMethodsOfIdentifiedFactors($signRequest->getId());
+		$ownerName = $signMethods[$methodName]['identifyMethod'] ?? null;
+		if (is_string($ownerName)) {
+			$identifyMethod = $this->searchMethodByNameAndValue($methodsList, $ownerName, $identifyValue);
+			if ($identifyMethod) {
+				return $identifyMethod;
+			}
+		}
 		$identifyMethod = $this->searchMethodByNameAndValue($signMethods, $methodName, $identifyValue);
 		if ($identifyMethod) {
 			return $identifyMethod;
