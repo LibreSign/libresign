@@ -13,6 +13,7 @@ use OCA\Libresign\Db\FileMapper;
 use OCA\Libresign\Db\SignRequest;
 use OCA\Libresign\Enum\FileStatus;
 use OCA\Libresign\Exception\LibresignException;
+use OCA\Libresign\Service\FileService;
 use OCA\Libresign\Service\IdentifyMethodService;
 use OCA\Libresign\Service\Policy\Model\ResolvedPolicy;
 use OCA\Libresign\Service\Policy\PolicyService;
@@ -34,6 +35,7 @@ use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 
 final class DirectSigningServiceTest extends TestCase {
+	private string $displayName = 'Account A';
 	private IUser&MockObject $user;
 	private RequestSignatureService&MockObject $requests;
 	private SignFileService&MockObject $signing;
@@ -42,18 +44,20 @@ final class DirectSigningServiceTest extends TestCase {
 	private SigningPreparationService&MockObject $preparation;
 	private SignedPdfProvider&MockObject $pdf;
 	private PolicyService&MockObject $policies;
+	private FileService&MockObject $files;
 	private DirectSigningService $service;
 
 	protected function setUp(): void {
 		$this->user = $this->createMock(IUser::class);
 		$this->user->method('getUID')->willReturn('account-a');
-		$this->user->method('getDisplayName')->willReturn('Account A');
+		$this->user->method('getDisplayName')->willReturnCallback(fn (): string => $this->displayName);
 		$this->requests = $this->createMock(RequestSignatureService::class);
 		$this->signing = $this->createMock(SignFileService::class);
 		$this->signerValidator = $this->createMock(SignerValidator::class);
 		$this->identify = $this->createMock(IdentifyMethodService::class);
 		$this->preparation = $this->createMock(SigningPreparationService::class);
 		$this->pdf = $this->createMock(SignedPdfProvider::class);
+		$this->files = $this->createMock(FileService::class);
 		$this->policies = $this->createMock(PolicyService::class);
 
 		$fileInput = $this->createMock(FileInputValidator::class);
@@ -75,6 +79,7 @@ final class DirectSigningServiceTest extends TestCase {
 			$this->preparation,
 			$this->pdf,
 			$this->policies,
+			$this->files,
 		);
 	}
 
@@ -119,7 +124,8 @@ final class DirectSigningServiceTest extends TestCase {
 	}
 
 	#[DataProvider('allowedSignatureMethods')]
-	public function testCreatesAnOrdinarySigningRequestAndReturnsItsSignedPdf(string $method, string $token): void {
+	public function testCreatesAnOrdinarySigningRequestAndReturnsItsSignedPdf(string $method, string $token, string $displayName, string $expectedDisplayName): void {
+		$this->displayName = $displayName;
 		$this->setIdentificationPolicy([['name' => 'account', 'enabled' => true, 'signatureMethods' => [$method => ['enabled' => true]]]]);
 		$file = new File();
 		$file->setId(45);
@@ -133,6 +139,7 @@ final class DirectSigningServiceTest extends TestCase {
 				&& $request['status'] === FileStatus::ABLE_TO_SIGN->value
 				&& $request['signers'][0]['identifyMethods'][0]['value'] === 'account-a'
 				&& $request['signers'][0]['notify'] === 0
+				&& $request['signers'][0]['displayName'] === $expectedDisplayName
 				&& $request['visibleElements'] === []));
 		$this->requests->expects(self::once())->method('save')->willReturn($file);
 		$this->signing->method('getSignRequestToSign')->with($file, null, $this->user)->willReturn($signRequest);
@@ -150,8 +157,10 @@ final class DirectSigningServiceTest extends TestCase {
 	}
 
 	public static function allowedSignatureMethods(): iterable {
-		yield 'click to sign' => ['clickToSign', ''];
-		yield 'certificate password' => ['password', 'secret'];
+		yield 'click to sign' => ['clickToSign', '', 'Account A', 'Account A'];
+		yield 'accented display name at limit' => ['clickToSign', '', str_repeat('é', 64), str_repeat('é', 64)];
+		yield 'long multibyte display name' => ['clickToSign', '', str_repeat('界', 65), str_repeat('界', 64)];
+		yield 'certificate password' => ['password', 'secret', 'Account A', 'Account A'];
 	}
 
 	public function testRejectedSignerDoesNotExecuteTheSignature(): void {
@@ -169,6 +178,106 @@ final class DirectSigningServiceTest extends TestCase {
 
 		$this->expectException(LibresignException::class);
 		$this->service->sign($this->user, ['nodeId' => 4], 'contract.pdf');
+	}
+
+	#[DataProvider('preflightFailureCases')]
+	public function testFailedPreflightReleasesTheRequestForRetry(array $input, bool $deleteFile, string $stage): void {
+		$this->setIdentificationPolicy([['name' => 'account', 'enabled' => true, 'signatureMethods' => ['clickToSign' => ['enabled' => true]]]]);
+		$file = new File();
+		$file->setId(45);
+		$file->setParentFileId(100);
+		$signRequest = new SignRequest();
+		$signRequest->setUuid('signer-uuid');
+		$active = false;
+		$this->requests->method('save')->willReturnCallback(static function () use ($file, &$active): File {
+			self::assertFalse($active, 'The previous failed request must not block the same source');
+			$active = true;
+			return $file;
+		});
+		$this->signing->method('getSignRequestToSign')->willReturn($signRequest);
+		$attempt = 0;
+		$failure = new LibresignException('Preflight rejected', Http::STATUS_UNPROCESSABLE_ENTITY);
+		if ($stage === 'signer') {
+			$this->signerValidator->method('validateSigner')->willReturnCallback(static function () use (&$attempt, $failure): void {
+				if ($attempt++ === 0) {
+					throw $failure;
+				}
+			});
+		}
+		$this->preparation->method('prepare')->willReturnCallback(static function () use (&$attempt, $failure, $stage): array {
+			if ($stage === 'credentials' && $attempt++ === 0) {
+				throw $failure;
+			}
+			return ['userIdentifier' => 'account:account-a', 'metadata' => []];
+		});
+		$this->files->expects(self::once())->method('delete')->with(45, $deleteFile)
+			->willReturnCallback(static function () use (&$active): void {
+				$active = false;
+			});
+		$this->signing->method('setVisibleElements')->willReturnSelf();
+		$this->signing->method('storeUserMetadata')->willReturnSelf();
+		$this->signing->expects(self::once())->method('sign');
+		$expected = ['content' => '%PDF-1.7', 'filename' => 'signed.pdf', 'uuid' => 'file-uuid'];
+		$this->pdf->method('getSignedPdf')->willReturn($expected);
+
+		try {
+			$this->service->sign($this->user, $input, 'contract.pdf');
+			self::fail('The first attempt must fail before signing');
+		} catch (LibresignException $e) {
+			self::assertSame($failure, $e);
+		}
+		self::assertSame($expected, $this->service->sign($this->user, $input, 'contract.pdf'));
+	}
+
+	public static function preflightFailureCases(): iterable {
+		yield 'node ID signer failure' => [['nodeId' => 4], false, 'signer'];
+		yield 'node ID credential failure' => [['nodeId' => 4], false, 'credentials'];
+		yield 'path preserves original file' => [['path' => '/contract.pdf'], false, 'credentials'];
+		yield 'base64 removes uploaded file' => [['base64' => 'encoded'], true, 'credentials'];
+	}
+
+	public function testFailedCleanupDoesNotReportASafeValidationFailure(): void {
+		$this->setIdentificationPolicy([['name' => 'account', 'enabled' => true, 'signatureMethods' => ['clickToSign' => ['enabled' => true]]]]);
+		$file = new File();
+		$file->setId(45);
+		$file->setParentFileId(100);
+		$this->requests->method('save')->willReturn($file);
+		$this->signing->method('getSignRequestToSign')->willThrowException(new LibresignException('Preflight rejected'));
+		$this->files->method('delete')->willThrowException(new LibresignException('Cleanup rejected'));
+		$this->signing->expects(self::never())->method('sign');
+
+		$this->expectException(\RuntimeException::class);
+		$this->expectExceptionMessage('Unable to discard the failed direct signing request.');
+		$this->service->sign($this->user, ['nodeId' => 4], 'contract.pdf');
+	}
+
+	#[DataProvider('signingFailureCases')]
+	public function testFailuresAfterStartingSigningNeverAllowBlindRetry(string $stage, int $code): void {
+		$this->setIdentificationPolicy([['name' => 'account', 'enabled' => true, 'signatureMethods' => ['clickToSign' => ['enabled' => true]]]]);
+		$file = new File();
+		$file->setId(45);
+		$file->setParentFileId(100);
+		$signRequest = new SignRequest();
+		$signRequest->setUuid('signer-uuid');
+		$this->requests->method('save')->willReturn($file);
+		$this->signing->method('getSignRequestToSign')->willReturn($signRequest);
+		$this->preparation->method('prepare')->willReturn(['userIdentifier' => 'account:account-a', 'metadata' => []]);
+		$this->signing->method('setVisibleElements')->willReturnSelf();
+		$this->signing->method('storeUserMetadata')->willReturnSelf();
+		$this->files->expects(self::never())->method('delete');
+		$target = $stage === 'engine' ? $this->signing : $this->pdf;
+		$target->method($stage === 'engine' ? 'sign' : 'getSignedPdf')
+			->willThrowException(new LibresignException('Failed after preflight', $code));
+
+		$this->expectException(LibresignException::class);
+		$this->expectExceptionCode(Http::STATUS_CONFLICT);
+		$this->service->sign($this->user, ['base64' => 'encoded'], 'contract.pdf');
+	}
+
+	public static function signingFailureCases(): iterable {
+		yield 'engine validation failure' => ['engine', 0];
+		yield 'post-sign authorization error' => ['pdf', Http::STATUS_FORBIDDEN];
+		yield 'post-sign read failure' => ['pdf', Http::STATUS_INTERNAL_SERVER_ERROR];
 	}
 
 	private function setIdentificationPolicy(array $factors): void {

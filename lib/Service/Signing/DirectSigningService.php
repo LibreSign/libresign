@@ -10,6 +10,7 @@ namespace OCA\Libresign\Service\Signing;
 
 use OCA\Libresign\Enum\FileStatus;
 use OCA\Libresign\Exception\LibresignException;
+use OCA\Libresign\Service\FileService;
 use OCA\Libresign\Service\IdentifyMethodService;
 use OCA\Libresign\Service\Policy\PolicyService;
 use OCA\Libresign\Service\Policy\Provider\IdentifyMethods\IdentifyMethodsPolicy;
@@ -32,6 +33,7 @@ class DirectSigningService {
 		private SigningPreparationService $signingPreparationService,
 		private SignedPdfProvider $signedPdfProvider,
 		private PolicyService $policyService,
+		private FileService $fileService,
 	) {
 	}
 
@@ -62,7 +64,7 @@ class DirectSigningService {
 			$name,
 			$settings,
 			[[
-				'displayName' => $user->getDisplayName() ?: $user->getUID(),
+				'displayName' => mb_substr($user->getDisplayName() ?: $user->getUID(), 0, 64),
 				'participantRole' => 'signer',
 				'identifyMethods' => [[
 					'method' => IdentifyMethodService::IDENTIFY_ACCOUNT,
@@ -78,24 +80,39 @@ class DirectSigningService {
 		);
 		$createdFile = $result['file'];
 
-		$signRequest = $this->signFileService->getSignRequestToSign($createdFile, null, $user);
-		$this->signerValidator->validateSigner($signRequest->getUuid(), $user);
-		$this->identifyMethodService->clearCache();
+		try {
+			$signRequest = $this->signFileService->getSignRequestToSign($createdFile, null, $user);
+			$this->signerValidator->validateSigner($signRequest->getUuid(), $user);
+			$this->identifyMethodService->clearCache();
 
-		$prepared = $this->signingPreparationService->prepare(
-			$createdFile,
-			$signRequest,
-			$user,
-			$method,
-			'',
-			$token,
-		);
-		$this->signFileService
-			->setVisibleElements([])
-			->storeUserMetadata($prepared['metadata'])
-			->sign();
+			$prepared = $this->signingPreparationService->prepare(
+				$createdFile,
+				$signRequest,
+				$user,
+				$method,
+				'',
+				$token,
+			);
+		} catch (\Throwable $e) {
+			try {
+				$this->fileService->delete((int)$createdFile->getId(), deleteFile: isset($file['base64']));
+			} catch (\Throwable $cleanupError) {
+				throw new \RuntimeException('Unable to discard the failed direct signing request.', 0, $cleanupError);
+			}
+			throw $e;
+		}
 
-		return $this->signedPdfProvider->getSignedPdf((int)$createdFile->getId(), $user);
+		try {
+			$this->signFileService
+				->setVisibleElements([])
+				->storeUserMetadata($prepared['metadata'])
+				->sign();
+
+			return $this->signedPdfProvider->getSignedPdf((int)$createdFile->getId(), $user);
+		} catch (LibresignException $e) {
+			// Once signing starts, a domain error must not invite a duplicate request.
+			throw new LibresignException($e->getMessage(), Http::STATUS_CONFLICT, $e);
+		}
 	}
 
 	/** @param array<string, mixed> $file */

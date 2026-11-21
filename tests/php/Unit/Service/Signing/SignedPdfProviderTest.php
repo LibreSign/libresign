@@ -87,8 +87,8 @@ final class SignedPdfProviderTest extends TestCase {
 	}
 
 	public static function invalidPdfScenarios(): iterable {
-		yield 'wrong MIME' => ['text/plain', '%PDF-1.7', Http::STATUS_FORBIDDEN];
-		yield 'invalid bytes' => ['application/pdf', 'not a PDF', Http::STATUS_INTERNAL_SERVER_ERROR];
+		yield 'wrong MIME' => ['text/plain', '%PDF-1.7', Http::STATUS_CONFLICT];
+		yield 'invalid bytes' => ['application/pdf', 'not a PDF', Http::STATUS_CONFLICT];
 	}
 
 	private function signedDocument(): File {

@@ -26,6 +26,12 @@ test('one-call account signing returns a signed PDF without visible elements', a
     // The default method is clickToSign when the policy permits it.
   }
   const headers = { 'OCS-APIRequest': 'true' }
+  // Cookie authentication alone must not bypass the framework CSRF check.
+  const unprotected = await page.request.post(endpoint, {
+    data: payload,
+    maxRedirects: 0,
+  })
+  expect(unprotected.status()).toBe(412)
   const response = await page.request.post(endpoint, { headers, data: payload })
   const body = await response.body()
   expect(response.status()).toBe(200)

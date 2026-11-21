@@ -57,7 +57,7 @@ class SignerValidator {
 			if (!is_array($signer) || empty($signer)) {
 				throw new LibresignException($this->l10n->t('No signers'));
 			}
-			if (isset($signer['displayName']) && strlen($signer['displayName']) > 64) {
+			if (isset($signer['displayName']) && mb_strlen($signer['displayName']) > 64) {
 				throw new LibresignException('Display name must not be longer than 64 characters');
 			}
 			$this->validateParticipantRole($signer, $data);

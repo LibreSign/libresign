@@ -35,12 +35,12 @@ class SignedPdfProvider {
 
 		$node = $this->folderService->getReadableNodeById($user->getUID(), $file->getSignedNodeId());
 		if (!$node instanceof File || $node->getMimeType() !== 'application/pdf') {
-			throw new LibresignException('The signed PDF is not accessible to this account.', Http::STATUS_FORBIDDEN);
+			throw new LibresignException('The signed PDF is not accessible to this account.', Http::STATUS_CONFLICT);
 		}
 
 		$content = $node->getContent();
 		if (!str_starts_with($content, '%PDF-')) {
-			throw new LibresignException('The signed PDF could not be read.', Http::STATUS_INTERNAL_SERVER_ERROR);
+			throw new LibresignException('The signed PDF could not be read.', Http::STATUS_CONFLICT);
 		}
 		return ['content' => $content, 'filename' => $node->getName(), 'uuid' => (string)$file->getUuid()];
 	}
