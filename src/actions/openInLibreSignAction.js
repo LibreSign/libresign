@@ -8,11 +8,13 @@ import { loadState } from '@nextcloud/initial-state'
 import { t } from '@nextcloud/l10n'
 import { spawnDialog } from '@nextcloud/vue/functions/dialog'
 import EditNameDialog from '../components/Common/EditNameDialog.vue'
+import DirectSignDialog from '../components/Signing/DirectSignDialog.vue'
 
 import SvgIcon from '../../img/app-dark.svg?raw'
 import SvgAccountCheck from '@mdi/svg/svg/account-check.svg?raw'
 
 import { isAccountIdentificationEnabled } from '../services/selfSigning.ts'
+import { canSignDirectly } from '../services/directSigning.ts'
 
 /**
  * Prompts user for envelope name via dialog
@@ -160,3 +162,29 @@ export const signMyselfAction = {
 }
 
 registerFileAction(signMyselfAction)
+
+export const directSignAction = {
+	id: 'sign-now-libresign',
+	// TRANSLATORS Files context menu action to digitally sign the current PDF without signature fields.
+	displayName: () => t('libresign', 'Sign PDF now'),
+	iconSvgInline: () => SvgAccountCheck,
+	enabled(context) {
+		if (!signMyselfAction.enabled(context)) {
+			return false
+		}
+		const policies = loadState('libresign', 'effective_policies', { policies: {} })
+		return canSignDirectly(policies?.policies?.identify_methods?.effectiveValue)
+	},
+	async exec({ nodes }) {
+		const node = nodes[0]
+		const nodeId = Number(node?.fileid ?? node?.id)
+		if (!Number.isSafeInteger(nodeId) || nodeId <= 0) {
+			return null
+		}
+		await spawnDialog(DirectSignDialog, { name: node.basename || node.name, nodeId })
+		return null
+	},
+	order: -998,
+}
+
+registerFileAction(directSignAction)

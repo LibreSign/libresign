@@ -181,6 +181,31 @@ describe('openInLibreSignAction rules', () => {
 		})
 	})
 
+	describe('direct-sign Files action', () => {
+		it('requires both the current-account policy and click-to-sign', async () => {
+			const direct = (await import('../../actions/openInLibreSignAction.js')).directSignAction
+			const pdf = { type: 'file', mime: 'application/pdf', fileid: 77, name: 'test.pdf', attributes: {} }
+			loadState.mockImplementation((_app: string, key: string) => key === 'effective_policies'
+				? { policies: { identify_methods: { effectiveValue: { factors: [{ name: 'account', enabled: true, signatureMethods: { clickToSign: { enabled: true } } }] } } } }
+				: true)
+			expect(direct.enabled({ nodes: [pdf] })).toBe(true)
+			expect(direct.enabled({ nodes: [{ ...pdf, attributes: { 'libresign-signature-status': 0 } }] })).toBe(false)
+			loadState.mockImplementation((_app: string, key: string) => key === 'effective_policies'
+				? { policies: { identify_methods: { effectiveValue: { factors: [{ name: 'account', enabled: true, signatureMethods: { clickToSign: { enabled: false } } }] } } } }
+				: true)
+			expect(direct.enabled({ nodes: [pdf] })).toBe(false)
+		})
+
+		it('asks for confirmation without opening the signer sidebar or creating a draft', async () => {
+			const direct = (await import('../../actions/openInLibreSignAction.js')).directSignAction
+			const { spawnDialog } = await import('@nextcloud/vue/functions/dialog')
+			await direct.exec({ nodes: [{ mime: 'application/pdf', fileid: 77, basename: 'test.pdf' }] })
+			expect(spawnDialog).toHaveBeenCalledWith(expect.anything(), { name: 'test.pdf', nodeId: 77 })
+			expect(mockSidebar.open).not.toHaveBeenCalled()
+			expect(window.OCA?.Libresign?.pendingSelfSignNodeId).toBeUndefined()
+		})
+	})
+
 	describe('enabled rules - certificate validation', () => {
 		it('disables action when certificate not configured', () => {
 			loadState.mockReturnValue(false)
