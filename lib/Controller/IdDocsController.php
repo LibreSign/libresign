@@ -10,6 +10,7 @@ namespace OCA\Libresign\Controller;
 
 use Exception;
 use OCA\Libresign\AppInfo\Application;
+use OCA\Libresign\Exception\IdDocsUploadValidationException;
 use OCA\Libresign\Helper\ValidateHelper;
 use OCA\Libresign\Middleware\Attribute\RequireSignRequestUuid;
 use OCA\Libresign\Service\IdDocsService;
