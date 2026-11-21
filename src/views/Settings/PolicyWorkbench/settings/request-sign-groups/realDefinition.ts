@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
 
-import { t } from '@nextcloud/l10n'
+import { n, t } from '@nextcloud/l10n'
 
 import RequestSignGroupsRuleEditor from './RequestSignGroupsRuleEditor.vue'
 
@@ -100,8 +100,8 @@ export const requestSignGroupsRealDefinition: RealPolicySettingDefinition = {
 				return denyGroups.join(', ')
 			}
 
-			// TRANSLATORS {count} is the number of groups explicitly denied from creating signature requests.
-			return t('libresign', '{count} denied requester groups', { count: String(denyGroups.length) })
+			// TRANSLATORS %n is the number of groups explicitly denied from creating signature requests.
+			return n('libresign', '%n denied requester group', '%n denied requester groups', denyGroups.length)
 		}
 
 		if (allowGroups.length === 0) {
@@ -114,8 +114,8 @@ export const requestSignGroupsRealDefinition: RealPolicySettingDefinition = {
 		}
 
 		if (denyGroups.length === 0) {
-			// TRANSLATORS {count} is the number of groups authorized to create signature requests.
-			return t('libresign', '{count} authorized requester groups', { count: String(allowGroups.length) })
+			// TRANSLATORS %n is the number of groups authorized to create signature requests.
+			return n('libresign', '%n authorized requester group', '%n authorized requester groups', allowGroups.length)
 		}
 
 		// TRANSLATORS Summary for composed request-sign policy. {allowCount} is allowed groups count and {denyCount} denied groups count.

@@ -149,7 +149,7 @@ abstract class SignEngineHandler implements ISignEngineHandler {
 			throw new LibresignException($this->l10n->t('Invalid data to generate certificate'));
 		} catch (\Throwable) {
 			// TRANSLATORS Error while LibreSign creates a user's signing certificate: the certificate engine failed unexpectedly during generation.
-			throw new LibresignException($this->l10n->t('Failure on generate certificate'));
+			throw new LibresignException($this->l10n->t('Failure to generate certificate'));
 		}
 		if (!$content) {
 			// TRANSLATORS Error while LibreSign creates a user's signing certificate: generation finished without returning a PFX/certificate payload.
