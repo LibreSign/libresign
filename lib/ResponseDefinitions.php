@@ -880,9 +880,6 @@ namespace OCA\Libresign;
  *     key: string,
  *     value: ?string,
  * }
- * @psalm-type LibresignIdDocsRejectionResponse = array{
- *     rejected: bool,
- * }
  * @psalm-type LibresignIdDocsUploadErrorResponse = array{
  *     file: ?int,
  *     type: 'info'|'warning'|'danger',
