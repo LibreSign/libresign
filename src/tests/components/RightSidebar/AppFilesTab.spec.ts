@@ -10,6 +10,12 @@ import { createPinia, setActivePinia } from 'pinia'
 import AppFilesTab from '../../../components/RightSidebar/AppFilesTab.vue'
 import { useFilesStore } from '../../../store/files.js'
 import { useSidebarStore } from '../../../store/sidebar.js'
+import { usePoliciesStore } from '../../../store/policies.ts'
+
+const addSelfMock = vi.hoisted(() => vi.fn(async () => ({ id: 3 })))
+vi.mock('../../../services/selfSigning.ts', () => ({
+	addCurrentAccountAsSigner: addSelfMock,
+}))
 
 vi.mock('@nextcloud/auth', () => ({
 	getCurrentUser: vi.fn(() => ({ uid: 'testuser' })),
@@ -84,6 +90,7 @@ type AppFilesTabVm = {
 	sidebarTitleObserver: TitleObserver | null
 	disconnectTitleObserver: () => void
 	update: (fileInfo: FileInfo) => Promise<void>
+	preparePendingSelfSign: (id: number | string) => Promise<void>
 	handleLibreSignFileChangeWithPath: (path: string, eventType: string) => Promise<void>
 	handleLibreSignFileChangeAtCurretntFolder: () => Promise<void>
 	handleLibreSignFileChange: (payload: { path?: string, nodeId?: number }, eventType: string) => Promise<void>
@@ -164,6 +171,32 @@ describe('AppFilesTab', () => {
 				const result = await wrapper.vm.checkAndLoadPendingEnvelope()
 				expect(result).toBe(false)
 			}
+		})
+	})
+
+	describe('RULE: Files self-sign intent is consumed once for the matching node', () => {
+		it('adds the logged-in account only for the requested PDF node', async () => {
+			const policiesStore = usePoliciesStore()
+			vi.spyOn(policiesStore, 'fetchEffectivePolicies').mockResolvedValue()
+			addSelfMock.mockClear()
+			window.OCA = { Libresign: { pendingSelfSignNodeId: 456 } }
+			wrapper = createWrapper()
+			await wrapper.vm.preparePendingSelfSign(123)
+			expect(addSelfMock).not.toHaveBeenCalled()
+			await wrapper.vm.preparePendingSelfSign(456)
+			expect(addSelfMock).toHaveBeenCalledOnce()
+			expect(window.OCA.Libresign.pendingSelfSignNodeId).toBeUndefined()
+			await wrapper.vm.preparePendingSelfSign(456)
+			expect(addSelfMock).toHaveBeenCalledOnce()
+		})
+		it('matches string node identifiers without integer precision loss', async () => {
+			vi.spyOn(usePoliciesStore(), 'fetchEffectivePolicies').mockResolvedValue()
+			addSelfMock.mockClear()
+			window.OCA = { Libresign: { pendingSelfSignNodeId: '9007199254740993' } }
+			wrapper = createWrapper()
+			await wrapper.vm.preparePendingSelfSign('9007199254740993')
+			expect(addSelfMock).toHaveBeenCalledOnce()
+			expect(window.OCA.Libresign.pendingSelfSignNodeId).toBeUndefined()
 		})
 	})
 

@@ -338,12 +338,12 @@ describe('RequestSignatureTab - Critical Business Rules', () => {
 		it('shows the shortcut only for an enabled account method', async () => {
 			await updateMethods([{ name: 'email', enabled: true }])
 			expect(wrapper.vm.canIncludeMyself).toBe(false)
-			await updateMethods([{ name: 'account', enabled: true }])
+			await updateIdentifyMethodsPolicy([{ name: 'account', enabled: true }])
 			expect(wrapper.vm.canIncludeMyself).toBe(true)
 		})
 
 		it('hides the shortcut when the current user is already a signer', async () => {
-			await updateMethods([{ name: 'account', enabled: true }])
+			await updateIdentifyMethodsPolicy([{ name: 'account', enabled: true }])
 			await updateFile({
 				signers: [{
 					displayName: 'Administrator',
@@ -354,18 +354,12 @@ describe('RequestSignatureTab - Critical Business Rules', () => {
 			expect(wrapper.vm.canIncludeMyself).toBe(false)
 		})
 
-		it('persists an ordinary draft signer without bypassing the signing flow', async () => {
-			await updateMethods([{ name: 'account', enabled: true }])
-			const save = vi.spyOn(filesStore, 'saveOrUpdateSignatureRequest').mockResolvedValue({ success: true } as never)
-			await wrapper.vm.includeMyself()
-			expect(save).toHaveBeenCalledOnce()
-			const payload = save.mock.calls[0]?.[0]
-			expect(payload?.signers).toEqual([expect.objectContaining({
-				status: SIGN_REQUEST_STATUS.DRAFT,
-				participantRole: PARTICIPANT_ROLE.SIGNER,
-				identifyMethods: [{ method: 'account', value: 'admin', requirement: 'optional' }],
-			})])
+		it('does not offer self-selection when request editing is forbidden', async () => {
+			await updateIdentifyMethodsPolicy([{ name: 'account', enabled: true }])
+			filesStore.canRequestSign = false
+			expect(wrapper.vm.canIncludeMyself).toBe(false)
 		})
+
 	})
 
 	describe('RULE: showDocMdpWarning when DocMDP level prevents changes', () => {

@@ -7,6 +7,7 @@ import { describe, expect, it, vi, beforeEach } from 'vitest'
 import { mount } from '@vue/test-utils'
 import SignerSelect from '../../../components/Request/SignerSelect.vue'
 import { PARTICIPANT_ROLE } from '../../../utils/participantRole.ts'
+import { getCurrentUser } from '@nextcloud/auth'
 
 const supportedIconNames = [
 	'account',
@@ -20,6 +21,10 @@ const supportedIconNames = [
 
 const { axiosGetMock } = vi.hoisted(() => ({
 	axiosGetMock: vi.fn(),
+}))
+
+vi.mock('@nextcloud/auth', () => ({
+	getCurrentUser: vi.fn(() => ({ uid: 'admin', displayName: 'Administrator' })),
 }))
 
 vi.mock('@nextcloud/axios', () => ({
@@ -72,6 +77,38 @@ describe('SignerSelect.vue', () => {
 		expect(result[0].iconName).toBe('account')
 		expect(result[1].iconName).toBe('email')
 		expect(result[2].iconName).toBeUndefined()
+	})
+
+	it('includes the current account only when the account picker explicitly allows it', () => {
+		const signer = createWrapper({ method: 'account', allowSelf: true })
+		expect(signer.vm.availableOptions).toEqual([expect.objectContaining({
+			identify: 'admin',
+			method: 'account',
+			displayName: 'Administrator',
+			subname: 'Your account',
+		})])
+		expect(createWrapper({ method: 'email', allowSelf: true }).vm.availableOptions).toEqual([])
+		expect(createWrapper({ method: 'account' }).vm.availableOptions).toEqual([])
+		expect(createWrapper({ method: 'account', allowSelf: true, participantRole: PARTICIPANT_ROLE.OBSERVER }).vm.availableOptions).toEqual([])
+	})
+
+	it('filters own-account suggestion when searching for another signer', async () => {
+		const wrapper = createWrapper({ method: 'account', allowSelf: true })
+		wrapper.vm.onSearch('other')
+		expect(wrapper.vm.availableOptions).toEqual([])
+		wrapper.vm.onSearch('adm')
+		expect(wrapper.vm.availableOptions[0].identify).toBe('admin')
+		await wrapper.vm._asyncFind(' ')
+		expect(wrapper.vm.options).toEqual([])
+	})
+
+	it('emits a normal account identity for self-selection', () => {
+		const wrapper = createWrapper({ method: 'account', allowSelf: true })
+		wrapper.vm.onSelectedSignerChange(wrapper.vm.availableOptions[0])
+		expect(wrapper.emitted('update:signer')?.at(-1)?.[0]).toMatchObject({
+			identify: vi.mocked(getCurrentUser)()?.uid,
+			method: 'account',
+		})
 	})
 
 	it('onSelectedSignerChange emits a plain OpenAPI signer object', () => {

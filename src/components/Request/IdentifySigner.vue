@@ -9,6 +9,7 @@
 			:placeholder="placeholder"
 			:method="method"
 			:participant-role="props.participantRole"
+			:allow-self="props.allowSelf"
 			@update:signer="applySelectedSigner" />
 		<NcNoteCard v-else type="info">
 			<template #icon>
@@ -114,6 +115,7 @@ const props = withDefaults(defineProps<{
 	methods?: IdentifyMethodConfig[]
 	disabled?: boolean
 	participantRole?: ParticipantRole
+	allowSelf?: boolean
 }>(), {
 	signerToEdit: () => ({
 		displayName: '',
@@ -125,6 +127,7 @@ const props = withDefaults(defineProps<{
 	methods: () => [],
 	disabled: false,
 	participantRole: PARTICIPANT_ROLE.SIGNER,
+	allowSelf: false,
 })
 
 const iconMap = {
