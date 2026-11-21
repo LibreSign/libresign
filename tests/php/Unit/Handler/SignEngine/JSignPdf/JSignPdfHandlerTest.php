@@ -273,10 +273,12 @@ final class JSignPdfHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$inputFile->method('getContent')
 			->willReturn($pdfContent);
 		$paramsSeen = [];
+		$passwordsSeen = [];
 		$mock = $this->createMock(JSignPDF::class);
 		$mock->method('setParam')
-			->willReturnCallback(function (JSignParam $param) use (&$paramsSeen): void {
+			->willReturnCallback(function (JSignParam $param) use (&$paramsSeen, &$passwordsSeen): void {
 				$paramsSeen[] = $param->getJSignParameters();
+				$passwordsSeen[] = $param->getPassword();
 			});
 		$mock->method('sign')->willReturn('content');
 
@@ -307,7 +309,7 @@ final class JSignPdfHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$jSignPdfHandler->setPassword('password');
 		$actual = $jSignPdfHandler->getSignedContent();
 		$this->assertEquals('content', $actual);
-		$this->assertEquals('password', $jSignPdfHandler->getJSignParam()->getPassword());
+		$this->assertSame(['password'], $passwordsSeen);
 		$this->assertCount(1, $paramsSeen);
 		$paramsAsOptions = preg_replace('/\\/\S+_merged.png/', 'merged.png', $paramsSeen[0]);
 		$paramsAsOptions = preg_replace('/\\/\S+_text_image.png/', 'text_image.png', (string)$paramsAsOptions);
