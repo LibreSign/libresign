@@ -356,6 +356,38 @@ class MailService {
 		}
 	}
 
+	public function notifyIdentificationDocumentRejected(
+		SignRequest $signRequest,
+		string $email,
+		File $document,
+		string $reason,
+		bool $accountSigner,
+	): void {
+		$template = $this->mailer->createEMailTemplate('settings.TestEmail');
+		// TRANSLATORS Subject of an email asking the signer to replace a rejected identification document.
+		$template->setSubject($this->l10n->t('LibreSign: Identification document rejected'));
+		$template->addHeader();
+		// TRANSLATORS Email heading for a rejected identification document.
+		$template->addHeading($this->l10n->t('Please replace your identification document'), false);
+		// TRANSLATORS Inform the signer that the submitted document was not accepted.
+		$template->addBodyText($this->l10n->t('Your identification document "%s" was not approved.', [$document->getName()]));
+		// TRANSLATORS The reason supplied by the authorized reviewer for rejecting the document.
+		$template->addBodyText($this->l10n->t('Reason: %s', [$reason]));
+		// TRANSLATORS Instruction for the signer after the submitted identification document was rejected.
+		$template->addBodyText($this->l10n->t('Upload a replacement identification document to continue signing.'));
+		$template->addBodyButton(
+			// TRANSLATORS Button to return to the identification document upload flow.
+			$this->l10n->t('Replace identification document'),
+			$accountSigner
+				? $this->urlGenerator->linkToRouteAbsolute('libresign.page.indexF')
+				: $this->urlGenerator->linkToRouteAbsolute('libresign.page.signFPath', ['uuid' => $signRequest->getUuid(), 'path' => 'pdf']),
+		);
+		$message = $this->mailer->createMessage();
+		$message->setTo([$email]);
+		$message->useTemplate($template);
+		$this->sendAndCheck($message);
+	}
+
 	public function notifyCanceledRequest(SignRequest $signRequest, string $email, File $libreSignFile): void {
 		$emailTemplate = $this->mailer->createEMailTemplate('settings.TestEmail');
 		// TRANSLATORS Email subject shown when the requester cancels a pending signature request.
