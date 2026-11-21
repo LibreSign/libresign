@@ -1,7 +1,6 @@
 --- a/.github/workflows/sync-workflow-templates.yml
 +++ b/.github/workflows/sync-workflow-templates.yml
-@@ -28,7 +28,10 @@
-       fail-fast: false
+@@ -29,6 +29,9 @@
        matrix:
          branches:
            - ${{ github.event.repository.default_branch }}
@@ -11,3 +10,11 @@
  
      name: Update workflows in ${{ matrix.branches }}
  
+@@ -148,6 +151,7 @@
+           source: source/workflow-templates
+           target: target
+           catalog-commit: ${{ steps.catalog-revision.outputs.sha }}
++          include: appstore-build-publish.yml,block-unconventional-commits.yml,command-update-submodule.yml,first-merged-pr-comment.yml,lint-eslint.yml,lint-info-xml.yml,lint-php-cs.yml,lint-stylelint.yml,lint-typescript.yml,nightly-release.yml,node-test.yml,npm-audit-fix.yml,openapi.yml,reuse.yml,sync-workflow-templates.yml
+ 
+       - name: Create Pull Request
+         if: ${{ steps.sync.outputs.changed == 'true' }}
