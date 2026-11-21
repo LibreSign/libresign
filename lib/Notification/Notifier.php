@@ -64,9 +64,10 @@ class Notifier implements INotifier {
 		// TRANSLATORS Nextcloud notification subject when a submitted ID was rejected.
 		$notification->setParsedSubject($l->t('Your identification document was rejected'));
 		// TRANSLATORS {document} is the document name and {reason} is the reason supplied by the reviewer.
-		$notification->setParsedMessage($l->t('Replace "{document}". Reason: {reason}', [
-			'document' => (string)($params['documentName'] ?? ''),
-			'reason' => (string)($params['reason'] ?? ''),
+		$message = $l->t('Replace "{document}". Reason: {reason}');
+		$notification->setParsedMessage(strtr($message, [
+			'{document}' => (string)($params['documentName'] ?? ''),
+			'{reason}' => (string)($params['reason'] ?? ''),
 		]));
 		$notification->setLink($this->url->linkToRouteAbsolute('libresign.page.indexF'));
 		$notification->setIcon($this->url->getAbsoluteURL($this->url->imagePath(Application::APP_ID, 'app-dark.svg')));
