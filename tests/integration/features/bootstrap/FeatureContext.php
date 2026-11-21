@@ -100,7 +100,6 @@ class FeatureContext extends NextcloudApiContext implements OpenedEmailStorageAw
 		$this->fields['SIGN_REQUEST_UUID'] = $matches['uuid'];
 	}
 
-
 	#[\Behat\Step\Then('the direct-sign response should contain a signed PDF named :filename')]
 	public function assertDirectSignedPdfResponse(string $filename): void {
 		Assert::same($this->response->getStatusCode(), 200);

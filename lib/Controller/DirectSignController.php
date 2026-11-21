@@ -22,7 +22,7 @@ use OCP\IRequest;
 use OCP\IUserSession;
 use Psr\Log\LoggerInterface;
 
-final class DirectSignController extends AEnvironmentAwareController {
+final class DirectSignController extends AEnvironmentAwareOCSController {
 	public function __construct(
 		IRequest $request,
 		private IUserSession $userSession,

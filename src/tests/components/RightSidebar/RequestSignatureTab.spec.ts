@@ -359,7 +359,6 @@ describe('RequestSignatureTab - Critical Business Rules', () => {
 			filesStore.canRequestSign = false
 			expect(wrapper.vm.canIncludeMyself).toBe(false)
 		})
-
 	})
 
 	describe('RULE: showDocMdpWarning when DocMDP level prevents changes', () => {
