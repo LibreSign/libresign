@@ -8,9 +8,11 @@ declare(strict_types=1);
 
 namespace OCA\Libresign\Tests\Unit\Handler\SignEngine;
 
+use OCA\Libresign\Enum\DocMdpLevel;
 use OCA\Libresign\Handler\CertificateEngine\CertificateEngineFactory;
 use OCA\Libresign\Handler\DocMdpHandler;
 use OCA\Libresign\Handler\FooterHandler;
+use OCA\Libresign\Handler\SignEngine\PhpNativeHandler;
 use OCA\Libresign\Handler\SignEngine\Pkcs12Handler;
 use OCA\Libresign\Service\CaIdentifierService;
 use OCA\Libresign\Service\Crl\CrlService;
@@ -102,5 +104,34 @@ final class Pkcs12HandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 
 		$this->assertSame('alice-pfx', $handler->getPfxOfCurrentSigner('alice'));
 		$this->assertSame('bob-pfx', $handler->getPfxOfCurrentSigner('bob'));
+	}
+
+	public function testSignPassesTheGivenLevelToTheEngine(): void {
+		$appConfig = $this->createMock(IAppConfig::class);
+		$appConfig->method('getValueString')->willReturn('PhpNative');
+		$handler = new Pkcs12Handler(
+			$this->folderService,
+			$appConfig,
+			$this->createMock(CertificateEngineFactory::class),
+			$this->createMock(IL10N::class),
+			$this->createMock(FooterHandler::class),
+			$this->createMock(LoggerInterface::class),
+			$this->createMock(CaIdentifierService::class),
+			$this->createMock(DocMdpHandler::class),
+			$this->createMock(CrlService::class),
+			$this->createMock(PdfSignatureValidationService::class),
+		);
+		$engine = $this->getMockBuilder(PhpNativeHandler::class)
+			->disableOriginalConstructor()
+			->onlyMethods(['getSignedContent'])
+			->getMock();
+		$engine->method('getSignedContent')->willReturn('signed');
+		(new \ReflectionProperty(Pkcs12Handler::class, 'phpNativeHandler'))->setValue($handler, $engine);
+
+		$handler->setInputFile($this->createMock(File::class));
+		$handler->setDocMdpLevel(DocMdpLevel::CERTIFIED_NO_CHANGES_ALLOWED);
+		$handler->sign();
+
+		$this->assertSame(DocMdpLevel::CERTIFIED_NO_CHANGES_ALLOWED, $engine->getDocMdpLevel());
 	}
 }

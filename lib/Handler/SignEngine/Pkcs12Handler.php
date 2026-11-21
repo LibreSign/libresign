@@ -409,6 +409,7 @@ class Pkcs12Handler extends SignEngineHandler {
 			->setPassword($this->getPassword())
 			->setSignatureParams($this->getSignatureParams())
 			->setVisibleElements($this->getVisibleElements())
+			->setDocMdpLevel($this->getDocMdpLevel())
 			->getSignedContent();
 		$this->getInputFile()->putContent($signedContent);
 		return $this->getInputFile();
