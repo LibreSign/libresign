@@ -1062,6 +1062,7 @@ class ValidateHelper {
 					if ($signatureMethod->getName() === $signatureMethodName && $signatureMethod->isEnabled()) {
 						return $identifyMethod;
 					}
+				}
 			}
 		}
 		return null;
