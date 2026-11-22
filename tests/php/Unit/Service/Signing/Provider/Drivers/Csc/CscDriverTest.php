@@ -38,7 +38,7 @@ final class CscDriverTest extends TestCase {
 		$this->assertSame('password', $metadata['fields'][1]['type']);
 		$this->assertFalse($metadata['fields'][1]['required']);
 		$this->assertTrue($metadata['fields'][1]['secret']);
-		$this->assertSame([], $metadata['fields'][1]['validation']);
+		$this->assertArrayNotHasKey('validation', $metadata['fields'][1]);
 		$this->assertArrayNotHasKey('value', $metadata['fields'][1]);
 		$this->assertArrayNotHasKey('configured', $metadata['fields'][1]);
 

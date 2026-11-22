@@ -61,7 +61,6 @@ final class CscDriver {
 					'type' => 'password',
 					'required' => false,
 					'secret' => true,
-					'validation' => [],
 				],
 			],
 		];

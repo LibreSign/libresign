@@ -1225,8 +1225,7 @@
                     "label",
                     "type",
                     "required",
-                    "secret",
-                    "validation"
+                    "secret"
                 ],
                 "properties": {
                     "key": {

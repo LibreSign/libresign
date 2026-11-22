@@ -554,7 +554,7 @@ export type components = {
             type: "url" | "password";
             required: boolean;
             secret: boolean;
-            validation: {
+            validation?: {
                 schemes?: string[];
                 allowUserInfo?: boolean;
             };
