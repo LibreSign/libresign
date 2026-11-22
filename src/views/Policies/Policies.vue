@@ -7,8 +7,8 @@
 	<NcAppContent>
 		<div class="policies-view">
 			<RealPolicyWorkbench>
-				<template #how-signing-works-auxiliary>
-					<ExternalSigningAdmin />
+				<template #how-signing-works-auxiliary="{ layout }">
+					<ExternalSigningAdmin :layout="layout === 'compact' ? 'compact' : 'cards'" />
 				</template>
 			</RealPolicyWorkbench>
 		</div>

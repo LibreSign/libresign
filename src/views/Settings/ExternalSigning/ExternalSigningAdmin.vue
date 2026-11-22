@@ -3,92 +3,103 @@
   - SPDX-License-Identifier: AGPL-3.0-or-later
 -->
 <template>
-	<div v-if="visible" class="external-signing-admin" data-cy="external-signing-admin">
+	<section
+		v-if="visible"
+		class="external-signing-admin"
+		:class="{ 'external-signing-admin--compact': layout === 'compact' }"
+		aria-labelledby="external-signing-admin-title"
+		data-cy="external-signing-admin">
 		<div class="external-signing-admin__entry">
-			<div>
-				<h4>{{ t('libresign', 'External signing providers') }}</h4>
-				<p>{{ t('libresign', 'Manage instance-level external signing integrations. These are not signing policies.') }}</p>
+			<div class="external-signing-admin__details">
+				<h3 id="external-signing-admin-title">
+					{{ t('libresign', 'External signing providers') }}
+				</h3>
+				<p>{{ t('libresign', 'Manage external signing integrations independently of signing policies.') }}</p>
+				<p v-if="!adapter" id="external-signing-admin-unavailable" class="external-signing-admin__status" role="status">
+					{{ t('libresign', 'Integration management is not connected yet.') }}
+				</p>
 			</div>
-			<NcButton variant="secondary" @click="dialogOpen = true">
-				{{ t('libresign', 'Configure integrations') }}
-			</NcButton>
+			<div class="external-signing-admin__footer">
+				<NcButton
+					variant="secondary"
+					:disabled="!adapter"
+					:aria-describedby="!adapter ? 'external-signing-admin-unavailable' : undefined"
+					@click="dialogOpen = true">
+					{{ t('libresign', 'Configure integrations') }}
+				</NcButton>
+			</div>
 		</div>
 		<NcDialog
-			v-if="dialogOpen"
+			v-if="adapter && dialogOpen"
 			:name="t('libresign', 'External signing providers')"
 			size="normal"
 			@closing="closeDialog">
 			<div class="external-signing-admin__dialog">
-				<p v-if="!adapter" role="status">
-					{{ t('libresign', 'Administrative integration management is awaiting backend support.') }}
+				<p v-if="loading" role="status">
+					{{ t('libresign', 'Loading integrations…') }}
+				</p>
+				<p v-else-if="loadError" role="alert">
+					{{ t('libresign', 'Could not load the integrations.') }} <NcButton variant="secondary" @click="load">
+						{{ t('libresign', 'Retry') }}
+					</NcButton>
 				</p>
 				<template v-else>
-					<p v-if="loading" role="status">
-						{{ t('libresign', 'Loading integrations…') }}
+					<p v-if="!instances.length" role="status">
+						{{ t('libresign', 'No integrations configured.') }}
 					</p>
-					<p v-else-if="loadError" role="alert">
-						{{ t('libresign', 'Could not load the integrations.') }} <NcButton variant="secondary" @click="load">
-							{{ t('libresign', 'Retry') }}
-						</NcButton>
+					<ul class="external-signing-admin__instances">
+						<li v-for="instance in instances" :key="instance.id">
+							<div>
+								<strong>{{ instance.name }}</strong>
+								<p>{{ driverById(instance.driverId)?.name ?? instance.driverId }} · {{ getInstanceStatusLabel(instance) }}</p>
+								<p v-if="instance.hasActiveSessions">
+									{{ t('libresign', 'An active signing session may restrict changes.') }}
+								</p>
+							</div>
+							<div class="external-signing-admin__actions">
+								<NcButton :disabled="busy || !driverById(instance.driverId)?.available" @click="edit(instance)">
+									{{ t('libresign', 'Edit') }}
+								</NcButton>
+								<NcButton :disabled="busy || !driverById(instance.driverId)?.available" @click="toggle(instance)">
+									{{ getToggleLabel(instance) }}
+								</NcButton>
+								<NcButton :disabled="busy || instance.hasActiveSessions" @click="remove(instance)">
+									{{ t('libresign', 'Remove') }}
+								</NcButton>
+							</div>
+						</li>
+					</ul>
+					<p v-if="operationError" role="alert">
+						{{ operationError }}
 					</p>
+					<template v-if="selectedDriver">
+						<ExternalSigningIntegrationForm
+							:key="selectedInstance?.id ?? `new-${selectedDriver.id}`"
+							:driver="selectedDriver"
+							:existing="selectedInstance"
+							:save="adapter.save"
+							@saved="onSaved"
+							@cancel="resetForm" />
+					</template>
 					<template v-else>
-						<p v-if="!instances.length" role="status">
-							{{ t('libresign', 'No integrations configured.') }}
-						</p>
-						<ul class="external-signing-admin__instances">
-							<li v-for="instance in instances" :key="instance.id">
-								<div>
-									<strong>{{ instance.name }}</strong>
-									<p>{{ driverById(instance.driverId)?.name ?? instance.driverId }} · {{ getInstanceStatusLabel(instance) }}</p>
-									<p v-if="instance.hasActiveSessions">
-										{{ t('libresign', 'An active signing session may restrict changes.') }}
-									</p>
-								</div>
-								<div class="external-signing-admin__actions">
-									<NcButton :disabled="busy || !driverById(instance.driverId)?.available" @click="edit(instance)">
-										{{ t('libresign', 'Edit') }}
-									</NcButton>
-									<NcButton :disabled="busy || !driverById(instance.driverId)?.available" @click="toggle(instance)">
-										{{ getToggleLabel(instance) }}
-									</NcButton>
-									<NcButton :disabled="busy || instance.hasActiveSessions" @click="remove(instance)">
-										{{ t('libresign', 'Remove') }}
-									</NcButton>
-								</div>
-							</li>
-						</ul>
-						<p v-if="operationError" role="alert">
-							{{ operationError }}
-						</p>
-						<template v-if="selectedDriver">
-							<ExternalSigningIntegrationForm
-								:key="selectedInstance?.id ?? `new-${selectedDriver.id}`"
-								:driver="selectedDriver"
-								:existing="selectedInstance"
-								:save="adapter.save"
-								@saved="onSaved"
-								@cancel="resetForm" />
-						</template>
-						<template v-else>
-							<label for="external-signing-driver">{{ t('libresign', 'Provider type') }}</label>
-							<select id="external-signing-driver" v-model="selectedDriverId">
-								<option value="">
-									{{ t('libresign', 'Select a provider') }}
-								</option>
-								<option
-									v-for="driver in drivers"
-									:key="driver.id"
-									:value="driver.id"
-									:disabled="!driver.available">
-									{{ driver.name }}{{ driver.available ? '' : ` — ${t('libresign', 'Unavailable')}` }}
-								</option>
-							</select>
-						</template>
+						<label for="external-signing-driver">{{ t('libresign', 'Provider type') }}</label>
+						<select id="external-signing-driver" v-model="selectedDriverId">
+							<option value="">
+								{{ t('libresign', 'Select a provider') }}
+							</option>
+							<option
+								v-for="driver in drivers"
+								:key="driver.id"
+								:value="driver.id"
+								:disabled="!driver.available">
+								{{ driver.name }}{{ driver.available ? '' : ` — ${t('libresign', 'Unavailable')}` }}
+							</option>
+						</select>
 					</template>
 				</template>
 			</div>
 		</NcDialog>
-	</div>
+	</section>
 </template>
 
 <script setup lang="ts">
@@ -102,7 +113,7 @@ import type { ExternalSigningAdminAdapter, ExternalSigningDriver, ExternalSignin
 import ExternalSigningIntegrationForm from './ExternalSigningIntegrationForm.vue'
 
 /** A production adapter is not supplied until the administrative CRUD API is available. */
-const props = defineProps<{ adapter?: ExternalSigningAdminAdapter, catalogLoader?: () => Promise<ExternalSigningDriver[]> }>()
+const props = defineProps<{ adapter?: ExternalSigningAdminAdapter, catalogLoader?: () => Promise<ExternalSigningDriver[]>, layout?: 'cards' | 'compact' }>()
 const drivers = ref<ExternalSigningDriver[]>([])
 const visible = ref(false)
 const dialogOpen = ref(false)
@@ -214,11 +225,124 @@ if (getCurrentUser()?.isAdmin === true) {
 </script>
 
 <style scoped lang="scss">
-.external-signing-admin { margin-block: 16px; }
-.external-signing-admin__entry, .external-signing-admin__instances li { display: flex; justify-content: space-between; gap: 16px; align-items: center; padding: 16px; border: 1px solid var(--color-border); border-radius: var(--border-radius-large); }
-.external-signing-admin__entry h4 { font-weight: bold; margin: 0 0 6px; }
-.external-signing-admin__dialog { padding: 16px; display: grid; gap: 12px; max-width: 100%; }
-.external-signing-admin__instances { display: grid; gap: 8px; list-style: none; padding: 0; margin: 0; }
-.external-signing-admin__actions { display: flex; flex-wrap: wrap; gap: 6px; }
-@media (max-width: 600px) { .external-signing-admin__entry, .external-signing-admin__instances li { align-items: stretch; flex-direction: column; } }
+.external-signing-admin {
+	min-width: 0;
+	min-height: 240px;
+	padding: 1.25rem;
+	border: 1px solid color-mix(in srgb, var(--color-primary-element) 14%, var(--color-border-maxcontrast));
+	border-radius: 20px;
+	background:
+		radial-gradient(circle at top right, color-mix(in srgb, var(--color-primary-element) 14%, transparent), transparent 45%),
+		linear-gradient(180deg, color-mix(in srgb, var(--color-main-background) 92%, white), var(--color-main-background));
+	text-align: start;
+
+	&--compact {
+		min-height: 0;
+		padding: 0.9rem 1rem;
+		border-radius: 14px;
+		border-color: color-mix(in srgb, var(--color-primary-element) 12%, var(--color-border-maxcontrast));
+		background: color-mix(in srgb, var(--color-main-background) 94%, white);
+
+		.external-signing-admin__entry {
+			flex-direction: row;
+			align-items: center;
+		}
+
+		.external-signing-admin__footer {
+			flex-shrink: 0;
+			margin-top: 0;
+		}
+	}
+
+	&__entry {
+		display: flex;
+		flex-direction: column;
+		justify-content: space-between;
+		gap: 1rem;
+		height: 100%;
+	}
+
+	&__details {
+		min-width: 0;
+		display: flex;
+		flex-direction: column;
+		gap: 0.65rem;
+
+		h3,
+		p {
+			margin: 0;
+		}
+	}
+
+	&__details h3 {
+		font-size: 1.5rem;
+		font-weight: 700;
+		line-height: 1.35;
+	}
+
+	&__details p {
+		color: var(--color-text-maxcontrast);
+		line-height: 1.4;
+		overflow-wrap: anywhere;
+	}
+
+	&__status {
+		font-size: 0.9rem;
+	}
+
+	&__footer {
+		margin-top: auto;
+		display: flex;
+		justify-content: flex-start;
+	}
+
+	&__dialog {
+		padding: 16px;
+		display: grid;
+		gap: 12px;
+		max-width: 100%;
+	}
+
+	&__instances {
+		display: grid;
+		gap: 8px;
+		list-style: none;
+		padding: 0;
+		margin: 0;
+
+		li {
+			display: flex;
+			justify-content: space-between;
+			align-items: center;
+			gap: 16px;
+			padding: 16px;
+			border: 1px solid var(--color-border);
+			border-radius: var(--border-radius-large);
+		}
+	}
+
+	&__actions {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 6px;
+	}
+}
+
+@media (max-width: 960px) {
+	.external-signing-admin--compact .external-signing-admin__entry {
+		flex-direction: column;
+		align-items: stretch;
+	}
+}
+
+@media (max-width: 640px) {
+	.external-signing-admin {
+		padding: 1rem;
+
+		&__instances li {
+			align-items: stretch;
+			flex-direction: column;
+		}
+	}
+}
 </style>

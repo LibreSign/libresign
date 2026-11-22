@@ -51,8 +51,8 @@
 				@open-from-pointer="openSettingFromPointer($event.layout, $event.key, $event.event)"
 				@open-from-keyboard="openSettingFromKeyboard"
 				@open-from-action="openSettingFromAction($event.key, $event.event)">
-				<template #auxiliary>
-					<slot name="how-signing-works-auxiliary" />
+				<template #auxiliary="{ layout }">
+					<slot name="how-signing-works-auxiliary" :layout="layout" />
 				</template>
 			</CatalogCategorySection>
 		</div>
