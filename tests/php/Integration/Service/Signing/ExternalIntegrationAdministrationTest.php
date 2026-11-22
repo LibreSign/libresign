@@ -10,9 +10,9 @@ namespace OCA\Libresign\Tests\Integration\Service\Signing;
 
 use OCA\Libresign\Service\Signing\ExternalIntegrationAdministration;
 use OCA\Libresign\Service\Signing\ExternalIntegrationRecord;
+use OCA\Libresign\Service\Signing\ExternalIntegrationStore;
 use OCP\IDBConnection;
 use OCP\Server;
-use OCA\Libresign\Service\Signing\ExternalIntegrationStore;
 use PHPUnit\Framework\Attributes\DataProvider;
 
 /** @group DB */
