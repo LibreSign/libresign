@@ -438,7 +438,7 @@ defineOptions({
 
 const emit = defineEmits<{
 	(e: 'update:phone', value: string): void
-	(e: 'signing-started', payload: { signRequestUuid: string; async: boolean }): void
+	(e: 'signing-started', payload: { signRequestUuid: string, async: boolean }): void
 	(e: 'signed', payload: Record<string, unknown> & { signRequestUuid: string }): void
 }>()
 

@@ -124,7 +124,7 @@ const STAMP_PREVIEW_ZOOM_STORAGE_KEY = 'libresign.policy.signatureStamp.previewZ
 
 ensurePdfWorker()
 
-const backgroundOptions: Array<{ value: BackgroundType; label: string; description: string }> = [
+const backgroundOptions: Array<{ value: BackgroundType, label: string, description: string }> = [
 	{
 		value: 'default',
 		// TRANSLATORS Option label selecting built-in default signature background image.
@@ -148,7 +148,7 @@ const backgroundOptions: Array<{ value: BackgroundType; label: string; descripti
 	},
 ]
 
-const displayModeOptions: Array<{ value: DisplayMode; label: string; description: string }> = [
+const displayModeOptions: Array<{ value: DisplayMode, label: string, description: string }> = [
 	{
 		value: 'description_only',
 		// TRANSLATORS Render mode label where only textual stamp description is shown.

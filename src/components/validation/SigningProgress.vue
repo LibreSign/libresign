@@ -287,7 +287,7 @@ function buildProgressFromValidation(doc: ValidationDocument | null | undefined)
 	}
 	if (doc.nodeType === 'envelope') {
 		const files = (doc.files ?? [])
-			.filter((file): file is typeof file & { id: number; name: string; status: number } => {
+			.filter((file): file is typeof file & { id: number, name: string, status: number } => {
 				return typeof file.id === 'number'
 					&& typeof file.name === 'string'
 					&& typeof file.status === 'number'

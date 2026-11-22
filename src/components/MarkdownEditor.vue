@@ -253,7 +253,7 @@ const toggleLinePrefix = (view: EditorView, prefix: string) => {
 	const { from, to } = state.selection.main
 	const fromLine = state.doc.lineAt(from)
 	const toLine = state.doc.lineAt(to)
-	const changes: { from: number; to: number; insert: string }[] = []
+	const changes: { from: number, to: number, insert: string }[] = []
 
 	// Detect if ALL selected lines already have the prefix – if so, remove it
 	let allHavePrefix = true
@@ -283,7 +283,7 @@ const applyOrderedListToLines = (view: EditorView) => {
 	const { from, to } = state.selection.main
 	const fromLine = state.doc.lineAt(from)
 	const toLine = state.doc.lineAt(to)
-	const changes: { from: number; to: number; insert: string }[] = []
+	const changes: { from: number, to: number, insert: string }[] = []
 
 	// Detect if ALL selected lines already start with `N. ` pattern
 	const orderedListRe = /^\d+\. /
@@ -347,7 +347,7 @@ const clearHeadingFromLine = (view: EditorView) => {
 	const fromLine = state.doc.lineAt(from)
 	const toLine = state.doc.lineAt(to)
 	const headingRe = /^(#{1,6}) /
-	const changes: { from: number; to: number; insert: string }[] = []
+	const changes: { from: number, to: number, insert: string }[] = []
 
 	for (let lineNo = fromLine.number; lineNo <= toLine.number; lineNo++) {
 		const line = state.doc.line(lineNo)

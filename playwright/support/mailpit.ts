@@ -53,7 +53,7 @@ export async function waitForEmailTo(
 	client: MailpitClient,
 	toAddress: string,
 	subject?: string,
-	options?: { timeout?: number; interval?: number },
+	options?: { timeout?: number, interval?: number },
 ): Promise<Message> {
 	const timeout = options?.timeout ?? 30_000
 	const interval = options?.interval ?? 1_000

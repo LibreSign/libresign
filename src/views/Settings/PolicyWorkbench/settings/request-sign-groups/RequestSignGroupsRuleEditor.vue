@@ -344,7 +344,7 @@ async function searchGroup(query: string) {
 			const response = await axios.get<GroupDetailsResponse>(generateOcsUrl('cloud/groups/details'), { params })
 			availableGroups.value = filterGroupsByManageableScope(
 				(response.data?.ocs?.data?.groups ?? [])
-					.map((group: { id: string; displayname?: string }) => ({
+					.map((group: { id: string, displayname?: string }) => ({
 						id: group.id,
 						displayname: group.displayname || group.id,
 					})),

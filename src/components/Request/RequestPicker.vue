@@ -406,7 +406,7 @@ async function upload(files: UploadFile[], selectedEnvelopeName: string | null =
 			sidebarStore.activeRequestSignatureTab()
 			return id
 		})
-		.catch((error: { code?: string; response?: { data?: { ocs?: { data?: { message?: string } } } } }) => {
+		.catch((error: { code?: string, response?: { data?: { ocs?: { data?: { message?: string } } } } }) => {
 			if (error.code === 'ERR_CANCELED') {
 				return null
 			}

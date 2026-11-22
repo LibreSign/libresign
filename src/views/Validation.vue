@@ -508,7 +508,7 @@ function getSignerStatus(status: string) {
 	return statusMap[status] || status
 }
 
-async function validate(id: string, { suppressLoading = false, forceRefresh = false }: { suppressLoading?: boolean; forceRefresh?: boolean } = {}) {
+async function validate(id: string, { suppressLoading = false, forceRefresh = false }: { suppressLoading?: boolean, forceRefresh?: boolean } = {}) {
 	validationErrorMessage.value = null
 	documentValidMessage.value = null
 	if (id === document.value?.uuid && !forceRefresh) {
@@ -524,7 +524,7 @@ async function validate(id: string, { suppressLoading = false, forceRefresh = fa
 	getUUID.value = false
 }
 
-async function validateByUUID(uuid: string, { suppressLoading = false, forceRefresh = false }: { suppressLoading?: boolean; forceRefresh?: boolean } = {}) {
+async function validateByUUID(uuid: string, { suppressLoading = false, forceRefresh = false }: { suppressLoading?: boolean, forceRefresh?: boolean } = {}) {
 	if (!suppressLoading) {
 		loading.value = true
 	}
@@ -549,7 +549,7 @@ async function validateByUUID(uuid: string, { suppressLoading = false, forceRefr
 	}
 }
 
-async function validateByNodeID(nodeId: string, { suppressLoading = false, forceRefresh = false }: { suppressLoading?: boolean; forceRefresh?: boolean } = {}) {
+async function validateByNodeID(nodeId: string, { suppressLoading = false, forceRefresh = false }: { suppressLoading?: boolean, forceRefresh?: boolean } = {}) {
 	if (!suppressLoading) {
 		loading.value = true
 	}

@@ -38,7 +38,7 @@ import { getCapabilities } from '@nextcloud/capabilities'
 
 type FilesStoreMock = ReturnType<typeof useFilesStore> & {
 	getFile: MockedFunction<(id: number) => unknown>
-	selectedFile: { id?: number; uuid?: string; name?: string; status?: number; filesCount?: number } | null
+	selectedFile: { id?: number, uuid?: string, name?: string, status?: number, filesCount?: number } | null
 	removeFilesFromEnvelope?: MockedFunction<(...args: unknown[]) => Promise<unknown>>
 	rename?: MockedFunction<(...args: unknown[]) => Promise<boolean>>
 }
@@ -88,7 +88,7 @@ type EnvelopeFilesListVm = {
 	confirmDeleteSelected: () => Promise<void>
 	onEnvelopeNameChange: (newName: string) => void
 	saveEnvelopeNameDebounced: (newName: string) => Promise<void>
-	onScroll: (event: { target: { scrollTop: number; scrollHeight: number; clientHeight: number } }) => void
+	onScroll: (event: { target: { scrollTop: number, scrollHeight: number, clientHeight: number } }) => void
 	cancelUpload: () => void
 	handleDelete: (file: EnvelopeFileRecord) => void
 	setData?: (values: Record<string, unknown>) => Promise<void>

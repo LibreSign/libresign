@@ -13,7 +13,7 @@ type SigningOrderDiagramComponent = typeof import('../../../components/SigningOr
 type DiagramSigner = {
 	id?: number
 	displayName?: string
-	identifyMethods?: Array<{ method?: string; value?: string }>
+	identifyMethods?: Array<{ method?: string, value?: string }>
 	signingOrder?: number
 	signed?: boolean
 	signDate?: number | null

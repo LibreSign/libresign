@@ -65,7 +65,7 @@ type PendingEnvelope = {
 	nodeType?: string
 	filesCount?: number
 	files?: Array<Pick<FileListItemRecord, 'fileId'>>
-	signers?: Array<{ displayName?: string; email?: string; signRequestId?: number }>
+	signers?: Array<{ displayName?: string, email?: string, signRequestId?: number }>
 	settings?: Pick<EditableFileSettingsDraft, 'path'>
 }
 
@@ -102,7 +102,7 @@ const policiesStore = usePoliciesStore()
 
 const sidebarTitleObserver = ref<MutationObserver | null>(null)
 
-type DirectSignTarget = { nodeId: number; name: string }
+type DirectSignTarget = { nodeId: number, name: string }
 const directSignTarget = ref<DirectSignTarget | null>(null)
 const isDirectSigning = ref(false)
 const directlySignedNodeId = ref<number | null>(null)

@@ -34,7 +34,7 @@ describe('PreviewSignature.vue', () => {
 		vi.clearAllMocks()
 	})
 
-	function createWrapper(props: { src: string; signRequestUuid?: string; alt?: string }) {
+	function createWrapper(props: { src: string, signRequestUuid?: string, alt?: string }) {
 		return mount(PreviewSignature, {
 			props,
 			global: {

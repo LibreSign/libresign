@@ -167,7 +167,7 @@ describe('router business rules', () => {
 			loadState.mockReturnValue('some-action')
 
 			const signRoute = getRoutes().find((r: RouteRecordNormalized) => r.path === '/p/sign/:uuid')
-			const redirectFn = signRoute?.redirect as (to: RouteLocationNormalized) => { name: string; params: Record<string, string> }
+			const redirectFn = signRoute?.redirect as (to: RouteLocationNormalized) => { name: string, params: Record<string, string> }
 
 			const to = makeRoute({ name: undefined, params: { uuid: 'test-uuid' } })
 			const result = redirectFn(to)
@@ -183,7 +183,7 @@ describe('router business rules', () => {
 			loadState.mockReturnValue('')
 
 			const signRoute = getRoutes().find((r: RouteRecordNormalized) => r.path === '/p/sign/:uuid')
-			const redirectFn = signRoute?.redirect as (to: RouteLocationNormalized) => { name: string; params: Record<string, string> }
+			const redirectFn = signRoute?.redirect as (to: RouteLocationNormalized) => { name: string, params: Record<string, string> }
 
 			const to = makeRoute({ name: undefined, params: { uuid: 'test-uuid' } })
 			const result = redirectFn(to)

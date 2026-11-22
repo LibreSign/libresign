@@ -42,7 +42,7 @@ type IdentifyMethodConfig = {
 type SignerToEdit = {
 	displayName?: string
 	description?: string
-	identifyMethods?: Array<{ method: string; value: string }>
+	identifyMethods?: Array<{ method: string, value: string }>
 	deviceGeolocationRequired?: boolean
 	metadata?: {
 		deviceGeolocationRequirement?: string

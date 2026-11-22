@@ -69,7 +69,7 @@ type BackgroundType = 'default' | 'custom' | 'deleted'
 
 defineProps<{
 	backgroundType: BackgroundType
-	backgroundOptions: Array<{ value: BackgroundType; label: string; description: string }>
+	backgroundOptions: Array<{ value: BackgroundType, label: string, description: string }>
 	showLoading: boolean
 	errorMessage: string
 }>()

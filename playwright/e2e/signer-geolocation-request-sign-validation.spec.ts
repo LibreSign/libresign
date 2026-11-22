@@ -193,7 +193,7 @@ test('request, sign, and validate device plus IP geolocation from a frozen snaps
 	const saveSignerPayload = saveSignerRequest.postDataJSON() as {
 		signers?: Array<{
 			deviceGeolocationRequired?: boolean
-			identifyMethods?: Array<{ method?: string; value?: string }>
+			identifyMethods?: Array<{ method?: string, value?: string }>
 		}>
 	}
 	expect(saveSignerPayload.signers?.[0]?.deviceGeolocationRequired).toBe(true)
@@ -248,7 +248,7 @@ test('request, sign, and validate device plus IP geolocation from a frozen snaps
 					me?: boolean
 					sign_request_uuid?: string
 					deviceGeolocationRequired?: boolean
-					identifyMethods?: Array<{ method?: string; value?: string }>
+					identifyMethods?: Array<{ method?: string, value?: string }>
 					metadata?: { deviceGeolocationRequirement?: string }
 				}>
 			}

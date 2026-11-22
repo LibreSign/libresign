@@ -71,11 +71,11 @@ vi.mock('@nextcloud/router', () => ({
 }))
 
 const mountDraw = (options: {
-	propsData?: { type?: string; drawEditor?: boolean; textEditor?: boolean; fileEditor?: boolean }
-	props?: { type?: string; drawEditor?: boolean; textEditor?: boolean; fileEditor?: boolean }
+	propsData?: { type?: string, drawEditor?: boolean, textEditor?: boolean, fileEditor?: boolean }
+	props?: { type?: string, drawEditor?: boolean, textEditor?: boolean, fileEditor?: boolean }
 	mocks?: Record<string, unknown>
 	stubs?: Record<string, unknown>
-	global?: { mocks?: Record<string, unknown>; stubs?: Record<string, unknown> }
+	global?: { mocks?: Record<string, unknown>, stubs?: Record<string, unknown> }
 	[key: string]: unknown
 } = {}) => {
 	const { propsData, props, mocks, stubs, global, ...rest } = options

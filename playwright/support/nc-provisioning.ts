@@ -13,7 +13,7 @@ import type { APIRequestContext } from '@playwright/test'
 
 export type OcsResponse<T = unknown> = {
 	ocs: {
-		meta: { status: string; statuscode: number; message: string }
+		meta: { status: string, statuscode: number, message: string }
 		data: T
 	}
 }

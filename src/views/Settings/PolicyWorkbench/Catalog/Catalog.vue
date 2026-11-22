@@ -557,10 +557,10 @@ const ruleDialogButtons = computed(() => {
 	}
 
 	const buttons: Array<{
-		label: string,
-		variant: 'primary' | 'secondary' | 'tertiary',
-		disabled?: boolean,
-		callback: () => false | Promise<false>,
+		label: string
+		variant: 'primary' | 'secondary' | 'tertiary'
+		disabled?: boolean
+		callback: () => false | Promise<false>
 	}> = []
 
 	if (showCreateRuleBackAction.value) {

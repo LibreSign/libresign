@@ -550,7 +550,7 @@ const documentFilesForMapping = computed<EditableRequestChildFile[]>(() => {
 })
 const visibleElementsDocument = computed<DocumentLike>(() => toVisibleElementsDocument(document.value))
 const visibleElementsFiles = computed<FileLike[]>(() => documentFiles.value.map(toVisibleElementsFile))
-const sidebarSigners = computed<Array<{ signer: EditableRequestSigner; index: number }>>(() => {
+const sidebarSigners = computed<Array<{ signer: EditableRequestSigner, index: number }>>(() => {
 	const signers: EditableRequestSigner[] = Array.isArray(document.value.signers) ? document.value.signers : []
 	return signers
 		.map((signer, index) => ({ signer, index }))
@@ -790,7 +790,7 @@ async function updateSigners() {
 
 	const fileIndexById = new Map<string, number>(filesToProcess.map((file, index) => [String(file.id), index]))
 	const elements = getVisibleElementsFromDocument(visibleElementsDocument.value)
-	const elementsByDoc = new Map<number, Array<{ element: VisibleElementRecord; signer: SignerSummaryRecord }>>()
+	const elementsByDoc = new Map<number, Array<{ element: VisibleElementRecord, signer: SignerSummaryRecord }>>()
 
 	elements.forEach((element) => {
 		const normalizedElement = normalizeVisibleElement(element)

@@ -76,7 +76,7 @@ import type { SignerDetailRecord, SignerSummaryRecord, VisibleElementRecord } fr
 
 type ServiceVisibleElement = VisibleElementRecord
 
-type SignError = { title?: string; message?: string; scope?: string }
+type SignError = { title?: string, message?: string, scope?: string }
 type SignDocumentStatus = number | string
 type SignDocumentVisibleElement = {
 	elementId?: number
@@ -138,7 +138,7 @@ type SignStore = Pick<ReturnType<typeof useSignStore>, 'document' | 'errors' | '
 }
 
 type FilesStore = Pick<ReturnType<typeof useFilesStore>, 'getAllFiles' | 'addFile' | 'selectFile' | 'getFile'> & {
-	fetchFileDetail: (options: { fileId?: number | null; uuid?: string | null; force?: boolean }) => Promise<SignDocument | null>
+	fetchFileDetail: (options: { fileId?: number | null, uuid?: string | null, force?: boolean }) => Promise<SignDocument | null>
 	addFile: (file: SignDocumentFile) => void
 	selectFile: (fileId: number) => void
 	getFile: () => { status?: SignDocumentStatus } | null
@@ -172,7 +172,7 @@ type RouterLike = {
 	push: (location: {
 		name: string
 		params: { uuid: string }
-		state: { isAfterSigned: boolean; isAsync: boolean }
+		state: { isAfterSigned: boolean, isAsync: boolean }
 	}) => Promise<unknown> | unknown
 }
 

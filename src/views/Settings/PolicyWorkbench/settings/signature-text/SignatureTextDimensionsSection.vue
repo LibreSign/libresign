@@ -93,16 +93,16 @@ import NcIconSvgWrapper from '@nextcloud/vue/components/NcIconSvgWrapper'
 type DisplayMode = 'default' | 'graphic' | 'text' | 'description_only'
 
 defineProps<{
-	id: string;
-	renderMode: DisplayMode;
-	templateFontSize: number;
-	signatureFontSize: number;
-	signatureWidth: number;
-	signatureHeight: number;
-	showResetTemplateFontSizeButton?: boolean;
-	showResetSignatureFontSizeButton?: boolean;
-	showResetWidthButton?: boolean;
-	showResetHeightButton?: boolean;
+	id: string
+	renderMode: DisplayMode
+	templateFontSize: number
+	signatureFontSize: number
+	signatureWidth: number
+	signatureHeight: number
+	showResetTemplateFontSizeButton?: boolean
+	showResetSignatureFontSizeButton?: boolean
+	showResetWidthButton?: boolean
+	showResetHeightButton?: boolean
 }>()
 
 const emit = defineEmits<{

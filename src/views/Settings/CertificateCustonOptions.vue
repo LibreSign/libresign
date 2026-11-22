@@ -145,7 +145,7 @@ watch(() => props.names, (values: CertificateOption[]) => {
 }, { immediate: true })
 
 function getOptionProperty(id: string, property: 'label' | 'helperText' | 'max') {
-	return availableOptions.value.find((option: { id: string; label?: string; helperText?: string; max?: number }) => option.id === id)?.[property]
+	return availableOptions.value.find((option: { id: string, label?: string, helperText?: string, max?: number }) => option.id === id)?.[property]
 }
 
 function getOptionLabel(id: string) {

@@ -48,7 +48,7 @@ vi.mock('../../../store/policies', () => ({
 
 const userConfigUpdateMock = vi.fn()
 const userConfigOnUpdateMock = vi.fn()
-const userConfigState: { warn_without_visible_signature_fields?: boolean; skip_direct_sign_confirmation?: boolean } = {}
+const userConfigState: { warn_without_visible_signature_fields?: boolean, skip_direct_sign_confirmation?: boolean } = {}
 
 vi.mock('../../../store/userconfig.js', () => ({
 	useUserConfigStore: () => ({

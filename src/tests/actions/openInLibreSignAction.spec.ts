@@ -102,7 +102,7 @@ describe('openInLibreSignAction rules', () => {
 		exec: (context: { nodes: unknown }) => Promise<unknown>
 		execBatch: (context: { nodes: unknown }) => Promise<unknown>
 	}
-	let loadState: { mockReturnValue: (value: unknown) => unknown; mockImplementation: (implementation: (_app: string, key: string) => unknown) => unknown }
+	let loadState: { mockReturnValue: (value: unknown) => unknown, mockImplementation: (implementation: (_app: string, key: string) => unknown) => unknown }
 	let getCapabilities: { mockReturnValue: (value: unknown) => unknown }
 	type PendingEnvelopeForTest = NonNullable<LibreSignGlobalNamespace['pendingEnvelope']> & {
 		id: number

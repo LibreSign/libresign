@@ -31,7 +31,7 @@ describe('showStatusInlineAction', () => {
 	let action: FileAction
 	let capturedActionRef: { value: FileAction | null }
 	let mockRegisterFileAction: MockedFunction<(actionInstance: FileAction) => void>
-	let mockGetSidebar: MockedFunction<() => { open: (node: FileNode, tab: string) => void; setActiveTab: (tab: string) => void }>
+	let mockGetSidebar: MockedFunction<() => { open: (node: FileNode, tab: string) => void, setActiveTab: (tab: string) => void }>
 	let mockLoadState: MockedFunction<(app: string, key: string, defaultValue?: boolean) => boolean>
 
 	beforeEach(async () => {

@@ -69,7 +69,7 @@ describe('RequestPicker component rules', () => {
 	type FilesStoreMock = {
 		upload: MockedFunction<(
 			formData: FormData | { file: { url: string } },
-			config?: { onUploadProgress?: (event: { loaded: number; total: number }) => void },
+			config?: { onUploadProgress?: (event: { loaded: number, total: number }) => void },
 		) => Promise<number>>
 		selectFile: MockedFunction<(id?: number) => void>
 		updateAllFiles: MockedFunction<() => Promise<unknown>>
@@ -703,7 +703,7 @@ describe('RequestPicker component rules', () => {
 			const files = [{ name: 'document.pdf', size: 1000 }]
 			await wrapper.vm.upload(files)
 			expect(filesStore.upload).toHaveBeenCalled()
-			const [formData] = filesStore.upload.mock.calls[0] as [FormData, { onUploadProgress?: (event: { loaded: number; total: number }) => void } | undefined]
+			const [formData] = filesStore.upload.mock.calls[0] as [FormData, { onUploadProgress?: (event: { loaded: number, total: number }) => void } | undefined]
 			expect(formData.get('name')).toBe('document')
 			expect(formData.get('expectedFilesCount')).toBe('1')
 		})
@@ -770,7 +770,7 @@ describe('RequestPicker component rules', () => {
 			]
 			await wrapper.vm.upload(files, 'My Envelope')
 			expect(filesStore.upload).toHaveBeenCalled()
-			const [formData] = filesStore.upload.mock.calls[0] as [FormData, { onUploadProgress?: (event: { loaded: number; total: number }) => void } | undefined]
+			const [formData] = filesStore.upload.mock.calls[0] as [FormData, { onUploadProgress?: (event: { loaded: number, total: number }) => void } | undefined]
 			expect(formData.get('name')).toBe('My Envelope')
 			expect(formData.get('expectedFilesCount')).toBe('2')
 			expect(formData.getAll('files[]')).toHaveLength(2)
@@ -784,7 +784,7 @@ describe('RequestPicker component rules', () => {
 			]
 			await wrapper.vm.upload(files, '  Envelope Name  ')
 			expect(filesStore.upload).toHaveBeenCalled()
-			const [formData] = filesStore.upload.mock.calls[0] as [FormData, { onUploadProgress?: (event: { loaded: number; total: number }) => void } | undefined]
+			const [formData] = filesStore.upload.mock.calls[0] as [FormData, { onUploadProgress?: (event: { loaded: number, total: number }) => void } | undefined]
 			expect(formData.get('name')).toBe('Envelope Name')
 		})
 
