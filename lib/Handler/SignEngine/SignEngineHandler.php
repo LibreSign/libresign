@@ -16,6 +16,7 @@ use OCA\Libresign\Exception\LibresignException;
 use OCA\Libresign\Handler\CertificateEngine\CertificateEngineFactory;
 use OCA\Libresign\Handler\CertificateEngine\IEngineHandler;
 use OCA\Libresign\Service\FolderService;
+use OCA\Libresign\Vendor\LibreSign\PdfSignatureValidator\Parser\PdfSignatureInventoryReader;
 use OCP\Files\File;
 use OCP\Files\InvalidPathException;
 use OCP\Files\NotFoundException;
@@ -127,6 +128,18 @@ abstract class SignEngineHandler implements ISignEngineHandler {
 	public function setSignatureParams(array $params): self {
 		$this->signatureParams = $params;
 		return $this;
+	}
+
+	/**
+	 * Ignore signature dictionaries not referenced by the PDF structure.
+	 * Keep the previous conservative check for inconclusive documents.
+	 */
+	protected function hasExistingSignatures(string $pdfContent): bool {
+		$inventory = (new PdfSignatureInventoryReader())->readFromString($pdfContent);
+		if ($inventory->isConclusive) {
+			return $inventory->activeSignatureCount > 0;
+		}
+		return (bool)preg_match('/\\/ByteRange\\s*\\[|\\/Type\\s*\\/Sig\\b|\\/DocMDP\\b|\\/Perms\\b/', $pdfContent);
 	}
 
 	public function setLeafExpiryOverrideInDays(?int $days): self {

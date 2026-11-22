@@ -22,6 +22,7 @@ use OCA\Libresign\Service\SignatureBackgroundService;
 use OCA\Libresign\Service\SignatureTextService;
 use OCA\Libresign\Service\SignerElementsService;
 use OCA\Libresign\Service\TemporarySignatureImageService;
+use OCA\Libresign\Tests\Fixtures\PdfGenerator;
 use OCA\Libresign\Vendor\Jeidison\JSignPDF\JSignPDF;
 use OCA\Libresign\Vendor\Jeidison\JSignPDF\Sign\JSignParam;
 use OCP\IAppConfig;
@@ -1244,6 +1245,16 @@ final class JSignPdfHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			'certification before TSA options' => [
 				true,
 				'%PDF-1.6',
+				['tsa_url' => 'https://tsa.example.test/tsr'],
+				[
+					'-cl' => DocMdpLevel::CERTIFIED_FORM_FILLING_AND_ANNOTATIONS->name,
+					'--tsa-server-url' => 'https://tsa.example.test/tsr',
+					'--hash-algorithm' => 'SHA256',
+				],
+			],
+			'certification when PDF has only an unreferenced signature dictionary' => [
+				true,
+				PdfGenerator::createPdfWithStandaloneDocMdpSignature(1),
 				['tsa_url' => 'https://tsa.example.test/tsr'],
 				[
 					'-cl' => DocMdpLevel::CERTIFIED_FORM_FILLING_AND_ANNOTATIONS->name,
