@@ -534,23 +534,14 @@ final class OrderCertificatesTraitTest extends \OCA\Libresign\Tests\Unit\TestCas
 		];
 	}
 
-	public function testDuplicateCertificateNamesKeepFirstOccurrence(): void {
-		$certificates = [
-			[
-				'name' => '/CN=Duplicate',
-				'subject' => ['CN' => 'Duplicate'],
-				'issuer' => ['CN' => 'Root'],
-			],
-			[
-				'name' => '/CN=Duplicate',
-				'subject' => ['CN' => 'Different'],
-				'issuer' => ['CN' => 'Root'],
-			],
+	public function testIdenticalCertificatesAreDeduplicated(): void {
+		$certificate = [
+			'name' => '/CN=Intermediate',
+			'subject' => ['CN' => 'Intermediate'],
+			'issuer' => ['CN' => 'Root'],
 		];
-
-		$result = $this->orderCertificates->orderCertificates($certificates);
-
-		$this->assertSame([$certificates[0]], $result);
+		$result = $this->orderCertificates->orderCertificates([$certificate, $certificate]);
+		$this->assertSame([$certificate], $result);
 	}
 
 	public function testChainWithDuplicatedIntermediateIsOrdered(): void {
@@ -575,6 +566,62 @@ final class OrderCertificatesTraitTest extends \OCA\Libresign\Tests\Unit\TestCas
 		$result = $this->orderCertificates->orderCertificates([$intermediateCert, $leaf, $intermediateCert, $rootCert]);
 
 		$this->assertSame(['/C=ES/CN=Signer', $intermediateCert['name'], $rootCert['name']], array_column($result, 'name'));
+	}
+
+	public function testCrossSignedIntermediatesPreferRootedPathRegardlessOfInputOrder(): void {
+		$intermediate = ['CN' => 'Intermediate'];
+		$root = ['CN' => 'Root'];
+		$leaf = [
+			'name' => '/CN=Leaf',
+			'subject' => ['CN' => 'Leaf'],
+			'issuer' => $intermediate,
+		];
+		$wrong = [
+			'name' => '/CN=Intermediate',
+			'subject' => $intermediate,
+			'issuer' => ['CN' => 'OtherRoot'],
+			'serialNumberHex' => '01',
+		];
+		$correct = [
+			'name' => '/CN=Intermediate',
+			'subject' => $intermediate,
+			'issuer' => $root,
+			'serialNumberHex' => '02',
+		];
+		$rootCert = ['name' => '/CN=Root', 'subject' => $root, 'issuer' => $root];
+
+		foreach ([$wrong, $correct] as $first) {
+			$second = $first === $wrong ? $correct : $wrong;
+			$result = $this->orderCertificates->orderCertificates([$first, $leaf, $second, $rootCert]);
+			$this->assertSame([$leaf, $correct, $rootCert, $wrong], $result);
+		}
+	}
+
+	public function testParsedAkiSkiSelectsMatchingIssuerWithoutRoot(): void {
+		$intermediate = ['CN' => 'Intermediate'];
+		$leaf = [
+			'name' => '/CN=Leaf',
+			'subject' => ['CN' => 'Leaf'],
+			'issuer' => $intermediate,
+			'extensions' => ['authorityKeyIdentifier' => 'keyid:AA:BB:CC'],
+		];
+		$wrong = [
+			'name' => '/CN=Intermediate',
+			'subject' => $intermediate,
+			'issuer' => ['CN' => 'Root'],
+			'serialNumberHex' => '01',
+			'extensions' => ['subjectKeyIdentifier' => 'DD:EE:FF'],
+		];
+		$correct = [
+			'name' => '/CN=Intermediate',
+			'subject' => $intermediate,
+			'issuer' => ['CN' => 'Root'],
+			'serialNumberHex' => '02',
+			'extensions' => ['subjectKeyIdentifier' => 'AA:BB:CC'],
+		];
+
+		$result = $this->orderCertificates->orderCertificates([$wrong, $leaf, $correct]);
+		$this->assertSame([$leaf, $correct, $wrong], $result);
 	}
 
 	public function testRealChainFromUser(): void {
