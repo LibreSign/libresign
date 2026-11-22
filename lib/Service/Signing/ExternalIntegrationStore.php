@@ -203,9 +203,19 @@ final class ExternalIntegrationStore {
 
 	/** @param array<string, mixed> $row */
 	private function toRecord(array $row): ExternalIntegrationRecord {
-		$config = json_decode((string)$row['configuration'], true, 512, JSON_THROW_ON_ERROR);
-		if (!is_array($config)) {
+		try {
+			$payload = json_decode((string)$row['configuration'], false, 512, JSON_THROW_ON_ERROR);
+		} catch (\JsonException) {
 			throw new \UnexpectedValueException('Malformed external integration configuration');
+		}
+		if (!$payload instanceof \stdClass) {
+			throw new \UnexpectedValueException('Malformed external integration configuration');
+		}
+		$config = (array)$payload;
+		foreach (array_keys($config) as $key) {
+			if (!is_string($key) || $key === '') {
+				throw new \UnexpectedValueException('Malformed external integration configuration');
+			}
 		}
 		return new ExternalIntegrationRecord(
 			(string)$row['public_id'],
@@ -244,7 +254,16 @@ final class ExternalIntegrationStore {
 
 	/** @param array<string, mixed> $configuration */
 	private function encodeConfiguration(array $configuration): string {
-		$encoded = json_encode((object)$configuration, JSON_THROW_ON_ERROR);
+		foreach (array_keys($configuration) as $key) {
+			if (!is_string($key) || $key === '') {
+				throw new \InvalidArgumentException('Invalid integration configuration');
+			}
+		}
+		try {
+			$encoded = json_encode((object)$configuration, JSON_THROW_ON_ERROR);
+		} catch (\JsonException) {
+			throw new \InvalidArgumentException('Invalid integration configuration');
+		}
 		if (strlen($encoded) > self::MAX_CONFIGURATION_BYTES) {
 			throw new \InvalidArgumentException('Integration configuration too large');
 		}

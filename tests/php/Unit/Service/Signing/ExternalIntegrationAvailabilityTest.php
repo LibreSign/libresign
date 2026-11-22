@@ -41,15 +41,4 @@ final class ExternalIntegrationAvailabilityTest extends TestCase {
 		$gate = new ExternalIntegrationAvailability(new ExperimentalFeaturesService($appConfig));
 		$this->assertSame($expected, $gate->canStartSigning($record, $available));
 	}
-
-	public function testPublicRecordDoesNotExposeSecretMaterial(): void {
-		$record = new ExternalIntegrationRecord(
-			str_repeat('a', 32), 'csc', 'CSC instance', ['serviceUrl' => 'https://example.invalid'], true, true, 2,
-			'2026-11-21T00:00:00+00:00', '2026-11-21T00:00:00+00:00',
-		);
-		$output = json_encode($record, JSON_THROW_ON_ERROR);
-		$this->assertStringContainsString('"hasSecrets":true', $output);
-		$this->assertStringNotContainsString('secrets_enc', $output);
-		$this->assertStringNotContainsString('accessToken', $output);
-	}
 }

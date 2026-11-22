@@ -31,6 +31,9 @@ final class ExternalIntegrationRecordTest extends TestCase {
 		$this->assertInstanceOf(\stdClass::class, $payload->configuration);
 		$this->assertSame($configuration, (array)$payload->configuration);
 		$this->assertTrue($payload->hasSecrets);
-		$this->assertFalse(isset($payload->secrets_enc));
+		$this->assertSame([
+			'id', 'driverId', 'name', 'configuration', 'enabled',
+			'hasSecrets', 'revision', 'createdAt', 'updatedAt',
+		], array_keys(get_object_vars($payload)));
 	}
 }

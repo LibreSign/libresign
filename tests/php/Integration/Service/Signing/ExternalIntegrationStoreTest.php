@@ -28,14 +28,17 @@ final class ExternalIntegrationStoreTest extends \OCA\Libresign\Tests\Integratio
 	}
 
 	public function tearDown(): void {
-		// Test-created IDs only. Never clear the integration table globally.
-		foreach ($this->created as $publicId) {
-			$qb = $this->db->getQueryBuilder();
-			$qb->delete('libresign_signing_integration')
-				->where($qb->expr()->eq('public_id', $qb->createNamedParameter($publicId)))
-				->executeStatement();
+		try {
+			// Test-created IDs only. Never clear the integration table globally.
+			foreach ($this->created as $publicId) {
+				$qb = $this->db->getQueryBuilder();
+				$qb->delete('libresign_signing_integration')
+					->where($qb->expr()->eq('public_id', $qb->createNamedParameter($publicId)))
+					->executeStatement();
+			}
+		} finally {
+			parent::tearDown();
 		}
-		parent::tearDown();
 	}
 
 	private function create(string $name = 'Synthetic CSC'): \OCA\Libresign\Service\Signing\ExternalIntegrationRecord {
@@ -70,6 +73,15 @@ final class ExternalIntegrationStoreTest extends \OCA\Libresign\Tests\Integratio
 		$this->assertStringNotContainsString('integration-test-secret', $stored);
 		$this->assertTrue($this->store->get($record->id)->hasSecrets);
 		$this->assertStringNotContainsString('integration-test-secret', json_encode($this->store->get($record->id), JSON_THROW_ON_ERROR));
+		$qb = $this->db->getQueryBuilder();
+		$internalId = (int)$qb->select('id')->from('libresign_signing_integration')
+			->where($qb->expr()->eq('public_id', $qb->createNamedParameter($record->id)))
+			->executeQuery()->fetchOne();
+		$page = $this->store->listPage($internalId - 1, 1);
+		$this->assertCount(1, $page['items']);
+		$this->assertSame($record->id, $page['items'][0]->id);
+		$this->assertStringNotContainsString($stored, json_encode($page['items'][0], JSON_THROW_ON_ERROR));
+		$this->assertStringNotContainsString('integration-test-secret', json_encode($page['items'][0], JSON_THROW_ON_ERROR));
 	}
 
 	public function testOmittingSecretChangesDoesNotModifyCiphertext(): void {
@@ -310,5 +322,77 @@ final class ExternalIntegrationStoreTest extends \OCA\Libresign\Tests\Integratio
 			->executeQuery()->fetchOne();
 		$this->assertSame('{}', $stored);
 		$this->assertSame('{}', json_encode($record->jsonSerialize()['configuration'], JSON_THROW_ON_ERROR));
+	}
+
+	/** @return array<string, array{array<mixed, mixed>}> */
+	public static function invalidConfigurations(): array {
+		return [
+			'list input' => [[['url' => 'https://example.invalid']]],
+			'numeric root key' => [[2 => 'unexpected']],
+			'empty root key' => [['' => 'unexpected']],
+			'invalid UTF-8 content' => [['field' => "\xC3\x28"]],
+		];
+	}
+
+	#[DataProvider('invalidConfigurations')]
+	public function testInvalidConfigurationCannotBePersisted(array $configuration): void {
+		$this->expectException(\InvalidArgumentException::class);
+		$this->store->create('csc', 'Invalid config', $configuration, []);
+	}
+
+	/** @return array<string, array{string}> */
+	public static function malformedPersistedConfigurations(): array {
+		return [
+			'JSON array' => ['[]'],
+			'JSON scalar' => ['null'],
+			'JSON syntax error' => ['malformed-json'],
+			'numeric field in JSON object' => ['{"0":"untrusted"}'],
+			'blank field in JSON object' => ['{"":"untrusted"}'],
+		];
+	}
+
+	#[DataProvider('malformedPersistedConfigurations')]
+	public function testMalformedPersistedConfigurationIsRejected(string $invalidJson): void {
+		$record = $this->create();
+		$qb = $this->db->getQueryBuilder();
+		$qb->update('libresign_signing_integration')
+			->set('configuration', $qb->createNamedParameter($invalidJson))
+			->where($qb->expr()->eq('public_id', $qb->createNamedParameter($record->id)))
+			->executeStatement();
+		$this->expectException(\UnexpectedValueException::class);
+		$this->store->get($record->id);
+	}
+
+	/** @return array<string, array{string}> */
+	public static function staleMutationTypes(): array {
+		return [
+			'update the name' => ['rename'],
+			'reenable' => ['enable'],
+			'disable' => ['disable'],
+			'delete' => ['delete'],
+		];
+	}
+
+	#[DataProvider('staleMutationTypes')]
+	public function testStaleLifecycleMutationsDoNotChangeTheCurrentRecord(string $mutation): void {
+		$initial = $this->create();
+		$current = $this->store->setEnabled($initial->id, $initial->revision, true);
+		$ciphertext = $this->encryptedValue($current->id);
+		try {
+			match ($mutation) {
+				'rename' => $this->store->update($initial->id, $initial->revision, 'stale update', $initial->configuration),
+				'enable' => $this->store->setEnabled($initial->id, $initial->revision, true),
+				'disable' => $this->store->setEnabled($initial->id, $initial->revision, false),
+				'delete' => $this->store->softDelete($initial->id, $initial->revision),
+			};
+			$this->fail('Stale mutation must not succeed');
+		} catch (\RuntimeException $e) {
+			$this->assertSame('Integration changed concurrently', $e->getMessage());
+		}
+		$after = $this->store->get($initial->id);
+		$this->assertTrue($after->enabled);
+		$this->assertSame($current->revision, $after->revision);
+		$this->assertSame($current->name, $after->name);
+		$this->assertSame($ciphertext, $this->encryptedValue($initial->id));
 	}
 }
