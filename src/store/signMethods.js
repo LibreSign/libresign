@@ -110,7 +110,7 @@ export const useSignMethodsStore = defineStore('signMethods', () => {
 
 	const needTokenCode = () => {
 		const tokenMethods = ['smsToken', 'whatsappToken', 'signalToken', 'telegramToken', 'xmppToken']
-		return tokenMethods.some(method =>
+		return tokenMethods.some((method) =>
 			Object.hasOwn(settings.value, method) && settings.value[method].needCode,
 		)
 	}

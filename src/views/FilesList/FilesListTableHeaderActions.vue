@@ -124,16 +124,16 @@ async function onActionClick(action: BatchAction) {
 
 		const results = await action.execBatch(selectionStore.selected)
 
-		if (!results.some(result => result !== null)) {
+		if (!results.some((result) => result !== null)) {
 			return
 		}
 
-		if (results.some(result => result === false)) {
+		if (results.some((result) => result === false)) {
 			const failedSources = selectionSources
 				.filter((source, index) => results[index] === false)
 			selectionStore.set(failedSources)
 
-			if (results.some(result => result === null)) {
+			if (results.some((result) => result === null)) {
 				return
 			}
 

@@ -767,7 +767,7 @@ const isCurrentFileDetailed = computed(() => currentFile.value?.detailsLoaded ==
 const notificationIssueItems = computed(() => Object.entries(notificationIssues.value).map(([id, issue]) => ({
 	id: Number(id),
 	// TRANSLATORS Participant who must sign the PDF; also used when a signer name is missing.
-	name: currentFile.value?.signers?.find(signer => signer.signRequestId === Number(id))?.displayName || t('libresign', 'Signer'),
+	name: currentFile.value?.signers?.find((signer) => signer.signRequestId === Number(id))?.displayName || t('libresign', 'Signer'),
 	issue,
 })))
 
@@ -781,7 +781,7 @@ function notificationIssueHeading(issue: NotificationIssue): string {
 
 function notificationIssueFromStatus(status: NotificationStatus | null): NotificationIssue {
 	const channels = status?.channels ?? []
-	const allFailed = channels.length > 0 && channels.every(channel => channel.state === 'failed' || channel.state === 'canceled')
+	const allFailed = channels.length > 0 && channels.every((channel) => channel.state === 'failed' || channel.state === 'canceled')
 	return {
 		type: allFailed ? 'error' : 'warning',
 		message: allFailed
@@ -1017,7 +1017,7 @@ function getMethodConfig(methodName: string | undefined): IdentifyMethodPolicyEn
 	if (!methodName) {
 		return undefined
 	}
-	return methods.value.find(method => method.name === methodName)
+	return methods.value.find((method) => method.name === methodName)
 }
 
 function getOcsErrorData(error: unknown): OcsErrorData | null {
@@ -1278,7 +1278,7 @@ function ensureHasSigningParticipants(): boolean {
 }
 
 function getCurrentSigningOrder(signersNotSigned: EditableRequestSigner[]) {
-	return Math.min(...signersNotSigned.map(s => s.signingOrder || 1))
+	return Math.min(...signersNotSigned.map((s) => s.signingOrder || 1))
 }
 
 function hasOrderDraftSigners(file: EditableRequestFile | null | undefined, order: number) {
@@ -1367,7 +1367,7 @@ const enabledMethods = computed(() => {
 			return [signerMethodConfig]
 		}
 	}
-	return methods.value.filter(method => method.enabled)
+	return methods.value.filter((method) => method.enabled)
 })
 
 const isSignerMethodDisabled = computed(() => {
@@ -1532,7 +1532,7 @@ function syncSelectedFooterTemplateSourceWithPolicy() {
 		return
 	}
 
-	if (!footerTemplateSourceOptions.value.some(option => option.value === selectedFooterTemplateSource.value)) {
+	if (!footerTemplateSourceOptions.value.some((option) => option.value === selectedFooterTemplateSource.value)) {
 		selectedFooterTemplateSource.value = footerTemplateSourceOptions.value[0]?.value ?? 'effective'
 	}
 }
@@ -1738,7 +1738,7 @@ function confirmSigningOrder(signer: EditableRequestSigner) {
 		delete observer.signingOrder
 	})
 
-	if (sortedSigners.every(currentSigner => typeof currentSigner.signingOrder === 'number')) {
+	if (sortedSigners.every((currentSigner) => typeof currentSigner.signingOrder === 'number')) {
 		normalizeSigningOrders(sortedSigners as Array<{ signingOrder: number }>)
 	}
 	file.signers = [...sortedSigners, ...observers]
@@ -1775,7 +1775,7 @@ async function sendNotify(signer: EditableRequestSigner): Promise<void> {
 	try {
 		const result = await submitAndWatchNotification(query, {
 			signal: controller.signal,
-			onUpdate: status => {
+			onUpdate: (status) => {
 				latestStatus = status
 			},
 		})
@@ -1795,7 +1795,7 @@ async function sendNotify(signer: EditableRequestSigner): Promise<void> {
 	} finally {
 		if (notificationControllers.get(signerId) === controller) {
 			notificationControllers.delete(signerId)
-			pendingNotificationIds.value = pendingNotificationIds.value.filter(id => id !== signerId)
+			pendingNotificationIds.value = pendingNotificationIds.value.filter((id) => id !== signerId)
 		}
 	}
 }

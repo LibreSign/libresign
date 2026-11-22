@@ -16,7 +16,7 @@ export type DirectSignInput = {
 }
 
 export function canSignDirectly(value: EffectivePolicyValue): boolean {
-	return normalizeIdentifyMethodsPolicy(value).some(factor =>
+	return normalizeIdentifyMethodsPolicy(value).some((factor) =>
 		factor.name === 'account'
 		&& factor.enabled
 		&& factor.signatureMethods.clickToSign?.enabled === true,

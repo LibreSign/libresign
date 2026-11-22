@@ -81,7 +81,7 @@ async function clearExistingIdDocument(page: Page): Promise<void> {
 			break
 		}
 		const [deleteResponse] = await Promise.all([
-			page.waitForResponse(response => response.request().method() === 'DELETE'
+			page.waitForResponse((response) => response.request().method() === 'DELETE'
 				&& response.url().includes('/apps/libresign/api/v1/id-docs/')),
 			deleteButton(page).click(),
 		])
@@ -119,7 +119,7 @@ test('identification documents appear on the account page after upload', async (
 		uploadButton(page).click(),
 	])
 	const [uploadResponse] = await Promise.all([
-		page.waitForResponse(response => response.request().method() === 'POST'
+		page.waitForResponse((response) => response.request().method() === 'POST'
 			&& response.url().includes('/apps/libresign/api/v1/id-docs')),
 		fileChooser.setFiles(resolve(process.cwd(), 'tests/php/fixtures/pdfs/small_valid.pdf')),
 	])

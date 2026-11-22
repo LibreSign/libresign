@@ -36,7 +36,7 @@ export async function login(
 		})
 
 		if (loginResponse.status() >= 500 && attempt < 2) {
-			await new Promise(resolve => setTimeout(resolve, (attempt + 1) * 500))
+			await new Promise((resolve) => setTimeout(resolve, (attempt + 1) * 500))
 			continue
 		}
 

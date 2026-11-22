@@ -165,7 +165,7 @@ export function getEnvelopeSubmitRequests({
 		})
 		// Some envelope documents require no reusable image. Avoid reporting a
 		// failed optional save for those documents when another one saved it.
-		if (payload.saveSignature && !payload.elements?.some(element => element.profileNodeId !== undefined)) {
+		if (payload.saveSignature && !payload.elements?.some((element) => element.profileNodeId !== undefined)) {
 			delete payload.saveSignature
 		}
 		requests.push({

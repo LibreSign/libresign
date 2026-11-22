@@ -328,7 +328,7 @@ function fileSelect(event: Event) {
 		image.value = String(fileReader.result || '')
 	})
 
-	fileReader.addEventListener('error', error => {
+	fileReader.addEventListener('error', (error) => {
 		logger.error('Failed to read file', { error })
 	})
 
@@ -403,7 +403,7 @@ onBeforeUnmount(() => {
 	window.removeEventListener('resize', updateContainerWidth)
 })
 
-watch(hasImage, value => {
+watch(hasImage, (value) => {
 	if (value) {
 		void nextTick(() => {
 			updateContainerWidth()

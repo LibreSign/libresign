@@ -113,19 +113,19 @@ async function loadFiles() {
 		const fileMap = new Map(fileList.map((file: FileEntry) => [file.id, file]))
 
 		files.value = props.fileIds
-			.map(id => fileMap.get(id))
+			.map((id) => fileMap.get(id))
 			.filter((file): file is FileEntry => Boolean(file))
 
 		emit('files-updated', files.value)
 
-		const signedFile = files.value.find(file => file.status === FILE_STATUS.SIGNED)
+		const signedFile = files.value.find((file) => file.status === FILE_STATUS.SIGNED)
 		if (signedFile && !previouslySignedIds.value.includes(signedFile.id)) {
 			emit('file-signed', signedFile)
 		}
 
 		previouslySignedIds.value = files.value
-			.filter(file => file.status === FILE_STATUS.SIGNED)
-			.map(file => file.id)
+			.filter((file) => file.status === FILE_STATUS.SIGNED)
+			.map((file) => file.id)
 	} catch (error) {
 		logger.error('[libresign][FileStatusList] Error loading files', { error })
 	} finally {

@@ -297,16 +297,16 @@ const filteredDocuments = computed(() => {
 
 	if (filters.owner) {
 		const ownerLower = filters.owner.toLowerCase()
-		docs = docs.filter(doc => {
+		docs = docs.filter((doc) => {
 			const displayName = doc.account.displayName || doc.account.userId
 			return displayName.toLowerCase().includes(ownerLower)
 		})
 	}
 
 	if (filters.status?.value === 'signed') {
-		docs = docs.filter(doc => doc.file.status === FILE_STATUS.SIGNED)
+		docs = docs.filter((doc) => doc.file.status === FILE_STATUS.SIGNED)
 	} else if (filters.status?.value === 'pending') {
-		docs = docs.filter(doc => doc.file.status !== FILE_STATUS.SIGNED)
+		docs = docs.filter((doc) => doc.file.status !== FILE_STATUS.SIGNED)
 	}
 
 	return docs
@@ -327,7 +327,7 @@ function getStatusOption(status: UserConfigFilters['status']): StatusOption | nu
 		return null
 	}
 
-	return STATUS_OPTIONS.find(option => option.value === status) || null
+	return STATUS_OPTIONS.find((option) => option.value === status) || null
 }
 
 function getErrorMessage(error: unknown): string | null {
@@ -480,7 +480,7 @@ function clearFilters() {
 
 function setStatusFilter(status: StatusOption['value'], value: boolean) {
 	if (value) {
-		filters.status = STATUS_OPTIONS.find(option => option.value === status) || null
+		filters.status = STATUS_OPTIONS.find((option) => option.value === status) || null
 	} else {
 		filters.status = null
 	}

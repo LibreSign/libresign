@@ -104,14 +104,14 @@ const authOptions: AuthOption[] = [
 	{ id: 'basic', label: t('libresign', 'Username / Password') },
 ]
 
-const hashAlgorithmOptions: HashAlgorithmOption[] = TSA_HASH_ALGORITHMS.map(algorithm => ({
+const hashAlgorithmOptions: HashAlgorithmOption[] = TSA_HASH_ALGORITHMS.map((algorithm) => ({
 	id: algorithm,
 	label: algorithm.replace('SHA', 'SHA-'),
 }))
 
 const selectedHashAlgorithm = computed<HashAlgorithmOption>({
 	get() {
-		return hashAlgorithmOptions.find(option => option.id === config.value.hash_algorithm) ?? hashAlgorithmOptions[0]
+		return hashAlgorithmOptions.find((option) => option.id === config.value.hash_algorithm) ?? hashAlgorithmOptions[0]
 	},
 	set(value) {
 		emitConfig({ hash_algorithm: value?.id ?? DEFAULT_TSA_HASH_ALGORITHM })
@@ -120,7 +120,7 @@ const selectedHashAlgorithm = computed<HashAlgorithmOption>({
 
 const selectedAuthType = computed<AuthOption>({
 	get() {
-		return authOptions.find(option => option.id === config.value.auth_type) ?? authOptions[0]
+		return authOptions.find((option) => option.id === config.value.auth_type) ?? authOptions[0]
 	},
 	set(value) {
 		const nextAuthType = value?.id ?? 'none'

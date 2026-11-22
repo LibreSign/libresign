@@ -208,7 +208,7 @@ const _filesStore = defineStore('files', () => {
 		? {
 			...metadata,
 			d: Array.isArray(metadata.d)
-				? metadata.d.map(dimension => dimension && typeof dimension === 'object' ? { ...dimension } : dimension)
+				? metadata.d.map((dimension) => dimension && typeof dimension === 'object' ? { ...dimension } : dimension)
 				: metadata.d,
 		}
 		: metadata
@@ -226,7 +226,7 @@ const _filesStore = defineStore('files', () => {
 		? {
 			...signer,
 			identifyMethods: Array.isArray(signer.identifyMethods)
-				? signer.identifyMethods.map(method => ({ ...method }))
+				? signer.identifyMethods.map((method) => ({ ...method }))
 				: signer.identifyMethods,
 			visibleElements: Array.isArray(signer.visibleElements)
 				? signer.visibleElements.map(cloneVisibleElement)
@@ -662,7 +662,7 @@ const _filesStore = defineStore('files', () => {
 	}
 
 	async function removeFilesFromEnvelope(fileIds) {
-		const deletePromises = fileIds.map(id =>
+		const deletePromises = fileIds.map((id) =>
 			axios.delete(
 				generateOcsUrl('/apps/libresign/api/v1/file/file_id/{fileId}', { fileId: id }),
 			),
@@ -739,7 +739,7 @@ const _filesStore = defineStore('files', () => {
 		}
 		return selectedFile.signers
 			.filter(isSigningParticipant)
-			.filter(signer => signer.signed?.length > 0).length > 0
+			.filter((signer) => signer.signed?.length > 0).length > 0
 	}
 
 	function isFullSigned(file) {
@@ -756,7 +756,7 @@ const _filesStore = defineStore('files', () => {
 		const signingParticipants = selectedFile.signers.filter(isSigningParticipant)
 		return signingParticipants.length > 0
 			&& signingParticipants
-				.filter(signer => signer.signed?.length > 0).length === signingParticipants.length
+				.filter((signer) => signer.signed?.length > 0).length === signingParticipants.length
 	}
 
 	function canSign(file) {
@@ -773,7 +773,7 @@ const _filesStore = defineStore('files', () => {
 		const isSigned = (signer) => Array.isArray(signer.signed)
 			? signer.signed.length > 0
 			: !!signer.signed
-		const mySigners = (selectedFile?.signers?.filter(signer => signer.me) || [])
+		const mySigners = (selectedFile?.signers?.filter((signer) => signer.me) || [])
 			.filter(isSigningParticipant)
 		if (isFullSigned(selectedFile)
 			|| selectedFile.status <= 0
@@ -795,13 +795,13 @@ const _filesStore = defineStore('files', () => {
 			return true
 		}
 
-		const pendingSigners = selectedFile?.signers?.filter(signer => !isSigned(signer) && isSigningParticipant(signer)) || []
+		const pendingSigners = selectedFile?.signers?.filter((signer) => !isSigned(signer) && isSigningParticipant(signer)) || []
 		if (pendingSigners.length === 0) {
 			return false
 		}
 
-		const minOrder = Math.min(...pendingSigners.map(signer => signer.signingOrder || 1))
-		return mySigners.some(signer => (signer.signingOrder || 1) === minOrder)
+		const minOrder = Math.min(...pendingSigners.map((signer) => signer.signingOrder || 1))
+		return mySigners.some((signer) => (signer.signingOrder || 1) === minOrder)
 	}
 
 	function canValidate(file) {
@@ -912,7 +912,7 @@ const _filesStore = defineStore('files', () => {
 		if (signers === undefined) {
 			return
 		}
-		signers.map(signer => addLocalKeyToSigner(signer))
+		signers.map((signer) => addLocalKeyToSigner(signer))
 	}
 
 	/** @param {EditableSignerDraft} signer */
@@ -1158,7 +1158,7 @@ const _filesStore = defineStore('files', () => {
 		})
 			.then((response) => {
 				if (response.data?.ocs?.meta?.status === 'ok') {
-					const fileId = Object.keys(files.value).find(key => files.value[key].uuid === uuid)
+					const fileId = Object.keys(files.value).find((key) => files.value[key].uuid === uuid)
 					if (fileId && files.value[fileId]) {
 						files.value[fileId].name = newName
 						emit('libresign:envelope:renamed', { uuid, name: newName })
@@ -1249,7 +1249,7 @@ const _filesStore = defineStore('files', () => {
 		}
 		params.set('details', requestDetails ? 'true' : 'false')
 		const filtersStore = useFiltersStore()
-		filtersStore.filterStatusArray.forEach(id => {
+		filtersStore.filterStatusArray.forEach((id) => {
 			params.append('status[]', id)
 		})
 		const modifiedRange = filtersStore.filterModifiedRange
@@ -1303,7 +1303,7 @@ const _filesStore = defineStore('files', () => {
 	}
 
 	function filesSorted() {
-		return ordered.value.map(key => files.value[key])
+		return ordered.value.map((key) => files.value[key])
 	}
 
 	/**
@@ -1355,7 +1355,7 @@ const _filesStore = defineStore('files', () => {
 		if (uuid || selectedFile.uuid) {
 			config.data.uuid = uuid || selectedFile.uuid
 		} else if (selectedFile.files) {
-			config.data.files = selectedFile.files.map(file => serializeRequestFile(file, { preferNodeId: true })).filter(Boolean)
+			config.data.files = selectedFile.files.map((file) => serializeRequestFile(file, { preferNodeId: true })).filter(Boolean)
 		} else if (selectedFile.id || selectedFile.nodeId || selectedFile.path || selectedFile.url) {
 			config.data.file = serializeRequestFile(selectedFile, { preferNodeId: true })
 		} else if (!isNaN(selectedFile.nodeId)) {

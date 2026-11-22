@@ -84,7 +84,6 @@ export default [
 			camelcase: 'off', // ~9 hits; store fields mirror backend/API keys
 
 			// Formatting — large autofix churn; follow-up PR
-			'@stylistic/arrow-parens': 'off', // ~168 hits
 			'@stylistic/exp-list-style': 'off', // ~34 hits
 			'@stylistic/function-paren-newline': 'off', // ~177 hits
 			'@stylistic/implicit-arrow-linebreak': 'off', // ~39 hits

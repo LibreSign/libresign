@@ -149,7 +149,7 @@ const isMethodDisabled = computed(() => {
 		return false
 	}
 	const signerMethod = signer.value.identifyMethods[0].method
-	const methodConfig = methods.value.find(m => m.name === signerMethod)
+	const methodConfig = methods.value.find((m) => m.name === signerMethod)
 	return methodConfig ? !methodConfig.enabled : false
 })
 
@@ -158,7 +158,7 @@ const disabledMethodLabel = computed(() => {
 		return ''
 	}
 	const signerMethod = signer.value.identifyMethods[0].method
-	const methodConfig = methods.value.find(m => m.name === signerMethod)
+	const methodConfig = methods.value.find((m) => m.name === signerMethod)
 	return methodConfig?.friendly_name || signerMethod
 })
 
@@ -200,7 +200,7 @@ const identifyMethodsNames = computed(() => {
 	if (!signer.value?.identifyMethods) {
 		return []
 	}
-	return signer.value.identifyMethods.map(method => method.method)
+	return signer.value.identifyMethods.map((method) => method.method)
 })
 
 function getIdentificationMethodAriaLabel(method: string) {

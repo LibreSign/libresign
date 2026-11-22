@@ -225,7 +225,7 @@ describe('ModalVerificationCode (email mode)', () => {
 		await wrapper.vm.$nextTick()
 
 		expect(wrapper.find('.signature-ready').text()).toBe(completion)
-		const actionLabels = wrapper.findAll('button').map(button => button.text().trim())
+		const actionLabels = wrapper.findAll('button').map((button) => button.text().trim())
 		expect(actionLabels).toContain(action)
 		expect(actionLabels).not.toContain(approvalContext ? 'Sign document' : 'Sign and approve document')
 	})

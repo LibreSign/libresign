@@ -1446,7 +1446,7 @@ describe('files store - critical business rules', () => {
 			})
 
 		const allowRequestOverrides = (...policyKeys: string[]) => {
-			usePoliciesStore().setPolicies(Object.fromEntries(policyKeys.map(policyKey => [policyKey, {
+			usePoliciesStore().setPolicies(Object.fromEntries(policyKeys.map((policyKey) => [policyKey, {
 				policyKey,
 				effectiveValue: null,
 				sourceScope: 'system',

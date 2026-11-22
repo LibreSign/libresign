@@ -47,7 +47,7 @@ const loading = ref(false)
 const isRoot = computed(() => route.path === '/')
 const isSignExternalPage = computed(() => route.path.startsWith('/p/'))
 const isDoNothingError = computed(() => initialActionCode.value === ACTION_CODES.DO_NOTHING)
-const showLeftSidebar = computed(() => !route.matched.some(record => record.meta?.hideLeftSidebar === true))
+const showLeftSidebar = computed(() => !route.matched.some((record) => record.meta?.hideLeftSidebar === true))
 </script>
 
 <style lang="scss" scoped>

@@ -21,7 +21,7 @@ interface CertificationOption {
  * @param id identification of custom option
  */
 export function selectCustonOption(id: string): Option<CertificationOption> {
-	return Option.from(options.find(item => item.id === id))
+	return Option.from(options.find((item) => item.id === id))
 }
 
 /**

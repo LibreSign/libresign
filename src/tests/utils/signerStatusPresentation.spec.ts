@@ -48,7 +48,7 @@ describe('getSignerStatusLabel', () => {
 
 	it('gives every hidden signer the same label', () => {
 		const labels = [SIGN_REQUEST_STATUS.DRAFT, SIGN_REQUEST_STATUS.ABLE_TO_SIGN, SIGN_REQUEST_STATUS.REJECTED]
-			.map(status => getSignerStatusLabel({ displayStatus: 'not_signed', status }, false))
+			.map((status) => getSignerStatusLabel({ displayStatus: 'not_signed', status }, false))
 
 		expect(new Set(labels).size).toBe(1)
 	})

@@ -54,7 +54,7 @@ export const action = {
 			return nodes[0].attributes?.['libresign-signature-status'] !== undefined
 		}
 
-		const allPdf = nodes.every(node => getNodeMime(node) === 'application/pdf')
+		const allPdf = nodes.every((node) => getNodeMime(node) === 'application/pdf')
 		if (!allPdf) {
 			return false
 		}
@@ -107,7 +107,7 @@ export const action = {
 			settings: {
 				path: envelopePath,
 			},
-			files: nodes.map(node => ({ fileId: getNodeFileId(node) })),
+			files: nodes.map((node) => ({ fileId: getNodeFileId(node) })),
 			filesCount: nodes.length,
 			signers: [],
 			uuid: null,

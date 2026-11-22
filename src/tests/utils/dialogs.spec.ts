@@ -17,7 +17,7 @@ describe('Nextcloud dialogs integration', () => {
 		const toast = showToast(message, { timeout: -1 })
 		await nextTick()
 		const notification = [...document.querySelectorAll(`[role="${role}"]`)]
-			.find(element => element.textContent?.includes(message))
+			.find((element) => element.textContent?.includes(message))
 		expect(notification).toBeDefined()
 		toast.hideToast()
 		await nextTick()

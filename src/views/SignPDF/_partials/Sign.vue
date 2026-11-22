@@ -905,7 +905,7 @@ const submitSignature = async (methodConfig: SignatureMethodConfig = {}) => {
 		}
 
 		const outcome = resolveSignSubmissionOutcome(attempts)
-		if (attempts.some(attempt => attempt.result.data?.signatureSaveStatus === 'failed')) {
+		if (attempts.some((attempt) => attempt.result.data?.signatureSaveStatus === 'failed')) {
 			showError(t('libresign', 'Your signature could not be saved for future documents'))
 		}
 		const modalCode = methodConfig.modalCode || methodConfig.method || 'token'

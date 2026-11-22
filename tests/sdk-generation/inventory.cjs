@@ -14,7 +14,7 @@ for (const node of source.statements) {
   if (!ts.isClassDeclaration(node) || !node.name) {
     continue
   }
-  classes.set(node.name.text, new Set(node.members.filter(ts.isMethodDeclaration).map(m => m.name.getText(source))))
+  classes.set(node.name.text, new Set(node.members.filter(ts.isMethodDeclaration).map((m) => m.name.getText(source))))
 }
 const generated = new Map()
 for (const tag of ['policies', 'identity', 'documents', 'requests', 'signing', 'appearance', 'verification', 'certificates', 'notifications', 'system']) {
@@ -45,7 +45,7 @@ for (const [url, operations] of Object.entries(spec.paths)) {
     if (!ok) {
       errors++
     }
-    rows.push(`| ${op.operationId} | ${key} | ${found.map(x => `${x.name}.${x.method}${x.exists ? '' : ' (missing)'}`).join(', ') || 'MISSING'} | ${ok ? 'OK' : 'FAIL'} |`)
+    rows.push(`| ${op.operationId} | ${key} | ${found.map((x) => `${x.name}.${x.method}${x.exists ? '' : ' (missing)'}`).join(', ') || 'MISSING'} | ${ok ? 'OK' : 'FAIL'} |`)
     generated.delete(key)
   }
 }

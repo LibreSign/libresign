@@ -110,5 +110,5 @@ const isTerminalStatus = (status: number): boolean => {
 }
 
 const sleep = (ms: number): Promise<void> => {
-	return new Promise(resolve => setTimeout(resolve, ms))
+	return new Promise((resolve) => setTimeout(resolve, ms))
 }

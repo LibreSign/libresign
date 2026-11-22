@@ -57,7 +57,7 @@ export function findPdfObjectLocation(documents: Array<{ allObjects?: Array<Arra
 	for (let docIndex = 0; docIndex < (documents || []).length; docIndex++) {
 		const pages = documents?.[docIndex]?.allObjects || []
 		for (let pageIndex = 0; pageIndex < pages.length; pageIndex++) {
-			if (pages[pageIndex]?.some(object => object.id === objectId)) {
+			if (pages[pageIndex]?.some((object) => object.id === objectId)) {
 				return { docIndex, pageIndex }
 			}
 		}
@@ -76,7 +76,7 @@ export function resolvePdfEditorSignerChange(options: {
 		return null
 	}
 
-	const targetSigner = options.availableSigners.find(candidate => getPdfEditorSignerId(candidate) === signerId)
+	const targetSigner = options.availableSigners.find((candidate) => getPdfEditorSignerId(candidate) === signerId)
 	if (!targetSigner) {
 		return null
 	}

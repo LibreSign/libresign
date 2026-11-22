@@ -279,7 +279,7 @@ describe('IdDocsValidation.vue', () => {
 		const wrapper = createWrapper()
 		await flushPromises()
 
-		const actionLabels = wrapper.findAll('.nc-action-button-stub').map(action => action.text().trim())
+		const actionLabels = wrapper.findAll('.nc-action-button-stub').map((action) => action.text().trim())
 		expect(actionLabels).toContain('Review and approve')
 		expect(actionLabels).not.toContain('Sign')
 		expect(wrapper.text()).toContain('Approved')
@@ -304,7 +304,7 @@ describe('IdDocsValidation.vue', () => {
 		expect(row.text()).toContain('waiting for approval')
 		expect(row.text()).not.toContain('Partially signed')
 		const approveAction = row.findAll('.nc-action-button-stub')
-			.find(action => action.text().trim() === 'Review and approve')
+			.find((action) => action.text().trim() === 'Review and approve')
 		expect(approveAction).toBeDefined()
 		await approveAction!.trigger('click')
 		expect(routerPushMock).toHaveBeenCalledWith({

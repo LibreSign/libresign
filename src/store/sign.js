@@ -146,7 +146,7 @@ export const useSignStore = defineStore('sign', () => {
 		}
 
 		const currentUserAsSigner = Array.isArray(file?.signers)
-			? file.signers.find(row => row?.me === true)
+			? file.signers.find((row) => row?.me === true)
 			: null
 		return pickMethods(currentUserAsSigner?.signatureMethods)
 			|| pickMethods(file?.signatureMethods)

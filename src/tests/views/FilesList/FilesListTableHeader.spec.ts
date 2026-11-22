@@ -106,7 +106,7 @@ function createWrapper(filesCount = 2, options: { canRequestSign?: boolean } = {
 		initialState: {
 			files: {
 				ordered,
-				files: Object.fromEntries(ordered.map(id => [id, { id }])),
+				files: Object.fromEntries(ordered.map((id) => [id, { id }])),
 				canRequestSign: options.canRequestSign ?? true,
 			},
 		},

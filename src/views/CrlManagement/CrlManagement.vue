@@ -369,7 +369,7 @@ const statusOptions: SelectOption[] = [
 ]
 const initialStatus = userConfigStore.crl_filters?.status
 const initialStatusOption = typeof initialStatus === 'string'
-	? statusOptions.find(option => option.value === initialStatus) || null
+	? statusOptions.find((option) => option.value === initialStatus) || null
 	: null
 const filters = reactive({
 	serialNumber: userConfigStore.crl_filters?.serialNumber || '',
@@ -585,7 +585,7 @@ function clearFilters() {
 
 function setStatusFilter(status: string, value: boolean) {
 	if (value) {
-		filters.status = statusOptions.find(option => option.value === status) || null
+		filters.status = statusOptions.find((option) => option.value === status) || null
 	} else {
 		filters.status = null
 	}

@@ -30,7 +30,7 @@ vi.mock('@nextcloud/router', () => ({
 	generateOcsUrl: vi.fn((path, params) => {
 		let url = `/ocs/v2.php/apps/libresign${path}`
 		if (params) {
-			Object.keys(params).forEach(key => {
+			Object.keys(params).forEach((key) => {
 				url = url.replace(`{${key}}`, params[key])
 			})
 		}

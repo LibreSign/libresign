@@ -121,7 +121,7 @@ test('observer receives validation link and cannot enter signing flow', async ({
 		// read-only PDF Viewer, not the browser fallback used without the handler.
 		await expect(page.locator('[role="dialog"][data-handler="pdf"]')).toBeVisible({ timeout: 15_000 })
 		await expect.poll(async () => {
-			const frame = page.frames().find(f => f.url().includes('/apps/files_pdfviewer/'))
+			const frame = page.frames().find((f) => f.url().includes('/apps/files_pdfviewer/'))
 			return frame?.evaluate(() => {
 				const app = (window as typeof window & {
 					PDFViewerApplication?: { pdfDocument?: { numPages?: number } }

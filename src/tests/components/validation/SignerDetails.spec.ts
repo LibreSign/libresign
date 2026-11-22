@@ -75,7 +75,7 @@ describe('SignerDetails.vue - Business Logic', () => {
 				},
 			})
 			const field = wrapper.findAllComponents({ name: 'NcListItem' })
-				.find(item => item.props('name') === 'Visible signature:')
+				.find((item) => item.props('name') === 'Visible signature:')
 			expect(field?.text()).toBe(`Visible signature: ${expected}`)
 			expect(wrapper.text()).toContain('Signed on:')
 			expect(wrapper.text()).toContain('Hash algorithm: SHA256')

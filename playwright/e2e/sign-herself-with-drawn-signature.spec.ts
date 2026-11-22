@@ -115,7 +115,7 @@ test('sign herself with drawn signature', async ({ page }) => {
 	await expect(pdfPage).toBeVisible()
 	await expect(pageOverlay).toBeVisible()
 	page.off('pageerror', collectPdfPageError)
-	expect(pdfPageErrors.map(error => error.message)).toEqual([])
+	expect(pdfPageErrors.map((error) => error.message)).toEqual([])
 
 	await editSignerLink.click()
 

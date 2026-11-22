@@ -42,7 +42,7 @@ const _signatureElementsStore = defineStore('signatureElements', () => {
 		const userSignatures = loadState('libresign', 'user_signatures', false)
 		if (userSignatures) {
 			signRequestUuid.value = loadState('libresign', 'sign_request_uuid', '')
-			userSignatures.forEach(element => {
+			userSignatures.forEach((element) => {
 				signs.value[element.type] = element
 			})
 			initialized.value = true
@@ -62,7 +62,7 @@ const _signatureElementsStore = defineStore('signatureElements', () => {
 
 		await axios(config)
 			.then(({ data }) => {
-				data.ocs.data.elements.forEach(current => {
+				data.ocs.data.elements.forEach((current) => {
 					signs.value[current.type] = current
 				})
 			})
@@ -111,7 +111,7 @@ const _signatureElementsStore = defineStore('signatureElements', () => {
 		await axios(config)
 			.then(({ data }) => {
 				if (Object.hasOwn(data.ocs.data, 'elements')) {
-					data.ocs.data.elements.forEach(element => {
+					data.ocs.data.elements.forEach((element) => {
 						signs.value[element.type] = element
 					})
 				}
@@ -169,7 +169,7 @@ const _signatureElementsStore = defineStore('signatureElements', () => {
 
 		return axios(config)
 			.then(({ data }) => {
-				data.ocs.data.elements.forEach(element => {
+				data.ocs.data.elements.forEach((element) => {
 					signs.value[element.type] = element
 				})
 				return true

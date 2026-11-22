@@ -52,13 +52,13 @@ const action = {
 	inline: () => true,
 	enabled: ({ nodes }) => {
 		const certificateOk = loadState('libresign', 'certificate_ok')
-		const allHaveStatus = nodes?.every(node => node.attributes?.['libresign-signature-status'] !== undefined)
+		const allHaveStatus = nodes?.every((node) => node.attributes?.['libresign-signature-status'] !== undefined)
 
 		if (!certificateOk || !allHaveStatus) {
 			return false
 		}
 
-		const allPdfOrFolder = nodes?.length > 0 && nodes.every(node =>
+		const allPdfOrFolder = nodes?.length > 0 && nodes.every((node) =>
 			getNodeMime(node) === 'application/pdf' || node.type === 'folder',
 		)
 

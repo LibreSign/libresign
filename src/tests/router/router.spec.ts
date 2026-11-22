@@ -117,7 +117,7 @@ describe('router business rules', () => {
 			displayName: 'Test User',
 		} as ReturnType<typeof getCurrentUser>)
 		loadState.mockReturnValue('')
-		generateUrl.mockImplementation(path => path)
+		generateUrl.mockImplementation((path) => path)
 		getRootUrl.mockReturnValue('')
 		isExternal.mockReturnValue(false)
 		selectAction.mockReturnValue(null)

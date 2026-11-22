@@ -64,7 +64,7 @@ export async function waitForEmailTo(
 		} catch {
 			// email not arrived yet
 		}
-		await new Promise(resolve => setTimeout(resolve, interval))
+		await new Promise((resolve) => setTimeout(resolve, interval))
 	}
 	throw new Error(
 		`Timeout (${timeout} ms) waiting for email to "${toAddress}"${

@@ -299,13 +299,13 @@ function resetTemplateToDefault() {
 			height: Number(previewHeight.value),
 		},
 		{ responseType: 'blob' },
-	).then(response => {
+	).then((response) => {
 		footerTemplate.value = ''
 		originalTemplate.value = ''
 		isDefaultTemplate.value = true
 		emit('template-reset')
 		setPdfPreview(response.data)
-	}).catch(error => {
+	}).catch((error) => {
 		logger.error('Error resetting footer template', { error })
 	})
 }
@@ -334,9 +334,9 @@ function saveFooterTemplate() {
 			height: Number(previewHeight.value),
 		},
 		{ responseType: 'blob' },
-	).then(response => {
+	).then((response) => {
 		setPdfPreview(response.data)
-	}).catch(error => {
+	}).catch((error) => {
 		logger.error('Error saving footer template', { error })
 	})
 }
@@ -397,7 +397,7 @@ const debouncedSaveDimensions = debounce(saveDimensions, 500)
 
 onMounted(() => {
 	axios.get(generateOcsUrl('/apps/libresign/api/v1/footer-template'))
-		.then(response => {
+		.then((response) => {
 				const template = response.data.ocs.data.template
 				const width = response.data.ocs.data.preview_width
 				const height = response.data.ocs.data.preview_height

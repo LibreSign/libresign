@@ -818,7 +818,7 @@ describe('RequestPicker component rules', () => {
 		spawnDialogMock.mockResolvedValueOnce(true)
 		const createElement = vi.spyOn(document, 'createElement')
 		wrapper.vm.signPdfNow()
-		const input = createElement.mock.results.find(result => result.value?.type === 'file')!.value as HTMLInputElement
+		const input = createElement.mock.results.find((result) => result.value?.type === 'file')!.value as HTMLInputElement
 		Object.defineProperty(input, 'files', { value: { item: () => new File(['%PDF-'], 'signed.pdf', { type: 'application/pdf' }) } })
 		input.dispatchEvent(new Event('change'))
 		await flushPromises()
@@ -832,7 +832,7 @@ describe('RequestPicker component rules', () => {
 			const createElementSpy = vi.spyOn(document, 'createElement')
 			wrapper.vm.uploadFile()
 			const fileInputResult = createElementSpy.mock.results.find(
-				result => result.value?.type === 'file',
+				(result) => result.value?.type === 'file',
 			)
 			const fileInput = fileInputResult?.value as HTMLInputElement | undefined
 			expect(fileInput).toBeDefined()
@@ -878,7 +878,7 @@ describe('RequestPicker component rules', () => {
 			const createElementSpy = vi.spyOn(document, 'createElement')
 			newWrapper.vm.uploadFile()
 			const fileInputResult = createElementSpy.mock.results.find(
-				result => result.value?.type === 'file',
+				(result) => result.value?.type === 'file',
 			)
 			const fileInput = fileInputResult?.value as HTMLInputElement | undefined
 			expect(fileInput).toBeDefined()
@@ -894,7 +894,7 @@ describe('RequestPicker component rules', () => {
 			const createElementSpy = vi.spyOn(document, 'createElement')
 			wrapper.vm.uploadFile()
 			const fileInputResult = createElementSpy.mock.results.find(
-				result => result.value?.type === 'file',
+				(result) => result.value?.type === 'file',
 			)
 			const fileInput = fileInputResult?.value as HTMLInputElement | undefined
 			expect(fileInput).toBeDefined()
