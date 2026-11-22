@@ -100,15 +100,20 @@ final class ExternalIntegrationStoreTest extends \OCA\Libresign\Tests\Integratio
 		$this->assertSame($stored, $this->encryptedValue($record->id));
 	}
 
-	public function testSoftDeletePreservesReferenceAndEncryptedSecret(): void {
+	public function testSoftDeleteRetainsIdentityButPurgesCredentials(): void {
 		$record = $this->create();
 		$enabled = $this->store->setEnabled($record->id, $record->revision, true);
 		$this->assertTrue($enabled->enabled);
 		$encrypted = $this->encryptedValue($record->id);
 		$this->store->softDelete($enabled->id, $enabled->revision);
 		$this->assertNull($this->store->find($enabled->id));
-		$this->assertFalse($this->store->findRetainedReference($enabled->id)->enabled);
-		$this->assertSame($encrypted, $this->encryptedValue($enabled->id));
+		$retained = $this->store->findRetainedReference($enabled->id);
+		$this->assertNotNull($retained);
+		$this->assertFalse($retained->enabled);
+		$this->assertFalse($retained->hasSecrets);
+		$this->assertSame([], $retained->configuration);
+		$this->assertNotSame('', $encrypted);
+		$this->assertSame('', $this->encryptedValue($enabled->id));
 	}
 
 	public function testUpdateRejectsStaleRevisionWithoutClobberingState(): void {
@@ -153,7 +158,7 @@ final class ExternalIntegrationStoreTest extends \OCA\Libresign\Tests\Integratio
 		$this->assertSame('', $this->encryptedValue($record->id));
 	}
 
-	public function testEnableDisableAndRetainedDeletionDoNotLoseIdentityOrSecrets(): void {
+	public function testEnableDisablePreservesSecretsUntilDeletionPurgesThem(): void {
 		$record = $this->create();
 		$initialCiphertext = $this->encryptedValue($record->id);
 		$enabled = $this->store->setEnabled($record->id, $record->revision, true);
@@ -168,7 +173,9 @@ final class ExternalIntegrationStoreTest extends \OCA\Libresign\Tests\Integratio
 		$this->assertNotNull($retained);
 		$this->assertSame($record->id, $retained->id);
 		$this->assertFalse($retained->enabled);
-		$this->assertSame($initialCiphertext, $this->encryptedValue($record->id));
+		$this->assertFalse($retained->hasSecrets);
+		$this->assertSame([], $retained->configuration);
+		$this->assertSame('', $this->encryptedValue($record->id));
 		$this->expectException(\RuntimeException::class);
 		$this->store->setEnabled($record->id, $retained->revision, true);
 	}
