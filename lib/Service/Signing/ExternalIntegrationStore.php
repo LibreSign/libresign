@@ -16,10 +16,10 @@ use OCP\IDBConnection;
  * keys against the actual #9595 driver catalog before calling this service.
  * No remote signing or public HTTP request is performed here.
  *
- * The store has no hard-delete operation. A deleted integration remains an
- * immutable, disabled tombstone, preserving encrypted data for sessions that
- * were created before deletion. Existing sessions will require their own
- * authorization-scoped continuation lookup once that lifecycle is implemented.
+ * Deletion retains a disabled identity tombstone, but erases configuration
+ * and encrypted credentials. No external signing sessions consume this store
+ * yet. Before implementing sessions, their owner must snapshot scoped,
+ * expiring encrypted credentials or deny deletion while sessions are active.
  */
 final class ExternalIntegrationStore {
 	private const TABLE = 'libresign_signing_integration';
@@ -69,6 +69,20 @@ final class ExternalIntegrationStore {
 	/** @return ExternalIntegrationRecord */
 	public function get(string $publicId): ExternalIntegrationRecord {
 		return $this->find($publicId) ?? throw new \OutOfBoundsException('Integration not found');
+	}
+
+	/**
+	 * Return only names of configured secret fields for a trusted admin caller.
+	 * Secret values never leave this storage boundary through this method.
+	 *
+	 * @return list<string>
+	 */
+	public function configuredSecretKeys(string $publicId): array {
+		$row = $this->loadRow($publicId, false);
+		if ($row === null) {
+			throw new \OutOfBoundsException('Integration not found');
+		}
+		return array_keys($this->secrets->decrypt((string)$row['secrets_enc']));
 	}
 
 	/**
@@ -149,8 +163,8 @@ final class ExternalIntegrationStore {
 	}
 
 	/**
-	 * Deletion never destroys the row, its stable ID or the encrypted secrets.
-	 * New signing sessions must only select nondeleted, enabled records.
+	 * Deletion preserves identity for audit but erases connection settings and
+	 * credentials atomically; new sessions must not use deleted integrations.
 	 */
 	public function softDelete(string $publicId, int $expectedRevision): void {
 		$this->writeLifecycle($publicId, $expectedRevision, false, true);
