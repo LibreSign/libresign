@@ -15,7 +15,11 @@
 					{{ t('libresign', 'External signing providers') }}
 				</h3>
 				<p>{{ t('libresign', 'Manage external signing integrations independently of signing policies.') }}</p>
-				<p v-if="!adapter" id="external-signing-admin-unavailable" class="external-signing-admin__status" role="status">
+				<p
+					v-if="!adapter"
+					id="external-signing-admin-unavailable"
+					class="external-signing-admin__status"
+					role="status">
 					{{ t('libresign', 'Integration management is not connected yet.') }}
 				</p>
 			</div>

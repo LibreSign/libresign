@@ -67,14 +67,15 @@ describe('ExternalSigningAdmin', () => {
 	})
 
 	it('opens the real administrative dialog when an adapter is supplied', async () => {
-		const wrapper = mountAdmin({ adapter })
+		const list = vi.fn().mockResolvedValue([])
+		const wrapper = mountAdmin({ adapter: { ...adapter, list } })
 		await flushPromises()
 
 		expect(wrapper.find('button').attributes('disabled')).toBeUndefined()
 		wrapper.findComponent(NcButton).vm.$emit('click')
 		await flushPromises()
 		expect(wrapper.findComponent(NcDialog).exists()).toBe(true)
-		expect(document.body.textContent).toContain('No integrations configured.')
+		expect(list).toHaveBeenCalledOnce()
 	})
 
 	it('uses compact presentation without introducing policy semantics', async () => {
