@@ -158,11 +158,11 @@ trait OrderCertificatesTrait {
 	private function validateAkiSkiMatch(array $child, array $parent): bool {
 		$childAki = $child['extensions']['authorityKeyIdentifier'] ?? null;
 		$parentSki = $parent['extensions']['subjectKeyIdentifier'] ?? null;
-		if (is_string($childAki) && is_string($parentSki)
-			&& preg_match('/(?:^|\R)\h*keyid:\h*([^\r\n]+)/i', $childAki, $matches) === 1) {
-			$aki = strtoupper(str_replace(':', '', trim($matches[1])));
-			$ski = strtoupper(str_replace(':', '', trim($parentSki)));
-			return $aki !== '' && strlen($aki) % 2 === 0 && ctype_xdigit($aki) && $aki === $ski;
+		if (is_string($childAki) && is_string($parentSki)) {
+			$match = $this->keyIdentifiersMatch($childAki, $parentSki);
+			if ($match !== null) {
+				return $match;
+			}
 		}
 
 		if (!isset($child['name']) || !isset($parent['name'])) {
@@ -195,7 +195,17 @@ trait OrderCertificatesTrait {
 		$childAki = $childData['extensions']['authorityKeyIdentifier'];
 		$parentSki = $parentData['extensions']['subjectKeyIdentifier'];
 
-		return str_contains($childAki, $parentSki);
+		return $this->keyIdentifiersMatch($childAki, $parentSki) ?? true;
+	}
+
+	private function keyIdentifiersMatch(string $akiExtension, string $skiExtension): ?bool {
+		if (preg_match('/(?:^|\R)\h*keyid:\h*([^\r\n]+)/i', $akiExtension, $matches) !== 1) {
+			return null;
+		}
+
+		$aki = strtoupper(str_replace(':', '', trim($matches[1])));
+		$ski = strtoupper(str_replace(':', '', trim($skiExtension)));
+		return $aki !== '' && strlen($aki) % 2 === 0 && ctype_xdigit($aki) && $aki === $ski;
 	}
 
 	private function normalizeDistinguishedName(array $dn): string {
