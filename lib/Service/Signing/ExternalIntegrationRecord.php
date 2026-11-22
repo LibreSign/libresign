@@ -8,7 +8,7 @@ declare(strict_types=1);
 
 namespace OCA\Libresign\Service\Signing;
 
-/** Public view of an integration. Configuration must be validated and secret-free before construction. */
+/** Serializable administrative metadata for a configured integration. */
 final readonly class ExternalIntegrationRecord implements \JsonSerializable {
 	/** @param array<string, mixed> $configuration */
 	public function __construct(

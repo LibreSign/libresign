@@ -14,10 +14,7 @@ use OCP\DB\Types;
 use OCP\Migration\IOutput;
 use OCP\Migration\SimpleMigrationStep;
 
-/**
- * Persist distinct configured external signing integrations. Deleted entries are
- * retained as disabled tombstones for future session and audit references.
- */
+/** Schema for configured external signing integrations and audit tombstones. */
 final class Version19006Date20261121170000 extends SimpleMigrationStep {
 	/** @param Closure(): ISchemaWrapper $schemaClosure */
 	#[\Override]
@@ -77,7 +74,7 @@ final class Version19006Date20261121170000 extends SimpleMigrationStep {
 		]);
 		$table->addColumn('deleted_at', Types::DATETIME, [
 			'notnull' => false,
-			'comment' => 'UTC deletion timestamp; retained tombstones preserve session references.',
+			'comment' => 'UTC deletion timestamp; deleted records retain audit identity.',
 		]);
 		$table->setPrimaryKey(['id']);
 		$table->addUniqueIndex(['public_id'], 'ls_sign_int_public_uidx');

@@ -12,14 +12,10 @@ use OCP\DB\QueryBuilder\IQueryBuilder;
 use OCP\IDBConnection;
 
 /**
- * Storage only. The administrative API must validate configuration and secret
- * keys against the actual #9595 driver catalog before calling this service.
- * No remote signing or public HTTP request is performed here.
+ * Persists configured external signing integrations.
  *
- * Deletion retains a disabled identity tombstone, but erases configuration
- * and encrypted credentials. No external signing sessions consume this store
- * yet. Before implementing sessions, their owner must snapshot scoped,
- * expiring encrypted credentials or deny deletion while sessions are active.
+ * Soft deletion disables an integration, removes its configuration and encrypted
+ * credentials, and retains its identity and lifecycle metadata for auditing.
  */
 final class ExternalIntegrationStore {
 	private const TABLE = 'libresign_signing_integration';
@@ -32,7 +28,7 @@ final class ExternalIntegrationStore {
 	}
 
 	/**
-	 * @param array<string, mixed> $validatedConfiguration Validated by the driver catalog; never include secret fields.
+	 * @param array<string, mixed> $validatedConfiguration Public fields validated by the administration service.
 	 * @param array<string, string> $validatedSecrets Only secret fields accepted by the driver catalog.
 	 */
 	public function create(

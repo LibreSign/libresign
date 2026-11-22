@@ -9,10 +9,10 @@ declare(strict_types=1);
 namespace OCA\Libresign\Service\Signing;
 
 /**
- * Validates administrative input against a driver's declarative fields.
- * No provider-specific field names or credentials are defined here.
- * The outbound HTTP transport must independently enforce DNS, IP and redirect
- * safety at connection time; configuration validation cannot prevent rebinding.
+ * Validates integration settings against declarative driver metadata.
+ *
+ * Enforces accepted fields, secret placement and HTTPS URL restrictions.
+ * Validation does not initiate network connections.
  */
 final class ExternalIntegrationFieldValidator {
 	/**

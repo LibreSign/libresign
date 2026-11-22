@@ -12,11 +12,8 @@ use OCA\Libresign\Exception\ExternalIntegrationSecretException;
 use OCP\Security\ICrypto;
 
 /**
- * Encrypts integration secrets for database storage. AppConfig's sensitivity
- * flag does not apply to custom database tables.
- *
- * Only server-side signing adapters may consume decrypted secrets. Controllers
- * must never return, log or serialize the result of decrypt().
+ * Encrypts integration credentials for storage in an application database table.
+ * Decrypted values remain internal to server-side services.
  */
 final class ExternalIntegrationSecrets {
 	private const MAX_SECRET_JSON_BYTES = 16384;
@@ -66,8 +63,7 @@ final class ExternalIntegrationSecrets {
 	}
 
 	/**
-	 * Omitted keys preserve existing ciphertext. Explicit null clears a key;
-	 * required-field policy remains the declarative driver's responsibility.
+	 * Omitted keys preserve existing ciphertext. Explicit null clears a key.
 	 *
 	 * @param array<string, string|null> $changes
 	 */

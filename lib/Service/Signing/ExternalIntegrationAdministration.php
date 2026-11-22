@@ -9,12 +9,10 @@ declare(strict_types=1);
 namespace OCA\Libresign\Service\Signing;
 
 /**
- * Shared backend operations for configured external signing integrations.
+ * Manages external signing integrations using trusted driver metadata.
  *
- * Driver metadata must come from the trusted #9595 catalog. This service does
- * not authorize an HTTP caller or resolve the global experimental flag: the
- * administrative controller must enforce both boundaries before invoking it.
- * No external HTTP or signing operation is performed here.
+ * Input validation and secret redaction are applied before persisting changes
+ * or producing administrative read models.
  */
 final class ExternalIntegrationAdministration {
 	public function __construct(
@@ -105,8 +103,8 @@ final class ExternalIntegrationAdministration {
 	}
 
 	/**
-	 * A backend-only, secret-free detail view for the future admin OCS route.
-	 * Read responses expose per-field presence, not ciphertext or token values.
+	 * Produces the administrative read model without exposing credentials.
+	 * Secret fields report their configured state without returning values.
 	 *
 	 * @param array<string, mixed> $driver Trusted declarative catalog entry.
 	 * @return array<string, mixed>
