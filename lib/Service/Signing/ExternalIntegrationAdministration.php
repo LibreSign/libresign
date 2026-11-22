@@ -28,7 +28,7 @@ final class ExternalIntegrationAdministration {
 	 * @param array<string, mixed> $configuration Public configuration only.
 	 * @param array<string, string> $secrets New secret values, never public configuration.
 	 */
-	public function create(array $driver, string $name, array $configuration, #[\SensitiveParameter] array $secrets = []): ExternalIntegrationRecord {
+	public function create(array $driver, string $name, #[\SensitiveParameter] array $configuration, #[\SensitiveParameter] array $secrets = []): ExternalIntegrationRecord {
 		[$driverId, $fields] = $this->metadata($driver);
 		$this->validator->validateCreate($fields, $configuration, $secrets);
 		return $this->store->create($driverId, $name, $configuration, $secrets);
@@ -47,7 +47,7 @@ final class ExternalIntegrationAdministration {
 		string $publicId,
 		int $expectedRevision,
 		?string $name = null,
-		?array $configuration = null,
+		#[\SensitiveParameter] ?array $configuration = null,
 		#[\SensitiveParameter] array $secretChanges = [],
 	): ExternalIntegrationRecord {
 		[$driverId, $fields] = $this->metadata($driver);
