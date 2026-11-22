@@ -8,6 +8,7 @@ declare(strict_types=1);
 
 namespace OCA\Libresign\Service\Signing;
 
+use OCA\Libresign\Exception\ExternalIntegrationSecretException;
 use OCP\Security\ICrypto;
 
 /**
@@ -19,7 +20,9 @@ use OCP\Security\ICrypto;
  */
 final class ExternalIntegrationSecrets {
 	private const MAX_SECRET_JSON_BYTES = 16384;
-	public function __construct(private ICrypto $crypto) {
+	public function __construct(
+		private ICrypto $crypto,
+	) {
 	}
 
 	/** @param array<string, string> $secrets */
@@ -34,9 +37,10 @@ final class ExternalIntegrationSecrets {
 		}
 		try {
 			return $this->crypto->encrypt($serialized);
-		} catch (\Throwable) {
-			// Never include original values or a third-party exception in logs.
-			throw new \RuntimeException('Integration secrets could not be protected');
+		} catch (\Exception) {
+			// ICrypto does not declare a dedicated encryption exception.
+			// Fail closed, without exposing a sensitive message or previous cause.
+			throw ExternalIntegrationSecretException::protectionFailed();
 		}
 	}
 
@@ -52,8 +56,9 @@ final class ExternalIntegrationSecrets {
 			}
 			$this->assertSecretShape($decoded);
 			return $decoded;
-		} catch (\Throwable) {
-			throw new \RuntimeException('Integration secrets could not be decrypted');
+		} catch (\Exception) {
+			// Includes authentication failures, malformed JSON and invalid secret shape.
+			throw ExternalIntegrationSecretException::recoveryFailed();
 		}
 	}
 
@@ -67,17 +72,22 @@ final class ExternalIntegrationSecrets {
 		if ($changes === []) {
 			return $ciphertext;
 		}
-		$secrets = $this->decrypt($ciphertext);
+		// Reject malformed patches before reading any existing credential data.
 		foreach ($changes as $key => $value) {
 			if (!is_string($key) || $key === '' || strlen($key) > 128) {
 				throw new \InvalidArgumentException('Invalid secret field');
 			}
+			if ($value !== null && (!is_string($value) || $value === '' || strlen($value) > 8192)) {
+				throw new \InvalidArgumentException('Invalid secret replacement');
+			}
+		}
+
+		$secrets = $this->decrypt($ciphertext);
+		foreach ($changes as $key => $value) {
 			if ($value === null) {
 				unset($secrets[$key]);
-			} elseif (is_string($value) && $value !== '') {
-				$secrets[$key] = $value;
 			} else {
-				throw new \InvalidArgumentException('Invalid secret replacement');
+				$secrets[$key] = $value;
 			}
 		}
 		return $this->encrypt($secrets);
