@@ -90,7 +90,6 @@ export default [
 			'@stylistic/indent': 'off', // ~778 hits; tabs vs spaces migration
 			'@stylistic/max-statements-per-line': 'off', // ~100 hits
 			'@stylistic/no-tabs': 'off', // ~190 hits; tabs vs spaces migration
-			'@stylistic/semi': 'off', // ~16 hits
 			'vue/first-attribute-linebreak': 'off', // ~435 hits; formatting churn
 			'vue/max-attributes-per-line': 'off', // ~68 hits; formatting churn
 
