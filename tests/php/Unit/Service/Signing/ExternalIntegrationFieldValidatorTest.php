@@ -99,4 +99,34 @@ final class ExternalIntegrationFieldValidatorTest extends TestCase {
 		$this->expectException(\InvalidArgumentException::class);
 		(new ExternalIntegrationFieldValidator())->validateCreate($fields, ['baseUrl' => 'https://example.org'], []);
 	}
+
+	/** @return array<string, array{array<string, mixed>}> */
+	public static function misplacedConfidentialInputs(): array {
+		return [
+			'credential in public field' => [['baseUrl' => 'https://example.org', 'accessToken' => 'synthetic-private-value']],
+			'credential in URL userinfo' => [['baseUrl' => 'https://synthetic-private-value@example.org']],
+		];
+	}
+
+	#[DataProvider('misplacedConfidentialInputs')]
+	public function testMalformedPublicConfigurationCannotLeakViaExceptionArguments(array $configuration): void {
+		$previous = ini_get('zend.exception_ignore_args');
+		$this->assertNotFalse($previous);
+		try {
+			$this->assertNotFalse(ini_set('zend.exception_ignore_args', '0'));
+			try {
+				(new ExternalIntegrationFieldValidator())->validateCreate(self::fields(), $configuration, []);
+				$this->fail('Malformed configuration must be rejected');
+			} catch (\InvalidArgumentException $e) {
+				$validatorFrames = array_values(array_filter(
+					$e->getTrace(),
+					static fn (array $frame): bool => ($frame['class'] ?? '') === ExternalIntegrationFieldValidator::class,
+				));
+				$this->assertNotEmpty($validatorFrames);
+				$this->assertStringNotContainsString('synthetic-private-value', var_export($validatorFrames, true));
+			}
+		} finally {
+			ini_set('zend.exception_ignore_args', $previous);
+		}
+	}
 }
