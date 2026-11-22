@@ -654,6 +654,36 @@ final class OrderCertificatesTraitTest extends \OCA\Libresign\Tests\Unit\TestCas
 		}
 	}
 
+	public function testBareHexAkiSelectsMatchingIssuer(): void {
+		$intermediate = ['CN' => 'Intermediate'];
+		$leaf = [
+			'name' => '/CN=Leaf',
+			'subject' => ['CN' => 'Leaf'],
+			'issuer' => $intermediate,
+			'extensions' => ['authorityKeyIdentifier' => 'AA:BB:CC'],
+		];
+		$wrong = [
+			'name' => '/CN=Intermediate',
+			'subject' => $intermediate,
+			'issuer' => ['CN' => 'Root'],
+			'serialNumberHex' => '01',
+			'extensions' => ['subjectKeyIdentifier' => 'AA:BB'],
+		];
+		$correct = [
+			'name' => '/CN=Intermediate',
+			'subject' => $intermediate,
+			'issuer' => ['CN' => 'Root'],
+			'serialNumberHex' => '02',
+			'extensions' => ['subjectKeyIdentifier' => 'AA:BB:CC'],
+		];
+
+		foreach ([$wrong, $correct] as $first) {
+			$second = $first === $wrong ? $correct : $wrong;
+			$result = $this->orderCertificates->orderCertificates([$first, $leaf, $second]);
+			$this->assertSame([$leaf, $correct, $wrong], $result);
+		}
+	}
+
 	public function testUnrelatedIssuerDnDoesNotHideActualLeaf(): void {
 		$root = ['name' => '/CN=Root', 'subject' => ['CN' => 'Root'], 'issuer' => ['CN' => 'Root']];
 		$leaf = [

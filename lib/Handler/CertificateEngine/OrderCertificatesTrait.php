@@ -199,11 +199,16 @@ trait OrderCertificatesTrait {
 	}
 
 	private function keyIdentifiersMatch(string $akiExtension, string $skiExtension): ?bool {
-		if (preg_match('/(?:^|\R)\h*keyid:\h*([^\r\n]+)/i', $akiExtension, $matches) !== 1) {
+		$akiExtension = trim($akiExtension);
+		if (preg_match('/^[0-9A-F:]+$/i', $akiExtension) === 1) {
+			$akiHex = $akiExtension;
+		} elseif (preg_match('/(?:^|\R)\h*keyid:\h*([^\r\n]+)/i', $akiExtension, $matches) === 1) {
+			$akiHex = trim($matches[1]);
+		} else {
 			return null;
 		}
 
-		$aki = strtoupper(str_replace(':', '', trim($matches[1])));
+		$aki = strtoupper(str_replace(':', '', $akiHex));
 		$ski = strtoupper(str_replace(':', '', trim($skiExtension)));
 		return $aki !== '' && strlen($aki) % 2 === 0 && ctype_xdigit($aki) && $aki === $ski;
 	}
