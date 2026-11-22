@@ -310,8 +310,7 @@ test('unauthenticated signer can define a visible signature for an envelope with
 		// A popup fallback would hide an integration regression in dialogs/Viewer.
 		const pdfResponse = context.waitForEvent('response', (response) =>
 			response.request().method() === 'GET'
-			&& response.url().includes('/apps/libresign/p/pdf/'),
-		)
+			&& response.url().includes('/apps/libresign/p/pdf/'))
 		await page.getByRole('button', { name: 'Show details' }).first().click()
 		await page.getByRole('button', { name: 'View document' }).first().click()
 

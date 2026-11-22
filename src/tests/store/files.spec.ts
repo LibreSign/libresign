@@ -314,13 +314,17 @@ describe('files store - critical business rules', () => {
 			store.selectedFileId = 123
 			axiosMock.mockResolvedValue({
 				data: { ocs: { data: {
-					id: 123, uuid: 'file-uuid', status: 1,
+					id: 123,
+					uuid: 'file-uuid',
+					status: 1,
 					signers: [{ status: 1, identifyMethods: [{ method: 'account', value: 'testuser', requirement: 'required' }] }],
 				} } },
 			})
 			axiosMock.get.mockResolvedValue(generateOCSResponse({
 				payload: {
-					id: 123, uuid: 'file-uuid', status: 1,
+					id: 123,
+					uuid: 'file-uuid',
+					status: 1,
 					settings: { canSign: granted },
 					signers: [{ me: granted, status: 1, sign_request_uuid: 'signer-uuid' }],
 				},
@@ -349,7 +353,9 @@ describe('files store - critical business rules', () => {
 			store.selectedFileId = 123
 			axiosMock.mockResolvedValue({
 				data: { ocs: { data: {
-					id: 123, uuid: 'file-uuid', status: 1,
+					id: 123,
+					uuid: 'file-uuid',
+					status: 1,
 					signers: [{ status: 1, identifyMethods: [{ method: 'account', value: 'testuser', requirement: 'required' }] }],
 				} } },
 			})

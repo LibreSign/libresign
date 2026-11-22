@@ -149,8 +149,7 @@ describe('useRealPolicyWorkbench', () => {
 						label: 'Email token',
 					},
 				},
-			},
-		)
+		})
 		axiosGet.mockReset()
 		saveSystemPolicy.mockReset()
 		saveGroupPolicy.mockReset()

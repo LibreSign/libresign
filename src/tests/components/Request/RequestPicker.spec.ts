@@ -193,8 +193,13 @@ describe('RequestPicker component rules', () => {
 			const withPolicy = mount(RequestPicker, {
 				props: { inline: true },
 				global: { stubs: {
-					NcActions: true, NcActionButton: true, NcButton: true, NcDialog: true,
-					NcLoadingIcon: true, NcNoteCard: true, NcTextField: true,
+					NcActions: true,
+					NcActionButton: true,
+					NcButton: true,
+					NcDialog: true,
+					NcLoadingIcon: true,
+					NcNoteCard: true,
+					NcTextField: true,
 					UploadProgress: true,
 				} },
 			})

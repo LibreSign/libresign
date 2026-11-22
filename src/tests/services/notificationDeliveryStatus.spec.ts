@@ -58,7 +58,10 @@ describe('Notification delivery status', () => {
 			.mockResolvedValueOnce(response(accepted))
 		const onUpdate = vi.fn()
 		const result = await watchNotificationStatus(query, {
-			signal: new AbortController().signal, onUpdate, intervalMs: 0, maxChecks: 5,
+			signal: new AbortController().signal,
+			onUpdate,
+			intervalMs: 0,
+			maxChecks: 5,
 		})
 		expect(result).toEqual(accepted)
 		expect(onUpdate).toHaveBeenCalledTimes(2)
@@ -80,7 +83,10 @@ describe('Notification delivery status', () => {
 	it('limits calls if the server never reports a terminal state', async () => {
 		vi.mocked(axios.get).mockResolvedValue(response(pending))
 		const result = await watchNotificationStatus(query, {
-			signal: new AbortController().signal, onUpdate: vi.fn(), intervalMs: 0, maxChecks: 2,
+			signal: new AbortController().signal,
+			onUpdate: vi.fn(),
+			intervalMs: 0,
+			maxChecks: 2,
 		})
 		expect(result).toBeNull()
 		expect(vi.mocked(axios.get)).toHaveBeenCalledTimes(2)
@@ -90,13 +96,15 @@ describe('Notification delivery status', () => {
 		vi.mocked(axios.post).mockRejectedValueOnce(new Error('Response lost after SMTP DATA'))
 		vi.mocked(axios.get).mockResolvedValueOnce(response(accepted))
 		const result = await submitAndWatchNotification(query, {
-			signal: new AbortController().signal, onUpdate: vi.fn(),
+			signal: new AbortController().signal,
+			onUpdate: vi.fn(),
 		})
 		expect(result.kind).toBe('unconfirmed')
 		expect(vi.mocked(axios.get)).toHaveBeenCalledTimes(1)
 		expect(vi.mocked(axios.post)).toHaveBeenCalledTimes(1)
 		expect(vi.mocked(axios.post)).toHaveBeenCalledWith(
-			'/ocs/apps/libresign/api/v1/notify/signer', query,
+			'/ocs/apps/libresign/api/v1/notify/signer',
+			query,
 		)
 	})
 
@@ -104,7 +112,8 @@ describe('Notification delivery status', () => {
 		vi.mocked(axios.post).mockRejectedValueOnce(new Error('Unknown transport result'))
 		vi.mocked(axios.get).mockResolvedValueOnce(response(unknown))
 		const result = await submitAndWatchNotification(query, {
-			signal: new AbortController().signal, onUpdate: vi.fn(),
+			signal: new AbortController().signal,
+			onUpdate: vi.fn(),
 		})
 		expect(result.kind).toBe('unconfirmed')
 		expect(vi.mocked(axios.post)).toHaveBeenCalledTimes(1)
@@ -113,7 +122,8 @@ describe('Notification delivery status', () => {
 	it('does not query status after a rejected validation request', async () => {
 		vi.mocked(axios.post).mockRejectedValueOnce({ response: { status: 422 } })
 		const result = await submitAndWatchNotification(query, {
-			signal: new AbortController().signal, onUpdate: vi.fn(),
+			signal: new AbortController().signal,
+			onUpdate: vi.fn(),
 		})
 		expect(result.kind).toBe('invalid_request')
 		expect(vi.mocked(axios.get)).not.toHaveBeenCalled()
@@ -125,7 +135,8 @@ describe('Notification delivery status', () => {
 		})
 		vi.mocked(axios.get).mockRejectedValueOnce(new Error('Status endpoint unavailable'))
 		const result = await submitAndWatchNotification(query, {
-			signal: new AbortController().signal, onUpdate: vi.fn(),
+			signal: new AbortController().signal,
+			onUpdate: vi.fn(),
 		})
 		expect(result).toEqual({ kind: 'status_unavailable', message: 'Request processed' })
 	})

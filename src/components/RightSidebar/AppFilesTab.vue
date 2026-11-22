@@ -117,7 +117,9 @@ const canSignImmediately = computed(() => {
 		return false
 	}
 	const policies = loadState<{ policies?: { identify_methods?: { effectiveValue?: import('../../types/index').EffectivePolicyValue } } }>(
-		'libresign', 'effective_policies', { policies: {} },
+		'libresign',
+		'effective_policies',
+		{ policies: {} },
 	)
 	return canSignDirectly(policies?.policies?.identify_methods?.effectiveValue ?? null)
 })

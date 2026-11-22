@@ -23,7 +23,8 @@ test('generation clears only its output and protects inputs and build siblings',
     const output = path.join(root, 'build/sdk-generation/typescript')
     fs.writeFileSync(path.join(output, 'stale.ts'), 'stale')
     const run = (...args) => spawnSync('sh', [script, ...args], {
-      encoding: 'utf8', env: { ...process.env, PATH: `${root}/bin:${process.env.PATH}` },
+      encoding: 'utf8',
+      env: { ...process.env, PATH: `${root}/bin:${process.env.PATH}` },
     })
     assert.equal(run().status, 0)
     assert.equal(fs.existsSync(path.join(output, 'stale.ts')), false)

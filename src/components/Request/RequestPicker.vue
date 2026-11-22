@@ -239,7 +239,9 @@ const isDirectSigning = ref(false)
 const openedMenu = ref(false)
 const canRequestSign = ref(loadState('libresign', 'can_request_sign', false))
 const effectivePolicies = loadState<{ policies?: { identify_methods?: { effectiveValue?: EffectivePolicyValue } } }>(
-	'libresign', 'effective_policies', { policies: {} },
+	'libresign',
+	'effective_policies',
+	{ policies: {} },
 )
 const canDirectSign = computed(() => canRequestSign.value
 	&& canSignDirectly(effectivePolicies?.policies?.identify_methods?.effectiveValue ?? null))

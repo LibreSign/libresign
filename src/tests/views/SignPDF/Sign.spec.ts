@@ -276,8 +276,7 @@ describe('Sign.vue - signWithTokenCode', () => {
 				) {
 					const tokenMethods: TokenMethodKey[] = ['smsToken', 'whatsappToken', 'signalToken', 'telegramToken', 'xmppToken']
 					const activeMethod = tokenMethods.find((method) =>
-						Object.hasOwn(this.signMethodsStore.settings, method),
-					)
+						Object.hasOwn(this.signMethodsStore.settings, method))
 
 					if (!activeMethod) {
 						throw new Error('No active token method found')
@@ -1038,8 +1037,7 @@ describe('Sign.vue - signWithTokenCode', () => {
 					) {
 						const tokenMethods: TokenMethodKey[] = ['smsToken', 'whatsappToken', 'signalToken', 'telegramToken', 'xmppToken']
 						const activeMethod = tokenMethods.find((method) =>
-							Object.hasOwn(this.signMethodsStore.settings, method),
-						)
+							Object.hasOwn(this.signMethodsStore.settings, method))
 
 						if (!activeMethod) {
 							throw new Error('No active token method found')
@@ -1159,8 +1157,7 @@ describe('Sign.vue - signWithTokenCode', () => {
 					) {
 						const tokenMethods: TokenMethodKey[] = ['smsToken', 'whatsappToken', 'signalToken', 'telegramToken', 'xmppToken']
 						const activeMethod = tokenMethods.find((method) =>
-							Object.hasOwn(this.signMethodsStore.settings, method),
-						)
+							Object.hasOwn(this.signMethodsStore.settings, method))
 
 						if (!activeMethod) {
 							throw new Error('No active token method found')
@@ -1779,7 +1776,11 @@ describe('Sign.vue - signWithTokenCode', () => {
 		it('sends the save choice only after the signer explicitly opts in', async () => {
 			const { wrapper, signStore, signatureElementsStore } = await mountWithEmailSigner({ confirmMethod: 'emailToken' })
 			signatureElementsStore.signs.signature = {
-				type: 'signature', id: 1, starred: false, createdAt: '2026-10-31', file: { nodeId: 10, url: '/signature.png' },
+				type: 'signature',
+				id: 1,
+				starred: false,
+				createdAt: '2026-10-31',
+				file: { nodeId: 10, url: '/signature.png' },
 			}
 			const submit = vi.spyOn(signStore, 'submitSignature').mockResolvedValue({ status: 'signed', data: {} })
 			await flushPromises()

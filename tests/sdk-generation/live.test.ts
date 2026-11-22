@@ -17,7 +17,10 @@ for (const pdfStatus of [200, 404, 500]) {
         invalidAuthChecked ||= invalidAuth
         const status = invalidAuth ? authStatus : pdf ? pdfStatus : 200
         const response = {
-          config, status, statusText: String(status), headers: { 'content-type': 'application/pdf' },
+          config,
+          status,
+          statusText: String(status),
+          headers: { 'content-type': 'application/pdf' },
           data: pdf ? Buffer.from('%PDF-test') : { ocs: { meta: { statuscode: 200 }, data: { account: { uid: 'test' } } } },
         }
         if (status >= 400) {

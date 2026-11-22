@@ -97,8 +97,7 @@ const collectSignerVisibleElements = (signers: unknown): VisibleElementRecord[] 
 		&& 'visibleElements' in signer
 		&& Array.isArray(signer.visibleElements)
 			? signer.visibleElements as VisibleElementRecord[]
-			: [],
-	)
+		: [])
 }
 
 export const idsMatch = (left: unknown, right: unknown): boolean => keyOf(left) === keyOf(right)

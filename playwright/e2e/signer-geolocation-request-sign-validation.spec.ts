@@ -39,8 +39,7 @@ async function uploadLocalPdf(page: Page, fileName: string) {
 	const uploadResponsePromise = page.waitForResponse((response) =>
 		response.request().method() === 'POST'
 		&& response.url().includes('/apps/libresign/api/v1/file')
-		&& response.ok(),
-	)
+		&& response.ok())
 	const fileChooserPromise = page.waitForEvent('filechooser')
 	await page.getByRole('button', { name: 'Upload', exact: true }).click()
 	const fileChooser = await fileChooserPromise
@@ -186,8 +185,7 @@ test('request, sign, and validate device plus IP geolocation from a frozen snaps
 
 	const saveSignerResponsePromise = page.waitForResponse((response) =>
 		['POST', 'PATCH'].includes(response.request().method())
-		&& response.url().includes('/apps/libresign/api/v1/request-signature'),
-	)
+		&& response.url().includes('/apps/libresign/api/v1/request-signature'))
 	await signerDialog.getByRole('button', { name: 'Save' }).click()
 	const saveSignerRequest = (await saveSignerResponsePromise).request()
 	const saveSignerPayload = saveSignerRequest.postDataJSON() as {
@@ -236,8 +234,7 @@ test('request, sign, and validate device plus IP geolocation from a frozen snaps
 	const signDetailResponsePromise = page.waitForResponse((response) =>
 		response.request().method() === 'GET'
 		&& response.url().includes('/apps/libresign/api/v1/file/validate/uuid/')
-		&& response.ok(),
-	{ timeout: 30_000 })
+		&& response.ok(), { timeout: 30_000 })
 	await page.getByRole('button', { name: 'Sign document' }).first().click()
 	await page.waitForURL('**/f/sign/**/pdf')
 	const signDetailResponse = await signDetailResponsePromise
@@ -277,8 +274,7 @@ test('request, sign, and validate device plus IP geolocation from a frozen snaps
 
 	const signResponsePromise = page.waitForResponse((response) =>
 		response.request().method() === 'POST'
-		&& response.url().includes('/apps/libresign/api/v1/sign/'),
-	{ timeout: 30_000 })
+		&& response.url().includes('/apps/libresign/api/v1/sign/'), { timeout: 30_000 })
 	await clickSignDocumentButton(page)
 
 	const confirmSign = page.getByRole('dialog', { name: 'Sign document' }).getByRole('button', { name: 'Sign document' })

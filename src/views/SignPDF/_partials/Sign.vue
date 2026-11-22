@@ -626,8 +626,7 @@ const signRequestUuid = computed(() => {
 const currentSignerGeolocationRequirement = computed(() =>
 	resolveFrozenGeolocationRequirement(signStore.document, {
 		signRequestUuid: signRequestUuid.value || routeSignRequestUuid.value,
-	}),
-)
+}))
 const requiresDeviceGeolocation = computed(() => isGeolocationRequired(currentSignerGeolocationRequirement.value))
 // TRANSLATORS Early notice shown on the signing screen when device-reported location is mandatory.
 const geolocationRequiredBannerText = t('libresign', 'Device-reported location is required to sign this document.')
@@ -803,8 +802,7 @@ async function signWithPassword() {
 async function signWithTokenCode(token: string) {
 	const tokenMethods: TokenMethodKey[] = ['smsToken', 'whatsappToken', 'signalToken', 'telegramToken', 'xmppToken']
 	const activeMethod = tokenMethods.find((method) =>
-		Object.hasOwn(signMethodsStore.settings, method),
-	)
+		Object.hasOwn(signMethodsStore.settings, method))
 
 	if (!activeMethod) {
 		throw new Error('No active token method found')
