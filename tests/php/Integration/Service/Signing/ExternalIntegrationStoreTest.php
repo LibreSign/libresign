@@ -42,7 +42,15 @@ final class ExternalIntegrationStoreTest extends \OCA\Libresign\Tests\Integratio
 	}
 
 	private function create(string $name = 'Synthetic CSC'): \OCA\Libresign\Service\Signing\ExternalIntegrationRecord {
-		$record = $this->store->create('csc', $name, ['serviceUrl' => 'https://example.invalid'], ['accessToken' => 'integration-test-secret']);
+		return $this->createTracked('csc', $name, ['serviceUrl' => 'https://example.invalid'], ['accessToken' => 'integration-test-secret']);
+	}
+
+	/**
+	 * @param array<string, mixed> $configuration
+	 * @param array<string, string> $secrets
+	 */
+	private function createTracked(string $driverId, string $name, array $configuration, #[\SensitiveParameter] array $secrets): \OCA\Libresign\Service\Signing\ExternalIntegrationRecord {
+		$record = $this->store->create($driverId, $name, $configuration, $secrets);
 		$this->created[] = $record->id;
 		return $record;
 	}
@@ -116,8 +124,7 @@ final class ExternalIntegrationStoreTest extends \OCA\Libresign\Tests\Integratio
 	}
 
 	public function testEmptySecretSetIsPersistedAndNeverExposedAsConfigured(): void {
-		$record = $this->store->create('csc', 'No credentials yet', ['serviceUrl' => 'https://example.invalid'], []);
-		$this->created[] = $record->id;
+		$record = $this->createTracked('csc', 'No credentials yet', ['serviceUrl' => 'https://example.invalid'], []);
 		$this->assertFalse($record->hasSecrets);
 		$this->assertSame('', $this->encryptedValue($record->id));
 		$this->assertSame(false, $this->store->find($record->id)?->hasSecrets);
@@ -194,7 +201,7 @@ final class ExternalIntegrationStoreTest extends \OCA\Libresign\Tests\Integratio
 	#[DataProvider('invalidDriverIds')]
 	public function testInvalidDriverIdIsRejected(string $driverId): void {
 		$this->expectException(\InvalidArgumentException::class);
-		$this->store->create($driverId, 'CSC', [], []);
+		$this->createTracked($driverId, 'CSC', [], []);
 	}
 
 	/** @return array<string, array{string}> */
@@ -211,7 +218,7 @@ final class ExternalIntegrationStoreTest extends \OCA\Libresign\Tests\Integratio
 	#[DataProvider('invalidNames')]
 	public function testInvalidDisplayNameIsRejectedOnCreate(string $name): void {
 		$this->expectException(\InvalidArgumentException::class);
-		$this->store->create('csc', $name, [], []);
+		$this->createTracked('csc', $name, [], []);
 	}
 
 	#[DataProvider('invalidNames')]
@@ -227,8 +234,7 @@ final class ExternalIntegrationStoreTest extends \OCA\Libresign\Tests\Integratio
 	}
 
 	public function testNameIsNormalizedOnCreateAndUpdate(): void {
-		$record = $this->store->create('csc', '  Company CSC  ', [], []);
-		$this->created[] = $record->id;
+		$record = $this->createTracked('csc', '  Company CSC  ', [], []);
 		$this->assertSame('Company CSC', $record->name);
 		$changed = $this->store->update($record->id, $record->revision, '  Renamed CSC  ', []);
 		$this->assertSame('Renamed CSC', $changed->name);
@@ -236,7 +242,7 @@ final class ExternalIntegrationStoreTest extends \OCA\Libresign\Tests\Integratio
 
 	public function testOversizedConfigurationCannotBeSaved(): void {
 		$this->expectException(\InvalidArgumentException::class);
-		$this->store->create('csc', 'CSC', ['url' => str_repeat('x', 32768)], []);
+		$this->createTracked('csc', 'CSC', ['url' => str_repeat('x', 32768)], []);
 	}
 
 	/** @return array<string, array{int, int}> */
@@ -259,8 +265,7 @@ final class ExternalIntegrationStoreTest extends \OCA\Libresign\Tests\Integratio
 		$lastId = (int)$qb->select($qb->func()->max('id'))->from('libresign_signing_integration')->executeQuery()->fetchOne();
 		$expected = [];
 		for ($n = 0; $n < 101; $n++) {
-			$created = $this->store->create('csc', 'Synthetic integration ' . $n, [], []);
-			$this->created[] = $created->id;
+			$created = $this->createTracked('csc', 'Synthetic integration ' . $n, [], []);
 			$expected[] = $created->id;
 		}
 		$seen = [];
@@ -307,15 +312,13 @@ final class ExternalIntegrationStoreTest extends \OCA\Libresign\Tests\Integratio
 
 	#[DataProvider('validInternationalNames')]
 	public function testValidInternationalNameIsBoundedByCharacters(string $name): void {
-		$record = $this->store->create('csc', $name, [], []);
-		$this->created[] = $record->id;
+		$record = $this->createTracked('csc', $name, [], []);
 		$this->assertSame($name, $record->name);
 		$this->assertSame($name, $this->store->get($record->id)->name);
 	}
 
 	public function testEmptyConfigurationIsPersistedAsJsonObject(): void {
-		$record = $this->store->create('csc', 'No settings', [], []);
-		$this->created[] = $record->id;
+		$record = $this->createTracked('csc', 'No settings', [], []);
 		$qb = $this->db->getQueryBuilder();
 		$stored = $qb->select('configuration')->from('libresign_signing_integration')
 			->where($qb->expr()->eq('public_id', $qb->createNamedParameter($record->id)))
@@ -337,7 +340,7 @@ final class ExternalIntegrationStoreTest extends \OCA\Libresign\Tests\Integratio
 	#[DataProvider('invalidConfigurations')]
 	public function testInvalidConfigurationCannotBePersisted(array $configuration): void {
 		$this->expectException(\InvalidArgumentException::class);
-		$this->store->create('csc', 'Invalid config', $configuration, []);
+		$this->createTracked('csc', 'Invalid config', $configuration, []);
 	}
 
 	/** @return array<string, array{string}> */
