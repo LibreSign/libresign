@@ -6,7 +6,11 @@
 <template>
 	<NcAppContent>
 		<div class="policies-view">
-			<RealPolicyWorkbench />
+			<RealPolicyWorkbench>
+				<template #how-signing-works-auxiliary>
+					<ExternalSigningAdmin />
+				</template>
+			</RealPolicyWorkbench>
 		</div>
 	</NcAppContent>
 </template>
@@ -15,6 +19,7 @@
 import NcAppContent from '@nextcloud/vue/components/NcAppContent'
 
 import RealPolicyWorkbench from '../Settings/PolicyWorkbench/Catalog/Catalog.vue'
+import ExternalSigningAdmin from '../Settings/ExternalSigning/ExternalSigningAdmin.vue'
 
 defineOptions({
 	name: 'Policies',

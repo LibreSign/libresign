@@ -111,6 +111,7 @@
 					</NcButton>
 				</article>
 			</div>
+			<slot v-if="category.key === 'how-signing-works' && isExpanded" name="auxiliary" />
 		</div>
 	</section>
 </template>

@@ -50,7 +50,11 @@
 				@mark-selection="markSelectionGesture($event.layout, $event.key)"
 				@open-from-pointer="openSettingFromPointer($event.layout, $event.key, $event.event)"
 				@open-from-keyboard="openSettingFromKeyboard"
-				@open-from-action="openSettingFromAction($event.key, $event.event)" />
+				@open-from-action="openSettingFromAction($event.key, $event.event)">
+				<template #auxiliary>
+					<slot name="how-signing-works-auxiliary" />
+				</template>
+			</CatalogCategorySection>
 		</div>
 
 		<NcNoteCard v-if="filteredSettingSummaries.length === 0" type="info">
