@@ -131,16 +131,16 @@
         },
         {
             "name": "signerphp/pdf-core",
-            "version": "v0.1.1",
+            "version": "v0.1.2",
             "source": {
                 "type": "git",
                 "url": "https://github.com/SignerPHP/pdf-core.git",
-                "reference": "5b2e95ff62fbf4927c3a391e7f35f6570d517d7b"
+                "reference": "9ffc3d17bcba1c368d7e2ea3e17b9dc742ab1be7"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/SignerPHP/pdf-core/zipball/5b2e95ff62fbf4927c3a391e7f35f6570d517d7b",
-                "reference": "5b2e95ff62fbf4927c3a391e7f35f6570d517d7b",
+                "url": "https://api.github.com/repos/SignerPHP/pdf-core/zipball/9ffc3d17bcba1c368d7e2ea3e17b9dc742ab1be7",
+                "reference": "9ffc3d17bcba1c368d7e2ea3e17b9dc742ab1be7",
                 "shasum": ""
             },
             "require": {
@@ -187,7 +187,8 @@
                 "issues": "https://github.com/SignerPHP/pdf-core/issues",
                 "source": "https://github.com/SignerPHP/pdf-core"
             },
-            "time": "2026-09-14T15:11:36+00:00"
+            "time": "2026-11-21T19:05:41+00:00",
+            "published-time": "2026-11-21T19:06:26+00:00"
         },
         {
             "name": "signerphp/pdf-signer",
