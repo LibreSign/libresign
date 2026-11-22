@@ -24,7 +24,7 @@
 				:autocomplete="field.secret ? 'new-password' : 'off'"
 				@input="onFieldInput(field, $event)">
 			<p v-if="errors[field.key]" role="alert">
-				{{ errors[field.key] === 'required' ? t('libresign', 'This field is required.') : t('libresign', 'Enter a valid service URL.') }}
+				{{ getFieldErrorMessage(field.key) }}
 			</p>
 		</div>
 		<p v-if="saveError" role="alert">
@@ -32,7 +32,7 @@
 		</p>
 		<div class="external-signing-form__actions">
 			<NcButton type="submit" variant="primary" :disabled="saving || !driver.available">
-				{{ saving ? t('libresign', 'Saving…') : t('libresign', 'Save') }}
+				{{ getSaveButtonLabel() }}
 			</NcButton>
 			<NcButton variant="secondary" :disabled="saving" @click="$emit('cancel')">
 				{{ t('libresign', 'Cancel') }}
@@ -61,6 +61,24 @@ const draft = reactive<ExternalSigningDraft>({
 const errors = ref<Record<string, string>>({})
 const saveError = ref('')
 const saving = ref(false)
+
+function getFieldErrorMessage(key: string): string {
+	if (errors.value[key] === 'required') {
+		// TRANSLATORS Validation message for a required external signing field.
+		return t('libresign', 'This field is required.')
+	}
+	// TRANSLATORS Validation message for an invalid external signing service URL.
+	return t('libresign', 'Enter a valid service URL.')
+}
+
+function getSaveButtonLabel(): string {
+	if (saving.value) {
+		// TRANSLATORS Save button label while the integration is being saved.
+		return t('libresign', 'Saving…')
+	}
+	// TRANSLATORS Save button label for an external signing integration.
+	return t('libresign', 'Save')
+}
 
 function onFieldInput(field: ExternalSigningField, event: Event) {
 	const value = (event.target as HTMLInputElement).value

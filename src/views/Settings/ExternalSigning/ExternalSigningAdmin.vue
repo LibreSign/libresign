@@ -35,7 +35,7 @@
 							<li v-for="instance in instances" :key="instance.id">
 								<div>
 									<strong>{{ instance.name }}</strong>
-									<p>{{ driverById(instance.driverId)?.name ?? instance.driverId }} · {{ !driverById(instance.driverId)?.available ? t('libresign', 'Driver unavailable') : instance.enabled ? t('libresign', 'Enabled') : t('libresign', 'Disabled') }}</p>
+									<p>{{ driverById(instance.driverId)?.name ?? instance.driverId }} · {{ getInstanceStatusLabel(instance) }}</p>
 									<p v-if="instance.hasActiveSessions">
 										{{ t('libresign', 'An active signing session may restrict changes.') }}
 									</p>
@@ -45,7 +45,7 @@
 										{{ t('libresign', 'Edit') }}
 									</NcButton>
 									<NcButton :disabled="busy || !driverById(instance.driverId)?.available" @click="toggle(instance)">
-										{{ instance.enabled ? t('libresign', 'Disable') : t('libresign', 'Enable') }}
+										{{ getToggleLabel(instance) }}
 									</NcButton>
 									<NcButton :disabled="busy || instance.hasActiveSessions" @click="remove(instance)">
 										{{ t('libresign', 'Remove') }}
@@ -87,7 +87,7 @@ import { fetchExternalSigningDrivers } from '../../../services/externalSigningAd
 import type { ExternalSigningAdminAdapter, ExternalSigningDriver, ExternalSigningInstance } from '../../../services/externalSigningAdmin'
 import ExternalSigningIntegrationForm from './ExternalSigningIntegrationForm.vue'
 
-/** Optional adapter is deliberately absent in production until issue #9596 defines APIs. */
+/** A production adapter is not supplied until the administrative CRUD API is available. */
 const props = defineProps<{ adapter?: ExternalSigningAdminAdapter, catalogLoader?: () => Promise<ExternalSigningDriver[]> }>()
 const drivers = ref<ExternalSigningDriver[]>([])
 const visible = ref(false)
@@ -103,6 +103,26 @@ const selectedDriver = computed(() => driverById(selectedDriverId.value))
 
 function driverById(id: string) {
 	return drivers.value.find(driver => driver.id === id)
+}
+function getInstanceStatusLabel(instance: ExternalSigningInstance): string {
+	if (!driverById(instance.driverId)?.available) {
+		// TRANSLATORS Status of an integration whose signing driver is unavailable.
+		return t('libresign', 'Driver unavailable')
+	}
+	if (instance.enabled) {
+		// TRANSLATORS Status of an administratively enabled signing integration.
+		return t('libresign', 'Enabled')
+	}
+	// TRANSLATORS Status of an administratively disabled signing integration.
+	return t('libresign', 'Disabled')
+}
+function getToggleLabel(instance: ExternalSigningInstance): string {
+	if (instance.enabled) {
+		// TRANSLATORS Action label that disables an external signing integration.
+		return t('libresign', 'Disable')
+	}
+	// TRANSLATORS Action label that enables an external signing integration.
+	return t('libresign', 'Enable')
 }
 function resetForm() {
 	selectedInstance.value = undefined

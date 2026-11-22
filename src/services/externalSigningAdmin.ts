@@ -6,7 +6,7 @@
 import axios from '@nextcloud/axios'
 import { generateOcsUrl } from '@nextcloud/router'
 
-/** Read-only catalog contract from PR #9611. Do not extend this with speculative fields. */
+/** Read-only driver catalog contract. Do not extend this with speculative fields. */
 export interface ExternalSigningField {
 	key: string
 	label: string
@@ -26,7 +26,7 @@ export interface ExternalSigningDriver {
 	fields: ExternalSigningField[]
 }
 
-/** UI-only contract, pending final #9596 API. NOT a deployed endpoint. */
+/** Frontend instance model; persistence must be supplied by the administrative adapter. */
 export interface ExternalSigningInstance {
 	id: string
 	driverId: string
@@ -80,7 +80,7 @@ export function validateExternalSigningDraft(driver: ExternalSigningDriver, draf
 	return errors
 }
 
-/** #9611 only: returns 401/403/404 when unauthorized or experimental gate is off. */
+/** The server enforces administrator access and the experimental feature gate. */
 export async function fetchExternalSigningDrivers(): Promise<ExternalSigningDriver[]> {
 	const response = await axios.get<{ ocs?: { data?: { drivers?: ExternalSigningDriver[] } } }>(generateOcsUrl('/apps/libresign/api/v1/admin/signing/drivers'))
 	const drivers = response.data?.ocs?.data?.drivers

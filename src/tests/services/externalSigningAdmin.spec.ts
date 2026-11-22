@@ -22,7 +22,7 @@ function draft(overrides: Partial<ExternalSigningDraft> = {}): ExternalSigningDr
 	return { driverId: 'csc-v1', name: 'First', configuration: { baseUrl: 'https://one.example.invalid' }, secretReplacements: {}, ...overrides }
 }
 
-describe('external signing administration: #9611 fields, #9596 fixtures only', () => {
+describe('external signing administration: driver metadata and synthetic instance fixtures', () => {
 	it('requires name and metadata-driven URL', () => {
 		expect(validateExternalSigningDraft(driver, draft({ name: '', configuration: {} }))).toEqual({ name: 'required', baseUrl: 'required' })
 	})
