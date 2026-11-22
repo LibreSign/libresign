@@ -1253,6 +1253,16 @@ final class JSignPdfHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 					'--hash-algorithm' => 'SHA256',
 				],
 			],
+			'certification when PDF has only an unreferenced signature dictionary' => [
+				true,
+				PdfGenerator::createPdfWithStandaloneDocMdpSignature(1),
+				['tsa_url' => 'https://tsa.example.test/tsr'],
+				[
+					'-cl' => DocMdpLevel::CERTIFIED_FORM_FILLING_AND_ANNOTATIONS->name,
+					'--tsa-server-url' => 'https://tsa.example.test/tsr',
+					'--hash-algorithm' => 'SHA256',
+				],
+			],
 			'no certification when PDF already has signature' => [
 				true,
 				"%PDF-1.6\n/ByteRange [0 0 0 0]",

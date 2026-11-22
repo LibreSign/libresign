@@ -130,6 +130,18 @@ abstract class SignEngineHandler implements ISignEngineHandler {
 		return $this;
 	}
 
+	/**
+	 * Ignore signature dictionaries not referenced by the PDF structure.
+	 * Keep the previous conservative check for inconclusive documents.
+	 */
+	protected function hasExistingSignatures(string $pdfContent): bool {
+		$inventory = (new PdfSignatureInventoryReader())->readFromString($pdfContent);
+		if ($inventory->isConclusive) {
+			return $inventory->activeSignatureCount > 0;
+		}
+		return (bool)preg_match('/\\/ByteRange\\s*\\[|\\/Type\\s*\\/Sig\\b|\\/DocMDP\\b|\\/Perms\\b/', $pdfContent);
+	}
+
 	public function setLeafExpiryOverrideInDays(?int $days): self {
 		$this->getCertificateEngine()->setLeafExpiryOverrideInDays($days);
 		return $this;
