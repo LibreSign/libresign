@@ -58,8 +58,7 @@ const action = {
 			return false
 		}
 
-		const allPdfOrFolder = nodes?.length > 0 && nodes.every((node) =>
-			getNodeMime(node) === 'application/pdf' || node.type === 'folder')
+		const allPdfOrFolder = nodes?.length > 0 && nodes.every((node) => getNodeMime(node) === 'application/pdf' || node.type === 'folder')
 
 		return allPdfOrFolder
 	},

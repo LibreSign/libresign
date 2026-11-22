@@ -36,8 +36,7 @@ const GEOIP_TEST_DB = process.env.PLAYWRIGHT_GEOIP_PATH
 
 async function uploadLocalPdf(page: Page, fileName: string) {
 	const pdfBuffer = await getSmallValidPdfBuffer()
-	const uploadResponsePromise = page.waitForResponse((response) =>
-		response.request().method() === 'POST'
+	const uploadResponsePromise = page.waitForResponse((response) => response.request().method() === 'POST'
 		&& response.url().includes('/apps/libresign/api/v1/file')
 		&& response.ok())
 	const fileChooserPromise = page.waitForEvent('filechooser')
@@ -183,8 +182,7 @@ test('request, sign, and validate device plus IP geolocation from a frozen snaps
 	await deviceToggle.locator('.checkbox-radio-switch__content').click()
 	await expect(deviceToggle.getByRole('switch')).toBeChecked()
 
-	const saveSignerResponsePromise = page.waitForResponse((response) =>
-		['POST', 'PATCH'].includes(response.request().method())
+	const saveSignerResponsePromise = page.waitForResponse((response) => ['POST', 'PATCH'].includes(response.request().method())
 		&& response.url().includes('/apps/libresign/api/v1/request-signature'))
 	await signerDialog.getByRole('button', { name: 'Save' }).click()
 	const saveSignerRequest = (await saveSignerResponsePromise).request()
@@ -231,8 +229,7 @@ test('request, sign, and validate device plus IP geolocation from a frozen snaps
 		.filter({ hasText: 'Require device-reported location to sign' })).toBeVisible()
 	await page.getByRole('dialog', { name: /Add new signer/i }).last().getByRole('button', { name: 'Cancel' }).click()
 
-	const signDetailResponsePromise = page.waitForResponse((response) =>
-		response.request().method() === 'GET'
+	const signDetailResponsePromise = page.waitForResponse((response) => response.request().method() === 'GET'
 		&& response.url().includes('/apps/libresign/api/v1/file/validate/uuid/')
 		&& response.ok(), { timeout: 30_000 })
 	await page.getByRole('button', { name: 'Sign document' }).first().click()
@@ -272,8 +269,7 @@ test('request, sign, and validate device plus IP geolocation from a frozen snaps
 	await expect(page.getByLabel('PDF document to sign')).toBeVisible({ timeout: 15_000 })
 	await expect(page.getByText('Device-reported location is required to sign this document.')).toBeVisible({ timeout: 15_000 })
 
-	const signResponsePromise = page.waitForResponse((response) =>
-		response.request().method() === 'POST'
+	const signResponsePromise = page.waitForResponse((response) => response.request().method() === 'POST'
 		&& response.url().includes('/apps/libresign/api/v1/sign/'), { timeout: 30_000 })
 	await clickSignDocumentButton(page)
 

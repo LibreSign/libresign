@@ -71,8 +71,7 @@ export const maximumValidityRealDefinition: RealPolicySettingDefinition = {
 		return normalizeRequestExpirationDraftValue(DEFAULT_MAXIMUM_VALIDITY)
 	},
 	summarizeValue: (value: EffectivePolicyValue) => summarizeRequestExpirationDraftValue(value, t),
-	formatAllowOverride: (allowChildOverride: boolean) =>
-		allowChildOverride
+	formatAllowOverride: (allowChildOverride: boolean) => allowChildOverride
 			// TRANSLATORS Policy inheritance message indicating group and account levels may define their own expiration rules.
 			? t('libresign', 'Groups and accounts can set their own rule')
 			// TRANSLATORS Policy inheritance message indicating child scopes must use this expiration value.
@@ -107,8 +106,7 @@ export const renewalIntervalRealDefinition: RealPolicySettingDefinition = {
 		// TRANSLATORS Summary value. {value} is renewal interval in seconds.
 		return t('libresign', '{value} seconds', { value: String(normalized) })
 	},
-	formatAllowOverride: (allowChildOverride: boolean) =>
-		allowChildOverride
+	formatAllowOverride: (allowChildOverride: boolean) => allowChildOverride
 			// TRANSLATORS Policy inheritance message indicating group and account levels may set their own renewal interval.
 			? t('libresign', 'Groups and accounts can set their own rule')
 			// TRANSLATORS Policy inheritance message indicating child scopes must keep this renewal interval.
@@ -149,8 +147,7 @@ export const expiryInDaysRealDefinition: RealPolicySettingDefinition = {
 		// TRANSLATORS Summary value. %n is number of days before generated certificate expiration.
 		return n('libresign', '%n day', '%n days', normalized)
 	},
-	formatAllowOverride: (allowChildOverride: boolean) =>
-		allowChildOverride
+	formatAllowOverride: (allowChildOverride: boolean) => allowChildOverride
 			// TRANSLATORS Policy inheritance message indicating child scopes may define their own certificate validity duration.
 			? t('libresign', 'Groups and accounts can set their own rule')
 			// TRANSLATORS Policy inheritance message indicating child scopes must use this certificate validity duration.

@@ -46,7 +46,8 @@ export const mailSenderStrategyRealDefinition: RealPolicySettingDefinition = {
 		// TRANSLATORS Policy summary meaning notification emails are sent by the Nextcloud system mailer.
 		return t('libresign', 'System mailer')
 	},
-	formatAllowOverride: () =>
+	formatAllowOverride: () => {
 		// TRANSLATORS Policy inheritance message indicating group and user scopes cannot override this setting.
-		t('libresign', 'Lower-level customization is disabled for this setting'),
+		return t('libresign', 'Lower-level customization is disabled for this setting')
+	},
 }

@@ -91,8 +91,7 @@ const collectSignerVisibleElements = (signers: unknown): VisibleElementRecord[] 
 	if (!Array.isArray(signers)) {
 		return []
 	}
-	return signers.flatMap((signer) =>
-		typeof signer === 'object'
+	return signers.flatMap((signer) => typeof signer === 'object'
 		&& signer !== null
 		&& 'visibleElements' in signer
 		&& Array.isArray(signer.visibleElements)
@@ -102,8 +101,7 @@ const collectSignerVisibleElements = (signers: unknown): VisibleElementRecord[] 
 
 export const idsMatch = (left: unknown, right: unknown): boolean => keyOf(left) === keyOf(right)
 
-export const isCurrentUserSigner = (signer: SignerLike | null | undefined): signer is SignerLike & { me: true } =>
-	signer !== null
+export const isCurrentUserSigner = (signer: SignerLike | null | undefined): signer is SignerLike & { me: true } => signer !== null
 	&& signer !== undefined
 	&& 'me' in signer
 	&& signer.me === true

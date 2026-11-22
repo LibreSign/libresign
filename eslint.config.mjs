@@ -85,7 +85,6 @@ export default [
 
 			// Formatting — large autofix churn; follow-up PR
 			'@stylistic/function-paren-newline': 'off', // ~177 hits
-			'@stylistic/implicit-arrow-linebreak': 'off', // ~39 hits
 			'@stylistic/indent': 'off', // ~778 hits; tabs vs spaces migration
 			'@stylistic/max-statements-per-line': 'off', // ~100 hits
 			'@stylistic/member-delimiter-style': 'off', // ~180 hits

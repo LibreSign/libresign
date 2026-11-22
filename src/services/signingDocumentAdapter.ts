@@ -53,8 +53,7 @@ type NormalizableDocument = {
 	files?: Array<NormalizableFile | AdapterRecord> | unknown
 }
 
-const toRecord = (value: unknown): AdapterRecord | null =>
-	typeof value === 'object' && value !== null ? value as AdapterRecord : null
+const toRecord = (value: unknown): AdapterRecord | null => typeof value === 'object' && value !== null ? value as AdapterRecord : null
 
 const toFiniteNumber = (value: unknown): number | undefined => {
 	if (value === undefined) {

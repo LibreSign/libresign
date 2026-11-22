@@ -70,8 +70,7 @@ export const docMdpRealDefinition: RealPolicySettingDefinition = {
 			return t('libresign', 'Not configured')
 		}
 	},
-	formatAllowOverride: (allowChildOverride: boolean) =>
-		allowChildOverride
+	formatAllowOverride: (allowChildOverride: boolean) => allowChildOverride
 			// TRANSLATORS Policy inheritance message indicating group and user scopes can define their own DocMDP rule.
 			? t('libresign', 'Groups and accounts can set their own rule')
 			// TRANSLATORS Policy inheritance message indicating child scopes must follow this DocMDP value.

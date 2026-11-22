@@ -136,8 +136,7 @@ const certificateList = ref<CertificateOption[]>([])
 
 const availableOptions = computed(() => options.filter((option: { id: string }) => option.id !== 'CN'))
 
-const customNamesOptions = computed(() => availableOptions.value.filter((itemA: { id: string }) =>
-	!certificateList.value.some((itemB: CertificateOption) => itemB.id === itemA.id)))
+const customNamesOptions = computed(() => availableOptions.value.filter((itemA: { id: string }) => !certificateList.value.some((itemB: CertificateOption) => itemB.id === itemA.id)))
 
 watch(() => props.names, (values: CertificateOption[]) => {
 	certificateList.value = values as CertificateOption[]

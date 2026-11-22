@@ -62,8 +62,7 @@ test('sign herself with pkcs12 certificate', async ({ page }) => {
 	await page.getByText('Forgot password?').click()
 	await expect(page.getByRole('button', { name: 'Read certificate' })).toBeVisible()
 	await expect(page.getByRole('button', { name: 'Delete certificate' })).toBeVisible()
-	const signResponsePromise = page.waitForResponse((response) =>
-		response.request().method() === 'POST'
+	const signResponsePromise = page.waitForResponse((response) => response.request().method() === 'POST'
 		&& response.url().includes('/apps/libresign/api/v1/sign/'))
 	await page.getByRole('dialog', { name: 'Sign document' }).getByRole('button', { name: 'Sign document' }).click()
 	const signResponse = await signResponsePromise

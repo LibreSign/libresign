@@ -147,8 +147,7 @@ export const signatureTextRealDefinition: RealPolicySettingDefinition = {
 
 		return `${modeLabel} • ${backgroundLabel}`
 	},
-	formatAllowOverride: (allowChildOverride: boolean) =>
-		allowChildOverride
+	formatAllowOverride: (allowChildOverride: boolean) => allowChildOverride
 			? allowChildOverrideSummary
 			: denyChildOverrideSummary,
 }

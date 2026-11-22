@@ -29,8 +29,7 @@ export function canIncludeCurrentAccount(
 		return false
 	}
 
-	return !(filesStore.getFile()?.signers ?? []).some((signer) =>
-		isSigningParticipant(signer)
+	return !(filesStore.getFile()?.signers ?? []).some((signer) => isSigningParticipant(signer)
 		&& signer.identifyMethods?.some((method) => method.method === 'account' && method.value === userId))
 }
 

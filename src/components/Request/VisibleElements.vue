@@ -417,8 +417,7 @@ function toVisibleElementsDocument(document: EditableRequestFile): DocumentLike 
 	}
 }
 
-const normalizeVisibleElements = (elements: VisibleElementRecord[]): VisibleElementRecord[] =>
-	elements.flatMap((element) => {
+const normalizeVisibleElements = (elements: VisibleElementRecord[]): VisibleElementRecord[] => elements.flatMap((element) => {
 		if (element.type !== 'signature') {
 			return []
 		}

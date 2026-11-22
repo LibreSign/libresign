@@ -623,8 +623,7 @@ const signRequestUuid = computed(() => {
 	const fallbackUuid = loadState('libresign', 'sign_request_uuid', '')
 	return String(getSigningRouteUuid(signStore.document, fallbackUuid, routeSignRequestUuid.value) || '')
 })
-const currentSignerGeolocationRequirement = computed(() =>
-	resolveFrozenGeolocationRequirement(signStore.document, {
+const currentSignerGeolocationRequirement = computed(() => resolveFrozenGeolocationRequirement(signStore.document, {
 		signRequestUuid: signRequestUuid.value || routeSignRequestUuid.value,
 }))
 const requiresDeviceGeolocation = computed(() => isGeolocationRequired(currentSignerGeolocationRequirement.value))
@@ -801,8 +800,7 @@ async function signWithPassword() {
 
 async function signWithTokenCode(token: string) {
 	const tokenMethods: TokenMethodKey[] = ['smsToken', 'whatsappToken', 'signalToken', 'telegramToken', 'xmppToken']
-	const activeMethod = tokenMethods.find((method) =>
-		Object.hasOwn(signMethodsStore.settings, method))
+	const activeMethod = tokenMethods.find((method) => Object.hasOwn(signMethodsStore.settings, method))
 
 	if (!activeMethod) {
 		throw new Error('No active token method found')

@@ -821,8 +821,7 @@ function getDocumentValidationSummary(validationDocument: ValidationDocumentStat
 		}
 	}
 
-	if (signers.some((signer) =>
-		signer.modification_validation?.valid === false
+	if (signers.some((signer) => signer.modification_validation?.valid === false
 		|| signer.modification_validation?.status === MODIFICATION_VIOLATION)) {
 		return {
 			message: t('libresign', 'The document contains changes that invalidate its certification'),
@@ -830,8 +829,7 @@ function getDocumentValidationSummary(validationDocument: ValidationDocumentStat
 		}
 	}
 
-	if (signers.some((signer) =>
-		signer.document_modification_state === 'invalid_byte_range'
+	if (signers.some((signer) => signer.document_modification_state === 'invalid_byte_range'
 		|| signer.document_modification_state === 'invalid_eof_boundary')) {
 		return {
 			message: t('libresign', 'One or more digital signatures are invalid'),
@@ -839,8 +837,7 @@ function getDocumentValidationSummary(validationDocument: ValidationDocumentStat
 		}
 	}
 
-	if (signers.some((signer) =>
-		signer.signature_validation !== undefined
+	if (signers.some((signer) => signer.signature_validation !== undefined
 		&& signer.signature_validation.id !== 1)) {
 		return {
 			message: t('libresign', 'One or more digital signatures are invalid'),
@@ -853,8 +850,7 @@ function getDocumentValidationSummary(validationDocument: ValidationDocumentStat
 	)
 
 	const hasDocumentModificationWarning = hasDocumentModificationState
-		? signers.some((signer) =>
-			signer.document_modification_state !== undefined
+		? signers.some((signer) => signer.document_modification_state !== undefined
 			&& signer.document_modification_state !== 'unchanged')
 		: signers.some((signer) => {
 			const modifications = signer.modifications as { modified?: boolean } | undefined

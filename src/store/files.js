@@ -662,8 +662,7 @@ const _filesStore = defineStore('files', () => {
 	}
 
 	async function removeFilesFromEnvelope(fileIds) {
-		const deletePromises = fileIds.map((id) =>
-			axios.delete(
+		const deletePromises = fileIds.map((id) => axios.delete(
 				generateOcsUrl('/apps/libresign/api/v1/file/file_id/{fileId}', { fileId: id }),
 		))
 

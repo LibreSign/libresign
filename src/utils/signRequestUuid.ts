@@ -240,8 +240,7 @@ function getSoleSignableSignRequestUuid(
 	if (!Array.isArray(document?.signers)) {
 		return null
 	}
-	const candidates = document.signers.filter((signer) =>
-		isNonEmptyString(signer?.sign_request_uuid) && !isObserverParticipant(signer))
+	const candidates = document.signers.filter((signer) => isNonEmptyString(signer?.sign_request_uuid) && !isObserverParticipant(signer))
 	if (candidates.length !== 1) {
 		return null
 	}
