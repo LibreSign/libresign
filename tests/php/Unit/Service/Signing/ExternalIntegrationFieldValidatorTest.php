@@ -123,7 +123,6 @@ final class ExternalIntegrationFieldValidatorTest extends TestCase {
 		(new ExternalIntegrationFieldValidator())->validateCreate($fields, ['baseUrl' => 'https://example.org'], []);
 	}
 
-
 	/**
 	 * @param array<string, mixed> $changes
 	 * @param list<string> $removed
