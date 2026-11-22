@@ -35,7 +35,7 @@ final class ExternalIntegrationStore {
 	 * @param array<string, mixed> $validatedConfiguration Data already validated by the driver catalog; never include secret fields.
 	 * @param array<string, string> $validatedSecrets Only secret fields accepted by the driver catalog.
 	 */
-	public function create(string $driverId, string $name, array $validatedConfiguration, array $validatedSecrets): ExternalIntegrationRecord {
+	public function create(string $driverId, string $name, array $validatedConfiguration, #[\SensitiveParameter] array $validatedSecrets): ExternalIntegrationRecord {
 		$this->validateIdentity($driverId, $name);
 		$configJson = $this->encodeConfiguration($validatedConfiguration);
 		$encrypted = $this->secrets->encrypt($validatedSecrets);
@@ -110,7 +110,7 @@ final class ExternalIntegrationStore {
 		int $expectedRevision,
 		string $name,
 		array $validatedConfiguration,
-		array $validatedSecretChanges = [],
+		#[\SensitiveParameter] array $validatedSecretChanges = [],
 	): ExternalIntegrationRecord {
 		if ($expectedRevision < 1) {
 			throw new \InvalidArgumentException('Invalid integration revision');

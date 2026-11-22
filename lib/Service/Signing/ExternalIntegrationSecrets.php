@@ -26,7 +26,7 @@ final class ExternalIntegrationSecrets {
 	}
 
 	/** @param array<string, string> $secrets */
-	public function encrypt(array $secrets): string {
+	public function encrypt(#[\SensitiveParameter] array $secrets): string {
 		if ($secrets === []) {
 			return '';
 		}
@@ -45,7 +45,7 @@ final class ExternalIntegrationSecrets {
 	}
 
 	/** @return array<string, string> */
-	public function decrypt(string $ciphertext): array {
+	public function decrypt(#[\SensitiveParameter] string $ciphertext): array {
 		if ($ciphertext === '') {
 			return [];
 		}
@@ -68,7 +68,7 @@ final class ExternalIntegrationSecrets {
 	 *
 	 * @param array<string, string|null> $changes
 	 */
-	public function applyChanges(string $ciphertext, array $changes): string {
+	public function applyChanges(#[\SensitiveParameter] string $ciphertext, #[\SensitiveParameter] array $changes): string {
 		if ($changes === []) {
 			return $ciphertext;
 		}

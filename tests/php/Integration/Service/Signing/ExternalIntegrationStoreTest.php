@@ -8,8 +8,8 @@ declare(strict_types=1);
 
 namespace OCA\Libresign\Tests\Integration\Service\Signing;
 
-use OCA\Libresign\Service\Signing\ExternalIntegrationStore;
 use OCA\Libresign\Service\Signing\ExternalIntegrationSecrets;
+use OCA\Libresign\Service\Signing\ExternalIntegrationStore;
 use OCP\IDBConnection;
 use OCP\Server;
 use PHPUnit\Framework\Attributes\DataProvider;
