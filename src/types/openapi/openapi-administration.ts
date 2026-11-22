@@ -1981,6 +1981,20 @@ export interface operations {
                     };
                 };
             };
+            /** @description Integration conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        ocs: {
+                            meta: components["schemas"]["OCSMeta"];
+                            data: components["schemas"]["ErrorResponse"];
+                        };
+                    };
+                };
+            };
             /** @description Internal error */
             500: {
                 headers: {
@@ -2111,6 +2125,20 @@ export interface operations {
                     };
                 };
             };
+            /** @description Integration conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        ocs: {
+                            meta: components["schemas"]["OCSMeta"];
+                            data: components["schemas"]["ErrorResponse"];
+                        };
+                    };
+                };
+            };
             /** @description Internal error */
             500: {
                 headers: {
@@ -2157,6 +2185,20 @@ export interface operations {
                     };
                 };
             };
+            /** @description Invalid integration request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        ocs: {
+                            meta: components["schemas"]["OCSMeta"];
+                            data: components["schemas"]["ErrorResponse"];
+                        };
+                    };
+                };
+            };
             /** @description Authentication required */
             401: {
                 headers: {
@@ -2197,6 +2239,20 @@ export interface operations {
             };
             /** @description Integration not found or experimental features disabled */
             404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        ocs: {
+                            meta: components["schemas"]["OCSMeta"];
+                            data: components["schemas"]["ErrorResponse"];
+                        };
+                    };
+                };
+            };
+            /** @description Integration conflict */
+            409: {
                 headers: {
                     [name: string]: unknown;
                 };
