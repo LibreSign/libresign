@@ -11,6 +11,7 @@ namespace OCA\Libresign\Handler;
 
 use OCA\Libresign\Db\File;
 use OCA\Libresign\Enum\DocMdpLevel;
+use OCA\Libresign\Vendor\LibreSign\PdfSignatureValidator\Parser\PdfSignatureInventoryReader;
 use OCP\IL10N;
 
 class DocMdpHandler {
@@ -73,6 +74,11 @@ class DocMdpHandler {
 	/**
 	 * Extract DocMDP permission level from PDF
 	 *
+	 * The level comes from the certification signature the document uses,
+	 * found by following the PDF structure. A signature dictionary that nothing
+	 * points to does not count. When the structure cannot be read, the level
+	 * comes from the text checks below.
+	 *
 	 * Validates ISO 32000-1 compliance:
 	 * - 12.8.2.2.1: Only ONE DocMDP signature allowed
 	 * - 12.8.2.2.1: DocMDP must be FIRST certifying signature
@@ -85,6 +91,13 @@ class DocMdpHandler {
 	private function extractDocMdpLevel($pdfResource): DocMdpLevel {
 		rewind($pdfResource);
 		$content = stream_get_contents($pdfResource);
+
+		$inventory = (new PdfSignatureInventoryReader())->readFromString($content);
+		if ($inventory->isConclusive) {
+			return $inventory->docMdpPermission === null
+				? DocMdpLevel::NOT_CERTIFIED
+				: DocMdpLevel::from($inventory->docMdpPermission->value);
+		}
 
 		$isoStatus = $this->getIsoComplianceStatus($content);
 		if (!$this->isIsoCompliant($isoStatus) && !$this->isOnlySingleDocMdpViolation($isoStatus)) {
