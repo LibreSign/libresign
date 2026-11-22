@@ -55,6 +55,45 @@ class PdfGenerator {
 		return $pdf;
 	}
 
+	/**
+	 * Unsigned PDF with a leftover DocMDP signature dictionary in object 5.
+	 * The xref offsets and the /ByteRange are real, so the PDF structure can be
+	 * read. Object 5 is referenced from nowhere unless a referrer is given,
+	 * such as '/Perms << /DocMDP 5 0 R >>' for the catalog.
+	 *
+	 * @param array<int, string> $extraObjects Object bodies by object number, from 6 up.
+	 */
+	public static function createPdfWithStandaloneDocMdpSignature(int $pValue, string $catalogExtra = '', array $extraObjects = []): string {
+		$placeholder = '0000000000 0000000000 0000000000 0000000000';
+		$objects = [
+			1 => "<< /Type /Catalog /Pages 2 0 R $catalogExtra >>",
+			2 => '<< /Type /Pages /Kids [3 0 R] /Count 1 >>',
+			3 => '<< /Type /Page /Parent 2 0 R /MediaBox [0 0 612 792] >>',
+			5 => "<< /Type /Sig /Filter /Adobe.PPKLite /SubFilter /adbe.pkcs7.detached /ByteRange [$placeholder] /Contents <" . str_repeat('0', 64) . '>'
+				. " /Reference [<< /Type /SigRef /TransformMethod /DocMDP /TransformParams << /Type /TransformParams /P $pValue /V /1.2 >> >>] >>",
+		] + $extraObjects;
+		ksort($objects);
+
+		$pdf = "%PDF-1.7\n";
+		$offsets = [];
+		foreach ($objects as $number => $body) {
+			$offsets[$number] = strlen($pdf);
+			$pdf .= "$number 0 obj\n$body\nendobj\n";
+		}
+		$size = max(array_keys($objects)) + 1;
+		$startxref = strlen($pdf);
+		$pdf .= "xref\n0 $size\n";
+		for ($number = 0; $number < $size; $number++) {
+			$pdf .= isset($offsets[$number]) ? sprintf("%010d 00000 n \n", $offsets[$number]) : "0000000000 65535 f \n";
+		}
+		$pdf .= "trailer\n<< /Size $size /Root 1 0 R >>\nstartxref\n$startxref\n%%EOF\n";
+
+		$contentsStart = strpos($pdf, '/Contents <') + strlen('/Contents ');
+		$contentsEnd = strpos($pdf, '>', $contentsStart) + 1;
+		$byteRange = sprintf('%010d %010d %010d %010d', 0, $contentsStart, $contentsEnd, strlen($pdf) - $contentsEnd);
+		return str_replace($placeholder, $byteRange, $pdf);
+	}
+
 	public static function createPdfWithFormFieldModification(int $pValue): string {
 		$pdf = "%PDF-1.7\n";
 		$pdf .= "1 0 obj\n<< /Type /Catalog /Pages 2 0 R /AcroForm 4 0 R /Perms << /DocMDP 5 0 R >> >>\nendobj\n";
