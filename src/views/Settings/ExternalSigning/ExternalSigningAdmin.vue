@@ -13,7 +13,11 @@
 				{{ t('libresign', 'Configure integrations') }}
 			</NcButton>
 		</div>
-		<NcDialog v-if="dialogOpen" :name="t('libresign', 'External signing providers')" size="normal" @closing="closeDialog">
+		<NcDialog
+			v-if="dialogOpen"
+			:name="t('libresign', 'External signing providers')"
+			size="normal"
+			@closing="closeDialog">
 			<div class="external-signing-admin__dialog">
 				<p v-if="!adapter" role="status">
 					{{ t('libresign', 'Administrative integration management is awaiting backend support.') }}
@@ -57,7 +61,13 @@
 							{{ operationError }}
 						</p>
 						<template v-if="selectedDriver">
-							<ExternalSigningIntegrationForm :key="selectedInstance?.id ?? `new-${selectedDriver.id}`" :driver="selectedDriver" :existing="selectedInstance" :save="adapter.save" @saved="onSaved" @cancel="resetForm" />
+							<ExternalSigningIntegrationForm
+								:key="selectedInstance?.id ?? `new-${selectedDriver.id}`"
+								:driver="selectedDriver"
+								:existing="selectedInstance"
+								:save="adapter.save"
+								@saved="onSaved"
+								@cancel="resetForm" />
 						</template>
 						<template v-else>
 							<label for="external-signing-driver">{{ t('libresign', 'Provider type') }}</label>
@@ -65,7 +75,11 @@
 								<option value="">
 									{{ t('libresign', 'Select a provider') }}
 								</option>
-								<option v-for="driver in drivers" :key="driver.id" :value="driver.id" :disabled="!driver.available">
+								<option
+									v-for="driver in drivers"
+									:key="driver.id"
+									:value="driver.id"
+									:disabled="!driver.available">
 									{{ driver.name }}{{ driver.available ? '' : ` — ${t('libresign', 'Unavailable')}` }}
 								</option>
 							</select>

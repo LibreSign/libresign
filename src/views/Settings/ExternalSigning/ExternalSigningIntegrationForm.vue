@@ -5,7 +5,12 @@
 <template>
 	<form class="external-signing-form" :aria-busy="saving" @submit.prevent="submit">
 		<label for="external-signing-instance-name">{{ t('libresign', 'Integration name') }}</label>
-		<input id="external-signing-instance-name" v-model="draft.name" :disabled="saving" :aria-invalid="Boolean(errors.name)" autocomplete="off">
+		<input
+			id="external-signing-instance-name"
+			v-model="draft.name"
+			:disabled="saving"
+			:aria-invalid="Boolean(errors.name)"
+			autocomplete="off">
 		<p v-if="errors.name" role="alert">
 			{{ t('libresign', 'This field is required.') }}
 		</p>
