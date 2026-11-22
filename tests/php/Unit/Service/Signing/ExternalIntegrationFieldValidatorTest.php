@@ -17,7 +17,7 @@ final class ExternalIntegrationFieldValidatorTest extends TestCase {
 	private static function fields(): array {
 		return [
 			['key' => 'baseUrl', 'type' => 'url', 'required' => true, 'secret' => false, 'validation' => ['schemes' => ['https'], 'allowUserInfo' => false]],
-			['key' => 'accessToken', 'type' => 'password', 'required' => false, 'secret' => true, 'validation' => []],
+			['key' => 'accessToken', 'type' => 'password', 'required' => false, 'secret' => true],
 		];
 	}
 
@@ -26,6 +26,12 @@ final class ExternalIntegrationFieldValidatorTest extends TestCase {
 		$validator->validateCreate(self::fields(), ['baseUrl' => 'https://csc.example.invalid/v1'], []);
 		$validator->validateCreate(self::fields(), ['baseUrl' => 'https://csc.example.invalid'], ['accessToken' => 'synthetic-test-credential']);
 		$this->addToAssertionCount(2);
+	}
+
+
+	public function testOptionalSecretMetadataMayOmitValidation(): void {
+		(new ExternalIntegrationFieldValidator())->validateCreate(self::fields(), ['baseUrl' => 'https://example.org'], ['accessToken' => 'synthetic-token']);
+		$this->addToAssertionCount(1);
 	}
 
 	public function testUpdateAllowsOmittedSecretAndExplicitOptionalRemoval(): void {

@@ -42,7 +42,7 @@ final class ExternalIntegrationFieldValidator {
 		$definitions = [];
 		foreach ($fields as $field) {
 			$key = $field['key'] ?? null;
-			$validation = $field['validation'] ?? null;
+			$validation = $field['validation'] ?? [];
 			if (!is_string($key) || $key === '' || isset($definitions[$key])
 				|| !isset($field['type'], $field['secret'], $field['required'])
 				|| !is_bool($field['secret']) || !is_bool($field['required'])
