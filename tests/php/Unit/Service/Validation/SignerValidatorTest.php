@@ -21,6 +21,7 @@ use OCA\Libresign\Enum\SignRequestStatus;
 use OCA\Libresign\Exception\LibresignException;
 use OCA\Libresign\Service\DocMdp\Validator as DocMdpValidator;
 use OCA\Libresign\Service\IdentifyMethod\IIdentifyMethod;
+use OCA\Libresign\Service\IdentifyMethod\SignatureMethod\AbstractSignatureMethod;
 use OCA\Libresign\Service\IdentifyMethod\RuntimeRequirementValidator;
 use OCA\Libresign\Service\IdentifyMethod\SignatureMethod\ISignatureMethod;
 use OCA\Libresign\Service\IdentifyMethodService;
@@ -134,6 +135,83 @@ final class SignerValidatorTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			'email token with identify value' => ['emailToken', 'email', 'alice@example.com', 'alice@example.com'],
 			'email token without identify value' => ['emailToken', 'email', 'alice@example.com', ''],
 			'sms token with identify value' => ['smsToken', 'sms', '+5511999999999', '+5511999999999'],
+		];
+	}
+
+	#[DataProvider('signatureMethodWithMultipleIdentifyOwnersCases')]
+	public function testValidateCredentialsSelectsPersistedOwnerOfSharedSignatureMethod(
+		array $factorOrder,
+		string $selectedFactor,
+		bool $selectedFactorEnabled,
+		string $token,
+		bool $shouldSucceed,
+	): void {
+		$values = ['account' => 'alice', 'email' => 'alice@example.com'];
+		$methods = [];
+		$catalogOwner = null;
+		foreach ($factorOrder as $factor) {
+			$entity = new IdentifyMethodEntity();
+			$entity->setIdentifierKey($factor);
+			$entity->setIdentifierValue($values[$factor]);
+			$enabled = $factor !== $selectedFactor || $selectedFactorEnabled;
+
+			$signatureMethod = $this->createMock(AbstractSignatureMethod::class);
+			$signatureMethod->method('getName')->willReturn('emailToken');
+			$signatureMethod->method('isEnabled')->willReturn($enabled);
+			$stored = $this->createMock(IIdentifyMethod::class);
+			$stored->method('getEntity')->willReturn($entity);
+			$stored->method('getSignatureMethods')->willReturn([$signatureMethod]);
+			$selectedAndEnabled = $factor === $selectedFactor && $enabled;
+			$stored->expects($selectedAndEnabled ? $this->once() : $this->never())
+				->method('setCodeSentByUser')->with($token);
+			$stored->expects($selectedAndEnabled ? $this->once() : $this->never())
+				->method('validateToSign')->willReturnCallback(static function () use ($token): void {
+					if ($token !== '123456') {
+						throw new LibresignException('Invalid code.');
+					}
+				});
+			$methods[$factor] = [$stored];
+			if ($enabled) {
+				$catalogOwner = $factor;
+			}
+		}
+
+		$fallbackEntity = new IdentifyMethodEntity();
+		$fallbackEntity->setIdentifierValue($values[$selectedFactor]);
+		$withoutStoredCode = $this->createMock(IIdentifyMethod::class);
+		$withoutStoredCode->method('getEntity')->willReturn($fallbackEntity);
+		$withoutStoredCode->method('validateToSign')
+			->willThrowException(new LibresignException('Invalid code.'));
+
+		$this->identifyMethodService->method('exists')->willReturn(true);
+		$this->identifyMethodService->method('getIdentifyMethodsFromSignRequestId')
+			->willReturn($methods);
+		$this->identifyMethodService->method('getSignMethodsOfIdentifiedFactors')
+			->willReturn(['emailToken' => ['identifyMethod' => $catalogOwner]]);
+		$this->identifyMethodService->method('setCurrentIdentifyMethod')->willReturnSelf();
+		$this->identifyMethodService->method('getInstanceOfIdentifyMethod')
+			->willReturn($withoutStoredCode);
+
+		$signRequest = new SignRequest();
+		$signRequest->setId(1);
+		if (!$shouldSucceed) {
+			$this->expectException(LibresignException::class);
+			$this->expectExceptionMessage('Invalid code.');
+		}
+		$this->validator->validateCredentials(
+			$signRequest, 'emailToken', $values[$selectedFactor], $token,
+		);
+	}
+
+	public static function signatureMethodWithMultipleIdentifyOwnersCases(): array {
+		return [
+			'account owner overwritten by email' => [['account', 'email'], 'account', true, '123456', true],
+			'email owner is last' => [['account', 'email'], 'email', true, '123456', true],
+			'email owner overwritten by account' => [['email', 'account'], 'email', true, '123456', true],
+			'account owner is last' => [['email', 'account'], 'account', true, '123456', true],
+			'account email token disabled' => [['account', 'email'], 'account', false, '123456', false],
+			'email email token disabled' => [['email', 'account'], 'email', false, '123456', false],
+			'invalid token on selected account' => [['account', 'email'], 'account', true, '000000', false],
 		];
 	}
 
