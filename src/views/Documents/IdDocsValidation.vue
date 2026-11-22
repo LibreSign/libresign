@@ -98,7 +98,7 @@
 									{{ sortOrder === 'ASC' ? '▲' : '▼' }}
 								</span>
 							</th>
-							<th>{{ t('libresign', 'Approved by') }}</th>
+							<th>{{ t('libresign', 'Reviewed by') }}</th>
 							<th class="id-docs-table__cell--frozen-right">
 								{{ t('libresign', 'Actions') }}
 							</th>
@@ -125,7 +125,19 @@
 								</p>
 							</td>
 							<td>
-								<template v-if="doc.file?.signers?.length > 0 && doc.file.signers[0].sign_date">
+								<template v-if="doc.rejection">
+									<div v-if="doc.rejection.by" class="rejection-reviewer">
+										<NcAvatar :user="doc.rejection.by"
+											:display-name="doc.rejection.by"
+											:size="32"
+											:disable-menu="true" />
+										{{ t('libresign', 'Rejected by {user}', { user: doc.rejection.by }) }}
+									</div>
+									<div v-if="doc.rejection.at" class="rejection-timestamp">
+										{{ formatRejectionDate(doc.rejection.at) }}
+									</div>
+								</template>
+								<template v-else-if="doc.file?.signers?.length > 0 && doc.file.signers[0].sign_date">
 									<NcAvatar v-if="doc.file.signers[0].uid"
 										:user="doc.file.signers[0].uid"
 										:display-name="doc.file.signers[0].displayName"
@@ -390,6 +402,18 @@ function isSortOrder(value: unknown): value is Exclude<SortOrder, null> {
 	return value === 'ASC' || value === 'DESC'
 }
 
+/**
+ * Database rejection datetimes are UTC without a timezone suffix.
+ * Parse SQL and ISO-8601 timestamps consistently in the viewer's timezone.
+ */
+function formatRejectionDate(value: string): string {
+	const timestamp = /^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}$/.test(value)
+		? value.replace(' ', 'T') + 'Z'
+		: value
+	const parsed = new Date(timestamp)
+	return Number.isNaN(parsed.getTime()) ? '-' : parsed.toLocaleString()
+}
+
 function getStatusOption(status: UserConfigFilters['status']): StatusOption | null {
 	if (!status) {
 		return null
@@ -646,6 +670,7 @@ defineExpose({
 	hasActiveFilters,
 	activeFilterCount,
 	filteredDocuments,
+	formatRejectionDate,
 	loadDocuments,
 	onScroll,
 	openApprove,
@@ -859,5 +884,17 @@ defineExpose({
 	&__cell--frozen-owner {
 		left: $spacer-width;
 	}
+}
+
+.rejection-reviewer {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+}
+
+.rejection-timestamp {
+	font-size: 12px;
+	color: var(--color-text-maxcontrast);
+	margin-top: 4px;
 }
 </style>

@@ -63,6 +63,56 @@ describe('Documents', () => {
 		axiosGetMock.mockClear()
 	})
 
+	it.each([
+		['authenticated account', { uid: 'account-signer' }, '', true],
+		['external signer', null, 'external-request-uuid', false],
+	])('shows the rejection reason and replacement action without reviewer identity for %s', async (
+		_signerType,
+		currentUser,
+		signRequestUuid,
+		canPickFromFiles,
+	) => {
+		loadStateMock.mockImplementation((_app: string, key: string, fallback: unknown) => {
+			if (key === 'config') { return { identificationDocumentsFlow: true } }
+			return fallback
+		})
+		getCurrentUserMock.mockReturnValue(currentUser)
+		axiosGetMock.mockResolvedValueOnce({ data: { ocs: { data: { data: [{
+			nodeId: 55,
+			status: 1,
+			statusText: 'rejected',
+			file_type: { key: 'IDENTIFICATION', type: 'IDENTIFICATION', name: 'Identification Document' },
+			rejection: {
+				reason: 'This identification document is expired',
+				at: '2026-11-10T10:00:00Z',
+				by: 'private-reviewer-uid',
+			},
+		}] } } } })
+		const wrapper = mount(Documents, {
+			props: { signRequestUuid },
+			global: {
+				stubs: {
+					NcButton: { template: '<button><slot /><slot name="icon" /></button>' },
+					NcNoteCard: { template: '<div class="note"><slot /></div>' },
+					NcLoadingIcon: true,
+					NcIconSvgWrapper: true,
+				},
+			},
+		})
+		await flushPromises()
+
+		expect(axiosGetMock).toHaveBeenCalledWith('/apps/libresign/api/v1/id-docs', {
+			params: signRequestUuid ? { uuid: signRequestUuid } : {},
+		})
+		expect(wrapper.text()).toContain('This identification document is expired')
+		expect(wrapper.text()).toContain('Upload a replacement.')
+		expect(wrapper.text()).not.toContain('private-reviewer-uid')
+		const actionLabels = wrapper.findAll('button').map(button => button.text().trim())
+		expect(actionLabels).toContain('Upload file')
+		expect(actionLabels.includes('Choose from Files')).toBe(canPickFromFiles)
+		expect(actionLabels).not.toContain('Delete file')
+	})
+
 	it('registers icon wrapper and exposes mdi icon paths used in template', async () => {
 		loadStateMock.mockImplementation((_app: string, key: string, fallback: unknown) => {
 			if (key === 'config') { return { identificationDocumentsFlow: true } }

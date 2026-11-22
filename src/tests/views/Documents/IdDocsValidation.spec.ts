@@ -356,6 +356,64 @@ describe('IdDocsValidation.vue', () => {
 		expect(wrapper.vm.filteredDocuments).toEqual([signedDoc])
 	})
 
+	it('shows the rejecting reviewer and the correct local time, preserving approved-by attribution', async () => {
+		const rejectedDoc: IdDocEntry = {
+			...pendingDoc,
+			rejection: {
+				by: 'reviewer-17',
+				at: '2026-11-10 10:00:00',
+				reason: 'The identification document has expired',
+			},
+		}
+		axiosGetMock.mockResolvedValueOnce({
+			data: { ocs: { data: {
+				pagination: { total: 2 },
+				data: [signedDoc, rejectedDoc],
+			} } },
+		})
+		const wrapper = createWrapper()
+		await flushPromises()
+
+		const rows = wrapper.findAll('tbody tr')
+		expect(rows).toHaveLength(2)
+		expect(wrapper.find('thead').text()).toContain('Reviewed by')
+		expect(rows[0].text()).toContain('Approver')
+		expect(rows[0].find('.rejection-reviewer').exists()).toBe(false)
+
+		const rejectedRow = rows[1]
+		expect(rejectedRow.find('.rejection-reviewer').text()).toBe('Rejected by reviewer-17')
+		expect(rejectedRow.find('.rejection-timestamp').text()).toBe(
+			new Date('2026-11-10T10:00:00Z').toLocaleString(),
+		)
+		expect(rejectedRow.text()).toContain('The identification document has expired')
+		expect(rejectedRow.findAll('.nc-action-button-stub').map(button => button.text().trim()))
+			.not.toContain('Review and approve')
+	})
+
+	it('shows a rejection date without inventing reviewer identity when the API omits it', async () => {
+		const rejectedDoc: IdDocEntry = {
+			...pendingDoc,
+			rejection: { at: '2026-11-10T10:00:00Z', reason: 'Unreadable scan' },
+		}
+		axiosGetMock.mockResolvedValueOnce({
+			data: { ocs: { data: {
+				pagination: { total: 1 },
+				data: [rejectedDoc],
+			} } },
+		})
+		const wrapper = createWrapper()
+		await flushPromises()
+
+		const row = wrapper.find('tbody tr')
+		expect(row.find('.rejection-reviewer').exists()).toBe(false)
+		expect(row.find('.rejection-timestamp').text()).toBe(
+			new Date('2026-11-10T10:00:00Z').toLocaleString(),
+		)
+		expect(row.text()).toContain('Unreadable scan')
+		expect(row.text()).not.toContain('undefined')
+		expect(row.text()).not.toContain('Invalid Date')
+	})
+
 	it('requires a reason before submitting an ID document rejection', async () => {
 		const wrapper = createWrapper()
 		await flushPromises()

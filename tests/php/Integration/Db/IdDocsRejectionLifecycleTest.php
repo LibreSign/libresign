@@ -121,6 +121,7 @@ final class IdDocsRejectionLifecycleTest extends TestCase {
 		$this->assertSame('rejected', $rejectedRows[0]['file']['statusText']);
 		$this->assertSame($reason, $rejectedRows[0]['rejection']['reason']);
 		$this->assertSame('reviewer-one', $rejectedRows[0]['rejection']['by']);
+		$this->assertSame($rejectedAt->format('Y-m-d H:i:s'), $rejectedRows[0]['rejection']['at']);
 		$this->assertSame($original->getUuid(), $rejectedRows[0]['file']['uuid']);
 
 		// Rejecting the identification document is not a rejection or cancellation
@@ -134,6 +135,7 @@ final class IdDocsRejectionLifecycleTest extends TestCase {
 		$signerRejected = array_values(array_filter($signerRows, static fn (array $row): bool => $row['rejection'] !== null));
 		$this->assertCount(1, $signerRejected);
 		$this->assertSame($reason, $signerRejected[0]['rejection']['reason']);
+		$this->assertSame($rejectedAt->format('Y-m-d H:i:s'), $signerRejected[0]['rejection']['at']);
 		$this->assertArrayNotHasKey('by', $signerRejected[0]['rejection']);
 	}
 
