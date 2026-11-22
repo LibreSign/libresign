@@ -108,7 +108,11 @@ final class ExternalSigningIntegrationsControllerTest extends \OCA\Libresign\Tes
 		self::assertSame(Http::STATUS_OK, $cleared->getStatus());
 		self::assertSame([['key' => 'accessToken', 'isConfigured' => false]], $cleared->getData()['secretFields']);
 
-		$disabled = $this->controller->disable($first['id'], $cleared->getData()['revision']);
+		$enabled = $this->controller->enable($first['id'], $cleared->getData()['revision']);
+		self::assertSame(Http::STATUS_OK, $enabled->getStatus());
+		self::assertTrue($enabled->getData()['enabled']);
+
+		$disabled = $this->controller->disable($first['id'], $enabled->getData()['revision']);
 		self::assertSame(Http::STATUS_OK, $disabled->getStatus());
 		self::assertFalse($disabled->getData()['enabled']);
 
