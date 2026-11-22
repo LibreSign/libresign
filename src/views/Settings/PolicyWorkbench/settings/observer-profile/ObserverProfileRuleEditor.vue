@@ -14,7 +14,8 @@
 				<p>{{ description }}</p>
 			</div>
 		</NcCheckboxRadioSwitch>
-		<NcNoteCard v-if="showPrivateValidationWarning"
+		<NcNoteCard
+			v-if="showPrivateValidationWarning"
 			type="warning"
 			:show-alert="true">
 			{{ privateValidationWarning }}

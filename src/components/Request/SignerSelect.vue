@@ -4,7 +4,8 @@
 -->
 <template>
 	<div id="account-or-email">
-		<NcSelect ref="select"
+		<NcSelect
+			ref="select"
 			:key="participantRole"
 			:model-value="selectedSigner"
 			input-id="account-or-email-input"
@@ -23,19 +24,22 @@
 			@update:modelValue="onSelectedSignerChange">
 			<template #option="slotProps">
 				<div class="account-or-email__option">
-					<NcAvatar :display-name="getOptionLabel(slotProps)"
+					<NcAvatar
+						:display-name="getOptionLabel(slotProps)"
 						:size="28"
 						:is-no-user="true" />
 					<div class="account-or-email__option__text">
 						<div class="account-or-email__option__title">
 							{{ getOptionLabel(slotProps) }}
 						</div>
-						<div v-if="getOptionSubname(slotProps)"
+						<div
+							v-if="getOptionSubname(slotProps)"
 							class="account-or-email__option__subtitle">
 							{{ getOptionSubname(slotProps) }}
 						</div>
 					</div>
-					<NcIconSvgWrapper v-if="getOptionIcon(slotProps)"
+					<NcIconSvgWrapper
+						v-if="getOptionIcon(slotProps)"
 						class="account-or-email__option__type"
 						:svg="getOptionIcon(slotProps)"
 						:size="18" />
@@ -47,7 +51,8 @@
 			</template>
 		</NcSelect>
 		<div v-if="canUseMyAccount && !selectedSigner" class="account-or-email__self">
-			<NcButton variant="tertiary-no-background"
+			<NcButton
+				variant="tertiary-no-background"
 				size="small"
 				@click="useMyAccount">
 				<!-- TRANSLATORS Current account shortcut for the regular signer selection form. -->

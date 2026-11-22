@@ -9,12 +9,14 @@
 			{{ noIdentificationMethodsAvailableText }}
 		</div>
 
-		<div v-for="(identifyMethod, index) in entries"
+		<div
+			v-for="(identifyMethod, index) in entries"
 			:key="identifyMethod.name"
 			class="identify-methods-editor__method"
 			:class="{ 'identify-methods-editor__method--disabled': !identifyMethod.enabled }">
 			<div class="identify-methods-editor__method-header">
-				<NcCheckboxRadioSwitch v-if="canToggleMethodAvailability"
+				<NcCheckboxRadioSwitch
+					v-if="canToggleMethodAvailability"
 					type="switch"
 					class="identify-methods-editor__method-main-toggle"
 					:model-value="identifyMethod.enabled"
@@ -26,7 +28,8 @@
 				</span>
 
 				<div v-if="identifyMethod.enabled" class="identify-methods-editor__requirement-area">
-					<NcCheckboxRadioSwitch v-if="canAdjustRequirement"
+					<NcCheckboxRadioSwitch
+						v-if="canAdjustRequirement"
 						type="switch"
 						class="identify-methods-editor__requirement-switch"
 						:model-value="isRequired(identifyMethod)"
@@ -34,7 +37,8 @@
 						{{ requiredToSignLabel }}
 					</NcCheckboxRadioSwitch>
 
-					<NcCheckboxRadioSwitch v-else
+					<NcCheckboxRadioSwitch
+						v-else
 						type="switch"
 						class="identify-methods-editor__requirement-switch identify-methods-editor__requirement-switch--locked"
 						:model-value="true"
@@ -49,7 +53,8 @@
 				<fieldset v-if="Object.keys(identifyMethod.signatureMethods).length > 0" class="identify-methods-editor__sub-section">
 					<legend>{{ confirmationMethodLabel }}</legend>
 					<div class="identify-methods-editor__verification-options" role="radiogroup" :aria-label="confirmationMethodLabel">
-						<NcCheckboxRadioSwitch v-for="(signatureMethod, signatureMethodName) in identifyMethod.signatureMethods"
+						<NcCheckboxRadioSwitch
+							v-for="(signatureMethod, signatureMethodName) in identifyMethod.signatureMethods"
 							:key="signatureMethodName"
 							type="radio"
 							:name="`verification-method-${identifyMethod.name}-${index}`"
@@ -70,7 +75,8 @@
 				{{ ruleSettingsLabel }}
 			</p>
 			<div class="identify-methods-editor__global-onboarding">
-				<NcCheckboxRadioSwitch type="switch"
+				<NcCheckboxRadioSwitch
+					type="switch"
 					:model-value="canCreateAccount"
 					@update:modelValue="onGlobalCanCreateAccountToggle($event)">
 					<div class="identify-methods-editor__onboarding-content">

@@ -8,7 +8,8 @@
 			<TopBar
 				v-if="!isMobile"
 				:sidebar-toggle="true" />
-			<PdfEditor v-if="mounted && !hasPdfLoadError && pdfBlobs.length > 0"
+			<PdfEditor
+				v-if="mounted && !hasPdfLoadError && pdfBlobs.length > 0"
 				ref="pdfEditor"
 				width="100%"
 				height="100%"
@@ -28,7 +29,8 @@
 					{{ t('libresign', 'Sign') }}
 				</NcButton>
 			</div>
-			<NcNoteCard v-for="(error, index) in signStore.errors"
+			<NcNoteCard
+				v-for="(error, index) in signStore.errors"
 				:key="index"
 				:heading="error.title || ''"
 				type="error">

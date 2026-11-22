@@ -11,7 +11,8 @@
 			<h1 class="title">
 				{{ t('libresign', 'Welcome to LibreSign') }}
 			</h1>
-			<NcButton v-if="isAdmin"
+			<NcButton
+				v-if="isAdmin"
 				@click="finishSetup">
 				<template #icon>
 					<NcIconSvgWrapper :path="mdiCogs" :size="20" />

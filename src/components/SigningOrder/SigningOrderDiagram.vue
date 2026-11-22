@@ -29,13 +29,15 @@
 				</div>
 				<div class="stage-label-placeholder" />
 				<div class="stage-items">
-					<div v-for="(signer, index) in getSignersByOrder(order)"
+					<div
+						v-for="(signer, index) in getSignersByOrder(order)"
 						:key="`${order}-${index}`"
 						class="signer-node"
 						:class="{ signed: signer.signed }">
 						<NcPopover>
 							<template #trigger="{ attrs }">
-								<button class="signer-content"
+								<button
+									class="signer-content"
 									v-bind="attrs"
 									type="button">
 									<div class="avatar-container">
@@ -62,7 +64,8 @@
 									<!-- TRANSLATORS Label preceding signer identification method chips in details popover. -->
 									<strong>{{ t('libresign', 'Method') }}:</strong>
 									<div class="method-chips">
-										<NcChip v-for="method in getIdentifyMethods(signer)"
+										<NcChip
+											v-for="method in getIdentifyMethods(signer)"
 											:key="method"
 											:text="method"
 											:no-close="true" />
@@ -76,7 +79,8 @@
 								<div class="popover-row">
 									<!-- TRANSLATORS Label preceding signer status chip in details popover. -->
 									<strong>{{ t('libresign', 'Status') }}:</strong>
-									<NcChip :text="getStatusLabel(signer)"
+									<NcChip
+										:text="getStatusLabel(signer)"
 										:variant="getChipType(signer)"
 										:icon-path="getStatusIconPath(signer)"
 										:no-close="true" />

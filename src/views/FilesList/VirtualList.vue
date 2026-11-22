@@ -3,7 +3,8 @@
   - SPDX-License-Identifier: AGPL-3.0-or-later
 -->
 <template>
-	<div class="files-list"
+	<div
+		class="files-list"
 		:class="{ 'files-list--grid': userConfigStore.files_list_grid_view }"
 		data-cy-files-list>
 		<div class="files-list__filters">
@@ -37,16 +38,19 @@
 				<slot name="header" />
 			</thead>
 			<!-- Body -->
-			<tbody class="files-list__tbody"
+			<tbody
+				class="files-list__tbody"
 				:class="userConfigStore.files_list_grid_view ? 'files-list__tbody--grid' : 'files-list__tbody--list'"
 				data-cy-files-list-tbody>
-				<component :is="dataComponent"
+				<component
+					:is="dataComponent"
 					v-for="(item) in filesStore.filesSorted()"
 					:key="item.id"
 					:source="item"
 					:loading="loading" />
 			</tbody>
-			<tfoot ref="endOfList"
+			<tfoot
+				ref="endOfList"
 				class="files-list__tfoot"
 				data-cy-files-list-tfoot>
 				<slot name="footer" />

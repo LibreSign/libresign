@@ -3,13 +3,15 @@
   - SPDX-License-Identifier: AGPL-3.0-or-later
 -->
 <template>
-	<NcListItem v-bind="{ ...$attrs, to, 'counter-number': hasElement ? '📎' : undefined }"
+	<NcListItem
+		v-bind="{ ...$attrs, to, 'counter-number': hasElement ? '📎' : undefined }"
 		:name="displayName"
 		:details="signDate"
 		:class="`signer-row signer-row-${status}`"
 		@click="signerClickAction">
 		<template #icon>
-			<NcAvatar is-no-user
+			<NcAvatar
+				is-no-user
 				:size="44"
 				:user="signer.email ?? undefined"
 				:display-name="displayName" />

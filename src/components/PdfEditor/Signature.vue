@@ -3,9 +3,11 @@
   - SPDX-License-Identifier: AGPL-3.0-or-later
 -->
 <template>
-	<div class="absolute left-0 top-0 select-none"
+	<div
+		class="absolute left-0 top-0 select-none"
 		:style="containerStyle">
-		<div class="signature absolute w-full h-full"
+		<div
+			class="signature absolute w-full h-full"
 			:class="[
 				isInteractive ? 'cursor-grab' : '',
 				operation === 'move' ? 'cursor-grabbing' : '',
@@ -13,28 +15,34 @@
 			]"
 			@mousedown="handlePanStart"
 			@touchstart="handlePanStart">
-			<div v-if="!fixSize && isInteractive"
+			<div
+				v-if="!fixSize && isInteractive"
 				data-direction="left-top"
 				class="absolute cursor-nwse-resize transform selector"
 				:style="{ top: '0%', left: '0%' }" />
-			<div v-if="!fixSize && isInteractive"
+			<div
+				v-if="!fixSize && isInteractive"
 				data-direction="right-top"
 				class="absolute cursor-nesw-resize transform selector"
 				:style="{ top: '0%', left: '100%' }" />
-			<div v-if="!fixSize && isInteractive"
+			<div
+				v-if="!fixSize && isInteractive"
 				data-direction="left-bottom"
 				class="absolute cursor-nesw-resize transform selector"
 				:style="{ top: '100%', left: '0%' }" />
-			<div v-if="!fixSize && isInteractive"
+			<div
+				v-if="!fixSize && isInteractive"
 				data-direction="right-bottom"
 				class="absolute cursor-nwse-resize transform selector"
 				:style="{ top: '100%', left: '100%' }" />
 		</div>
-		<div v-if="isInteractive"
+		<div
+			v-if="isInteractive"
 			class="absolute cursor-pointer transform delete"
 			:style="{ top: '0%', left: '50%' }"
 			@click="onDelete">
-			<NcIconSvgWrapper class="w-full h-full icon-delete"
+			<NcIconSvgWrapper
+				class="w-full h-full icon-delete"
 				:path="mdiCloseCircle"
 				:size="25" />
 		</div>

@@ -4,14 +4,17 @@
 -->
 <template>
 	<li>
-		<NcListItem :name="getName(signer)"
+		<NcListItem
+			:name="getName(signer)"
 			:active="isOpen"
 			@click="toggleOpen">
 			<template #icon>
-				<NcAvatar v-if="!hasValidationIssues(signer)"
+				<NcAvatar
+					v-if="!hasValidationIssues(signer)"
 					:display-name="getName(signer)"
 					:is-no-user="true" />
-				<NcIconSvgWrapper v-else
+				<NcIconSvgWrapper
+					v-else
 					:path="getIconValidityPath(signer)"
 					:class="getSignerValidationClass(signer)" />
 			</template>
@@ -31,14 +34,18 @@
 				</template>
 			</template>
 			<template #extra-actions>
-				<NcButton v-if="isSigned(signer)" variant="tertiary"
+				<NcButton
+					v-if="isSigned(signer)"
+					variant="tertiary"
 					:aria-label="toggleDetailsAriaLabel"
 					@click.stop="toggleOpen">
 					<template #icon>
-						<NcIconSvgWrapper v-if="isOpen"
+						<NcIconSvgWrapper
+							v-if="isOpen"
 							:path="mdiUnfoldLessHorizontal"
 							:size="20" />
-						<NcIconSvgWrapper v-else
+						<NcIconSvgWrapper
+							v-else
 							:path="mdiUnfoldMoreHorizontal"
 							:size="20" />
 					</template>
@@ -54,7 +61,8 @@
 					{{ dateFromSqlAnsi(signer.rejection.rejectedAt) }}
 				</template>
 			</NcListItem>
-			<NcListItem v-if="signer.rejection.comment"
+			<NcListItem
+				v-if="signer.rejection.comment"
 				class="extra"
 				compact
 				data-test="signer-rejection-comment">
@@ -62,14 +70,16 @@
 					<!-- TRANSLATORS Label before the reason the signer wrote when refusing to sign the document. -->
 					<strong>{{ t('libresign', 'Rejection comment:') }}</strong>
 					{{ signer.rejection.comment }}
-					<span v-if="signer.rejection.commentPrivate"
+					<span
+						v-if="signer.rejection.commentPrivate"
 						class="rejection-comment-private"
 						data-test="signer-rejection-comment-private">{{ privateCommentLabel }}</span>
 				</template>
 			</NcListItem>
 		</template>
 
-		<NcListItem v-if="isOpen && isSigned(signer)"
+		<NcListItem
+			v-if="isOpen && isSigned(signer)"
 			class="extra"
 			compact
 			:name="t('libresign', 'Visible signature:')">
@@ -81,7 +91,8 @@
 		</NcListItem>
 
 		<!-- Certificate dates describe the signing credential, not the document lifetime. -->
-		<NcListItem v-if="isOpen && getCertificateExpirationLabel(signer)"
+		<NcListItem
+			v-if="isOpen && getCertificateExpirationLabel(signer)"
 			class="extra"
 			compact
 			data-test="signer-certificate-expiry"
@@ -100,7 +111,8 @@
 		<SignerTimestamp v-if="isOpen" :timestamp="signer.timestamp" />
 
 		<!-- Validation Status Section -->
-		<NcListItem v-if="isOpen && hasValidationStatus(signer)"
+		<NcListItem
+			v-if="isOpen && hasValidationStatus(signer)"
 			class="extra"
 			compact
 			:name="t('libresign', 'Validation status')"
@@ -111,14 +123,17 @@
 				<strong>{{ t('libresign', 'Validation status') }}</strong>
 			</template>
 			<template #extra-actions>
-				<NcButton variant="tertiary"
+				<NcButton
+					variant="tertiary"
 					:aria-label="validationStatusToggleLabel"
 					@click.stop="validationStatusOpen = !validationStatusOpen">
 					<template #icon>
-						<NcIconSvgWrapper v-if="validationStatusOpen"
+						<NcIconSvgWrapper
+							v-if="validationStatusOpen"
 							:path="mdiUnfoldLessHorizontal"
 							:size="20" />
-						<NcIconSvgWrapper v-else
+						<NcIconSvgWrapper
+							v-else
 							:path="mdiUnfoldMoreHorizontal"
 							:size="20" />
 					</template>
@@ -128,7 +143,8 @@
 		<div v-if="isOpen && validationStatusOpen" role="region">
 			<NcListItem v-if="signer.signature_validation" class="extra-chain" compact>
 				<template #icon>
-					<NcIconSvgWrapper :path="signer.signature_validation.id === 1 ? mdiCheckCircle : mdiAlertCircle"
+					<NcIconSvgWrapper
+						:path="signer.signature_validation.id === 1 ? mdiCheckCircle : mdiAlertCircle"
 						:class="signer.signature_validation?.id === 1 ? 'validation-icon--success' : 'validation-icon--error'" />
 				</template>
 				<template #name>
@@ -145,7 +161,8 @@
 			</NcListItem>
 			<NcListItem v-if="signer.certificate_validation" class="extra-chain" compact>
 				<template #icon>
-					<NcIconSvgWrapper :path="signer.certificate_validation.id === 1 ? mdiCheckCircle : mdiAlertCircle"
+					<NcIconSvgWrapper
+						:path="signer.certificate_validation.id === 1 ? mdiCheckCircle : mdiAlertCircle"
 						:class="signer.certificate_validation?.id === 1 ? 'validation-icon--success' : 'validation-icon--error'" />
 				</template>
 				<template #name>
@@ -154,7 +171,8 @@
 			</NcListItem>
 			<NcListItem v-if="signer.valid_from && signer.valid_to && signer.signed" class="extra-chain" compact>
 				<template #icon>
-					<NcIconSvgWrapper :path="getValidityStatusAtSigning(signer) === 'valid' ? mdiCheckCircle : mdiCancel"
+					<NcIconSvgWrapper
+						:path="getValidityStatusAtSigning(signer) === 'valid' ? mdiCheckCircle : mdiCancel"
 						:class="getValidityStatusAtSigning(signer) === 'valid' ? 'validation-icon--success' : 'validation-icon--error'" />
 				</template>
 				<template #name>
@@ -163,7 +181,8 @@
 			</NcListItem>
 			<NcListItem v-if="signer.crl_validation" class="extra-chain" compact>
 				<template #icon>
-					<NcIconSvgWrapper :path="getCrlValidationIconPath(signer)"
+					<NcIconSvgWrapper
+						:path="getCrlValidationIconPath(signer)"
 						:class="getCrlValidationIconClass(signer)" />
 				</template>
 				<template #name>
@@ -173,7 +192,8 @@
 		</div>
 
 		<!-- Document Certification (DocMDP) Section -->
-		<NcListItem v-if="isOpen && hasDocMdpInfo(signer)"
+		<NcListItem
+			v-if="isOpen && hasDocMdpInfo(signer)"
 			class="extra"
 			compact
 			:name="t('libresign', 'Document certification')"
@@ -184,21 +204,25 @@
 				<strong>{{ t('libresign', 'Document certification') }}</strong>
 			</template>
 			<template #extra-actions>
-				<NcButton variant="tertiary"
+				<NcButton
+					variant="tertiary"
 					:aria-label="documentCertificationToggleLabel"
 					@click.stop="docMdpOpen = !docMdpOpen">
 					<template #icon>
-						<NcIconSvgWrapper v-if="docMdpOpen"
+						<NcIconSvgWrapper
+							v-if="docMdpOpen"
 							:path="mdiUnfoldLessHorizontal"
 							:size="20" />
-						<NcIconSvgWrapper v-else
+						<NcIconSvgWrapper
+							v-else
 							:path="mdiUnfoldMoreHorizontal"
 							:size="20" />
 					</template>
 				</NcButton>
 			</template>
 			<template #indicator>
-				<NcIconSvgWrapper v-if="getModificationStatusIcon(signer)"
+				<NcIconSvgWrapper
+					v-if="getModificationStatusIcon(signer)"
 					:path="getModificationStatusIcon(signer)"
 					:class="getModificationStatusClass(signer)"
 					:size="20" />
@@ -227,7 +251,8 @@
 			</NcListItem>
 			<NcListItem v-if="signer.modification_validation" class="extra-chain" compact>
 				<template #icon>
-					<NcIconSvgWrapper :path="getModificationStatusIcon(signer)"
+					<NcIconSvgWrapper
+						:path="getModificationStatusIcon(signer)"
 						:class="getModificationStatusClass(signer)" />
 				</template>
 				<template #name>
@@ -272,12 +297,14 @@
 				{{ signer.user_agent }}
 			</template>
 		</NcListItem>
-		<SignerGeolocationEvidence v-if="isOpen"
+		<SignerGeolocationEvidence
+			v-if="isOpen"
 			:device="getStoredDeviceGeolocation(signer)"
 			:ip="getStoredIpGeolocation(signer)" />
 
 		<!-- Certificate Chain Section -->
-		<CertificateChain v-if="isOpen && signer.chain && signer.chain.length > 0"
+		<CertificateChain
+			v-if="isOpen && signer.chain && signer.chain.length > 0"
 			:chain="signer.chain" />
 	</li>
 </template>

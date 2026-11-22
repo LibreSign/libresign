@@ -3,16 +3,19 @@
   - SPDX-License-Identifier: AGPL-3.0-or-later
 -->
 <template>
-	<ul v-if="activeChips.length > 0"
+	<ul
+		v-if="activeChips.length > 0"
 		class="file-list-filter-chips"
 		:aria-label="t('libresign', 'Active filters')">
 		<li v-for="(chip, index) of activeChips" :key="index">
-			<NcChip :aria-label-close="t('libresign', 'Remove filter')"
+			<NcChip
+				:aria-label-close="t('libresign', 'Remove filter')"
 				:icon-svg="chip.icon"
 				:text="chip.text"
 				@close="chip.onclick">
 				<template v-if="chip.user" #icon>
-					<NcAvatar disable-menu
+					<NcAvatar
+						disable-menu
 						:verbose-status="false"
 						:size="24"
 						:user="chip.user" />

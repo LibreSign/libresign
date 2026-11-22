@@ -3,13 +3,15 @@
   - SPDX-License-Identifier: AGPL-3.0-or-later
 -->
 <template>
-	<FileListFilter :is-active="isActive"
+	<FileListFilter
+		:is-active="isActive"
 		:filter-name="t('libresign', 'Modified')"
 		@reset-filter="resetFilter">
 		<template #icon>
 			<NcIconSvgWrapper :path="mdiCalendarRange" />
 		</template>
-		<NcButton v-for="preset of timePresets"
+		<NcButton
+			v-for="preset of timePresets"
 			:key="preset.id"
 			alignment="start"
 			:pressed="selectedOption === preset.id"

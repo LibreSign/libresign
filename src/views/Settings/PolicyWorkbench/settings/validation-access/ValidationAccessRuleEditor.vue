@@ -18,7 +18,8 @@
 				<p>{{ option.description }}</p>
 			</div>
 		</NcCheckboxRadioSwitch>
-		<NcNoteCard v-if="showObserverWarning"
+		<NcNoteCard
+			v-if="showObserverWarning"
 			type="warning"
 			:show-alert="true">
 			{{ observerWarning }}

@@ -4,7 +4,8 @@
 -->
 
 <template>
-	<NcSettingsSection v-if="isThisEngine && loaded"
+	<NcSettingsSection
+		v-if="isThisEngine && loaded"
 		:name="t('libresign', 'Root certificate data')"
 		:description="description">
 		<div v-if="configureOk && isCertificateGenerated" id="tableRootCertificateOpenSsl" class="form-libresign">
@@ -43,17 +44,20 @@
 				<!-- TRANSLATORS Button label to regenerate root certificate for OpenSSL certificate engine. -->
 				{{ t('libresign', 'Regenerate root certificate') }}
 			</NcButton>
-			<NcDialog v-if="modal"
+			<NcDialog
+				v-if="modal"
 				:name="t('libresign', 'Confirm')"
 				@closing="closeModal">
 				<!-- TRANSLATORS High-impact warning: regenerating root certificate invalidates existing signature keys. -->
 				{{ t('libresign', 'Regenerate root certificate will invalidate all signatures keys. Do you confirm this action?') }}
 				<template #actions>
-					<NcButton variant="error"
+					<NcButton
+						variant="error"
 						@click="clearAndShowForm">
 						{{ t('libresign', 'Yes') }}
 					</NcButton>
-					<NcButton variant="primary"
+					<NcButton
+						variant="primary"
 						@click="closeModal">
 						{{ t('libresign', 'No') }}
 					</NcButton>
@@ -64,7 +68,8 @@
 			<div class="form-group">
 				<label for="commonName" class="form-heading--required">{{ t('libresign', 'Common Name (CN)') }}</label>
 				<!-- TRANSLATORS Helper text for certificate subject Common Name (CN) field. -->
-				<NcTextField id="commonName"
+				<NcTextField
+					id="commonName"
 					v-model="certificate.rootCert.commonName"
 					:helper-text="t('libresign', 'Full name of the main company or main person of this instance')"
 					:minlength="1"
@@ -74,17 +79,20 @@
 			</div>
 			<CertificateCustonOptions v-model:names="certificate.rootCert.names" />
 			<div>
-				<NcCheckboxRadioSwitch v-model="toggleCertificatePolicy"
+				<NcCheckboxRadioSwitch
+					v-model="toggleCertificatePolicy"
 					:disabled="formDisabled"
 					type="switch">
 					{{ t('libresign', 'Include certificate policy') }}
 				</NcCheckboxRadioSwitch>
 			</div>
-			<CertificatePolicy v-if="toggleCertificatePolicy"
+			<CertificatePolicy
+				v-if="toggleCertificatePolicy"
 				:disabled="formDisabled"
 				@certificate-policy-valid="handleCertificatePolicyValid" />
 			<div>
-				<NcCheckboxRadioSwitch v-model="customData"
+				<NcCheckboxRadioSwitch
+					v-model="customData"
 					:disabled="formDisabled"
 					type="switch">
 					{{ t('libresign', 'Define custom values to use {engine}', {engine: 'OpenSSL'}) }}
@@ -93,13 +101,15 @@
 			<div v-if="customData" class="form-group">
 				<label for="configPath">{{ t('libresign', 'Config path') }}</label>
 				<!-- TRANSLATORS Placeholder for optional OpenSSL config path; leave empty to use default path. -->
-				<NcTextField id="configPath"
+				<NcTextField
+					id="configPath"
 					v-model="certificate.configPath"
 					:label-outside="true"
 					:placeholder="t('libresign', 'Not mandatory, leave blank to use the default value.')"
 					:disabled="formDisabled" />
 			</div>
-			<NcButton :disabled="!canSave"
+			<NcButton
+				:disabled="!canSave"
 				variant="primary"
 				@click="generateCertificate">
 				{{ submitLabel }}

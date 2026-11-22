@@ -6,7 +6,8 @@
 	<div>
 		<NcLoadingIcon v-if="loading" :size="64" :name="loadingLabel" />
 		<div v-show="isLoaded" class="wrapper">
-			<img v-show="isLoaded"
+			<img
+				v-show="isLoaded"
 				:src="imageData"
 				:alt="alt"
 				:style="{

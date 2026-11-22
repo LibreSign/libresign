@@ -57,7 +57,11 @@
 			<div class="policy-workbench__empty-state">
 				<p>{{ emptyCatalogSearchMessage }}</p>
 				<div class="policy-workbench__empty-state-actions">
-					<NcButton variant="secondary" :aria-label="clearSettingsFilterAriaLabel" :disabled="!hasActiveFilter" @click="catalogState.clearSettingsFilter">
+					<NcButton
+						variant="secondary"
+						:aria-label="clearSettingsFilterAriaLabel"
+						:disabled="!hasActiveFilter"
+						@click="catalogState.clearSettingsFilter">
 						{{ clearFilterButtonLabel }}
 					</NcButton>
 					<NcButton variant="tertiary" :aria-label="showAllSettingsAriaLabel" @click="catalogState.clearSettingsFilter">

@@ -9,12 +9,14 @@
 		<div class="active-signings-content">
 			<!-- Auto-refresh toggle -->
 			<div class="active-signings__controls">
-				<NcCheckboxRadioSwitch v-model="autoRefresh"
+				<NcCheckboxRadioSwitch
+					v-model="autoRefresh"
 					type="switch"
 					:disabled="loading">
 					{{ t('libresign', 'Auto-refresh') }}
 				</NcCheckboxRadioSwitch>
-				<NcButton variant="tertiary"
+				<NcButton
+					variant="tertiary"
 					:disabled="loading"
 					@click="refresh">
 					<template #icon>
@@ -25,7 +27,8 @@
 			</div>
 
 			<!-- Loading indicator -->
-			<NcLoadingIcon v-if="loading && signings.length === 0"
+			<NcLoadingIcon
+				v-if="loading && signings.length === 0"
 				class="active-signings__loading-icon"
 				:size="32" />
 
@@ -42,7 +45,8 @@
 					<span class="active-signings__col-time">{{ t('libresign', 'Last Updated') }}</span>
 				</div>
 
-				<div v-for="signing in signings"
+				<div
+					v-for="signing in signings"
 					:key="signing.id"
 					class="active-signings__item">
 					<span class="active-signings__col-file">

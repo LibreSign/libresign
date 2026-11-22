@@ -6,7 +6,8 @@
 	<div class="ste__preview-section">
 		<div class="ste__preview-header">
 			<span class="ste__label">{{ previewLabel }}</span>
-			<NcButton v-if="showResetDefaultsButton ?? true"
+			<NcButton
+				v-if="showResetDefaultsButton ?? true"
 				variant="tertiary"
 				:aria-label="resetSignatureStampSettingsLabel"
 				@click="$emit('reset-defaults')">
@@ -17,7 +18,8 @@
 			</NcButton>
 			<span class="ste__preview-meta">{{ signatureWidth }} × {{ signatureHeight }}</span>
 			<div class="ste__zoom">
-				<NcButton variant="tertiary"
+				<NcButton
+					variant="tertiary"
 					class="ste__zoom-btn"
 					:aria-label="decreaseZoomLabel"
 					@click="$emit('change-zoom', -10)">
@@ -27,7 +29,8 @@
 				</NcButton>
 				<label class="hidden-visually" :for="`ste-zoom-${id}`">{{ zoomLabel }}</label>
 				<div class="ste__zoom-input-wrap">
-					<input :id="`ste-zoom-${id}`"
+					<input
+						:id="`ste-zoom-${id}`"
 						class="ste__zoom-input"
 						type="number"
 						min="25"
@@ -40,7 +43,8 @@
 						@keydown.enter.prevent="$emit('commit-zoom-input')">
 					<span class="ste__zoom-percent">%</span>
 				</div>
-				<NcButton variant="tertiary"
+				<NcButton
+					variant="tertiary"
 					class="ste__zoom-btn"
 					:aria-label="increaseZoomLabel"
 					@click="$emit('change-zoom', 10)">
@@ -52,7 +56,8 @@
 		</div>
 		<div class="ste__preview-stage">
 			<div class="ste__preview-frame" :style="previewFrameStyle">
-				<PdfElements v-if="pdfPreviewFile"
+				<PdfElements
+					v-if="pdfPreviewFile"
 					:key="previewRenderKey"
 					class="ste__preview-pdf"
 					:style="{ width: '100%', height: '100%' }"

@@ -5,34 +5,41 @@
 
 <template>
 	<ul>
-		<NcAppNavigationItem icon="icon-user" :name="t('libresign', 'Account')"
+		<NcAppNavigationItem
+			icon="icon-user"
+			:name="t('libresign', 'Account')"
 			:to="{name: 'Account'}">
 			<template #icon>
 				<NcIconSvgWrapper class="account-icon" :path="mdiAccount" :size="20" />
 			</template>
 		</NcAppNavigationItem>
-		<NcAppNavigationItem v-if="canManagePreferences"
+		<NcAppNavigationItem
+			v-if="canManagePreferences"
 			:name="t('libresign', 'Preferences')"
 			:to="{name: 'Preferences'}">
 			<template #icon>
 				<NcIconSvgWrapper class="preferences-icon" :path="mdiTuneVariant" :size="20" />
 			</template>
 		</NcAppNavigationItem>
-		<NcAppNavigationItem v-if="canManagePolicies"
+		<NcAppNavigationItem
+			v-if="canManagePolicies"
 			:name="t('libresign', 'Policies')"
 			:to="{name: 'Policies'}">
 			<template #icon>
 				<NcIconSvgWrapper class="policies-icon" :path="mdiShieldCheckOutline" :size="20" />
 			</template>
 		</NcAppNavigationItem>
-		<NcAppNavigationItem v-if="isAdmin"
+		<NcAppNavigationItem
+			v-if="isAdmin"
 			:name="t('libresign', 'Administration')"
 			:href="getAdminRoute()">
 			<template #icon>
 				<NcIconSvgWrapper class="tune-icon" :path="mdiCogOutline" :size="20" />
 			</template>
 		</NcAppNavigationItem>
-		<NcAppNavigationItem icon="icon-star" :name="t('libresign', 'Rate LibreSign  ❤️')"
+		<NcAppNavigationItem
+			icon="icon-star"
+			:name="t('libresign', 'Rate LibreSign  ❤️')"
 			href="https://apps.nextcloud.com/apps/libresign#comments">
 			<template #icon>
 				<NcIconSvgWrapper class="star-icon" :path="mdiStar" :size="20" />

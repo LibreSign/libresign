@@ -3,14 +3,16 @@
   - SPDX-License-Identifier: AGPL-3.0-or-later
 -->
 <template>
-	<FileListFilter class="file-list-filter-status"
+	<FileListFilter
+		class="file-list-filter-status"
 		:is-active="isActive"
 		:filter-name="t('libresign', 'Status')"
 		@reset-filter="resetFilter">
 		<template #icon>
 			<NcIconSvgWrapper :path="mdiListStatus" />
 		</template>
-		<NcButton v-for="status of fileStatus"
+		<NcButton
+			v-for="status of fileStatus"
 			:key="status.id"
 			alignment="start"
 			:pressed="selectedOptions.includes(status.id)"
