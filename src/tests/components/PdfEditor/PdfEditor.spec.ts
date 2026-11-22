@@ -280,8 +280,7 @@ describe('PdfEditor Component - Business Rules', () => {
 			const result = wrapper.vm.startAddingSigner(signer, size)
 
 			expect(result).toBe(true)
-			expect(getPdfElements().startAddingElement).toHaveBeenCalledWith(
-				expect.objectContaining({
+			expect(getPdfElements().startAddingElement).toHaveBeenCalledWith(expect.objectContaining({
 					type: 'signature',
 					x: 0,
 					y: 0,
@@ -290,8 +289,7 @@ describe('PdfEditor Component - Business Rules', () => {
 					signer: expect.objectContaining({
 						email: 'test@example.com',
 					}),
-				}),
-			)
+				}))
 		})
 
 		it('does not start polling before a placement interaction happens', () => {

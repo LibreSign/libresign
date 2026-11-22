@@ -155,8 +155,7 @@ const toggleAriaLabel = computed(() =>
 		// TRANSLATORS ARIA label for button action that hides device-reported location details.
 		? t('libresign', 'Collapse device-reported location details')
 		// TRANSLATORS ARIA label for button action that reveals device-reported location details.
-		: t('libresign', 'Expand device-reported location details'),
-)
+		: t('libresign', 'Expand device-reported location details'))
 
 async function copyCoordinates() {
 	const text = coordinatesText.value

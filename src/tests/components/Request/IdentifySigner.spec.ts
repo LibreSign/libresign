@@ -527,9 +527,7 @@ describe('IdentifySigner rules', () => {
 
 		it('handles save error gracefully', async () => {
 			const { showError } = await import('@nextcloud/dialogs')
-			filesStore.saveOrUpdateSignatureRequest.mockRejectedValue(
-				new Error('Network error'),
-			)
+			filesStore.saveOrUpdateSignatureRequest.mockRejectedValue(new Error('Network error'))
 
 			wrapper.vm.identifyMethod = 'email'
 			wrapper.vm.identify = 'john@example.com'

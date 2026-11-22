@@ -19,8 +19,7 @@ export function canSignDirectly(value: EffectivePolicyValue): boolean {
 	return normalizeIdentifyMethodsPolicy(value).some(factor =>
 		factor.name === 'account'
 		&& factor.enabled
-		&& factor.signatureMethods.clickToSign?.enabled === true,
-	)
+		&& factor.signatureMethods.clickToSign?.enabled === true)
 }
 
 async function encodePdf(pdf: File): Promise<string> {

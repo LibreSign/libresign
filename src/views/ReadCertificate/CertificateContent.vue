@@ -223,11 +223,9 @@ const crlStatusMap = computed<Record<string, StatusChip>>(() => ({
 	validation_error: { text: t('libresign', 'CRL Validation Error'), variant: 'tertiary', icon: mdiHelpCircle },
 }))
 
-const shouldShowPurposes = computed(() => Boolean(
-	props.certificate.purposes
+const shouldShowPurposes = computed(() => Boolean(props.certificate.purposes
 	&& Object.keys(props.certificate.purposes).length
-	&& props.index === '0',
-))
+	&& props.index === '0'))
 
 const certificateValidityStatus = computed(() => validityStatusMap.value[getValidityStatus()])
 const crlValidationStatus = computed<StatusChip>(() => crlStatusMap.value[props.certificate.crl_validation ?? ''] || {

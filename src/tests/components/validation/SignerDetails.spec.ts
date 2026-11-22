@@ -434,9 +434,7 @@ describe('SignerDetails.vue - Business Logic', () => {
 			}
 
 			expect(wrapper.vm.hasDocumentModificationWarning(signer)).toBe(true)
-			expect(wrapper.vm.getDocumentModificationMessage(signer)).toBe(
-				'Unexpected data was found after the final PDF end marker',
-			)
+			expect(wrapper.vm.getDocumentModificationMessage(signer)).toBe('Unexpected data was found after the final PDF end marker')
 			expect(wrapper.vm.getModificationStatusClass(signer)).toBe('validation-icon--warning')
 		})
 

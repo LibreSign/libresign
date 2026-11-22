@@ -94,9 +94,7 @@ const description = computed(() => {
 })
 
 function installAndValidate() {
-	const updateEventSource = new (globalThis as typeof globalThis & { OC: OCGlobal }).OC.EventSource(
-		generateOcsUrl('/apps/libresign/api/v1/admin/install-and-validate'),
-	)
+	const updateEventSource = new (globalThis as typeof globalThis & { OC: OCGlobal }).OC.EventSource(generateOcsUrl('/apps/libresign/api/v1/admin/install-and-validate'))
 
 	configureCheckStore.state = 'in progress'
 	configureCheckStore.downloadInProgress = true

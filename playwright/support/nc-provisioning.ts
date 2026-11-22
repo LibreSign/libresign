@@ -229,9 +229,7 @@ export async function deleteUser(
 	const isSuccess = statusCode === 200
 	const isNotFound = statusCode === 404 || statusCode === 998
 	if (!isSuccess && !isNotFound) {
-		throw new Error(
-			`Failed to delete user "${userId}": OCS statuscode ${statusCode} - ${result.ocs?.meta?.message ?? ''}`,
-		)
+		throw new Error(`Failed to delete user "${userId}": OCS statuscode ${statusCode} - ${result.ocs?.meta?.message ?? ''}`)
 	}
 	return result
 }

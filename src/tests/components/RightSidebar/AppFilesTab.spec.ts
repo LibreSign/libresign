@@ -244,9 +244,7 @@ describe('AppFilesTab', () => {
 			expect(addSelfMock).not.toHaveBeenCalled()
 			await wrapper.vm.preparePendingSelfSign(456)
 			expect(addSelfMock).toHaveBeenCalledOnce()
-			expect(addSelfMock).toHaveBeenCalledExactlyOnceWith(
-				expect.anything(), expect.anything(), { readyToSign: true },
-			)
+			expect(addSelfMock).toHaveBeenCalledExactlyOnceWith(expect.anything(), expect.anything(), { readyToSign: true })
 			expect(window.OCA.Libresign.pendingSelfSignNodeId).toBeUndefined()
 			await wrapper.vm.preparePendingSelfSign(456)
 			expect(addSelfMock).toHaveBeenCalledOnce()

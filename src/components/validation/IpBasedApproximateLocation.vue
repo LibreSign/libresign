@@ -151,8 +151,7 @@ const toggleAriaLabel = computed(() =>
 		// TRANSLATORS ARIA label for button action that hides IP-based location details.
 		? t('libresign', 'Collapse IP-based approximate location details')
 		// TRANSLATORS ARIA label for button action that reveals IP-based location details.
-		: t('libresign', 'Expand IP-based approximate location details'),
-)
+		: t('libresign', 'Expand IP-based approximate location details'))
 
 defineExpose({
 	open,

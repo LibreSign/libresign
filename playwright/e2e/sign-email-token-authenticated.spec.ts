@@ -103,8 +103,7 @@ test('sign document with email token as authenticated signer', async ({ page }) 
 	await expect(page.getByText('Your identity has been')).toBeVisible()
 	const signResponsePromise = page.waitForResponse((response) =>
 		response.request().method() === 'POST'
-		&& response.url().includes('/apps/libresign/api/v1/sign/'),
-	)
+		&& response.url().includes('/apps/libresign/api/v1/sign/'))
 	await page.getByRole('dialog', { name: 'Signature confirmation' }).getByRole('button', { name: 'Sign document' }).click()
 	const signResponse = await signResponsePromise
 	const signResponseBody = await signResponse.text()

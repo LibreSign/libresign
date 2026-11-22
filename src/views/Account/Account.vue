@@ -109,9 +109,7 @@ onMounted(async () => {
 	}
 
 	try {
-		const response = await axios.get<OcsResponseData<AccountMeResponse>>(
-			generateOcsUrl('/apps/libresign/api/v1/account/me'),
-		)
+		const response = await axios.get<OcsResponseData<AccountMeResponse>>(generateOcsUrl('/apps/libresign/api/v1/account/me'))
 		account.value = response.data.ocs.data
 	} catch {
 		accountError.value = true

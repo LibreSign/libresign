@@ -115,8 +115,6 @@ export class SigningRequirementValidator {
 			return false
 		}
 
-		return hasVisibleElementsForCurrentUser(
-			(this.signStore.document ?? {}) as Parameters<typeof hasVisibleElementsForCurrentUser>[0],
-		)
+		return hasVisibleElementsForCurrentUser((this.signStore.document ?? {}) as Parameters<typeof hasVisibleElementsForCurrentUser>[0])
 	}
 }

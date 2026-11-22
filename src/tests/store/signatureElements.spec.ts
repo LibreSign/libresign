@@ -141,12 +141,10 @@ describe('signatureElements store - signature business rules', () => {
 			const store = useSignatureElementsStore()
 			await store.save('signature', 'base64data')
 
-			expect(axiosMock).toHaveBeenCalledWith(
-				expect.objectContaining({
+			expect(axiosMock).toHaveBeenCalledWith(expect.objectContaining({
 					method: 'patch',
 					url: '/ocs/v2.php/apps/libresign/api/v1/signature/elements/123',
-				}),
-			)
+				}))
 		})
 
 		it('uses POST when signature does not exist (nodeId = 0)', async () => {
@@ -168,12 +166,10 @@ describe('signatureElements store - signature business rules', () => {
 
 			await store.save('signature', 'base64data')
 
-			expect(axiosMock).toHaveBeenCalledWith(
-				expect.objectContaining({
+			expect(axiosMock).toHaveBeenCalledWith(expect.objectContaining({
 					method: 'post',
 					url: '/ocs/v2.php/apps/libresign/api/v1/signature/elements',
-				}),
-			)
+				}))
 		})
 	})
 
@@ -201,13 +197,11 @@ describe('signatureElements store - signature business rules', () => {
 
 			await store.save('signature', 'base64data')
 
-			expect(axiosMock).toHaveBeenCalledWith(
-				expect.objectContaining({
+			expect(axiosMock).toHaveBeenCalledWith(expect.objectContaining({
 					headers: {
 						'libresign-sign-request-uuid': 'uuid-123',
 					},
-				}),
-			)
+				}))
 		})
 
 		it('does not include header when has no signRequestUuid', async () => {
@@ -325,13 +319,11 @@ describe('signatureElements store - signature business rules', () => {
 
 			await store.delete('signature')
 
-			expect(axiosMock).toHaveBeenCalledWith(
-				expect.objectContaining({
+			expect(axiosMock).toHaveBeenCalledWith(expect.objectContaining({
 					headers: {
 						'libresign-sign-request-uuid': 'uuid-123',
 					},
-				}),
-			)
+				}))
 		})
 	})
 
@@ -383,12 +375,10 @@ describe('signatureElements store - signature business rules', () => {
 
 			const store = useSignatureElementsStore()
 
-			expect(axiosMock).toHaveBeenCalledWith(
-				expect.objectContaining({
+			expect(axiosMock).toHaveBeenCalledWith(expect.objectContaining({
 					method: 'get',
 					url: '/ocs/v2.php/apps/libresign/api/v1/signature/elements',
-				}),
-			)
+				}))
 		})
 	})
 

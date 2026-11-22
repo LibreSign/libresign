@@ -674,11 +674,9 @@ function resolveTargetId(option: unknown): string | null {
 
 function onTargetChange(option: unknown[] | unknown | null) {
 	if (Array.isArray(option)) {
-		state.updateDraftTargets(
-			option
+		state.updateDraftTargets(option
 				.map((candidate) => resolveTargetId(candidate))
-				.filter((candidate): candidate is string => candidate !== null),
-		)
+				.filter((candidate): candidate is string => candidate !== null))
 		return
 	}
 

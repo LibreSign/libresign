@@ -48,9 +48,7 @@ export function pickCategoryWithFullyVisibleCard(
 	return selectedCategory
 }
 
-export function useNavigation(
-	visibleCategorySections: { value: Array<{ key: RealPolicySettingCategory }> },
-) {
+export function useNavigation(visibleCategorySections: { value: Array<{ key: RealPolicySettingCategory }> }) {
 	const categoryChipsScroller = ref<HTMLElement | null>(null)
 	const activeCategory = ref<RealPolicySettingCategory | null>(null)
 	const showBackToTop = ref(false)

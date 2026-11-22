@@ -337,12 +337,10 @@ describe('RequestPicker component rules', () => {
 			filePickerPick.mockResolvedValue(nodes)
 			filesStore.upload.mockResolvedValue(1)
 			await wrapper.vm.openFilePicker()
-			expect(filesStore.upload).toHaveBeenCalledWith(
-				expect.objectContaining({
+			expect(filesStore.upload).toHaveBeenCalledWith(expect.objectContaining({
 					file: { path: '/Documents/file.pdf' },
 					name: 'file',
-				}),
-			)
+				}))
 		})
 	})
 
@@ -831,9 +829,7 @@ describe('RequestPicker component rules', () => {
 		it('opens file input with PDF filter', () => {
 			const createElementSpy = vi.spyOn(document, 'createElement')
 			wrapper.vm.uploadFile()
-			const fileInputResult = createElementSpy.mock.results.find(
-				result => result.value?.type === 'file',
-			)
+			const fileInputResult = createElementSpy.mock.results.find(result => result.value?.type === 'file')
 			const fileInput = fileInputResult?.value as HTMLInputElement | undefined
 			expect(fileInput).toBeDefined()
 			if (!fileInput) {
@@ -877,9 +873,7 @@ describe('RequestPicker component rules', () => {
 			}) as RequestPickerWrapper
 			const createElementSpy = vi.spyOn(document, 'createElement')
 			newWrapper.vm.uploadFile()
-			const fileInputResult = createElementSpy.mock.results.find(
-				result => result.value?.type === 'file',
-			)
+			const fileInputResult = createElementSpy.mock.results.find(result => result.value?.type === 'file')
 			const fileInput = fileInputResult?.value as HTMLInputElement | undefined
 			expect(fileInput).toBeDefined()
 			if (!fileInput) {
@@ -893,9 +887,7 @@ describe('RequestPicker component rules', () => {
 		it('disables multiple selection when envelope not enabled', () => {
 			const createElementSpy = vi.spyOn(document, 'createElement')
 			wrapper.vm.uploadFile()
-			const fileInputResult = createElementSpy.mock.results.find(
-				result => result.value?.type === 'file',
-			)
+			const fileInputResult = createElementSpy.mock.results.find(result => result.value?.type === 'file')
 			const fileInput = fileInputResult?.value as HTMLInputElement | undefined
 			expect(fileInput).toBeDefined()
 			if (!fileInput) {
@@ -980,12 +972,10 @@ describe('RequestPicker component rules', () => {
 			filesStore.upload.mockResolvedValue(1)
 			const nodes = [{ path: '/Documents/report.pdf' }]
 			await wrapper.vm.handleFileChoose(nodes)
-			expect(filesStore.upload).toHaveBeenCalledWith(
-				expect.objectContaining({
+			expect(filesStore.upload).toHaveBeenCalledWith(expect.objectContaining({
 					file: { path: '/Documents/report.pdf' },
 					name: 'report',
-				}),
-			)
+				}))
 		})
 
 		it('shows error from server when upload fails', async () => {

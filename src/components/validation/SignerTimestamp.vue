@@ -109,16 +109,13 @@ const authority = computed(() =>
 	props.timestamp?.cnHints?.commonName
 	|| props.timestamp?.authority
 	|| props.timestamp?.tsaName
-	|| '',
-)
+	|| '')
 
 const policy = computed(() =>
-	props.timestamp?.policyName || props.timestamp?.policy || '',
-)
+	props.timestamp?.policyName || props.timestamp?.policy || '')
 
 const hashAlgorithm = computed(() =>
-	props.timestamp?.hashAlgorithm || props.timestamp?.hash || '',
-)
+	props.timestamp?.hashAlgorithm || props.timestamp?.hash || '')
 
 const serialNumber = computed(() => {
 	const serial = props.timestamp?.serialNumber
@@ -133,16 +130,14 @@ const hasContent = computed(() =>
 		|| props.timestamp?.genTime
 		|| policy.value
 		|| hashAlgorithm.value
-		|| serialNumber.value),
-)
+		|| serialNumber.value))
 
 const toggleAriaLabel = computed(() =>
 	open.value
 		// TRANSLATORS ARIA label for button action that hides TSA detail fields.
 		? t('libresign', 'Collapse timestamp authority details')
 		// TRANSLATORS ARIA label for button action that reveals TSA detail fields.
-		: t('libresign', 'Expand timestamp authority details'),
-)
+		: t('libresign', 'Expand timestamp authority details'))
 
 function dateFromSqlAnsi(date?: string | number | null) {
 	if (!date) { return '' }
