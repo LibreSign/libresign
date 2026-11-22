@@ -153,16 +153,48 @@ jobs:
           catalog-commit: ${{ steps.catalog-revision.outputs.sha }}
           include: appstore-build-publish.yml,block-unconventional-commits.yml,command-update-submodule.yml,first-merged-pr-comment.yml,lint-eslint.yml,lint-info-xml.yml,lint-php-cs.yml,lint-stylelint.yml,lint-typescript.yml,nightly-release.yml,node-test.yml,npm-audit-fix.yml,openapi.yml,reuse.yml,sync-workflow-templates.yml
 
+      - name: Resolve verified bot identity for synchronized workflows
+        if: ${{ steps.sync.outputs.changed == 'true' }}
+        id: sync-signer
+        shell: bash
+        env:
+          MODE: ${{ env.AUTH_MODE }}
+          APP_SLUG: ${{ steps.workflow-app-token.outputs.app-slug }}
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          case "$MODE" in
+            github-app)
+              [[ "$APP_SLUG" =~ ^[a-zA-Z0-9-]+$ ]] || exit 1
+              bot_user_id="$(gh api "users/${APP_SLUG}[bot]" --jq '.id')"
+              [[ "$bot_user_id" =~ ^[0-9]+$ ]] || exit 1
+              name="${APP_SLUG}[bot]"
+              email="${bot_user_id}+${APP_SLUG}[bot]@users.noreply.github.com"
+              ;;
+            github-token)
+              name="github-actions[bot]"
+              email="41898282+github-actions[bot]@users.noreply.github.com"
+              ;;
+            token)
+              echo "::error::PAT authentication does not support verified GitHub bot commits"
+              exit 1
+              ;;
+            *) exit 1 ;;
+          esac
+          echo "name=$name" >> "$GITHUB_OUTPUT"
+          echo "email=$email" >> "$GITHUB_OUTPUT"
+
       - name: Create Pull Request
         if: ${{ steps.sync.outputs.changed == 'true' }}
-        uses: peter-evans/create-pull-request@5f6978faf089d4d20b00c7766989d076bb2fc7f1 # v8.1.1
+        uses: peter-evans/create-pull-request@3ffccacd46053766916f087ce41d627c0b8cf2d1 # v8.1.3
         with:
           token: ${{ steps.auth-token.outputs.token }}
           commit-message: 'ci(actions): Update workflow templates from organization template repository'
-          committer: GitHub <noreply@github.com>
-          author: github-actions[bot] <41898282+github-actions[bot]@users.noreply.github.com>
+          committer: ${{ steps.sync-signer.outputs.name }} <${{ steps.sync-signer.outputs.email }}>
+          author: ${{ steps.sync-signer.outputs.name }} <${{ steps.sync-signer.outputs.email }}>
           path: target
           signoff: true
+          sign-commits: true
           branch: 'automated/noid/${{ matrix.branches }}-update-workflows'
           title: '[${{ matrix.branches }}] ci(actions): Update workflow templates from organization template repository'
           draft: ${{ steps.sync.outputs.patch_failed == 'true' }}
