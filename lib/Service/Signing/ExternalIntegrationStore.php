@@ -166,7 +166,9 @@ final class ExternalIntegrationStore {
 			->set('revision', $qb->createFunction('revision + 1'))
 			->set('updated_at', $qb->createNamedParameter($this->now(), IQueryBuilder::PARAM_DATETIME_MUTABLE));
 		if ($delete) {
-			$qb->set('deleted_at', $qb->createNamedParameter($this->now(), IQueryBuilder::PARAM_DATETIME_MUTABLE));
+			$qb->set('deleted_at', $qb->createNamedParameter($this->now(), IQueryBuilder::PARAM_DATETIME_MUTABLE))
+				->set('configuration', $qb->createNamedParameter('{}'))
+				->set('secrets_enc', $qb->createNamedParameter(''));
 		}
 		$changed = $qb->where($qb->expr()->eq('public_id', $qb->createNamedParameter($publicId)))
 			->andWhere($qb->expr()->isNull('deleted_at'))
