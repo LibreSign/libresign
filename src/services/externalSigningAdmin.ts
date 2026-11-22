@@ -35,6 +35,8 @@ export interface ExternalSigningInstance {
 	configuration: Record<string, string>
 	configuredSecretFields: string[]
 	revision: number
+	hasSecrets?: boolean
+	driverAvailable?: boolean
 	hasActiveSessions?: boolean
 }
 
@@ -43,12 +45,13 @@ export interface ExternalSigningDraft {
 	driverId: string
 	name: string
 	configuration: Record<string, string>
-	secretReplacements: Record<string, string>
+	secretReplacements: Record<string, string | null>
 	revision?: number
 }
 
 export interface ExternalSigningAdminAdapter {
 	list(): Promise<ExternalSigningInstance[]>
+	get?(instance: ExternalSigningInstance): Promise<ExternalSigningInstance>
 	save(draft: ExternalSigningDraft): Promise<ExternalSigningInstance>
 	setEnabled(instance: ExternalSigningInstance, enabled: boolean): Promise<ExternalSigningInstance>
 	remove(instance: ExternalSigningInstance): Promise<void>
@@ -66,10 +69,22 @@ export function validateExternalSigningDraft(driver: ExternalSigningDriver, draf
 			errors[field.key] = 'required'
 			continue
 		}
+		if (field.secret && value && value.length > 8192) {
+			errors[field.key] = 'invalid'
+		}
 		if (value && field.type === 'url') {
 			try {
 				const url = new URL(value)
-				if ((field.validation.schemes?.length && !field.validation.schemes.includes(url.protocol.slice(0, -1))) || (!field.validation.allowUserInfo && (url.username || url.password))) {
+				const host = url.hostname.toLowerCase().replace(/\.$/, '')
+				const unsafeHost = !host.includes('.')
+					|| host.includes('[') || host.includes(']') || host.includes(':')
+					|| /^[0-9.]+$/.test(host)
+					|| /\.(local|localhost|internal)$/.test(host)
+					|| host.split('.').some(label => !/^[a-z0-9](?:[a-z0-9-]*[a-z0-9])?$/.test(label))
+				if ((field.validation.schemes?.length && !field.validation.schemes.includes(url.protocol.slice(0, -1)))
+					|| (!field.validation.allowUserInfo && (url.username || url.password))
+					|| value.length > 2048 || Array.from(value).some(char => char.charCodeAt(0) <= 32 || char.charCodeAt(0) === 127)
+					|| Boolean(url.search || url.hash) || unsafeHost) {
 					errors[field.key] = 'invalid'
 				}
 			} catch {

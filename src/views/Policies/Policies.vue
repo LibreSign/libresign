@@ -8,7 +8,7 @@
 		<div class="policies-view">
 			<RealPolicyWorkbench>
 				<template #how-signing-works-auxiliary="{ layout }">
-					<ExternalSigningAdmin :layout="layout === 'compact' ? 'compact' : 'cards'" />
+					<ExternalSigningAdmin :layout="layout === 'compact' ? 'compact' : 'cards'" :adapter="externalSigningAdapter" />
 				</template>
 			</RealPolicyWorkbench>
 		</div>
@@ -17,6 +17,7 @@
 
 <script setup lang="ts">
 import NcAppContent from '@nextcloud/vue/components/NcAppContent'
+import { createExternalSigningAdminOcsAdapter } from '../../services/externalSigningAdminOcs'
 
 import RealPolicyWorkbench from '../Settings/PolicyWorkbench/Catalog/Catalog.vue'
 import ExternalSigningAdmin from '../Settings/ExternalSigning/ExternalSigningAdmin.vue'
@@ -24,6 +25,8 @@ import ExternalSigningAdmin from '../Settings/ExternalSigning/ExternalSigningAdm
 defineOptions({
 	name: 'Policies',
 })
+
+const externalSigningAdapter = createExternalSigningAdminOcsAdapter()
 </script>
 
 <style scoped lang="scss">

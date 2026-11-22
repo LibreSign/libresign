@@ -5,6 +5,7 @@
 import { flushPromises, mount } from '@vue/test-utils'
 import { describe, expect, it, vi } from 'vitest'
 import ExternalSigningIntegrationForm from '../../../../views/Settings/ExternalSigning/ExternalSigningIntegrationForm.vue'
+import { ExternalSigningAdminError } from '../../../../services/externalSigningAdminOcs'
 import type { ExternalSigningDriver, ExternalSigningInstance } from '../../../../services/externalSigningAdmin'
 
 vi.mock('@nextcloud/l10n', () => globalThis.mockNextcloudL10n())
@@ -52,6 +53,26 @@ describe('ExternalSigningIntegrationForm', () => {
 		await wrapper.find('form').trigger('submit')
 		await flushPromises()
 		expect(wrapper.text()).toContain('Could not save the integration')
+		expect(wrapper.emitted('saved')).toBeUndefined()
+	})
+
+	it('clears an optional stored secret only after explicit confirmation', async () => {
+		const save = vi.fn().mockResolvedValue(existing)
+		const wrapper = createWrapper(save)
+		const clear = wrapper.find('input[type="checkbox"]')
+		expect(clear.exists()).toBe(true)
+		await clear.setValue(true)
+		expect(wrapper.find<HTMLInputElement>('input[type="password"]').element.disabled).toBe(true)
+		await wrapper.find('form').trigger('submit')
+		await flushPromises()
+		expect(save).toHaveBeenCalledWith(expect.objectContaining({ secretReplacements: { accessToken: null }, revision: 4 }))
+	})
+
+	it('reports a real revision conflict without claiming a successful save', async () => {
+		const wrapper = createWrapper(vi.fn().mockRejectedValue(new ExternalSigningAdminError(409)))
+		await wrapper.find('form').trigger('submit')
+		await flushPromises()
+		expect(wrapper.text()).toContain('changed by another administrator')
 		expect(wrapper.emitted('saved')).toBeUndefined()
 	})
 })

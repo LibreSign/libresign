@@ -42,11 +42,14 @@
 				<p v-if="loading" role="status">
 					{{ t('libresign', 'Loading integrations…') }}
 				</p>
-				<p v-else-if="loadError" role="alert">
-					{{ t('libresign', 'Could not load the integrations.') }} <NcButton variant="secondary" @click="load">
+				<div v-else-if="loadError">
+					<p role="alert">
+						{{ loadErrorMessage }}
+					</p>
+					<NcButton variant="secondary" @click="load">
 						{{ t('libresign', 'Retry') }}
 					</NcButton>
-				</p>
+				</div>
 				<template v-else>
 					<p v-if="!instances.length" role="status">
 						{{ t('libresign', 'No integrations configured.') }}
@@ -55,16 +58,16 @@
 						<li v-for="instance in instances" :key="instance.id">
 							<div>
 								<strong>{{ instance.name }}</strong>
-								<p>{{ driverById(instance.driverId)?.name ?? instance.driverId }} · {{ getInstanceStatusLabel(instance) }}</p>
+								<p>{{ driverById(instance.driverId)?.name ?? instance.driverId }} · {{ getInstanceStatusLabel(instance) }} · {{ getDriverStatusLabel(instance) }}</p>
 								<p v-if="instance.hasActiveSessions">
 									{{ t('libresign', 'An active signing session may restrict changes.') }}
 								</p>
 							</div>
 							<div class="external-signing-admin__actions">
-								<NcButton :disabled="busy || !driverById(instance.driverId)?.available" @click="edit(instance)">
+								<NcButton :disabled="busy" @click="edit(instance)">
 									{{ t('libresign', 'Edit') }}
 								</NcButton>
-								<NcButton :disabled="busy || !driverById(instance.driverId)?.available" @click="toggle(instance)">
+								<NcButton :disabled="busy || (!instance.enabled && !isDriverAvailable(instance))" @click="toggle(instance)">
 									{{ getToggleLabel(instance) }}
 								</NcButton>
 								<NcButton :disabled="busy || instance.hasActiveSessions" @click="remove(instance)">
@@ -75,6 +78,9 @@
 					</ul>
 					<p v-if="operationError" role="alert">
 						{{ operationError }}
+					</p>
+					<p v-if="operationSuccess" role="status">
+						{{ operationSuccess }}
 					</p>
 					<template v-if="selectedDriver">
 						<ExternalSigningIntegrationForm
@@ -94,13 +100,15 @@
 							<option
 								v-for="driver in drivers"
 								:key="driver.id"
-								:value="driver.id"
-								:disabled="!driver.available">
+								:value="driver.id">
 								{{ driver.name }}{{ driver.available ? '' : ` — ${t('libresign', 'Unavailable')}` }}
 							</option>
 						</select>
 					</template>
 				</template>
+				<a href="https://docs.libresign.coop/" target="_blank" rel="noopener noreferrer">
+					{{ t('libresign', 'Administration documentation') }}
+				</a>
 			</div>
 		</NcDialog>
 	</section>
@@ -113,6 +121,7 @@ import { t } from '@nextcloud/l10n'
 import NcButton from '@nextcloud/vue/components/NcButton'
 import NcDialog from '@nextcloud/vue/components/NcDialog'
 import { fetchExternalSigningDrivers } from '../../../services/externalSigningAdmin'
+import { ExternalSigningAdminError } from '../../../services/externalSigningAdminOcs'
 import type { ExternalSigningAdminAdapter, ExternalSigningDriver, ExternalSigningInstance } from '../../../services/externalSigningAdmin'
 import ExternalSigningIntegrationForm from './ExternalSigningIntegrationForm.vue'
 
@@ -124,8 +133,10 @@ const dialogOpen = ref(false)
 const instances = ref<ExternalSigningInstance[]>([])
 const loading = ref(false)
 const loadError = ref(false)
+const loadErrorMessage = ref('')
 const busy = ref(false)
 const operationError = ref('')
+const operationSuccess = ref('')
 const selectedDriverId = ref('')
 const selectedInstance = ref<ExternalSigningInstance | undefined>()
 const selectedDriver = computed(() => driverById(selectedDriverId.value))
@@ -133,17 +144,45 @@ const selectedDriver = computed(() => driverById(selectedDriverId.value))
 function driverById(id: string) {
 	return drivers.value.find(driver => driver.id === id)
 }
-function getInstanceStatusLabel(instance: ExternalSigningInstance): string {
-	if (!driverById(instance.driverId)?.available) {
-		// TRANSLATORS Status of an integration whose signing driver is unavailable.
-		return t('libresign', 'Driver unavailable')
+function isDriverAvailable(instance: ExternalSigningInstance): boolean {
+	return instance.driverAvailable ?? driverById(instance.driverId)?.available ?? false
+}
+function getDriverStatusLabel(instance: ExternalSigningInstance): string {
+	if (isDriverAvailable(instance)) {
+		// TRANSLATORS The installed signing driver can be used for signing.
+		return t('libresign', 'Driver available')
 	}
+	// TRANSLATORS The installed signing driver is missing or not operational.
+	return t('libresign', 'Driver unavailable')
+}
+function getInstanceStatusLabel(instance: ExternalSigningInstance): string {
 	if (instance.enabled) {
 		// TRANSLATORS Status of an administratively enabled signing integration.
 		return t('libresign', 'Enabled')
 	}
 	// TRANSLATORS Status of an administratively disabled signing integration.
 	return t('libresign', 'Disabled')
+}
+function administrationErrorMessage(error: unknown): string {
+	const status = error instanceof ExternalSigningAdminError ? error.status : null
+	switch (status) {
+	case 400:
+		// TRANSLATORS External signing configuration validation failed on the server.
+		return t('libresign', 'The server rejected this integration configuration.')
+	case 401:
+	case 403:
+		// TRANSLATORS External signing administration is restricted to system administrators.
+		return t('libresign', 'You are not authorized to manage external signing integrations.')
+	case 404:
+		// TRANSLATORS The external signing integration or experimental feature is unavailable.
+		return t('libresign', 'The integration is unavailable. Refresh to check its status.')
+	case 409:
+		// TRANSLATORS Another administrator updated the external signing integration.
+		return t('libresign', 'This integration was changed. Refresh before trying again.')
+	default:
+		// TRANSLATORS An external signing administration operation failed.
+		return t('libresign', 'The operation could not be completed. Refresh and try again.')
+	}
 }
 function getToggleLabel(instance: ExternalSigningInstance): string {
 	if (instance.enabled) {
@@ -163,9 +202,22 @@ function closeDialog() {
 		resetForm()
 	}
 }
-function edit(instance: ExternalSigningInstance) {
-	selectedInstance.value = instance
-	selectedDriverId.value = instance.driverId
+async function edit(instance: ExternalSigningInstance) {
+	if (!props.adapter || busy.value) {
+		return
+	}
+	busy.value = true
+	operationError.value = ''
+	operationSuccess.value = ''
+	try {
+		const detail = props.adapter.get ? await props.adapter.get(instance) : instance
+		selectedInstance.value = detail
+		selectedDriverId.value = detail.driverId
+	} catch (error) {
+		operationError.value = administrationErrorMessage(error)
+	} finally {
+		busy.value = false
+	}
 }
 async function load() {
 	if (!props.adapter) {
@@ -173,10 +225,12 @@ async function load() {
 	}
 	loading.value = true
 	loadError.value = false
+	loadErrorMessage.value = ''
 	try {
 		instances.value = await props.adapter.list()
-	} catch {
+	} catch (error) {
 		loadError.value = true
+		loadErrorMessage.value = administrationErrorMessage(error)
 	} finally {
 		loading.value = false
 	}
@@ -184,6 +238,8 @@ async function load() {
 async function onSaved(_instance: ExternalSigningInstance) {
 	resetForm()
 	await load()
+	// TRANSLATORS Status after an external signing integration was saved on the server.
+	operationSuccess.value = t('libresign', 'Integration saved.')
 }
 async function mutate(action: () => Promise<unknown>) {
 	if (busy.value) {
@@ -191,12 +247,14 @@ async function mutate(action: () => Promise<unknown>) {
 	}
 	busy.value = true
 	operationError.value = ''
+	operationSuccess.value = ''
 	try {
 		await action()
 		await load()
-	} catch {
-		// TRANSLATORS Error when an external signing administration operation is rejected or fails.
-		operationError.value = t('libresign', 'The operation could not be completed. Refresh and try again.')
+		// TRANSLATORS Status after an external signing integration's administrative state changed.
+		operationSuccess.value = t('libresign', 'Integration updated.')
+	} catch (error) {
+		operationError.value = administrationErrorMessage(error)
 	} finally {
 		busy.value = false
 	}
@@ -301,10 +359,21 @@ if (getCurrentUser()?.isAdmin === true) {
 	}
 
 	&__dialog {
+		box-sizing: border-box;
+		width: 100%;
+		min-width: 0;
 		padding: 16px;
 		display: grid;
+		grid-template-columns: minmax(0, 1fr);
 		gap: 12px;
 		max-width: 100%;
+
+		select {
+			box-sizing: border-box;
+			width: 100%;
+			min-width: 0;
+			max-width: 100%;
+		}
 	}
 
 	&__instances {

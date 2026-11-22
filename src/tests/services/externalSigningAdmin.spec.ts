@@ -29,6 +29,27 @@ describe('external signing administration: driver metadata and synthetic instanc
 	it.each(['http://service.invalid', 'https://user:password@service.invalid', 'not a URL'])('rejects unsafe input %s without calling backend', value => {
 			expect(validateExternalSigningDraft(driver, draft({ configuration: { baseUrl: value } }))).toEqual({ baseUrl: 'invalid' })
 		})
+	it.each([
+		'https://localhost/api',
+		'https://csc.internal/api',
+		'https://127.0.0.1/api',
+		'https://[::1]/api',
+		'https://csc.example.org/api?token=visible',
+		'https://csc.example.org/api#fragment',
+		'https://csc.example.org/contains space',
+		'https://csc.example.org/' + 'a'.repeat(2050),
+	])('rejects endpoint values that the administrative API rejects: %s', value => {
+		expect(validateExternalSigningDraft(driver, draft({ configuration: { baseUrl: value } }))).toEqual({ baseUrl: 'invalid' })
+	})
+
+	it('accepts a valid HTTPS endpoint with an ordinary path', () => {
+		expect(validateExternalSigningDraft(driver, draft({ configuration: { baseUrl: 'https://csc.example.org/v1/sign' } }))).toEqual({})
+	})
+
+	it('rejects oversized secret replacement without exposing its value', () => {
+		expect(validateExternalSigningDraft(driver, draft({ secretReplacements: { accessToken: 'x'.repeat(8193) } }))).toEqual({ accessToken: 'invalid' })
+	})
+
 	it('preserves configured secret on editing without reading it', () => {
 		expect(validateExternalSigningDraft(driver, draft(), first)).toEqual({})
 		expect(JSON.stringify(first)).not.toContain('my-secret')
