@@ -57,6 +57,7 @@ final class ExternalIntegrationSecretsTest extends TestCase {
 			'blank value' => [['token' => '']],
 			'overlong value' => [['token' => str_repeat('x', 8193)]],
 			'non-string value' => [['token' => 42]],
+			'invalid UTF-8 credential' => [['token' => "\xC3\x28"]],
 		];
 	}
 
@@ -185,5 +186,36 @@ final class ExternalIntegrationSecretsTest extends TestCase {
 		$this->crypto->expects($this->never())->method('encrypt');
 		$this->expectException(\InvalidArgumentException::class);
 		$this->codec->applyChanges('stored-ciphertext', $changes);
+	}
+
+	/** @return array<string, array{array<mixed, mixed>}> */
+	public static function secretsThatUsedToLeakInExceptionTraces(): array {
+		return [
+			'invalid secret entry' => [['token' => 'synthetic-private-value', 'other' => '']],
+			'invalid UTF-8 encoding' => [['token' => "synthetic-private-value\xFF"]],
+		];
+	}
+
+	#[DataProvider('secretsThatUsedToLeakInExceptionTraces')]
+	public function testInvalidSecretsDoNotAppearInServiceExceptionTraces(array $secrets): void {
+		$previous = ini_get('zend.exception_ignore_args');
+		$this->assertNotFalse($previous);
+		try {
+			$this->assertNotFalse(ini_set('zend.exception_ignore_args', '0'));
+			$this->assertSame('0', ini_get('zend.exception_ignore_args'));
+			try {
+				$this->codec->encrypt($secrets);
+				$this->fail('Invalid secrets must be rejected');
+			} catch (\InvalidArgumentException $e) {
+				$serviceFrames = array_values(array_filter(
+					$e->getTrace(),
+					static fn (array $frame): bool => ($frame['class'] ?? '') === ExternalIntegrationSecrets::class,
+				));
+				$this->assertNotEmpty($serviceFrames);
+				$this->assertStringNotContainsString('synthetic-private-value', var_export($serviceFrames, true));
+			}
+		} finally {
+			ini_set('zend.exception_ignore_args', $previous);
+		}
 	}
 }

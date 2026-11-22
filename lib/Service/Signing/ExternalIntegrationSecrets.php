@@ -31,7 +31,11 @@ final class ExternalIntegrationSecrets {
 			return '';
 		}
 		$this->assertSecretShape($secrets);
-		$serialized = json_encode($secrets, JSON_THROW_ON_ERROR);
+		try {
+			$serialized = json_encode($secrets, JSON_THROW_ON_ERROR);
+		} catch (\JsonException) {
+			throw new \InvalidArgumentException('Invalid secret data');
+		}
 		if (strlen($serialized) > self::MAX_SECRET_JSON_BYTES) {
 			throw new \InvalidArgumentException('Secret configuration too large');
 		}
@@ -93,7 +97,7 @@ final class ExternalIntegrationSecrets {
 	}
 
 	/** @param array<mixed, mixed> $secrets */
-	private function assertSecretShape(array $secrets): void {
+	private function assertSecretShape(#[\SensitiveParameter] array $secrets): void {
 		foreach ($secrets as $key => $value) {
 			if (!is_string($key) || $key === '' || strlen($key) > 128 || !is_string($value) || $value === '' || strlen($value) > 8192) {
 				throw new \InvalidArgumentException('Invalid secret data');
