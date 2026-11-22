@@ -15,6 +15,7 @@ use OCA\Libresign\Db\SignRequest;
 use OCA\Libresign\Exception\IdDocAccessDeniedException;
 use OCA\Libresign\Exception\LibresignException;
 use OCA\Libresign\Exception\NotAnIdDocException;
+use OCA\Libresign\Service\IdDoc\IdDocsPolicyService;
 use OCP\AppFramework\Db\DoesNotExistException;
 use OCP\IUser;
 

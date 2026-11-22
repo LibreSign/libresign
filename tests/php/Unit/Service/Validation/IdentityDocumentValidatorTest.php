@@ -12,7 +12,7 @@ use OCA\Libresign\Db\FileTypeMapper;
 use OCA\Libresign\Db\IdDocsMapper;
 use OCA\Libresign\Exception\LibresignException;
 use OCA\Libresign\Service\FileService;
-use OCA\Libresign\Service\IdDocsPolicyService;
+use OCA\Libresign\Service\IdDoc\IdDocsPolicyService;
 use OCA\Libresign\Service\Validation\IdentityDocumentValidator;
 use OCP\IL10N;
 use OCP\IUser;
@@ -109,6 +109,15 @@ final class IdentityDocumentValidatorTest extends \OCA\Libresign\Tests\Unit\Test
 			'approved' => [FileService::IDENTIFICATION_DOCUMENTS_APPROVED, true],
 			'pending' => [FileService::IDENTIFICATION_DOCUMENTS_NEED_APPROVAL, false],
 		];
+	}
+
+	public function testIdDocApproverAuthorizationUsesDocumentPolicy(): void {
+		$user = $this->createMock(IUser::class);
+		$this->policyService->expects($this->once())
+			->method('canApproverSignIdDoc')
+			->with($user, 10, 1)
+			->willReturn(false);
+		$this->assertFalse($this->validator->canApproverSignIdDoc($user, 10, 1));
 	}
 
 	public function testApproverBypassesIdentityDocumentStatus(): void {

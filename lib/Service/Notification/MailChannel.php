@@ -23,6 +23,17 @@ final class MailChannel implements NotificationChannel {
 
 	#[\Override]
 	public function deliver(NotificationMessage $message): void {
+		if ($message->payload instanceof IdDocRejectionPayload && $message->eventType === 'id_doc_rejected') {
+			$this->mail->notifyIdentificationDocumentRejected(
+				$message->signRequest,
+				$message->recipient,
+				$message->file,
+				$message->payload->reason,
+				$message->payload->accountSigner,
+				$message->payload->recipientUserId,
+			);
+			return;
+		}
 		if (!$message->payload instanceof MailPayload) {
 			throw new \InvalidArgumentException('Invalid mail notification payload');
 		}

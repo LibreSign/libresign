@@ -12,6 +12,7 @@ use OCA\Libresign\Db\File;
 use OCA\Libresign\Db\FileMapper;
 use OCA\Libresign\Db\SignRequest;
 use OCA\Libresign\Exception\LibresignException;
+use OCA\Libresign\Service\IdDoc\IdDocRejectionEmailTemplateBuilder;
 use OCA\Libresign\Service\MailService;
 use OCA\Libresign\Service\Policy\Model\ResolvedPolicy;
 use OCA\Libresign\Service\Policy\PolicyService;
@@ -30,6 +31,7 @@ use OCP\Mail\Provider\IMessage;
 use OCP\Mail\Provider\IMessageSend;
 use OCP\Mail\Provider\IService;
 use OCP\Mail\Provider\Message;
+use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\MockObject\MockObject;
 use Psr\Log\LoggerInterface;
 
@@ -41,6 +43,7 @@ final class MailServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	private IMailer&MockObject $mailer;
 	private FileMapper&MockObject $fileMapper;
 	private IL10N&MockObject $l10n;
+	private IdDocRejectionEmailTemplateBuilder&MockObject $rejectionEmailTemplates;
 	private IURLGenerator&MockObject $urlGenerator;
 	private IAppConfig&MockObject $appConfig;
 	private PolicyService&MockObject $policyService;
@@ -54,6 +57,7 @@ final class MailServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$this->mailer = $this->createMock(IMailer::class);
 		$this->fileMapper = $this->createMock(FileMapper::class);
 		$this->l10n = $this->createMock(IL10N::class);
+		$this->rejectionEmailTemplates = $this->createMock(IdDocRejectionEmailTemplateBuilder::class);
 		$this->l10n
 			->method('t')
 			->willReturnArgument(0);
@@ -72,7 +76,34 @@ final class MailServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			$this->policyService,
 			$this->mailProviderManager,
 			$this->userManager,
+			$this->rejectionEmailTemplates,
 		);
+	}
+
+	#[DataProvider('rejectedEmailRecipients')]
+	public function testRejectedIdEmailSendsComposedTemplate(bool $accountSigner, ?string $userId): void {
+		$request = $this->mockSignRequest();
+		$file = new File();
+		$file->setName('Identity <private>.pdf');
+		$reason = "The scan is incomplete.\nPlease upload a replacement.";
+		$template = $this->createMock(IEMailTemplate::class);
+		$this->rejectionEmailTemplates->expects($this->once())->method('build')
+			->with($request, $file, $reason, $accountSigner, $userId)->willReturn($template);
+		$message = $this->mockSystemMessage();
+		$message->expects($this->once())->method('setTo')->with(['signer@example.test']);
+		$message->expects($this->once())->method('useTemplate')->with($template);
+		$this->mailer->expects($this->once())->method('send')->with($message)->willReturn([]);
+
+		$this->service->notifyIdentificationDocumentRejected(
+			$request, 'signer@example.test', $file, $reason, $accountSigner, $userId,
+		);
+	}
+
+	public static function rejectedEmailRecipients(): array {
+		return [
+			'Nextcloud account' => [true, 'signer'],
+			'external signer' => [false, null],
+		];
 	}
 
 	public function testSuccessNotifyUnsignedUser():void {

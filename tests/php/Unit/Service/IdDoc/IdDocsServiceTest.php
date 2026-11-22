@@ -6,11 +6,12 @@ declare(strict_types=1);
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
 
-namespace OCA\Libresign\Tests\Unit\Service;
+namespace OCA\Libresign\Tests\Unit\Service\IdDoc;
 
 use OC\AppFramework\Utility\TimeFactory;
 use OCA\Libresign\Db\FileMapper;
 use OCA\Libresign\Db\FileTypeMapper;
+use OCA\Libresign\Db\IdDocs;
 use OCA\Libresign\Db\IdDocsMapper;
 use OCA\Libresign\Db\IdentifyMethodMapper;
 use OCA\Libresign\Db\SignRequest;
@@ -18,7 +19,7 @@ use OCA\Libresign\Db\SignRequestMapper;
 use OCA\Libresign\Exception\FileProcessingValidationException;
 use OCA\Libresign\Exception\IdDocsUploadValidationException;
 use OCA\Libresign\Exception\LibresignException;
-use OCA\Libresign\Service\IdDocsService;
+use OCA\Libresign\Service\IdDoc\IdDocsService;
 use OCA\Libresign\Service\RequestSignatureService;
 use OCA\Libresign\Service\Validation\FileInputValidator;
 use OCA\Libresign\Service\Validation\IdentityDocumentValidator;
@@ -26,6 +27,7 @@ use OCP\IAppConfig;
 use OCP\IL10N;
 use OCP\IUser;
 use OCP\IUserManager;
+use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\MockObject\MockObject;
 
 /**
@@ -158,6 +160,58 @@ final class IdDocsServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 
 		$service = $this->getIdDocsService();
 		$service->deleteIdDoc(123, $user);
+	}
+
+	#[DataProvider('rejectedAccountDocumentActors')]
+	public function testRejectedAccountDocumentCannotBeDeletedEvenByReviewer(bool $isReviewer): void {
+		$user = $this->createMock(IUser::class);
+		$user->method('getUID')->willReturn($isReviewer ? 'reviewer-1' : 'signer-1');
+		$this->identityDocumentValidator->method('userCanApproveValidationDocuments')
+			->with($user, false)->willReturn($isReviewer);
+		$document = new IdDocs();
+		$document->setFileId(10);
+		$document->setRejectedAt(new \DateTime('2026-11-20T00:00:00Z'));
+		$document->setRejectedBy('reviewer-1');
+		$document->setRejectionReason('Expired identification document');
+		if ($isReviewer) {
+			$this->idDocsMapper->expects($this->once())->method('getByNodeId')
+				->with(123)->willReturn($document);
+		} else {
+			$this->identityDocumentValidator->expects($this->once())
+				->method('validateIdDocIsOwnedByUser')->with(123, 'signer-1');
+			$this->idDocsMapper->expects($this->once())->method('getByUserIdAndNodeId')
+				->with('signer-1', 123)->willReturn($document);
+		}
+		$this->idDocsMapper->expects($this->never())->method('delete');
+		$this->fileMapper->expects($this->never())->method('delete');
+		$this->expectException(LibresignException::class);
+		$this->expectExceptionMessage('Rejected documents are retained for audit purposes.');
+		$this->getIdDocsService()->deleteIdDoc(123, $user);
+	}
+
+	public static function rejectedAccountDocumentActors(): array {
+		return [
+			'authorized reviewer cannot erase audit history' => [true],
+			'document owner cannot erase audit history' => [false],
+		];
+	}
+
+	public function testRejectedGuestDocumentCannotBeDeletedUsingItsOriginalSignRequest(): void {
+		$signRequest = new SignRequest();
+		$signRequest->setId(55);
+		$document = new IdDocs();
+		$document->setFileId(10);
+		$document->setRejectedAt(new \DateTime('2026-11-20T00:00:00Z'));
+		$document->setRejectionReason('Unreadable scan');
+		$this->identityDocumentValidator->expects($this->once())
+			->method('validateIdDocBelongsToSignRequest')->with(123, 55);
+		$this->idDocsMapper->expects($this->once())
+			->method('getBySignRequestIdAndNodeId')->with(55, 123)->willReturn($document);
+		$this->idDocsMapper->expects($this->never())->method('delete');
+		$this->fileMapper->expects($this->never())->method('delete');
+		$this->expectException(LibresignException::class);
+		$this->expectExceptionMessage('Rejected documents are retained for audit purposes.');
+		$this->getIdDocsService()->deleteIdDocBySignRequest(123, $signRequest);
 	}
 
 	public function testDeleteIdDocBySignRequestValidatesAndDeletes(): void {
@@ -402,6 +456,110 @@ final class IdDocsServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		);
 	}
 
+	/**
+	 * An upload batch cannot contain two active identity documents of the same
+	 * type even if the database has none before the request starts.
+	 * This protects the one-active-document invariant before any file is saved.
+	 */
+	#[DataProvider('batchSigners')]
+	public function testDuplicateDocumentTypeInSameUploadBatchIsRejectedBeforePersistence(bool $authenticated): void {
+		$this->fileTypeMapper->method('getTypes')->willReturn(['IDENTIFICATION' => []]);
+		$this->fileInputValidator->method('normalizeNodeId')->willReturnArgument(0);
+		$this->requestSignatureService->expects($this->never())->method('saveFile');
+		$this->idDocsMapper->expects($this->never())->method('save');
+
+		$files = [
+			0 => ['type' => 'IDENTIFICATION', 'file' => ['base64' => 'Zmlyc3Q=']],
+			1 => ['type' => 'IDENTIFICATION', 'file' => ['base64' => 'c2Vjb25k']],
+		];
+
+		try {
+			if ($authenticated) {
+				$user = $this->createMock(IUser::class);
+				$user->method('getUID')->willReturn('synthetic-user');
+				$this->getIdDocsService()->addIdDocs($files, $user);
+			} else {
+				$signRequest = new SignRequest();
+				$signRequest->setId(55);
+				$this->getIdDocsService()->addFilesToDocumentFolder($files, $signRequest);
+			}
+			$this->fail('Duplicate document types in one request must not be saved');
+		} catch (IdDocsUploadValidationException $exception) {
+			$this->assertSame(
+				['type' => 'danger', 'file' => 1, 'message' => 'A file of this type has been associated.'],
+				json_decode($exception->getMessage(), true),
+			);
+		}
+	}
+
+	/**
+	 * An external signer must see which file is blocked by an existing active
+	 * document, rather than a generic upload failure.
+	 */
+	public function testExternalReplacementIsRejectedWithIndexedBusinessErrorWhenActiveDocumentExists(): void {
+		$signRequest = new SignRequest();
+		$signRequest->setId(55);
+		$this->fileTypeMapper->method('getTypes')->willReturn(['IDENTIFICATION' => []]);
+		$this->fileInputValidator->method('normalizeNodeId')->willReturnArgument(0);
+		$this->identityDocumentValidator->method('validateSignRequestHasNoActiveFileWithType')
+			->with(55, 'IDENTIFICATION')
+			->willThrowException(new LibresignException('A file of this type has been associated.'));
+		$this->requestSignatureService->expects($this->never())->method('saveFile');
+
+		try {
+			$this->getIdDocsService()->addFilesToDocumentFolder(
+				[2 => ['type' => 'IDENTIFICATION', 'file' => ['base64' => 'ZmFrZQ==']]],
+				$signRequest,
+			);
+			$this->fail('An existing active document must block a replacement');
+		} catch (IdDocsUploadValidationException $exception) {
+			$this->assertSame(
+				['type' => 'danger', 'file' => 2, 'message' => 'A file of this type has been associated.'],
+				json_decode($exception->getMessage(), true),
+			);
+		}
+	}
+
+	public function testExternalValidationPreservesUnexpectedStorageFailureForController(): void {
+		$signRequest = new SignRequest();
+		$signRequest->setId(55);
+		$this->fileTypeMapper->method('getTypes')->willReturn(['IDENTIFICATION' => []]);
+		$this->fileInputValidator->method('normalizeNodeId')->willReturnArgument(0);
+		$this->identityDocumentValidator->method('validateSignRequestHasNoActiveFileWithType')
+			->willThrowException(new \RuntimeException('Synthetic database error'));
+		$this->requestSignatureService->expects($this->never())->method('saveFile');
+
+		$this->expectException(\RuntimeException::class);
+		$this->expectExceptionMessage('Synthetic database error');
+		$this->getIdDocsService()->addFilesToDocumentFolder(
+			[['type' => 'IDENTIFICATION', 'file' => ['base64' => 'ZmFrZQ==']]],
+			$signRequest,
+		);
+	}
+
+	public function testDistinctDocumentTypesInSameBatchAreAcceptedForValidation(): void {
+		$user = $this->createMock(IUser::class);
+		$user->method('getUID')->willReturn('synthetic-user');
+		$this->fileTypeMapper->method('getTypes')->willReturn([
+			'IDENTIFICATION' => [],
+			'PROOF_OF_ADDRESS' => [],
+		]);
+		$this->identityDocumentValidator->expects($this->exactly(2))->method('validateFileTypeExists');
+		$this->fileInputValidator->expects($this->exactly(2))->method('validateNewFile');
+
+		$this->getIdDocsService()->validateIdDocs([
+			['type' => 'IDENTIFICATION', 'file' => ['base64' => 'Zmlyc3Q=']],
+			['type' => 'PROOF_OF_ADDRESS', 'file' => ['base64' => 'c2Vjb25k']],
+		], $user);
+	}
+
+	public static function batchSigners(): array {
+		return [
+			'authenticated account document batch' => [true],
+			'external signer document batch' => [false],
+		];
+	}
+
 	public function testValidateIdDocsPreservesExpectedValidationMessageAndFileIndex(): void {
 		$user = $this->createMock(IUser::class);
 		$user->method('getUID')->willReturn('synthetic-user');
@@ -450,9 +608,6 @@ final class IdDocsServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	#[\PHPUnit\Framework\Attributes\DataProvider('saveFileErrorCases')]
 	public function testSaveFileOnlyExposesExplicitlyClassifiedErrors(bool $authenticated, bool $safe): void {
 		$files = [2 => ['type' => 'IDENTIFICATION', 'file' => ['base64' => 'ZmFrZQ==']]];
-		if (!$authenticated) {
-			$files[3] = ['type' => 'IDENTIFICATION', 'file' => ['base64' => 'ZmFrZQ==']];
-		}
 		$this->fileTypeMapper->method('getTypes')->willReturn(['IDENTIFICATION' => []]);
 		$this->fileInputValidator->method('normalizeNodeId')->willReturnArgument(0);
 

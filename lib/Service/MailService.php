@@ -14,6 +14,7 @@ use OCA\Libresign\Db\SignRequest;
 use OCA\Libresign\Enum\NotificationDeliveryState;
 use OCA\Libresign\Exception\LibresignException;
 use OCA\Libresign\Exception\MailTransportException;
+use OCA\Libresign\Service\IdDoc\IdDocRejectionEmailTemplateBuilder;
 use OCA\Libresign\Service\Policy\PolicyService;
 use OCA\Libresign\Service\Policy\Provider\MailSenderStrategy\MailSenderStrategyPolicy;
 use OCP\IAppConfig;
@@ -44,6 +45,7 @@ class MailService {
 		private PolicyService $policyService,
 		private IMailProviderManager $mailProviderManager,
 		private IUserManager $userManager,
+		private IdDocRejectionEmailTemplateBuilder $rejectionEmailTemplates,
 	) {
 	}
 
@@ -354,6 +356,27 @@ class MailService {
 			$this->logger->error('Notify signed notification mail could not be sent');
 			throw new LibresignException('Notify signed notification mail could not be sent', 1, $e);
 		}
+	}
+
+	public function notifyIdentificationDocumentRejected(
+		SignRequest $signRequest,
+		string $email,
+		File $document,
+		string $reason,
+		bool $accountSigner,
+		?string $recipientUserId = null,
+	): void {
+		$template = $this->rejectionEmailTemplates->build(
+			$signRequest,
+			$document,
+			$reason,
+			$accountSigner,
+			$recipientUserId,
+		);
+		$message = $this->mailer->createMessage();
+		$message->setTo([$email]);
+		$message->useTemplate($template);
+		$this->sendAndCheck($message);
 	}
 
 	public function notifyCanceledRequest(SignRequest $signRequest, string $email, File $libreSignFile): void {

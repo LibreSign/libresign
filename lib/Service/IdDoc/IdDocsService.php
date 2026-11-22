@@ -6,7 +6,7 @@ declare(strict_types=1);
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
 
-namespace OCA\Libresign\Service;
+namespace OCA\Libresign\Service\IdDoc;
 
 use OCA\Libresign\AppInfo\Application;
 use OCA\Libresign\Db\File as FileEntity;
@@ -22,6 +22,8 @@ use OCA\Libresign\Enum\IdentifyMethodRequirement;
 use OCA\Libresign\Exception\FileProcessingValidationException;
 use OCA\Libresign\Exception\IdDocsUploadValidationException;
 use OCA\Libresign\Exception\LibresignException;
+use OCA\Libresign\Service\IdentifyMethodService;
+use OCA\Libresign\Service\RequestSignatureService;
 use OCA\Libresign\Service\Validation\FileInputValidator;
 use OCA\Libresign\Service\Validation\IdentityDocumentValidator;
 use OCP\AppFramework\Utility\ITimeFactory;
@@ -61,17 +63,28 @@ class IdDocsService {
 		}
 	}
 
-	private function validateIdDoc(int $fileIndex, array $file, IUser $user): void {
-		$profileFileTypes = $this->fileTypeMapper->getTypes();
-		if (!array_key_exists($file['type'], $profileFileTypes)) {
-			throw new IdDocsUploadValidationException(json_encode([
-				'type' => 'danger',
-				'file' => $fileIndex,
-				// TRANSLATORS Error shown when an uploaded identity document has an unsupported file type.
-				'message' => $this->l10n->t('Invalid file type.')
-			]));
+	/**
+	 * Validate every declared type and reject duplicates within the submitted
+	 * batch before any file is persisted. Database checks alone cannot detect
+	 * another document of the same type in this still-uncommitted batch.
+	 */
+	private function validateDocumentTypesInBatch(array $files): void {
+		$seen = [];
+		foreach ($files as $fileIndex => $file) {
+			$this->validateTypeOfFile($fileIndex, $file);
+			if (isset($seen[$file['type']])) {
+				throw new IdDocsUploadValidationException(json_encode([
+					'type' => 'danger',
+					'file' => $fileIndex,
+					// TRANSLATORS Validation error when an identity document of the same type is already included in this upload.
+					'message' => $this->l10n->t('A file of this type has been associated.'),
+				]));
+			}
+			$seen[$file['type']] = true;
 		}
+	}
 
+	private function validateIdDoc(int $fileIndex, array $file, IUser $user): void {
 		try {
 			$this->identityDocumentValidator->validateFileTypeExists($file['type']);
 			$this->fileInputValidator->validateNewFile($file, FileInputValidator::TYPE_ACCOUNT_DOCUMENT, $user);
@@ -108,8 +121,8 @@ class IdDocsService {
 	}
 
 	public function validateIdDocs(array $files, IUser $user): void {
+		$this->validateDocumentTypesInBatch($files);
 		foreach ($files as $fileIndex => $file) {
-			$this->validateTypeOfFile($fileIndex, $file);
 			$this->validateIdDoc($fileIndex, $file, $user);
 		}
 	}
@@ -146,8 +159,17 @@ class IdDocsService {
 		SignRequest $signRequest,
 	): void {
 		$files = $this->normalizeNodeIds($files);
+		$this->validateDocumentTypesInBatch($files);
 		foreach ($files as $fileIndex => $file) {
-			$this->validateTypeOfFile($fileIndex, $file);
+			try {
+				$this->identityDocumentValidator->validateSignRequestHasNoActiveFileWithType($signRequest->getId(), $file['type']);
+			} catch (LibresignException $exception) {
+				throw new IdDocsUploadValidationException(json_encode([
+					'type' => 'danger',
+					'file' => $fileIndex,
+					'message' => $exception->getMessage(),
+				]), previous: $exception);
+			}
 		}
 		// Store the documents under the owner of the file being signed, where
 		// later lookups by the stored user_id expect them; without an IUser the
@@ -196,10 +218,18 @@ class IdDocsService {
 		return $this->userManager->get($signedFile->getUserId());
 	}
 
-	public function list(array $filter, ?int $page = null, ?int $length = null, array $sort = []): array {
+	public function list(array $filter, ?int $page = null, ?int $length = null, array $sort = [], bool $includeReviewer = false): array {
 		$page ??= 1;
 		$length ??= (int)$this->appConfig->getValueInt(Application::APP_ID, 'length_of_page', 100);
 		$data = $this->idDocsMapper->list($filter, $page, $length, $sort);
+		if (!$includeReviewer) {
+			foreach ($data['data'] as &$entry) {
+				if (isset($entry['rejection'])) {
+					unset($entry['rejection']['by']);
+				}
+			}
+			unset($entry);
+		}
 		$data['pagination']->setRouteName('ocs.libresign.File.list');
 		$pagination = $data['pagination']->getPagination($page, $length, $filter);
 		return [
@@ -215,6 +245,10 @@ class IdDocsService {
 			$this->identityDocumentValidator->validateIdDocIsOwnedByUser($nodeId, $user->getUID());
 			$idDocs = $this->idDocsMapper->getByUserIdAndNodeId($user->getUID(), $nodeId);
 		}
+		if ($idDocs->getRejectedAt() !== null) {
+			// TRANSLATORS Error shown when trying to delete a rejected identification document that must remain in the audit history.
+			throw new LibresignException($this->l10n->t('Rejected documents are retained for audit purposes.'));
+		}
 		$this->idDocsMapper->delete($idDocs);
 		$file = $this->fileMapper->getById($idDocs->getFileId());
 		$this->fileMapper->delete($file);
@@ -223,6 +257,10 @@ class IdDocsService {
 	public function deleteIdDocBySignRequest(int $nodeId, SignRequest $signRequest): void {
 		$this->identityDocumentValidator->validateIdDocBelongsToSignRequest($nodeId, $signRequest->getId());
 		$idDocs = $this->idDocsMapper->getBySignRequestIdAndNodeId($signRequest->getId(), $nodeId);
+		if ($idDocs->getRejectedAt() !== null) {
+			// TRANSLATORS Error shown when trying to delete a rejected identification document that must remain in the audit history.
+			throw new LibresignException($this->l10n->t('Rejected documents are retained for audit purposes.'));
+		}
 		$this->idDocsMapper->delete($idDocs);
 		$file = $this->fileMapper->getById($idDocs->getFileId());
 		$this->fileMapper->delete($file);

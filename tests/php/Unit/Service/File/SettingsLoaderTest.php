@@ -16,7 +16,7 @@ use OCA\Libresign\Enum\FileStatus;
 use OCA\Libresign\Service\File\AccountSettingsProvider;
 use OCA\Libresign\Service\File\FileResponseOptions;
 use OCA\Libresign\Service\File\SettingsLoader;
-use OCA\Libresign\Service\IdDocsPolicyService;
+use OCA\Libresign\Service\IdDoc\IdDocsPolicyService;
 use OCA\Libresign\Service\IdentifyMethodService;
 use OCP\IUser;
 use PHPUnit\Framework\Attributes\DataProvider;

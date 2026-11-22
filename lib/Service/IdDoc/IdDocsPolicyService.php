@@ -6,7 +6,7 @@ declare(strict_types=1);
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
 
-namespace OCA\Libresign\Service;
+namespace OCA\Libresign\Service\IdDoc;
 
 use OCA\Libresign\Db\File as FileEntity;
 use OCA\Libresign\Db\FileMapper;
@@ -44,7 +44,17 @@ class IdDocsPolicyService {
 			return false;
 		}
 
-		if (!$this->isIdentificationDocumentsEnabled($user, $this->getRelatedSignRequest($idDocs))) {
+		if ($idDocs->getRejectedAt() !== null) {
+			return false;
+		}
+		$signRequest = $this->getRelatedSignRequest($idDocs);
+		// If this document was linked to a signing request, its original
+		// policy must be resolvable. Never replace a missing link with today's
+		// more permissive account policy.
+		if ($idDocs->getSignRequestId() !== null && $signRequest === null) {
+			return false;
+		}
+		if (!$this->isIdentificationDocumentsEnabled($user, $signRequest)) {
 			return false;
 		}
 		if (!$this->userCanApproveValidationDocuments($user, false)) {
@@ -124,7 +134,9 @@ class IdDocsPolicyService {
 	private function getSnapshotValue(?SignRequest $signRequest = null): ?array {
 		$file = $this->getFileFromSignRequest($signRequest);
 		if (!$file instanceof FileEntity) {
-			return null;
+			// A missing file from a linked request cannot justify falling back
+			// to a policy that may have been enabled only after this request.
+			return $signRequest !== null ? ['enabled' => false, 'approvers' => []] : null;
 		}
 
 		$metadata = $file->getMetadata() ?? [];
@@ -153,7 +165,7 @@ class IdDocsPolicyService {
 
 		try {
 			return $this->fileMapper->getById($fileId);
-		} catch (\Throwable) {
+		} catch (DoesNotExistException) {
 			return null;
 		}
 	}
@@ -166,7 +178,7 @@ class IdDocsPolicyService {
 
 		try {
 			return $this->signRequestMapper->getById($signRequestId);
-		} catch (\Throwable) {
+		} catch (DoesNotExistException) {
 			return null;
 		}
 	}

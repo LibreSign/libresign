@@ -39,6 +39,16 @@
 							{{ t('libresign', 'Pending') }}
 						</NcActionButton>
 
+						<NcActionButton type="radio"
+							:model-value="filters.status?.value === 'rejected'"
+							@update:modelValue="setStatusFilter('rejected', $event)">
+							<template #icon>
+								<NcIconSvgWrapper :path="mdiCloseCircleOutline" :size="20" />
+							</template>
+							<!-- TRANSLATORS Status filter for identification documents that an approver refused. -->
+							{{ t('libresign', 'Rejected') }}
+						</NcActionButton>
+
 						<NcActionSeparator v-if="hasActiveFilters" />
 
 						<NcActionButton v-if="hasActiveFilters"
@@ -88,7 +98,7 @@
 									{{ sortOrder === 'ASC' ? '▲' : '▼' }}
 								</span>
 							</th>
-							<th>{{ t('libresign', 'Approved by') }}</th>
+							<th>{{ t('libresign', 'Reviewed by') }}</th>
 							<th class="id-docs-table__cell--frozen-right">
 								{{ t('libresign', 'Actions') }}
 							</th>
@@ -109,10 +119,25 @@
 								{{ doc.file_type.name }}
 							</td>
 							<td>
-								{{ doc.file.status === FILE_STATUS.PARTIAL_SIGNED ? t('libresign', 'waiting for approval') : doc.file.statusText }}
+								{{ doc.rejection ? rejectedStatusLabel : doc.file.status === FILE_STATUS.PARTIAL_SIGNED ? waitingApprovalStatusLabel : doc.file.statusText }}
+								<p v-if="doc.rejection" class="rejection-explanation">
+									{{ doc.rejection.reason }}
+								</p>
 							</td>
 							<td>
-								<template v-if="doc.file?.signers?.length > 0 && doc.file.signers[0].sign_date">
+								<template v-if="doc.rejection">
+									<div v-if="doc.rejection.by" class="rejection-reviewer">
+										<NcAvatar :user="doc.rejection.by"
+											:display-name="doc.rejection.by"
+											:size="32"
+											:disable-menu="true" />
+										{{ t('libresign', 'Rejected by {user}', { user: doc.rejection.by }) }}
+									</div>
+									<div v-if="doc.rejection.at" class="rejection-timestamp">
+										{{ formatRejectionDate(doc.rejection.at) }}
+									</div>
+								</template>
+								<template v-else-if="doc.file?.signers?.length > 0 && doc.file.signers[0].sign_date">
 									<NcAvatar v-if="doc.file.signers[0].uid"
 										:user="doc.file.signers[0].uid"
 										:display-name="doc.file.signers[0].displayName"
@@ -143,7 +168,7 @@
 											{{ t('libresign', 'Open file') }}
 										</NcActionButton>
 									</template>
-									<NcActionButton v-if="doc.file?.status === FILE_STATUS.ABLE_TO_SIGN || doc.file?.status === FILE_STATUS.PARTIAL_SIGNED"
+									<NcActionButton v-if="!doc.rejection && (doc.file?.status === FILE_STATUS.ABLE_TO_SIGN || doc.file?.status === FILE_STATUS.PARTIAL_SIGNED)"
 										:aria-label="reviewAndApproveLabel"
 										@click="openApprove(doc)">
 										<template #icon>
@@ -151,7 +176,15 @@
 										</template>
 										{{ reviewAndApproveLabel }}
 									</NcActionButton>
-									<NcActionButton @click="deleteDocument(doc)">
+									<NcActionButton v-if="!doc.rejection && (doc.file?.status === FILE_STATUS.ABLE_TO_SIGN || doc.file?.status === FILE_STATUS.PARTIAL_SIGNED)"
+										@click="openRejectDialog(doc)">
+										<template #icon>
+											<NcIconSvgWrapper :path="mdiCloseCircleOutline" :size="20" />
+										</template>
+										<!-- TRANSLATORS Action to refuse an identification document submitted for approval. -->
+										{{ t('libresign', 'Reject') }}
+									</NcActionButton>
+									<NcActionButton v-if="!doc.rejection" @click="deleteDocument(doc)">
 										<template #icon>
 											<NcIconSvgWrapper :path="mdiDelete" :size="20" />
 										</template>
@@ -172,6 +205,32 @@
 				</div>
 			</div>
 		</div>
+		<!-- TRANSLATORS Title of the confirmation dialog for rejecting an identification document. -->
+		<NcDialog v-if="rejectionDocument"
+			:name="t('libresign', 'Reject identification document')"
+			size="normal"
+			:no-close="rejecting"
+			@closing="closeRejectDialog">
+			<!-- TRANSLATORS Explains why an approver must supply a rejection reason and what happens next to the signer's document. -->
+			<p>{{ t('libresign', 'Explain why this document cannot be approved. The signer will receive the reason and can upload a replacement.') }}</p>
+			<NcTextArea v-model="rejectionReason"
+				:label="rejectionReasonLabel"
+				:placeholder="rejectionReasonPlaceholder"
+				:maxlength="1024"
+				:disabled="rejecting" />
+			<template #actions>
+				<NcButton :disabled="rejecting" @click="closeRejectDialog">
+					<!-- TRANSLATORS Action to close the rejection dialog without rejecting the document. -->
+					{{ t('libresign', 'Cancel') }}
+				</NcButton>
+				<NcButton variant="primary"
+					:disabled="rejecting || !rejectionReason.trim() || rejectionReason.trim().length > 1024"
+					@click="rejectDocument">
+					<!-- TRANSLATORS Action to confirm the rejection of an identification document after entering a reason. -->
+					{{ t('libresign', 'Reject document') }}
+				</NcButton>
+			</template>
+		</NcDialog>
 	</NcAppContent>
 </template>
 
@@ -183,6 +242,7 @@ import {
 	mdiAccount,
 	mdiCheckCircle,
 	mdiClockAlert,
+	mdiCloseCircleOutline,
 	mdiClose,
 	mdiDelete,
 	mdiEye,
@@ -193,7 +253,7 @@ import {
 } from '@mdi/js'
 
 import axios from '@nextcloud/axios'
-import { showError } from '@nextcloud/dialogs'
+import { showError, showSuccess } from '@nextcloud/dialogs'
 import { generateOcsUrl } from '@nextcloud/router'
 
 import { FILE_STATUS } from '../../constants.js'
@@ -207,6 +267,9 @@ import NcActionButton from '@nextcloud/vue/components/NcActionButton'
 import NcActionInput from '@nextcloud/vue/components/NcActionInput'
 import NcActionSeparator from '@nextcloud/vue/components/NcActionSeparator'
 import NcAppContent from '@nextcloud/vue/components/NcAppContent'
+import NcButton from '@nextcloud/vue/components/NcButton'
+import NcDialog from '@nextcloud/vue/components/NcDialog'
+import NcTextArea from '@nextcloud/vue/components/NcTextArea'
 import NcAvatar from '@nextcloud/vue/components/NcAvatar'
 import NcEmptyContent from '@nextcloud/vue/components/NcEmptyContent'
 import NcLoadingIcon from '@nextcloud/vue/components/NcLoadingIcon'
@@ -216,12 +279,14 @@ type SortField = 'owner' | 'file_type' | 'status'
 type SortOrder = 'ASC' | 'DESC' | null
 
 type StatusOption = {
-	value: 'signed' | 'pending'
+	value: 'signed' | 'pending' | 'rejected'
 	label: string
 }
 
 type PersistedStatusFilter = StatusOption['value'] | null
-type IdDocEntry = components['schemas']['File']
+type IdDocEntry = components['schemas']['File'] & {
+	rejection?: null | { reason: string, at: string, by?: string }
+}
 type IdDocsListQuery = NonNullable<operations['id_docs-list-to-approval']['parameters']['query']>
 type IdDocsListSuccess = operations['id_docs-list-to-approval']['responses'][200]['content']['application/json']
 type IdDocsListError = operations['id_docs-list-to-approval']['responses'][404]['content']['application/json']
@@ -246,17 +311,30 @@ defineOptions({
 const SORT_FIELDS: readonly SortField[] = ['owner', 'file_type', 'status']
 // TRANSLATORS Button for opening a submitted document so a reviewer can inspect it and record approval.
 const reviewAndApproveLabel = t('libresign', 'Review and approve')
+// TRANSLATORS Status displayed for an identification document rejected by a reviewer.
+const rejectedStatusLabel = t('libresign', 'Rejected')
+// TRANSLATORS Status displayed for an identification document awaiting approval.
+const waitingApprovalStatusLabel = t('libresign', 'waiting for approval')
+// TRANSLATORS Label for the required text field explaining why the approver rejected a submitted document.
+const rejectionReasonLabel = t('libresign', 'Rejection reason')
+// TRANSLATORS Placeholder suggesting an expired identification document as a possible rejection reason.
+const rejectionReasonPlaceholder = t('libresign', 'For example: The document has expired.')
 const STATUS_OPTIONS: StatusOption[] = [
 	// TRANSLATORS Filter status label meaning the document already has the required signature approval result.
 	{ value: 'signed', label: t('libresign', 'Approved') },
 	// TRANSLATORS Filter status label meaning the document is still waiting for validation or approval.
 	{ value: 'pending', label: t('libresign', 'Pending') },
+	// TRANSLATORS Filter status label indicating that an approver has rejected an identification document.
+	{ value: 'rejected', label: t('libresign', 'Rejected') },
 ]
 
 const router = useRouter()
 const userConfigStore = useUserConfigStore() as UserConfigStore
 const scrollContainer = ref<HTMLElement | null>(null)
 const documentList = ref<IdDocEntry[]>([])
+const rejectionDocument = ref<IdDocEntry | null>(null)
+const rejectionReason = ref('')
+const rejecting = ref(false)
 const loading = ref(true)
 const loadingMore = ref(false)
 const page = ref(1)
@@ -304,9 +382,11 @@ const filteredDocuments = computed(() => {
 	}
 
 	if (filters.status?.value === 'signed') {
-		docs = docs.filter(doc => doc.file.status === FILE_STATUS.SIGNED)
+		docs = docs.filter(doc => !doc.rejection && doc.file.status === FILE_STATUS.SIGNED)
 	} else if (filters.status?.value === 'pending') {
-		docs = docs.filter(doc => doc.file.status !== FILE_STATUS.SIGNED)
+		docs = docs.filter(doc => !doc.rejection && doc.file.status !== FILE_STATUS.SIGNED)
+	} else if (filters.status?.value === 'rejected') {
+		docs = docs.filter(doc => Boolean(doc.rejection))
 	}
 
 	return docs
@@ -320,6 +400,18 @@ function isSortField(value: unknown): value is SortField {
 
 function isSortOrder(value: unknown): value is Exclude<SortOrder, null> {
 	return value === 'ASC' || value === 'DESC'
+}
+
+/**
+ * Database rejection datetimes are UTC without a timezone suffix.
+ * Parse SQL and ISO-8601 timestamps consistently in the viewer's timezone.
+ */
+function formatRejectionDate(value: string): string {
+	const timestamp = /^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}$/.test(value)
+		? value.replace(' ', 'T') + 'Z'
+		: value
+	const parsed = new Date(timestamp)
+	return Number.isNaN(parsed.getTime()) ? '-' : parsed.toLocaleString()
 }
 
 function getStatusOption(status: UserConfigFilters['status']): StatusOption | null {
@@ -421,6 +513,43 @@ function openApprove(doc: IdDocEntry) {
 		params: { uuid: doc.file.uuid },
 		query: { idDocApproval: 'true' },
 	})
+}
+
+function openRejectDialog(doc: IdDocEntry) {
+	rejectionDocument.value = doc
+	rejectionReason.value = ''
+}
+
+function closeRejectDialog() {
+	if (!rejecting.value) {
+		rejectionDocument.value = null
+		rejectionReason.value = ''
+	}
+}
+
+async function rejectDocument() {
+	if (!rejectionDocument.value || !rejectionReason.value.trim() || rejecting.value) {
+		return
+	}
+	rejecting.value = true
+	try {
+		await axios.post(
+			generateOcsUrl('/apps/libresign/api/v1/id-docs/{nodeId}/reject', {
+				nodeId: rejectionDocument.value.file.file.nodeId,
+			}),
+			{ reason: rejectionReason.value.trim() },
+		)
+		rejectionDocument.value = null
+		rejectionReason.value = ''
+		// TRANSLATORS Confirmation shown to an approver after rejecting an identification document.
+		showSuccess(t('libresign', 'Identification document rejected.'))
+		await loadDocuments()
+	} catch (error: unknown) {
+		// TRANSLATORS Fallback error shown when a document rejection request fails.
+		showError(getErrorMessage(error) || t('libresign', 'Unable to reject document'))
+	} finally {
+		rejecting.value = false
+	}
 }
 
 async function deleteDocument(doc: IdDocEntry) {
@@ -541,10 +670,17 @@ defineExpose({
 	hasActiveFilters,
 	activeFilterCount,
 	filteredDocuments,
+	formatRejectionDate,
 	loadDocuments,
 	onScroll,
 	openApprove,
 	deleteDocument,
+	openRejectDialog,
+	closeRejectDialog,
+	rejectDocument,
+	rejectionDocument,
+	rejectionReason,
+	rejecting,
 	openFile,
 	openValidationURL,
 	onFilterChange,
@@ -556,6 +692,7 @@ defineExpose({
 	mdiAccount,
 	mdiCheckCircle,
 	mdiClockAlert,
+	mdiCloseCircleOutline,
 	mdiClose,
 	mdiDelete,
 	mdiEye,
@@ -747,5 +884,17 @@ defineExpose({
 	&__cell--frozen-owner {
 		left: $spacer-width;
 	}
+}
+
+.rejection-reviewer {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+}
+
+.rejection-timestamp {
+	font-size: 12px;
+	color: var(--color-text-maxcontrast);
+	margin-top: 4px;
 }
 </style>
