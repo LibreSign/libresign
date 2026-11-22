@@ -7,7 +7,8 @@
 		<h3 v-if="filesStore.getSubtitle()">
 			{{ filesStore.getSubtitle() }}
 		</h3>
-		<NcButton v-if="canSignImmediately || isDirectSigning"
+		<NcButton
+			v-if="canSignImmediately || isDirectSigning"
 			variant="tertiary"
 			:disabled="isDirectSigning"
 			@click="signPdfNow">

@@ -4,7 +4,8 @@
 -->
 <template>
 	<div v-if="currentFileId && currentFile" class="content-file" @click="openSidebar">
-		<img v-if="previewUrl"
+		<img
+			v-if="previewUrl"
 			alt=""
 			class="files-list__row-icon-preview files-list__row-icon-preview--loaded"
 			loading="lazy"

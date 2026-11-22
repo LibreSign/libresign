@@ -3,11 +3,13 @@
   - SPDX-License-Identifier: AGPL-3.0-or-later
 -->
 <template>
-	<td v-if="showSelectionColumn"
+	<td
+		v-if="showSelectionColumn"
 		class="files-list__row-checkbox"
 		@keyup.esc.exact="resetSelection">
 		<NcLoadingIcon v-if="canSelect && isLoading" :name="loadingLabel" />
-		<NcCheckboxRadioSwitch v-else-if="canSelect"
+		<NcCheckboxRadioSwitch
+			v-else-if="canSelect"
 			:aria-label="ariaLabel"
 			:model-value="isSelected"
 			@update:modelValue="onSelectionChange" />

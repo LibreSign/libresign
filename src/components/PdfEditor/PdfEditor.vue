@@ -4,7 +4,8 @@
 -->
 <template>
 	<div class="pdf-editor">
-		<PDFElements ref="pdfElements"
+		<PDFElements
+			ref="pdfElements"
 			:init-files="files"
 			:init-file-names="fileNames"
 			:page-count-format="t('libresign', '{currentPage} of {totalPages}')"

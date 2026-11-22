@@ -5,7 +5,8 @@
 <template>
 	<div v-if="canRequestSign">
 		<div v-if="inline" class="request-picker-buttons">
-			<NcButton variant="secondary"
+			<NcButton
+				variant="secondary"
 				@click="showModalUploadFromUrl()">
 				<template #icon>
 					<NcIconSvgWrapper :path="mdiLink" :size="20" />
@@ -14,7 +15,8 @@
 				{{ t('libresign', 'Upload from URL') }}
 			</NcButton>
 			<!-- TRANSLATORS Tooltip on the existing-files picker when selecting multiple PDF files is enabled. -->
-			<NcButton variant="secondary"
+			<NcButton
+				variant="secondary"
 				:title="envelopeEnabled ? t('libresign', 'Multiple files allowed') : null"
 				@click="openFilePicker">
 				<template #icon>
@@ -23,7 +25,8 @@
 				<!-- TRANSLATORS Button label to pick existing PDF file(s) from Nextcloud Files app. -->
 				{{ t('libresign', 'Choose from Files') }}
 			</NcButton>
-			<NcButton variant="secondary"
+			<NcButton
+				variant="secondary"
 				@click="uploadFile">
 				<template #icon>
 					<NcIconSvgWrapper :path="mdiUpload" :size="20" />
@@ -32,14 +35,16 @@
 				{{ t('libresign', 'Upload') }}
 			</NcButton>
 		</div>
-		<NcActions v-else
+		<NcActions
+			v-else
 			v-model:open="openedMenu"
 			:menu-name="requestMenuName"
 			:variant="variant">
 			<template #icon>
 				<NcIconSvgWrapper :path="mdiPlus" :size="20" />
 			</template>
-			<NcActionButton :wide="true"
+			<NcActionButton
+				:wide="true"
 				@click="showModalUploadFromUrl()">
 				<template #icon>
 					<NcIconSvgWrapper :path="mdiLink" :size="20" />
@@ -48,7 +53,8 @@
 				{{ t('libresign', 'Upload from URL') }}
 			</NcActionButton>
 			<!-- TRANSLATORS Tooltip on the existing-files menu action when selecting multiple PDF files is enabled. -->
-			<NcActionButton :wide="true"
+			<NcActionButton
+				:wide="true"
 				:title="envelopeEnabled ? t('libresign', 'Multiple files allowed') : null"
 				@click="openFilePicker">
 				<template #icon>
@@ -57,7 +63,8 @@
 				<!-- TRANSLATORS Menu action to choose existing PDF files stored in Nextcloud. -->
 				{{ t('libresign', 'Choose from Files') }}
 			</NcActionButton>
-			<NcActionButton :wide="true"
+			<NcActionButton
+				:wide="true"
 				@click="uploadFile">
 				<template #icon>
 					<NcIconSvgWrapper :path="mdiUpload" :size="20" />
@@ -65,7 +72,8 @@
 				<!-- TRANSLATORS Menu action to upload PDF files from the local device. -->
 				{{ t('libresign', 'Upload') }}
 			</NcActionButton>
-			<NcActionButton v-if="canDirectSign" :wide="true"
+			<NcActionButton
+				v-if="canDirectSign" :wide="true"
 				:disabled="isDirectSigning"
 				@click="signPdfNow">
 				<template #icon>
@@ -75,30 +83,35 @@
 				{{ t('libresign', 'Sign PDF now') }}
 			</NcActionButton>
 		</NcActions>
-		<UploadProgress :is-uploading="isUploading"
+		<UploadProgress
+			:is-uploading="isUploading"
 			:upload-progress="uploadProgress"
 			:uploaded-bytes="uploadedBytes"
 			:total-bytes="totalBytes"
 			:upload-start-time="uploadStartTime"
 			@cancel="cancelUpload" />
-		<NcDialog v-if="modalUploadFromUrl"
+		<NcDialog
+			v-if="modalUploadFromUrl"
 			:name="urlOfPdfFileTitle"
 			:no-close="loading"
 			is-form
 			@submit.prevent="uploadUrl()"
 			@closing="closeModalUploadFromUrl">
-			<NcNoteCard v-for="message in uploadUrlErrors"
+			<NcNoteCard
+				v-for="message in uploadUrlErrors"
 				:key="message"
 				type="error">
 				{{ message }}
 			</NcNoteCard>
-			<NcTextField v-model="pdfUrl"
+			<NcTextField
+				v-model="pdfUrl"
 				autofocus
 				:label="urlOfPdfFileTitle">
 				<NcIconSvgWrapper :path="mdiLink" :size="20" />
 			</NcTextField>
 			<template #actions>
-				<NcButton :disabled="!canUploadFronUrl"
+				<NcButton
+					:disabled="!canUploadFronUrl"
 					type="submit"
 					variant="primary">
 					<!-- TRANSLATORS Button to submit the URL of a PDF for upload. -->
@@ -110,13 +123,15 @@
 				</NcButton>
 			</template>
 		</NcDialog>
-		<NcDialog v-if="showEnvelopeNameDialog"
+		<NcDialog
+			v-if="showEnvelopeNameDialog"
 			:name="envelopeNameTitle"
 			:no-close="false"
 			is-form
 			@submit.prevent="handleEnvelopeNameSubmit()"
 			@closing="closeEnvelopeNameDialog">
-			<NcTextField v-model="envelopeNameInput"
+			<NcTextField
+				v-model="envelopeNameInput"
 				autofocus
 				:label="enterEnvelopeNameLabel"
 				:placeholder="envelopeNameTitle"
@@ -124,7 +139,8 @@
 				:maxlength="ENVELOPE_NAME_MAX_LENGTH"
 				:helper-text="`${envelopeNameInput.length} / ${ENVELOPE_NAME_MAX_LENGTH}`" />
 			<template #actions>
-				<NcButton type="submit"
+				<NcButton
+					type="submit"
 					variant="primary"
 					:disabled="envelopeNameInput.trim().length < ENVELOPE_NAME_MIN_LENGTH"
 					@click="handleEnvelopeNameSubmit()">

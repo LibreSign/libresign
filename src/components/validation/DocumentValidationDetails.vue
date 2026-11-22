@@ -52,7 +52,8 @@
 					{{ section.title }}
 				</h3>
 				<ul class="signers">
-					<SignerDetails v-for="(signer, signerIndex) in section.participants"
+					<SignerDetails
+						v-for="(signer, signerIndex) in section.participants"
 						:key="`${section.role}-${signerIndex}`"
 						:signer="signer"
 						:workflow-canceled="workflowCanceled" />

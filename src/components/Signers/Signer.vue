@@ -3,7 +3,8 @@
   - SPDX-License-Identifier: AGPL-3.0-or-later
 -->
 <template>
-	<NcListItem ref="listItem"
+	<NcListItem
+		ref="listItem"
 		:name="signerName"
 		:link-aria-label="signerLinkAriaLabel"
 		:counter-number="counterNumber"
@@ -18,12 +19,14 @@
 		</template>
 		<template #subname>
 			<div class="signer-subname">
-				<NcChip v-for="method in identifyMethodsNames"
+				<NcChip
+					v-for="method in identifyMethodsNames"
 					:key="method"
 					:text="method"
 					:aria-label="getIdentificationMethodAriaLabel(method)"
 					:no-close="true" />
-				<NcChip :text="signerStatusText"
+				<NcChip
+					:text="signerStatusText"
 					:variant="chipType"
 					:icon-path="statusIconPath"
 					:aria-label="signerStatusAriaLabel"
@@ -35,7 +38,8 @@
 		<template #extra>
 			<div v-if="showDragHandle" class="signer-extra">
 				<div class="drag-handle-wrapper">
-					<NcIconSvgWrapper :path="mdiDragVertical" :size="20"
+					<NcIconSvgWrapper
+						:path="mdiDragVertical" :size="20"
 						class="drag-handle"
 						:title="dragToReorderLabel" />
 				</div>

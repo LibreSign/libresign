@@ -3,7 +3,8 @@
   - SPDX-License-Identifier: AGPL-3.0-or-later
 -->
 <template>
-	<div v-if="statusText !== 'none'"
+	<div
+		v-if="statusText !== 'none'"
 		class="status-chip"
 		:class="'status-chip--' + statusToVariant(status)"
 		:title="statusText">

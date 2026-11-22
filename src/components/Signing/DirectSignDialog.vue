@@ -3,7 +3,8 @@
   - SPDX-License-Identifier: AGPL-3.0-or-later
 -->
 <template>
-	<NcDialog v-if="showDialog" size="normal" :name="dialogTitle" :no-close="signing" :buttons="buttons"
+	<NcDialog
+		v-if="showDialog" size="normal" :name="dialogTitle" :no-close="signing" :buttons="buttons"
 		@closing="emit('close', false)">
 		<div class="signing-dialog-copy">
 			<p class="document-name">
@@ -18,7 +19,8 @@
 				{{ t('libresign', 'Need to place a visible signature or invite someone else? Choose Prepare signing below.') }}
 			</p>
 		</div>
-		<NcCheckboxRadioSwitch v-if="!errorMessage && !skipConfirmation"
+		<NcCheckboxRadioSwitch
+			v-if="!errorMessage && !skipConfirmation"
 			v-model="rememberChoice"
 			type="checkbox"
 			:disabled="signing">

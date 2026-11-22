@@ -3,16 +3,20 @@
   - SPDX-License-Identifier: AGPL-3.0-or-later
 -->
 <template>
-	<tr class="files-list__row"
+	<tr
+		class="files-list__row"
 		@contextmenu="onRightClick">
 		<!-- Checkbox -->
-		<FileEntryCheckbox :is-loading="filesStore.loading || renamingSaving"
+		<FileEntryCheckbox
+			:is-loading="filesStore.loading || renamingSaving"
 			:source="source" />
 
-		<td class="files-list__row-name"
+		<td
+			class="files-list__row-name"
 			@click="openDetailsIfAvailable">
 			<FileEntryPreview :source="source" />
-			<FileEntryName ref="name"
+			<FileEntryName
+				ref="name"
 				:basename="source.name"
 				:extension="fileExtension"
 				@rename="onRename"
@@ -20,7 +24,8 @@
 		</td>
 
 		<!-- Actions -->
-		<FileEntryActions ref="actions"
+		<FileEntryActions
+			ref="actions"
 			v-model:opened="openedMenu"
 			:class="`files-list__row-actions-${source.id}`"
 			:source="source"
@@ -28,22 +33,27 @@
 			@start-rename="onStartRename" />
 
 		<!-- Status -->
-		<td class="files-list__row-status"
+		<td
+			class="files-list__row-status"
 			@click="openDetailsIfAvailable">
-			<FileEntryStatus :status="source.status"
+			<FileEntryStatus
+				:status="source.status"
 				:status-text="source.statusText"
 				:signers="source.signers || []" />
 		</td>
 
 		<!-- Signers Count -->
-		<td class="files-list__row-signers"
+		<td
+			class="files-list__row-signers"
 			@click="openDetailsIfAvailable">
-			<FileEntrySigners :signers-count="source.signersCount || 0"
+			<FileEntrySigners
+				:signers-count="source.signersCount || 0"
 				:signers="source.signers || []" />
 		</td>
 
 		<!-- Mtime -->
-		<td :style="mtimeOpacity"
+		<td
+			:style="mtimeOpacity"
 			class="files-list__row-mtime"
 			@click="openDetailsIfAvailable">
 			<NcDateTime v-if="source.created_at" :timestamp="mtime" :ignore-seconds="true" />

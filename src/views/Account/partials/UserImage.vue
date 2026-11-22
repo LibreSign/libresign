@@ -26,7 +26,8 @@ defineProps<{
 			<div class="icons icon-contacts-dark" />
 		</div>
 
-		<NcAvatar :verbose-status="false"
+		<NcAvatar
+			:verbose-status="false"
 			:size="145"
 			class="user-avatar"
 			:user="user.uid"

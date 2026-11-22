@@ -3,7 +3,8 @@
   - SPDX-License-Identifier: AGPL-3.0-or-later
 -->
 <template>
-	<NcActions v-if="show !== false"
+	<NcActions
+		v-if="show !== false"
 		class="signer-menu"
 		:force-menu="true"
 		menu-name=""

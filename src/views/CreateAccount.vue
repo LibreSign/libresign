@@ -19,7 +19,8 @@
 				{{ errorMessage }}
 			</NcNoteCard>
 			<fieldset class="create-account__fieldset">
-				<NcTextField v-model="email"
+				<NcTextField
+					v-model="email"
 					:label="t('libresign', 'Email')"
 					autocapitalize="none"
 					:spellchecking="false"
@@ -30,7 +31,8 @@
 					required>
 					<NcIconSvgWrapper :path="mdiEmail" :size="20" />
 				</NcTextField>
-				<NcPasswordField v-model="password"
+				<NcPasswordField
+					v-model="password"
 					:label="t('libresign', 'Password')"
 					:spellchecking="false"
 					autocapitalize="none"
@@ -39,7 +41,8 @@
 					:helper-text="passwordError"
 					:error="passwordError.length > 0"
 					required />
-				<NcPasswordField v-model="passwordConfirm"
+				<NcPasswordField
+					v-model="passwordConfirm"
 					:label="t('libresign', 'Confirm password')"
 					:spellchecking="false"
 					autocapitalize="none"
@@ -48,7 +51,8 @@
 					:helper-text="confirmPasswordError"
 					:error="confirmPasswordError.length > 0"
 					required />
-				<NcButton :wide="true"
+				<NcButton
+					:wide="true"
 					variant="primary"
 					:disabled="!canSave"
 					@click="createAccount">

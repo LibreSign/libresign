@@ -12,7 +12,8 @@
 						<template #icon>
 							<NcIconSvgWrapper :path="mdiFilter" :size="20" />
 						</template>
-						<NcActionInput v-model="filters.serialNumber"
+						<NcActionInput
+							v-model="filters.serialNumber"
 							:label="t('libresign', 'Serial Number')"
 							@update:modelValue="onFilterChange">
 							<template #icon>
@@ -20,7 +21,8 @@
 							</template>
 						</NcActionInput>
 
-						<NcActionInput v-model="filters.owner"
+						<NcActionInput
+							v-model="filters.owner"
 							:label="t('libresign', 'Owner')"
 							@update:modelValue="onFilterChange">
 							<template #icon>
@@ -28,7 +30,8 @@
 							</template>
 						</NcActionInput>
 
-						<NcActionButton type="radio"
+						<NcActionButton
+							type="radio"
 							:model-value="filters.status?.value === 'issued'"
 							@update:modelValue="setStatusFilter('issued', $event)">
 							<template #icon>
@@ -37,7 +40,8 @@
 							{{ t('libresign', 'Issued') }}
 						</NcActionButton>
 
-						<NcActionButton type="radio"
+						<NcActionButton
+							type="radio"
 							:model-value="filters.status?.value === 'revoked'"
 							@update:modelValue="setStatusFilter('revoked', $event)">
 							<template #icon>
@@ -46,7 +50,8 @@
 							{{ t('libresign', 'Revoked') }}
 						</NcActionButton>
 
-						<NcActionButton type="radio"
+						<NcActionButton
+							type="radio"
 							:model-value="filters.status?.value === 'expired'"
 							@update:modelValue="setStatusFilter('expired', $event)">
 							<template #icon>
@@ -57,7 +62,8 @@
 
 						<NcActionSeparator v-if="hasActiveFilters" />
 
-						<NcActionButton v-if="hasActiveFilters"
+						<NcActionButton
+							v-if="hasActiveFilters"
 							@click="clearFilters">
 							<template #icon>
 								<NcIconSvgWrapper :path="mdiClose" :size="20" />
@@ -74,7 +80,8 @@
 			</div>
 
 			<div v-else-if="entries.length === 0" class="crl-management__empty">
-				<NcEmptyContent :name="noCrlEntriesFoundTitle"
+				<NcEmptyContent
+					:name="noCrlEntriesFoundTitle"
 					:description="noCrlEntriesFoundDescription">
 					<template #icon>
 						<NcIconSvgWrapper :path="mdiShieldLock" :size="64" />
@@ -82,7 +89,8 @@
 				</NcEmptyContent>
 			</div>
 
-			<div v-else
+			<div
+				v-else
 				ref="scrollContainer"
 				class="crl-management__list"
 				@scroll="onScroll">
@@ -148,7 +156,8 @@
 					<tbody>
 						<tr v-for="(entry, index) in entries" :key="`${entry.serial_number}-${entry.issued_at}-${index}`" class="crl-table__row">
 							<td class="crl-table__cell--spacer crl-table__cell--frozen-left crl-table__cell--frozen-spacer">
-								<NcAvatar v-if="entry.certificate_type === 'leaf'"
+								<NcAvatar
+									v-if="entry.certificate_type === 'leaf'"
 									:user="entry.owner"
 									:size="32"
 									:display-name="entry.owner"
@@ -196,7 +205,8 @@
 								<span v-else class="crl-table__cell--empty">-</span>
 							</td>
 							<td class="crl-table__cell--frozen-right">
-								<NcButton v-if="entry.status === 'issued'"
+								<NcButton
+									v-if="entry.status === 'issued'"
 									variant="error"
 									@click="openRevokeDialog(entry)">
 									{{ t('libresign', 'Revoke') }}
@@ -216,7 +226,8 @@
 			</div>
 		</div>
 
-		<NcDialog v-if="caWarningDialog.open"
+		<NcDialog
+			v-if="caWarningDialog.open"
 			:name="t('libresign', 'Warning: Certificate Authority')"
 			@update:open="closeCaWarningDialog">
 			<div class="ca-warning-dialog">
@@ -246,7 +257,8 @@
 			</div>
 		</NcDialog>
 
-		<NcDialog v-if="revokeDialog.open"
+		<NcDialog
+			v-if="revokeDialog.open"
 			:name="t('libresign', 'Revoke Certificate')"
 			:no-close="revokeDialog.loading"
 			@update:open="closeRevokeDialog">
@@ -269,25 +281,29 @@
 				</div>
 
 				<div class="revoke-dialog__form">
-					<NcSelect v-model="revokeDialog.reasonCode"
+					<NcSelect
+						v-model="revokeDialog.reasonCode"
 						:input-label="revocationReasonInputLabel"
 						:options="reasonCodeOptions"
 						:disabled="revokeDialog.loading"
 						label="label"
 						track-by="value" />
 
-					<NcTextArea v-model="revokeDialog.reasonText"
+					<NcTextArea
+						v-model="revokeDialog.reasonText"
 						:label="reasonDescriptionOptionalLabel"
 						:disabled="revokeDialog.loading"
 						:maxlength="255"
 						:rows="3" />
 				</div>
 				<div class="revoke-dialog__actions">
-					<NcButton :disabled="revokeDialog.loading"
+					<NcButton
+						:disabled="revokeDialog.loading"
 						@click="closeRevokeDialog">
 						{{ t('libresign', 'Cancel') }}
 					</NcButton>
-					<NcButton variant="error"
+					<NcButton
+						variant="error"
 						:disabled="revokeDialog.loading"
 						@click="confirmRevoke">
 						<template #icon>

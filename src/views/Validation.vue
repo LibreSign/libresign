@@ -25,7 +25,8 @@
 							{{ validationErrorMessage }}
 						</NcNoteCard>
 						<!-- TRANSLATORS Same meaning as the previous string: technical process of checking cryptographic integrity of signatures, NOT an approval. -->
-						<div class="upload-dropzone"
+						<div
+							class="upload-dropzone"
 							:class="{ 'upload-dropzone--dragover': isDraggingOver }"
 							@dragover.prevent="handleDragOver"
 							@dragleave.prevent="handleDragLeave"
@@ -54,16 +55,19 @@
 							</NcActions>
 						</div>
 						<!-- TRANSLATORS Same meaning as the first string in this section: technical process of checking cryptographic integrity of signatures, NOT an approval. -->
-						<NcDialog v-if="getUUID" :name="t('libresign', 'Validate signature')" is-form
+						<NcDialog
+							v-if="getUUID" :name="t('libresign', 'Validate signature')" is-form
 							@closing="getUUID = false">
 							<!-- TRANSLATORS Same meaning as the previous string: technical process of checking cryptographic integrity of signatures, NOT an approval. -->
 							<h1>{{ t('libresign', 'Validate signature') }}</h1>
-							<NcTextField v-model="uuidToValidate"
+							<NcTextField
+								v-model="uuidToValidate"
 								autofocus
 								:label="t('libresign', 'Enter the ID or UUID of the document to validate.')"
 								:helper-text="helperTextValidation" :error="!!uuidToValidate && !canValidate" />
 							<template #actions>
-								<NcButton variant="primary" :disabled="loading || !canValidate"
+								<NcButton
+									variant="primary" :disabled="loading || !canValidate"
 									@click.prevent="validateAndProceed">
 									<template #icon>
 										<NcLoadingIcon v-if="loading" :size="20" />

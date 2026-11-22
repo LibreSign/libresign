@@ -25,7 +25,8 @@
 			{{ t('libresign', 'A previous signing order preference was removed because it is no longer compatible with higher-level policy.') }}
 		</NcNoteCard>
 		<template v-if="filesStore.canAddSigner() && !isOriginalFileDeleted">
-			<NcButton v-if="!observerProfileEnabled"
+			<NcButton
+				v-if="!observerProfileEnabled"
 				:variant="hasSigners ? 'secondary' : 'primary'"
 				@click="addParticipant(PARTICIPANT_ROLE.SIGNER)">
 				<template #icon>
@@ -35,7 +36,8 @@
 				{{ t('libresign', 'Add signer') }}
 			</NcButton>
 			<!-- TRANSLATORS Accessible label and short menu name for adding a signer or an observer. -->
-			<NcActions v-else
+			<NcActions
+				v-else
 				:aria-label="t('libresign', 'Add participant')"
 				:menu-name="t('libresign', 'Add')"
 				:force-name="true"
@@ -43,7 +45,8 @@
 				<template #icon>
 					<NcIconSvgWrapper :path="mdiPlus" :size="20" />
 				</template>
-				<NcActionButton :close-after-click="true"
+				<NcActionButton
+					:close-after-click="true"
 					@click="addParticipant(PARTICIPANT_ROLE.SIGNER)">
 					<template #icon>
 						<NcIconSvgWrapper :path="mdiAccountPlus" :size="20" />
@@ -51,7 +54,8 @@
 					<!-- TRANSLATORS Participant who must sign the PDF; also used when a signer name is missing. -->
 					{{ t('libresign', 'Signer') }}
 				</NcActionButton>
-				<NcActionButton :close-after-click="true"
+				<NcActionButton
+					:close-after-click="true"
 					@click="addParticipant(PARTICIPANT_ROLE.OBSERVER)">
 					<template #icon>
 						<NcIconSvgWrapper :path="mdiEyeOutline" :size="20" />
@@ -61,14 +65,16 @@
 				</NcActionButton>
 			</NcActions>
 		</template>
-		<NcCheckboxRadioSwitch v-if="showPreserveOrder && !isOriginalFileDeleted"
+		<NcCheckboxRadioSwitch
+			v-if="showPreserveOrder && !isOriginalFileDeleted"
 			v-model="preserveOrder"
 			type="switch"
 			@update:modelValue="onPreserveOrderChange">
 			<!-- TRANSLATORS Switch to require participants to sign in sequence. -->
 			{{ t('libresign', 'Sign in order') }}
 		</NcCheckboxRadioSwitch>
-		<NcCheckboxRadioSwitch v-if="showRememberSignatureFlow && !isOriginalFileDeleted"
+		<NcCheckboxRadioSwitch
+			v-if="showRememberSignatureFlow && !isOriginalFileDeleted"
 			v-model="rememberSignatureFlow"
 			type="switch"
 			@update:modelValue="onRememberSignatureFlowChange">
@@ -76,7 +82,8 @@
 			{{ t('libresign', 'Use this as my default signing order') }}
 		</NcCheckboxRadioSwitch>
 		<template v-if="showFooterTemplateSelector && !isOriginalFileDeleted">
-			<NcCheckboxRadioSwitch v-for="option in footerTemplateSourceOptions"
+			<NcCheckboxRadioSwitch
+				v-for="option in footerTemplateSourceOptions"
 				:key="option.value"
 				v-model="selectedFooterTemplateSource"
 				type="radio"
@@ -86,14 +93,16 @@
 				{{ option.label }}
 			</NcCheckboxRadioSwitch>
 		</template>
-		<NcCheckboxRadioSwitch v-if="showRememberFooterTemplate && !isOriginalFileDeleted"
+		<NcCheckboxRadioSwitch
+			v-if="showRememberFooterTemplate && !isOriginalFileDeleted"
 			v-model="rememberFooterTemplate"
 			type="switch"
 			@update:modelValue="onRememberFooterTemplateChange">
 			<!-- TRANSLATORS Switch to remember the selected PDF footer for future requests. -->
 			{{ t('libresign', 'Use this as my default footer template') }}
 		</NcCheckboxRadioSwitch>
-		<NcButton v-if="showViewOrderButton && !isOriginalFileDeleted"
+		<NcButton
+			v-if="showViewOrderButton && !isOriginalFileDeleted"
 			variant="tertiary"
 			@click="showOrderDiagram = true">
 			<template #icon>
@@ -102,19 +111,22 @@
 			<!-- TRANSLATORS Button to open a diagram of the sequence in which participants sign. -->
 			{{ t('libresign', 'View signing order') }}
 		</NcButton>
-		<div v-if="(!shouldLoadDetail || isCurrentFileDetailed) && signingParticipants.length > 0"
+		<div
+			v-if="(!shouldLoadDetail || isCurrentFileDetailed) && signingParticipants.length > 0"
 			class="participants-section">
 			<h3 class="participants-section__title">
 				<!-- TRANSLATORS Section heading listing the people who must sign the document. -->
 				{{ t('libresign', 'Signers') }}
 			</h3>
-			<Signers :event="participantListEvent"
+			<Signers
+				:event="participantListEvent"
 				:role-filter="PARTICIPANT_ROLE.SIGNER"
 				@signing-order-changed="debouncedSave">
 				<template #actions="{signer, closeActions}">
 					<template v-if="!isReadOnlyObserver && !isOriginalFileDeleted">
 						<!-- TRANSLATORS Editable numeric field determining the position of this signer in the sequence. -->
-						<NcActionInput v-if="canEditSigningOrder(signer)"
+						<NcActionInput
+							v-if="canEditSigningOrder(signer)"
 							:label="t('libresign', 'Signing order')"
 							type="number"
 							:model-value="signer.signingOrder || 1"
@@ -125,7 +137,8 @@
 								<NcIconSvgWrapper :path="mdiOrderNumericAscending" :size="20" />
 							</template>
 						</NcActionInput>
-						<NcActionButton v-if="canCustomizeMessage(signer)"
+						<NcActionButton
+							v-if="canCustomizeMessage(signer)"
 							:close-after-click="true"
 							@click="customizeMessage(signer); closeActions()">
 							<template #icon>
@@ -134,7 +147,8 @@
 							<!-- TRANSLATORS Action to customize the notification message for a participant. -->
 							{{ t('libresign', 'Customize message') }}
 						</NcActionButton>
-						<NcActionButton v-if="canDelete(signer)"
+						<NcActionButton
+							v-if="canDelete(signer)"
 							aria-label="Delete"
 							:close-after-click="true"
 							@click="filesStore.deleteSigner(signer)">
@@ -144,7 +158,8 @@
 							<!-- TRANSLATORS Action to remove this signer or observer from the request. -->
 							{{ t('libresign', 'Delete') }}
 						</NcActionButton>
-						<NcActionButton v-if="canRequestSignature(signer)"
+						<NcActionButton
+							v-if="canRequestSignature(signer)"
 							:close-after-click="true"
 							@click="requestSignatureForSigner(signer)">
 							<template #icon>
@@ -153,7 +168,8 @@
 							<!-- TRANSLATORS Action to send the signature invitation to one participant. -->
 							{{ t('libresign', 'Request signature') }}
 						</NcActionButton>
-						<NcActionButton v-if="canSendReminder(signer)"
+						<NcActionButton
+							v-if="canSendReminder(signer)"
 							:disabled="isSendingNotification(signer)"
 							:close-after-click="true"
 							@click="sendNotify(signer)">
@@ -168,17 +184,20 @@
 				</template>
 			</Signers>
 		</div>
-		<div v-if="(!shouldLoadDetail || isCurrentFileDetailed) && observerParticipants.length > 0"
+		<div
+			v-if="(!shouldLoadDetail || isCurrentFileDetailed) && observerParticipants.length > 0"
 			class="participants-section">
 			<h3 class="participants-section__title">
 				<!-- TRANSLATORS Section heading listing observers who do not need to sign. -->
 				{{ t('libresign', 'Observers') }}
 			</h3>
-			<Signers :event="participantListEvent"
+			<Signers
+				:event="participantListEvent"
 				:role-filter="PARTICIPANT_ROLE.OBSERVER">
 				<template #actions="{signer, closeActions}">
 					<template v-if="!isReadOnlyObserver && !isOriginalFileDeleted">
-						<NcActionButton v-if="canCustomizeMessage(signer)"
+						<NcActionButton
+							v-if="canCustomizeMessage(signer)"
 							:close-after-click="true"
 							@click="customizeMessage(signer); closeActions()">
 							<template #icon>
@@ -187,7 +206,8 @@
 							<!-- TRANSLATORS Action to customize the notification message for a participant. -->
 							{{ t('libresign', 'Customize message') }}
 						</NcActionButton>
-						<NcActionButton v-if="canDelete(signer)"
+						<NcActionButton
+							v-if="canDelete(signer)"
 							aria-label="Delete"
 							:close-after-click="true"
 							@click="filesStore.deleteSigner(signer)">
@@ -197,7 +217,8 @@
 							<!-- TRANSLATORS Action to remove this signer or observer from the request. -->
 							{{ t('libresign', 'Delete') }}
 						</NcActionButton>
-						<NcActionButton v-if="canSendObserverNotification(signer)"
+						<NcActionButton
+							v-if="canSendObserverNotification(signer)"
 							:disabled="isSendingNotification(signer)"
 							:close-after-click="true"
 							@click="sendNotify(signer)">
@@ -212,7 +233,8 @@
 				</template>
 			</Signers>
 		</div>
-		<NcNoteCard v-for="item in notificationIssueItems"
+		<NcNoteCard
+			v-for="item in notificationIssueItems"
 			:key="item.id"
 			:heading="notificationIssueHeading(item.issue)"
 			:type="item.issue.type"
@@ -248,7 +270,8 @@
 			</NcButton>
 		</NcFormBox>
 		<NcFormBox v-if="showSaveButton || showRequestButton || showViewPositionsButton" class="action-form-box">
-			<NcButton v-if="showSaveButton"
+			<NcButton
+				v-if="showSaveButton"
 				wide
 				variant="secondary"
 				:disabled="hasLoading"
@@ -259,7 +282,8 @@
 				</template>
 				{{ saveButtonLabel }}
 			</NcButton>
-			<NcButton v-if="showViewPositionsButton"
+			<NcButton
+				v-if="showViewPositionsButton"
 				wide
 				variant="secondary"
 				:disabled="hasLoading"
@@ -270,7 +294,8 @@
 				<!-- TRANSLATORS Button label for observers to open signature positions in read-only mode. -->
 				{{ t('libresign', 'View signature positions') }}
 			</NcButton>
-			<NcButton v-if="showRequestButton"
+			<NcButton
+				v-if="showRequestButton"
 				wide
 				:variant="filesStore.canSign() ? 'secondary' : 'primary'"
 				:disabled="hasLoading"
@@ -304,7 +329,8 @@
 			</NcButton>
 		</NcFormBox>
 		<NcFormBox class="action-form-box">
-			<NcButton v-if="filesStore.canValidate()"
+			<NcButton
+				v-if="filesStore.canValidate()"
 				wide
 				variant="secondary"
 				@click="validationFile()">
@@ -314,7 +340,8 @@
 				<!-- TRANSLATORS Button to display information about the document signature validation. -->
 				{{ t('libresign', 'Validation info') }}
 			</NcButton>
-			<NcButton v-if="!isEnvelope && !isOriginalFileDeleted"
+			<NcButton
+				v-if="!isEnvelope && !isOriginalFileDeleted"
 				wide
 				variant="secondary"
 				@click="openFile()">
@@ -326,30 +353,36 @@
 			</NcButton>
 		</NcFormBox>
 		<VisibleElements />
-		<NcModal v-if="modalSrc"
+		<NcModal
+			v-if="modalSrc"
 			size="full"
 			:name="fileName"
 			:close-button-outside="true"
 			@close="closeModal()">
 			<iframe :src="modalSrc" class="iframe" />
 		</NcModal>
-		<NcDialog v-if="filesStore.identifyingSigner"
+		<NcDialog
+			v-if="filesStore.identifyingSigner"
 			id="request-signature-identify-signer"
 			:size="size"
 			:name="modalTitle"
 			@closing="filesStore.disableIdentifySigner()">
-			<NcAppSidebar :name="modalTitle"
+			<NcAppSidebar
+				:name="modalTitle"
 				:active="activeTab"
 				@update:active="onTabChange">
-				<NcAppSidebarTab v-for="method in enabledMethods"
+				<NcAppSidebarTab
+					v-for="method in enabledMethods"
 					:id="`tab-${method.name}`"
 					:key="method.name"
 					:name="method.friendly_name ?? method.name">
 					<template #icon>
-						<NcIconSvgWrapper :size="20"
+						<NcIconSvgWrapper
+							:size="20"
 							:svg="getSvgIcon(method.name)" />
 					</template>
-					<IdentifySigner :signer-to-edit="signerToEdit"
+					<IdentifySigner
+						:signer-to-edit="signerToEdit"
 						:placeholder="method.friendly_name"
 						:method="method.name"
 						:methods="methods"
@@ -360,7 +393,8 @@
 			</NcAppSidebar>
 		</NcDialog>
 		<!-- TRANSLATORS Title of the dialog confirming that signature invitations will be sent. -->
-		<NcDialog v-if="showConfirmRequest"
+		<NcDialog
+			v-if="showConfirmRequest"
 			:name="t('libresign', 'Confirm')"
 			@closing="closeConfirmRequestDialog">
 			<p>
@@ -382,7 +416,8 @@
 					</strong>
 				</p>
 				<ul>
-					<li v-for="(signer, index) in signersWithoutVisibleSignatureForFullRequest"
+					<li
+						v-for="(signer, index) in signersWithoutVisibleSignatureForFullRequest"
 						:key="signer.signRequestId ?? signer.email ?? signer.displayName ?? index">
 						{{ signer.displayName || signer.email }}
 					</li>
@@ -403,7 +438,8 @@
 					<!-- TRANSLATORS Button closing the request confirmation without sending invitations. -->
 					{{ t('libresign', 'Cancel') }}
 				</NcButton>
-				<NcButton variant="primary"
+				<NcButton
+					variant="primary"
 					:disabled="hasLoading"
 					@click="confirmRequest">
 					<template #icon>
@@ -416,7 +452,8 @@
 			</template>
 		</NcDialog>
 		<!-- TRANSLATORS Title of the dialog confirming that signature invitations will be sent. -->
-		<NcDialog v-if="showConfirmRequestSigner"
+		<NcDialog
+			v-if="showConfirmRequestSigner"
 			:name="t('libresign', 'Confirm')"
 			@closing="closeConfirmRequestSignerDialog">
 			<p>
@@ -438,7 +475,8 @@
 					</strong>
 				</p>
 				<ul>
-					<li v-for="(signer, index) in signersWithoutVisibleSignatureForSingleSigner"
+					<li
+						v-for="(signer, index) in signersWithoutVisibleSignatureForSingleSigner"
 						:key="signer.signRequestId ?? signer.email ?? signer.displayName ?? index">
 						{{ signer.displayName || signer.email }}
 					</li>
@@ -459,7 +497,8 @@
 					<!-- TRANSLATORS Button closing the request confirmation without sending invitations. -->
 					{{ t('libresign', 'Cancel') }}
 				</NcButton>
-				<NcButton variant="primary"
+				<NcButton
+					variant="primary"
 					:disabled="hasLoading"
 					@click="confirmRequestSigner">
 					<template #icon>
@@ -472,11 +511,13 @@
 			</template>
 		</NcDialog>
 		<!-- TRANSLATORS Title of the window showing the signing sequence. -->
-		<NcDialog v-if="showOrderDiagram"
+		<NcDialog
+			v-if="showOrderDiagram"
 			:name="t('libresign', 'Signing order diagram')"
 			size="large"
 			@closing="showOrderDiagram = false">
-			<SigningOrderDiagram :signers="signingOrderDiagramSigners"
+			<SigningOrderDiagram
+				:signers="signingOrderDiagramSigners"
 				:sender-name="currentUserDisplayName" />
 			<template #actions>
 				<NcButton @click="showOrderDiagram = false">
@@ -485,7 +526,8 @@
 				</NcButton>
 			</template>
 		</NcDialog>
-		<EnvelopeFilesList :open="showEnvelopeFilesDialog"
+		<EnvelopeFilesList
+			:open="showEnvelopeFilesDialog"
 			@close="showEnvelopeFilesDialog = false" />
 	</div>
 </template>

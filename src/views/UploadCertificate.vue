@@ -3,10 +3,12 @@
   - SPDX-License-Identifier: AGPL-3.0-or-later
 -->
 <template>
-	<NcDialog v-if="showModal"
+	<NcDialog
+		v-if="showModal"
 		:name="uploadCertificateDialogTitle"
 		@closing="closeDialog">
-		<NcNoteCard v-for="(error, index) in displayErrors"
+		<NcNoteCard
+			v-for="(error, index) in displayErrors"
 			:key="index"
 			:heading="error.title || ''"
 			type="error">
@@ -16,7 +18,8 @@
 			<NcButton @click="closeDialog">
 				{{ closeLabel }}
 			</NcButton>
-			<NcButton variant="primary"
+			<NcButton
+				variant="primary"
 				@click="triggerUpload">
 				{{ uploadCertificateActionLabel }}
 			</NcButton>

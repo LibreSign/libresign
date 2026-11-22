@@ -15,13 +15,16 @@
 				<strong>{{ t('libresign', 'Certificate chain') }}</strong>
 			</template>
 			<template #extra-actions>
-				<NcButton variant="tertiary"
+				<NcButton
+					variant="tertiary"
 					:aria-label="getToggleAriaLabel()"
 					@click.stop="chainOpen = !chainOpen">
 					<template #icon>
-						<NcIconSvgWrapper v-if="chainOpen"
+						<NcIconSvgWrapper
+							v-if="chainOpen"
 							:path="mdiUnfoldLessHorizontal" />
-						<NcIconSvgWrapper v-else
+						<NcIconSvgWrapper
+							v-else
 							:path="mdiUnfoldMoreHorizontal" />
 					</template>
 				</NcButton>
@@ -30,7 +33,8 @@
 
 		<!-- TRANSLATORS Label read aloud by screen readers (for blind users) when they navigate into this section. It is not visible on screen. Describes the area that shows the certificate chain (the sequence of digital identity cards behind the signature) -->
 		<div v-if="chainOpen" class="chain-wrapper" role="region" :aria-label="t('libresign', 'Certificate chain details')">
-			<div v-for="(cert, certIndex) in chain"
+			<div
+				v-for="(cert, certIndex) in chain"
 				:key="certIndex"
 				class="extra-chain certificate-item"
 				:aria-label="getCertItemLabel(certIndex)">

@@ -3,7 +3,8 @@
   - SPDX-License-Identifier: AGPL-3.0-or-later
 -->
 <template>
-	<NcDialog v-if="mounted"
+	<NcDialog
+		v-if="mounted"
 		class="draw-signature"
 		size="small"
 		:name="t('libresign', 'Customize your signatures')"
