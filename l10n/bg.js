@@ -360,6 +360,7 @@ OC.L10N.register(
     "Other" : "Други",
     "custom" : "персонализиран",
     "default" : "по подразбиране",
+    "_%n day_::_%n days_" : ["%n дни","%n дни"],
     "This information will appear on the validation page" : "Тази информация ще се появи на страницата за проверка",
     "Custom URL" : "Персонализиран URL адрес",
     "Custom template" : "Персонализиран шаблон",

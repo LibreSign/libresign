@@ -1252,6 +1252,7 @@ OC.L10N.register(
     "DocMDP" : "DocMDP",
     "Control which PDF changes remain allowed after signing and help readers detect disallowed modifications." : "Έλεγχος του ποιες αλλαγές στο PDF παραμένουν επιτρεπτές μετά την υπογραφή και βοήθεια προς τους αναγνώστες στον εντοπισμό μη επιτρεπόμενων τροποποιήσεων.",
     "{value} seconds" : "{value} δευτερόλεπτα",
+    "_%n day_::_%n days_" : ["%n ημέρα","%n ημέρες"],
     "Identification documents flow" : "Ροή εγγράφων ταυτοποίησης",
     "Control whether signers must submit identification documents for approval." : "Έλεγχος του εάν οι υπογράφοντες πρέπει να υποβάλουν έγγραφα ταυτοποίησης προς έγκριση.",
     "Identification factors" : "Παράγοντες ταυτοποίησης",
@@ -1433,10 +1434,6 @@ OC.L10N.register(
     "Maximum validity (seconds)" : "Μέγιστη διάρκεια ισχύος (δευτερόλεπτα)",
     "Leave empty to disable expiration." : "Αφήστε το κενό για απενεργοποίηση της λήξης.",
     "Renewal interval (seconds)" : "Διάστημα ανανέωσης (δευτερόλεπτα)",
-    "Leave empty to disable renewal." : "Αφήστε το κενό για απενεργοποίηση της ανανέωσης.",
-    "{value} days" : "{value} ημέρες",
-    "{count} enabled factors" : "{count} ενεργοποιημένοι παράγοντες",
-    "{count} denied requester groups" : "{count} αποκλεισμένες ομάδες αιτούντων",
-    "{count} authorized requester groups" : "{count} εξουσιοδοτημένες ομάδες αιτούντων"
+    "Leave empty to disable renewal." : "Αφήστε το κενό για απενεργοποίηση της ανανέωσης."
 },
 "nplurals=2; plural=(n != 1);");

@@ -443,6 +443,7 @@ OC.L10N.register(
     "Last year ({year})" : "العام الماضي ({year})",
     "Other" : "آخَر",
     "default" : "الافتراضي",
+    "_%n day_::_%n days_" : ["%n أيام","%n يوم","%nأيام","%nأيام","%n أيام","%n أيام"],
     "Identification factors" : "عوامل التحقُّق من الهُوِيّة",
     "Ways to identify a person who will sign a document." : "طُرُق التعرُّف على الشخص الذي سيُوقِّع مستنداً",
     "This information will appear on the validation page" : "سوف تظهر هذه المعلومات على صفحة التحقق من الصحة",

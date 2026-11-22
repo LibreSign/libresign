@@ -1708,10 +1708,6 @@
     "Maximum validity (seconds)" : "En uzun geçerlilik (saniye)",
     "Leave empty to disable expiration." : "Geçerlilik süresinin kullanılmaması için boş bırakın.",
     "Renewal interval (seconds)" : "Yenileme sıklığı (saniye)",
-    "Leave empty to disable renewal." : "Yenilemenin kullanılması için boş bırakın.",
-    "{value} days" : "{value} gün",
-    "{count} enabled factors" : "{count} belirleyicileri açtı",
-    "{count} denied requester groups" : "{count} reddedilmiş istekte bulunan grubu",
-    "{count} authorized requester groups" : "{count} izin verilmiş istekte bulunan grubu"
+    "Leave empty to disable renewal." : "Yenilemenin kullanılması için boş bırakın."
 },"pluralForm" :"nplurals=2; plural=(n > 1);"
 }
