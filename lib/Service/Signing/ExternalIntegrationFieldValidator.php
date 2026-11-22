@@ -98,15 +98,12 @@ final class ExternalIntegrationFieldValidator {
 		$parts = parse_url($value);
 		if ($parts === false || strtolower($parts['scheme'] ?? '') !== 'https'
 			|| empty($parts['host']) || isset($parts['user']) || isset($parts['pass'])
-			|| isset($parts['fragment'])) {
+			|| isset($parts['fragment']) || isset($parts['query'])) {
 			throw new \InvalidArgumentException('Invalid external signing URL');
 		}
-		$host = strtolower(trim($parts['host'], '[]'));
-		if (filter_var($host, FILTER_VALIDATE_IP) !== false) {
-			if (filter_var($host, FILTER_VALIDATE_IP, FILTER_FLAG_NO_PRIV_RANGE | FILTER_FLAG_NO_RES_RANGE) === false) {
-				throw new \InvalidArgumentException('Unsafe external signing URL');
-			}
-		} elseif (!str_contains($host, '.') || preg_match('/^[0-9.]+$/D', $host) === 1
+		$host = strtolower(rtrim(trim($parts['host'], '[]'), '.'));
+		if ($host === '' || filter_var($host, FILTER_VALIDATE_IP) !== false
+			|| !str_contains($host, '.') || preg_match('/^[0-9.]+$/D', $host) === 1
 			|| filter_var($host, FILTER_VALIDATE_DOMAIN, FILTER_FLAG_HOSTNAME) === false
 			|| str_ends_with($host, '.localhost') || str_ends_with($host, '.local')
 			|| str_ends_with($host, '.internal')) {
