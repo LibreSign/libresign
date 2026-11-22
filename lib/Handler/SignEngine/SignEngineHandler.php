@@ -16,6 +16,7 @@ use OCA\Libresign\Exception\LibresignException;
 use OCA\Libresign\Handler\CertificateEngine\CertificateEngineFactory;
 use OCA\Libresign\Handler\CertificateEngine\IEngineHandler;
 use OCA\Libresign\Service\FolderService;
+use OCA\Libresign\Vendor\LibreSign\PdfSignatureValidator\Parser\PdfSignatureInventoryReader;
 use OCP\Files\File;
 use OCP\Files\InvalidPathException;
 use OCP\Files\NotFoundException;
@@ -131,6 +132,20 @@ abstract class SignEngineHandler implements ISignEngineHandler {
 
 	public function getDocMdpLevel(): ?DocMdpLevel {
 		return $this->docMdpLevel;
+	}
+
+	/**
+	 * Whether the PDF already has a signature that the document uses. A
+	 * signature dictionary that nothing points to does not count, so it does
+	 * not prevent the certification. When the structure cannot be read, any
+	 * signature marker counts.
+	 */
+	protected function hasExistingSignatures(string $pdfContent): bool {
+		$inventory = (new PdfSignatureInventoryReader())->readFromString($pdfContent);
+		if ($inventory->isConclusive) {
+			return $inventory->activeSignatureCount > 0;
+		}
+		return (bool)preg_match('/\/ByteRange\s*\[|\/Type\s*\/Sig\b|\/DocMDP\b|\/Perms\b/', $pdfContent);
 	}
 
 	public function setLeafExpiryOverrideInDays(?int $days): self {
