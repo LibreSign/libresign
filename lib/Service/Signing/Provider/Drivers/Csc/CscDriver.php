@@ -34,10 +34,10 @@ final class CscDriver {
 
 		return [
 			'id' => self::ID,
-			// TRANSLATORS Label for an experimental external signing integration driver.
-			'name' => $this->l10n->t('Cloud Signature Consortium (CSC v1)'),
-			// TRANSLATORS Description of the CSC v1 external signing driver.
-			'description' => $this->l10n->t('Experimental CSC v1.0.4.0 signing with a pre-discovered RSA certificate.'),
+			// TRANSLATORS Name of an external signing provider.
+			'name' => $this->l10n->t('Cloud Signature Consortium (CSC)'),
+			// TRANSLATORS Description of an external signing provider.
+			'description' => $this->l10n->t('Sign with an external CSC-compatible service using pre-discovered RSA certificates.'),
 			'experimental' => true,
 			'available' => $available,
 			'unavailableReason' => $available ? null : 'signerphp_csc_adapter_missing',

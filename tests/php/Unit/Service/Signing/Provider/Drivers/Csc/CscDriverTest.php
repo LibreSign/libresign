@@ -19,8 +19,8 @@ final class CscDriverTest extends TestCase {
 		$metadata = (new CscDriver($l10n))->metadata();
 
 		$this->assertSame(CscDriver::ID, $metadata['id']);
-		$this->assertNotEmpty($metadata['name']);
-		$this->assertNotEmpty($metadata['description']);
+		$this->assertSame('Cloud Signature Consortium (CSC)', $metadata['name']);
+		$this->assertSame('Sign with an external CSC-compatible service using pre-discovered RSA certificates.', $metadata['description']);
 		$this->assertTrue($metadata['experimental']);
 		$this->assertSame(['baseUrl', 'accessToken'], array_column($metadata['fields'], 'key'));
 		$this->assertCount(2, array_unique(array_column($metadata['fields'], 'key')));
