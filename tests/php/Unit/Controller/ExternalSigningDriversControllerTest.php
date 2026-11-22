@@ -69,6 +69,15 @@ final class ExternalSigningDriversControllerTest extends TestCase {
 		$this->assertSame(['error' => 'Not found'], $response->getData());
 	}
 
+	public function testEnabledCatalogResponseUsesOneConsistentFlagSnapshot(): void {
+		$this->authenticatedUser(true);
+		$this->feature->method('isEnabled')->willReturnOnConsecutiveCalls(true, false);
+
+		$response = $this->controller->index();
+		$this->assertSame(Http::STATUS_OK, $response->getStatus());
+		$this->assertCount(1, $response->getData()['drivers']);
+	}
+
 	public function testAdminCanReadOnlyDriverMetadataWithoutSecrets(): void {
 		$this->authenticatedUser(true);
 		$this->feature->method('isEnabled')->willReturn(true);

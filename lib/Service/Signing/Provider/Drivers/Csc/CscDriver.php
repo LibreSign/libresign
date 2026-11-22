@@ -51,7 +51,6 @@ final class CscDriver {
 					'secret' => false,
 					'validation' => [
 						'schemes' => ['https'],
-						'allowLoopbackHttp' => true,
 						'allowUserInfo' => false,
 					],
 				],

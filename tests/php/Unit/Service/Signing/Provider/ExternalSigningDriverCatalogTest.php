@@ -18,13 +18,11 @@ final class ExternalSigningDriverCatalogTest extends TestCase {
 	public function testDisabledExperimentalCatalogIsEmpty(): void {
 		$catalog = $this->catalog(false);
 
-		$this->assertFalse($catalog->isEnabled());
 		$this->assertSame([], $catalog->listDrivers());
 	}
 
 	public function testEnabledCatalogReturnsOnlyOneDriverTypeAndNoInstances(): void {
 		$catalog = $this->catalog(true);
-		$this->assertTrue($catalog->isEnabled());
 
 		$drivers = $catalog->listDrivers();
 		$this->assertCount(1, $drivers);

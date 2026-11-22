@@ -34,7 +34,7 @@ final class ExternalSigningDriversController extends AEnvironmentAwareOCSControl
 	}
 
 	/**
-	 * List registered external signing driver types for system administrators.
+	 * List registered external signing driver types for system administrators
 	 *
 	 * This endpoint does not expose configured integration instances or secrets.
 	 *
@@ -55,12 +55,13 @@ final class ExternalSigningDriversController extends AEnvironmentAwareOCSControl
 		if (!$this->groupManager->isAdmin($user->getUID())) {
 			return new DataResponse(['error' => 'Forbidden'], Http::STATUS_FORBIDDEN);
 		}
-		if (!$this->catalog->isEnabled()) {
+		$drivers = $this->catalog->listDrivers();
+		if ($drivers === []) {
 			return new DataResponse(['error' => 'Not found'], Http::STATUS_NOT_FOUND);
 		}
 
 		/** @var LibresignExternalSigningDriversResponse $data */
-		$data = ['drivers' => $this->catalog->listDrivers()];
+		$data = ['drivers' => $drivers];
 		return new DataResponse($data);
 	}
 }

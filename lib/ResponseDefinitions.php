@@ -96,7 +96,7 @@ namespace OCA\Libresign;
  *     type: 'url'|'password',
  *     required: bool,
  *     secret: bool,
- *     validation: array{schemes?: list<string>, allowLoopbackHttp?: bool, allowUserInfo?: bool},
+ *     validation: array{schemes?: list<string>, allowUserInfo?: bool},
  * }
  * @psalm-type LibresignExternalSigningDriver = array{
  *     id: string,

@@ -722,9 +722,6 @@
                                     "type": "string"
                                 }
                             },
-                            "allowLoopbackHttp": {
-                                "type": "boolean"
-                            },
                             "allowUserInfo": {
                                 "type": "boolean"
                             }
@@ -3722,7 +3719,7 @@
         "/ocs/v2.php/apps/libresign/api/{apiVersion}/admin/signing/drivers": {
             "get": {
                 "operationId": "external_signing_drivers-index",
-                "summary": "List registered external signing driver types for system administrators.",
+                "summary": "List registered external signing driver types for system administrators",
                 "description": "This endpoint does not expose configured integration instances or secrets.\nThis endpoint requires admin access",
                 "tags": [
                     "system"

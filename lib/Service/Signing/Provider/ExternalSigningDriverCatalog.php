@@ -24,13 +24,9 @@ final class ExternalSigningDriverCatalog {
 	) {
 	}
 
-	public function isEnabled(): bool {
-		return $this->experimentalFeaturesService->isEnabled();
-	}
-
 	/** @return list<LibresignExternalSigningDriver> */
 	public function listDrivers(): array {
-		if (!$this->isEnabled()) {
+		if (!$this->experimentalFeaturesService->isEnabled()) {
 			return [];
 		}
 

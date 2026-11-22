@@ -1316,7 +1316,7 @@ export type paths = {
             cookie?: never;
         };
         /**
-         * List registered external signing driver types for system administrators.
+         * List registered external signing driver types for system administrators
          * @description This endpoint does not expose configured integration instances or secrets.
          *     This endpoint requires admin access
          */
@@ -1732,7 +1732,6 @@ export type components = {
             secret: boolean;
             validation: {
                 schemes?: string[];
-                allowLoopbackHttp?: boolean;
                 allowUserInfo?: boolean;
             };
         };
