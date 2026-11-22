@@ -15,7 +15,9 @@ use OCA\Libresign\Service\ExperimentalFeaturesService;
  * and the driver's independently reported technical availability.
  */
 final class ExternalIntegrationAvailability {
-	public function __construct(private ExperimentalFeaturesService $experimentalFeatures) {
+	public function __construct(
+		private ExperimentalFeaturesService $experimentalFeatures,
+	) {
 	}
 
 	public function canStartSigning(ExternalIntegrationRecord $integration, bool $driverAvailable): bool {
