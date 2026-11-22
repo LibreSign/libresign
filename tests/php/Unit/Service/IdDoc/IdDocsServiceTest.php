@@ -492,6 +492,51 @@ final class IdDocsServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		}
 	}
 
+	/**
+	 * An external signer must see which file is blocked by an existing active
+	 * document, rather than a generic upload failure.
+	 */
+	public function testExternalReplacementIsRejectedWithIndexedBusinessErrorWhenActiveDocumentExists(): void {
+		$signRequest = new SignRequest();
+		$signRequest->setId(55);
+		$this->fileTypeMapper->method('getTypes')->willReturn(['IDENTIFICATION' => []]);
+		$this->fileInputValidator->method('normalizeNodeId')->willReturnArgument(0);
+		$this->identityDocumentValidator->method('validateSignRequestHasNoActiveFileWithType')
+			->with(55, 'IDENTIFICATION')
+			->willThrowException(new LibresignException('A file of this type has been associated.'));
+		$this->requestSignatureService->expects($this->never())->method('saveFile');
+
+		try {
+			$this->getIdDocsService()->addFilesToDocumentFolder(
+				[2 => ['type' => 'IDENTIFICATION', 'file' => ['base64' => 'ZmFrZQ==']]],
+				$signRequest,
+			);
+			$this->fail('An existing active document must block a replacement');
+		} catch (IdDocsUploadValidationException $exception) {
+			$this->assertSame(
+				['type' => 'danger', 'file' => 2, 'message' => 'A file of this type has been associated.'],
+				json_decode($exception->getMessage(), true),
+			);
+		}
+	}
+
+	public function testExternalValidationPreservesUnexpectedStorageFailureForController(): void {
+		$signRequest = new SignRequest();
+		$signRequest->setId(55);
+		$this->fileTypeMapper->method('getTypes')->willReturn(['IDENTIFICATION' => []]);
+		$this->fileInputValidator->method('normalizeNodeId')->willReturnArgument(0);
+		$this->identityDocumentValidator->method('validateSignRequestHasNoActiveFileWithType')
+			->willThrowException(new \RuntimeException('Synthetic database error'));
+		$this->requestSignatureService->expects($this->never())->method('saveFile');
+
+		$this->expectException(\RuntimeException::class);
+		$this->expectExceptionMessage('Synthetic database error');
+		$this->getIdDocsService()->addFilesToDocumentFolder(
+			[['type' => 'IDENTIFICATION', 'file' => ['base64' => 'ZmFrZQ==']]],
+			$signRequest,
+		);
+	}
+
 	public function testDistinctDocumentTypesInSameBatchAreAcceptedForValidation(): void {
 		$user = $this->createMock(IUser::class);
 		$user->method('getUID')->willReturn('synthetic-user');

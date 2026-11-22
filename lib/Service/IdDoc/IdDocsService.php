@@ -161,7 +161,15 @@ class IdDocsService {
 		$files = $this->normalizeNodeIds($files);
 		$this->validateDocumentTypesInBatch($files);
 		foreach ($files as $fileIndex => $file) {
-			$this->identityDocumentValidator->validateSignRequestHasNoActiveFileWithType($signRequest->getId(), $file['type']);
+			try {
+				$this->identityDocumentValidator->validateSignRequestHasNoActiveFileWithType($signRequest->getId(), $file['type']);
+			} catch (LibresignException $exception) {
+				throw new IdDocsUploadValidationException(json_encode([
+					'type' => 'danger',
+					'file' => $fileIndex,
+					'message' => $exception->getMessage(),
+				]), previous: $exception);
+			}
 		}
 		// Store the documents under the owner of the file being signed, where
 		// later lookups by the stored user_id expect them; without an IUser the
