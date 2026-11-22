@@ -157,11 +157,17 @@ final class ExternalIntegrationAdministrationTest extends \OCA\Libresign\Tests\I
 	#[DataProvider('malformedDriverMetadata')]
 	public function testInvalidDriverMetadataIsRejectedBeforePersistence(array $driver): void {
 		$this->expectException(\InvalidArgumentException::class);
-		$this->administration->create(
-			$driver,
-			'Synthetic CSC',
-			['baseUrl' => 'https://example.org'],
-		);
+		try {
+			$created = $this->administration->create(
+				$driver,
+				'Synthetic CSC',
+				['baseUrl' => 'https://example.org'],
+			);
+		} finally {
+			if (isset($created)) {
+				$this->created[] = $created->id;
+			}
+		}
 	}
 
 	public function testEnableDisableAndStaleLifecycleRevision(): void {
