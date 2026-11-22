@@ -28,7 +28,6 @@ final class ExternalIntegrationFieldValidatorTest extends TestCase {
 		$this->addToAssertionCount(2);
 	}
 
-
 	public function testOptionalSecretMetadataMayOmitValidation(): void {
 		(new ExternalIntegrationFieldValidator())->validateCreate(self::fields(), ['baseUrl' => 'https://example.org'], ['accessToken' => 'synthetic-token']);
 		$this->addToAssertionCount(1);
