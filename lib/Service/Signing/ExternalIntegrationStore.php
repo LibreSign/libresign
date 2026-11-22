@@ -32,10 +32,15 @@ final class ExternalIntegrationStore {
 	}
 
 	/**
-	 * @param array<string, mixed> $validatedConfiguration Data already validated by the driver catalog; never include secret fields.
+	 * @param array<string, mixed> $validatedConfiguration Validated by the driver catalog; never include secret fields.
 	 * @param array<string, string> $validatedSecrets Only secret fields accepted by the driver catalog.
 	 */
-	public function create(string $driverId, string $name, #[\SensitiveParameter] array $validatedConfiguration, #[\SensitiveParameter] array $validatedSecrets): ExternalIntegrationRecord {
+	public function create(
+		string $driverId,
+		string $name,
+		#[\SensitiveParameter] array $validatedConfiguration,
+		#[\SensitiveParameter] array $validatedSecrets,
+	): ExternalIntegrationRecord {
 		$this->validateIdentity($driverId, $name);
 		$configJson = $this->encodeConfiguration($validatedConfiguration);
 		$encrypted = $this->secrets->encrypt($validatedSecrets);

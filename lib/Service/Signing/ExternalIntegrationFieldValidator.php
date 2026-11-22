@@ -20,7 +20,11 @@ final class ExternalIntegrationFieldValidator {
 	 * @param array<mixed, mixed> $configuration Non-secret values, supplied in full.
 	 * @param array<mixed, mixed> $secrets New secret values, never public configuration.
 	 */
-	public function validateCreate(array $fields, #[\SensitiveParameter] array $configuration, #[\SensitiveParameter] array $secrets): void {
+	public function validateCreate(
+		array $fields,
+		#[\SensitiveParameter] array $configuration,
+		#[\SensitiveParameter] array $secrets,
+	): void {
 		$this->validate($fields, $configuration, $secrets, true);
 	}
 
@@ -29,7 +33,11 @@ final class ExternalIntegrationFieldValidator {
 	 * @param array<mixed, mixed> $configuration Full non-secret configuration after merging the patch.
 	 * @param array<mixed, mixed> $secretChanges Omitted keys preserve ciphertext; null explicitly clears an optional secret.
 	 */
-	public function validateUpdate(array $fields, #[\SensitiveParameter] array $configuration, #[\SensitiveParameter] array $secretChanges): void {
+	public function validateUpdate(
+		array $fields,
+		#[\SensitiveParameter] array $configuration,
+		#[\SensitiveParameter] array $secretChanges,
+	): void {
 		$this->validate($fields, $configuration, $secretChanges, false);
 	}
 
@@ -38,7 +46,12 @@ final class ExternalIntegrationFieldValidator {
 	 * @param array<mixed, mixed> $configuration
 	 * @param array<mixed, mixed> $secrets
 	 */
-	private function validate(array $fields, #[\SensitiveParameter] array $configuration, #[\SensitiveParameter] array $secrets, bool $creating): void {
+	private function validate(
+		array $fields,
+		#[\SensitiveParameter] array $configuration,
+		#[\SensitiveParameter] array $secrets,
+		bool $creating,
+	): void {
 		$definitions = [];
 		foreach ($fields as $field) {
 			$key = $field['key'] ?? null;

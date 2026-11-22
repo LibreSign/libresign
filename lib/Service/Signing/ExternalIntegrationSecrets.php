@@ -99,7 +99,8 @@ final class ExternalIntegrationSecrets {
 	/** @param array<mixed, mixed> $secrets */
 	private function assertSecretShape(#[\SensitiveParameter] array $secrets): void {
 		foreach ($secrets as $key => $value) {
-			if (!is_string($key) || $key === '' || strlen($key) > 128 || !is_string($value) || $value === '' || strlen($value) > 8192) {
+			if (!is_string($key) || $key === '' || strlen($key) > 128
+				|| !is_string($value) || $value === '' || strlen($value) > 8192) {
 				throw new \InvalidArgumentException('Invalid secret data');
 			}
 		}

@@ -28,7 +28,12 @@ final class ExternalIntegrationAdministration {
 	 * @param array<string, mixed> $configuration Public configuration only.
 	 * @param array<string, string> $secrets New secret values, never public configuration.
 	 */
-	public function create(array $driver, string $name, #[\SensitiveParameter] array $configuration, #[\SensitiveParameter] array $secrets = []): ExternalIntegrationRecord {
+	public function create(
+		array $driver,
+		string $name,
+		#[\SensitiveParameter] array $configuration,
+		#[\SensitiveParameter] array $secrets = [],
+	): ExternalIntegrationRecord {
 		[$driverId, $fields] = $this->metadata($driver);
 		$this->validator->validateCreate($fields, $configuration, $secrets);
 		return $this->store->create($driverId, $name, $configuration, $secrets);
@@ -72,7 +77,12 @@ final class ExternalIntegrationAdministration {
 	 *
 	 * @param array<string, mixed> $driver Trusted declarative catalog entry.
 	 */
-	public function setEnabled(array $driver, string $publicId, int $expectedRevision, bool $enabled): ExternalIntegrationRecord {
+	public function setEnabled(
+		array $driver,
+		string $publicId,
+		int $expectedRevision,
+		bool $enabled,
+	): ExternalIntegrationRecord {
 		[$driverId] = $this->metadata($driver);
 		$this->requireDriver($publicId, $driverId);
 		if ($enabled && ($driver['available'] ?? false) !== true) {

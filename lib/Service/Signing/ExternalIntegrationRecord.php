@@ -24,7 +24,19 @@ final readonly class ExternalIntegrationRecord implements \JsonSerializable {
 	) {
 	}
 
-	/** @return array{id: string, driverId: string, name: string, configuration: \stdClass, enabled: bool, hasSecrets: bool, revision: int, createdAt: string, updatedAt: string} */
+	/**
+	 * @return array{
+	 *     id: string,
+	 *     driverId: string,
+	 *     name: string,
+	 *     configuration: \stdClass,
+	 *     enabled: bool,
+	 *     hasSecrets: bool,
+	 *     revision: int,
+	 *     createdAt: string,
+	 *     updatedAt: string,
+	 * }
+	 */
 	#[\Override]
 	public function jsonSerialize(): array {
 		return [
