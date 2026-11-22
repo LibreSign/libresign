@@ -596,20 +596,23 @@ final class OrderCertificatesTraitTest extends \OCA\Libresign\Tests\Unit\TestCas
 		}
 	}
 
-	public function testParsedAkiSkiSelectsMatchingIssuerWithoutRoot(): void {
+	/**
+	 * @dataProvider dataAkiSkiIssuerSelection
+	 */
+	public function testAkiSkiSelectsMatchingIssuerWithoutRoot(string $authorityKeyIdentifier, string $wrongSubjectKeyIdentifier): void {
 		$intermediate = ['CN' => 'Intermediate'];
 		$leaf = [
 			'name' => '/CN=Leaf',
 			'subject' => ['CN' => 'Leaf'],
 			'issuer' => $intermediate,
-			'extensions' => ['authorityKeyIdentifier' => 'keyid:AA:BB:CC'],
+			'extensions' => ['authorityKeyIdentifier' => $authorityKeyIdentifier],
 		];
 		$wrong = [
 			'name' => '/CN=Intermediate',
 			'subject' => $intermediate,
 			'issuer' => ['CN' => 'Root'],
 			'serialNumberHex' => '01',
-			'extensions' => ['subjectKeyIdentifier' => 'DD:EE:FF'],
+			'extensions' => ['subjectKeyIdentifier' => $wrongSubjectKeyIdentifier],
 		];
 		$correct = [
 			'name' => '/CN=Intermediate',
@@ -619,68 +622,16 @@ final class OrderCertificatesTraitTest extends \OCA\Libresign\Tests\Unit\TestCas
 			'extensions' => ['subjectKeyIdentifier' => 'AA:BB:CC'],
 		];
 
-		$result = $this->orderCertificates->orderCertificates([$wrong, $leaf, $correct]);
-		$this->assertSame([$leaf, $correct, $wrong], $result);
+		$this->assertSame([$leaf, $correct, $wrong], $this->orderCertificates->orderCertificates([$wrong, $leaf, $correct]));
+		$this->assertSame([$leaf, $correct, $wrong], $this->orderCertificates->orderCertificates([$correct, $leaf, $wrong]));
 	}
 
-	public function testAkiSkiMustMatchCompleteIdentifier(): void {
-		$intermediate = ['CN' => 'Intermediate'];
-		$leaf = [
-			'name' => '/CN=Leaf',
-			'subject' => ['CN' => 'Leaf'],
-			'issuer' => $intermediate,
-			'extensions' => ['authorityKeyIdentifier' => 'keyid:AA:BB:CC'],
+	public static function dataAkiSkiIssuerSelection(): array {
+		return [
+			'different AKI and SKI' => ['keyid:AA:BB:CC', 'DD:EE:FF'],
+			'partial SKI is not a match' => ['keyid:AA:BB:CC', 'AA:BB'],
+			'bare hexadecimal AKI' => ['AA:BB:CC', 'AA:BB'],
 		];
-		$wrong = [
-			'name' => '/CN=Intermediate',
-			'subject' => $intermediate,
-			'issuer' => ['CN' => 'Root'],
-			'serialNumberHex' => '01',
-			'extensions' => ['subjectKeyIdentifier' => 'AA:BB'],
-		];
-		$correct = [
-			'name' => '/CN=Intermediate',
-			'subject' => $intermediate,
-			'issuer' => ['CN' => 'Root'],
-			'serialNumberHex' => '02',
-			'extensions' => ['subjectKeyIdentifier' => 'AA:BB:CC'],
-		];
-
-		foreach ([$wrong, $correct] as $first) {
-			$second = $first === $wrong ? $correct : $wrong;
-			$result = $this->orderCertificates->orderCertificates([$first, $leaf, $second]);
-			$this->assertSame([$leaf, $correct, $wrong], $result);
-		}
-	}
-
-	public function testBareHexAkiSelectsMatchingIssuer(): void {
-		$intermediate = ['CN' => 'Intermediate'];
-		$leaf = [
-			'name' => '/CN=Leaf',
-			'subject' => ['CN' => 'Leaf'],
-			'issuer' => $intermediate,
-			'extensions' => ['authorityKeyIdentifier' => 'AA:BB:CC'],
-		];
-		$wrong = [
-			'name' => '/CN=Intermediate',
-			'subject' => $intermediate,
-			'issuer' => ['CN' => 'Root'],
-			'serialNumberHex' => '01',
-			'extensions' => ['subjectKeyIdentifier' => 'AA:BB'],
-		];
-		$correct = [
-			'name' => '/CN=Intermediate',
-			'subject' => $intermediate,
-			'issuer' => ['CN' => 'Root'],
-			'serialNumberHex' => '02',
-			'extensions' => ['subjectKeyIdentifier' => 'AA:BB:CC'],
-		];
-
-		foreach ([$wrong, $correct] as $first) {
-			$second = $first === $wrong ? $correct : $wrong;
-			$result = $this->orderCertificates->orderCertificates([$first, $leaf, $second]);
-			$this->assertSame([$leaf, $correct, $wrong], $result);
-		}
 	}
 
 	public function testUnrelatedIssuerDnDoesNotHideActualLeaf(): void {
