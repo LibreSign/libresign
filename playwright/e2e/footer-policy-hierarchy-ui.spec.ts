@@ -196,49 +196,22 @@ async function selectTarget(dialogScope: Locator, kind: 'group' | 'user', target
 	}
 
 	const searchInput = targetInput.locator('input, textarea, [contenteditable="true"]').first()
-	if (await searchInput.isVisible({ timeout: 1000 }).catch(() => false)) {
-		for (let attempt = 0; attempt < 3; attempt += 1) {
-			await searchInput.fill(target)
-			const targetPattern = new RegExp(escapeRegExp(target), 'i')
+	await expect(searchInput).toBeVisible({ timeout: 8000 })
+	await searchInput.fill(target, { timeout: 8000 })
 
-			const matchingOption = page.getByRole('option', { name: targetPattern }).first()
-			const matchingVisible = await matchingOption.waitFor({ state: 'visible', timeout: 3000 }).then(() => true).catch(() => false)
-			if (matchingVisible) {
-				const clicked = await clickVisibleOptionOrFallback(page, matchingOption, targetPattern)
-				if (!clicked) {
-					await searchInput.press('ArrowDown')
-					await searchInput.press('Enter')
-				}
-			} else {
-				const floatingOption = page.locator('ul[role="listbox"] li, .vs__dropdown-menu--floating li').filter({ hasText: targetPattern }).first()
-				if (await floatingOption.isVisible({ timeout: 2000 }).catch(() => false)) {
-					await floatingOption.click()
-				} else {
-					await searchInput.press('ArrowDown')
-					await searchInput.press('Enter')
-				}
-			}
+	const targetPattern = new RegExp(escapeRegExp(target), 'i')
+	const matchingOption = page.getByRole('option', { name: targetPattern }).first()
+	const floatingOption = page.locator('ul[role="listbox"] li, .vs__dropdown-menu--floating li')
+		.filter({ hasText: targetPattern }).first()
 
-			// Escape can propagate past NcSelectUsers and close the enclosing NcDialog.
-			if (await selectedTarget.waitFor({ state: 'visible', timeout: 3000 }).then(() => true).catch(() => false)) {
-				break
-			}
-		}
-	} else {
-		await page.keyboard.type(target)
-		const targetPattern = new RegExp(escapeRegExp(target), 'i')
-		const matchingOption = page.getByRole('option', { name: targetPattern }).first()
-		if (await matchingOption.waitFor({ state: 'visible', timeout: 3000 }).then(() => true).catch(() => false)) {
-			const clicked = await clickVisibleOptionOrFallback(page, matchingOption, targetPattern)
-			if (!clicked) {
-				await page.keyboard.press('ArrowDown')
-				await page.keyboard.press('Enter')
-			}
-		} else {
-			await page.keyboard.press('ArrowDown')
-			await page.keyboard.press('Enter')
-		}
-	}
+	// Never navigate with ArrowDown/Enter without a matching result:
+	// focus can move to a different control if the selector closes.
+	await expect.poll(async () => {
+		return (await matchingOption.isVisible()) || (await floatingOption.isVisible())
+	}, { message: `Expected a selectable ${kind} matching "${target}"`, timeout: 10000 }).toBe(true)
+
+	const clicked = await clickVisibleOptionOrFallback(page, matchingOption, targetPattern)
+	expect(clicked, `Could not select ${kind} "${target}"`).toBe(true)
 
 	await expect(selectedTarget).toBeVisible({ timeout: 8000 })
 	await page.keyboard.press('Tab')
