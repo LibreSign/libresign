@@ -623,6 +623,81 @@ final class OrderCertificatesTraitTest extends \OCA\Libresign\Tests\Unit\TestCas
 		$this->assertSame([$leaf, $correct, $wrong], $result);
 	}
 
+	public function testAkiSkiMustMatchCompleteIdentifier(): void {
+		$intermediate = ['CN' => 'Intermediate'];
+		$leaf = [
+			'name' => '/CN=Leaf',
+			'subject' => ['CN' => 'Leaf'],
+			'issuer' => $intermediate,
+			'extensions' => ['authorityKeyIdentifier' => 'keyid:AA:BB:CC'],
+		];
+		$wrong = [
+			'name' => '/CN=Intermediate',
+			'subject' => $intermediate,
+			'issuer' => ['CN' => 'Root'],
+			'serialNumberHex' => '01',
+			'extensions' => ['subjectKeyIdentifier' => 'AA:BB'],
+		];
+		$correct = [
+			'name' => '/CN=Intermediate',
+			'subject' => $intermediate,
+			'issuer' => ['CN' => 'Root'],
+			'serialNumberHex' => '02',
+			'extensions' => ['subjectKeyIdentifier' => 'AA:BB:CC'],
+		];
+
+		foreach ([$wrong, $correct] as $first) {
+			$second = $first === $wrong ? $correct : $wrong;
+			$result = $this->orderCertificates->orderCertificates([$first, $leaf, $second]);
+			$this->assertSame([$leaf, $correct, $wrong], $result);
+		}
+	}
+
+	public function testUnrelatedIssuerDnDoesNotHideActualLeaf(): void {
+		$root = ['name' => '/CN=Root', 'subject' => ['CN' => 'Root'], 'issuer' => ['CN' => 'Root']];
+		$leaf = [
+			'name' => '/CN=Leaf',
+			'subject' => ['CN' => 'Leaf'],
+			'issuer' => ['CN' => 'Root'],
+			'extensions' => ['subjectKeyIdentifier' => 'AA:BB'],
+		];
+		$unrelated = [
+			'name' => '/CN=Unrelated',
+			'subject' => ['CN' => 'Unrelated'],
+			'issuer' => ['CN' => 'Leaf'],
+			'extensions' => ['authorityKeyIdentifier' => 'keyid:CC:DD'],
+		];
+
+		foreach ([[$unrelated, $root, $leaf], [$leaf, $unrelated, $root]] as $input) {
+			$result = $this->orderCertificates->orderCertificates($input);
+			$this->assertSame([$leaf, $root, $unrelated], $result);
+		}
+	}
+
+	public function testDisconnectedRootDoesNotHideLeaf(): void {
+		$root = ['name' => '/CN=Root', 'subject' => ['CN' => 'Root'], 'issuer' => ['CN' => 'Root']];
+		$leaf = ['name' => '/CN=Leaf', 'subject' => ['CN' => 'Leaf'], 'issuer' => ['CN' => 'Unknown']];
+		$this->assertSame([$leaf, $root], $this->orderCertificates->orderCertificates([$root, $leaf]));
+	}
+
+	public function testIssuerOnlyAkiDoesNotRejectMatchingIssuerDn(): void {
+		$root = ['name' => '/CN=Root', 'subject' => ['CN' => 'Root'], 'issuer' => ['CN' => 'Root']];
+		$intermediate = [
+			'name' => '/CN=Intermediate',
+			'subject' => ['CN' => 'Intermediate'],
+			'issuer' => ['CN' => 'Root'],
+			'extensions' => ['subjectKeyIdentifier' => 'AA:BB:CC'],
+		];
+		$leaf = [
+			'name' => '/CN=Leaf',
+			'subject' => ['CN' => 'Leaf'],
+			'issuer' => ['CN' => 'Intermediate'],
+			'extensions' => ['authorityKeyIdentifier' => "DirName:/CN=Intermediate\nserial:01"],
+		];
+
+		$this->assertTrue($this->orderCertificates->validateCertificateChain([$intermediate, $leaf, $root])['isComplete']);
+	}
+
 	public function testRealChainFromUser(): void {
 		$realChain = [
 			[

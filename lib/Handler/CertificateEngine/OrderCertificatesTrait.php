@@ -27,13 +27,13 @@ trait OrderCertificatesTrait {
 	}
 
 	private function buildChain(array $certificates): array {
-		$leaf = $this->findLeafCertificate($certificates);
+		$rootConnected = $this->findRootConnectedCertificates($certificates);
+		$leaf = $this->findLeafCertificate($certificates, $rootConnected);
 		if (!$leaf) {
 			return $certificates;
 		}
 
 		$ordered = [$leaf];
-		$rootConnected = $this->findRootConnectedCertificates($certificates);
 		$remaining = $certificates;
 		unset($remaining[array_search($leaf, $remaining, true)]);
 
@@ -105,20 +105,33 @@ trait OrderCertificatesTrait {
 		return $unique;
 	}
 
-	private function findLeafCertificate(array $certificates): ?array {
-		foreach ($certificates as $cert) {
-			$isLeaf = true;
-			foreach ($certificates as $other) {
-				if ($cert['name'] !== $other['name'] && $this->normalizeDistinguishedName($other['issuer']) === $this->normalizeDistinguishedName($cert['subject'])) {
-					$isLeaf = false;
-					break;
+	private function findLeafCertificate(array $certificates, array $rootConnected): ?array {
+		$issuerSubjects = [];
+		foreach ($certificates as $child) {
+			foreach ($certificates as $candidate) {
+				if ($child['name'] !== $candidate['name'] && $this->isIssuedBy($child, $candidate)) {
+					$issuerSubjects[$this->normalizeDistinguishedName($candidate['subject'])] = true;
 				}
 			}
-			if ($isLeaf) {
+		}
+
+		$fallback = null;
+		$rootFallback = null;
+		foreach ($certificates as $index => $cert) {
+			if (isset($issuerSubjects[$this->normalizeDistinguishedName($cert['subject'])])) {
+				continue;
+			}
+			if ($this->isRootCertificate($cert)) {
+				$rootFallback ??= $cert;
+				continue;
+			}
+			if (isset($rootConnected[$index])) {
 				return $cert;
 			}
+			$fallback ??= $cert;
 		}
-		return $certificates[0] ?? null;
+
+		return $fallback ?? $rootFallback ?? $certificates[0] ?? null;
 	}
 
 	private function isRootCertificate(array $cert): bool {
@@ -145,8 +158,11 @@ trait OrderCertificatesTrait {
 	private function validateAkiSkiMatch(array $child, array $parent): bool {
 		$childAki = $child['extensions']['authorityKeyIdentifier'] ?? null;
 		$parentSki = $parent['extensions']['subjectKeyIdentifier'] ?? null;
-		if (is_string($childAki) && is_string($parentSki)) {
-			return str_contains(strtoupper($childAki), strtoupper($parentSki));
+		if (is_string($childAki) && is_string($parentSki)
+			&& preg_match('/(?:^|\R)\h*keyid:\h*([^\r\n]+)/i', $childAki, $matches) === 1) {
+			$aki = strtoupper(str_replace(':', '', trim($matches[1])));
+			$ski = strtoupper(str_replace(':', '', trim($parentSki)));
+			return $aki !== '' && strlen($aki) % 2 === 0 && ctype_xdigit($aki) && $aki === $ski;
 		}
 
 		if (!isset($child['name']) || !isset($parent['name'])) {
