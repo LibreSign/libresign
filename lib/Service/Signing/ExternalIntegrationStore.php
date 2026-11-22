@@ -236,14 +236,15 @@ final class ExternalIntegrationStore {
 	}
 
 	private function validateName(string $name): void {
-		if (trim($name) === '' || strlen(trim($name)) > 128) {
+		$normalized = trim($name);
+		if ($normalized === '' || !mb_check_encoding($normalized, 'UTF-8') || mb_strlen($normalized, 'UTF-8') > 128) {
 			throw new \InvalidArgumentException('Invalid integration display name');
 		}
 	}
 
 	/** @param array<string, mixed> $configuration */
 	private function encodeConfiguration(array $configuration): string {
-		$encoded = json_encode($configuration, JSON_THROW_ON_ERROR);
+		$encoded = json_encode((object)$configuration, JSON_THROW_ON_ERROR);
 		if (strlen($encoded) > self::MAX_CONFIGURATION_BYTES) {
 			throw new \InvalidArgumentException('Integration configuration too large');
 		}

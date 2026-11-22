@@ -106,6 +106,7 @@ final class ExternalIntegrationSecretsTest extends TestCase {
 			'not JSON' => ['not-json'],
 			'JSON scalar' => ['null'],
 			'JSON list' => ['["token"]'],
+			'empty JSON list' => ['[]'],
 			'blank token' => ['{"token":""}'],
 			'non-string token' => ['{"token":17}'],
 			'blank key' => ['{"":"bad"}'],

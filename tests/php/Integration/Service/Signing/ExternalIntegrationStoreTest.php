@@ -190,7 +190,9 @@ final class ExternalIntegrationStoreTest extends \OCA\Libresign\Tests\Integratio
 		return [
 			'blank name' => [''],
 			'whitespace-only name' => ['   '],
-			'name over 128 bytes' => [str_repeat('x', 129)],
+			'name over 128 characters' => [str_repeat('x', 129)],
+			'multibyte name over 128 characters' => [str_repeat('Á', 129)],
+			'invalid UTF-8 name' => ["\xC3\x28"],
 		];
 	}
 
@@ -281,5 +283,32 @@ final class ExternalIntegrationStoreTest extends \OCA\Libresign\Tests\Integratio
 		$this->assertNull($this->store->findRetainedReference('not-an-id'));
 		$this->expectException(\OutOfBoundsException::class);
 		$this->store->get('not-an-id');
+	}
+
+	/** @return array<string, array{string}> */
+	public static function validInternationalNames(): array {
+		return [
+			'accented Latin characters' => [str_repeat('Á', 65)],
+			'exactly 128 multibyte characters' => [str_repeat('签', 128)],
+		];
+	}
+
+	#[DataProvider('validInternationalNames')]
+	public function testValidInternationalNameIsBoundedByCharacters(string $name): void {
+		$record = $this->store->create('csc', $name, [], []);
+		$this->created[] = $record->id;
+		$this->assertSame($name, $record->name);
+		$this->assertSame($name, $this->store->get($record->id)->name);
+	}
+
+	public function testEmptyConfigurationIsPersistedAsJsonObject(): void {
+		$record = $this->store->create('csc', 'No settings', [], []);
+		$this->created[] = $record->id;
+		$qb = $this->db->getQueryBuilder();
+		$stored = $qb->select('configuration')->from('libresign_signing_integration')
+			->where($qb->expr()->eq('public_id', $qb->createNamedParameter($record->id)))
+			->executeQuery()->fetchOne();
+		$this->assertSame('{}', $stored);
+		$this->assertSame('{}', json_encode($record->jsonSerialize()['configuration'], JSON_THROW_ON_ERROR));
 	}
 }

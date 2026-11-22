@@ -8,7 +8,7 @@ declare(strict_types=1);
 
 namespace OCA\Libresign\Service\Signing;
 
-/** This is deliberately safe to JSON-serialize: it never owns secret values. */
+/** Public view of an integration. Configuration must be validated and secret-free before construction. */
 final readonly class ExternalIntegrationRecord implements \JsonSerializable {
 	/** @param array<string, mixed> $configuration */
 	public function __construct(
@@ -24,14 +24,14 @@ final readonly class ExternalIntegrationRecord implements \JsonSerializable {
 	) {
 	}
 
-	/** @return array{id: string, driverId: string, name: string, configuration: array<string, mixed>, enabled: bool, hasSecrets: bool, revision: int, createdAt: string, updatedAt: string} */
+	/** @return array{id: string, driverId: string, name: string, configuration: \stdClass, enabled: bool, hasSecrets: bool, revision: int, createdAt: string, updatedAt: string} */
 	#[\Override]
 	public function jsonSerialize(): array {
 		return [
 			'id' => $this->id,
 			'driverId' => $this->driverId,
 			'name' => $this->name,
-			'configuration' => $this->configuration,
+			'configuration' => (object)$this->configuration,
 			'enabled' => $this->enabled,
 			'hasSecrets' => $this->hasSecrets,
 			'revision' => $this->revision,

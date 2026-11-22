@@ -38,8 +38,6 @@ final class ExternalIntegrationSecrets {
 		try {
 			return $this->crypto->encrypt($serialized);
 		} catch (\Exception) {
-			// ICrypto does not declare a dedicated encryption exception.
-			// Fail closed, without exposing a sensitive message or previous cause.
 			throw ExternalIntegrationSecretException::protectionFailed();
 		}
 	}
@@ -50,10 +48,11 @@ final class ExternalIntegrationSecrets {
 			return [];
 		}
 		try {
-			$decoded = json_decode($this->crypto->decrypt($ciphertext), true, 512, JSON_THROW_ON_ERROR);
-			if (!is_array($decoded)) {
+			$payload = json_decode($this->crypto->decrypt($ciphertext), false, 512, JSON_THROW_ON_ERROR);
+			if (!$payload instanceof \stdClass) {
 				throw new \UnexpectedValueException('Unexpected secret payload');
 			}
+			$decoded = (array)$payload;
 			$this->assertSecretShape($decoded);
 			return $decoded;
 		} catch (\Exception) {
