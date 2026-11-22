@@ -176,8 +176,12 @@ describe('signatureElements store - signature business rules', () => {
 	describe('RULE: saving with signRequestUuid should send specific header', () => {
 		it('includes header when has signRequestUuid', async () => {
 			loadStateMock.mockImplementation((app, key, defaultValue) => {
-				if (key === 'sign_request_uuid') { return 'uuid-123' }
-				if (key === 'user_signatures') { return [] }
+				if (key === 'sign_request_uuid') {
+					return 'uuid-123'
+				}
+				if (key === 'user_signatures') {
+					return []
+				}
 				return defaultValue
 			})
 
@@ -206,8 +210,12 @@ describe('signatureElements store - signature business rules', () => {
 
 		it('does not include header when has no signRequestUuid', async () => {
 			loadStateMock.mockImplementation((app, key, defaultValue) => {
-				if (key === 'sign_request_uuid') { return '' }
-				if (key === 'user_signatures') { return [] }
+				if (key === 'sign_request_uuid') {
+					return ''
+				}
+				if (key === 'user_signatures') {
+					return []
+				}
 				return defaultValue
 			})
 
@@ -293,7 +301,9 @@ describe('signatureElements store - signature business rules', () => {
 
 		it('delete should include signRequestUuid in header when available', async () => {
 			loadStateMock.mockImplementation((app, key, defaultValue) => {
-				if (key === 'sign_request_uuid') { return 'uuid-123' }
+				if (key === 'sign_request_uuid') {
+					return 'uuid-123'
+				}
 				if (key === 'user_signatures') {
 					return [{
 						type: 'signature',

@@ -298,7 +298,9 @@ test('unauthenticated signer can define a visible signature for an envelope with
 	await test.step('The signed PDF opens by UUID without using an Office handler', async () => {
 		const context = page.context()
 		const openedPopups: Page[] = []
-		page.on('popup', popup => { openedPopups.push(popup) })
+		page.on('popup', popup => {
+			openedPopups.push(popup)
+		})
 		const officeRequests: string[] = []
 		context.on('request', request => {
 			if (request.url().includes('/apps/eurooffice/')) {

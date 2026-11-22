@@ -88,7 +88,6 @@ export default [
 			'@stylistic/exp-list-style': 'off', // ~34 hits
 			'@stylistic/implicit-arrow-linebreak': 'off', // ~39 hits
 			'@stylistic/indent': 'off', // ~778 hits; tabs vs spaces migration
-			'@stylistic/max-statements-per-line': 'off', // ~100 hits
 			'@stylistic/no-tabs': 'off', // ~190 hits; tabs vs spaces migration
 			'vue/first-attribute-linebreak': 'off', // ~435 hits; formatting churn
 			'vue/max-attributes-per-line': 'off', // ~68 hits; formatting churn

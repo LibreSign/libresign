@@ -1707,7 +1707,9 @@ function confirmSigningOrder(signer: EditableRequestSigner) {
 	}
 
 	for (let index = 0; index < file.signers.length; index++) {
-		if (index === currentIndex) { continue }
+		if (index === currentIndex) {
+			continue
+		}
 		const currentItem = file.signers[index]
 		if (!currentItem || isObserverParticipant(currentItem)) {
 			continue

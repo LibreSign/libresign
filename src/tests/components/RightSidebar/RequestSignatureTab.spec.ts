@@ -45,7 +45,9 @@ vi.mock('@nextcloud/initial-state', () => ({
 				warn_without_visible_signature_fields: true,
 			}
 		}
-		if (key === 'can_request_sign') { return true }
+		if (key === 'can_request_sign') {
+			return true
+		}
 		if (key === 'effective_policies') {
 			return {
 				policies: {
@@ -982,7 +984,9 @@ describe('RequestSignatureTab - Critical Business Rules', () => {
 						warn_without_visible_signature_fields: true,
 					}
 				}
-				if (key === 'can_request_sign') { return true }
+				if (key === 'can_request_sign') {
+					return true
+				}
 				return defaultValue
 			})
 
@@ -1280,7 +1284,9 @@ describe('RequestSignatureTab - Critical Business Rules', () => {
 			const signer = filesStore.getFile()?.signers?.[0]
 			expect(signer).toBeDefined()
 			let resolveRequest!: (value: unknown) => void
-			const pending = new Promise(resolve => { resolveRequest = resolve })
+			const pending = new Promise(resolve => {
+				resolveRequest = resolve
+			})
 			vi.mocked(axios.post).mockImplementation(async () => pending as Awaited<ReturnType<typeof axios.post>>)
 			vi.mocked(axios.get).mockResolvedValueOnce({
 				data: { ocs: { data: { status: 'completed', complete: true, channels: [{ channel: 'mail', state: 'accepted' }] } } },

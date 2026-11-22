@@ -140,7 +140,9 @@ const toggleAriaLabel = computed(() =>
 		: t('libresign', 'Expand timestamp authority details'))
 
 function dateFromSqlAnsi(date?: string | number | null) {
-	if (!date) { return '' }
+	if (!date) {
+		return ''
+	}
 	return Moment(String(date)).format('LLL')
 }
 

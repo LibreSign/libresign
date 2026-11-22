@@ -562,15 +562,23 @@ function getSignerValidationClass(signer: SignerModel) {
 }
 
 function getValidityStatus(signer: SignerModel) {
-	if (!signer.valid_to) { return 'valid' }
+	if (!signer.valid_to) {
+		return 'valid'
+	}
 
 	const now = Date.now() / 1000
 	const validTo = new Date(signer.valid_to).getTime() / 1000
 	const thirtyDays = 30 * 24 * 60 * 60
 
-	if (!Number.isFinite(validTo)) { return 'unknown' }
-	if (validTo <= now) { return 'expired' }
-	if (validTo - now < thirtyDays) { return 'expiring' }
+	if (!Number.isFinite(validTo)) {
+		return 'unknown'
+	}
+	if (validTo <= now) {
+		return 'expired'
+	}
+	if (validTo - now < thirtyDays) {
+		return 'expiring'
+	}
 	return 'valid'
 }
 
@@ -647,7 +655,9 @@ function getCertificateTrustMessage(signer: SignerModel) {
 }
 
 function getValidityStatusAtSigning(signer: SignerModel) {
-	if (!signer.valid_from || !signer.valid_to || !signer.signed) { return 'unknown' }
+	if (!signer.valid_from || !signer.valid_to || !signer.signed) {
+		return 'unknown'
+	}
 
 	const signedTime = new Date(signer.signed).getTime() / 1000
 	const validFrom = new Date(signer.valid_from).getTime() / 1000
@@ -671,12 +681,16 @@ function getCrlValidationIconPath(signer: SignerModel) {
 }
 
 function dateFromSqlAnsi(date?: string | number | null) {
-	if (!date) { return '' }
+	if (!date) {
+		return ''
+	}
 	return Moment(String(date)).format('LLL')
 }
 
 function dateFromSqlAnsiWithSeconds(date?: string | number | null) {
-	if (!date) { return '' }
+	if (!date) {
+		return ''
+	}
 	return Moment(String(date)).format('L LTS')
 }
 
@@ -713,7 +727,9 @@ function hasDocMdpInfo(signer: SignerModel) {
 }
 
 function getModificationStatusIcon(signer: SignerModel) {
-	if (!signer.modification_validation) { return undefined }
+	if (!signer.modification_validation) {
+		return undefined
+	}
 
 	const status = signer.modification_validation.status
 	if (status === MODIFICATION_UNMODIFIED) {
@@ -726,7 +742,9 @@ function getModificationStatusIcon(signer: SignerModel) {
 }
 
 function getModificationStatusClass(signer: SignerModel) {
-	if (!signer.modification_validation) { return '' }
+	if (!signer.modification_validation) {
+		return ''
+	}
 
 	const status = signer.modification_validation.status
 	if (status === MODIFICATION_UNMODIFIED) {
@@ -739,7 +757,9 @@ function getModificationStatusClass(signer: SignerModel) {
 }
 
 function formatTimestamp(timestamp?: number | null) {
-	if (!timestamp) { return '' }
+	if (!timestamp) {
+		return ''
+	}
 	return Moment.unix(timestamp).format('LLL')
 }
 

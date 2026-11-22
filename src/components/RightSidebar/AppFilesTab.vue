@@ -198,7 +198,9 @@ async function checkAndLoadPendingEnvelope() {
 }
 
 function updateSidebarTitle(envelopeName?: string) {
-	if (!envelopeName) { return }
+	if (!envelopeName) {
+		return
+	}
 
 	disconnectTitleObserver()
 

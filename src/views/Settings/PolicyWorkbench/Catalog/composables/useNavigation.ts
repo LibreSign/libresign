@@ -207,10 +207,14 @@ export function useNavigation(visibleCategorySections: { value: Array<{ key: Rea
 
 		for (let i = 0; i < visibleCategorySectionsValue.value.length; i++) {
 			const category = visibleCategorySectionsValue.value[i]?.key
-			if (!category) { continue }
+			if (!category) {
+				continue
+			}
 
 			const element = categorySectionElements.get(category)
-			if (!element) { continue }
+			if (!element) {
+				continue
+			}
 
 			const rect = element.getBoundingClientRect()
 			if (rect.top + CATEGORY_SWITCH_HYSTERESIS_PX < activationLine) {
