@@ -12,6 +12,8 @@ use OCA\Libresign\Service\Signing\ExternalIntegrationAdministration;
 use OCA\Libresign\Service\Signing\ExternalIntegrationRecord;
 use OCP\IDBConnection;
 use OCP\Server;
+use OCA\Libresign\Service\Signing\ExternalIntegrationStore;
+use PHPUnit\Framework\Attributes\DataProvider;
 
 /** @group DB */
 final class ExternalIntegrationAdministrationTest extends \OCA\Libresign\Tests\Integration\TestCase {
@@ -136,4 +138,183 @@ final class ExternalIntegrationAdministrationTest extends \OCA\Libresign\Tests\I
 		$this->expectException(\InvalidArgumentException::class);
 		$this->administration->update($required, $created->id, $created->revision, 'Still missing');
 	}
+
+	/** @return array<string, array{array<string, mixed>}> */
+	public static function malformedDriverMetadata(): array {
+		$valid = self::driver();
+		return [
+			'missing driver ID' => [['fields' => $valid['fields']]],
+			'numeric driver ID' => [['id' => 42, 'fields' => $valid['fields']]],
+			'uppercase driver ID' => [['id' => 'CSC-v1', 'fields' => $valid['fields']]],
+			'blank driver ID' => [['id' => '', 'fields' => $valid['fields']]],
+			'overlong driver ID' => [['id' => 'c' . str_repeat('a', 64), 'fields' => $valid['fields']]],
+			'missing fields' => [['id' => 'csc-v1']],
+			'non-array fields' => [['id' => 'csc-v1', 'fields' => 'wrong']],
+			'non-list field map' => [['id' => 'csc-v1', 'fields' => ['baseUrl' => $valid['fields'][0]]]],
+		];
+	}
+
+	#[DataProvider('malformedDriverMetadata')]
+	public function testInvalidDriverMetadataIsRejectedBeforePersistence(array $driver): void {
+		$this->expectException(\InvalidArgumentException::class);
+		$this->administration->create(
+			$driver,
+			'Synthetic CSC',
+			['baseUrl' => 'https://example.org'],
+		);
+	}
+
+	public function testEnableDisableAndStaleLifecycleRevision(): void {
+		$created = $this->create(['baseUrl' => 'https://example.org']);
+		$this->assertFalse($created->enabled);
+		$enabled = $this->administration->setEnabled(
+			self::driver(), $created->id, $created->revision, true,
+		);
+		$this->assertTrue($enabled->enabled);
+		$this->assertSame($created->revision + 1, $enabled->revision);
+		$disabled = $this->administration->setEnabled(
+			self::driver(), $created->id, $enabled->revision, false,
+		);
+		$this->assertFalse($disabled->enabled);
+		$this->assertSame($enabled->revision + 1, $disabled->revision);
+		try {
+			$this->administration->setEnabled(
+				self::driver(), $created->id, $enabled->revision, true,
+			);
+			$this->fail('Stale revision must not re-enable a disabled integration');
+		} catch (\RuntimeException) {
+			$stored = $this->administration->get($created->id);
+			$this->assertFalse($stored->enabled);
+			$this->assertSame($disabled->revision, $stored->revision);
+		}
+	}
+
+	public function testUnavailableDriverCanStillBeDisabled(): void {
+		$created = $this->create(['baseUrl' => 'https://example.org']);
+		$enabled = $this->administration->setEnabled(
+			self::driver(), $created->id, $created->revision, true,
+		);
+		$disabled = $this->administration->setEnabled(
+			self::driver(false), $created->id, $enabled->revision, false,
+		);
+		$this->assertFalse($disabled->enabled);
+	}
+
+	public function testSoftDeletionRemovesCredentialsAndDisablesFutureAccess(): void {
+		$record = $this->create(
+			['baseUrl' => 'https://example.org'],
+			['accessToken' => 'synthetic-delete-secret'],
+		);
+		$enabled = $this->administration->setEnabled(
+			self::driver(), $record->id, $record->revision, true,
+		);
+		$this->assertNotSame('', $this->ciphertext($record->id));
+		$this->administration->delete($record->id, $enabled->revision);
+		$this->assertSame('', $this->ciphertext($record->id));
+
+		$retained = Server::get(ExternalIntegrationStore::class)->findRetainedReference($record->id);
+		$this->assertNotNull($retained);
+		$this->assertSame($record->id, $retained->id);
+		$this->assertFalse($retained->enabled);
+		$this->assertFalse($retained->hasSecrets);
+		$this->assertSame([], $retained->configuration);
+
+		$this->expectException(\OutOfBoundsException::class);
+		$this->administration->get($record->id);
+	}
+
+	public function testStaleUpdatePreservesCurrentNameRevisionAndCiphertext(): void {
+		$created = $this->create(
+			['baseUrl' => 'https://example.org'],
+			['accessToken' => 'unchanged-synthetic-credential'],
+		);
+		$updated = $this->administration->update(
+			self::driver(), $created->id, $created->revision, 'First update',
+		);
+		$ciphertext = $this->ciphertext($created->id);
+		try {
+			$this->administration->update(
+				self::driver(),
+				$created->id,
+				$created->revision,
+				'Stale update',
+				null,
+				['accessToken' => 'should-not-be-persisted'],
+			);
+			$this->fail('Stale update must not replace the newer state');
+		} catch (\RuntimeException) {
+			$stored = $this->administration->get($created->id);
+			$this->assertSame('First update', $stored->name);
+			$this->assertSame($updated->revision, $stored->revision);
+			$this->assertSame($ciphertext, $this->ciphertext($created->id));
+		}
+	}
+
+	public function testRequiredSecretRemainsConfiguredWhenOmitted(): void {
+		$created = $this->create(
+			['baseUrl' => 'https://example.org'],
+			['accessToken' => 'synthetic-required-secret'],
+		);
+		$driver = self::driver();
+		$driver['fields'][1]['required'] = true;
+		$ciphertext = $this->ciphertext($created->id);
+		$updated = $this->administration->update(
+			$driver, $created->id, $created->revision, 'Updated without replacement',
+		);
+		$this->assertSame($ciphertext, $this->ciphertext($created->id));
+		$this->assertSame(
+			[['key' => 'accessToken', 'isConfigured' => true]],
+			$this->administration->describe($driver, $created->id)['secretFields'],
+		);
+		try {
+			$this->administration->update(
+				$driver,
+				$created->id,
+				$updated->revision,
+				null,
+				null,
+				['accessToken' => null],
+			);
+			$this->fail('Required secret must not be cleared');
+		} catch (\InvalidArgumentException) {
+			$this->assertSame($updated->revision, $this->administration->get($created->id)->revision);
+			$this->assertSame($ciphertext, $this->ciphertext($created->id));
+		}
+	}
+
+	public function testInvalidSecretPatchLeavesRecordUnchanged(): void {
+		$created = $this->create(
+			['baseUrl' => 'https://example.org'],
+			['accessToken' => 'synthetic-credential'],
+		);
+		$ciphertext = $this->ciphertext($created->id);
+		try {
+			$this->administration->update(
+				self::driver(),
+				$created->id,
+				$created->revision,
+				'Unauthorized change',
+				null,
+				['baseUrl' => 'secret-in-wrong-place'],
+			);
+			$this->fail('Unknown secret field must be rejected');
+		} catch (\InvalidArgumentException) {
+			$stored = $this->administration->get($created->id);
+			$this->assertSame($created->name, $stored->name);
+			$this->assertSame($created->revision, $stored->revision);
+			$this->assertSame($ciphertext, $this->ciphertext($created->id));
+		}
+	}
+
+	public function testDescriptionRejectsMismatchedDriverWithoutRevealingSecrets(): void {
+		$created = $this->create(
+			['baseUrl' => 'https://example.org'],
+			['accessToken' => 'synthetic-credential'],
+		);
+		$wrongDriver = self::driver();
+		$wrongDriver['id'] = 'different-driver';
+		$this->expectException(\InvalidArgumentException::class);
+		$this->administration->describe($wrongDriver, $created->id);
+	}
+
 }
