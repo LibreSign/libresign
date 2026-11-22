@@ -884,6 +884,7 @@ OC.L10N.register(
     "Other" : "Otro",
     "custom" : "personalizado",
     "default" : "predeterminado",
+    "_%n day_::_%n days_" : ["%n día","%n días","%n días"],
     "Identification factors" : "Factores de identificación",
     "Ways to identify a person who will sign a document." : "Formas de identificar una persona que firmará un documento.",
     "This information will appear on the validation page" : "Esta información aparecerá en la página de validación",

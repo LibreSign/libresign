@@ -1708,10 +1708,6 @@
     "Maximum validity (seconds)" : "Validade máxima (segundos)",
     "Leave empty to disable expiration." : "Deixe em branco para desativar o vencimento.",
     "Renewal interval (seconds)" : "Intervalo de renovação (segundos)",
-    "Leave empty to disable renewal." : "Deixe em branco para desativar a renovação.",
-    "{value} days" : "{value} dias",
-    "{count} enabled factors" : "{count} fatores ativados",
-    "{count} denied requester groups" : "{count} grupos de solicitantes recusados",
-    "{count} authorized requester groups" : "{count} grupos de solicitantes autorizados"
+    "Leave empty to disable renewal." : "Deixe em branco para desativar a renovação."
 },"pluralForm" :"nplurals=3; plural=(n == 0 || n == 1) ? 0 : n != 0 && n % 1000000 == 0 ? 1 : 2;"
 }

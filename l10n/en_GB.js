@@ -1513,6 +1513,7 @@ OC.L10N.register(
     "{value} seconds" : "{value} seconds",
     "Signer certificate validity" : "Signer certificate validity",
     "Define the default validity, in days, for signer certificates created by LibreSign. This setting does not control how long a signing request remains available." : "Define the default validity, in days, for signer certificates created by LibreSign. This setting does not control how long a signing request remains available.",
+    "_%n day_::_%n days_" : ["%n day","%n days"],
     "Identification documents flow" : "Identification documents flow",
     "Control whether signers must submit identification documents for approval." : "Control whether signers must submit identification documents for approval.",
     "Identification factors" : "Identification factors",
@@ -1709,10 +1710,6 @@ OC.L10N.register(
     "Maximum validity (seconds)" : "Maximum validity (seconds)",
     "Leave empty to disable expiration." : "Leave empty to disable expiration.",
     "Renewal interval (seconds)" : "Renewal interval (seconds)",
-    "Leave empty to disable renewal." : "Leave empty to disable renewal.",
-    "{value} days" : "{value} days",
-    "{count} enabled factors" : "{count} enabled factors",
-    "{count} denied requester groups" : "{count} denied requester groups",
-    "{count} authorized requester groups" : "{count} authorized requester groups"
+    "Leave empty to disable renewal." : "Leave empty to disable renewal."
 },
 "nplurals=2; plural=(n != 1);");

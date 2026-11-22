@@ -225,7 +225,6 @@ OC.L10N.register(
     "Not scheduled" : "Ekki tímasett",
     "Reminders" : "Áminningar",
     "Invalid URL" : "Ógild slóð",
-    "Name is mandatory" : "Nafn er nauðsynlegt",
-    "{value} days" : "{value} dagar"
+    "Name is mandatory" : "Nafn er nauðsynlegt"
 },
 "nplurals=2; plural=(n % 10 != 1 || n % 100 == 11);");

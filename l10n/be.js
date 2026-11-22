@@ -210,6 +210,7 @@ OC.L10N.register(
     "This year ({year})" : "Гэты год ({year})",
     "Last year ({year})" : "Мінулы год ({year})",
     "Other" : "Іншае",
+    "_%n day_::_%n days_" : ["%n дзень","%n дні","%n дзён","%n дзён"],
     "Default background" : "Прадвызначаны фон",
     "System default" : "Сістэмная",
     "Underline" : "Падкрэсліванне",

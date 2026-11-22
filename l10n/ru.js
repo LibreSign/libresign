@@ -1710,10 +1710,6 @@ OC.L10N.register(
     "Maximum validity (seconds)" : "Максимальный срок действия (в секундах)",
     "Leave empty to disable expiration." : "Оставьте поле пустым, чтобы отключить истечение срока действия.",
     "Renewal interval (seconds)" : "Интервал продления (в секундах)",
-    "Leave empty to disable renewal." : "Оставьте поле пустым, чтобы отключить продление.",
-    "{value} days" : "Дней: {value}",
-    "{count} enabled factors" : "Включённых факторов: {count}",
-    "{count} denied requester groups" : "Запрещённых групп инициаторов: {count}",
-    "{count} authorized requester groups" : "Авторизованных групп инициаторов: {count}"
+    "Leave empty to disable renewal." : "Оставьте поле пустым, чтобы отключить продление."
 },
 "nplurals=4; plural=(n%10==1 && n%100!=11 ? 0 : n%10>=2 && n%10<=4 && (n%100<12 || n%100>14) ? 1 : n%10==0 || (n%10>=5 && n%10<=9) || (n%100>=11 && n%100<=14)? 2 : 3);");

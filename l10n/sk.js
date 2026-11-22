@@ -1710,10 +1710,6 @@ OC.L10N.register(
     "Maximum validity (seconds)" : "Maximálna platnosť (sekundy)",
     "Leave empty to disable expiration." : "Ak chcete deaktivovať vypršanie platnosti, nechajte prázdne.",
     "Renewal interval (seconds)" : "Interval obnovy (sekundy)",
-    "Leave empty to disable renewal." : "Ak chcete obnovenie deaktivovať, nechajte prázdne.",
-    "{value} days" : "{value} dní",
-    "{count} enabled factors" : "Počet povolených faktorov: {count}",
-    "{count} denied requester groups" : "Počet skupín žiadateľov so zakázaným prístupom: {count}",
-    "{count} authorized requester groups" : "Počet skupín žiadateľov oprávnených vytvárať žiadosti o podpis: {count}"
+    "Leave empty to disable renewal." : "Ak chcete obnovenie deaktivovať, nechajte prázdne."
 },
 "nplurals=4; plural=(n % 1 == 0 && n == 1 ? 0 : n % 1 == 0 && n >= 2 && n <= 4 ? 1 : n % 1 != 0 ? 2: 3);");
