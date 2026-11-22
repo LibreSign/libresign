@@ -93,3 +93,4 @@ final class ExternalIntegrationFieldValidatorTest extends TestCase {
 		$this->expectException(\InvalidArgumentException::class);
 		(new ExternalIntegrationFieldValidator())->validateCreate($fields, ['baseUrl' => 'https://example.org'], []);
 	}
+}
