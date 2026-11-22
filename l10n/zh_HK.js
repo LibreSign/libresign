@@ -1710,10 +1710,6 @@ OC.L10N.register(
     "Maximum validity (seconds)" : "最長有效期（秒）",
     "Leave empty to disable expiration." : "留空以停用到期機制。",
     "Renewal interval (seconds)" : "續期間隔（秒）",
-    "Leave empty to disable renewal." : "留空以停用續期功能。",
-    "{value} days" : "【待人工校對】{value} days",
-    "{count} enabled factors" : "【待人工校對】{count} enabled factors",
-    "{count} denied requester groups" : "【待人工校對】{count} denied requester groups",
-    "{count} authorized requester groups" : "【待人工校對】{count} authorized requester groups"
+    "Leave empty to disable renewal." : "留空以停用續期功能。"
 },
 "nplurals=1; plural=0;");

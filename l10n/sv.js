@@ -1707,10 +1707,6 @@ OC.L10N.register(
     "Maximum validity (seconds)" : "Högsta giltighetstid (sekunder)",
     "Leave empty to disable expiration." : "Lämna tomt för att inaktivera utgångstid.",
     "Renewal interval (seconds)" : "Förnyelseintervall (sekunder)",
-    "Leave empty to disable renewal." : "Lämna tomt för att inaktivera förnyelse.",
-    "{value} days" : "{value} dagar",
-    "{count} enabled factors" : "{count} aktiverade faktorer",
-    "{count} denied requester groups" : "{count} nekade beställargrupper",
-    "{count} authorized requester groups" : "{count} auktoriserade beställargrupper"
+    "Leave empty to disable renewal." : "Lämna tomt för att inaktivera förnyelse."
 },
 "nplurals=2; plural=(n != 1);");
