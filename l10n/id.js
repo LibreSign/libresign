@@ -1502,10 +1502,6 @@ OC.L10N.register(
     "Maximum validity (seconds)" : "Masa berlaku maksimum (detik)",
     "Leave empty to disable expiration." : "Biarkan kosong untuk menonaktifkan kedaluwarsa.",
     "Renewal interval (seconds)" : "Interval perpanjangan (detik)",
-    "Leave empty to disable renewal." : "Biarkan kosong untuk menonaktifkan perpanjangan.",
-    "{value} days" : "{value} hari",
-    "{count} enabled factors" : "{count} faktor diaktifkan",
-    "{count} denied requester groups" : "{count} grup pemohon ditolak",
-    "{count} authorized requester groups" : "{count} grup pemohon diizinkan"
+    "Leave empty to disable renewal." : "Biarkan kosong untuk menonaktifkan perpanjangan."
 },
 "nplurals=1; plural=0;");

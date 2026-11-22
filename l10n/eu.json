@@ -426,7 +426,6 @@
     "Full name of the main company or main user of this instance" : "Instantzia honetako enpresa nagusiaren edo erabiltzaile nagusiaren izena",
     "Invalid URL" : "URL baliogabea",
     "Name is mandatory" : "Izena nahitaezkoa da",
-    "Sign the document." : "Sinatu dokumentua.",
-    "{value} days" : "{value} egun"
+    "Sign the document." : "Sinatu dokumentua."
 },"pluralForm" :"nplurals=2; plural=(n != 1);"
 }

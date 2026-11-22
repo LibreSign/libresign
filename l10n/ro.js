@@ -1663,10 +1663,6 @@ OC.L10N.register(
     "Maximum validity (seconds)" : "Valabilitate maximă (secunde)",
     "Leave empty to disable expiration." : "Lasă gol pentru a dezactiva expirarea.",
     "Renewal interval (seconds)" : "Interval de reînnoire (secunde)",
-    "Leave empty to disable renewal." : "Lasă gol pentru a dezactiva reînnoirea.",
-    "{value} days" : "{value} de zile",
-    "{count} enabled factors" : "{count} factori activați",
-    "{count} denied requester groups" : "{count} grupuri de solicitanți refuzate",
-    "{count} authorized requester groups" : "{count} grupuri de solicitanți autorizate"
+    "Leave empty to disable renewal." : "Lasă gol pentru a dezactiva reînnoirea."
 },
 "nplurals=3; plural=(n==1?0:(((n%100>19)||((n%100==0)&&(n!=0)))?2:1));");

@@ -1432,10 +1432,6 @@
     "Maximum validity (seconds)" : "Maksimali galiojimo trukmė (sekundėmis)",
     "Leave empty to disable expiration." : "Palikite tuščią, jei norite išjungti galiojimo pabaigos datą.",
     "Renewal interval (seconds)" : "Atnaujinimo intervalas (sekundėmis)",
-    "Leave empty to disable renewal." : "Palikite tuščią, kad išjungtumėte pratęsimą.",
-    "{value} days" : "{value} d,",
-    "{count} enabled factors" : "{count} įgalinti veiksniai",
-    "{count} denied requester groups" : "{count} atmestos užklausėjų grupės",
-    "{count} authorized requester groups" : "{count} įgaliotų prašytojų grupės"
+    "Leave empty to disable renewal." : "Palikite tuščią, kad išjungtumėte pratęsimą."
 },"pluralForm" :"nplurals=4; plural=(n % 10 == 1 && (n % 100 > 19 || n % 100 < 11) ? 0 : (n % 10 >= 2 && n % 10 <=9) && (n % 100 > 19 || n % 100 < 11) ? 1 : n % 1 != 0 ? 2: 3);"
 }

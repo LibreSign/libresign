@@ -146,6 +146,7 @@ OC.L10N.register(
     "Last 7 days" : "Lastaj 7 tagoj",
     "Last 30 days" : "Lastaj 30 tagoj",
     "Other" : "Alia",
+    "_%n day_::_%n days_" : ["%n tago","%n tagoj"],
     "Custom URL" : "Propra retadreso",
     "Public" : "Publika",
     "User" : "Uzanto",

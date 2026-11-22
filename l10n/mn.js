@@ -215,7 +215,6 @@ OC.L10N.register(
     "off" : "унтраах",
     "on" : "дээр",
     "Reminders" : "–°–∞–Ω—É—É–ª–∞–≥—É—É–¥",
-    "Background image" : "Дэвсгэр зураг",
-    "{value} days" : "{value} өдөр"
+    "Background image" : "Дэвсгэр зураг"
 },
 "nplurals=2; plural=(n != 1);");
