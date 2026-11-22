@@ -154,6 +154,23 @@ export const useSignStore = defineStore('sign', () => {
 			|| {}
 	}
 
+	const setFileToSign = (file) => {
+		if (file) {
+			errors.value = []
+			document.value = file
+			mounted.value = true
+
+			const sidebarStore = useSidebarStore()
+			sidebarStore.activeSignTab()
+
+			const signMethodsStore = useSignMethodsStore()
+			signMethodsStore.settings = getSignatureMethodsForFile(file)
+			return
+		}
+
+		useSignStore().reset()
+	}
+
 	const initFromState = async () => {
 		errors.value = loadState('libresign', 'errors', [])
 
@@ -179,23 +196,6 @@ export const useSignStore = defineStore('sign', () => {
 		sidebarStore.activeSignTab()
 	}
 
-	const setFileToSign = (file) => {
-		if (file) {
-			errors.value = []
-			document.value = file
-			mounted.value = true
-
-			const sidebarStore = useSidebarStore()
-			sidebarStore.activeSignTab()
-
-			const signMethodsStore = useSignMethodsStore()
-			signMethodsStore.settings = getSignatureMethodsForFile(file)
-			return
-		}
-
-		useSignStore().reset()
-	}
-
 	const reset = () => {
 		errors.value = []
 		document.value = defaultState.document
@@ -210,16 +210,6 @@ export const useSignStore = defineStore('sign', () => {
 
 	const clearPendingAction = () => {
 		pendingAction.value = null
-	}
-
-	const submitSignature = async (payload, signRequestUuid, options = {}) => {
-		const url = buildSignUrl(signRequestUuid, options)
-		try {
-			const response = await axios.post(url, payload)
-			return parseSignResponse(response.data)
-		} catch (error) {
-			throw parseSignError(error)
-		}
 	}
 
 	const buildSignUrl = (signRequestUuid, options = {}) => {
@@ -292,6 +282,16 @@ export const useSignStore = defineStore('sign', () => {
 			type: 'signError',
 			action,
 			errors: errorData?.errors || [],
+		}
+	}
+
+	const submitSignature = async (payload, signRequestUuid, options = {}) => {
+		const url = buildSignUrl(signRequestUuid, options)
+		try {
+			const response = await axios.post(url, payload)
+			return parseSignResponse(response.data)
+		} catch (error) {
+			throw parseSignError(error)
 		}
 	}
 

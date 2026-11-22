@@ -106,7 +106,6 @@ export default [
 			'@typescript-eslint/no-explicit-any': 'off', // ~17 hits; needs typed replacements
 			'@typescript-eslint/no-unused-vars': 'off', // ~78 hits; non-fixable cleanup
 			'@typescript-eslint/no-use-before-define': 'off', // ~38 hits; non-fixable
-			'no-use-before-define': 'off', // ~8 hits; non-fixable (JS twin)
 			'antfu/top-level-function': 'off', // ~114 hits; style preference, large churn
 			'vue/no-unused-properties': 'off', // ~11 hits; public API / shared editor props
 		},
