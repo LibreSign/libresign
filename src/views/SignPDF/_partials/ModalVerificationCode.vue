@@ -225,7 +225,7 @@ type SignStore = {
 	document: {
 		fileId?: number
 		uuid?: string | null
-		signers?: Array<{ me?: boolean; sign_request_uuid?: string }>
+		signers?: Array<{ me?: boolean, sign_request_uuid?: string }>
 		settings?: { isApprover?: boolean } | null
 	}
 	errors?: Array<{ message?: string }>

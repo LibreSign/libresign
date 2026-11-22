@@ -53,7 +53,7 @@ export async function waitForEmailTo(
 	client: MailpitClient,
 	toAddress: string,
 	subject?: string,
-	options?: { timeout?: number; interval?: number },
+	options?: { timeout?: number, interval?: number },
 ): Promise<Message> {
 	const timeout = options?.timeout ?? 30_000
 	const interval = options?.interval ?? 1_000
@@ -66,11 +66,9 @@ export async function waitForEmailTo(
 		}
 		await new Promise(resolve => setTimeout(resolve, interval))
 	}
-	throw new Error(
-		`Timeout (${timeout} ms) waiting for email to "${toAddress}"${
-			subject ? ` with subject "${subject}"` : ''
-		}`,
-	)
+	throw new Error(`Timeout (${timeout} ms) waiting for email to "${toAddress}"${
+		subject ? ` with subject "${subject}"` : ''
+	}`)
 }
 
 /** Extracts a LibreSign sign link from an email body matching /p/sign/{uuid}. */

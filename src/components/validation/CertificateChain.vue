@@ -94,7 +94,9 @@ defineProps<{
 const chainOpen = ref(false)
 
 function formatTimestamp(timestamp?: number) {
-	if (!timestamp) { return '' }
+	if (!timestamp) {
+		return ''
+	}
 	return Moment.unix(timestamp).format('LLL')
 }
 

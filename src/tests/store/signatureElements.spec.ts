@@ -141,12 +141,10 @@ describe('signatureElements store - signature business rules', () => {
 			const store = useSignatureElementsStore()
 			await store.save('signature', 'base64data')
 
-			expect(axiosMock).toHaveBeenCalledWith(
-				expect.objectContaining({
+			expect(axiosMock).toHaveBeenCalledWith(expect.objectContaining({
 					method: 'patch',
 					url: '/ocs/v2.php/apps/libresign/api/v1/signature/elements/123',
-				}),
-			)
+				}))
 		})
 
 		it('uses POST when signature does not exist (nodeId = 0)', async () => {
@@ -168,20 +166,22 @@ describe('signatureElements store - signature business rules', () => {
 
 			await store.save('signature', 'base64data')
 
-			expect(axiosMock).toHaveBeenCalledWith(
-				expect.objectContaining({
+			expect(axiosMock).toHaveBeenCalledWith(expect.objectContaining({
 					method: 'post',
 					url: '/ocs/v2.php/apps/libresign/api/v1/signature/elements',
-				}),
-			)
+				}))
 		})
 	})
 
 	describe('RULE: saving with signRequestUuid should send specific header', () => {
 		it('includes header when has signRequestUuid', async () => {
 			loadStateMock.mockImplementation((app, key, defaultValue) => {
-				if (key === 'sign_request_uuid') { return 'uuid-123' }
-				if (key === 'user_signatures') { return [] }
+				if (key === 'sign_request_uuid') {
+					return 'uuid-123'
+				}
+				if (key === 'user_signatures') {
+					return []
+				}
 				return defaultValue
 			})
 
@@ -201,19 +201,21 @@ describe('signatureElements store - signature business rules', () => {
 
 			await store.save('signature', 'base64data')
 
-			expect(axiosMock).toHaveBeenCalledWith(
-				expect.objectContaining({
+			expect(axiosMock).toHaveBeenCalledWith(expect.objectContaining({
 					headers: {
 						'libresign-sign-request-uuid': 'uuid-123',
 					},
-				}),
-			)
+				}))
 		})
 
 		it('does not include header when has no signRequestUuid', async () => {
 			loadStateMock.mockImplementation((app, key, defaultValue) => {
-				if (key === 'sign_request_uuid') { return '' }
-				if (key === 'user_signatures') { return [] }
+				if (key === 'sign_request_uuid') {
+					return ''
+				}
+				if (key === 'user_signatures') {
+					return []
+				}
 				return defaultValue
 			})
 
@@ -299,7 +301,9 @@ describe('signatureElements store - signature business rules', () => {
 
 		it('delete should include signRequestUuid in header when available', async () => {
 			loadStateMock.mockImplementation((app, key, defaultValue) => {
-				if (key === 'sign_request_uuid') { return 'uuid-123' }
+				if (key === 'sign_request_uuid') {
+					return 'uuid-123'
+				}
 				if (key === 'user_signatures') {
 					return [{
 						type: 'signature',
@@ -325,13 +329,11 @@ describe('signatureElements store - signature business rules', () => {
 
 			await store.delete('signature')
 
-			expect(axiosMock).toHaveBeenCalledWith(
-				expect.objectContaining({
+			expect(axiosMock).toHaveBeenCalledWith(expect.objectContaining({
 					headers: {
 						'libresign-sign-request-uuid': 'uuid-123',
 					},
-				}),
-			)
+				}))
 		})
 	})
 
@@ -383,12 +385,10 @@ describe('signatureElements store - signature business rules', () => {
 
 			const store = useSignatureElementsStore()
 
-			expect(axiosMock).toHaveBeenCalledWith(
-				expect.objectContaining({
+			expect(axiosMock).toHaveBeenCalledWith(expect.objectContaining({
 					method: 'get',
 					url: '/ocs/v2.php/apps/libresign/api/v1/signature/elements',
-				}),
-			)
+				}))
 		})
 	})
 

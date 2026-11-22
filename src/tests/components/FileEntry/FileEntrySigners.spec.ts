@@ -32,7 +32,7 @@ beforeAll(async () => {
 })
 
 describe('FileEntrySigners', () => {
-	const createWrapper = (props: { signersCount?: number; signers?: Signer[] } = {}) => {
+	const createWrapper = (props: { signersCount?: number, signers?: Signer[] } = {}) => {
 		return mount(FileEntrySigners, {
 			props: {
 				signersCount: 0,

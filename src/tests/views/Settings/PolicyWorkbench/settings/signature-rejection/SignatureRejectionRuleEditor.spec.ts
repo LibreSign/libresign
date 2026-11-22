@@ -145,8 +145,6 @@ describe('SignatureRejectionRuleEditor.vue', () => {
 
 		await enabledSwitch.trigger('click')
 
-		expect(wrapper.emitted('update:modelValue')?.[0]?.[0]).toEqual(
-			canToggle ? { ...prepared, enabled: !current } : undefined,
-		)
+		expect(wrapper.emitted('update:modelValue')?.[0]?.[0]).toEqual(canToggle ? { ...prepared, enabled: !current } : undefined)
 	})
 })

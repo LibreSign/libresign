@@ -86,9 +86,7 @@ async function clearExistingIdDocument(page: Page): Promise<void> {
 			deleteButton(page).click(),
 		])
 		expect(deleteResponse.status()).toBe(200)
-		await expect(
-			page.locator('[aria-live="polite"]').filter({ hasText: /File was deleted\./i }),
-		).toBeVisible({ timeout: 20_000 })
+		await expect(page.locator('[aria-live="polite"]').filter({ hasText: /File was deleted\./i })).toBeVisible({ timeout: 20_000 })
 		await waitForIdDocsCard(page)
 	}
 	await expect(emptyStatus(page)).toBeVisible({ timeout: 20_000 })
@@ -125,9 +123,7 @@ test('identification documents appear on the account page after upload', async (
 	])
 	expect(uploadResponse.status()).toBe(200)
 
-	await expect(
-		page.locator('[aria-live="polite"]').filter({ hasText: /File was sent\./i }),
-	).toBeVisible({ timeout: 20_000 })
+	await expect(page.locator('[aria-live="polite"]').filter({ hasText: /File was sent\./i })).toBeVisible({ timeout: 20_000 })
 	await expect(deleteButton(page)).toBeVisible({ timeout: 20_000 })
 	await expect(emptyStatus(page)).toHaveCount(0)
 	await shot(page, '03-account-id-doc-uploaded')

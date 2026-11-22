@@ -92,12 +92,10 @@ function getPreferenceBehaviorFor(policyKey: string) {
 	return realDefinitions[policyKey as keyof typeof realDefinitions]?.personalPreferenceBehavior
 }
 
-function hasManageableWorkbenchPolicy(
-	policies: Record<string, {
+function hasManageableWorkbenchPolicy(policies: Record<string, {
 		editableByCurrentActor?: boolean
 		canSaveAsUserDefault?: boolean
-	}> | undefined,
-): boolean {
+	}> | undefined): boolean {
 	if (!policies) {
 		return false
 	}

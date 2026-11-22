@@ -34,7 +34,7 @@ type EngineOption = {
 }
 
 type ConfigureCheckStore = {
-	saveCertificateEngine: (engine: string) => Promise<{ success: boolean; engine: string }>
+	saveCertificateEngine: (engine: string) => Promise<{ success: boolean, engine: string }>
 }
 
 defineOptions({

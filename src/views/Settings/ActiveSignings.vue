@@ -101,9 +101,7 @@ const shouldRefresh = computed(() => autoRefresh.value)
 async function refresh() {
 	loading.value = true
 	try {
-		const response = await axios.get<ActiveSigningsResponse>(
-			generateOcsUrl('/apps/libresign/api/v1/admin/active-signings'),
-		)
+		const response = await axios.get<ActiveSigningsResponse>(generateOcsUrl('/apps/libresign/api/v1/admin/active-signings'))
 		signings.value = response.data.ocs.data.data
 		updateLastRefreshTime()
 	} catch (error: unknown) {

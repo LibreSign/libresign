@@ -126,7 +126,7 @@ const canReorder = computed(() => {
 	return filesStore.canSave() && (signers.value?.length || 0) > 1
 })
 
-function onDragEnd(evt: { oldIndex: number; newIndex: number }) {
+function onDragEnd(evt: { oldIndex: number, newIndex: number }) {
 	const { oldIndex, newIndex } = evt
 	if (oldIndex === newIndex) {
 		return

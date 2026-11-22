@@ -57,9 +57,7 @@ function getInitialIdentifyMethods(): string {
 		requirement: 'optional' as const,
 	}))
 
-	return serializeIdentifyMethodsPolicy(
-		permissiveDefaults,
-	)
+	return serializeIdentifyMethodsPolicy(permissiveDefaults)
 }
 
 export const identifyMethodsRealDefinition: RealPolicySettingDefinition = {

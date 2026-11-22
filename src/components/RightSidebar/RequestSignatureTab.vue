@@ -1102,7 +1102,7 @@ function showSaveSignatureRequestFailure(response: unknown, fallbackMessage: str
 	showError(fallbackMessage)
 }
 
-function isSaveSignatureRequestFailure(response: unknown): response is { success: false; message?: string } {
+function isSaveSignatureRequestFailure(response: unknown): response is { success: false, message?: string } {
 	return typeof response === 'object'
 		&& response !== null
 		&& 'success' in response
@@ -1707,7 +1707,9 @@ function confirmSigningOrder(signer: EditableRequestSigner) {
 	}
 
 	for (let index = 0; index < file.signers.length; index++) {
-		if (index === currentIndex) { continue }
+		if (index === currentIndex) {
+			continue
+		}
 		const currentItem = file.signers[index]
 		if (!currentItem || isObserverParticipant(currentItem)) {
 			continue

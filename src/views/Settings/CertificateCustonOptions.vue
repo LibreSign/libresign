@@ -137,15 +137,14 @@ const certificateList = ref<CertificateOption[]>([])
 const availableOptions = computed(() => options.filter((option: { id: string }) => option.id !== 'CN'))
 
 const customNamesOptions = computed(() => availableOptions.value.filter((itemA: { id: string }) =>
-	!certificateList.value.some((itemB: CertificateOption) => itemB.id === itemA.id),
-))
+	!certificateList.value.some((itemB: CertificateOption) => itemB.id === itemA.id)))
 
 watch(() => props.names, (values: CertificateOption[]) => {
 	certificateList.value = values as CertificateOption[]
 }, { immediate: true })
 
 function getOptionProperty(id: string, property: 'label' | 'helperText' | 'max') {
-	return availableOptions.value.find((option: { id: string; label?: string; helperText?: string; max?: number }) => option.id === id)?.[property]
+	return availableOptions.value.find((option: { id: string, label?: string, helperText?: string, max?: number }) => option.id === id)?.[property]
 }
 
 function getOptionLabel(id: string) {

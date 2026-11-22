@@ -508,7 +508,7 @@ function getSignerStatus(status: string) {
 	return statusMap[status] || status
 }
 
-async function validate(id: string, { suppressLoading = false, forceRefresh = false }: { suppressLoading?: boolean; forceRefresh?: boolean } = {}) {
+async function validate(id: string, { suppressLoading = false, forceRefresh = false }: { suppressLoading?: boolean, forceRefresh?: boolean } = {}) {
 	validationErrorMessage.value = null
 	documentValidMessage.value = null
 	if (id === document.value?.uuid && !forceRefresh) {
@@ -524,7 +524,7 @@ async function validate(id: string, { suppressLoading = false, forceRefresh = fa
 	getUUID.value = false
 }
 
-async function validateByUUID(uuid: string, { suppressLoading = false, forceRefresh = false }: { suppressLoading?: boolean; forceRefresh?: boolean } = {}) {
+async function validateByUUID(uuid: string, { suppressLoading = false, forceRefresh = false }: { suppressLoading?: boolean, forceRefresh?: boolean } = {}) {
 	if (!suppressLoading) {
 		loading.value = true
 	}
@@ -549,7 +549,7 @@ async function validateByUUID(uuid: string, { suppressLoading = false, forceRefr
 	}
 }
 
-async function validateByNodeID(nodeId: string, { suppressLoading = false, forceRefresh = false }: { suppressLoading?: boolean; forceRefresh?: boolean } = {}) {
+async function validateByNodeID(nodeId: string, { suppressLoading = false, forceRefresh = false }: { suppressLoading?: boolean, forceRefresh?: boolean } = {}) {
 	if (!suppressLoading) {
 		loading.value = true
 	}
@@ -694,9 +694,15 @@ function getCrlValidationIconClass(signer: ValidationDisplaySigner) {
 		return 'icon-default'
 	}
 	const variant = crlStatusMap.value[signer.crl_validation]?.variant
-	if (variant === 'success') { return 'icon-success' }
-	if (variant === 'error') { return 'icon-error' }
-	if (variant === 'warning') { return 'icon-warning' }
+	if (variant === 'success') {
+		return 'icon-success'
+	}
+	if (variant === 'error') {
+		return 'icon-error'
+	}
+	if (variant === 'warning') {
+		return 'icon-warning'
+	}
 	return 'icon-default'
 }
 
@@ -757,15 +763,23 @@ function getModificationStatusVariant(signer: ValidationDisplaySigner): 'success
 
 function getModificationStatusIcon(signer: ValidationDisplaySigner) {
 	const variant = getModificationStatusVariant(signer)
-	if (variant === 'success') { return mdiCheckCircle }
-	if (variant === 'error') { return mdiCancel }
+	if (variant === 'success') {
+		return mdiCheckCircle
+	}
+	if (variant === 'error') {
+		return mdiCancel
+	}
 	return signer.modification_validation ? mdiHelpCircle : null
 }
 
 function getModificationStatusClass(signer: ValidationDisplaySigner) {
 	const variant = getModificationStatusVariant(signer)
-	if (variant === 'success') { return 'icon-success' }
-	if (variant === 'error') { return 'icon-error' }
+	if (variant === 'success') {
+		return 'icon-success'
+	}
+	if (variant === 'error') {
+		return 'icon-error'
+	}
 	return ''
 }
 
@@ -823,8 +837,7 @@ function getDocumentValidationSummary(validationDocument: ValidationDocumentStat
 
 	if (signers.some(signer =>
 		signer.modification_validation?.valid === false
-		|| signer.modification_validation?.status === MODIFICATION_VIOLATION,
-	)) {
+		|| signer.modification_validation?.status === MODIFICATION_VIOLATION)) {
 		return {
 			message: t('libresign', 'The document contains changes that invalidate its certification'),
 			type: 'error',
@@ -833,8 +846,7 @@ function getDocumentValidationSummary(validationDocument: ValidationDocumentStat
 
 	if (signers.some(signer =>
 		signer.document_modification_state === 'invalid_byte_range'
-		|| signer.document_modification_state === 'invalid_eof_boundary',
-	)) {
+		|| signer.document_modification_state === 'invalid_eof_boundary')) {
 		return {
 			message: t('libresign', 'One or more digital signatures are invalid'),
 			type: 'error',
@@ -843,23 +855,19 @@ function getDocumentValidationSummary(validationDocument: ValidationDocumentStat
 
 	if (signers.some(signer =>
 		signer.signature_validation !== undefined
-		&& signer.signature_validation.id !== 1,
-	)) {
+		&& signer.signature_validation.id !== 1)) {
 		return {
 			message: t('libresign', 'One or more digital signatures are invalid'),
 			type: 'error',
 		}
 	}
 
-	const hasDocumentModificationState = signers.some(
-		signer => signer.document_modification_state !== undefined,
-	)
+	const hasDocumentModificationState = signers.some(signer => signer.document_modification_state !== undefined)
 
 	const hasDocumentModificationWarning = hasDocumentModificationState
 		? signers.some(signer =>
 			signer.document_modification_state !== undefined
-			&& signer.document_modification_state !== 'unchanged',
-		)
+			&& signer.document_modification_state !== 'unchanged')
 		: signers.some((signer) => {
 			const modifications = signer.modifications as { modified?: boolean } | undefined
 			return modifications?.modified === true

@@ -76,8 +76,7 @@ describe('identify methods workbench', () => {
 					},
 				},
 				signatureMethodEnabled: 'emailToken',
-			},
-		)
+			})
 		getPolicy.mockImplementation((key: string) => {
 			if (key === 'identify_methods') {
 				return {

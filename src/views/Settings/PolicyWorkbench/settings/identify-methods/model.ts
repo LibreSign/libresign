@@ -121,9 +121,7 @@ export function restrictIdentifyMethodsPolicyToNames(
 	allowedMethodNames: Iterable<string>,
 ): string {
 	const normalizedConfig = normalizeIdentifyMethodsPolicyConfig(value)
-	const allowedNames = new Set(
-		Array.from(allowedMethodNames).filter((name): name is string => typeof name === 'string' && name.trim().length > 0),
-	)
+	const allowedNames = new Set(Array.from(allowedMethodNames).filter((name): name is string => typeof name === 'string' && name.trim().length > 0))
 
 	return serializeIdentifyMethodsPolicy(
 		normalizedConfig.factors.filter((entry) => allowedNames.has(entry.name)),
@@ -356,12 +354,10 @@ function cloneIdentifyMethodEntry(entry: IdentifyMethodPolicyEntry): IdentifyMet
 }
 
 function cloneSignatureMethods(signatureMethods: Record<string, IdentifyMethodSignatureMethod>): Record<string, IdentifyMethodSignatureMethod> {
-	return Object.fromEntries(
-		Object.entries(signatureMethods).map(([signatureMethodName, signatureMethod]) => [
+	return Object.fromEntries(Object.entries(signatureMethods).map(([signatureMethodName, signatureMethod]) => [
 			signatureMethodName,
 			{ ...signatureMethod },
-		]),
-	)
+		]))
 }
 
 function normalizeRequirement(requirement: unknown): IdentifyMethodRequirement | undefined {

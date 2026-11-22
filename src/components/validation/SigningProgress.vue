@@ -162,9 +162,7 @@ async function fetchProgressFromValidation() {
 	if (hasFileErrors || errorCount > 0) {
 		return
 	}
-	const response = await Promise.resolve(axios.get(
-		generateOcsUrl(`/apps/libresign/api/v1/file/validate/uuid/${props.signRequestUuid}`),
-	)).catch(() => null)
+	const response = await Promise.resolve(axios.get(generateOcsUrl(`/apps/libresign/api/v1/file/validate/uuid/${props.signRequestUuid}`))).catch(() => null)
 	if (!response) {
 		return
 	}
@@ -287,7 +285,7 @@ function buildProgressFromValidation(doc: ValidationDocument | null | undefined)
 	}
 	if (doc.nodeType === 'envelope') {
 		const files = (doc.files ?? [])
-			.filter((file): file is typeof file & { id: number; name: string; status: number } => {
+			.filter((file): file is typeof file & { id: number, name: string, status: number } => {
 				return typeof file.id === 'number'
 					&& typeof file.name === 'string'
 					&& typeof file.status === 'number'

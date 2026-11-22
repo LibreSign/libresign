@@ -95,9 +95,7 @@ describe('Notification delivery status', () => {
 		expect(result.kind).toBe('unconfirmed')
 		expect(vi.mocked(axios.get)).toHaveBeenCalledTimes(1)
 		expect(vi.mocked(axios.post)).toHaveBeenCalledTimes(1)
-		expect(vi.mocked(axios.post)).toHaveBeenCalledWith(
-			'/ocs/apps/libresign/api/v1/notify/signer', query,
-		)
+		expect(vi.mocked(axios.post)).toHaveBeenCalledWith('/ocs/apps/libresign/api/v1/notify/signer', query)
 	})
 
 	it('reports an indeterminate provider outcome without retrying the POST', async () => {

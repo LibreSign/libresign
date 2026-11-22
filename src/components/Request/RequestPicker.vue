@@ -238,9 +238,7 @@ const loading = ref(false)
 const isDirectSigning = ref(false)
 const openedMenu = ref(false)
 const canRequestSign = ref(loadState('libresign', 'can_request_sign', false))
-const effectivePolicies = loadState<{ policies?: { identify_methods?: { effectiveValue?: EffectivePolicyValue } } }>(
-	'libresign', 'effective_policies', { policies: {} },
-)
+const effectivePolicies = loadState<{ policies?: { identify_methods?: { effectiveValue?: EffectivePolicyValue } } }>('libresign', 'effective_policies', { policies: {} })
 const canDirectSign = computed(() => canRequestSign.value
 	&& canSignDirectly(effectivePolicies?.policies?.identify_methods?.effectiveValue ?? null))
 const uploadProgress = ref(0)
@@ -293,11 +291,9 @@ const canUploadFronUrl = computed(() => {
 async function openFilePicker() {
 	openedMenu.value = false
 
-	const filePicker = getFilePickerBuilder(
-		envelopeEnabled.value
+	const filePicker = getFilePickerBuilder(envelopeEnabled.value
 			? selectYourFilesTitle
-			: selectYourFileTitle,
-	)
+			: selectYourFileTitle)
 		.setMultiSelect(envelopeEnabled.value)
 		.setMimeTypeFilter(['application/pdf'])
 		.addButton({
@@ -406,7 +402,7 @@ async function upload(files: UploadFile[], selectedEnvelopeName: string | null =
 			sidebarStore.activeRequestSignatureTab()
 			return id
 		})
-		.catch((error: { code?: string; response?: { data?: { ocs?: { data?: { message?: string } } } } }) => {
+		.catch((error: { code?: string, response?: { data?: { ocs?: { data?: { message?: string } } } } }) => {
 			if (error.code === 'ERR_CANCELED') {
 				return null
 			}

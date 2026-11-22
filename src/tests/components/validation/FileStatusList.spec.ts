@@ -31,7 +31,7 @@ type FileStatusListVm = {
 
 type FileStatusListWrapper = VueWrapper<any> & {
 	vm: FileStatusListVm
-	setProps: (props: { fileIds?: number[]; updateInterval?: number }) => Promise<void>
+	setProps: (props: { fileIds?: number[], updateInterval?: number }) => Promise<void>
 	props: (key: 'fileIds' | 'updateInterval') => unknown
 }
 
@@ -137,7 +137,7 @@ describe('FileStatusList', () => {
 	let wrapper: FileStatusListWrapper | null
 	let mockAxios: AxiosMock
 
-	const createWrapper = (props: { fileIds?: number[]; updateInterval?: number } = {}): FileStatusListWrapper => {
+	const createWrapper = (props: { fileIds?: number[], updateInterval?: number } = {}): FileStatusListWrapper => {
 		return mount(FileStatusList, {
 			props: {
 				fileIds: [],

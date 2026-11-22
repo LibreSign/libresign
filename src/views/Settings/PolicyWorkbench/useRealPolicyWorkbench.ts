@@ -195,11 +195,9 @@ export function createRealPolicyWorkbenchState() {
 	const currentUser = getCurrentUser()
 	const isInstanceAdmin = currentUser?.isAdmin === true
 	const config = loadState<{ can_manage_group_policies?: boolean, manageable_policy_group_ids?: string[] }>('libresign', 'config', {})
-	const manageablePolicyGroupIds = new Set(
-		Array.isArray(config.manageable_policy_group_ids)
+	const manageablePolicyGroupIds = new Set(Array.isArray(config.manageable_policy_group_ids)
 			? config.manageable_policy_group_ids.filter((groupId): groupId is string => typeof groupId === 'string' && groupId.trim().length > 0)
-			: [],
-	)
+			: [])
 	const initialViewMode: 'system-admin' | 'group-admin' = currentUser?.isAdmin
 		? 'system-admin'
 		: config.can_manage_group_policies
@@ -597,11 +595,9 @@ export function createRealPolicyWorkbenchState() {
 		}
 
 		const selectedTargetIds = new Set(editorDraft.value.targetIds)
-		const assignedTargetIds = new Set(
-			(scope === 'group' ? visibleGroupRules.value : userRules.value)
+		const assignedTargetIds = new Set((scope === 'group' ? visibleGroupRules.value : userRules.value)
 				.map((rule) => rule.targetId)
-				.filter((targetId): targetId is string => !!targetId),
-		)
+				.filter((targetId): targetId is string => !!targetId))
 
 		return targets.filter((target) => {
 			return selectedTargetIds.has(target.id) || !assignedTargetIds.has(target.id)
@@ -1341,9 +1337,7 @@ export function createRealPolicyWorkbenchState() {
 			&& editorDraft.value.targetIds.length === 0
 			&& activeDefinition.value.extractScopeTargets
 		) {
-			editorDraft.value.targetIds = Array.from(
-				new Set(activeDefinition.value.extractScopeTargets(scope, editorDraft.value.value).filter(Boolean)),
-			)
+			editorDraft.value.targetIds = Array.from(new Set(activeDefinition.value.extractScopeTargets(scope, editorDraft.value.value).filter(Boolean)))
 		}
 
 		editorInitialTargetIds.value = [...editorDraft.value.targetIds]
@@ -1390,9 +1384,7 @@ export function createRealPolicyWorkbenchState() {
 		// so 'Save' stays enabled without requiring manual scope-group selection.
 		const extractFn = activeDefinition.value?.extractScopeTargets
 		if (extractFn && editorDraft.value.scope === 'group') {
-			editorDraft.value.targetIds = Array.from(
-				new Set(extractFn(editorDraft.value.scope, value).filter(Boolean)),
-			)
+			editorDraft.value.targetIds = Array.from(new Set(extractFn(editorDraft.value.scope, value).filter(Boolean)))
 		}
 	}
 

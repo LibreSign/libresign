@@ -202,7 +202,7 @@ type UploadProgressEvent = {
 type FilesStore = {
 	getFile: FilesStoreContract['getFile']
 	removeFilesFromEnvelope: (fileIds: number[]) => Promise<RemoveFilesResult>
-	addFilesToEnvelope: (uuid: string, formData: FormData, options: { signal: AbortSignal; onUploadProgress: (event: UploadProgressEvent) => void }) => Promise<AddFilesResult>
+	addFilesToEnvelope: (uuid: string, formData: FormData, options: { signal: AbortSignal, onUploadProgress: (event: UploadProgressEvent) => void }) => Promise<AddFilesResult>
 	rename: (uuid: string, newName: string) => Promise<boolean>
 }
 
@@ -372,7 +372,7 @@ async function loadFiles(page = 1) {
 		})
 }
 
-function onScroll(event: { target: { scrollTop: number; scrollHeight: number; clientHeight: number } }) {
+function onScroll(event: { target: { scrollTop: number, scrollHeight: number, clientHeight: number } }) {
 	if (isLoadingMore.value || !hasMore.value) {
 		return
 	}
@@ -421,8 +421,10 @@ function validateMaxFileUploads(filesCount: number) {
 	return true
 }
 
-function getPreviewUrl(file: Partial<EnvelopeFile> & { id?: number; nodeId?: number }) {
-	if (!file.id && !file.nodeId) { return null }
+function getPreviewUrl(file: Partial<EnvelopeFile> & { id?: number, nodeId?: number }) {
+	if (!file.id && !file.nodeId) {
+		return null
+	}
 
 	const previewUrl = file.id
 		? generateOcsUrl('/apps/libresign/api/v1/file/thumbnail/file_id/{fileId}', {
@@ -507,7 +509,9 @@ function addFileToEnvelope() {
 	input.onchange = async (event) => {
 		const target = event.target as HTMLInputElement | null
 		const selectedFileList = target?.files
-		if (!selectedFileList || selectedFileList.length === 0) { return }
+		if (!selectedFileList || selectedFileList.length === 0) {
+			return
+		}
 		if (!validateMaxFileUploads(selectedFileList.length)) {
 			return
 		}

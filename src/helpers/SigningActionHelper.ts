@@ -4,7 +4,7 @@
  */
 
 interface SignStore {
-	errors: Array<{ code?: number; [key: string]: unknown }>
+	errors: Array<{ code?: number, [key: string]: unknown }>
 	[key: string]: unknown
 }
 

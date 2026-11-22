@@ -76,7 +76,7 @@ import type { SignerDetailRecord, SignerSummaryRecord, VisibleElementRecord } fr
 
 type ServiceVisibleElement = VisibleElementRecord
 
-type SignError = { title?: string; message?: string; scope?: string }
+type SignError = { title?: string, message?: string, scope?: string }
 type SignDocumentStatus = number | string
 type SignDocumentVisibleElement = {
 	elementId?: number
@@ -138,7 +138,7 @@ type SignStore = Pick<ReturnType<typeof useSignStore>, 'document' | 'errors' | '
 }
 
 type FilesStore = Pick<ReturnType<typeof useFilesStore>, 'getAllFiles' | 'addFile' | 'selectFile' | 'getFile'> & {
-	fetchFileDetail: (options: { fileId?: number | null; uuid?: string | null; force?: boolean }) => Promise<SignDocument | null>
+	fetchFileDetail: (options: { fileId?: number | null, uuid?: string | null, force?: boolean }) => Promise<SignDocument | null>
 	addFile: (file: SignDocumentFile) => void
 	selectFile: (fileId: number) => void
 	getFile: () => { status?: SignDocumentStatus } | null
@@ -172,7 +172,7 @@ type RouterLike = {
 	push: (location: {
 		name: string
 		params: { uuid: string }
-		state: { isAfterSigned: boolean; isAsync: boolean }
+		state: { isAfterSigned: boolean, isAsync: boolean }
 	}) => Promise<unknown> | unknown
 }
 
@@ -316,15 +316,11 @@ async function initSignInternal() {
 	})
 	if (!file || typeof file.id !== 'number') {
 		if (previous) {
-			signStore.setFileToSign(
-				mergeSignDocumentForRoute(previous, null, routeUuid) || previous,
-			)
+			signStore.setFileToSign(mergeSignDocumentForRoute(previous, null, routeUuid) || previous)
 		}
 		return
 	}
-	signStore.setFileToSign(
-		mergeSignDocumentForRoute(previous, file, routeUuid) || file,
-	)
+	signStore.setFileToSign(mergeSignDocumentForRoute(previous, file, routeUuid) || file)
 	filesStore.selectFile(file.id)
 }
 
@@ -447,9 +443,7 @@ async function fetchEnvelopeFiles(parentFileId: number | string): Promise<RawSig
 function updateSigners() {
 	if (signStore.document.nodeType === 'envelope' && envelopeFiles.value.length > 0) {
 		const normalizedEnvelopeFiles = envelopeFiles.value.map(normalizeFileForVisibleElements)
-		const fileIndexById = new Map(
-			envelopeFiles.value.map((file: SignDocumentFile, index: number) => [String(file.id), index]),
-		)
+		const fileIndexById = new Map(envelopeFiles.value.map((file: SignDocumentFile, index: number) => [String(file.id), index]))
 		const elements = aggregateVisibleElementsByFiles(normalizedEnvelopeFiles)
 			elements.forEach(element => {
 				const fileInfo = findFileById(normalizedEnvelopeFiles, element.fileId)

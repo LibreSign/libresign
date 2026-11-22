@@ -101,8 +101,12 @@ export function getStatusSvgInline(status) {
 
 		const svg = svgs[status]
 		const color = colors[status]
-		if (!svg) { return '' }
-		if (!color) { return svg }
+		if (!svg) {
+			return ''
+		}
+		if (!color) {
+			return svg
+		}
 		return svg.replace('<path ', `<path fill="${color}" `)
 	} catch (e) {
 		return ''
