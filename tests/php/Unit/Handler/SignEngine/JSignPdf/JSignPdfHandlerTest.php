@@ -22,6 +22,7 @@ use OCA\Libresign\Service\SignatureBackgroundService;
 use OCA\Libresign\Service\SignatureTextService;
 use OCA\Libresign\Service\SignerElementsService;
 use OCA\Libresign\Service\TemporarySignatureImageService;
+use OCA\Libresign\Tests\Fixtures\PdfGenerator;
 use OCA\Libresign\Vendor\Jeidison\JSignPDF\JSignPDF;
 use OCA\Libresign\Vendor\Jeidison\JSignPDF\Sign\JSignParam;
 use OCP\IAppConfig;
