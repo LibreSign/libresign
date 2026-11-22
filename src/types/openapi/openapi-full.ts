@@ -1308,6 +1308,27 @@ export type paths = {
         patch?: never;
         trace?: never;
     };
+    "/ocs/v2.php/apps/libresign/api/{apiVersion}/admin/signing/drivers": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List registered external signing driver types for system administrators.
+         * @description This endpoint does not expose configured integration instances or secrets.
+         *     This endpoint requires admin access
+         */
+        get: operations["external_signing_drivers-index"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/ocs/v2.php/apps/libresign/api/{apiVersion}/policies/system/{policyKey}": {
         parameters: {
             query?: never;
@@ -1689,6 +1710,31 @@ export type components = {
         };
         ErrorsResponse: {
             errors: components["schemas"]["ErrorItem"][];
+        };
+        ExternalSigningDriver: {
+            id: string;
+            name: string;
+            description: string;
+            experimental: boolean;
+            available: boolean;
+            unavailableReason: string | null;
+            fields: components["schemas"]["ExternalSigningField"][];
+        };
+        ExternalSigningDriversResponse: {
+            drivers: components["schemas"]["ExternalSigningDriver"][];
+        };
+        ExternalSigningField: {
+            key: string;
+            label: string;
+            /** @enum {string} */
+            type: "url" | "password";
+            required: boolean;
+            secret: boolean;
+            validation: {
+                schemes?: string[];
+                allowLoopbackHttp?: boolean;
+                allowUserInfo?: boolean;
+            };
         };
         FailureStatusResponse: {
             /** @enum {string} */
@@ -8561,6 +8607,88 @@ export interface operations {
                         ocs: {
                             meta: components["schemas"]["OCSMeta"];
                             data: components["schemas"]["CrlRevokeResponse"];
+                        };
+                    };
+                };
+            };
+        };
+    };
+    "external_signing_drivers-index": {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Required to be true for the API request to pass */
+                "OCS-APIRequest": boolean;
+            };
+            path: {
+                apiVersion: "v1";
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Registered experimental driver definitions */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        ocs: {
+                            meta: components["schemas"]["OCSMeta"];
+                            data: components["schemas"]["ExternalSigningDriversResponse"];
+                        };
+                    };
+                };
+            };
+            /** @description Authentication required */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        ocs: {
+                            meta: components["schemas"]["OCSMeta"];
+                            data: components["schemas"]["ErrorResponse"];
+                        };
+                    } | {
+                        ocs: {
+                            meta: components["schemas"]["OCSMeta"];
+                            data: unknown;
+                        };
+                    };
+                };
+            };
+            /** @description System administrator required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        ocs: {
+                            meta: components["schemas"]["OCSMeta"];
+                            data: components["schemas"]["ErrorResponse"];
+                        };
+                    } | {
+                        ocs: {
+                            meta: components["schemas"]["OCSMeta"];
+                            data: unknown;
+                        };
+                    };
+                };
+            };
+            /** @description Experimental features disabled */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        ocs: {
+                            meta: components["schemas"]["OCSMeta"];
+                            data: components["schemas"]["ErrorResponse"];
                         };
                     };
                 };
