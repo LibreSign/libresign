@@ -16,7 +16,13 @@ final class ExternalIntegrationFieldValidatorTest extends TestCase {
 	/** @return list<array<string, mixed>> */
 	private static function fields(): array {
 		return [
-			['key' => 'baseUrl', 'type' => 'url', 'required' => true, 'secret' => false, 'validation' => ['schemes' => ['https'], 'allowUserInfo' => false]],
+			[
+				'key' => 'baseUrl',
+				'type' => 'url',
+				'required' => true,
+				'secret' => false,
+				'validation' => ['schemes' => ['https'], 'allowUserInfo' => false],
+			],
 			['key' => 'accessToken', 'type' => 'password', 'required' => false, 'secret' => true],
 		];
 	}
@@ -24,12 +30,20 @@ final class ExternalIntegrationFieldValidatorTest extends TestCase {
 	public function testCreateAcceptsValidMetadataWithoutLeakingOrRequiringOptionalSecret(): void {
 		$validator = new ExternalIntegrationFieldValidator();
 		$validator->validateCreate(self::fields(), ['baseUrl' => 'https://csc.example.invalid/v1'], []);
-		$validator->validateCreate(self::fields(), ['baseUrl' => 'https://csc.example.invalid'], ['accessToken' => 'synthetic-test-credential']);
+		$validator->validateCreate(
+			self::fields(),
+			['baseUrl' => 'https://csc.example.invalid'],
+			['accessToken' => 'synthetic-test-credential'],
+		);
 		$this->addToAssertionCount(2);
 	}
 
 	public function testOptionalSecretMetadataMayOmitValidation(): void {
-		(new ExternalIntegrationFieldValidator())->validateCreate(self::fields(), ['baseUrl' => 'https://example.org'], ['accessToken' => 'synthetic-token']);
+		(new ExternalIntegrationFieldValidator())->validateCreate(
+			self::fields(),
+			['baseUrl' => 'https://example.org'],
+			['accessToken' => 'synthetic-token'],
+		);
 		$this->addToAssertionCount(1);
 	}
 
@@ -95,7 +109,11 @@ final class ExternalIntegrationFieldValidatorTest extends TestCase {
 		$fields = self::fields();
 		$fields[1]['required'] = true;
 		$this->expectException(\InvalidArgumentException::class);
-		(new ExternalIntegrationFieldValidator())->validateUpdate($fields, ['baseUrl' => 'https://example.org'], ['accessToken' => null]);
+		(new ExternalIntegrationFieldValidator())->validateUpdate(
+			$fields,
+			['baseUrl' => 'https://example.org'],
+			['accessToken' => null],
+		);
 	}
 
 	public function testRequiredSecretMustBePresentOnCreation(): void {

@@ -42,14 +42,24 @@ final class ExternalIntegrationStoreTest extends \OCA\Libresign\Tests\Integratio
 	}
 
 	private function create(string $name = 'Synthetic CSC'): \OCA\Libresign\Service\Signing\ExternalIntegrationRecord {
-		return $this->createTracked('csc', $name, ['serviceUrl' => 'https://example.invalid'], ['accessToken' => 'integration-test-secret']);
+		return $this->createTracked(
+			'csc',
+			$name,
+			['serviceUrl' => 'https://example.invalid'],
+			['accessToken' => 'integration-test-secret'],
+		);
 	}
 
 	/**
 	 * @param array<string, mixed> $configuration
 	 * @param array<string, string> $secrets
 	 */
-	private function createTracked(string $driverId, string $name, array $configuration, #[\SensitiveParameter] array $secrets): \OCA\Libresign\Service\Signing\ExternalIntegrationRecord {
+	private function createTracked(
+		string $driverId,
+		string $name,
+		array $configuration,
+		#[\SensitiveParameter] array $secrets,
+	): \OCA\Libresign\Service\Signing\ExternalIntegrationRecord {
 		$record = $this->store->create($driverId, $name, $configuration, $secrets);
 		$this->created[] = $record->id;
 		return $record;
@@ -80,7 +90,10 @@ final class ExternalIntegrationStoreTest extends \OCA\Libresign\Tests\Integratio
 		$this->assertNotSame('', $stored);
 		$this->assertStringNotContainsString('integration-test-secret', $stored);
 		$this->assertTrue($this->store->get($record->id)->hasSecrets);
-		$this->assertStringNotContainsString('integration-test-secret', json_encode($this->store->get($record->id), JSON_THROW_ON_ERROR));
+		$this->assertStringNotContainsString(
+			'integration-test-secret',
+			json_encode($this->store->get($record->id), JSON_THROW_ON_ERROR),
+		);
 		$qb = $this->db->getQueryBuilder();
 		$internalId = (int)$qb->select('id')->from('libresign_signing_integration')
 			->where($qb->expr()->eq('public_id', $qb->createNamedParameter($record->id)))
@@ -95,7 +108,12 @@ final class ExternalIntegrationStoreTest extends \OCA\Libresign\Tests\Integratio
 	public function testOmittingSecretChangesDoesNotModifyCiphertext(): void {
 		$record = $this->create();
 		$stored = $this->encryptedValue($record->id);
-		$updated = $this->store->update($record->id, $record->revision, 'Updated name', ['serviceUrl' => 'https://example.invalid']);
+		$updated = $this->store->update(
+			$record->id,
+			$record->revision,
+			'Updated name',
+			['serviceUrl' => 'https://example.invalid'],
+		);
 		$this->assertSame('Updated name', $updated->name);
 		$this->assertSame($stored, $this->encryptedValue($record->id));
 	}
@@ -185,7 +203,13 @@ final class ExternalIntegrationStoreTest extends \OCA\Libresign\Tests\Integratio
 		$originalCiphertext = $this->encryptedValue($record->id);
 		$enabled = $this->store->setEnabled($record->id, $record->revision, true);
 		try {
-			$this->store->update($record->id, $record->revision, 'Stale name', $record->configuration, ['accessToken' => 'stale-secret']);
+			$this->store->update(
+				$record->id,
+				$record->revision,
+				'Stale name',
+				$record->configuration,
+				['accessToken' => 'stale-secret'],
+			);
 			$this->fail('A stale secret replacement must not be applied');
 		} catch (\RuntimeException $e) {
 			$this->assertSame('Integration changed concurrently', $e->getMessage());

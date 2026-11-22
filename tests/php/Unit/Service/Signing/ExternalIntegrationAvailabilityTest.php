@@ -31,7 +31,12 @@ final class ExternalIntegrationAvailabilityTest extends TestCase {
 	}
 
 	#[DataProvider('flags')]
-	public function testGateCannotOverrideOtherIndependentConditions(bool $global, bool $enabled, bool $available, bool $expected): void {
+	public function testGateCannotOverrideOtherIndependentConditions(
+		bool $global,
+		bool $enabled,
+		bool $available,
+		bool $expected,
+	): void {
 		$appConfig = self::getMockAppConfig();
 		$appConfig->setValueBool(Application::APP_ID, ExperimentalFeaturesService::APP_CONFIG_KEY, $global);
 		$record = new ExternalIntegrationRecord(

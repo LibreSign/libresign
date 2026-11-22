@@ -104,7 +104,10 @@ final class ExternalIntegrationAdministrationTest extends \OCA\Libresign\Tests\I
 		);
 		$this->assertFalse($cleared->hasSecrets);
 		$this->assertSame('', $this->ciphertext($created->id));
-		$this->assertSame([['key' => 'accessToken', 'isConfigured' => false]], $this->administration->describe(self::driver(), $created->id)['secretFields']);
+		$this->assertSame(
+			[['key' => 'accessToken', 'isConfigured' => false]],
+			$this->administration->describe(self::driver(), $created->id)['secretFields'],
+		);
 	}
 
 	public function testUnavailableDriverCannotBeEnabled(): void {
