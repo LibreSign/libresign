@@ -374,10 +374,6 @@ class JSignPdfHandler extends Pkcs12Handler {
 		return '';
 	}
 
-	private function hasExistingSignatures(string $pdfContent): bool {
-		return (bool)preg_match('/\/ByteRange\s*\[|\/Type\s*\/Sig\b|\/DocMDP\b|\/Perms\b/', $pdfContent);
-	}
-
 	private function getScaleFactor(float $width): float {
 		$systemWidth = $this->signatureTextService->getFullSignatureWidth();
 		if (!$systemWidth) {

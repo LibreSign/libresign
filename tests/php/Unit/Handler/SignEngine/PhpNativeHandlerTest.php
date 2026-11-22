@@ -22,6 +22,7 @@ use OCA\Libresign\Service\SignatureBackgroundService;
 use OCA\Libresign\Service\SignatureStampPreview\SignatureStampAppearanceBuilder;
 use OCA\Libresign\Service\SignatureTextService;
 use OCA\Libresign\Service\SignerElementsService;
+use OCA\Libresign\Tests\Fixtures\PdfGenerator;
 use OCP\Files\File;
 use OCP\IAppConfig;
 use PHPUnit\Framework\Attributes\DataProvider;
@@ -184,6 +185,8 @@ final class PhpNativeHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			'/DocMDP signals existing signature' => ['/DocMDP ', true],
 			'/Perms signals existing signature' => ['/Perms ', true],
 			'plain PDF content has no signature' => ['%PDF-1.4 startxref 0 %%EOF', false],
+			'unreferenced signature dictionary is not an existing signature' => [PdfGenerator::createPdfWithStandaloneDocMdpSignature(1), false],
+			'certification the document uses is an existing signature' => [PdfGenerator::createPdfWithStandaloneDocMdpSignature(1, '/Perms << /DocMDP 5 0 R >>'), true],
 		];
 	}
 
@@ -313,6 +316,9 @@ final class PhpNativeHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			],
 			'DocMDP enabled, visible elements, PDF already signed skips certification' => [
 				true, false, '/ByteRange [0 0 0 0]', true,
+			],
+			'DocMDP enabled, visible elements, unreferenced signature dictionary still certifies' => [
+				true, false, PdfGenerator::createPdfWithStandaloneDocMdpSignature(1), false,
 			],
 		];
 	}

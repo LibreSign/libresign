@@ -370,6 +370,28 @@ final class DocMdpHandlerTest extends TestCase {
 		$this->assertSame($expectedAllowed, $result);
 	}
 
+	public static function standaloneDocMdpSignatureProvider(): array {
+		return [
+			'Unreferenced P=1 dictionary is not a certification' => ['', [], true],
+			'Unreferenced P=1 dictionary next to an empty signature field is not a certification' => ['/AcroForm << /Fields [6 0 R] >>', [6 => '<< /FT /Sig /T (Signature1) >>'], true],
+			'P=1 dictionary referenced from /Perms still blocks' => ['/Perms << /DocMDP 5 0 R >>', [], false],
+			'P=1 dictionary referenced from a signature field still blocks' => ['/AcroForm << /Fields [6 0 R] >>', [6 => '<< /FT /Sig /T (Signature1) /V 5 0 R >>'], false],
+		];
+	}
+
+	#[DataProvider('standaloneDocMdpSignatureProvider')]
+	public function testOnlyReferencedSignatureDictionariesCertify(string $catalogExtra, array $extraObjects, bool $expectedAllowed): void {
+		$pdfContent = PdfGenerator::createPdfWithStandaloneDocMdpSignature(1, $catalogExtra, $extraObjects);
+		$resource = PdfGenerator::createResourceFromContent($pdfContent);
+		$allowed = $this->handler->allowsAdditionalSignatures($resource);
+		$data = $this->handler->extractDocMdpData($resource);
+		fclose($resource);
+
+		$this->assertSame($expectedAllowed, $allowed);
+		$expectedLevel = $expectedAllowed ? DocMdpLevel::NOT_CERTIFIED : DocMdpLevel::CERTIFIED_NO_CHANGES_ALLOWED;
+		$this->assertSame($expectedLevel->value, $data['docmdp']['level']);
+	}
+
 	public function testRealJSignPdfWithDocMdpLevel1(): void {
 		$pdfPath = __DIR__ . '/../../fixtures/pdfs/real_jsignpdf_level1.pdf';
 
