@@ -133,6 +133,36 @@ final class IdDocsRejectionControllerTest extends TestCase {
 		];
 	}
 
+	public function testRejectDoesNotExposeInfrastructureErrorsToReviewer(): void {
+		$reviewer = $this->createMock(IUser::class);
+		$session = $this->createMock(IUserSession::class);
+		$session->method('getUser')->willReturn($reviewer);
+		$policy = $this->createMock(IdDocsPolicyService::class);
+		$policy->method('userCanApproveValidationDocuments')->with($reviewer, false)->willReturn(true);
+		$documents = $this->createMock(IdDocsMapper::class);
+		$documents->method('getByNodeId')->with(71)
+			->willThrowException(new \RuntimeException('SQLSTATE synthetic: internal table name and private context'));
+		$l10n = $this->createMock(IL10N::class);
+		$l10n->method('t')->willReturnArgument(0);
+		$logger = $this->createMock(LoggerInterface::class);
+		$logger->expects($this->once())->method('error')
+			->with('Failed to reject identification document', $this->arrayHasKey('exception'));
+		$controller = new IdDocsController(
+			$this->createMock(IRequest::class),
+			$this->createMock(SignFileService::class),
+			$l10n,
+			$this->createMock(IdDocsService::class),
+			$this->newRejectionService($policy, $documents),
+			$session,
+			$this->createMock(IdentityDocumentValidator::class),
+			$logger,
+		);
+
+		$response = $controller->reject(71, 'Expired identification document');
+		$this->assertSame(Http::STATUS_INTERNAL_SERVER_ERROR, $response->getStatus());
+		$this->assertSame(['message' => 'Unable to reject identification document.'], $response->getData());
+	}
+
 	public function testAuthenticatedSignerCannotListAnotherAccountsDocuments(): void {
 		$user = $this->createMock(IUser::class);
 		$user->method('getUID')->willReturn('actual-signer');

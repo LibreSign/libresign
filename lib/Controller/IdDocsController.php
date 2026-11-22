@@ -11,6 +11,7 @@ namespace OCA\Libresign\Controller;
 use Exception;
 use OCA\Libresign\AppInfo\Application;
 use OCA\Libresign\Exception\IdDocsUploadValidationException;
+use OCA\Libresign\Exception\LibresignException;
 use OCA\Libresign\Middleware\Attribute\RequireSignRequestUuid;
 use OCA\Libresign\Service\IdDoc\IdDocRejectionService;
 use OCA\Libresign\Service\IdDoc\IdDocsService;
@@ -160,10 +161,11 @@ class IdDocsController extends AEnvironmentAwareOCSController implements ISignat
 	 * @param int $nodeId ID of the submitted identification document node.
 	 * @param string $reason Reason supplied by the authorized approver.
 	 *
-	 * @return DataResponse<Http::STATUS_OK, array{rejected: bool}, array{}>|DataResponse<Http::STATUS_BAD_REQUEST, LibresignMessageResponse, array{}>
+	 * @return DataResponse<Http::STATUS_OK, array{rejected: bool}, array{}>|DataResponse<Http::STATUS_BAD_REQUEST|Http::STATUS_INTERNAL_SERVER_ERROR, LibresignMessageResponse, array{}>
 	 *
 	 * 200: Rejection recorded; notification queued if the signer has a supported delivery channel
 	 * 400: Invalid reason, unauthorized reviewer, or document already reviewed
+	 * 500: Failed to process the rejection due to an unexpected server error
 	 */
 	#[NoAdminRequired]
 	#[OpenAPI(tags: ['identity'])]
@@ -172,8 +174,12 @@ class IdDocsController extends AEnvironmentAwareOCSController implements ISignat
 		try {
 			$this->rejectionService->reject($nodeId, $reason, $this->userSession->getUser());
 			return new DataResponse(['rejected' => true]);
-		} catch (\Exception $exception) {
+		} catch (LibresignException $exception) {
 			return new DataResponse(['message' => $exception->getMessage()], Http::STATUS_BAD_REQUEST);
+		} catch (\Throwable $exception) {
+			$this->logger->error('Failed to reject identification document', ['exception' => $exception]);
+			// TRANSLATORS Generic error when rejecting an identification document fails unexpectedly.
+			return new DataResponse(['message' => $this->l10n->t('Unable to reject identification document.')], Http::STATUS_INTERNAL_SERVER_ERROR);
 		}
 	}
 

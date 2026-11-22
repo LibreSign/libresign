@@ -4813,6 +4813,20 @@ export interface operations {
                     };
                 };
             };
+            /** @description Failed to process the rejection due to an unexpected server error */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        ocs: {
+                            meta: components["schemas"]["OCSMeta"];
+                            data: components["schemas"]["MessageResponse"];
+                        };
+                    };
+                };
+            };
         };
     };
     "id_docs-list-to-approval": {
