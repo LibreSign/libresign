@@ -58,6 +58,16 @@ final class IdDocsPolicyServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		);
 	}
 
+	private function allowCurrentReviewerPolicy(): void {
+		$this->policyService->method('resolveForUser')->willReturnCallback(static function (string $key): ResolvedPolicy {
+			$value = $key === IdentificationDocumentsPolicy::KEY
+				? ['enabled' => true, 'approvers' => ['reviewers']]
+				: ['reviewers'];
+			return (new ResolvedPolicy())->setEffectiveValue($value);
+		});
+		$this->groupManager->method('getUserGroupIds')->willReturn(['reviewers']);
+	}
+
 	#[DataProvider('provideCanApproverSignIdDocScenarios')]
 	public function testCanApproverSignIdDoc(
 		array $identificationDocumentsValue,
@@ -162,6 +172,32 @@ final class IdDocsPolicyServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$this->assertTrue($this->getService()->isIdentificationDocumentsEnabled($user, $signRequest));
 	}
 
+	public function testDisabledSnapshotPreventsReviewEvenWhenCurrentPolicyEnabled(): void {
+		$user = $this->createMock(IUser::class);
+		$idDoc = new IdDocs();
+		$idDoc->setFileId(123);
+		$idDoc->setSignRequestId(77);
+		$signRequest = new SignRequest();
+		$signRequest->setId(77);
+		$signRequest->setFileId(501);
+		$file = new File();
+		$file->setMetadata([
+			'policy_snapshot' => [
+				IdentificationDocumentsPolicy::KEY => [
+					'effectiveValue' => ['enabled' => false, 'approvers' => ['reviewers']],
+				],
+			],
+		]);
+		$this->idDocsMapper->method('getByFileId')->with(123)->willReturn($idDoc);
+		$this->signRequestMapper->method('getById')->with(77)->willReturn($signRequest);
+		$this->fileMapper->method('getById')->with(501)->willReturn($file);
+		$this->policyService->expects($this->never())->method('resolveForUser');
+
+		$this->assertFalse($this->getService()->canApproverSignIdDoc(
+			$user, 123, FileStatus::ABLE_TO_SIGN->value,
+		));
+	}
+
 	public function testCanApproverSignIdDocUsesSnapshotFromLinkedSignRequest(): void {
 		$user = $this->createMock(IUser::class);
 		$fileId = 123;
@@ -226,6 +262,55 @@ final class IdDocsPolicyServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$this->assertTrue(
 			$this->getService()->canApproverSignIdDoc($user, $fileId, FileStatus::ABLE_TO_SIGN->value)
 		);
+	}
+
+	/**
+	 * A link to the request whose policy must govern this identity document
+	 * cannot be silently replaced by today's account policy if that link is gone.
+	 */
+	public function testMissingLinkedRequestCannotAuthorizeIdentityDocumentReview(): void {
+		$user = $this->createMock(IUser::class);
+		$idDoc = new IdDocs();
+		$idDoc->setFileId(123);
+		$idDoc->setSignRequestId(77);
+		$this->idDocsMapper->method('getByFileId')->with(123)->willReturn($idDoc);
+		$this->signRequestMapper->method('getById')->with(77)
+			->willThrowException(new DoesNotExistException('The original signing request is unavailable'));
+		$this->allowCurrentReviewerPolicy();
+
+		$this->assertFalse($this->getService()->canApproverSignIdDoc($user, 123, FileStatus::ABLE_TO_SIGN->value));
+	}
+
+	public function testUnexpectedLinkedRequestLookupFailureCannotFallBackToCurrentPolicy(): void {
+		$user = $this->createMock(IUser::class);
+		$idDoc = new IdDocs();
+		$idDoc->setFileId(123);
+		$idDoc->setSignRequestId(77);
+		$this->idDocsMapper->method('getByFileId')->with(123)->willReturn($idDoc);
+		$this->signRequestMapper->method('getById')->with(77)
+			->willThrowException(new \RuntimeException('Synthetic database lookup failure'));
+		$this->allowCurrentReviewerPolicy();
+
+		$this->expectException(\RuntimeException::class);
+		$this->expectExceptionMessage('Synthetic database lookup failure');
+		$this->getService()->canApproverSignIdDoc($user, 123, FileStatus::ABLE_TO_SIGN->value);
+	}
+
+	public function testMissingOriginalDocumentCannotFallBackToEnabledCurrentPolicy(): void {
+		$user = $this->createMock(IUser::class);
+		$idDoc = new IdDocs();
+		$idDoc->setFileId(123);
+		$idDoc->setSignRequestId(77);
+		$signRequest = new SignRequest();
+		$signRequest->setId(77);
+		$signRequest->setFileId(501);
+		$this->idDocsMapper->method('getByFileId')->with(123)->willReturn($idDoc);
+		$this->signRequestMapper->method('getById')->with(77)->willReturn($signRequest);
+		$this->fileMapper->method('getById')->with(501)
+			->willThrowException(new DoesNotExistException('Signed file was removed'));
+		$this->allowCurrentReviewerPolicy();
+
+		$this->assertFalse($this->getService()->canApproverSignIdDoc($user, 123, FileStatus::ABLE_TO_SIGN->value));
 	}
 
 	#[DataProvider('provideGetApproverGroupsScenarios')]
