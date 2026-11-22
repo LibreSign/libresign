@@ -9,6 +9,7 @@ declare(strict_types=1);
 namespace OCA\Libresign\Tests\Unit\Handler\CertificateEngine;
 
 use OCA\Libresign\Handler\CertificateEngine\OrderCertificatesTrait;
+use PHPUnit\Framework\Attributes\DataProvider;
 
 class Test {
 	use OrderCertificatesTrait;
@@ -533,22 +534,148 @@ final class OrderCertificatesTraitTest extends \OCA\Libresign\Tests\Unit\TestCas
 		];
 	}
 
-	public function testDuplicateCertificateNames(): void {
-		$certificates = [
-			[
-				'name' => '/CN=Duplicate',
-				'subject' => ['CN' => 'Duplicate'],
-				'issuer' => ['CN' => 'Root'],
-			],
-			[
-				'name' => '/CN=Duplicate',
-				'subject' => ['CN' => 'Different'],
-				'issuer' => ['CN' => 'Root'],
-			],
+	public function testIdenticalCertificatesAreDeduplicated(): void {
+		$certificate = [
+			'name' => '/CN=Intermediate',
+			'subject' => ['CN' => 'Intermediate'],
+			'issuer' => ['CN' => 'Root'],
+		];
+		$result = $this->orderCertificates->orderCertificates([$certificate, $certificate]);
+		$this->assertSame([$certificate], $result);
+	}
+
+	public function testChainWithDuplicatedIntermediateIsOrdered(): void {
+		$root = ['C' => 'ES', 'O' => 'IZENPE S.A.', 'CN' => 'Izenpe.com'];
+		$intermediate = ['C' => 'ES', 'O' => 'IZENPE S.A.', 'CN' => 'CA de Ciudadanos y Entidades (4)'];
+		$leaf = [
+			'name' => '/C=ES/CN=Signer',
+			'subject' => ['C' => 'ES', 'CN' => 'Signer'],
+			'issuer' => $intermediate,
+		];
+		$intermediateCert = [
+			'name' => '/C=ES/O=IZENPE S.A./CN=CA de Ciudadanos y Entidades (4)',
+			'subject' => $intermediate,
+			'issuer' => $root,
+		];
+		$rootCert = [
+			'name' => '/C=ES/O=IZENPE S.A./CN=Izenpe.com',
+			'subject' => $root,
+			'issuer' => $root,
 		];
 
-		$this->expectExceptionMessage('Duplicate certificate names detected');
-		$this->orderCertificates->orderCertificates($certificates);
+		$result = $this->orderCertificates->orderCertificates([$intermediateCert, $leaf, $intermediateCert, $rootCert]);
+
+		$this->assertSame(['/C=ES/CN=Signer', $intermediateCert['name'], $rootCert['name']], array_column($result, 'name'));
+	}
+
+	public function testCrossSignedIntermediatesPreferRootedPathRegardlessOfInputOrder(): void {
+		$intermediate = ['CN' => 'Intermediate'];
+		$root = ['CN' => 'Root'];
+		$leaf = [
+			'name' => '/CN=Leaf',
+			'subject' => ['CN' => 'Leaf'],
+			'issuer' => $intermediate,
+		];
+		$wrong = [
+			'name' => '/CN=Intermediate',
+			'subject' => $intermediate,
+			'issuer' => ['CN' => 'OtherRoot'],
+			'serialNumberHex' => '01',
+		];
+		$correct = [
+			'name' => '/CN=Intermediate',
+			'subject' => $intermediate,
+			'issuer' => $root,
+			'serialNumberHex' => '02',
+		];
+		$rootCert = ['name' => '/CN=Root', 'subject' => $root, 'issuer' => $root];
+
+		foreach ([$wrong, $correct] as $first) {
+			$second = $first === $wrong ? $correct : $wrong;
+			$result = $this->orderCertificates->orderCertificates([$first, $leaf, $second, $rootCert]);
+			$this->assertSame([$leaf, $correct, $rootCert, $wrong], $result);
+		}
+	}
+
+	#[DataProvider('dataAkiSkiIssuerSelection')]
+	public function testAkiSkiSelectsMatchingIssuerWithoutRoot(string $authorityKeyIdentifier, string $wrongSubjectKeyIdentifier): void {
+		$intermediate = ['CN' => 'Intermediate'];
+		$leaf = [
+			'name' => '/CN=Leaf',
+			'subject' => ['CN' => 'Leaf'],
+			'issuer' => $intermediate,
+			'extensions' => ['authorityKeyIdentifier' => $authorityKeyIdentifier],
+		];
+		$wrong = [
+			'name' => '/CN=Intermediate',
+			'subject' => $intermediate,
+			'issuer' => ['CN' => 'Root'],
+			'serialNumberHex' => '01',
+			'extensions' => ['subjectKeyIdentifier' => $wrongSubjectKeyIdentifier],
+		];
+		$correct = [
+			'name' => '/CN=Intermediate',
+			'subject' => $intermediate,
+			'issuer' => ['CN' => 'Root'],
+			'serialNumberHex' => '02',
+			'extensions' => ['subjectKeyIdentifier' => 'AA:BB:CC'],
+		];
+
+		$this->assertSame([$leaf, $correct, $wrong], $this->orderCertificates->orderCertificates([$wrong, $leaf, $correct]));
+		$this->assertSame([$leaf, $correct, $wrong], $this->orderCertificates->orderCertificates([$correct, $leaf, $wrong]));
+	}
+
+	public static function dataAkiSkiIssuerSelection(): array {
+		return [
+			'different AKI and SKI' => ['keyid:AA:BB:CC', 'DD:EE:FF'],
+			'partial SKI is not a match' => ['keyid:AA:BB:CC', 'AA:BB'],
+			'bare hexadecimal AKI' => ['AA:BB:CC', 'AA:BB'],
+		];
+	}
+
+	public function testUnrelatedIssuerDnDoesNotHideActualLeaf(): void {
+		$root = ['name' => '/CN=Root', 'subject' => ['CN' => 'Root'], 'issuer' => ['CN' => 'Root']];
+		$leaf = [
+			'name' => '/CN=Leaf',
+			'subject' => ['CN' => 'Leaf'],
+			'issuer' => ['CN' => 'Root'],
+			'extensions' => ['subjectKeyIdentifier' => 'AA:BB'],
+		];
+		$unrelated = [
+			'name' => '/CN=Unrelated',
+			'subject' => ['CN' => 'Unrelated'],
+			'issuer' => ['CN' => 'Leaf'],
+			'extensions' => ['authorityKeyIdentifier' => 'keyid:CC:DD'],
+		];
+
+		foreach ([[$unrelated, $root, $leaf], [$leaf, $unrelated, $root]] as $input) {
+			$result = $this->orderCertificates->orderCertificates($input);
+			$this->assertSame([$leaf, $root, $unrelated], $result);
+		}
+	}
+
+	public function testDisconnectedRootDoesNotHideLeaf(): void {
+		$root = ['name' => '/CN=Root', 'subject' => ['CN' => 'Root'], 'issuer' => ['CN' => 'Root']];
+		$leaf = ['name' => '/CN=Leaf', 'subject' => ['CN' => 'Leaf'], 'issuer' => ['CN' => 'Unknown']];
+		$this->assertSame([$leaf, $root], $this->orderCertificates->orderCertificates([$root, $leaf]));
+	}
+
+	public function testIssuerOnlyAkiDoesNotRejectMatchingIssuerDn(): void {
+		$root = ['name' => '/CN=Root', 'subject' => ['CN' => 'Root'], 'issuer' => ['CN' => 'Root']];
+		$intermediate = [
+			'name' => '/CN=Intermediate',
+			'subject' => ['CN' => 'Intermediate'],
+			'issuer' => ['CN' => 'Root'],
+			'extensions' => ['subjectKeyIdentifier' => 'AA:BB:CC'],
+		];
+		$leaf = [
+			'name' => '/CN=Leaf',
+			'subject' => ['CN' => 'Leaf'],
+			'issuer' => ['CN' => 'Intermediate'],
+			'extensions' => ['authorityKeyIdentifier' => "DirName:/CN=Intermediate\nserial:01"],
+		];
+
+		$this->assertTrue($this->orderCertificates->validateCertificateChain([$intermediate, $leaf, $root])['isComplete']);
 	}
 
 	public function testRealChainFromUser(): void {
