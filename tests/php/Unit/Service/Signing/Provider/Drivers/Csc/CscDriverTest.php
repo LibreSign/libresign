@@ -42,10 +42,16 @@ final class CscDriverTest extends TestCase {
 		$this->assertArrayNotHasKey('value', $metadata['fields'][1]);
 		$this->assertArrayNotHasKey('configured', $metadata['fields'][1]);
 
-		// The pinned SignerPHP v0.4.0 does not contain the CSC adapter from PR #12.
-		// A future dependency upgrade must explicitly revalidate this availability contract.
-		$this->assertFalse(class_exists(\SignerPHP\PdfSigner\Infrastructure\Remote\Csc\CscClient::class));
-		$this->assertFalse($metadata['available']);
-		$this->assertSame('signerphp_csc_adapter_missing', $metadata['unavailableReason']);
+		$this->assertTrue(class_exists(\SignerPHP\PdfSigner\Infrastructure\Remote\Csc\CscClient::class));
+		$this->assertTrue(is_subclass_of(
+			\SignerPHP\PdfSigner\Infrastructure\Remote\Csc\CscCertificateDiscovery::class,
+			\SignerPHP\PdfSigner\RemoteSigning\Contract\RemoteCertificateDiscoveryInterface::class,
+		));
+		$this->assertTrue(is_subclass_of(
+			\SignerPHP\PdfSigner\Infrastructure\Remote\Csc\CscSignatureProvider::class,
+			\SignerPHP\PdfSigner\RemoteSigning\Contract\RemoteSignatureProviderInterface::class,
+		));
+		$this->assertTrue($metadata['available']);
+		$this->assertNull($metadata['unavailableReason']);
 	}
 }
