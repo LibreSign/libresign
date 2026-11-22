@@ -9,6 +9,7 @@ declare(strict_types=1);
 namespace OCA\Libresign\Tests\Unit\Handler\CertificateEngine;
 
 use OCA\Libresign\Handler\CertificateEngine\OrderCertificatesTrait;
+use PHPUnit\Framework\Attributes\DataProvider;
 
 class Test {
 	use OrderCertificatesTrait;
@@ -597,9 +598,7 @@ final class OrderCertificatesTraitTest extends \OCA\Libresign\Tests\Unit\TestCas
 		}
 	}
 
-	/**
-	 * @dataProvider dataAkiSkiIssuerSelection
-	 */
+	#[DataProvider('dataAkiSkiIssuerSelection')]
 	public function testAkiSkiSelectsMatchingIssuerWithoutRoot(string $authorityKeyIdentifier, string $wrongSubjectKeyIdentifier): void {
 		$intermediate = ['CN' => 'Intermediate'];
 		$leaf = [
