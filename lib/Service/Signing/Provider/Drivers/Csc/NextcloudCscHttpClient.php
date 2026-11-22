@@ -24,7 +24,8 @@ final class NextcloudCscHttpClient implements HttpClientInterface {
 	) {
 	}
 
-	/** @param list<string> $headers */
+	/** @param array<int, string> $headers */
+	#[\Override]
 	public function request(
 		string $method,
 		string $url,

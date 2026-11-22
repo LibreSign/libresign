@@ -207,7 +207,9 @@ final class CscIntegrationTest extends TestCase {
 
 	private static function transport(\Closure $handler): HttpClientInterface {
 		return new class($handler) implements HttpClientInterface {
-			public function __construct(private \Closure $handler) {
+			public function __construct(
+				private \Closure $handler,
+			) {
 			}
 			public function request(string $method, string $url, array $headers = [], string $body = '', int $timeoutSeconds = 10, bool $followRedirects = false): HttpResponse {
 				TestCase::assertSame('POST', $method);

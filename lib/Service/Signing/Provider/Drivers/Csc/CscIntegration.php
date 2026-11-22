@@ -74,6 +74,7 @@ final class CscIntegration implements RemoteCertificateDiscoveryInterface, Remot
 	}
 
 	/** @return list<RemoteCertificate> */
+	#[\Override]
 	public function certificates(?string $identifier = null): array {
 		return (new CscCertificateDiscovery($this->client))->certificates($identifier);
 	}
@@ -83,6 +84,7 @@ final class CscIntegration implements RemoteCertificateDiscoveryInterface, Remot
 	 * must remain non-retryable until #9603 persists an authoritative outcome.
 	 * SignerPHP v0.5.0 does not classify ambiguous post-signHash responses.
 	 */
+	#[\Override]
 	public function sign(ExternalSigningPayload $payload, RemoteCertificate $certificate): SignatureValue {
 		if (!$this->syntheticLab) {
 			throw new \LogicException('CSC personal signing requires verified signer-bound authorization.');
@@ -127,7 +129,7 @@ final class CscIntegration implements RemoteCertificateDiscoveryInterface, Remot
 			throw new \InvalidArgumentException('CSC endpoint must use a public HTTPS DNS name.');
 		}
 		$path = $parts['path'] ?? '';
-		if (!preg_match('~^[/a-zA-Z0-9._~-]*$~', $path)
+		if (!preg_match('#^[/a-zA-Z0-9._~-]*$#', $path)
 			|| preg_match('~(?:^|/)\.\.(?:/|$)|//~', $path)) {
 			throw new \InvalidArgumentException('CSC endpoint has an unsafe path.');
 		}

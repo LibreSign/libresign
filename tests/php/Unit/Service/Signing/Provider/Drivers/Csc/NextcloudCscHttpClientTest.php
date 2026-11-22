@@ -23,8 +23,8 @@ final class NextcloudCscHttpClientTest extends TestCase {
 		$client = $this->createMock(IClient::class);
 		$client->expects($this->once())->method('post')->with(
 			'https://csc.example.org/csc/v1/info',
-			$this->callback(static fn (array $opts): bool =>
-				$opts['headers']['Authorization'] === 'Bearer synthetic-token'
+			$this->callback(static fn (array $opts): bool
+				=> $opts['headers']['Authorization'] === 'Bearer synthetic-token'
 				&& $opts['allow_redirects'] === false
 				&& $opts['nextcloud']['allow_local_address'] === false
 				&& $opts['http_errors'] === false
