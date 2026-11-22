@@ -63,17 +63,28 @@ class IdDocsService {
 		}
 	}
 
-	private function validateIdDoc(int $fileIndex, array $file, IUser $user): void {
-		$profileFileTypes = $this->fileTypeMapper->getTypes();
-		if (!array_key_exists($file['type'], $profileFileTypes)) {
-			throw new IdDocsUploadValidationException(json_encode([
-				'type' => 'danger',
-				'file' => $fileIndex,
-				// TRANSLATORS Error shown when an uploaded identity document has an unsupported file type.
-				'message' => $this->l10n->t('Invalid file type.')
-			]));
+	/**
+	 * Validate every declared type and reject duplicates within the submitted
+	 * batch before any file is persisted. Database checks alone cannot detect
+	 * another document of the same type in this still-uncommitted batch.
+	 */
+	private function validateDocumentTypesInBatch(array $files): void {
+		$seen = [];
+		foreach ($files as $fileIndex => $file) {
+			$this->validateTypeOfFile($fileIndex, $file);
+			if (isset($seen[$file['type']])) {
+				throw new IdDocsUploadValidationException(json_encode([
+					'type' => 'danger',
+					'file' => $fileIndex,
+					// TRANSLATORS Validation error when an identity document of the same type is already included in this upload.
+					'message' => $this->l10n->t('A file of this type has been associated.'),
+				]));
+			}
+			$seen[$file['type']] = true;
 		}
+	}
 
+	private function validateIdDoc(int $fileIndex, array $file, IUser $user): void {
 		try {
 			$this->identityDocumentValidator->validateFileTypeExists($file['type']);
 			$this->fileInputValidator->validateNewFile($file, FileInputValidator::TYPE_ACCOUNT_DOCUMENT, $user);
@@ -110,8 +121,8 @@ class IdDocsService {
 	}
 
 	public function validateIdDocs(array $files, IUser $user): void {
+		$this->validateDocumentTypesInBatch($files);
 		foreach ($files as $fileIndex => $file) {
-			$this->validateTypeOfFile($fileIndex, $file);
 			$this->validateIdDoc($fileIndex, $file, $user);
 		}
 	}
@@ -148,8 +159,8 @@ class IdDocsService {
 		SignRequest $signRequest,
 	): void {
 		$files = $this->normalizeNodeIds($files);
+		$this->validateDocumentTypesInBatch($files);
 		foreach ($files as $fileIndex => $file) {
-			$this->validateTypeOfFile($fileIndex, $file);
 			$this->identityDocumentValidator->validateSignRequestHasNoActiveFileWithType($signRequest->getId(), $file['type']);
 		}
 		// Store the documents under the owner of the file being signed, where

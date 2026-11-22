@@ -456,6 +456,65 @@ final class IdDocsServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		);
 	}
 
+	/**
+	 * An upload batch cannot contain two active identity documents of the same
+	 * type even if the database has none before the request starts.
+	 * This protects the one-active-document invariant before any file is saved.
+	 */
+	#[DataProvider('batchSigners')]
+	public function testDuplicateDocumentTypeInSameUploadBatchIsRejectedBeforePersistence(bool $authenticated): void {
+		$this->fileTypeMapper->method('getTypes')->willReturn(['IDENTIFICATION' => []]);
+		$this->fileInputValidator->method('normalizeNodeId')->willReturnArgument(0);
+		$this->requestSignatureService->expects($this->never())->method('saveFile');
+		$this->idDocsMapper->expects($this->never())->method('save');
+
+		$files = [
+			0 => ['type' => 'IDENTIFICATION', 'file' => ['base64' => 'Zmlyc3Q=']],
+			1 => ['type' => 'IDENTIFICATION', 'file' => ['base64' => 'c2Vjb25k']],
+		];
+
+		try {
+			if ($authenticated) {
+				$user = $this->createMock(IUser::class);
+				$user->method('getUID')->willReturn('synthetic-user');
+				$this->getIdDocsService()->addIdDocs($files, $user);
+			} else {
+				$signRequest = new SignRequest();
+				$signRequest->setId(55);
+				$this->getIdDocsService()->addFilesToDocumentFolder($files, $signRequest);
+			}
+			$this->fail('Duplicate document types in one request must not be saved');
+		} catch (IdDocsUploadValidationException $exception) {
+			$this->assertSame(
+				['type' => 'danger', 'file' => 1, 'message' => 'A file of this type has been associated.'],
+				json_decode($exception->getMessage(), true),
+			);
+		}
+	}
+
+	public function testDistinctDocumentTypesInSameBatchAreAcceptedForValidation(): void {
+		$user = $this->createMock(IUser::class);
+		$user->method('getUID')->willReturn('synthetic-user');
+		$this->fileTypeMapper->method('getTypes')->willReturn([
+			'IDENTIFICATION' => [],
+			'PROOF_OF_ADDRESS' => [],
+		]);
+		$this->identityDocumentValidator->expects($this->exactly(2))->method('validateFileTypeExists');
+		$this->fileInputValidator->expects($this->exactly(2))->method('validateNewFile');
+
+		$this->getIdDocsService()->validateIdDocs([
+			['type' => 'IDENTIFICATION', 'file' => ['base64' => 'Zmlyc3Q=']],
+			['type' => 'PROOF_OF_ADDRESS', 'file' => ['base64' => 'c2Vjb25k']],
+		], $user);
+	}
+
+	public static function batchSigners(): array {
+		return [
+			'authenticated account document batch' => [true],
+			'external signer document batch' => [false],
+		];
+	}
+
 	public function testValidateIdDocsPreservesExpectedValidationMessageAndFileIndex(): void {
 		$user = $this->createMock(IUser::class);
 		$user->method('getUID')->willReturn('synthetic-user');
@@ -504,9 +563,6 @@ final class IdDocsServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	#[\PHPUnit\Framework\Attributes\DataProvider('saveFileErrorCases')]
 	public function testSaveFileOnlyExposesExplicitlyClassifiedErrors(bool $authenticated, bool $safe): void {
 		$files = [2 => ['type' => 'IDENTIFICATION', 'file' => ['base64' => 'ZmFrZQ==']]];
-		if (!$authenticated) {
-			$files[3] = ['type' => 'IDENTIFICATION', 'file' => ['base64' => 'ZmFrZQ==']];
-		}
 		$this->fileTypeMapper->method('getTypes')->willReturn(['IDENTIFICATION' => []]);
 		$this->fileInputValidator->method('normalizeNodeId')->willReturnArgument(0);
 
