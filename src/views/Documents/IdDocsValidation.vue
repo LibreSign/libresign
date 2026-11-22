@@ -221,7 +221,7 @@ type StatusOption = {
 }
 
 type PersistedStatusFilter = StatusOption['value'] | null
-type IdDocEntry = components['schemas']['File']
+type IdDocEntry = components['schemas']['IdDocFile']
 type IdDocsListQuery = NonNullable<operations['id_docs-list-to-approval']['parameters']['query']>
 type IdDocsListSuccess = operations['id_docs-list-to-approval']['responses'][200]['content']['application/json']
 type IdDocsListError = operations['id_docs-list-to-approval']['responses'][404]['content']['application/json']

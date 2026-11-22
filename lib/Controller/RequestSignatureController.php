@@ -212,10 +212,9 @@ class RequestSignatureController extends AEnvironmentAwareOCSController {
 	 *
 	 * @param integer $fileId LibreSign file ID
 	 * @param integer $signRequestId The sign request id
-	 * @return DataResponse<Http::STATUS_OK, LibresignMessageResponse, array{}>|DataResponse<Http::STATUS_UNAUTHORIZED, LibresignMessageResponse, array{}>|DataResponse<Http::STATUS_UNPROCESSABLE_ENTITY, LibresignActionErrorResponse, array{}>
+	 * @return DataResponse<Http::STATUS_OK, LibresignMessageResponse, array{}>|DataResponse<Http::STATUS_UNPROCESSABLE_ENTITY, LibresignMessageResponse|LibresignActionErrorResponse, array{}>
 	 *
 	 * 200: OK
-	 * 401: Failed
 	 * 422: Failed
 	 */
 	#[NoAdminRequired]
@@ -238,9 +237,7 @@ class RequestSignatureController extends AEnvironmentAwareOCSController {
 		} catch (LibresignException $e) {
 			return new DataResponse(
 				['message' => $e->getMessage()],
-				$e->getCode() === Http::STATUS_UNPROCESSABLE_ENTITY
-					? Http::STATUS_UNPROCESSABLE_ENTITY
-					: Http::STATUS_UNAUTHORIZED,
+				Http::STATUS_UNPROCESSABLE_ENTITY,
 			);
 		}
 		return new DataResponse(
@@ -258,11 +255,11 @@ class RequestSignatureController extends AEnvironmentAwareOCSController {
 	 * You can only request exclusion as any sign
 	 *
 	 * @param integer $fileId LibreSign file ID
-	 * @return DataResponse<Http::STATUS_OK, LibresignMessageResponse, array{}>|DataResponse<Http::STATUS_UNAUTHORIZED, LibresignMessageResponse, array{}>|DataResponse<Http::STATUS_UNPROCESSABLE_ENTITY, LibresignActionErrorResponse, array{}>
+	 * @return DataResponse<Http::STATUS_OK, LibresignMessageResponse, array{}>|DataResponse<Http::STATUS_UNPROCESSABLE_ENTITY, LibresignMessageResponse|LibresignActionErrorResponse, array{}>|DataResponse<Http::STATUS_INTERNAL_SERVER_ERROR, LibresignMessageResponse, array{}>
 	 *
 	 * 200: OK
-	 * 401: Failed
 	 * 422: Failed
+	 * 500: Unexpected failure
 	 */
 	#[NoAdminRequired]
 	#[NoCSRFRequired]
@@ -284,7 +281,9 @@ class RequestSignatureController extends AEnvironmentAwareOCSController {
 				[
 					'message' => $th->getMessage(),
 				],
-				Http::STATUS_UNAUTHORIZED
+				$th instanceof LibresignException
+					? Http::STATUS_UNPROCESSABLE_ENTITY
+					: Http::STATUS_INTERNAL_SERVER_ERROR,
 			);
 		}
 		return new DataResponse(

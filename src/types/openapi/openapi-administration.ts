@@ -655,18 +655,13 @@ export interface operations {
                     };
                 };
             };
-            /** @description Account not found */
+            /** @description Current user is not logged in */
             401: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
                     "application/json": {
-                        ocs: {
-                            meta: components["schemas"]["OCSMeta"];
-                            data: components["schemas"]["MessageResponse"];
-                        };
-                    } | {
                         ocs: {
                             meta: components["schemas"]["OCSMeta"];
                             data: unknown;
@@ -684,6 +679,34 @@ export interface operations {
                         ocs: {
                             meta: components["schemas"]["OCSMeta"];
                             data: unknown;
+                        };
+                    };
+                };
+            };
+            /** @description Invalid certificate data */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        ocs: {
+                            meta: components["schemas"]["OCSMeta"];
+                            data: components["schemas"]["MessageResponse"];
+                        };
+                    };
+                };
+            };
+            /** @description Failure to generate the certificate */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        ocs: {
+                            meta: components["schemas"]["OCSMeta"];
+                            data: components["schemas"]["MessageResponse"];
                         };
                     };
                 };
@@ -737,18 +760,13 @@ export interface operations {
                     };
                 };
             };
-            /** @description Account not found */
+            /** @description Current user is not logged in */
             401: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
                     "application/json": {
-                        ocs: {
-                            meta: components["schemas"]["OCSMeta"];
-                            data: components["schemas"]["MessageResponse"];
-                        };
-                    } | {
                         ocs: {
                             meta: components["schemas"]["OCSMeta"];
                             data: unknown;
@@ -766,6 +784,34 @@ export interface operations {
                         ocs: {
                             meta: components["schemas"]["OCSMeta"];
                             data: unknown;
+                        };
+                    };
+                };
+            };
+            /** @description Invalid certificate data */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        ocs: {
+                            meta: components["schemas"]["OCSMeta"];
+                            data: components["schemas"]["MessageResponse"];
+                        };
+                    };
+                };
+            };
+            /** @description Failure to generate the certificate */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        ocs: {
+                            meta: components["schemas"]["OCSMeta"];
+                            data: components["schemas"]["MessageResponse"];
                         };
                     };
                 };
@@ -984,10 +1030,11 @@ export interface operations {
             /** @description Image returned */
             200: {
                 headers: {
+                    "Content-Disposition"?: "attachment; filename=\"background.png\"";
                     [name: string]: unknown;
                 };
                 content: {
-                    "*/*": string;
+                    "image/png": string;
                 };
             };
             /** @description Current user is not logged in */
