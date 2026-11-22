@@ -6,7 +6,8 @@
 <template>
 	<ul>
 		<NcAppNavigationItem
-			icon="icon-user" :name="t('libresign', 'Account')"
+			icon="icon-user"
+			:name="t('libresign', 'Account')"
 			:to="{name: 'Account'}">
 			<template #icon>
 				<NcIconSvgWrapper class="account-icon" :path="mdiAccount" :size="20" />
@@ -37,7 +38,8 @@
 			</template>
 		</NcAppNavigationItem>
 		<NcAppNavigationItem
-			icon="icon-star" :name="t('libresign', 'Rate LibreSign  ❤️')"
+			icon="icon-star"
+			:name="t('libresign', 'Rate LibreSign  ❤️')"
 			href="https://apps.nextcloud.com/apps/libresign#comments">
 			<template #icon>
 				<NcIconSvgWrapper class="star-icon" :path="mdiStar" :size="20" />

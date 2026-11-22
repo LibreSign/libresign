@@ -31,7 +31,8 @@
 						:get-signer-label="getSignerLabel"
 						@change="onSignerChange(slotProps.object, $event)" />
 					<NcButton
-						class="action-btn" :class="[slotProps.actionClass]"
+						class="action-btn"
+						:class="[slotProps.actionClass]"
 						v-bind="slotProps.actionAttrs"
 						type="button"
 						variant="tertiary"
@@ -43,7 +44,8 @@
 						</template>
 					</NcButton>
 					<NcButton
-						class="action-btn" :class="[slotProps.actionClass]"
+						class="action-btn"
+						:class="[slotProps.actionClass]"
 						v-bind="slotProps.actionAttrs"
 						type="button"
 						variant="tertiary"

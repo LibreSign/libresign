@@ -73,7 +73,8 @@
 				{{ t('libresign', 'Upload') }}
 			</NcActionButton>
 			<NcActionButton
-				v-if="canDirectSign" :wide="true"
+				v-if="canDirectSign"
+				:wide="true"
 				:disabled="isDirectSigning"
 				@click="signPdfNow">
 				<template #icon>

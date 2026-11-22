@@ -32,7 +32,11 @@
 		</NcListItem>
 
 		<!-- TRANSLATORS Label read aloud by screen readers (for blind users) when they navigate into this section. It is not visible on screen. Describes the area that shows the certificate chain (the sequence of digital identity cards behind the signature) -->
-		<div v-if="chainOpen" class="chain-wrapper" role="region" :aria-label="t('libresign', 'Certificate chain details')">
+		<div
+			v-if="chainOpen"
+			class="chain-wrapper"
+			role="region"
+			:aria-label="t('libresign', 'Certificate chain details')">
 			<div
 				v-for="(cert, certIndex) in chain"
 				:key="certIndex"

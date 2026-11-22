@@ -10,7 +10,11 @@
 			class="files-list__row-icon-preview files-list__row-icon-preview--loaded"
 			loading="lazy"
 			:src="previewUrl">
-		<NcIconSvgWrapper v-else v-once :path="mdiFile" :size="128" />
+		<NcIconSvgWrapper
+			v-else
+			v-once
+			:path="mdiFile"
+			:size="128" />
 		<div class="enDot">
 			<div :class="'dot ' + statusToClass(currentFile.status)" />
 			<span>{{ currentFile.statusText }}</span>

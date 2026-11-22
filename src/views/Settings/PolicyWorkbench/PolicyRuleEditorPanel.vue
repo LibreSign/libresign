@@ -68,21 +68,39 @@
 			</NcNoteCard>
 
 			<div v-if="showInlineActions !== false" class="policy-workbench__editor-actions" :class="{ 'policy-workbench__editor-actions--sticky-mobile': stickyActions }">
-				<NcButton v-if="showBackButton" variant="tertiary" :aria-label="goBackToRuleTypeSelectionLabel" :disabled="saveStatus === 'saving'" @click="$emit('back')">
+				<NcButton
+					v-if="showBackButton"
+					variant="tertiary"
+					:aria-label="goBackToRuleTypeSelectionLabel"
+					:disabled="saveStatus === 'saving'"
+					@click="$emit('back')">
 					<!-- TRANSLATORS Secondary button label that returns to the previous step in the policy rule creation flow. -->
 					{{ t('libresign', '← Back') }}
 				</NcButton>
-				<NcButton variant="primary" :aria-label="savePolicyRuleActionLabel" :loading="saveStatus === 'saving'" :disabled="!canSaveDraft" @click="$emit('save')">
+				<NcButton
+					variant="primary"
+					:aria-label="savePolicyRuleActionLabel"
+					:loading="saveStatus === 'saving'"
+					:disabled="!canSaveDraft"
+					@click="$emit('save')">
 					{{ savePolicyRuleActionText }}
 				</NcButton>
-				<NcButton variant="secondary" :aria-label="cancelEditingLabel" :disabled="saveStatus === 'saving'" @click="$emit('cancel')">
+				<NcButton
+					variant="secondary"
+					:aria-label="cancelEditingLabel"
+					:disabled="saveStatus === 'saving'"
+					@click="$emit('cancel')">
 					<!-- TRANSLATORS Secondary button label that closes the editor without saving pending changes. -->
 					{{ t('libresign', 'Cancel') }}
 				</NcButton>
 			</div>
 		</div>
 
-		<div v-if="saveStatus === 'saving'" class="policy-workbench__saving-overlay" aria-live="polite" aria-busy="true">
+		<div
+			v-if="saveStatus === 'saving'"
+			class="policy-workbench__saving-overlay"
+			aria-live="polite"
+			aria-busy="true">
 			<div class="policy-workbench__saving-spinner" aria-hidden="true" />
 		</div>
 	</section>

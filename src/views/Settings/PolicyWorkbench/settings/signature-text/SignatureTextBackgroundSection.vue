@@ -46,7 +46,12 @@
 			</template>
 		</NcButton>
 		<NcLoadingIcon v-if="showLoading" :size="20" />
-		<input ref="input" type="file" accept="image/png" class="ste__file-input" @change="onFileChange">
+		<input
+			ref="input"
+			type="file"
+			accept="image/png"
+			class="ste__file-input"
+			@change="onFileChange">
 	</div>
 
 	<NcNoteCard v-if="errorMessage" type="error" :show-alert="true">

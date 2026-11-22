@@ -35,7 +35,8 @@
 			</template>
 			<template #extra-actions>
 				<NcButton
-					v-if="isSigned(signer)" variant="tertiary"
+					v-if="isSigned(signer)"
+					variant="tertiary"
 					:aria-label="toggleDetailsAriaLabel"
 					@click.stop="toggleOpen">
 					<template #icon>

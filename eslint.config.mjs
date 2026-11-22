@@ -89,7 +89,6 @@ export default [
 			'@stylistic/implicit-arrow-linebreak': 'off', // ~39 hits
 			'@stylistic/indent': 'off', // ~778 hits; tabs vs spaces migration
 			'@stylistic/no-tabs': 'off', // ~190 hits; tabs vs spaces migration
-			'vue/max-attributes-per-line': 'off', // ~68 hits; formatting churn
 
 			// Import sorting / extensions — large churn; needs dedicated PR
 			'perfectionist/sort-imports': 'off', // ~1216 hits

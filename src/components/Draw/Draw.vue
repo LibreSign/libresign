@@ -9,7 +9,11 @@
 		size="small"
 		:name="t('libresign', 'Customize your signatures')"
 		@closing="close">
-		<div v-if="availableTabs.length > 1" class="draw-signature__tabs" role="tablist" :aria-label="t('libresign', 'Signature type')">
+		<div
+			v-if="availableTabs.length > 1"
+			class="draw-signature__tabs"
+			role="tablist"
+			:aria-label="t('libresign', 'Signature type')">
 			<NcButton
 				v-for="tab in availableTabs"
 				:key="tab.id"

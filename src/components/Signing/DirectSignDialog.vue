@@ -4,7 +4,11 @@
 -->
 <template>
 	<NcDialog
-		v-if="showDialog" size="normal" :name="dialogTitle" :no-close="signing" :buttons="buttons"
+		v-if="showDialog"
+		size="normal"
+		:name="dialogTitle"
+		:no-close="signing"
+		:buttons="buttons"
 		@closing="emit('close', false)">
 		<div class="signing-dialog-copy">
 			<p class="document-name">

@@ -39,7 +39,8 @@
 			<div v-if="showDragHandle" class="signer-extra">
 				<div class="drag-handle-wrapper">
 					<NcIconSvgWrapper
-						:path="mdiDragVertical" :size="20"
+						:path="mdiDragVertical"
+						:size="20"
 						class="drag-handle"
 						:title="dragToReorderLabel" />
 				</div>

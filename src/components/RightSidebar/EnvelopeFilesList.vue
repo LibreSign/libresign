@@ -110,7 +110,11 @@
 								<NcIconSvgWrapper :path="mdiFileEye" :size="20" />
 							</template>
 						</NcButton>
-						<NcButton v-if="canDelete" variant="tertiary" :aria-label="t('libresign', 'Delete')" @click="handleDelete(file)">
+						<NcButton
+							v-if="canDelete"
+							variant="tertiary"
+							:aria-label="t('libresign', 'Delete')"
+							@click="handleDelete(file)">
 							<template #icon>
 								<NcIconSvgWrapper :path="mdiDelete" :size="20" />
 							</template>

@@ -32,7 +32,11 @@
 				</NcButton>
 			</template>
 		</NcListItem>
-		<div v-if="open" class="timestamp-wrapper" role="region" :aria-label="timestampAuthorityDetailsAriaLabel">
+		<div
+			v-if="open"
+			class="timestamp-wrapper"
+			role="region"
+			:aria-label="timestampAuthorityDetailsAriaLabel">
 			<div class="extra-chain timestamp-item">
 				<dl class="timestamp-details">
 					<div v-if="authority" class="timestamp-field">

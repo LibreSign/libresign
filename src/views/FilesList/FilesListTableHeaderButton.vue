@@ -4,7 +4,8 @@
 -->
 <template>
 	<NcButton
-		class="files-list__column-sort-button" :class="[{
+		class="files-list__column-sort-button"
+		:class="[{
 			'files-list__column-sort-button--active': filesSortingStore.sortingMode === mode,
 			'files-list__column-sort-button--size': filesSortingStore.sortingMode === 'size',
 		}]"
