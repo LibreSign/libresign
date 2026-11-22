@@ -52,13 +52,14 @@ final class ExternalSigningIntegrationsController extends AEnvironmentAwareOCSCo
 	 *
 	 * @param int $afterId Keyset cursor, zero for the first page
 	 * @param int $pageSize Page size between one and 200
-	 * @return DataResponse<Http::STATUS_OK, LibresignExternalIntegrationListResponse, array{}>|DataResponse<Http::STATUS_UNAUTHORIZED|Http::STATUS_FORBIDDEN|Http::STATUS_NOT_FOUND|Http::STATUS_BAD_REQUEST|Http::STATUS_INTERNAL_SERVER_ERROR, LibresignErrorResponse, array{}>
+	 * @return DataResponse<Http::STATUS_OK, LibresignExternalIntegrationListResponse, array{}>|DataResponse<Http::STATUS_UNAUTHORIZED|Http::STATUS_FORBIDDEN|Http::STATUS_NOT_FOUND|Http::STATUS_BAD_REQUEST|Http::STATUS_CONFLICT|Http::STATUS_INTERNAL_SERVER_ERROR, LibresignErrorResponse, array{}>
 	 *
 	 * 200: Page of integrations
 	 * 400: Invalid pagination
 	 * 401: Authentication required
 	 * 403: System administrator required
 	 * 404: Experimental features disabled
+	 * 409: Integration conflict
 	 * 500: Internal error
 	 */
 	#[OpenAPI(tags: ['system'])]
@@ -77,7 +78,9 @@ final class ExternalSigningIntegrationsController extends AEnvironmentAwareOCSCo
 				$item['driverAvailable'] = ($drivers[$record->driverId]['available'] ?? false) === true;
 				$items[] = $item;
 			}
-			return ['items' => $items, 'nextCursor' => $page['nextCursor']];
+			/** @var LibresignExternalIntegrationListResponse $result */
+			$result = ['items' => $items, 'nextCursor' => $page['nextCursor']];
+			return $result;
 		});
 	}
 
@@ -88,13 +91,14 @@ final class ExternalSigningIntegrationsController extends AEnvironmentAwareOCSCo
 	 * @param string $name Administrator-defined display name
 	 * @param array<string, string> $configuration Non-secret driver settings
 	 * @param array<string, string> $secrets Write-only credential values
-	 * @return DataResponse<Http::STATUS_CREATED, LibresignExternalIntegrationResponse, array{}>|DataResponse<Http::STATUS_UNAUTHORIZED|Http::STATUS_FORBIDDEN|Http::STATUS_NOT_FOUND|Http::STATUS_BAD_REQUEST|Http::STATUS_INTERNAL_SERVER_ERROR, LibresignErrorResponse, array{}>
+	 * @return DataResponse<Http::STATUS_CREATED, LibresignExternalIntegrationResponse, array{}>|DataResponse<Http::STATUS_UNAUTHORIZED|Http::STATUS_FORBIDDEN|Http::STATUS_NOT_FOUND|Http::STATUS_BAD_REQUEST|Http::STATUS_CONFLICT|Http::STATUS_INTERNAL_SERVER_ERROR, LibresignErrorResponse, array{}>
 	 *
 	 * 201: Integration created, initially disabled
 	 * 400: Invalid driver or configuration
 	 * 401: Authentication required
 	 * 403: System administrator required
 	 * 404: Experimental features disabled
+	 * 409: Integration conflict
 	 * 500: Internal error
 	 */
 	#[OpenAPI(tags: ['system'])]
@@ -107,7 +111,7 @@ final class ExternalSigningIntegrationsController extends AEnvironmentAwareOCSCo
 		return $this->execute(function () use ($driverId, $name, $configuration, $secrets): array {
 			$driver = $this->driver($driverId);
 			$record = $this->administration->create($driver, $name, $configuration, $secrets);
-			return $this->administration->describe($driver, $record->id);
+			return $this->describeWithDriver($driver, $record->id);
 		}, Http::STATUS_CREATED);
 	}
 
@@ -115,12 +119,14 @@ final class ExternalSigningIntegrationsController extends AEnvironmentAwareOCSCo
 	 * Inspect a configured integration without exposing credentials
 	 *
 	 * @param string $id Opaque integration identifier
-	 * @return DataResponse<Http::STATUS_OK, LibresignExternalIntegrationResponse, array{}>|DataResponse<Http::STATUS_UNAUTHORIZED|Http::STATUS_FORBIDDEN|Http::STATUS_NOT_FOUND|Http::STATUS_INTERNAL_SERVER_ERROR, LibresignErrorResponse, array{}>
+	 * @return DataResponse<Http::STATUS_OK, LibresignExternalIntegrationResponse, array{}>|DataResponse<Http::STATUS_UNAUTHORIZED|Http::STATUS_FORBIDDEN|Http::STATUS_NOT_FOUND|Http::STATUS_BAD_REQUEST|Http::STATUS_CONFLICT|Http::STATUS_INTERNAL_SERVER_ERROR, LibresignErrorResponse, array{}>
 	 *
 	 * 200: Integration metadata and configured secret field indicators
+	 * 400: Invalid integration request
 	 * 401: Authentication required
 	 * 403: System administrator required
 	 * 404: Integration not found or experimental features disabled
+	 * 409: Integration conflict
 	 * 500: Internal error
 	 */
 	#[OpenAPI(tags: ['system'])]
@@ -144,7 +150,6 @@ final class ExternalSigningIntegrationsController extends AEnvironmentAwareOCSCo
 	 * @param string|null $name Updated display name, if supplied
 	 * @param array<string, string>|null $configuration Full replacement public configuration, if supplied
 	 * @param array<string, string|null> $secrets Write-only secret changes
-	 * @param string $id Opaque integration identifier
 	 * @return DataResponse<Http::STATUS_OK, LibresignExternalIntegrationResponse, array{}>|DataResponse<Http::STATUS_UNAUTHORIZED|Http::STATUS_FORBIDDEN|Http::STATUS_NOT_FOUND|Http::STATUS_BAD_REQUEST|Http::STATUS_CONFLICT|Http::STATUS_INTERNAL_SERVER_ERROR, LibresignErrorResponse, array{}>
 	 *
 	 * 200: Integration updated
@@ -167,7 +172,7 @@ final class ExternalSigningIntegrationsController extends AEnvironmentAwareOCSCo
 			$record = $this->administration->get($id);
 			$driver = $this->driverForRecord($record);
 			$this->administration->update($driver, $id, $revision, $name, $configuration, $secrets);
-			return $this->administration->describe($driver, $id);
+			return $this->describeWithDriver($driver, $id);
 		});
 	}
 
@@ -244,6 +249,9 @@ final class ExternalSigningIntegrationsController extends AEnvironmentAwareOCSCo
 		});
 	}
 
+	/**
+	 * @return DataResponse<Http::STATUS_OK, LibresignExternalIntegrationResponse, array{}>|DataResponse<Http::STATUS_UNAUTHORIZED|Http::STATUS_FORBIDDEN|Http::STATUS_NOT_FOUND|Http::STATUS_BAD_REQUEST|Http::STATUS_CONFLICT|Http::STATUS_INTERNAL_SERVER_ERROR, LibresignErrorResponse, array{}>
+	 */
 	private function setEnabled(string $id, int $revision, bool $enabled): DataResponse {
 		if (($denied = $this->authorize()) !== null) {
 			return $denied;
@@ -254,10 +262,11 @@ final class ExternalSigningIntegrationsController extends AEnvironmentAwareOCSCo
 			$record = $this->administration->get($id);
 			$driver = $this->driverForRecord($record);
 			$this->administration->setEnabled($driver, $id, $revision, $enabled);
-			return $this->administration->describe($driver, $id);
+			return $this->describeWithDriver($driver, $id);
 		});
 	}
 
+	/** @return null|DataResponse<Http::STATUS_UNAUTHORIZED|Http::STATUS_FORBIDDEN|Http::STATUS_NOT_FOUND, LibresignErrorResponse, array{}> */
 	private function authorize(): ?DataResponse {
 		$user = $this->userSession->getUser();
 		if ($user === null) {
@@ -272,10 +281,20 @@ final class ExternalSigningIntegrationsController extends AEnvironmentAwareOCSCo
 		return null;
 	}
 
-	/** @return array<string, mixed> */
+	/** @return LibresignExternalIntegrationResponse */
 	private function describe(string $id): array {
 		$record = $this->administration->get($id);
-		return $this->administration->describe($this->driverForRecord($record), $id);
+		return $this->describeWithDriver($this->driverForRecord($record), $id);
+	}
+
+	/**
+	 * @param array<string, mixed> $driver
+	 * @return LibresignExternalIntegrationResponse
+	 */
+	private function describeWithDriver(array $driver, string $id): array {
+		/** @var LibresignExternalIntegrationResponse $result */
+		$result = $this->administration->describe($driver, $id);
+		return $result;
 	}
 
 	/** @return array<string, mixed> */
@@ -317,7 +336,11 @@ final class ExternalSigningIntegrationsController extends AEnvironmentAwareOCSCo
 	 * Convert service exceptions into stable responses without reflecting
 	 * credentials or exception messages to administrators.
 	 *
-	 * @param callable(): array<string, mixed> $operation
+	 * @template TData of array<string, mixed>
+	 * @template TStatus of Http::STATUS_*
+	 * @param callable(): TData $operation
+	 * @param TStatus $status
+	 * @return DataResponse<TStatus|Http::STATUS_BAD_REQUEST|Http::STATUS_NOT_FOUND|Http::STATUS_CONFLICT|Http::STATUS_INTERNAL_SERVER_ERROR, TData|LibresignErrorResponse, array{}>
 	 */
 	private function execute(callable $operation, int $status = Http::STATUS_OK): DataResponse {
 		try {
