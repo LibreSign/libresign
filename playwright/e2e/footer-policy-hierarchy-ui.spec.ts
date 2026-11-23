@@ -176,11 +176,24 @@ async function openCreateRuleEditor(dialog: Locator, scopeName: 'Group' | 'User'
 }
 
 async function selectTarget(dialogScope: Locator, kind: 'group' | 'user', target: string): Promise<void> {
+	const page = dialogScope.page()
 	const searchInput = dialogScope.getByRole('combobox', { name: getTargetFieldPattern(kind) })
+	const searchEndpoint = kind === 'group' ? '/cloud/groups/details' : '/cloud/users/details'
+	const searchResponse = page.waitForResponse((response) => {
+		return response.url().includes(searchEndpoint)
+			&& new URL(response.url()).searchParams.get('search') === target
+	}, { timeout: 15000 })
+
 	await expect(searchInput).toBeVisible({ timeout: 8000 })
 	await searchInput.fill(target)
+	const response = await searchResponse
+	expect(response.ok(), `Failed to search ${kind} targets: ${response.status()}`).toBe(true)
 
-	const option = dialogScope.page().getByRole('option', { name: new RegExp(escapeRegExp(target), 'i') }).first()
+	const results = await response.json()
+	expect(JSON.stringify(results), `Search did not return ${kind} target ${target}`).toContain(target)
+	await searchInput.click()
+
+	const option = page.getByRole('option', { name: new RegExp(escapeRegExp(target), 'i') }).first()
 	await expect(option).toBeVisible({ timeout: 8000 })
 	await option.click()
 

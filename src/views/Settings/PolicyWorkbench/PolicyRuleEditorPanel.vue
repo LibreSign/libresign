@@ -14,10 +14,14 @@
 			</div>
 
 			<div v-if="editorDraft.scope !== 'system' && !hideTargetSelector" class="policy-workbench__field">
+				<label class="policy-workbench__label" :for="targetInputId">
+					{{ targetScopeLabel }}
+				</label>
 				<NcSelectUsers
 					:model-value="selectedTargetOptions"
 					:options="availableTargets"
-					:input-label="targetScopeLabel"
+					:input-id="targetInputId"
+					:label-outside="true"
 					:placeholder="targetScopeSearchPlaceholder"
 					:loading="loadingTargets"
 					:multiple="true"
@@ -103,7 +107,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed } from 'vue'
+import { computed, useId } from 'vue'
 import { t } from '@nextcloud/l10n'
 import type { EffectivePolicyValue } from '../../../types/index'
 
@@ -170,6 +174,8 @@ defineEmits<{
 	(e: 'save'): void
 	(e: 'cancel'): void
 }>()
+
+const targetInputId = useId()
 
 const targetScopeLabel = computed(() => {
 	if (props.editorDraft.scope === 'group') {
@@ -282,6 +288,15 @@ const isIdentifyMethodsEditor = computed(() => {
 		margin: 0;
 		font-size: 0.85rem;
 	}
+}
+
+.policy-workbench__label {
+	font-size: 0.74rem;
+	font-weight: 500;
+	text-transform: none;
+	letter-spacing: 0;
+	color: var(--color-text-maxcontrast);
+	opacity: 0.85;
 }
 
 .policy-workbench__field {
