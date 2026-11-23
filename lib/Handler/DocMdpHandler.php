@@ -12,7 +12,6 @@ namespace OCA\Libresign\Handler;
 use OCA\Libresign\Db\File;
 use OCA\Libresign\Enum\DocMdpLevel;
 use OCA\Libresign\Vendor\LibreSign\PdfSignatureValidator\Parser\PdfSignatureInventoryReader;
-use OCA\Libresign\Vendor\LibreSign\PdfSignatureValidator\Validation\DocMdp\DocMdpValidationDataInspector;
 use OCP\IL10N;
 
 class DocMdpHandler {
@@ -456,7 +455,7 @@ class DocMdpHandler {
 		}
 		foreach ($inventory->activeSignatures as $signature) {
 			if ($signature->isCertifying) {
-				return (new DocMdpValidationDataInspector())->hasOnlyValidationDataUpdates(
+				return (new \OCA\Libresign\Vendor\LibreSign\PdfSignatureValidator\Validation\DocMdp\DocMdpValidationDataInspector())->hasOnlyValidationDataUpdates(
 					$content,
 					$signature->signedRevisionEnd,
 				);
