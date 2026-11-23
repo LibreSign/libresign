@@ -3236,7 +3236,7 @@ export interface operations {
                      * @default null
                      */
                     policy?: {
-                        [key: string]: Record<string, never>;
+                        [key: string]: unknown;
                     } | null;
                 };
             };

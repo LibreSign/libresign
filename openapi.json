@@ -5187,9 +5187,7 @@
                                         "nullable": true,
                                         "default": null,
                                         "description": "Authorized request-level policy overrides",
-                                        "additionalProperties": {
-                                            "type": "object"
-                                        }
+                                        "additionalProperties": true
                                     }
                                 }
                             }
