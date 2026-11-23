@@ -90,14 +90,6 @@ function escapeRegExp(value: string): string {
 	return value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
 }
 
-function getTargetFieldPattern(kind: 'group' | 'user'): RegExp {
-	const labels = kind === 'group'
-		? ['Scope groups', 'Target groups']
-		: ['Scope accounts', 'Target users']
-
-	return new RegExp(`^(?:${labels.map(escapeRegExp).join('|')})$`, 'i')
-}
-
 async function deleteGroupPolicyEntry(
 	ctx: APIRequestContext,
 	groupId: string,
@@ -177,14 +169,17 @@ async function openCreateRuleEditor(dialog: Locator, scopeName: 'Group' | 'User'
 
 async function selectTarget(dialogScope: Locator, kind: 'group' | 'user', target: string): Promise<void> {
 	const page = dialogScope.page()
-	const searchInput = dialogScope.getByRole('combobox', { name: getTargetFieldPattern(kind) })
+	const scopeLabel = kind === 'group' ? 'Scope groups' : 'Scope accounts'
+	await expect(dialogScope.getByText(scopeLabel, { exact: true })).toBeVisible()
+	const searchInput = dialogScope.getByRole('combobox')
+	await expect(searchInput).toHaveCount(1)
+	await expect(searchInput).toBeVisible({ timeout: 8000 })
+
 	const searchEndpoint = kind === 'group' ? '/cloud/groups/details' : '/cloud/users/details'
 	const searchResponse = page.waitForResponse((response) => {
 		return response.url().includes(searchEndpoint)
 			&& new URL(response.url()).searchParams.get('search') === target
 	}, { timeout: 15000 })
-
-	await expect(searchInput).toBeVisible({ timeout: 8000 })
 	await searchInput.fill(target)
 	const response = await searchResponse
 	expect(response.ok(), `Failed to search ${kind} targets: ${response.status()}`).toBe(true)
