@@ -24,7 +24,7 @@ final class OpenApiBinaryMediaTypesTest extends TestCase {
 
 	#[DataProvider('mediaTypeProvider')]
 	public function testBinaryResponseDeclaresItsFixedMediaType(string $file, string $operationId, string $mediaType): void {
-		$source = file_get_contents(dirname(__DIR__, 3) . '/' . $file);
+		$source = file_get_contents(dirname(__DIR__, 4) . '/' . $file);
 		self::assertNotFalse($source);
 		$spec = json_decode($source, true, 512, JSON_THROW_ON_ERROR);
 

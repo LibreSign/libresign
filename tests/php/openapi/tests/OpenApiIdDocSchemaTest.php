@@ -22,7 +22,7 @@ final class OpenApiIdDocSchemaTest extends TestCase {
 
 	#[DataProvider('specificationProvider')]
 	public function testIdDocumentRecordHasADomainSpecificSchemaName(string $file): void {
-		$source = file_get_contents(dirname(__DIR__, 3) . '/' . $file);
+		$source = file_get_contents(dirname(__DIR__, 4) . '/' . $file);
 		self::assertNotFalse($source);
 
 		$schemas = json_decode($source, true, 512, JSON_THROW_ON_ERROR)['components']['schemas'];

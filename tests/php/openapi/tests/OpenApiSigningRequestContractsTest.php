@@ -14,7 +14,7 @@ use PHPUnit\Framework\TestCase;
 
 final class OpenApiSigningRequestContractsTest extends TestCase {
 	private static function loadSpec(string $name): array {
-		$content = file_get_contents(dirname(__DIR__, 3) . '/' . $name);
+		$content = file_get_contents(dirname(__DIR__, 4) . '/' . $name);
 		self::assertNotFalse($content);
 		return json_decode($content, true, 512, JSON_THROW_ON_ERROR);
 	}

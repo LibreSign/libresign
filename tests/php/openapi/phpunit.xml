@@ -13,16 +13,7 @@
          colors="true">
   <testsuites>
     <testsuite name="openapi">
-      <file>OpenApiBinaryMediaTypesTest.php</file>
-      <file>OpenApiErrorBodyContractTest.php</file>
-      <file>OpenApiFunctionalTagsTest.php</file>
-      <file>OpenApiGenerationTest.php</file>
-      <file>OpenApiIdDocSchemaTest.php</file>
-      <file>OpenApiExtractorSchemaTest.php</file>
-      <file>OpenApiPolicyValueTest.php</file>
-      <file>OpenApiPolicyNumberUnionTest.php</file>
-      <file>OpenApiRequestHeadersTest.php</file>
-      <file>OpenApiSigningRequestContractsTest.php</file>
+      <directory suffix="Test.php">tests</directory>
     </testsuite>
   </testsuites>
 </phpunit>

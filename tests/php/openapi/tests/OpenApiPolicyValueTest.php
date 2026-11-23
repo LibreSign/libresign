@@ -9,23 +9,31 @@ declare(strict_types=1);
 
 namespace OCA\Libresign\Tests\OpenApi;
 
+use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 
 class OpenApiPolicyValueTest extends TestCase {
-	public function testPolicyObjectsAllowScalarAndNestedProperties(): void {
-		foreach (['openapi.json', 'openapi-administration.json', 'openapi-full.json'] as $file) {
-			$spec = json_decode(file_get_contents(dirname(__DIR__, 3) . '/' . $file), true, 512, JSON_THROW_ON_ERROR);
-			$value = $spec['components']['schemas']['EffectivePolicyValue'];
-			$this->assertTrue($value['nullable'], $file);
-			$objects = array_values(array_filter($value['oneOf'], static fn (array $schema): bool => $schema['type'] === 'object'));
-			$this->assertCount(1, $objects, $file);
-			// Nested booleans, strings, lists and null must not be restricted to objects.
-			$this->assertTrue($objects[0]['additionalProperties'], $file);
-		}
+	public static function specFiles(): array {
+		return [
+			'public' => ['openapi.json'],
+			'administration' => ['openapi-administration.json'],
+			'full' => ['openapi-full.json'],
+		];
+	}
+
+	#[DataProvider('specFiles')]
+	public function testPolicyObjectsAllowScalarAndNestedProperties(string $file): void {
+		$spec = json_decode(file_get_contents(dirname(__DIR__, 4) . '/' . $file), true, 512, JSON_THROW_ON_ERROR);
+		$value = $spec['components']['schemas']['EffectivePolicyValue'];
+		$this->assertTrue($value['nullable'], $file);
+		$objects = array_values(array_filter($value['oneOf'], static fn (array $schema): bool => $schema['type'] === 'object'));
+		$this->assertCount(1, $objects, $file);
+		// Nested booleans, strings, lists and null must not be restricted to objects.
+		$this->assertTrue($objects[0]['additionalProperties'], $file);
 	}
 
 	public function testIndividualAndCompoundWritesShareTheResponseValueContract(): void {
-		$spec = json_decode(file_get_contents(dirname(__DIR__, 3) . '/openapi-full.json'), true, 512, JSON_THROW_ON_ERROR);
+		$spec = json_decode(file_get_contents(dirname(__DIR__, 4) . '/openapi-full.json'), true, 512, JSON_THROW_ON_ERROR);
 		$checked = [];
 		foreach ($spec['paths'] as $path) {
 			foreach ($path as $operation) {

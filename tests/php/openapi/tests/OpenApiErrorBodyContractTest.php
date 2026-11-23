@@ -160,7 +160,7 @@ final class OpenApiErrorBodyContractTest extends TestCase {
 	}
 
 	private function load(string $file): array {
-		$source = file_get_contents(dirname(__DIR__, 3) . '/' . $file);
+		$source = file_get_contents(dirname(__DIR__, 4) . '/' . $file);
 		self::assertNotFalse($source);
 
 		return json_decode($source, true, 512, JSON_THROW_ON_ERROR);

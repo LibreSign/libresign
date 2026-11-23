@@ -15,8 +15,14 @@ use PHPStan\PhpDocParser\Ast\Type\IdentifierTypeNode;
 use PHPUnit\Framework\TestCase;
 
 class OpenApiExtractorSchemaTest extends TestCase {
+	// TODO(#9453): Remove .patches/openapi-extractor-mixed-object.diff
+	// when an unpatched upstream nextcloud/openapi-extractor release passes
+	// the mixed-property, $ref metadata and object-default regression tests.
 	public static function setUpBeforeClass(): void {
-		require_once dirname(__DIR__, 3) . '/vendor-bin/openapi-extractor/vendor/autoload.php';
+		// The unpatched-extractor CI check points this to a pristine install.
+		$autoload = getenv('OPENAPI_EXTRACTOR_AUTOLOAD')
+			?: dirname(__DIR__, 4) . '/vendor-bin/openapi-extractor/vendor/autoload.php';
+		require_once $autoload;
 		$GLOBALS['readableAppID'] = 'Libresign';
 	}
 
@@ -118,7 +124,7 @@ class OpenApiExtractorSchemaTest extends TestCase {
 	}
 
 	public function testGeneratedObjectRefsDoNotDeclareArrayDefaults(): void {
-		$spec = json_decode(file_get_contents(dirname(__DIR__, 3) . '/openapi-full.json'), true, 512, JSON_THROW_ON_ERROR);
+		$spec = json_decode(file_get_contents(dirname(__DIR__, 4) . '/openapi-full.json'), true, 512, JSON_THROW_ON_ERROR);
 		$expected = [
 			'file-save' => ['file' => 'NewFile', 'settings' => 'FolderSettings'],
 			'file_element-create-visible-element' => ['coordinates' => 'Coordinate'],
@@ -159,7 +165,7 @@ class OpenApiExtractorSchemaTest extends TestCase {
 			}
 		};
 		foreach (['openapi.json', 'openapi-administration.json', 'openapi-full.json'] as $file) {
-			$spec = json_decode(file_get_contents(dirname(__DIR__, 3) . '/' . $file), true, 512, JSON_THROW_ON_ERROR);
+			$spec = json_decode(file_get_contents(dirname(__DIR__, 4) . '/' . $file), true, 512, JSON_THROW_ON_ERROR);
 			$visit($spec);
 		}
 	}

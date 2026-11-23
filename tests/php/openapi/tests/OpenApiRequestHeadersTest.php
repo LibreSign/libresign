@@ -33,7 +33,7 @@ final class OpenApiRequestHeadersTest extends TestCase {
 				|| ($file === 'openapi-administration.json' ? $scope === 'administration' : $scope === 'default'),
 		));
 
-		$operations = OpenApiFunctionalTags::loadOperations(dirname(__DIR__, 3) . '/' . $file);
+		$operations = OpenApiFunctionalTags::loadOperations(dirname(__DIR__, 4) . '/' . $file);
 		$present = [];
 		foreach ($operations as $operation) {
 			$route = OpenApiFunctionalTags::routeKey($operation);
@@ -61,11 +61,11 @@ final class OpenApiRequestHeadersTest extends TestCase {
 
 	/** @return array<string, 'default'|'administration'> */
 	private static function discoverUuidConsumerRoutes(): array {
-		$middlewareSource = file_get_contents(dirname(__DIR__, 3) . '/lib/Middleware/InjectionMiddleware.php');
+		$middlewareSource = file_get_contents(dirname(__DIR__, 4) . '/lib/Middleware/InjectionMiddleware.php');
 		self::assertNotFalse($middlewareSource);
 		$consumers = self::uuidConsumerAttributesInMiddleware($middlewareSource);
 
-		$files = glob(dirname(__DIR__, 3) . '/lib/Controller/*Controller.php');
+		$files = glob(dirname(__DIR__, 4) . '/lib/Controller/*Controller.php');
 		self::assertNotFalse($files);
 
 		$routes = [];
@@ -180,7 +180,7 @@ final class OpenApiRequestHeadersTest extends TestCase {
 			#[ApiRoute(verb: 'GET', url: '/api/{apiVersion}/unrelated')]
 			public function unrelatedEndpoint(): void {}
 			PHP;
-		$middleware = file_get_contents(dirname(__DIR__, 3) . '/lib/Middleware/InjectionMiddleware.php');
+		$middleware = file_get_contents(dirname(__DIR__, 4) . '/lib/Middleware/InjectionMiddleware.php');
 		self::assertNotFalse($middleware);
 		self::assertSame(
 			['POST /ocs/v2.php/apps/libresign/api/{apiVersion}/future/{fileId}' => 'default'],
