@@ -5,10 +5,12 @@
 <template>
 	<div class="container-draw">
 		<div ref="canvasWrapper" class="canvas-wrapper">
-			<canvas ref="canvas"
+			<canvas
+				ref="canvas"
 				class="canvas" />
 		</div>
-		<NcTextField id="text"
+		<NcTextField
+			id="text"
 			ref="input"
 			v-model="value"
 			:label="t('libresign', 'Enter your Full Name or Initials to create Signature')" />
@@ -20,7 +22,8 @@
 				{{ t('libresign', 'Cancel') }}
 			</NcButton>
 		</div>
-		<NcDialog v-if="modal"
+		<NcDialog
+			v-if="modal"
 			:name="t('libresign', 'Confirm your signature')"
 			@closing="handleModal(false)">
 			<PreviewSignature :src="imageData" />

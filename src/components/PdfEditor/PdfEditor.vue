@@ -4,7 +4,8 @@
 -->
 <template>
 	<div class="pdf-editor">
-		<PDFElements ref="pdfElements"
+		<PDFElements
+			ref="pdfElements"
 			:init-files="files"
 			:init-file-names="fileNames"
 			:page-count-format="t('libresign', '{currentPage} of {totalPages}')"
@@ -30,7 +31,8 @@
 						:get-signer-label="getSignerLabel"
 						@change="onSignerChange(slotProps.object, $event)" />
 					<NcButton
-						class="action-btn" :class="[slotProps.actionClass]"
+						class="action-btn"
+						:class="[slotProps.actionClass]"
 						v-bind="slotProps.actionAttrs"
 						type="button"
 						variant="tertiary"
@@ -42,7 +44,8 @@
 						</template>
 					</NcButton>
 					<NcButton
-						class="action-btn" :class="[slotProps.actionClass]"
+						class="action-btn"
+						:class="[slotProps.actionClass]"
 						v-bind="slotProps.actionAttrs"
 						type="button"
 						variant="tertiary"

@@ -27,12 +27,14 @@
 		</header>
 
 		<div v-if="hasSignature">
-			<PreviewSignature :src="imgSrc"
+			<PreviewSignature
+				:src="imgSrc"
 				:sign-request-uuid="signatureElementsStore.signRequestUuid"
 				:alt="t('libresign', 'Current {type}', { type })"
 				@loaded="signatureLoaded" />
 		</div>
-		<div v-else
+		<div
+			v-else
 			class="no-signatures"
 			role="button"
 			tabindex="0"
@@ -42,7 +44,8 @@
 			<slot name="no-signatures" />
 		</div>
 
-		<Draw v-if="isEditing"
+		<Draw
+			v-if="isEditing"
 			:draw-editor="true"
 			:text-editor="true"
 			:file-editor="true"

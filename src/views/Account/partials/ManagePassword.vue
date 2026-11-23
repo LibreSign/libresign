@@ -4,7 +4,8 @@
 -->
 <template>
 	<div class="user-display-password">
-		<NcButton v-if="mounted"
+		<NcButton
+			v-if="mounted"
 			:wide="true"
 			@click="triggerUploadCertificate">
 			{{ t('libresign', 'Upload certificate') }}
@@ -12,7 +13,8 @@
 				<NcIconSvgWrapper :path="mdiCloudUpload" :size="20" />
 			</template>
 		</NcButton>
-		<NcButton v-if="signMethodsStore.hasSignatureFile()"
+		<NcButton
+			v-if="signMethodsStore.hasSignatureFile()"
 			:wide="true"
 			@click="signMethodsStore.showModal('readCertificate')">
 			{{ t('libresign', 'Read certificate') }}
@@ -20,7 +22,8 @@
 				<NcIconSvgWrapper :path="mdiLockOpenCheck" :size="20" />
 			</template>
 		</NcButton>
-		<NcButton v-if="signMethodsStore.hasSignatureFile()"
+		<NcButton
+			v-if="signMethodsStore.hasSignatureFile()"
 			:wide="true"
 			@click="deleteCertificate()">
 			{{ t('libresign', 'Delete certificate') }}
@@ -28,7 +31,8 @@
 				<NcIconSvgWrapper :path="mdiDelete" :size="20" />
 			</template>
 		</NcButton>
-		<NcButton v-if="certificateEngine !== 'none' && !signMethodsStore.hasSignatureFile()"
+		<NcButton
+			v-if="certificateEngine !== 'none' && !signMethodsStore.hasSignatureFile()"
 			:wide="true"
 			@click="signMethodsStore.showModal('createPassword')">
 			{{ t('libresign', 'Create certificate') }}
@@ -36,7 +40,8 @@
 				<NcIconSvgWrapper :path="mdiCertificate" :size="20" />
 			</template>
 		</NcButton>
-		<NcButton v-else-if="signMethodsStore.hasSignatureFile()"
+		<NcButton
+			v-else-if="signMethodsStore.hasSignatureFile()"
 			:wide="true"
 			@click="signMethodsStore.showModal('resetPassword')">
 			{{ t('librsign', 'Change password') }}

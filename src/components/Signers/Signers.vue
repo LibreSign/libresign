@@ -3,7 +3,8 @@
   - SPDX-License-Identifier: AGPL-3.0-or-later
 -->
 <template>
-	<draggable v-if="isOrderedNumeric && canReorder"
+	<draggable
+		v-if="isOrderedNumeric && canReorder"
 		v-model="sortableSigners"
 		item-key="localKey"
 		tag="ul"
@@ -24,7 +25,8 @@
 		</template>
 	</draggable>
 	<ul v-else>
-		<Signer v-for="signer in signers"
+		<Signer
+			v-for="signer in signers"
 			:key="signer.localKey"
 			:signer="signer"
 			:event="event">
@@ -126,7 +128,7 @@ const canReorder = computed(() => {
 	return filesStore.canSave() && (signers.value?.length || 0) > 1
 })
 
-function onDragEnd(evt: { oldIndex: number; newIndex: number }) {
+function onDragEnd(evt: { oldIndex: number, newIndex: number }) {
 	const { oldIndex, newIndex } = evt
 	if (oldIndex === newIndex) {
 		return

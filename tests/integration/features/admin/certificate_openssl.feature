@@ -18,7 +18,7 @@ Feature: admin/certificate_openssl
     Given as user "admin"
     When sending "post" to ocs "/apps/libresign/api/v1/admin/certificate/openssl"
       | rootCert | {"commonName":""} |
-    Then the response should have a status code 401
+    Then the response should have a status code 422
     And the response should be a JSON array with the following mandatory values
       | key                   | value                       |
       | (jq).ocs.data.message | Parameter 'CN' is required! |
@@ -27,7 +27,7 @@ Feature: admin/certificate_openssl
     Given as user "admin"
     When sending "post" to ocs "/apps/libresign/api/v1/admin/certificate/openssl"
       | rootCert | {"commonName":"0123456789012345678901234567890123456789012345678901234567890123456789"} |
-    Then the response should have a status code 401
+    Then the response should have a status code 422
     And the response should be a JSON array with the following mandatory values
       | key                   | value                                       |
       | (jq).ocs.data.message | Parameter 'CN' should be between 1 and 64. |
@@ -53,7 +53,7 @@ Feature: admin/certificate_openssl
       Given as user "admin"
       When sending "post" to ocs "/apps/libresign/api/v1/admin/certificate/openssl"
         | rootCert | {"commonName":"Common Name","names":[{"id": "C","value":"B"}]} |
-      Then the response should have a status code 401
+      Then the response should have a status code 422
       And the response should be a JSON array with the following mandatory values
         | key                   | value                                     |
         | (jq).ocs.data.message | Parameter 'C' should be between 2 and 2. |
@@ -62,7 +62,7 @@ Feature: admin/certificate_openssl
       Given as user "admin"
       When sending "post" to ocs "/apps/libresign/api/v1/admin/certificate/openssl"
         | rootCert | {"commonName":"Common Name","names":[{"id": "C","value":"BRA"}]} |
-      Then the response should have a status code 401
+      Then the response should have a status code 422
       And the response should be a JSON array with the following mandatory values
         | key                   | value                                     |
         | (jq).ocs.data.message | Parameter 'C' should be between 2 and 2. |

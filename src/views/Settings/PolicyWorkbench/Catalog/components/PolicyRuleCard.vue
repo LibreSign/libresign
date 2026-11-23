@@ -32,10 +32,20 @@
 		</ul>
 
 		<div class="policy-rule-card__actions">
-			<NcButton v-if="showEditAction !== false" variant="tertiary" class="policy-rule-card__action policy-rule-card__action--edit" :aria-label="editLabel" @click.stop="$emit('edit')">
+			<NcButton
+				v-if="showEditAction !== false"
+				variant="tertiary"
+				class="policy-rule-card__action policy-rule-card__action--edit"
+				:aria-label="editLabel"
+				@click.stop="$emit('edit')">
 				{{ editText || editLabel }}
 			</NcButton>
-			<NcButton v-if="showRemoveAction !== false" variant="error" class="policy-rule-card__action policy-rule-card__action--remove" :aria-label="removeLabel" @click.stop="$emit('remove')">
+			<NcButton
+				v-if="showRemoveAction !== false"
+				variant="error"
+				class="policy-rule-card__action policy-rule-card__action--remove"
+				:aria-label="removeLabel"
+				@click.stop="$emit('remove')">
 				{{ removeText || removeLabel }}
 			</NcButton>
 		</div>

@@ -3,7 +3,8 @@
   - SPDX-License-Identifier: AGPL-3.0-or-later
 -->
 <template>
-	<div class="signature-box"
+	<div
+		class="signature-box"
 		:style="boxStyle"
 		role="img"
 		:aria-label="signatureBoxAriaLabel">

@@ -5,7 +5,8 @@
 <!-- eslint-disable vue/no-v-html -->
 
 <template>
-	<NcSettingsSection v-if="configureCheckStore.items.length > 0"
+	<NcSettingsSection
+		v-if="configureCheckStore.items.length > 0"
 		:name="t('libresign', 'Configuration check')"
 		:description="t('libresign', 'Status of setup')">
 		<table class="grid">

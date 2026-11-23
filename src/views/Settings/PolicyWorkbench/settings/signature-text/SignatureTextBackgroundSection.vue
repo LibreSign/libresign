@@ -46,7 +46,12 @@
 			</template>
 		</NcButton>
 		<NcLoadingIcon v-if="showLoading" :size="20" />
-		<input ref="input" type="file" accept="image/png" class="ste__file-input" @change="onFileChange">
+		<input
+			ref="input"
+			type="file"
+			accept="image/png"
+			class="ste__file-input"
+			@change="onFileChange">
 	</div>
 
 	<NcNoteCard v-if="errorMessage" type="error" :show-alert="true">
@@ -69,7 +74,7 @@ type BackgroundType = 'default' | 'custom' | 'deleted'
 
 defineProps<{
 	backgroundType: BackgroundType
-	backgroundOptions: Array<{ value: BackgroundType; label: string; description: string }>
+	backgroundOptions: Array<{ value: BackgroundType, label: string, description: string }>
 	showLoading: boolean
 	errorMessage: string
 }>()

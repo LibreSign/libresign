@@ -4,7 +4,8 @@
 -->
 <template>
 	<template v-if="hasContent">
-		<NcListItem class="extra"
+		<NcListItem
+			class="extra"
 			compact
 			:name="timestampAuthorityLabel"
 			:aria-expanded="open ? 'true' : 'false'"
@@ -14,21 +15,28 @@
 				<strong>{{ timestampAuthorityLabel }}</strong>
 			</template>
 			<template #extra-actions>
-				<NcButton variant="tertiary"
+				<NcButton
+					variant="tertiary"
 					:aria-label="toggleAriaLabel"
 					@click.stop="open = !open">
 					<template #icon>
-						<NcIconSvgWrapper v-if="open"
+						<NcIconSvgWrapper
+							v-if="open"
 							:path="mdiUnfoldLessHorizontal"
 							:size="20" />
-						<NcIconSvgWrapper v-else
+						<NcIconSvgWrapper
+							v-else
 							:path="mdiUnfoldMoreHorizontal"
 							:size="20" />
 					</template>
 				</NcButton>
 			</template>
 		</NcListItem>
-		<div v-if="open" class="timestamp-wrapper" role="region" :aria-label="timestampAuthorityDetailsAriaLabel">
+		<div
+			v-if="open"
+			class="timestamp-wrapper"
+			role="region"
+			:aria-label="timestampAuthorityDetailsAriaLabel">
 			<div class="extra-chain timestamp-item">
 				<dl class="timestamp-details">
 					<div v-if="authority" class="timestamp-field">
@@ -109,16 +117,13 @@ const authority = computed(() =>
 	props.timestamp?.cnHints?.commonName
 	|| props.timestamp?.authority
 	|| props.timestamp?.tsaName
-	|| '',
-)
+	|| '')
 
 const policy = computed(() =>
-	props.timestamp?.policyName || props.timestamp?.policy || '',
-)
+	props.timestamp?.policyName || props.timestamp?.policy || '')
 
 const hashAlgorithm = computed(() =>
-	props.timestamp?.hashAlgorithm || props.timestamp?.hash || '',
-)
+	props.timestamp?.hashAlgorithm || props.timestamp?.hash || '')
 
 const serialNumber = computed(() => {
 	const serial = props.timestamp?.serialNumber
@@ -133,19 +138,19 @@ const hasContent = computed(() =>
 		|| props.timestamp?.genTime
 		|| policy.value
 		|| hashAlgorithm.value
-		|| serialNumber.value),
-)
+		|| serialNumber.value))
 
 const toggleAriaLabel = computed(() =>
 	open.value
 		// TRANSLATORS ARIA label for button action that hides TSA detail fields.
 		? t('libresign', 'Collapse timestamp authority details')
 		// TRANSLATORS ARIA label for button action that reveals TSA detail fields.
-		: t('libresign', 'Expand timestamp authority details'),
-)
+		: t('libresign', 'Expand timestamp authority details'))
 
 function dateFromSqlAnsi(date?: string | number | null) {
-	if (!date) { return '' }
+	if (!date) {
+		return ''
+	}
 	return Moment(String(date)).format('LLL')
 }
 

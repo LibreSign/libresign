@@ -48,9 +48,7 @@ export function pickCategoryWithFullyVisibleCard(
 	return selectedCategory
 }
 
-export function useNavigation(
-	visibleCategorySections: { value: Array<{ key: RealPolicySettingCategory }> },
-) {
+export function useNavigation(visibleCategorySections: { value: Array<{ key: RealPolicySettingCategory }> }) {
 	const categoryChipsScroller = ref<HTMLElement | null>(null)
 	const activeCategory = ref<RealPolicySettingCategory | null>(null)
 	const showBackToTop = ref(false)
@@ -209,10 +207,14 @@ export function useNavigation(
 
 		for (let i = 0; i < visibleCategorySectionsValue.value.length; i++) {
 			const category = visibleCategorySectionsValue.value[i]?.key
-			if (!category) { continue }
+			if (!category) {
+				continue
+			}
 
 			const element = categorySectionElements.get(category)
-			if (!element) { continue }
+			if (!element) {
+				continue
+			}
 
 			const rect = element.getBoundingClientRect()
 			if (rect.top + CATEGORY_SWITCH_HYSTERESIS_PX < activationLine) {

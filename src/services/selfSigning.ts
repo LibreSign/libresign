@@ -31,8 +31,7 @@ export function canIncludeCurrentAccount(
 
 	return !(filesStore.getFile()?.signers ?? []).some(signer =>
 		isSigningParticipant(signer)
-		&& signer.identifyMethods?.some(method => method.method === 'account' && method.value === userId),
-	)
+		&& signer.identifyMethods?.some(method => method.method === 'account' && method.value === userId))
 }
 
 export async function addCurrentAccountAsSigner(

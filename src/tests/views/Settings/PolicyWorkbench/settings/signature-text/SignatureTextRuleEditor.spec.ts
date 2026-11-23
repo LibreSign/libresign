@@ -494,7 +494,7 @@ describe('SignatureTextRuleEditor.vue', () => {
 
 		const updates = wrapper.emitted('update:modelValue')
 		expect(updates).toBeTruthy()
-		const lastPayload = updates!.at(-1)![0] as { signatureStampValue: string; collectMetadataEnabled: boolean }
+		const lastPayload = updates!.at(-1)![0] as { signatureStampValue: string, collectMetadataEnabled: boolean }
 		expect(lastPayload.collectMetadataEnabled).toBe(true)
 		expect(lastPayload.signatureStampValue).toContain('{{SignerIP}}')
 		expect(lastPayload.signatureStampValue).toContain('{{SignerUserAgent}}')
@@ -502,7 +502,7 @@ describe('SignatureTextRuleEditor.vue', () => {
 		await wrapper.find('.collect-metadata-switch').setValue(false)
 
 		const updatesAfterDisable = wrapper.emitted('update:modelValue')
-		const disabledPayload = updatesAfterDisable!.at(-1)![0] as { signatureStampValue: string; collectMetadataEnabled: boolean }
+		const disabledPayload = updatesAfterDisable!.at(-1)![0] as { signatureStampValue: string, collectMetadataEnabled: boolean }
 		expect(disabledPayload.collectMetadataEnabled).toBe(false)
 		expect(disabledPayload.signatureStampValue).not.toContain('{{SignerIP}}')
 		expect(disabledPayload.signatureStampValue).not.toContain('{{SignerUserAgent}}')
@@ -948,7 +948,7 @@ describe('SignatureTextRuleEditor.vue', () => {
 
 		const updates = wrapper.emitted('update:modelValue')
 		expect(updates).toBeTruthy()
-		const payload = updates!.at(-1)![0] as { signatureStampValue: string; collectMetadataEnabled: boolean }
+		const payload = updates!.at(-1)![0] as { signatureStampValue: string, collectMetadataEnabled: boolean }
 		expect(payload.collectMetadataEnabled).toBe(false)
 		expect(payload.signatureStampValue).toContain(`"background_type":"${inheritedConfig.backgroundType}"`)
 	})
@@ -994,7 +994,7 @@ describe('SignatureTextRuleEditor.vue', () => {
 
 		const updates = wrapper.emitted('update:modelValue')
 		expect(updates).toBeTruthy()
-		const payload = updates!.at(-1)![0] as { signatureStampValue: string; collectMetadataEnabled: boolean }
+		const payload = updates!.at(-1)![0] as { signatureStampValue: string, collectMetadataEnabled: boolean }
 		expect(payload.collectMetadataEnabled).toBe(false)
 		expect(payload.signatureStampValue).toBe(JSON.stringify({
 			template: inheritedConfig.template,

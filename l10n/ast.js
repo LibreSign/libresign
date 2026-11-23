@@ -188,6 +188,7 @@ OC.L10N.register(
     "Today" : "Güei",
     "Last 7 days" : "Los últimos 7 díes",
     "Last 30 days" : "Los últimos 30 díes",
+    "_%n day_::_%n days_" : ["%n día","%n díes"],
     "Custom template" : "Plantía personalizada",
     "Default background" : "Fondu predetermináu",
     "Custom background" : "Fondu personalizáu",

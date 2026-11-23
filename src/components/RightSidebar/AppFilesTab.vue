@@ -7,7 +7,8 @@
 		<h3 v-if="filesStore.getSubtitle()">
 			{{ filesStore.getSubtitle() }}
 		</h3>
-		<NcButton v-if="canSignImmediately || isDirectSigning"
+		<NcButton
+			v-if="canSignImmediately || isDirectSigning"
 			variant="tertiary"
 			:disabled="isDirectSigning"
 			@click="signPdfNow">
@@ -65,7 +66,7 @@ type PendingEnvelope = {
 	nodeType?: string
 	filesCount?: number
 	files?: Array<Pick<FileListItemRecord, 'fileId'>>
-	signers?: Array<{ displayName?: string; email?: string; signRequestId?: number }>
+	signers?: Array<{ displayName?: string, email?: string, signRequestId?: number }>
 	settings?: Pick<EditableFileSettingsDraft, 'path'>
 }
 
@@ -102,7 +103,7 @@ const policiesStore = usePoliciesStore()
 
 const sidebarTitleObserver = ref<MutationObserver | null>(null)
 
-type DirectSignTarget = { nodeId: number; name: string }
+type DirectSignTarget = { nodeId: number, name: string }
 const directSignTarget = ref<DirectSignTarget | null>(null)
 const isDirectSigning = ref(false)
 const directlySignedNodeId = ref<number | null>(null)
@@ -116,9 +117,7 @@ const canSignImmediately = computed(() => {
 		|| !loadState('libresign', 'can_request_sign', false)) {
 		return false
 	}
-	const policies = loadState<{ policies?: { identify_methods?: { effectiveValue?: import('../../types/index').EffectivePolicyValue } } }>(
-		'libresign', 'effective_policies', { policies: {} },
-	)
+	const policies = loadState<{ policies?: { identify_methods?: { effectiveValue?: import('../../types/index').EffectivePolicyValue } } }>('libresign', 'effective_policies', { policies: {} })
 	return canSignDirectly(policies?.policies?.identify_methods?.effectiveValue ?? null)
 })
 
@@ -200,7 +199,9 @@ async function checkAndLoadPendingEnvelope() {
 }
 
 function updateSidebarTitle(envelopeName?: string) {
-	if (!envelopeName) { return }
+	if (!envelopeName) {
+		return
+	}
 
 	disconnectTitleObserver()
 

@@ -17,7 +17,9 @@ const action = {
 	displayName: () => '',
 	title: ({ nodes }) => {
 		const node = nodes?.[0]
-		if (!node || !node.attributes) { return '' }
+		if (!node || !node.attributes) {
+			return ''
+		}
 
 		const signedNodeId = node.attributes['libresign-signed-node-id']
 		const statusCode = node.attributes['libresign-signature-status']
@@ -31,14 +33,18 @@ const action = {
 	exec: async ({ nodes }) => {
 		const sidebar = getSidebar()
 		const node = nodes?.[0]
-		if (!node) { return null }
+		if (!node) {
+			return null
+		}
 		sidebar.open(node, 'libresign')
 		sidebar.setActiveTab('libresign')
 		return null
 	},
 	iconSvgInline: ({ nodes }) => {
 		const node = nodes?.[0]
-		if (!node || !node.attributes) { return '' }
+		if (!node || !node.attributes) {
+			return ''
+		}
 
 		const signedNodeId = node.attributes['libresign-signed-node-id']
 		const statusCode = node.attributes['libresign-signature-status']
@@ -59,8 +65,7 @@ const action = {
 		}
 
 		const allPdfOrFolder = nodes?.length > 0 && nodes.every(node =>
-			getNodeMime(node) === 'application/pdf' || node.type === 'folder',
-		)
+			getNodeMime(node) === 'application/pdf' || node.type === 'folder')
 
 		return allPdfOrFolder
 	},

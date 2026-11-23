@@ -75,8 +75,6 @@ export function formatIpAccuracyRadius(accuracyRadius: number, locale?: string):
 	return formatLocationAccuracyMeters(accuracyRadius, locale)
 }
 
-export function formatIpCoordinates(
-	geolocation: Pick<SignerIpGeolocationEvidence, 'latitude' | 'longitude'> | null | undefined,
-): string | null {
+export function formatIpCoordinates(geolocation: Pick<SignerIpGeolocationEvidence, 'latitude' | 'longitude'> | null | undefined): string | null {
 	return formatDeviceReportedCoordinates(geolocation)
 }

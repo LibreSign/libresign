@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
 
-import { test, expect } from '@playwright/test';
+import { test, expect } from '@playwright/test'
 import { login } from '../support/nc-login'
 import { configureOpenSsl, setAppConfig, setCertificateEngine, setSystemPolicy } from '../support/nc-provisioning'
 import { createMailpitClient, waitForEmailTo, extractSignLink, extractTokenFromEmail } from '../support/mailpit'
@@ -83,12 +83,14 @@ test('sign document with email token as unauthenticated signer', async ({ page }
 
 	// Keep the browser unauthenticated before opening a public sign link.
 	// This avoids logout redirects to absolute hosts that may differ per environment.
-	await page.context().clearCookies();
-	await page.goto('about:blank');
+	await page.context().clearCookies()
+	await page.goto('about:blank')
 
 	const email = await waitForEmailTo(mailpit, signerEmail, 'LibreSign: A document is ready for your signature')
 	const signLink = extractSignLink(email.Text)
-	if (!signLink) { throw new Error('Sign link not found in email') }
+	if (!signLink) {
+		throw new Error('Sign link not found in email')
+	}
 	const signLinkCandidates = signLink.startsWith('/index.php/')
 		? [signLink, signLink.replace(/^\/index\.php/, '')]
 		: [signLink, `/index.php${signLink.startsWith('/') ? '' : '/'}${signLink}`]
@@ -118,8 +120,8 @@ test('sign document with email token as unauthenticated signer', async ({ page }
 		await openSignButton.click()
 	}
 	await expect(emailTextbox).toBeVisible()
-	await emailTextbox.click();
-	await emailTextbox.fill(signerEmail);
+	await emailTextbox.click()
+	await emailTextbox.fill(signerEmail)
 	const sendVerificationCodeButton = page.getByRole('button', { name: 'Send verification code' })
 	const codeTextbox = page.getByRole('textbox', { name: 'Enter your code' }).first()
 	await Promise.any([
@@ -129,26 +131,27 @@ test('sign document with email token as unauthenticated signer', async ({ page }
 	if (!await codeTextbox.isVisible({ timeout: 200 }).catch(() => false)) {
 		await expect(sendVerificationCodeButton).toBeVisible({ timeout: 15_000 })
 		await expect(sendVerificationCodeButton).toBeEnabled({ timeout: 15_000 })
-		await sendVerificationCodeButton.click();
+		await sendVerificationCodeButton.click()
 	}
 	await expect(codeTextbox).toBeVisible({ timeout: 15_000 })
 
 	const tokenEmail = await waitForEmailTo(mailpit, signerEmail, 'LibreSign: Verification code to sign a document', { timeout: 60_000 })
 	const token = extractTokenFromEmail(tokenEmail.Text)
-	if (!token) { throw new Error('Token not found in email') }
-	await codeTextbox.click();
-	await codeTextbox.fill(token);
-	await page.getByRole('button', { name: 'Validate code' }).click();
+	if (!token) {
+		throw new Error('Token not found in email')
+	}
+	await codeTextbox.click()
+	await codeTextbox.fill(token)
+	await page.getByRole('button', { name: 'Validate code' }).click()
 
-	await expect(page.getByRole('heading', { name: 'Signature confirmation' })).toBeVisible();
-	await expect(page.getByText('Step 3 of 3 - Signature')).toBeVisible();
-	await expect(page.getByText('Your identity has been')).toBeVisible();
-	await expect(page.getByText('You can now sign the document.')).toBeVisible();
+	await expect(page.getByRole('heading', { name: 'Signature confirmation' })).toBeVisible()
+	await expect(page.getByText('Step 3 of 3 - Signature')).toBeVisible()
+	await expect(page.getByText('Your identity has been')).toBeVisible()
+	await expect(page.getByText('You can now sign the document.')).toBeVisible()
 	const signResponsePromise = page.waitForResponse((response) =>
 		response.request().method() === 'POST'
-		&& response.url().includes('/apps/libresign/api/v1/sign/'),
-	)
-	await page.getByRole('dialog', { name: 'Signature confirmation' }).getByRole('button', { name: 'Sign document' }).click();
+		&& response.url().includes('/apps/libresign/api/v1/sign/'))
+	await page.getByRole('dialog', { name: 'Signature confirmation' }).getByRole('button', { name: 'Sign document' }).click()
 	const signResponse = await signResponsePromise
 	const signResponseBody = await signResponse.text()
 	expect(
@@ -158,5 +161,5 @@ test('sign document with email token as unauthenticated signer', async ({ page }
 	await page.waitForURL('**/validation/**', { waitUntil: 'commit' })
 	await expect(page.getByText('This document is valid')).toBeVisible({ timeout: 15_000 })
 	await expect(page.getByText('Congratulations you have')).toBeVisible({ timeout: 15_000 })
-	await expect(page.getByRole('button', { name: 'Sign document' })).not.toBeVisible();
-});
+	await expect(page.getByRole('button', { name: 'Sign document' })).not.toBeVisible()
+})

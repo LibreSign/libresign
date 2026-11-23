@@ -943,6 +943,7 @@ OC.L10N.register(
     "PDF certification" : "PDF certifikace",
     "DocMDP" : "DocMDP",
     "{value} seconds" : "{value} sekund",
+    "_%n day_::_%n days_" : ["%n den","%n dny","%n dnů","%n dny"],
     "Identification factors" : "Faktory identifikace",
     "Ways to identify a person who will sign a document." : "Způsoby identifikace osoby, která dokument podepíše.",
     "This information will appear on the validation page" : "Tato informace se objeví na stránce ověřování",
@@ -1085,7 +1086,6 @@ OC.L10N.register(
     "Make validation URL acessible only by authenticated users" : "Zpřístupnit URL ověřování pouze přihlášeným uživatelům",
     "{method} is not configured. Please contact your administrator." : "{method} není nastaveno. Obraťte se na svého správce.",
     "Sign the document." : "Podepsat dokument.",
-    "Failed to remove file(s) from envelope" : "Nepodařilo se odebrat soubor(y) z obálky",
-    "{value} days" : "{value} dní"
+    "Failed to remove file(s) from envelope" : "Nepodařilo se odebrat soubor(y) z obálky"
 },
 "nplurals=4; plural=(n == 1 && n % 1 == 0) ? 0 : (n >= 2 && n <= 4 && n % 1 == 0) ? 1: (n % 1 != 0 ) ? 2 : 3;");

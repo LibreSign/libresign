@@ -20,9 +20,7 @@ export type StoredSignerGeolocation = {
 	ip: SignerIpGeolocationEvidence | null
 }
 
-export function getStoredSignerGeolocation(
-	signer: SignerWithStoredGeolocation | null | undefined,
-): StoredSignerGeolocation {
+export function getStoredSignerGeolocation(signer: SignerWithStoredGeolocation | null | undefined): StoredSignerGeolocation {
 	const geolocation = signer?.metadata?.geolocation
 	return {
 		device: geolocation?.device ?? null,
@@ -30,14 +28,10 @@ export function getStoredSignerGeolocation(
 	}
 }
 
-export function getStoredDeviceGeolocation(
-	signer: SignerWithStoredGeolocation | null | undefined,
-): DeviceReportedLocation | null {
+export function getStoredDeviceGeolocation(signer: SignerWithStoredGeolocation | null | undefined): DeviceReportedLocation | null {
 	return getStoredSignerGeolocation(signer).device
 }
 
-export function getStoredIpGeolocation(
-	signer: SignerWithStoredGeolocation | null | undefined,
-): SignerIpGeolocationEvidence | null {
+export function getStoredIpGeolocation(signer: SignerWithStoredGeolocation | null | undefined): SignerIpGeolocationEvidence | null {
 	return getStoredSignerGeolocation(signer).ip
 }

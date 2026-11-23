@@ -4,7 +4,8 @@
 -->
 <template>
 	<template v-if="hasContent">
-		<NcListItem class="extra"
+		<NcListItem
+			class="extra"
 			compact
 			role="button"
 			:aria-expanded="open ? 'true' : 'false'"
@@ -14,21 +15,25 @@
 				<strong>{{ t('libresign', 'IP-based approximate location') }}</strong>
 			</template>
 			<template #extra-actions>
-				<NcButton variant="tertiary"
+				<NcButton
+					variant="tertiary"
 					:aria-label="toggleAriaLabel"
 					@click.stop="open = !open">
 					<template #icon>
-						<NcIconSvgWrapper v-if="open"
+						<NcIconSvgWrapper
+							v-if="open"
 							:path="mdiUnfoldLessHorizontal"
 							:size="20" />
-						<NcIconSvgWrapper v-else
+						<NcIconSvgWrapper
+							v-else
 							:path="mdiUnfoldMoreHorizontal"
 							:size="20" />
 					</template>
 				</NcButton>
 			</template>
 		</NcListItem>
-		<div v-if="open"
+		<div
+			v-if="open"
 			class="ip-based-location-wrapper"
 			role="region"
 			:aria-label="ipBasedLocationDetailsAriaLabel">
@@ -151,8 +156,7 @@ const toggleAriaLabel = computed(() =>
 		// TRANSLATORS ARIA label for button action that hides IP-based location details.
 		? t('libresign', 'Collapse IP-based approximate location details')
 		// TRANSLATORS ARIA label for button action that reveals IP-based location details.
-		: t('libresign', 'Expand IP-based approximate location details'),
-)
+		: t('libresign', 'Expand IP-based approximate location details'))
 
 defineExpose({
 	open,

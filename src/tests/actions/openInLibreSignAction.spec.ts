@@ -81,7 +81,9 @@ vi.mock('@nextcloud/capabilities', () => ({
 
 vi.mock('@nextcloud/initial-state', () => ({
 	loadState: vi.fn((app, key, defaultValue) => {
-		if (key === 'certificate_ok') { return true }
+		if (key === 'certificate_ok') {
+			return true
+		}
 		return defaultValue
 	}),
 }))
@@ -102,7 +104,7 @@ describe('openInLibreSignAction rules', () => {
 		exec: (context: { nodes: unknown }) => Promise<unknown>
 		execBatch: (context: { nodes: unknown }) => Promise<unknown>
 	}
-	let loadState: { mockReturnValue: (value: unknown) => unknown; mockImplementation: (implementation: (_app: string, key: string) => unknown) => unknown }
+	let loadState: { mockReturnValue: (value: unknown) => unknown, mockImplementation: (implementation: (_app: string, key: string) => unknown) => unknown }
 	let getCapabilities: { mockReturnValue: (value: unknown) => unknown }
 	type PendingEnvelopeForTest = NonNullable<LibreSignGlobalNamespace['pendingEnvelope']> & {
 		id: number
@@ -417,9 +419,7 @@ let spawnDialog: typeof import('@nextcloud/vue/functions/dialog').spawnDialog
 						if (component.mounted) {
 							const instance = { $on: vi.fn() }
 							component.mounted.call(instance)
-							const call = instance.$on.mock.calls.find(
-								(c) => c && c[0] === 'close',
-							)
+							const call = instance.$on.mock.calls.find((c) => c && c[0] === 'close')
 							const closeHandler = call ? call[1] : null
 							if (closeHandler) {
 								closeHandler(undefined)

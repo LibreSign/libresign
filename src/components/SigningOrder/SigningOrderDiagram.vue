@@ -29,13 +29,15 @@
 				</div>
 				<div class="stage-label-placeholder" />
 				<div class="stage-items">
-					<div v-for="(signer, index) in getSignersByOrder(order)"
+					<div
+						v-for="(signer, index) in getSignersByOrder(order)"
 						:key="`${order}-${index}`"
 						class="signer-node"
 						:class="{ signed: signer.signed }">
 						<NcPopover>
 							<template #trigger="{ attrs }">
-								<button class="signer-content"
+								<button
+									class="signer-content"
 									v-bind="attrs"
 									type="button">
 									<div class="avatar-container">
@@ -62,7 +64,8 @@
 									<!-- TRANSLATORS Label preceding signer identification method chips in details popover. -->
 									<strong>{{ t('libresign', 'Method') }}:</strong>
 									<div class="method-chips">
-										<NcChip v-for="method in getIdentifyMethods(signer)"
+										<NcChip
+											v-for="method in getIdentifyMethods(signer)"
 											:key="method"
 											:text="method"
 											:no-close="true" />
@@ -76,7 +79,8 @@
 								<div class="popover-row">
 									<!-- TRANSLATORS Label preceding signer status chip in details popover. -->
 									<strong>{{ t('libresign', 'Status') }}:</strong>
-									<NcChip :text="getStatusLabel(signer)"
+									<NcChip
+										:text="getStatusLabel(signer)"
 										:variant="getChipType(signer)"
 										:icon-path="getStatusIconPath(signer)"
 										:no-close="true" />
@@ -194,31 +198,49 @@ function getIdentifyMethods(signer: Signer) {
 }
 
 function getStatusLabel(signer: Signer) {
-	if (signer.signed) { return statusSignedLabel }
-	if (signer.me?.status === 0) { return statusDraftLabel }
+	if (signer.signed) {
+		return statusSignedLabel
+	}
+	if (signer.me?.status === 0) {
+		return statusDraftLabel
+	}
 	return statusPendingLabel
 }
 
 function getStatusIconPath(signer: Signer) {
-	if (signer.signed) { return mdiCheckCircle }
-	if (signer.me?.status === 0) { return mdiCircleOutline }
+	if (signer.signed) {
+		return mdiCheckCircle
+	}
+	if (signer.me?.status === 0) {
+		return mdiCircleOutline
+	}
 	return mdiClockOutline
 }
 
 function getChipType(signer: Signer) {
-	if (signer.signed) { return 'success' }
-	if (signer.me?.status === 0) { return 'secondary' }
+	if (signer.signed) {
+		return 'success'
+	}
+	if (signer.me?.status === 0) {
+		return 'secondary'
+	}
 	return 'warning'
 }
 
 function getStatusClass(signer: Signer) {
-	if (signer.signed) { return 'signed' }
-	if (signer.me?.status === 0) { return 'draft' }
+	if (signer.signed) {
+		return 'signed'
+	}
+	if (signer.me?.status === 0) {
+		return 'draft'
+	}
 	return 'pending'
 }
 
 function formatDate(timestamp?: number | null) {
-	if (!timestamp) { return '' }
+	if (!timestamp) {
+		return ''
+	}
 	const date = new Date(timestamp * 1000)
 	return date.toLocaleString()
 }

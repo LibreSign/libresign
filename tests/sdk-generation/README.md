@@ -18,12 +18,16 @@ npm test --prefix tests/sdk-generation
 npm run test:anyof --prefix tests/sdk-generation
 ```
 
-The last command **passes while the known defect exists**: it assigns an invalid
-array to the generated `EffectivePolicyValue` without suppressing diagnostics.
-A missing client fails with TS2307; a corrected type that rejects arrays fails
-with TS2322 and requires reevaluating the No-Go report. `npm test` checks
-transport, generation cleanup and live-check error handling, and writes
-the generated operation inventory to `build/sdk-generation/inventory.md`.
+`test:anyof` has two parts. `anyof-defect.ts` is a regression guard: the generated
+`EffectivePolicyValue` must keep rejecting arrays and `undefined`. `union-defects.ts`
+**passes while known defects exist**: a `@ts-expect-error` marks a valid contract
+value that the generated model rejects, and a plain assignment marks an invalid
+value that it accepts. When a defect is fixed, compilation fails: TS2578 for an
+unused `@ts-expect-error`, TS2322 for an assignment that is now rejected. The
+report must then be reevaluated. `npm test` checks
+transport, generation cleanup, live-check error handling and real `@nextcloud/axios`
+injection under jsdom, and writes the generated operation inventory to
+`build/sdk-generation/inventory.md`.
 Compare that inventory with the checked-in evaluation snapshot when changing the
 specification. This does not prove every operation's runtime serialization.
 
@@ -38,7 +42,7 @@ See [REPORT.md](REPORT.md) and [inventory.md](inventory.md) for results.
 
 ## Normalized-input experiment
 
-This separate experiment changes all 22 `anyOf` keywords to `oneOf` in a
+This separate experiment changes all 13 `anyOf` keywords to `oneOf` in a
 **disposable generator input**, never in the committed specification:
 
 ```sh
@@ -47,24 +51,30 @@ tests/sdk-generation/generate.sh build/sdk-generation/normalized/typescript buil
 npm run test:normalized --prefix tests/sdk-generation
 ```
 
-The positive/negative type checks pass, including rejection of the invalid
-policy array and invalid scalar object unions. They also explicitly record that
-schema-valid `null` is still rejected. This is partial mitigation, not a Go.
-`oneOf` and `anyOf` are not equivalent validation contracts: `integer` and
-`number` overlap. The transformed file must never replace the source contract.
+The positive/negative type checks pass, including the object unions that the
+unmodified output merges incorrectly. They also record that `null` is still
+rejected by the standalone union; how `nullable` should work on a composed schema
+is itself unresolved (see UPSTREAM-NOTES.md E4). This is partial mitigation, not
+a Go.
+`oneOf` and `anyOf` are not equivalent validation contracts: overlapping object
+branches would violate `oneOf`. The transformed file must never replace the
+source contract.
 
-## Real Nextcloud Axios import probe
+## Real Nextcloud Axios
 
 ```sh
+npm test --prefix tests/sdk-generation   # includes nextcloud-axios.test.ts
 npm run test:nextcloud --prefix tests/sdk-generation
 ```
 
-With the locked `@nextcloud/axios` 2.6.0 on Node 24.22.2 this **fails** with
-`ReferenceError: window is not defined` in `@nextcloud/browser-storage`, imported
-by `@nextcloud/auth`. This invokes the real ESM package without browser shims.
-Real Nextcloud instance injection therefore remains unverified; the deterministic
-transport tests use ordinary Axios. Browser integration and CSRF retry behavior
-need a separate browser environment.
+`nextcloud-axios.test.ts` installs a jsdom window, injects the real locked
+`@nextcloud/axios` instance into a generated API class and checks its default
+`requesttoken`/`X-Requested-With` headers, the `OCS-APIRequest` header and the
+package's own 412 CSRF retry. Only the network adapter and `fetch` are
+replaced. `test:nextcloud` is the Node-only probe without browser globals; it
+**fails** with `ReferenceError: window is not defined`, recording that the
+package needs a browser-like environment. A real browser and Nextcloud server
+remain unverified.
 
 ## Optional live Nextcloud check
 

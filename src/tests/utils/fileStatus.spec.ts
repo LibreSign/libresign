@@ -28,7 +28,7 @@ describe('fileStatus utils', () => {
 	})
 
 	it('builds status map with enum and aliases', () => {
-		const map = buildStatusMap() as unknown as Record<number | string, { class: string; label: string; icon: string }>
+		const map = buildStatusMap() as unknown as Record<number | string, { class: string, label: string, icon: string }>
 
 		expect(map[FILE_STATUS.ABLE_TO_SIGN].class).toBe('ready')
 		expect(map.ABLE_TO_SIGN).toBe(map[FILE_STATUS.ABLE_TO_SIGN])
@@ -64,7 +64,7 @@ describe('fileStatus utils', () => {
 	})
 
 	it('maps correct CSS classes for statuses', () => {
-		const map = buildStatusMap() as unknown as Record<number | string, { class: string; label: string; icon: string }>
+		const map = buildStatusMap() as unknown as Record<number | string, { class: string, label: string, icon: string }>
 
 		expect(map[FILE_STATUS.DRAFT].class).toBe('draft')
 		expect(map[FILE_STATUS.SIGNED].class).toBe('signed')
