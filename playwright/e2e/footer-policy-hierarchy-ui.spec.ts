@@ -199,7 +199,7 @@ async function selectTarget(dialogScope: Locator, kind: 'group' | 'user', target
 
 	const results = await response.json()
 	expect(JSON.stringify(results), `Search did not return ${kind} target ${target}`).toContain(target)
-	await searchInput.press('ArrowDown')
+	await searchInput.click()
 	const option = page.getByRole('option', { name: new RegExp(escapeRegExp(target), 'i') }).first()
 	await expect(option).toBeVisible({ timeout: 8000 })
 	const optionId = await option.getAttribute('id')
