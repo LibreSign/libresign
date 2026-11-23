@@ -20,7 +20,6 @@ import {
 	setGroupPolicyEntry,
 	setSystemPolicyEntry,
 } from '../support/policy-api'
-import { clickVisibleOptionOrFallback } from '../support/select-option'
 
 const test = base.extend<{
 	adminRequestContext: APIRequestContext
@@ -89,14 +88,6 @@ function getTrimmedFooterTemplate(value: unknown): string {
 
 function escapeRegExp(value: string): string {
 	return value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
-}
-
-function getTargetFieldPattern(kind: 'group' | 'user'): RegExp {
-	const labels = kind === 'group'
-		? ['Scope groups', 'Target groups']
-		: ['Scope accounts', 'Target users']
-
-	return new RegExp(`^(?:${labels.map(escapeRegExp).join('|')})$`, 'i')
 }
 
 async function deleteGroupPolicyEntry(
@@ -179,86 +170,34 @@ async function openCreateRuleEditor(dialog: Locator, scopeName: 'Group' | 'User'
 async function selectTarget(dialogScope: Locator, kind: 'group' | 'user', target: string): Promise<void> {
 	const page = dialogScope.page()
 	const labelPattern = getTargetFieldPattern(kind)
-	const combobox = dialogScope.getByRole('combobox', { name: labelPattern }).first()
-	const labeledInput = dialogScope.getByLabel(labelPattern).first()
-	const targetInput = await combobox.count() ? combobox : labeledInput
-	const selectedTarget = dialogScope.locator('.vs__selected').filter({ hasText: new RegExp(escapeRegExp(target), 'i') }).first()
-	const submitButton = dialogScope.getByRole('button', {
-		name: /Create rule|Create policy rule|Save changes|Save policy rule changes|Save rule changes/i,
-	}).last()
+	const scopeLabel = dialogScope.locator('.policy-workbench__label').filter({ hasText: labelPattern }).first()
+	const searchInput = dialogScope.locator('.nc-select-users .vs__search input').first()
+	await expect(scopeLabel).toBeVisible({ timeout: 8000 })
+	await expect(searchInput).toBeVisible({ timeout: 8000 })
 
-	const isSelectionConfirmed = async () => {
-		if (await selectedTarget.isVisible({ timeout: 1000 }).catch(() => false)) {
-			return true
-		}
+	const searchEndpoint = kind === 'group' ? '/cloud/groups/details' : '/cloud/users/details'
+	const searchResponse = page.waitForResponse((response) => {
+		return response.url().includes(searchEndpoint)
+			&& new URL(response.url()).searchParams.get('search') === target
+	}, { timeout: 15000 })
+	await searchInput.fill(target)
+	const response = await searchResponse
+	expect(response.ok(), `Failed to search ${kind} targets: ${response.status()}`).toBe(true)
 
-		if (await submitButton.isVisible({ timeout: 1000 }).catch(() => false)) {
-			return submitButton.isEnabled().catch(() => false)
-		}
-
-		return false
+	const results = await response.json()
+	expect(JSON.stringify(results), `Search did not return ${kind} target ${target}`).toContain(target)
+	await searchInput.click()
+	const option = page.getByRole('option', { name: new RegExp(escapeRegExp(target), 'i') }).first()
+	await expect(option).toBeVisible({ timeout: 8000 })
+	const optionId = await option.getAttribute('id')
+	expect(optionId).toBeTruthy()
+	if (!await searchInput.getAttribute('aria-activedescendant')) {
+		await searchInput.press('ArrowDown')
 	}
+	await expect(searchInput).toHaveAttribute('aria-activedescendant', optionId!)
+	await searchInput.press('Enter')
 
-	await expect(targetInput).toBeVisible({ timeout: 8000 })
-	if (await isSelectionConfirmed()) {
-		return
-	}
-
-	await targetInput.click()
-	if (await isSelectionConfirmed()) {
-		return
-	}
-
-	const searchInput = targetInput.locator('input, textarea, [contenteditable="true"]').first()
-	if (await searchInput.isVisible({ timeout: 1000 }).catch(() => false)) {
-		for (let attempt = 0; attempt < 3; attempt += 1) {
-			await searchInput.fill(target)
-			const targetPattern = new RegExp(escapeRegExp(target), 'i')
-
-			const matchingOption = page.getByRole('option', { name: targetPattern }).first()
-			const matchingVisible = await matchingOption.waitFor({ state: 'visible', timeout: 3000 }).then(() => true).catch(() => false)
-			if (matchingVisible) {
-				const clicked = await clickVisibleOptionOrFallback(page, matchingOption, targetPattern)
-				if (!clicked) {
-					await searchInput.press('ArrowDown')
-					await searchInput.press('Enter')
-				}
-			} else {
-				const floatingOption = page.locator('ul[role="listbox"] li, .vs__dropdown-menu--floating li').filter({ hasText: targetPattern }).first()
-				if (await floatingOption.isVisible({ timeout: 2000 }).catch(() => false)) {
-					await floatingOption.click()
-				} else {
-					await searchInput.press('ArrowDown')
-					await searchInput.press('Enter')
-				}
-			}
-
-			await page.keyboard.press('Escape').catch(() => {})
-			await searchInput.press('Tab').catch(() => {})
-			if (await isSelectionConfirmed()) {
-				break
-			}
-		}
-		await expect.poll(isSelectionConfirmed, { timeout: 8000 }).toBe(true)
-	} else {
-		await page.keyboard.type(target)
-		const targetPattern = new RegExp(escapeRegExp(target), 'i')
-		const matchingOption = page.getByRole('option', { name: targetPattern }).first()
-		if (await matchingOption.waitFor({ state: 'visible', timeout: 3000 }).then(() => true).catch(() => false)) {
-			const clicked = await clickVisibleOptionOrFallback(page, matchingOption, targetPattern)
-			if (!clicked) {
-				await page.keyboard.press('ArrowDown')
-				await page.keyboard.press('Enter')
-			}
-		} else {
-			await page.keyboard.press('ArrowDown')
-			await page.keyboard.press('Enter')
-		}
-		await page.keyboard.press('Tab').catch(() => {})
-		await expect.poll(isSelectionConfirmed, { timeout: 8000 }).toBe(true)
-	}
-
-	await expect(page.locator('ul[role="listbox"].vs__dropdown-menu--floating')).toHaveCount(0)
+	await expect(dialogScope.getByText(target, { exact: true })).toBeVisible()
 }
 
 async function ensureSwitchEnabled(scope: Page | Locator, switchLabel: string): Promise<void> {
