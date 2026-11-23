@@ -19,6 +19,7 @@ use OCA\Libresign\Handler\SignEngine\PhpNativeHandler;
 use OCA\Libresign\Service\DocMdp\ConfigService;
 use OCA\Libresign\Service\Signature\PdfSignatureValidationService;
 use OCA\Libresign\Tests\Integration\TestCase;
+use OCA\Libresign\Vendor\LibreSign\PdfSignatureValidator\Parser\PdfSignatureInventoryReader;
 use OCP\Files\File;
 use OCP\L10N\IFactory as IL10NFactory;
 use PHPUnit\Framework\Attributes\DataProvider;
@@ -94,6 +95,18 @@ final class DocMdpHandlerValidationDataTest extends TestCase {
 		$this->assertSame(1, preg_match('/\/Contents\s+(\d+)\s+0\s+R/', $signed, $contentRef));
 		$contentNum = (int)$contentRef[1];
 		$rootNum = $this->rootNumber($signed);
+		$certificationObjectNumber = null;
+		if ($forgery === 'rootSwap') {
+			$inventory = (new PdfSignatureInventoryReader())->readFromString($signed);
+			$this->assertTrue($inventory->isConclusive);
+			$certifications = array_values(array_filter(
+				$inventory->activeSignatures,
+				static fn ($signature): bool => $signature->isCertifying,
+			));
+			$this->assertCount(1, $certifications);
+			$certificationObjectNumber = $certifications[0]->objectNumber;
+			$this->assertNotNull($certificationObjectNumber);
+		}
 		$text = 'BT /F1 24 Tf 72 720 Td (Forged) Tj ET';
 		$forged = '<< /Length ' . strlen($text) . " >>\nstream\n{$text}\nendstream";
 		$newPageTree = [
@@ -106,7 +119,7 @@ final class DocMdpHandlerValidationDataTest extends TestCase {
 			'rootSwap' => (string)preg_replace(
 				'/\/Root\s+\d+\s+0\s+R(?=[^\/]*\/Prev[^%]*%%EOF\n$)/',
 				"/Root {$n} 0 R",
-				$this->appendIncrementalUpdate($signed, [$n => '<< /Type /Catalog /Pages ' . ($n + 1) . ' 0 R >>'] + $newPageTree),
+				$this->appendIncrementalUpdate($signed, [$n => '<< /Type /Catalog /Pages ' . ($n + 1) . ' 0 R /Perms << /DocMDP ' . $certificationObjectNumber . ' 0 R >> >>'] + $newPageTree),
 			),
 			'commentObj' => $this->appendIncrementalUpdate($signed, [$n => '<< /Type /DSS >>', $contentNum => $forged], [$contentNum => "{$contentNum} 0 %x\nobj"]),
 			'swallow' => $this->appendSwallowedRedefinition($signed, $n, $contentNum, $forged),
