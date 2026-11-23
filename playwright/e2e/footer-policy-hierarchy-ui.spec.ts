@@ -220,6 +220,40 @@ async function ensureFooterTemplateEditorVisible(scope: Page | Locator): Promise
 	return footerTemplateField
 }
 
+/**
+ * Open the group picker before searching. Clicking an already-focused
+ * NcSelectUsers input after its OCS response can close the populated menu.
+ * Keep the existing user picker path unchanged.
+ */
+async function selectGroupTargetWithOpenDropdown(dialogScope: Locator, target: string): Promise<void> {
+	const page = dialogScope.page()
+	const searchInput = dialogScope.getByRole('combobox')
+	await expect(searchInput).toHaveCount(1)
+	await expect(searchInput).toBeVisible({ timeout: 8000 })
+
+	const searchResponse = page.waitForResponse((response) => {
+		return response.url().includes('/cloud/groups/details')
+			&& new URL(response.url()).searchParams.get('search') === target
+	}, { timeout: 15000 })
+
+	await searchInput.click()
+	await searchInput.fill(target)
+	const response = await searchResponse
+	expect(response.ok(), `Failed to search group target ${target}: ${response.status()}`).toBe(true)
+	expect(JSON.stringify(await response.json())).toContain(target)
+
+	const option = page.getByRole('option', { name: new RegExp(escapeRegExp(target), 'i') }).first()
+	await expect(option).toBeVisible({ timeout: 8000 })
+	const optionId = await option.getAttribute('id')
+	expect(optionId).toBeTruthy()
+	if (await searchInput.getAttribute('aria-activedescendant') !== optionId) {
+		await searchInput.press('ArrowDown')
+	}
+	await expect(searchInput).toHaveAttribute('aria-activedescendant', optionId!)
+	await searchInput.press('Enter')
+	await expect(dialogScope.getByText(target, { exact: true })).toBeVisible()
+}
+
 async function createFooterRuleViaUi(
 	page: Page,
 	scopeName: 'Group' | 'User',
@@ -234,7 +268,7 @@ async function createFooterRuleViaUi(
 	await expect(createRuleDialog).toBeVisible({ timeout: 10000 })
 
 	if (scopeName === 'Group') {
-		await selectTarget(createRuleDialog, 'group', target)
+		await selectGroupTargetWithOpenDropdown(createRuleDialog, target)
 	} else {
 		await selectTarget(createRuleDialog, 'user', target)
 	}
