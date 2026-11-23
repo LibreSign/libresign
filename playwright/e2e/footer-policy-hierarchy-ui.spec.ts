@@ -186,18 +186,18 @@ async function selectTarget(dialogScope: Locator, kind: 'group' | 'user', target
 
 	const results = await response.json()
 	expect(JSON.stringify(results), `Search did not return ${kind} target ${target}`).toContain(target)
+
+	// Receiving the OCS response precedes Vue's reactive state update. Wait for
+	// the async NcSelectUsers loading cycle to finish before opening its menu;
+	// otherwise a pending options update can detach the item during the click.
+	await expect(dialogScope.locator('.vs--loading')).toHaveCount(0, { timeout: 10000 })
 	const option = page.getByRole('option', { name: new RegExp(escapeRegExp(target), 'i') }).first()
-	// Typing may already open the async menu. Clicking the focused combobox
-	// again can toggle it closed before the option becomes visible.
-	if (!await option.isVisible()) {
-		await searchInput.press('ArrowDown')
+	if (await searchInput.getAttribute('aria-expanded') !== 'true') {
+		await searchInput.click()
 	}
-	await expect(option).toBeVisible({ timeout: 8000 })
-	// The floating NcSelectUsers option can animate/re-render continuously.
-	// Playwright's stability gate would otherwise wait until the test times out.
-	// The option has already been observed visible and the search API completed.
-	await option.click({ force: true, timeout: 8000 })
-	await expect(dialogScope.getByText(target, { exact: true })).toBeVisible()
+	await expect(option).toBeVisible({ timeout: 10000 })
+	await option.click({ timeout: 10000 })
+	await expect(dialogScope.locator('.vs__selected')).toContainText(target)
 }
 
 async function ensureSwitchEnabled(scope: Page | Locator, switchLabel: string): Promise<void> {
