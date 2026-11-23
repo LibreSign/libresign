@@ -20,7 +20,6 @@ import {
 	setGroupPolicyEntry,
 	setSystemPolicyEntry,
 } from '../support/policy-api'
-import { clickVisibleOptionOrFallback } from '../support/select-option'
 
 const test = base.extend<{
 	adminRequestContext: APIRequestContext
@@ -177,52 +176,15 @@ async function openCreateRuleEditor(dialog: Locator, scopeName: 'Group' | 'User'
 }
 
 async function selectTarget(dialogScope: Locator, kind: 'group' | 'user', target: string): Promise<void> {
-	const page = dialogScope.page()
-	const labelPattern = getTargetFieldPattern(kind)
-	const scopeLabel = dialogScope.locator('.policy-workbench__label').filter({ hasText: labelPattern }).first()
-	// NcSelectUsers renders an NcTextField inside .vs__search. Do not chain
-	// a descendant input from getByLabel(), whose match changes on focus.
-	const searchInput = dialogScope.locator('.nc-select-users .vs__search input').first()
-	const selectedTarget = dialogScope.locator('.vs__selected').filter({ hasText: new RegExp(escapeRegExp(target), 'i') }).first()
-	const isSelectionConfirmed = async () => selectedTarget.isVisible().catch(() => false)
-
-	await expect(scopeLabel).toBeVisible({ timeout: 8000 })
+	const searchInput = dialogScope.getByRole('combobox', { name: getTargetFieldPattern(kind) })
 	await expect(searchInput).toBeVisible({ timeout: 8000 })
-	if (await isSelectionConfirmed()) {
-		return
-	}
+	await searchInput.fill(target)
 
-	const targetPattern = new RegExp(escapeRegExp(target), 'i')
-	for (let attempt = 0; attempt < 3; attempt += 1) {
-		await searchInput.fill(target, { timeout: 8000 })
+	const option = dialogScope.page().getByRole('option', { name: new RegExp(escapeRegExp(target), 'i') }).first()
+	await expect(option).toBeVisible({ timeout: 8000 })
+	await option.click()
 
-		const matchingOption = page.getByRole('option', { name: targetPattern }).first()
-		const matchingVisible = await matchingOption.waitFor({ state: 'visible', timeout: 3000 }).then(() => true).catch(() => false)
-		if (matchingVisible) {
-			const clicked = await clickVisibleOptionOrFallback(page, matchingOption, targetPattern)
-			if (!clicked) {
-				await searchInput.press('ArrowDown')
-				await searchInput.press('Enter')
-			}
-		} else {
-			const floatingOption = page.locator('ul[role="listbox"] li, .vs__dropdown-menu--floating li').filter({ hasText: targetPattern }).first()
-			if (await floatingOption.isVisible({ timeout: 2000 }).catch(() => false)) {
-				await floatingOption.click()
-			} else {
-				await searchInput.press('ArrowDown')
-				await searchInput.press('Enter')
-			}
-		}
-
-		if (await selectedTarget.waitFor({ state: 'visible', timeout: 3000 }).then(() => true).catch(() => false)) {
-			break
-		}
-	}
-
-	await expect(selectedTarget).toBeVisible({ timeout: 8000 })
-	await page.keyboard.press('Tab')
-	await expect(dialogScope).toBeVisible()
-	await expect(page.locator('ul[role="listbox"].vs__dropdown-menu--floating')).toHaveCount(0)
+	await expect(dialogScope.getByText(target, { exact: true })).toBeVisible()
 }
 
 async function ensureSwitchEnabled(scope: Page | Locator, switchLabel: string): Promise<void> {
