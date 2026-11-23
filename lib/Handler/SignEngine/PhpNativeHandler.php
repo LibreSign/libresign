@@ -63,7 +63,7 @@ class PhpNativeHandler extends Pkcs12Handler {
 		$visibleElements = $this->getVisibleElements();
 		$metadata = $this->buildMetadata();
 		$timestamp = $this->buildTimestampOptions();
-		$certificationLevel = $this->resolveCertificationLevel(empty($visibleElements));
+		$certificationLevel = $this->resolveCertificationLevel($pdfContent);
 
 		if (empty($visibleElements)) {
 			return $service->sign(SignPdfRequestDto::fromRequired(
@@ -231,7 +231,7 @@ class PhpNativeHandler extends Pkcs12Handler {
 		);
 	}
 
-	private function resolveCertificationLevel(bool $noVisibleElements): ?CertificationLevel {
+	private function resolveCertificationLevel(string $pdfContent): ?CertificationLevel {
 		// The stored level overrides later administrator changes. An explicit 0
 		// must not fall back to a newly enabled global certification level.
 		$stored = $this->getDocMdpLevel();
@@ -245,12 +245,11 @@ class PhpNativeHandler extends Pkcs12Handler {
 
 		// DocMDP values mirror CertificationLevel: 1=NoChanges, 2=FormFilling, 3=FormFillAndAnnotations
 		$level = $resolved->value;
-		// Only certify on invisible signatures or on the first visible element
-		if ($noVisibleElements || !$this->hasExistingSignatures($this->getInputFile()->getContent())) {
-			return CertificationLevel::fromInt($level);
+		if ($this->hasExistingSignatures($pdfContent)) {
+			return null;
 		}
 
-		return null;
+		return CertificationLevel::fromInt($level);
 	}
 
 	private function buildXObject(int $width, int $height, string $renderMode): SignatureAppearanceXObjectDto {
