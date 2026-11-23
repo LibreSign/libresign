@@ -63,7 +63,7 @@ class PhpNativeHandler extends Pkcs12Handler {
 		$visibleElements = $this->getVisibleElements();
 		$metadata = $this->buildMetadata();
 		$timestamp = $this->buildTimestampOptions();
-		$certificationLevel = $this->resolveCertificationLevel(empty($visibleElements));
+		$certificationLevel = $this->resolveCertificationLevel($pdfContent);
 
 		if (empty($visibleElements)) {
 			return $service->sign(SignPdfRequestDto::fromRequired(
@@ -231,7 +231,7 @@ class PhpNativeHandler extends Pkcs12Handler {
 		);
 	}
 
-	private function resolveCertificationLevel(bool $noVisibleElements): ?CertificationLevel {
+	private function resolveCertificationLevel(string $pdfContent): ?CertificationLevel {
 		// The stored level overrides later administrator changes. An explicit 0
 		// must not fall back to a newly enabled global certification level.
 		$stored = $this->getDocMdpLevel();
@@ -245,24 +245,13 @@ class PhpNativeHandler extends Pkcs12Handler {
 
 		// DocMDP values mirror CertificationLevel: 1=NoChanges, 2=FormFilling, 3=FormFillAndAnnotations
 		$level = $resolved->value;
-		// Only certify on invisible signatures or on the first visible element
-		if ($noVisibleElements || !$this->hasExistingSignatures($this->getInputFile()->getContent())) {
-			return CertificationLevel::fromInt($level);
+		if ($this->hasExistingSignatures($pdfContent)) {
+			return null;
 		}
 
-		return null;
+		return CertificationLevel::fromInt($level);
 	}
 
-	/**
-	 * Builds the xObject (n2 layer) for all render modes using only PDF text operators.
-	 *
-	 * DESCRIPTION_ONLY      → description text, full width.
-	 * GRAPHIC_AND_DESCRIPTION → description text, right half only
-	 *                           (user image is in imagePath/n0, handled natively by signer-php).
-	 * SIGNAME_AND_DESCRIPTION → signer name as large text on the left half
-	 *                           + description text on the right half.
-	 *                           No image generation: pure PDF text operators.
-	 */
 	private function buildXObject(int $width, int $height, string $renderMode): SignatureAppearanceXObjectDto {
 		// GRAPHIC_ONLY: only the background/signature image is shown; no text in n2.
 		if ($renderMode === SignerElementsService::RENDER_MODE_GRAPHIC_ONLY) {
