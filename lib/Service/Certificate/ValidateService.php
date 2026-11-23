@@ -53,7 +53,7 @@ class ValidateService {
 		}
 		if ($length > $rule['max'] || $length < $rule['min']) {
 			throw new InvalidArgumentException(
-				$this->l10n->t("Parameter '%s' should be betweeen %s and %s.", [$fieldName, $rule['min'], $rule['max']])
+				$this->l10n->t("Parameter '%s' should be between %s and %s.", [$fieldName, $rule['min'], $rule['max']])
 			);
 		}
 	}
@@ -62,12 +62,12 @@ class ValidateService {
 		$arrayLength = count($values);
 		if (isset($rule['minItems']) && $arrayLength < $rule['minItems']) {
 			throw new InvalidArgumentException(
-				$this->l10n->t("Parameter '%s' should be betweeen %s and %s.", [$fieldName . ' items', $rule['minItems'], $rule['maxItems'] ?? '∞'])
+				$this->l10n->t("Parameter '%s' should be between %s and %s.", [$fieldName . ' items', $rule['minItems'], $rule['maxItems'] ?? '∞'])
 			);
 		}
 		if (isset($rule['maxItems']) && $arrayLength > $rule['maxItems']) {
 			throw new InvalidArgumentException(
-				$this->l10n->t("Parameter '%s' should be betweeen %s and %s.", [$fieldName . ' items', $rule['minItems'] ?? 0, $rule['maxItems']])
+				$this->l10n->t("Parameter '%s' should be between %s and %s.", [$fieldName . ' items', $rule['minItems'] ?? 0, $rule['maxItems']])
 			);
 		}
 

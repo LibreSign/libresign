@@ -150,7 +150,7 @@ class SignFileService {
 				return false;
 			});
 			if (!$exists) {
-				throw new \Exception($this->l10n->t('No signature was requested to %s', $signer['email']));
+				throw new \Exception($this->l10n->t('No signature was requested from %s', $signer['email']));
 			}
 		});
 	}
