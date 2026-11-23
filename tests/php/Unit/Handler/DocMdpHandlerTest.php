@@ -390,10 +390,6 @@ final class DocMdpHandlerTest extends TestCase {
 		$this->assertSame($expectedAllowed, $allowed);
 		$expectedLevel = $expectedAllowed ? DocMdpLevel::NOT_CERTIFIED : DocMdpLevel::CERTIFIED_NO_CHANGES_ALLOWED;
 		$this->assertSame($expectedLevel->value, $data['docmdp']['level']);
-		$this->assertSame($expectedAllowed ? 0 : 1, $data['modifications']['revisionCount']);
-		if ($expectedAllowed) {
-			$this->assertFalse($data['modifications']['modified']);
-		}
 	}
 
 	public function testRealJSignPdfWithDocMdpLevel1(): void {
@@ -586,6 +582,19 @@ final class DocMdpHandlerTest extends TestCase {
 		$result = $this->handler->extractDocMdpData($resource);
 		fclose($resource);
 		return $result;
+	}
+
+	#[DataProvider('standaloneDocMdpSignatureProvider')]
+	public function testRevisionCountUsesActiveSignatures(string $catalogExtra, array $extraObjects, bool $expectedAllowed): void {
+		$pdf = PdfGenerator::createPdfWithStandaloneDocMdpSignature(1, $catalogExtra, $extraObjects);
+		$resource = PdfGenerator::createResourceFromContent($pdf);
+		$result = $this->handler->extractDocMdpData($resource);
+		fclose($resource);
+
+		$this->assertSame($expectedAllowed ? 0 : 1, $result['modifications']['revisionCount']);
+		if ($expectedAllowed) {
+			$this->assertFalse($result['modifications']['modified']);
+		}
 	}
 
 }
