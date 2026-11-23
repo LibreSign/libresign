@@ -193,9 +193,10 @@ async function selectTarget(dialogScope: Locator, kind: 'group' | 'user', target
 		await searchInput.press('ArrowDown')
 	}
 	await expect(option).toBeVisible({ timeout: 8000 })
-	// NcSelectUsers may display results without an active keyboard descendant.
-	// Select the visible result directly and assert that the target was applied.
-	await option.click()
+	// The floating NcSelectUsers option can animate/re-render continuously.
+	// Playwright's stability gate would otherwise wait until the test times out.
+	// The option has already been observed visible and the search API completed.
+	await option.click({ force: true, timeout: 8000 })
 	await expect(dialogScope.getByText(target, { exact: true })).toBeVisible()
 }
 
