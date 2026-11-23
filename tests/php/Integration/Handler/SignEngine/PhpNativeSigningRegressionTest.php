@@ -14,10 +14,12 @@ use OCA\Libresign\Db\File as LibreSignFile;
 use OCA\Libresign\Db\FileMapper;
 use OCA\Libresign\Db\SignRequest;
 use OCA\Libresign\Db\SignRequestMapper;
+use OCA\Libresign\Enum\DocMdpLevel;
 use OCA\Libresign\Enum\FileStatus;
 use OCA\Libresign\Handler\CertificateEngine\CertificateEngineFactory;
 use OCA\Libresign\Handler\CertificateEngine\IEngineHandler;
 use OCA\Libresign\Handler\SignEngine\PhpNativeHandler;
+use OCA\Libresign\Service\DocMdp\ConfigService as DocMdpConfigService;
 use OCA\Libresign\Service\Signature\PdfSignatureValidationService;
 use OCA\Libresign\Service\SigningAttemptGuard;
 use OCA\Libresign\Service\SignRequest\Error\SignRequestErrorReporter;
@@ -47,6 +49,7 @@ final class PhpNativeSigningRegressionTest extends TestCase {
 	private IL10N $l10n;
 	private LoggerInterface $logger;
 	private PhpNativeHandler $handler;
+	private CertificateEngineFactory $certificateEngineFactory;
 	/** @var resource[] */
 	private array $cleanupResources = [];
 	/** @var string[] */
@@ -79,17 +82,21 @@ final class PhpNativeSigningRegressionTest extends TestCase {
 		$certificateEngine->method('isSetupOk')->willReturn(true);
 		$certificateEngine->method('validateRootCertificate')->willReturnCallback(static function (): void {
 		});
-		$certificateEngineFactory = $this->createMock(CertificateEngineFactory::class);
-		$certificateEngineFactory->method('getEngine')->willReturn($certificateEngine);
+		$this->certificateEngineFactory = $this->createMock(CertificateEngineFactory::class);
+		$this->certificateEngineFactory->method('getEngine')->willReturn($certificateEngine);
 
-		$this->handler = new PhpNativeHandler(
+		$this->handler = $this->createHandler(\OCP\Server::get(DocMdpConfigService::class));
+	}
+
+	private function createHandler(DocMdpConfigService $docMdpConfigService): PhpNativeHandler {
+		return new PhpNativeHandler(
 			$this->appConfig,
-			\OCP\Server::get(\OCA\Libresign\Service\DocMdp\ConfigService::class),
+			$docMdpConfigService,
 			\OCP\Server::get(\OCA\Libresign\Service\SignatureTextService::class),
 			\OCP\Server::get(\OCA\Libresign\Service\SignatureStampPreview\SignatureStampAppearanceBuilder::class),
 			\OCP\Server::get(\OCA\Libresign\Service\SignatureBackgroundService::class),
 			\OCP\Server::get(\OCA\Libresign\Service\Policy\PolicyService::class),
-			$certificateEngineFactory,
+			$this->certificateEngineFactory,
 		);
 	}
 
@@ -172,6 +179,56 @@ final class PhpNativeSigningRegressionTest extends TestCase {
 				"signature #$index must verify independently after the second signing session",
 			);
 		}
+	}
+
+	public function testInvisibleSignatureDoesNotCertifyASignedDocument(): void {
+		$identity = $this->generatePkcs12('rsa');
+
+		$this->handler
+			->setInputFile($this->fileNode($this->simplePdf()))
+			->setCertificate($identity['pfx'])
+			->setPassword($identity['password']);
+		$signedOnce = $this->handler->getSignedContent();
+		$this->assertSame(0, $this->countDocMdpTransforms($signedOnce));
+
+		$signedTwice = $this->createHandler($this->docMdpEnabled())
+			->setInputFile($this->fileNode($signedOnce))
+			->setCertificate($identity['pfx'])
+			->setPassword($identity['password'])
+			->getSignedContent();
+
+		$this->assertSame(0, $this->countDocMdpTransforms($signedTwice));
+		$this->assertCryptographicallyValid($signedTwice, 2);
+	}
+
+	public function testLaterSignatureKeepsTheCertificationOfTheFirstSignature(): void {
+		$identity = $this->generatePkcs12('rsa');
+		$handler = $this->createHandler($this->docMdpEnabled());
+
+		$handler
+			->setInputFile($this->fileNode($this->simplePdf()))
+			->setCertificate($identity['pfx'])
+			->setPassword($identity['password']);
+		$certified = $handler->getSignedContent();
+		$this->assertSame(1, $this->countDocMdpTransforms($certified));
+
+		$signedTwice = $handler
+			->setInputFile($this->fileNode($certified))
+			->getSignedContent();
+
+		$this->assertSame(1, $this->countDocMdpTransforms($signedTwice));
+		$this->assertCryptographicallyValid($signedTwice, 2);
+	}
+
+	private function docMdpEnabled(): DocMdpConfigService {
+		$docMdpConfigService = $this->createMock(DocMdpConfigService::class);
+		$docMdpConfigService->method('isEnabled')->willReturn(true);
+		$docMdpConfigService->method('getLevel')->willReturn(DocMdpLevel::CERTIFIED_FORM_FILLING);
+		return $docMdpConfigService;
+	}
+
+	private function countDocMdpTransforms(string $pdf): int {
+		return (int)preg_match_all('/\/TransformMethod\s*\/DocMDP/', $pdf);
 	}
 
 	/**
