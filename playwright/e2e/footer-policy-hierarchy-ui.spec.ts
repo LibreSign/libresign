@@ -186,18 +186,18 @@ async function selectTarget(dialogScope: Locator, kind: 'group' | 'user', target
 
 	const results = await response.json()
 	expect(JSON.stringify(results), `Search did not return ${kind} target ${target}`).toContain(target)
-	await searchInput.click()
-	const option = page.getByRole('option', { name: new RegExp(escapeRegExp(target), 'i') }).first()
-	await expect(option).toBeVisible({ timeout: 8000 })
-	const optionId = await option.getAttribute('id')
-	expect(optionId).toBeTruthy()
-	if (!await searchInput.getAttribute('aria-activedescendant')) {
-		await searchInput.press('ArrowDown')
-	}
-	await expect(searchInput).toHaveAttribute('aria-activedescendant', optionId!)
-	await searchInput.press('Enter')
 
-	await expect(dialogScope.getByText(target, { exact: true })).toBeVisible()
+	// Receiving the OCS response precedes Vue's reactive state update. Wait for
+	// the async NcSelectUsers loading cycle to finish before opening its menu;
+	// otherwise a pending options update can detach the item during the click.
+	await expect(dialogScope.locator('.vs--loading')).toHaveCount(0, { timeout: 10000 })
+	const option = page.getByRole('option', { name: new RegExp(escapeRegExp(target), 'i') }).first()
+	if (await searchInput.getAttribute('aria-expanded') !== 'true') {
+		await searchInput.click()
+	}
+	await expect(option).toBeVisible({ timeout: 10000 })
+	await option.click({ timeout: 10000 })
+	await expect(dialogScope.locator('.vs__selected')).toContainText(target)
 }
 
 async function ensureSwitchEnabled(scope: Page | Locator, switchLabel: string): Promise<void> {

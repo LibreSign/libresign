@@ -90,6 +90,52 @@ namespace OCA\Libresign;
  *     device?: LibresignSignerDeviceGeolocation,
  *     ip?: LibresignSignerIpGeolocation,
  * }
+ * @psalm-type LibresignExternalSigningField = array{
+ *     key: string,
+ *     label: string,
+ *     type: 'url'|'password',
+ *     required: bool,
+ *     secret: bool,
+ *     validation?: array{schemes?: list<string>, allowUserInfo?: bool},
+ * }
+ * @psalm-type LibresignExternalSigningDriver = array{
+ *     id: string,
+ *     name: string,
+ *     description: string,
+ *     experimental: bool,
+ *     available: bool,
+ *     unavailableReason: ?string,
+ *     fields: list<LibresignExternalSigningField>,
+ * }
+ * @psalm-type LibresignExternalSigningDriversResponse = array{
+ *     drivers: list<LibresignExternalSigningDriver>,
+ * }
+ * @psalm-type LibresignExternalIntegrationSecretField = array{
+ *     key: string,
+ *     isConfigured: bool,
+ * }
+ * @psalm-type LibresignExternalIntegrationSummary = array{
+ *     id: string,
+ *     driverId: string,
+ *     name: string,
+ *     configuration: object,
+ *     enabled: bool,
+ *     hasSecrets: bool,
+ *     revision: int,
+ *     createdAt: string,
+ *     updatedAt: string,
+ *     driverAvailable: bool,
+ * }
+ * @psalm-type LibresignExternalIntegrationResponse = LibresignExternalIntegrationSummary&array{
+ *     secretFields: list<LibresignExternalIntegrationSecretField>,
+ * }
+ * @psalm-type LibresignExternalIntegrationListResponse = array{
+ *     items: list<LibresignExternalIntegrationSummary>,
+ *     nextCursor: ?int,
+ * }
+ * @psalm-type LibresignExternalIntegrationDeletionResponse = array{
+ *     deleted: bool,
+ * }
  * @psalm-type LibresignGeoIpConfig = array{
  *     path: ?string,
  *     status: LibresignGeoIpDatabaseStatus,
