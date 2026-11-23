@@ -202,8 +202,14 @@ async function selectTarget(dialogScope: Locator, kind: 'group' | 'user', target
 	await expect(scopeLabel).toBeVisible({ timeout: 8000 })
 	await expect(searchInput).toBeVisible({ timeout: 8000 })
 	await searchInput.fill(target)
+	const response = await searchResponse
+	expect(response.ok(), `Failed to search ${kind} targets: ${response.status()}`).toBe(true)
 
-	const option = dialogScope.page().getByRole('option', { name: new RegExp(escapeRegExp(target), 'i') }).first()
+	const results = await response.json()
+	expect(JSON.stringify(results), `Search did not return ${kind} target ${target}`).toContain(target)
+	await searchInput.click()
+
+	const option = page.getByRole('option', { name: new RegExp(escapeRegExp(target), 'i') }).first()
 	await expect(option).toBeVisible({ timeout: 8000 })
 	await option.click()
 

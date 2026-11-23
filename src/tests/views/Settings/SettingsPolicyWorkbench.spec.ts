@@ -172,8 +172,8 @@ function mountWorkbench() {
 					template: "<label class=\"nc-checkbox-radio-switch-stub\"><input :checked=\"type === 'radio' ? modelValue === value : modelValue\" :type=\"type === 'radio' ? 'radio' : 'checkbox'\" :name=\"name\" @change=\"$emit('update:modelValue', type === 'radio' ? value : $event.target.checked)\" /><span><slot /></span></label>",
 				},
 				NcSelectUsers: {
-					props: ['placeholder', 'ariaLabel'],
-					template: '<div class="nc-select-users-stub"><label>{{ ariaLabel }}</label><span>{{ placeholder }}</span><button type="button" class="nc-select-users-stub__select" @click="$emit(\'update:modelValue\', [{ id: { uid: \'user-1\' } }])">Select target</button></div>',
+					props: ['placeholder', 'ariaLabel', 'inputId', 'labelOutside'],
+					template: '<div class="nc-select-users-stub"><input :id="inputId" role="combobox" /><label>{{ ariaLabel }}</label><span>{{ placeholder }}</span><button type="button" class="nc-select-users-stub__select" @click="$emit(\'update:modelValue\', [{ id: { uid: \'user-1\' } }])">Select target</button></div>',
 				},
 				NcActions: {
 					props: ['open', 'ariaLabel'],
@@ -274,6 +274,9 @@ describe('RealPolicyWorkbench.vue', () => {
 		expect(wrapper.find('.policy-workbench__table-priority-note').exists()).toBe(true)
 		expect(editorText).not.toContain('This rule overrides group and default settings for selected users.')
 		expect(editorText).toContain('Scope accounts')
+		const scopeLabel = editorModal.find('label.policy-workbench__label')
+		expect(scopeLabel.attributes('for')).toBeTruthy()
+		expect(scopeLabel.attributes('for')).toBe(editorModal.find('.nc-select-users-stub input[role="combobox"]').attributes('id'))
 		expect(editorText).toContain('Search scope accounts')
 		expect(editorText).toContain('Parallel')
 		expect(editorText).toContain('Sequential')
