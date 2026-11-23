@@ -390,6 +390,10 @@ final class DocMdpHandlerTest extends TestCase {
 		$this->assertSame($expectedAllowed, $allowed);
 		$expectedLevel = $expectedAllowed ? DocMdpLevel::NOT_CERTIFIED : DocMdpLevel::CERTIFIED_NO_CHANGES_ALLOWED;
 		$this->assertSame($expectedLevel->value, $data['docmdp']['level']);
+		$this->assertSame($expectedAllowed ? 0 : 1, $data['modifications']['revisionCount']);
+		if ($expectedAllowed) {
+			$this->assertFalse($data['modifications']['modified']);
+		}
 	}
 
 	public function testRealJSignPdfWithDocMdpLevel1(): void {
