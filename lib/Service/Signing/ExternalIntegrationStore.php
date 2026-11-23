@@ -8,6 +8,7 @@ declare(strict_types=1);
 
 namespace OCA\Libresign\Service\Signing;
 
+use OCA\Libresign\Exception\ExternalIntegrationConflictException;
 use OCP\DB\QueryBuilder\IQueryBuilder;
 use OCP\IDBConnection;
 
@@ -114,8 +115,9 @@ final class ExternalIntegrationStore {
 
 	/**
 	 * Apply changes with optimistic concurrency. Omitted secret keys are not
-	 * decrypted or rewritten. A non-empty secret patch can replace or explicitly
-	 * remove individual keys after the driver catalog permits the operation.
+	 * decrypted or rewritten when the patch is empty. Partial secret changes
+	 * preserve omitted fields; complete secret replacement can recover a record
+	 * even if its previous ciphertext is no longer decryptable.
 	 *
 	 * @param array<string, mixed> $validatedConfiguration
 	 * @param array<string, string|null> $validatedSecretChanges
@@ -126,6 +128,7 @@ final class ExternalIntegrationStore {
 		string $name,
 		#[\SensitiveParameter] array $validatedConfiguration,
 		#[\SensitiveParameter] array $validatedSecretChanges = [],
+		bool $replaceAllSecrets = false,
 	): ExternalIntegrationRecord {
 		if ($expectedRevision < 1) {
 			throw new \InvalidArgumentException('Invalid integration revision');
@@ -142,9 +145,11 @@ final class ExternalIntegrationStore {
 		if ($validatedSecretChanges !== []) {
 			$row = $this->loadRow($publicId, false);
 			if ($row === null || (int)$row['revision'] !== $expectedRevision) {
-				throw new \RuntimeException('Integration changed concurrently');
+				throw new ExternalIntegrationConflictException();
 			}
-			$encrypted = $this->secrets->applyChanges((string)$row['secrets_enc'], $validatedSecretChanges);
+			$encrypted = $replaceAllSecrets
+				? $this->secrets->encrypt(array_filter($validatedSecretChanges, static fn (?string $value): bool => $value !== null))
+				: $this->secrets->applyChanges((string)$row['secrets_enc'], $validatedSecretChanges);
 			$qb->set('secrets_enc', $qb->createNamedParameter($encrypted));
 		}
 		$changed = $qb->where($qb->expr()->eq('public_id', $qb->createNamedParameter($publicId)))
@@ -152,7 +157,7 @@ final class ExternalIntegrationStore {
 			->andWhere($qb->expr()->eq('revision', $qb->createNamedParameter($expectedRevision, IQueryBuilder::PARAM_INT)))
 			->executeStatement();
 		if ($changed !== 1) {
-			throw new \RuntimeException('Integration changed concurrently');
+			throw new ExternalIntegrationConflictException();
 		}
 		return $this->get($publicId);
 	}
@@ -190,7 +195,7 @@ final class ExternalIntegrationStore {
 			->andWhere($qb->expr()->eq('revision', $qb->createNamedParameter($expectedRevision, IQueryBuilder::PARAM_INT)))
 			->executeStatement();
 		if ($changed !== 1) {
-			throw new \RuntimeException('Integration changed concurrently');
+			throw new ExternalIntegrationConflictException();
 		}
 	}
 

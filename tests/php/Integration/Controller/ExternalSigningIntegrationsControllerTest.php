@@ -49,6 +49,7 @@ final class ExternalSigningIntegrationsControllerTest extends \OCA\Libresign\Tes
 			$features,
 			new ExternalSigningDriverCatalog($features, new CscDriver($this->createMock(IL10N::class))),
 			Server::get(ExternalIntegrationAdministration::class),
+			Server::get(\Psr\Log\LoggerInterface::class),
 		);
 	}
 
@@ -121,6 +122,26 @@ final class ExternalSigningIntegrationsControllerTest extends \OCA\Libresign\Tes
 		self::assertSame(['deleted' => true], $deleted->getData());
 		self::assertSame(Http::STATUS_NOT_FOUND, $this->controller->show($first['id'])->getStatus());
 		self::assertSame(Http::STATUS_OK, $this->controller->show($second['id'])->getStatus());
+	}
+
+	public function testUnreadableSecretDoesNotBreakReadDisableOrRecovery(): void {
+		$created = $this->create('Broken', 'broken', 'synthetic-secret');
+		$qb = $this->db->getQueryBuilder();
+		$qb->update('libresign_signing_integration')
+			->set('secrets_enc', $qb->createNamedParameter('unrecoverable-ciphertext'))
+			->where($qb->expr()->eq('public_id', $qb->createNamedParameter($created['id'])))
+			->executeStatement();
+		$read = $this->controller->show($created['id']);
+		self::assertSame(Http::STATUS_OK, $read->getStatus());
+		self::assertSame([['key' => 'accessToken', 'isConfigured' => false]], $read->getData()['secretFields']);
+		$disabled = $this->controller->disable($created['id'], $created['revision']);
+		self::assertSame(Http::STATUS_OK, $disabled->getStatus());
+		$updated = $this->controller->update($created['id'], $disabled->getData()['revision'],
+			null, null, ['accessToken' => 'replacement-synthetic']);
+		self::assertSame(Http::STATUS_OK, $updated->getStatus());
+		self::assertSame([['key' => 'accessToken', 'isConfigured' => true]], $updated->getData()['secretFields']);
+		self::assertSame(Http::STATUS_CONFLICT,
+			$this->controller->update($created['id'], $created['revision'], 'stale')->getStatus());
 	}
 
 	public function testInvalidPublicSecretAndUnsafeEndpointAreRejected(): void {

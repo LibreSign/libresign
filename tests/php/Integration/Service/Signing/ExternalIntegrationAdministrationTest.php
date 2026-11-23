@@ -112,6 +112,61 @@ final class ExternalIntegrationAdministrationTest extends \OCA\Libresign\Tests\I
 		);
 	}
 
+	public function testUnreadableSecretsCanBeInspectedDisabledAndFullyReplaced(): void {
+		$created = $this->create(['baseUrl' => 'https://example.org'], ['accessToken' => 'synthetic-secret']);
+		$this->corruptCiphertext($created->id);
+		$view = $this->administration->describe(self::driver(), $created->id);
+		$this->assertSame([['key' => 'accessToken', 'isConfigured' => false]], $view['secretFields']);
+		$this->assertTrue($view['hasSecrets']); // Ciphertext exists, but is unusable.
+		$disabled = $this->administration->setEnabled(self::driver(), $created->id, $created->revision, false);
+		$this->assertSame($created->revision + 1, $disabled->revision);
+		$replaced = $this->administration->update(
+			self::driver(), $created->id, $disabled->revision, null, null,
+			['accessToken' => 'recovered-synthetic-secret'],
+		);
+		$this->assertSame([['key' => 'accessToken', 'isConfigured' => true]],
+			$this->administration->describe(self::driver(), $created->id)['secretFields']);
+		$this->assertSame($replaced->revision, $this->administration->get($created->id)->revision);
+	}
+
+	public function testUnreadableSecretsCanBeExplicitlyCleared(): void {
+		$created = $this->create(['baseUrl' => 'https://example.org'], ['accessToken' => 'synthetic-secret']);
+		$this->corruptCiphertext($created->id);
+		$cleared = $this->administration->update(
+			self::driver(), $created->id, $created->revision, null, null, ['accessToken' => null],
+		);
+		$this->assertFalse($cleared->hasSecrets);
+		$this->assertSame('', $this->ciphertext($created->id));
+	}
+
+	public function testUnreadableSecretsRejectPartialSecretPatchWithoutWriting(): void {
+		$driver = self::driver();
+		$driver['fields'][] = ['key' => 'clientSecret', 'type' => 'password', 'required' => false, 'secret' => true];
+		$created = $this->administration->create(
+			$driver, 'Synthetic CSC', ['baseUrl' => 'https://example.org'],
+			['accessToken' => 'synthetic-secret', 'clientSecret' => 'synthetic-client'],
+		);
+		$this->created[] = $created->id;
+		$this->corruptCiphertext($created->id);
+		try {
+			$this->administration->update(
+				$driver, $created->id, $created->revision, null, null,
+				['accessToken' => 'new-synthetic-secret'],
+			);
+			$this->fail('Partial secret updates must not erase undecryptable omitted keys');
+		} catch (\OCA\Libresign\Exception\ExternalIntegrationSecretException) {
+			$this->assertSame($created->revision, $this->administration->get($created->id)->revision);
+		}
+	}
+
+	private function corruptCiphertext(string $publicId): void {
+		$qb = $this->db->getQueryBuilder();
+		$qb->update('libresign_signing_integration')
+			->set('secrets_enc', $qb->createNamedParameter('not-valid-ciphertext'))
+			->where($qb->expr()->eq('public_id', $qb->createNamedParameter($publicId)))
+			->executeStatement();
+	}
+
 	public function testUnavailableDriverCannotBeEnabled(): void {
 		$created = $this->create(['baseUrl' => 'https://example.org']);
 		try {

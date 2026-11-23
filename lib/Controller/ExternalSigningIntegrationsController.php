@@ -9,6 +9,7 @@ declare(strict_types=1);
 namespace OCA\Libresign\Controller;
 
 use OCA\Libresign\AppInfo\Application;
+use OCA\Libresign\Exception\ExternalIntegrationConflictException;
 use OCA\Libresign\ResponseDefinitions;
 use OCA\Libresign\Service\ExperimentalFeaturesService;
 use OCA\Libresign\Service\Signing\ExternalIntegrationAdministration;
@@ -21,6 +22,7 @@ use OCP\AppFramework\Http\DataResponse;
 use OCP\IGroupManager;
 use OCP\IRequest;
 use OCP\IUserSession;
+use Psr\Log\LoggerInterface;
 
 /**
  * Administrative OCS boundary for configured external signing integrations.
@@ -40,6 +42,7 @@ final class ExternalSigningIntegrationsController extends AEnvironmentAwareOCSCo
 		private ExperimentalFeaturesService $experimentalFeatures,
 		private ExternalSigningDriverCatalog $catalog,
 		private ExternalIntegrationAdministration $administration,
+		private LoggerInterface $logger,
 	) {
 		parent::__construct(Application::APP_ID, $request);
 	}
@@ -351,12 +354,10 @@ final class ExternalSigningIntegrationsController extends AEnvironmentAwareOCSCo
 			return new DataResponse(['error' => 'Invalid integration request'], Http::STATUS_BAD_REQUEST);
 		} catch (\DomainException) {
 			return new DataResponse(['error' => 'Integration conflict'], Http::STATUS_CONFLICT);
-		} catch (\RuntimeException $exception) {
-			if ($exception->getMessage() === 'Integration changed concurrently') {
-				return new DataResponse(['error' => 'Integration conflict'], Http::STATUS_CONFLICT);
-			}
-			return new DataResponse(['error' => 'Internal error'], Http::STATUS_INTERNAL_SERVER_ERROR);
-		} catch (\Throwable) {
+		} catch (ExternalIntegrationConflictException) {
+			return new DataResponse(['error' => 'Integration conflict'], Http::STATUS_CONFLICT);
+		} catch (\Throwable $exception) {
+			$this->logger->error('External signing integration request failed', ['exception' => $exception]);
 			return new DataResponse(['error' => 'Internal error'], Http::STATUS_INTERNAL_SERVER_ERROR);
 		}
 	}

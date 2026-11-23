@@ -96,6 +96,8 @@ final class ExternalIntegrationFieldValidatorTest extends TestCase {
 			'embedded newline' => ["https://example.org\n"],
 			'credential in query string' => ['https://example.org/v1?token=synthetic-private-value'],
 			'noncanonical numeric host' => ['https://0177.0.0.1'],
+			'hexadecimal loopback' => ['https://0x7f.1/'],
+			'hexadecimal metadata address' => ['https://0xa9.0xfe.0xa9.0xfe/'],
 		];
 	}
 

@@ -57,7 +57,23 @@ final class ExternalIntegrationAdministration {
 		$current = $this->requireDriver($publicId, $driverId);
 		$nextConfiguration = $configuration ?? $current->configuration;
 		$this->validator->validateUpdate($fields, $nextConfiguration, $secretChanges);
-		$configured = array_fill_keys($this->store->configuredSecretKeys($publicId), true);
+		$secretKeys = [];
+		foreach ($fields as $field) {
+			if ($field['secret'] === true) {
+				$secretKeys[] = $field['key'];
+			}
+		}
+		$replaceAllSecrets = $secretKeys !== [] && count(array_diff($secretKeys, array_keys($secretChanges))) === 0;
+		// A full secret replacement needs no access to the previous ciphertext.
+		$needsExistingSecrets = false;
+		foreach ($fields as $field) {
+			if ($field['secret'] === true && $field['required'] === true
+				&& !array_key_exists($field['key'], $secretChanges)) {
+				$needsExistingSecrets = true;
+			}
+		}
+		$configured = $needsExistingSecrets
+			? array_fill_keys($this->store->configuredSecretKeys($publicId), true) : [];
 		foreach ($fields as $field) {
 			if ($field['secret'] === true && $field['required'] === true) {
 				$key = $field['key'];
@@ -66,7 +82,7 @@ final class ExternalIntegrationAdministration {
 				}
 			}
 		}
-		return $this->store->update($publicId, $expectedRevision, $name ?? $current->name, $nextConfiguration, $secretChanges);
+		return $this->store->update($publicId, $expectedRevision, $name ?? $current->name, $nextConfiguration, $secretChanges, $replaceAllSecrets);
 	}
 
 	/**
@@ -112,7 +128,13 @@ final class ExternalIntegrationAdministration {
 	public function describe(array $driver, string $publicId): array {
 		[$driverId, $fields] = $this->metadata($driver);
 		$record = $this->requireDriver($publicId, $driverId);
-		$configured = array_fill_keys($this->store->configuredSecretKeys($publicId), true);
+		try {
+			$configured = array_fill_keys($this->store->configuredSecretKeys($publicId), true);
+		} catch (\OCA\Libresign\Exception\ExternalIntegrationSecretException) {
+			// Unreadable credentials must not block administrative recovery or
+			// be reported as usable. Stored ciphertext remains until replaced.
+			$configured = [];
+		}
 		$status = [];
 		foreach ($fields as $field) {
 			if ($field['secret'] === true) {

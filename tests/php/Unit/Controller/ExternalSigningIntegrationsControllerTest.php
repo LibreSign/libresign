@@ -27,6 +27,7 @@ use OCP\Security\ICrypto;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
+use Psr\Log\LoggerInterface;
 
 /** Direct controller tests. Persistence and concurrency are integration-tested separately. */
 final class ExternalSigningIntegrationsControllerTest extends TestCase {
@@ -34,16 +35,20 @@ final class ExternalSigningIntegrationsControllerTest extends TestCase {
 	private IGroupManager&MockObject $groups;
 	private ExperimentalFeaturesService&MockObject $features;
 	private ExternalSigningIntegrationsController $controller;
+	private LoggerInterface&MockObject $logger;
+	private IDBConnection&MockObject $db;
 
 	protected function setUp(): void {
 		$this->session = $this->createMock(IUserSession::class);
 		$this->groups = $this->createMock(IGroupManager::class);
 		$this->features = $this->createMock(ExperimentalFeaturesService::class);
+		$this->logger = $this->createMock(LoggerInterface::class);
 		$l10n = $this->createMock(IL10N::class);
 		$l10n->method('t')->willReturnCallback(static fn (string $message): string => $message);
 
+		$this->db = $this->createMock(IDBConnection::class);
 		$store = new ExternalIntegrationStore(
-			$this->createMock(IDBConnection::class),
+			$this->db,
 			new ExternalIntegrationSecrets($this->createMock(ICrypto::class)),
 		);
 		$this->controller = new ExternalSigningIntegrationsController(
@@ -53,6 +58,7 @@ final class ExternalSigningIntegrationsControllerTest extends TestCase {
 			$this->features,
 			new ExternalSigningDriverCatalog($this->features, new CscDriver($l10n)),
 			new ExternalIntegrationAdministration($store, new ExternalIntegrationFieldValidator()),
+			$this->logger,
 		);
 	}
 
@@ -127,6 +133,18 @@ final class ExternalSigningIntegrationsControllerTest extends TestCase {
 		$response = $this->controller->enable('not-a-valid-id-and-no-secret', 0);
 		$this->assertSame(Http::STATUS_BAD_REQUEST, $response->getStatus());
 		$this->assertSame(['error' => 'Invalid integration request'], $response->getData());
+	}
+
+	public function testUnexpectedDatabaseFailureIsLoggedWithoutLeakingToResponse(): void {
+		$this->authenticated(true);
+		$this->features->method('isEnabled')->willReturn(true);
+		$exception = new \RuntimeException('synthetic-private-database-detail');
+		$this->db->method('getQueryBuilder')->willThrowException($exception);
+		$this->logger->expects($this->once())->method('error')
+			->with('External signing integration request failed', ['exception' => $exception]);
+		$response = $this->controller->index();
+		$this->assertSame(Http::STATUS_INTERNAL_SERVER_ERROR, $response->getStatus());
+		$this->assertSame(['error' => 'Internal error'], $response->getData());
 	}
 
 	private function authenticated(bool $admin): void {
