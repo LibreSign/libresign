@@ -87,6 +87,13 @@ jobs:
       - name: Check OpenAPI functional tags
         run: vendor/bin/phpunit -c tests/php/openapi/phpunit.xml --no-coverage --fail-on-warning --fail-on-risky
 
+      # TODO(shared-workflow): Remove this local override once the shared OpenAPI
+      # workflow template runs the policy contract typecheck. Tracking: #9453
+      - name: Check policy value TypeScript contracts
+        run: |
+          npm ci --prefix tests/sdk-generation --ignore-scripts --no-audit --no-fund
+          npm run test:policy-contract --prefix tests/sdk-generation
+
       - name: Check openapi*.json and typescript changes
         run: |
           bash -c "[[ ! \"`git status --porcelain `\" ]] || (echo 'Please run \"composer run openapi\" and commit the openapi*.json files and (if applicable) src/types/openapi/openapi*.ts, see the section \"Show changes on failure\" for details' && exit 1)"
