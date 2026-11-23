@@ -181,11 +181,6 @@ final class PhpNativeSigningRegressionTest extends TestCase {
 		}
 	}
 
-	/**
-	 * A certification signature must be the first signature of a document.
-	 * With DocMDP enabled, an invisible signature on a document that is
-	 * already signed is an approval signature and both stay valid.
-	 */
 	public function testInvisibleSignatureDoesNotCertifyASignedDocument(): void {
 		$identity = $this->generatePkcs12('rsa');
 
@@ -206,10 +201,6 @@ final class PhpNativeSigningRegressionTest extends TestCase {
 		$this->assertCryptographicallyValid($signedTwice, 2);
 	}
 
-	/**
-	 * The first signature certifies, a later signature keeps that one
-	 * certification and both signatures stay valid.
-	 */
 	public function testLaterSignatureKeepsTheCertificationOfTheFirstSignature(): void {
 		$identity = $this->generatePkcs12('rsa');
 		$handler = $this->createHandler($this->docMdpEnabled());

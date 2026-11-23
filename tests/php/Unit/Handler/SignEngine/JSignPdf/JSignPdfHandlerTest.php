@@ -1320,10 +1320,6 @@ final class JSignPdfHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$this->assertSame(self::expectedJSignParameters($expectedParameters), $paramsAsOptions);
 	}
 
-	/**
-	 * The handler keeps its parameters between signatures. A signature that
-	 * does not certify must not reuse the level of an earlier one.
-	 */
 	public function testCertificationLevelIsNotReusedByTheNextSignature(): void {
 		if (self::$certificateEngineFactory === null || empty(self::$certificateContent)) {
 			$this->markTestSkipped('Certificate initialization failed');

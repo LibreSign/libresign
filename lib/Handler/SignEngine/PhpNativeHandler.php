@@ -69,7 +69,7 @@ class PhpNativeHandler extends Pkcs12Handler {
 		$visibleElements = $this->getVisibleElements();
 		$metadata = $this->buildMetadata();
 		$timestamp = $this->buildTimestampOptions();
-		$certificationLevel = $this->resolveCertificationLevel();
+		$certificationLevel = $this->resolveCertificationLevel($pdfContent);
 
 		if (empty($visibleElements)) {
 			return $service->sign(SignPdfRequestDto::fromRequired(
@@ -248,7 +248,7 @@ class PhpNativeHandler extends Pkcs12Handler {
 		return $settings;
 	}
 
-	private function resolveCertificationLevel(): ?CertificationLevel {
+	private function resolveCertificationLevel(string $pdfContent): ?CertificationLevel {
 		$level = $this->getDocMdpLevel();
 		if ($level === null && $this->docMdpConfigService->isEnabled()) {
 			$level = $this->docMdpConfigService->getLevel();
@@ -257,8 +257,7 @@ class PhpNativeHandler extends Pkcs12Handler {
 			return null;
 		}
 
-		// A certification signature must be the first active signature.
-		if ($this->hasExistingSignatures($this->getInputFile()->getContent())) {
+		if ($this->hasExistingSignatures($pdfContent)) {
 			return null;
 		}
 

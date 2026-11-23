@@ -23,7 +23,6 @@ use OCA\Libresign\Service\SignatureStampPreview\SignatureStampAppearanceBuilder;
 use OCA\Libresign\Service\SignatureTextService;
 use OCA\Libresign\Service\SignerElementsService;
 use OCA\Libresign\Tests\Fixtures\PdfGenerator;
-use OCP\Files\File;
 use OCP\IAppConfig;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\MockObject\MockObject;
@@ -287,11 +286,7 @@ final class PhpNativeHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 
 		$handler = $this->getHandler();
 
-		$inputFile = $this->createMock(File::class);
-		$inputFile->method('getContent')->willReturn($pdfContent);
-		$handler->setInputFile($inputFile);
-
-		$result = $this->callPrivateMethod($handler, 'resolveCertificationLevel');
+		$result = $this->callPrivateMethod($handler, 'resolveCertificationLevel', $pdfContent);
 
 		if ($expectNull) {
 			$this->assertNull($result);
@@ -328,11 +323,7 @@ final class PhpNativeHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$handler = $this->getHandler();
 		$handler->setDocMdpLevel($givenLevel);
 
-		$inputFile = $this->createMock(File::class);
-		$inputFile->method('getContent')->willReturn('%PDF-1.4 startxref 0 %%EOF');
-		$handler->setInputFile($inputFile);
-
-		$this->assertSame($expected, $this->callPrivateMethod($handler, 'resolveCertificationLevel'));
+		$this->assertSame($expected, $this->callPrivateMethod($handler, 'resolveCertificationLevel', '%PDF-1.4 startxref 0 %%EOF'));
 	}
 
 	public static function providerTheGivenLevelWinsOverTheCurrentLevel(): array {
