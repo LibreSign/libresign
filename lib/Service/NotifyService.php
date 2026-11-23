@@ -111,7 +111,7 @@ class NotifyService {
 		$error = $this->signerNotificationPolicy->getValidationError($signer, $signRequestIndex);
 		if ($error !== null) {
 			$message = match ($error['code']) {
-				'not_requested' => $this->l10n->t('No signature was requested to %s', $error['params']),
+				'not_requested' => $this->l10n->t('No signature was requested from %s', $error['params']),
 				'already_signed' => $this->l10n->t('%s already signed this file', $error['params']),
 				default => $this->l10n->t('Invalid signer data'),
 			};
