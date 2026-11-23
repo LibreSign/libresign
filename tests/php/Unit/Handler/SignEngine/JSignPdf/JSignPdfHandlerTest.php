@@ -1240,6 +1240,53 @@ final class JSignPdfHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		);
 	}
 
+	/**
+	 * The handler keeps its parameters between signatures. A signature that
+	 * does not certify must not reuse the level of an earlier one.
+	 */
+	public function testCertificationLevelIsNotReusedByTheNextSignature(): void {
+		if (self::$certificateEngineFactory === null || empty(self::$certificateContent)) {
+			$this->markTestSkipped('Certificate initialization failed');
+		}
+		$this->appConfig->setValueString(Application::APP_ID, 'tsa_url', '');
+		$this->appConfig->setValueString('libresign', 'java_path', __FILE__);
+		$this->appConfig->setValueString('libresign', 'jsignpdf_temp_path', sys_get_temp_dir());
+		$this->appConfig->setValueString('libresign', 'jsignpdf_path', __DIR__);
+		$this->appConfig->setValueString(Application::APP_ID, 'signature_hash_algorithm', 'SHA256');
+
+		$unsignedFile = $this->createMock(\OC\Files\Node\File::class);
+		$unsignedFile->method('getContent')->willReturn('%PDF-1.6');
+		$signedFile = $this->createMock(\OC\Files\Node\File::class);
+		$signedFile->method('getContent')->willReturn("%PDF-1.6\n/ByteRange [0 0 0 0]");
+
+		$paramsSeen = [];
+		$mock = $this->createMock(JSignPDF::class);
+		$mock->method('setParam')
+			->willReturnCallback(function (JSignParam $param) use (&$paramsSeen): void {
+				$paramsSeen[] = $param->getJSignParameters();
+			});
+		$mock->method('sign')->willReturn('content');
+
+		$docMdpConfigService = $this->createMock(DocMdpConfigService::class);
+		$docMdpConfigService->method('isEnabled')->willReturn(true);
+		$docMdpConfigService->method('getLevel')->willReturn(DocMdpLevel::CERTIFIED_FORM_FILLING_AND_ANNOTATIONS);
+
+		$jSignPdfHandler = $this->getInstance();
+		$this->setDocMdpConfigService($jSignPdfHandler, $docMdpConfigService);
+		$jSignPdfHandler->setVisibleElements([]);
+		$jSignPdfHandler->setJSignPdf($mock);
+		$jSignPdfHandler->setCertificate(self::$certificateContent);
+		$jSignPdfHandler->setPassword('password');
+		$jSignPdfHandler->setInputFile($unsignedFile);
+		$jSignPdfHandler->getSignedContent();
+		$jSignPdfHandler->setInputFile($signedFile);
+		$jSignPdfHandler->getSignedContent();
+
+		$this->assertCount(2, $paramsSeen);
+		$this->assertStringContainsString("'-cl' '" . DocMdpLevel::CERTIFIED_FORM_FILLING_AND_ANNOTATIONS->name . "'", $paramsSeen[0]);
+		$this->assertStringNotContainsString("'-cl'", $paramsSeen[1]);
+	}
+
 	public static function providerCertificationLevelWithoutVisibleElements(): array {
 		return [
 			'certification before TSA options' => [
