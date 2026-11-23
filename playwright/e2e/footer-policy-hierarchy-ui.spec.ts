@@ -207,11 +207,16 @@ async function selectTarget(dialogScope: Locator, kind: 'group' | 'user', target
 
 	const results = await response.json()
 	expect(JSON.stringify(results), `Search did not return ${kind} target ${target}`).toContain(target)
-	await searchInput.click()
-
+	await searchInput.press('ArrowDown')
 	const option = page.getByRole('option', { name: new RegExp(escapeRegExp(target), 'i') }).first()
 	await expect(option).toBeVisible({ timeout: 8000 })
-	await option.click()
+	const optionId = await option.getAttribute('id')
+	expect(optionId).toBeTruthy()
+	if (!await searchInput.getAttribute('aria-activedescendant')) {
+		await searchInput.press('ArrowDown')
+	}
+	await expect(searchInput).toHaveAttribute('aria-activedescendant', optionId!)
+	await searchInput.press('Enter')
 
 	const searchInput = targetInput.locator('input, textarea, [contenteditable="true"]').first()
 	if (await searchInput.isVisible({ timeout: 1000 }).catch(() => false)) {

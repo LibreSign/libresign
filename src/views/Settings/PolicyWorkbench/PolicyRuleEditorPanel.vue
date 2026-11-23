@@ -11,15 +11,15 @@
 				<PolicyPrecedenceHint :scopes="precedenceScopes" variant="editor" />
 			</div>
 
-			<div v-if="editorDraft.scope !== 'system' && !hideTargetSelector" class="policy-workbench__field">
-				<label class="policy-workbench__label" :for="targetInputId">
+			<div v-if="editorDraft.scope !== 'system'" class="policy-workbench__field">
+				<label v-if="!hideTargetSelector" class="policy-workbench__label">
 					{{ targetScopeLabel }}
 				</label>
 				<NcSelectUsers
+					v-if="!hideTargetSelector"
 					:model-value="selectedTargetOptions"
 					:options="availableTargets"
-					:input-id="targetInputId"
-					:label-outside="true"
+					:aria-label="targetScopeLabel"
 					:placeholder="targetScopeSearchPlaceholder"
 					:loading="loadingTargets"
 					:multiple="true"
@@ -87,7 +87,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, useId } from 'vue'
+import { computed } from 'vue'
 import { t } from '@nextcloud/l10n'
 import type { EffectivePolicyValue } from '../../../types/index'
 
@@ -154,8 +154,6 @@ defineEmits<{
 	(e: 'save'): void
 	(e: 'cancel'): void
 }>()
-
-const targetInputId = useId()
 
 const targetScopeLabel = computed(() => {
 	if (props.editorDraft.scope === 'group') {
