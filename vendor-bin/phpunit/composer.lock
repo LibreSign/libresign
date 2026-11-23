@@ -289,16 +289,16 @@
         },
         {
             "name": "donatj/mock-webserver",
-            "version": "v2.10.0",
+            "version": "v2.10.1",
             "source": {
                 "type": "git",
                 "url": "https://github.com/donatj/mock-webserver.git",
-                "reference": "5074522d25f4e83953b1c5417a884c995d0dfa91"
+                "reference": "cc031c2df5aa02dc2636b811f1b82b1bde941e0b"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/donatj/mock-webserver/zipball/5074522d25f4e83953b1c5417a884c995d0dfa91",
-                "reference": "5074522d25f4e83953b1c5417a884c995d0dfa91",
+                "url": "https://api.github.com/repos/donatj/mock-webserver/zipball/cc031c2df5aa02dc2636b811f1b82b1bde941e0b",
+                "reference": "cc031c2df5aa02dc2636b811f1b82b1bde941e0b",
                 "shasum": ""
             },
             "require": {
@@ -345,7 +345,7 @@
             ],
             "support": {
                 "issues": "https://github.com/donatj/mock-webserver/issues",
-                "source": "https://github.com/donatj/mock-webserver/tree/v2.10.0"
+                "source": "https://github.com/donatj/mock-webserver/tree/v2.10.1"
             },
             "funding": [
                 {
@@ -361,7 +361,7 @@
                     "type": "ko_fi"
                 }
             ],
-            "time": "2026-02-20T18:53:16+00:00"
+            "time": "2026-11-17T16:10:12+00:00"
         },
         {
             "name": "guzzlehttp/psr7",
