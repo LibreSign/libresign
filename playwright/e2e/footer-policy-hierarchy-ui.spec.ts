@@ -90,14 +90,6 @@ function escapeRegExp(value: string): string {
 	return value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
 }
 
-function getTargetFieldPattern(kind: 'group' | 'user'): RegExp {
-	const labels = kind === 'group'
-		? ['Scope groups', 'Target groups']
-		: ['Scope accounts', 'Target users']
-
-	return new RegExp(`^(?:${labels.map(escapeRegExp).join('|')})$`, 'i')
-}
-
 async function deleteGroupPolicyEntry(
 	ctx: APIRequestContext,
 	groupId: string,
