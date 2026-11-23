@@ -1248,11 +1248,11 @@ final class JSignPdfHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		if (self::$certificateEngineFactory === null || empty(self::$certificateContent)) {
 			$this->markTestSkipped('Certificate initialization failed');
 		}
-		$this->resolvedPolicyValues[TsaPolicy::KEY] = TsaPolicyValue::encode(['url' => '']);
+		$this->appConfig->setValueString(Application::APP_ID, 'tsa_url', '');
 		$this->appConfig->setValueString('libresign', 'java_path', __FILE__);
 		$this->appConfig->setValueString('libresign', 'jsignpdf_temp_path', sys_get_temp_dir());
 		$this->appConfig->setValueString('libresign', 'jsignpdf_path', __DIR__);
-		$this->persistHashAlgorithmPolicy('SHA256');
+		$this->appConfig->setValueString(Application::APP_ID, 'signature_hash_algorithm', 'SHA256');
 
 		$unsignedFile = $this->createMock(\OC\Files\Node\File::class);
 		$unsignedFile->method('getContent')->willReturn('%PDF-1.6');
