@@ -459,9 +459,6 @@ describe('AppFilesTab', () => {
 				data: { id: 789, type: 'folder' },
 			})
 			getClientMock.mockReturnValue({ stat: mockStat } as Partial<import('webdav').WebDAVClient> as import('webdav').WebDAVClient)
-			type NavView = import('@nextcloud/files').View
-			type NavActive = { id: string, name: string, getContents: () => void, icon: string, params: { dir?: string } }
-			type PartialNav = Partial<import('@nextcloud/files').Navigation> & { active?: Partial<NavActive> }
 			getNavigationMock.mockReturnValue({
 				active: { params: { dir: '/Documents' } },
 			} as unknown as import('@nextcloud/files').Navigation)

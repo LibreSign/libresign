@@ -103,7 +103,7 @@ export async function clearPolicyWorkbenchRules(
 	}
 }
 
-async function clickRuleMenuAction(page: Page, actionName: 'Edit'): Promise<boolean> {
+async function clickRuleMenuAction(page: Page): Promise<boolean> {
 	const actionItem = page
 		.locator('.action-item:visible, [role="menuitem"]:visible, li.action:visible')
 		.filter({ hasText: /^Edit$/i })
@@ -131,7 +131,7 @@ async function openExistingEveryoneRuleEditor(dialog: Locator): Promise<void> {
 	}
 
 	await openEveryoneRuleActions(dialog)
-	const edited = await clickRuleMenuAction(page, 'Edit')
+	const edited = await clickRuleMenuAction(page)
 	expect(edited, 'Expected Edit action for existing Everyone rule').toBe(true)
 }
 

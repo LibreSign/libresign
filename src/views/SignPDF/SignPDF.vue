@@ -194,10 +194,6 @@ function isPdfEditorRef(value: unknown): value is PdfEditorRef {
 	return typeof value === 'object' && value !== null
 }
 
-function toRecord(value: unknown): Record<string, unknown> | null {
-	return typeof value === 'object' && value !== null ? value as Record<string, unknown> : null
-}
-
 function parsePdfFetchError(value: unknown): PdfFetchError {
 	if (typeof value !== 'object' || value === null || !('errors' in value) || !Array.isArray(value.errors)) {
 		return {}

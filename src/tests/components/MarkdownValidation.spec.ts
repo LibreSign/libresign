@@ -5,7 +5,7 @@
  * Test to validate which Markdown elements are supported by NcRichText
  */
 
-import { describe, expect, it, vi } from 'vitest'
+import { describe, expect, it } from 'vitest'
 
 describe('Markdown Basic Syntax Support Validation', () => {
 	/**
@@ -16,37 +16,31 @@ describe('Markdown Basic Syntax Support Validation', () => {
 	describe('Headings (H1-H6)', () => {
 		it('supports H1 with #', () => {
 			const markdown = '# Heading 1'
-			const html = '<h1>Heading 1</h1>'
 			expect(markdown).toBeTruthy()
 		})
 
 		it('supports H2 with ##', () => {
 			const markdown = '## Heading 2'
-			const html = '<h2>Heading 2</h2>'
 			expect(markdown).toBeTruthy()
 		})
 
 		it('supports H3 with ###', () => {
 			const markdown = '### Heading 3'
-			const html = '<h3>Heading 3</h3>'
 			expect(markdown).toBeTruthy()
 		})
 
 		it('supports H4 with ####', () => {
 			const markdown = '#### Heading 4'
-			const html = '<h4>Heading 4</h4>'
 			expect(markdown).toBeTruthy()
 		})
 
 		it('supports H5 with #####', () => {
 			const markdown = '##### Heading 5'
-			const html = '<h5>Heading 5</h5>'
 			expect(markdown).toBeTruthy()
 		})
 
 		it('supports H6 with ######', () => {
 			const markdown = '###### Heading 6'
-			const html = '<h6>Heading 6</h6>'
 			expect(markdown).toBeTruthy()
 		})
 	})

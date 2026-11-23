@@ -69,14 +69,14 @@ vi.mock('../../../components/PreviewSignature/PreviewSignature.vue', () => ({
 vi.mock('signature_pad', () => {
 	return {
 		__esModule: true,
-		default: vi.fn(function(this: SignaturePadInstance, _canvas: HTMLCanvasElement) {
+		default: vi.fn(function(this: SignaturePadInstance) {
 			this.penColor = '#000000'
 			this.isEmpty = vi.fn(() => false)
 			this.clear = vi.fn()
 			this.toDataURL = vi.fn(() => 'data:image/png;base64,test')
 			this.addEventListener = vi.fn()
 		}),
-		SignaturePad: vi.fn(function(this: SignaturePadInstance, _canvas: HTMLCanvasElement) {
+		SignaturePad: vi.fn(function(this: SignaturePadInstance) {
 			this.penColor = '#000000'
 			this.isEmpty = vi.fn(() => false)
 			this.clear = vi.fn()

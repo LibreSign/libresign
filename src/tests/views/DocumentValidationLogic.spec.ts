@@ -6,7 +6,6 @@
 import { describe, expect, it, beforeEach, afterEach, vi } from 'vitest'
 import { mount } from '@vue/test-utils'
 import { setActivePinia, createPinia } from 'pinia'
-import Validation from '../../views/Validation.vue'
 
 vi.mock('@nextcloud/axios', () => ({
 	default: {

@@ -547,7 +547,6 @@ import {
 	mdiEyeOutline,
 	mdiFileDocument,
 	mdiFileMultiple,
-	mdiFilePlus,
 	mdiInformation,
 	mdiMessageText,
 	mdiOrderNumericAscending,
@@ -562,14 +561,13 @@ import svgSms from '@mdi/svg/svg/message-processing.svg?raw'
 import svgWhatsapp from '@mdi/svg/svg/whatsapp.svg?raw'
 import svgXmpp from '@mdi/svg/svg/xmpp.svg?raw'
 
-import axios from '@nextcloud/axios'
 import { getCurrentUser } from '@nextcloud/auth'
 import { getCapabilities } from '@nextcloud/capabilities'
-import { showError, showSuccess, showWarning } from '@nextcloud/dialogs'
+import { showError, showSuccess } from '@nextcloud/dialogs'
 import { emit, subscribe, unsubscribe } from '@nextcloud/event-bus'
 import type { Event as NextcloudEvent, EventHandler } from '@nextcloud/event-bus'
 import { loadState } from '@nextcloud/initial-state'
-import { generateOcsUrl, generateUrl } from '@nextcloud/router'
+import { generateUrl } from '@nextcloud/router'
 
 import NcActionButton from '@nextcloud/vue/components/NcActionButton'
 import NcActionInput from '@nextcloud/vue/components/NcActionInput'
@@ -675,7 +673,6 @@ type RequestSignatureErrorData = operations['request_signature-request-signature
 type UpdateSignatureErrorData = operations['request_signature-update-signature-request']['responses'][422]['content']['application/json']['ocs']['data']
 type DeleteRequestSignatureErrorData = operations['request_signature-remove-signer']['responses'][422]['content']['application/json']['ocs']['data']
 type NotifySignerErrorData = operations['notify-signer']['responses'][422 | 502 | 500]['content']['application/json']['ocs']['data']
-type NotifySignerSuccess = operations['notify-signer']['responses'][200]['content']['application/json']
 type OcsErrorData = RequestSignatureErrorData | UpdateSignatureErrorData | DeleteRequestSignatureErrorData | NotifySignerErrorData
 
 defineOptions({
@@ -1634,7 +1631,6 @@ function closeModal() {
 }
 
 function getValidationFileUuid() {
-	const file = filesStore.getFile()
 	return getValidationRouteUuid(filesStore.getFile())
 }
 

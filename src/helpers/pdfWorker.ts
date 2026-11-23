@@ -6,19 +6,6 @@ import { ensureWorkerReady } from '@libresign/pdf-elements'
 
 let configured = false
 
-const resolveWorkerPath = (path: string): string => {
-	if (typeof process === 'undefined' || !process?.versions?.node) {
-		return path
-	}
-
-	if (!path.startsWith('/node_modules/')) {
-		return path
-	}
-
-	const cwd = process.cwd().replace(/\\/g, '/')
-	return `file://${cwd}${path}`
-}
-
 const ensureUrlParseLocationSupport = (): void => {
 	if (typeof URL.parse !== 'function') {
 		return

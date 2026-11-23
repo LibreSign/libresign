@@ -5,8 +5,6 @@
 
 import type {
 	IdentifyMethodRecord,
-	SignerDetailRecord,
-	SignerSummaryRecord,
 	VisibleElementDraft,
 	VisibleElementRecord,
 } from '../types/index'

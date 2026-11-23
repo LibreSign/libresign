@@ -366,7 +366,6 @@ import {
 	getCurrentUserSignRequestIds,
 	hasVisibleElementsForCurrentUser,
 	getVisibleElementsFromDocument,
-	idsMatch,
 } from '../../../services/visibleElementsService'
 import type {
 	SignResult,
@@ -503,7 +502,6 @@ type SignMethodsSettings = Partial<Record<SignMethodKey, SignatureMethodSetting>
 type SignatureProfile = LibreSignUserElement
 
 type SignDocument = NonNullable<ReturnType<typeof useSignStore>['document']>
-type SignDocumentFile = NonNullable<SignDocument['files']>[number]
 
 type SignSubmissionError = {
 	type?: string
@@ -629,7 +627,6 @@ const user = ref<UserInfo>({
 })
 const signPassword = ref('')
 const showManagePassword = ref(false)
-const isModal = window.self !== window.top
 const showGeolocationPrivacyDialog = ref(false)
 const collectingGeolocation = ref(false)
 const geolocationFailureReason = ref<GeolocationCollectionFailureReason | null>(null)

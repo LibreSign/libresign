@@ -148,7 +148,7 @@ test.afterAll(async () => {
 })
 
 test.describe('Policies menu sidebar visibility', () => {
-	test('instance admin sees Policies menu in sidebar', async ({ page, adminRequestContext }) => {
+	test('instance admin sees Policies menu in sidebar', async ({ page }) => {
 		// Test instance admin
 		await login(page.request, ADMIN_USER, ADMIN_PASSWORD)
 		await page.goto('./apps/libresign/f/preferences')
