@@ -193,14 +193,9 @@ async function selectTarget(dialogScope: Locator, kind: 'group' | 'user', target
 		await searchInput.press('ArrowDown')
 	}
 	await expect(option).toBeVisible({ timeout: 8000 })
-	const optionId = await option.getAttribute('id')
-	expect(optionId).toBeTruthy()
-	if (!await searchInput.getAttribute('aria-activedescendant')) {
-		await searchInput.press('ArrowDown')
-	}
-	await expect(searchInput).toHaveAttribute('aria-activedescendant', optionId!)
-	await searchInput.press('Enter')
-
+	// NcSelectUsers may display results without an active keyboard descendant.
+	// Select the visible result directly and assert that the target was applied.
+	await option.click()
 	await expect(dialogScope.getByText(target, { exact: true })).toBeVisible()
 }
 
