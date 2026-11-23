@@ -6,7 +6,8 @@
 	<div class="footer-template-section">
 		<p v-linkify="{ linkify: true, text: footerDescription }" class="footer-template-description" />
 		<div class="footer-template-header">
-			<NcButton variant="tertiary"
+			<NcButton
+				variant="tertiary"
 				:aria-label="showAvailableVariablesLabel"
 				@click="showVariablesDialog = true">
 				<template #icon>
@@ -14,7 +15,8 @@
 				</template>
 				{{ availableVariablesLabel }}
 			</NcButton>
-			<NcButton v-if="!isDefaultTemplate"
+			<NcButton
+				v-if="!isDefaultTemplate"
 				variant="tertiary"
 				:aria-label="resetTemplateToDefaultLabel"
 				@click="resetTemplateToDefault">
@@ -33,13 +35,15 @@
 			<h4>{{ t('libresign', 'Preview') }}</h4>
 			<div class="footer-preview__controls">
 				<div class="footer-preview__zoom-controls">
-					<NcButton :aria-label="decreaseZoomLevelLabel"
+					<NcButton
+						:aria-label="decreaseZoomLevelLabel"
 						@click="changeZoomLevel(-10)">
 						<template #icon>
 							<NcIconSvgWrapper :path="mdiMagnifyMinusOutline" :size="20" />
 						</template>
 					</NcButton>
-					<NcButton :aria-label="increaseZoomLevelLabel"
+					<NcButton
+						:aria-label="increaseZoomLevelLabel"
 						@click="changeZoomLevel(+10)">
 						<template #icon>
 							<NcIconSvgWrapper :path="mdiMagnifyPlusOutline" :size="20" />
@@ -72,7 +76,8 @@
 						:max="500"
 						:spellcheck="false"
 						@input="debouncedSaveDimensions" />
-					<NcButton v-if="hasDimensionsChanged"
+					<NcButton
+						v-if="hasDimensionsChanged"
 						:aria-label="resetDimensionsLabel"
 						variant="tertiary"
 						@click="resetDimensionsToOriginal">
@@ -86,7 +91,8 @@
 				<div v-if="loadingPreview" class="footer-preview__loading">
 					<NcLoadingIcon :size="64" />
 				</div>
-				<PDFElements ref="pdfPreview"
+				<PDFElements
+					ref="pdfPreview"
 					:key="pdfKey"
 					:init-files="pdfPreviewFile ? [pdfPreviewFile] : []"
 					:init-file-names="['preview.pdf']"
@@ -96,7 +102,8 @@
 			</div>
 		</div>
 
-		<NcDialog v-model:open="showVariablesDialog"
+		<NcDialog
+			v-model:open="showVariablesDialog"
 			:name="availableTemplateVariablesDialogTitle"
 			size="normal">
 			<div class="variables-dialog">
@@ -105,7 +112,8 @@
 					{{ t('libresign', 'Click on a variable to copy it to clipboard') }}
 				</p>
 				<div class="variables-list">
-					<NcFormBoxButton v-for="(meta, name) in templateVariables"
+					<NcFormBoxButton
+						v-for="(meta, name) in templateVariables"
 						:key="name"
 						inverted-accent
 						@click="copyToClipboard(getVariableText(name))">

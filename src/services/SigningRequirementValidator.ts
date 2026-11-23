@@ -7,12 +7,12 @@ import { ACTION_CODES } from '../helpers/ActionMapping.ts'
 import { hasVisibleElementsForCurrentUser } from './visibleElementsService'
 
 interface SignStore {
-	errors: Array<{ code?: number; [key: string]: unknown }>
+	errors: Array<{ code?: number, [key: string]: unknown }>
 	document?: {
-		signers?: Array<{ me?: boolean; signRequestId?: number }> | null
+		signers?: Array<{ me?: boolean, signRequestId?: number }> | null
 		visibleElements?: Array<{ signRequestId?: number }> | null
 		files?: Array<{
-			signers?: Array<{ me?: boolean; signRequestId?: number }> | null
+			signers?: Array<{ me?: boolean, signRequestId?: number }> | null
 			visibleElements?: Array<{ signRequestId?: number }> | null
 		}> | null
 	}
@@ -34,7 +34,7 @@ interface IdentificationDocumentStore {
 }
 
 interface ValidatorConfig {
-	errors?: Array<{ code?: number; [key: string]: unknown }>
+	errors?: Array<{ code?: number, [key: string]: unknown }>
 	hasSignatures?: boolean
 	canCreateSignature?: boolean
 }
@@ -55,7 +55,7 @@ export class SigningRequirementValidator {
 	}
 
 	getFirstUnmetRequirement(config: ValidatorConfig = {}): string | null {
-		const rules: Array<{ name: string; check: () => boolean }> = [
+		const rules: Array<{ name: string, check: () => boolean }> = [
 			{
 				name: 'identificationDocuments',
 				check: () => this.needsIdentificationDocuments(config.errors),
@@ -99,7 +99,7 @@ export class SigningRequirementValidator {
 		return null
 	}
 
-	needsIdentificationDocuments(errors: Array<{ code?: number; [key: string]: unknown }> = []): boolean {
+	needsIdentificationDocuments(errors: Array<{ code?: number, [key: string]: unknown }> = []): boolean {
 		const needsFromStore = !!this.identificationDocumentStore.needIdentificationDocument()
 		const hasError = errors.some((error) => error.code === ACTION_CODES.SIGN_ID_DOC)
 		const isWaitingApproval = !!(
@@ -115,8 +115,6 @@ export class SigningRequirementValidator {
 			return false
 		}
 
-		return hasVisibleElementsForCurrentUser(
-			(this.signStore.document ?? {}) as Parameters<typeof hasVisibleElementsForCurrentUser>[0],
-		)
+		return hasVisibleElementsForCurrentUser((this.signStore.document ?? {}) as Parameters<typeof hasVisibleElementsForCurrentUser>[0])
 	}
 }

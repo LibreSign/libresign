@@ -25,7 +25,8 @@
 							{{ validationErrorMessage }}
 						</NcNoteCard>
 						<!-- TRANSLATORS Same meaning as the previous string: technical process of checking cryptographic integrity of signatures, NOT an approval. -->
-						<div class="upload-dropzone"
+						<div
+							class="upload-dropzone"
 							:class="{ 'upload-dropzone--dragover': isDraggingOver }"
 							@dragover.prevent="handleDragOver"
 							@dragleave.prevent="handleDragLeave"
@@ -54,16 +55,23 @@
 							</NcActions>
 						</div>
 						<!-- TRANSLATORS Same meaning as the first string in this section: technical process of checking cryptographic integrity of signatures, NOT an approval. -->
-						<NcDialog v-if="getUUID" :name="t('libresign', 'Validate signature')" is-form
+						<NcDialog
+							v-if="getUUID"
+							:name="t('libresign', 'Validate signature')"
+							is-form
 							@closing="getUUID = false">
 							<!-- TRANSLATORS Same meaning as the previous string: technical process of checking cryptographic integrity of signatures, NOT an approval. -->
 							<h1>{{ t('libresign', 'Validate signature') }}</h1>
-							<NcTextField v-model="uuidToValidate"
+							<NcTextField
+								v-model="uuidToValidate"
 								autofocus
 								:label="t('libresign', 'Enter the ID or UUID of the document to validate.')"
-								:helper-text="helperTextValidation" :error="!!uuidToValidate && !canValidate" />
+								:helper-text="helperTextValidation"
+								:error="!!uuidToValidate && !canValidate" />
 							<template #actions>
-								<NcButton variant="primary" :disabled="loading || !canValidate"
+								<NcButton
+									variant="primary"
+									:disabled="loading || !canValidate"
 									@click.prevent="validateAndProceed">
 									<template #icon>
 										<NcLoadingIcon v-if="loading" :size="20" />
@@ -90,7 +98,11 @@
 						:document-valid-message="documentValidMessage"
 						:document-valid-type="documentValidType"
 						:is-after-signed="isAfterSigned" />
-					<NcButton v-if="clickedValidate" class="change" variant="primary" @click="goBack()">
+					<NcButton
+						v-if="clickedValidate"
+						class="change"
+						variant="primary"
+						@click="goBack()">
 						<template #icon>
 							<NcIconSvgWrapper :path="mdiArrowLeft" />
 						</template>
@@ -508,7 +520,7 @@ function getSignerStatus(status: string) {
 	return statusMap[status] || status
 }
 
-async function validate(id: string, { suppressLoading = false, forceRefresh = false }: { suppressLoading?: boolean; forceRefresh?: boolean } = {}) {
+async function validate(id: string, { suppressLoading = false, forceRefresh = false }: { suppressLoading?: boolean, forceRefresh?: boolean } = {}) {
 	validationErrorMessage.value = null
 	documentValidMessage.value = null
 	if (id === document.value?.uuid && !forceRefresh) {
@@ -524,7 +536,7 @@ async function validate(id: string, { suppressLoading = false, forceRefresh = fa
 	getUUID.value = false
 }
 
-async function validateByUUID(uuid: string, { suppressLoading = false, forceRefresh = false }: { suppressLoading?: boolean; forceRefresh?: boolean } = {}) {
+async function validateByUUID(uuid: string, { suppressLoading = false, forceRefresh = false }: { suppressLoading?: boolean, forceRefresh?: boolean } = {}) {
 	if (!suppressLoading) {
 		loading.value = true
 	}
@@ -549,7 +561,7 @@ async function validateByUUID(uuid: string, { suppressLoading = false, forceRefr
 	}
 }
 
-async function validateByNodeID(nodeId: string, { suppressLoading = false, forceRefresh = false }: { suppressLoading?: boolean; forceRefresh?: boolean } = {}) {
+async function validateByNodeID(nodeId: string, { suppressLoading = false, forceRefresh = false }: { suppressLoading?: boolean, forceRefresh?: boolean } = {}) {
 	if (!suppressLoading) {
 		loading.value = true
 	}
@@ -694,9 +706,15 @@ function getCrlValidationIconClass(signer: ValidationDisplaySigner) {
 		return 'icon-default'
 	}
 	const variant = crlStatusMap.value[signer.crl_validation]?.variant
-	if (variant === 'success') { return 'icon-success' }
-	if (variant === 'error') { return 'icon-error' }
-	if (variant === 'warning') { return 'icon-warning' }
+	if (variant === 'success') {
+		return 'icon-success'
+	}
+	if (variant === 'error') {
+		return 'icon-error'
+	}
+	if (variant === 'warning') {
+		return 'icon-warning'
+	}
 	return 'icon-default'
 }
 
@@ -757,15 +775,23 @@ function getModificationStatusVariant(signer: ValidationDisplaySigner): 'success
 
 function getModificationStatusIcon(signer: ValidationDisplaySigner) {
 	const variant = getModificationStatusVariant(signer)
-	if (variant === 'success') { return mdiCheckCircle }
-	if (variant === 'error') { return mdiCancel }
+	if (variant === 'success') {
+		return mdiCheckCircle
+	}
+	if (variant === 'error') {
+		return mdiCancel
+	}
 	return signer.modification_validation ? mdiHelpCircle : null
 }
 
 function getModificationStatusClass(signer: ValidationDisplaySigner) {
 	const variant = getModificationStatusVariant(signer)
-	if (variant === 'success') { return 'icon-success' }
-	if (variant === 'error') { return 'icon-error' }
+	if (variant === 'success') {
+		return 'icon-success'
+	}
+	if (variant === 'error') {
+		return 'icon-error'
+	}
 	return ''
 }
 
@@ -845,9 +871,7 @@ function getDocumentValidationSummary(validationDocument: ValidationDocumentStat
 		}
 	}
 
-	const hasDocumentModificationState = signers.some(
-		(signer) => signer.document_modification_state !== undefined,
-	)
+	const hasDocumentModificationState = signers.some((signer) => signer.document_modification_state !== undefined)
 
 	const hasDocumentModificationWarning = hasDocumentModificationState
 		? signers.some((signer) => signer.document_modification_state !== undefined

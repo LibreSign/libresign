@@ -4,13 +4,15 @@
 -->
 <template>
 	<div class="signers-list-wrapper">
-		<NcListItem v-for="(signer, index) in signers"
+		<NcListItem
+			v-for="(signer, index) in signers"
 			:key="index"
 			class="signer-item"
 			:data-testid="`signer-item-${index}`"
 			:compact="compact">
 			<template #icon>
-				<NcAvatar disable-menu
+				<NcAvatar
+					disable-menu
 					:is-no-user="!signer.userId"
 					:size="compact ? 32 : 44"
 					:user="signer.userId || signer.displayName || signer.email"

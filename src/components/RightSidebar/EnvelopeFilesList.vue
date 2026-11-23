@@ -3,11 +3,13 @@
   - SPDX-License-Identifier: AGPL-3.0-or-later
 -->
 <template>
-	<NcDialog v-if="open"
+	<NcDialog
+		v-if="open"
 		:name="t('libresign', 'Manage files ({count})', { count: totalFiles || files.length })"
 		size="normal"
 		@closing="emit('close')">
-		<NcDialog v-if="showDeleteDialog"
+		<NcDialog
+			v-if="showDeleteDialog"
 			:name="deleteDialogConfig.title"
 			:buttons="deleteDialogButtons"
 			@closing="showDeleteDialog = false">
@@ -16,7 +18,8 @@
 		<div class="envelope-files-dialog">
 			<div v-if="envelope && envelope.status === FILE_STATUS.DRAFT" class="envelope-header">
 				<div class="envelope-name-field">
-					<NcTextField v-model="editableEnvelopeName"
+					<NcTextField
+						v-model="editableEnvelopeName"
 						:label="t('libresign', 'Envelope name')"
 						:placeholder="t('libresign', 'Enter envelope name')"
 						:success="nameUpdateSuccess"
@@ -31,14 +34,16 @@
 				</div>
 			</div>
 			<div v-if="isUploading" class="upload-progress-wrapper">
-				<UploadProgress :is-uploading="isUploading"
+				<UploadProgress
+					:is-uploading="isUploading"
 					:upload-progress="uploadProgress"
 					:uploaded-bytes="uploadedBytes"
 					:total-bytes="totalBytes"
 					:upload-start-time="uploadStartTime"
 					@cancel="cancelUpload" />
 			</div>
-			<NcEmptyContent v-if="files.length === 0 && !isLoadingFiles"
+			<NcEmptyContent
+				v-if="files.length === 0 && !isLoadingFiles"
 				:name="t('libresign', 'No files in envelope')"
 				:description="t('libresign', 'Add files to get started')">
 				<template #icon>
@@ -47,11 +52,13 @@
 			</NcEmptyContent>
 			<div v-else class="files-list" @scroll="onScroll">
 				<div v-if="canDelete" class="files-list__header">
-					<NcCheckboxRadioSwitch :modelValue="allSelected"
+					<NcCheckboxRadioSwitch
+						:modelValue="allSelected"
 						@update:modelValue="toggleSelectAll">
 						{{ selectionLabel }}
 					</NcCheckboxRadioSwitch>
-					<NcButton v-if="selectedCount > 0"
+					<NcButton
+						v-if="selectedCount > 0"
 						variant="error"
 						:disabled="hasLoading"
 						@click="handleDeleteSelected">
@@ -61,15 +68,18 @@
 						{{ t('libresign', 'Delete') }}
 					</NcButton>
 				</div>
-				<NcListItem v-for="file in files"
+				<NcListItem
+					v-for="file in files"
 					:key="file.uuid"
 					:name="file.name"
 					:details="file.statusText">
 					<template #icon>
-						<NcCheckboxRadioSwitch v-if="canDelete"
+						<NcCheckboxRadioSwitch
+							v-if="canDelete"
 							:modelValue="isSelected(file.id)"
 							@update:modelValue="toggleSelect(file.id)" />
-						<img v-if="getPreviewUrl(file)"
+						<img
+							v-if="getPreviewUrl(file)"
 							:src="getPreviewUrl(file)"
 							alt=""
 							class="file-preview-icon">
@@ -84,7 +94,8 @@
 							</template>
 							{{ t('libresign', 'Open file') }}
 						</NcActionButton>
-						<NcActionButton v-if="canDelete"
+						<NcActionButton
+							v-if="canDelete"
 							:close-after-click="true"
 							@click="handleDelete(file)">
 							<template #icon>
@@ -99,7 +110,11 @@
 								<NcIconSvgWrapper :path="mdiFileEye" :size="20" />
 							</template>
 						</NcButton>
-						<NcButton v-if="canDelete" variant="tertiary" :aria-label="t('libresign', 'Delete')" @click="handleDelete(file)">
+						<NcButton
+							v-if="canDelete"
+							variant="tertiary"
+							:aria-label="t('libresign', 'Delete')"
+							@click="handleDelete(file)">
 							<template #icon>
 								<NcIconSvgWrapper :path="mdiDelete" :size="20" />
 							</template>
@@ -113,7 +128,8 @@
 			</div>
 		</div>
 		<template #actions>
-			<NcButton v-if="canAddFile"
+			<NcButton
+				v-if="canAddFile"
 				variant="primary"
 				:disabled="hasLoading"
 				@click="addFileToEnvelope">
@@ -202,7 +218,7 @@ type UploadProgressEvent = {
 type FilesStore = {
 	getFile: FilesStoreContract['getFile']
 	removeFilesFromEnvelope: (fileIds: number[]) => Promise<RemoveFilesResult>
-	addFilesToEnvelope: (uuid: string, formData: FormData, options: { signal: AbortSignal; onUploadProgress: (event: UploadProgressEvent) => void }) => Promise<AddFilesResult>
+	addFilesToEnvelope: (uuid: string, formData: FormData, options: { signal: AbortSignal, onUploadProgress: (event: UploadProgressEvent) => void }) => Promise<AddFilesResult>
 	rename: (uuid: string, newName: string) => Promise<boolean>
 }
 
@@ -372,7 +388,7 @@ async function loadFiles(page = 1) {
 		})
 }
 
-function onScroll(event: { target: { scrollTop: number; scrollHeight: number; clientHeight: number } }) {
+function onScroll(event: { target: { scrollTop: number, scrollHeight: number, clientHeight: number } }) {
 	if (isLoadingMore.value || !hasMore.value) {
 		return
 	}
@@ -421,8 +437,10 @@ function validateMaxFileUploads(filesCount: number) {
 	return true
 }
 
-function getPreviewUrl(file: Partial<EnvelopeFile> & { id?: number; nodeId?: number }) {
-	if (!file.id && !file.nodeId) { return null }
+function getPreviewUrl(file: Partial<EnvelopeFile> & { id?: number, nodeId?: number }) {
+	if (!file.id && !file.nodeId) {
+		return null
+	}
 
 	const previewUrl = file.id
 		? generateOcsUrl('/apps/libresign/api/v1/file/thumbnail/file_id/{fileId}', {
@@ -507,7 +525,9 @@ function addFileToEnvelope() {
 	input.onchange = async (event) => {
 		const target = event.target as HTMLInputElement | null
 		const selectedFileList = target?.files
-		if (!selectedFileList || selectedFileList.length === 0) { return }
+		if (!selectedFileList || selectedFileList.length === 0) {
+			return
+		}
 		if (!validateMaxFileUploads(selectedFileList.length)) {
 			return
 		}

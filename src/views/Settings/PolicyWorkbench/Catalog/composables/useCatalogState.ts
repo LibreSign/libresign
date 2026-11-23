@@ -19,9 +19,7 @@ export function useCatalogState() {
 	const isSmallViewport = ref(false)
 	const catalogLayout = ref<'cards' | 'compact'>('cards')
 	const isCatalogCollapsed = ref(false)
-	const categoryCollapsedState = ref<Record<RealPolicySettingCategory, boolean>>(
-		Object.fromEntries(CATEGORY_ORDER.map((category) => [category, false])) as Record<RealPolicySettingCategory, boolean>,
-	)
+	const categoryCollapsedState = ref<Record<RealPolicySettingCategory, boolean>>(Object.fromEntries(CATEGORY_ORDER.map((category) => [category, false])) as Record<RealPolicySettingCategory, boolean>)
 
 	const hasActiveFilter = computed(() => settingsFilter.value.trim().length > 0)
 	const effectiveCatalogLayout = computed(() => isSmallViewport.value ? 'cards' : catalogLayout.value)
@@ -99,9 +97,7 @@ export function useCatalogState() {
 	}
 
 	function setAllCategoriesCollapsed(collapsed: boolean) {
-		categoryCollapsedState.value = Object.fromEntries(
-			CATEGORY_ORDER.map((category) => [category, collapsed]),
-		) as Record<RealPolicySettingCategory, boolean>
+		categoryCollapsedState.value = Object.fromEntries(CATEGORY_ORDER.map((category) => [category, collapsed])) as Record<RealPolicySettingCategory, boolean>
 	}
 
 	return {

@@ -28,7 +28,7 @@ type IdentifyMethodName = 'account' | 'email' | 'signal' | 'sms' | 'telegram' | 
 
 type Signer = {
 	email: string
-	identifyMethods?: Array<{ method: IdentifyMethodName; value: string; requirement: 'required' | 'optional' }>
+	identifyMethods?: Array<{ method: IdentifyMethodName, value: string, requirement: 'required' | 'optional' }>
 	localKey?: string
 	signRequestId?: number
 }
@@ -826,7 +826,7 @@ describe('files store - critical business rules', () => {
 
 			await store.deleteSigner({ localKey: 'draft-2', signingOrder: 2 })
 
-			const remainingSigners = store.files[1].signers! as Array<{ localKey: string; signingOrder: number }>
+			const remainingSigners = store.files[1].signers! as Array<{ localKey: string, signingOrder: number }>
 			expect(remainingSigners).toHaveLength(2)
 			const signer = remainingSigners.find((s: { localKey: string }) => s.localKey === 'draft-3')
 			expect(signer?.signingOrder).toBe(2)

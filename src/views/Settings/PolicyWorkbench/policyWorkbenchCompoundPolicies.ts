@@ -167,9 +167,7 @@ export async function saveCompoundPolicyValue(context: SaveCompoundPolicyValueCo
 	}
 
 	const values = compound.decompose(context.value)
-	const allowChildOverride = Object.fromEntries(
-		Object.keys(values).map((policyKey) => [policyKey, context.allowChildOverride]),
-	)
+	const allowChildOverride = Object.fromEntries(Object.keys(values).map((policyKey) => [policyKey, context.allowChildOverride]))
 
 	if (context.scope === 'system') {
 		await context.policiesStore.saveSystemPolicyCompound(context.policyKey, values, allowChildOverride)

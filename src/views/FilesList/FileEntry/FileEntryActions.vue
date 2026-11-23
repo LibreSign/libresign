@@ -13,7 +13,8 @@
 			variant="tertiary"
 			@close="openedMenu = false">
 			<!-- Default actions list-->
-			<NcActionButton v-for="action in visibleMenu"
+			<NcActionButton
+				v-for="action in visibleMenu"
 				:key="action.id"
 				:ref="`action-${action.id}`"
 				:class="{
@@ -29,18 +30,21 @@
 				{{ action.title }}
 			</NcActionButton>
 		</NcActions>
-		<NcDialog v-if="confirmDelete"
+		<NcDialog
+			v-if="confirmDelete"
 			v-model:open="confirmDelete"
 			:name="confirmDialogTitle"
 			:no-close="deleting">
 			{{ deleteConfirmationMessage }}
-			<NcCheckboxRadioSwitch v-model="deleteFile"
+			<NcCheckboxRadioSwitch
+				v-model="deleteFile"
 				type="switch"
 				:disabled="deleting">
 				{{ alsoDeleteFileLabel }}
 			</NcCheckboxRadioSwitch>
 			<template #actions>
-				<NcButton variant="primary"
+				<NcButton
+					variant="primary"
 					:disabled="deleting"
 					@click="doDelete()">
 					<template #icon>
@@ -48,7 +52,8 @@
 					</template>
 					{{ okLabel }}
 				</NcButton>
-				<NcButton :disabled="deleting"
+				<NcButton
+					:disabled="deleting"
 					@click="confirmDelete = false">
 					{{ cancelLabel }}
 				</NcButton>

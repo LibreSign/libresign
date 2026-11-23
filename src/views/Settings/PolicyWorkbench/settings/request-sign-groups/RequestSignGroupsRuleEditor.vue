@@ -157,11 +157,9 @@ const isDelegatedGroupCreateFlow = computed(() => {
 	return !isInstanceAdmin && props.editorScope === 'group' && props.editorMode === 'create'
 })
 const config = loadState<{ manageable_policy_group_ids?: string[] }>('libresign', 'config', {})
-const manageableGroupIds = new Set(
-	Array.isArray(config.manageable_policy_group_ids)
+const manageableGroupIds = new Set(Array.isArray(config.manageable_policy_group_ids)
 		? config.manageable_policy_group_ids.filter((groupId): groupId is string => typeof groupId === 'string' && groupId.trim().length > 0)
-		: [],
-)
+		: [])
 
 function clampToManageableScope(groupIds: string[]): string[] {
 	if (isInstanceAdmin || manageableGroupIds.size === 0) {
@@ -198,11 +196,9 @@ function resolveCurrentScopeTargetIds(): string[] {
 	]))
 }
 
-const lockedInheritedAllowGroupIds = new Set(
-	isDelegatedGroupCreateFlow.value
+const lockedInheritedAllowGroupIds = new Set(isDelegatedGroupCreateFlow.value
 		? clampToManageableScope(resolveRequestSignGroups(props.modelValue))
-		: [],
-)
+		: [])
 
 function stripLockedInheritedAllowGroups(groupIds: string[]): string[] {
 	if (!isDelegatedGroupCreateFlow.value || lockedInheritedAllowGroupIds.size === 0) {
@@ -342,25 +338,21 @@ async function searchGroup(query: string) {
 
 		if (isInstanceAdmin) {
 			const response = await axios.get<GroupDetailsResponse>(generateOcsUrl('cloud/groups/details'), { params })
-			availableGroups.value = filterGroupsByManageableScope(
-				(response.data?.ocs?.data?.groups ?? [])
-					.map((group: { id: string; displayname?: string }) => ({
+			availableGroups.value = filterGroupsByManageableScope((response.data?.ocs?.data?.groups ?? [])
+					.map((group: { id: string, displayname?: string }) => ({
 						id: group.id,
 						displayname: group.displayname || group.id,
-					})),
-			)
+					})))
 				.sort((left: GroupRow, right: GroupRow) => left.displayname.localeCompare(right.displayname))
 			return
 		}
 
 		const response = await axios.get<GroupListResponse>(generateOcsUrl('cloud/groups'), { params })
-		availableGroups.value = filterGroupsByManageableScope(
-			(response.data?.ocs?.data?.groups ?? [])
+		availableGroups.value = filterGroupsByManageableScope((response.data?.ocs?.data?.groups ?? [])
 				.map((groupId: string) => ({
 					id: groupId,
 					displayname: groupId,
-				})),
-		)
+				})))
 			.sort((left: GroupRow, right: GroupRow) => left.displayname.localeCompare(right.displayname))
 	} catch (error) {
 		logger.debug('Could not search groups for request-sign policy editor', { error })

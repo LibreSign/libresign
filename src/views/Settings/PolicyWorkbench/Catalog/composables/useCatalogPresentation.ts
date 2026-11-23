@@ -14,21 +14,21 @@ import { CATEGORY_ORDER } from './categoryOrder'
 export type CatalogLayout = 'cards' | 'compact'
 
 export type CatalogSettingSummary = {
-	key: string,
-	title: string,
-	context?: string | null,
-	description: string,
-	defaultSummary: string,
-	groupCount?: number,
-	userCount?: number,
-	everyoneCount?: number,
+	key: string
+	title: string
+	context?: string | null
+	description: string
+	defaultSummary: string
+	groupCount?: number
+	userCount?: number
+	everyoneCount?: number
 }
 
 export type CatalogCategorySection = {
-	key: RealPolicySettingCategory,
-	id: string,
-	label: string,
-	summaries: CatalogSettingSummary[],
+	key: RealPolicySettingCategory
+	id: string
+	label: string
+	summaries: CatalogSettingSummary[]
 }
 
 // TRANSLATORS Category heading grouping rules about who is allowed to sign documents.
@@ -74,11 +74,11 @@ function categoryLabel(category: RealPolicySettingCategory): string {
 }
 
 export function useCatalogPresentation(options: {
-	visibleSettingSummaries: Ref<CatalogSettingSummary[]> | ComputedRef<CatalogSettingSummary[]>,
-	settingsFilter: Ref<string>,
-	catalogLayout: Ref<CatalogLayout>,
-	isCatalogCollapsed: Ref<boolean>,
-	isSmallViewport: Ref<boolean>,
+	visibleSettingSummaries: Ref<CatalogSettingSummary[]> | ComputedRef<CatalogSettingSummary[]>
+	settingsFilter: Ref<string>
+	catalogLayout: Ref<CatalogLayout>
+	isCatalogCollapsed: Ref<boolean>
+	isSmallViewport: Ref<boolean>
 }) {
 	const categoryBySettingKey = computed<Record<string, RealPolicySettingCategory>>(() => {
 		const map: Record<string, RealPolicySettingCategory> = {}

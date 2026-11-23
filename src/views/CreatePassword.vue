@@ -3,7 +3,8 @@
   - SPDX-License-Identifier: AGPL-3.0-or-later
 -->
 <template>
-	<NcDialog v-if="signMethodsStore.modal.createPassword"
+	<NcDialog
+		v-if="signMethodsStore.modal.createPassword"
 		:name="t('libresign', 'Password Creation')"
 		is-form
 		@submit.prevent="send()"
@@ -12,12 +13,14 @@
 		<NcNoteCard v-if="errorMessage" type="error">
 			{{ errorMessage }}
 		</NcNoteCard>
-		<NcPasswordField v-model="password"
+		<NcPasswordField
+			v-model="password"
 			:disabled="hasLoading"
 			:label="t('libresign', 'Enter a password')"
 			:placeholder="t('libresign', 'Enter a password')" />
 		<template #actions>
-			<NcButton :disabled="hasLoading"
+			<NcButton
+				:disabled="hasLoading"
 				type="submit"
 				variant="primary"
 				@click="send()">

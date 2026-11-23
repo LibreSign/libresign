@@ -7,7 +7,7 @@
 
 declare global {
 	interface LibreSignAppConfigApi {
-		setValue: (app: string, key: string, value: string | number | boolean, options?: { success?: () => void; error?: () => void }) => void
+		setValue: (app: string, key: string, value: string | number | boolean, options?: { success?: () => void, error?: () => void }) => void
 		deleteKey?: (app: string, key: string) => void
 	}
 

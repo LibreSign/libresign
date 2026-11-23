@@ -107,4 +107,7 @@ async function run() {
   assert.equal(supplied.getUri(last), 'https://instance.test/installed/index.php/apps/libresign/certificate-policy.pdf')
   console.log('PASS: generated transport, root/subdirectory paths, independent basic/bearer auth, baseURL precedence, JSON, binary options and HTTP errors')
 }
-run().catch((error) => { console.error(error); process.exitCode = 1 })
+run().catch((error) => {
+	console.error(error)
+	process.exitCode = 1
+})

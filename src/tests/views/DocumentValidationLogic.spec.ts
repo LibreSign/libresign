@@ -100,7 +100,9 @@ describe('Document Validation Flow Business Logic', () => {
 			]
 
 			const isOrdered = signers.every((signer, i) => {
-				if (i === 0) { return true }
+				if (i === 0) {
+					return true
+				}
 				return signer.signedAt > signers[i - 1].signedAt
 			})
 
@@ -115,7 +117,9 @@ describe('Document Validation Flow Business Logic', () => {
 			]
 
 			const isOrdered = signers.every((signer, i) => {
-				if (i === 0) { return true }
+				if (i === 0) {
+					return true
+				}
 				return signer.signedAt > signers[i - 1].signedAt
 			})
 

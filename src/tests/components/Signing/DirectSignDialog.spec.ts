@@ -43,7 +43,7 @@ describe('immediate signature confirmation', () => {
 		})
 	}
 
-	type Button = { label: string; disabled: boolean; callback: () => void | Promise<false | undefined> }
+	type Button = { label: string, disabled: boolean, callback: () => void | Promise<false | undefined> }
 	function buttons(wrapper: ReturnType<typeof dialog>): Button[] {
 		return wrapper.findComponent({ name: 'NcDialog' }).props('buttons') as Button[]
 	}

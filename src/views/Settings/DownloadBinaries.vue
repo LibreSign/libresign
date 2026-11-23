@@ -11,7 +11,8 @@
 				{{ error }}
 			</p>
 		</NcNoteCard>
-		<NcButton class="primary"
+		<NcButton
+			class="primary"
 			type="submit"
 			variant="primary"
 			:disabled="configureCheckStore.downloadInProgress"
@@ -22,10 +23,12 @@
 			{{ labelDownloadAllBinaries }}
 		</NcButton>
 
-		<div v-for="(progress, service) in downloadStatus"
+		<div
+			v-for="(progress, service) in downloadStatus"
 			:key="service">
 			<label v-if="progress > 0">{{ service }}</label>
-			<NcProgressBar v-if="progress > 0"
+			<NcProgressBar
+				v-if="progress > 0"
 				size="medium"
 				:value="progress" />
 		</div>
@@ -94,9 +97,7 @@ const description = computed(() => {
 })
 
 function installAndValidate() {
-	const updateEventSource = new (globalThis as typeof globalThis & { OC: OCGlobal }).OC.EventSource(
-		generateOcsUrl('/apps/libresign/api/v1/admin/install-and-validate'),
-	)
+	const updateEventSource = new (globalThis as typeof globalThis & { OC: OCGlobal }).OC.EventSource(generateOcsUrl('/apps/libresign/api/v1/admin/install-and-validate'))
 
 	configureCheckStore.state = 'in progress'
 	configureCheckStore.downloadInProgress = true

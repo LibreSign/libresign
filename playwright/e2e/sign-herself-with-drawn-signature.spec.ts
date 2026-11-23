@@ -137,9 +137,7 @@ test('sign herself with drawn signature', async ({ page }) => {
 	await expect(addInstruction).toBeHidden()
 	await expect(cancelPlacementButton).toBeHidden()
 	await expect(editSignerLink).toBeVisible()
-	await expect(
-		signaturePositionsDialog.getByRole('img', { name: 'Signature position for Admin Name' }),
-	).toBeVisible()
+	await expect(signaturePositionsDialog.getByRole('img', { name: 'Signature position for Admin Name' })).toBeVisible()
 
 	await page.getByRole('button', { name: 'Save' }).click()
 	await expect(signaturePositionsDialog).toBeHidden()
@@ -148,9 +146,7 @@ test('sign herself with drawn signature', async ({ page }) => {
 	await page.getByRole('button', { name: 'Sign document' }).first().click()
 	await expect(page.getByLabel('PDF document to sign')).toBeVisible({ timeout: 15000 })
 
-	await expect(
-		page.getByLabel('PDF document to sign').getByRole('img', { name: 'Signature position for Admin Name' }),
-	).toBeVisible({ timeout: 15000 })
+	await expect(page.getByLabel('PDF document to sign').getByRole('img', { name: 'Signature position for Admin Name' })).toBeVisible({ timeout: 15000 })
 
 	const defineSignatureButton = page.getByRole('button', { name: /Define your signature\.?/i }).first()
 	await expect(defineSignatureButton).toBeVisible({ timeout: 15_000 })

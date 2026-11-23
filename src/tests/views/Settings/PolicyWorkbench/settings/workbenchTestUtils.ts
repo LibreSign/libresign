@@ -149,7 +149,7 @@ export function resetWorkbenchHarness(): void {
 					label: 'Email token',
 				},
 			},
-	})
+		})
 	axiosGet.mockReset()
 	saveSystemPolicy.mockReset()
 	saveGroupPolicy.mockReset()

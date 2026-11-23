@@ -11,7 +11,8 @@
 				{{ t('libresign', 'LibreSign is developed with ❤️ by LibreCode coop. Your support helps us maintain and improve this free and open-source project.') }}
 			</p>
 			<div class="support-buttons">
-				<NcButton variant="primary"
+				<NcButton
+					variant="primary"
 					href="https://github.com/sponsors/libresign"
 					target="_blank"
 					rel="noopener noreferrer">
@@ -20,7 +21,8 @@
 					</template>
 					{{ t('libresign', 'Sponsor on GitHub') }}
 				</NcButton>
-				<NcButton href="https://buy.stripe.com/eVqfZibhx8QO3LseWc2kw00"
+				<NcButton
+					href="https://buy.stripe.com/eVqfZibhx8QO3LseWc2kw00"
 					target="_blank"
 					rel="noopener noreferrer">
 					<template #icon>
@@ -28,7 +30,8 @@
 					</template>
 					{{ t('libresign', 'Donate via Stripe') }}
 				</NcButton>
-				<NcButton href="https://libresign.coop"
+				<NcButton
+					href="https://libresign.coop"
 					target="_blank"
 					rel="noopener noreferrer">
 					<template #icon>

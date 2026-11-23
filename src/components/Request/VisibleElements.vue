@@ -3,7 +3,8 @@
   - SPDX-License-Identifier: AGPL-3.0-or-later
 -->
 <template>
-	<NcModal v-if="modal"
+	<NcModal
+		v-if="modal"
 		:name="signaturePositionsModalTitle"
 		:close-button-outside="true"
 		size="full"
@@ -14,7 +15,8 @@
 		<div v-else class="visible-elements-container">
 			<div class="sign-details">
 				<div class="modal_name">
-					<NcChip :text="statusLabel"
+					<NcChip
+						:text="statusLabel"
 						:variant="isDraft ? 'warning' : 'primary'"
 						:aria-label="documentStatusAriaLabel"
 						no-close />
@@ -22,26 +24,31 @@
 						{{ document.name }}
 					</h2>
 				</div>
-				<span role="status"
+				<span
+					role="status"
 					aria-live="polite"
 					aria-atomic="true"
 					class="sr-only">
 					<template v-if="!isReadOnly && !signerSelected">{{ selectSignerPositionHint }}</template>
 				</span>
 				<p v-if="!isReadOnly && !signerSelected">
-					<NcNoteCard type="info"
+					<NcNoteCard
+						type="info"
 						:text="selectSignerPositionHint" />
 				</p>
 				<ul class="view-sign-detail__sidebar">
-					<li v-if="signerSelected"
+					<li
+						v-if="signerSelected"
 						:class="{ tip: signerSelected }">
 						<span>{{ clickPlacementHint }}</span>
-						<NcButton variant="primary"
+						<NcButton
+							variant="primary"
 							@click="stopAddSigner">
 							{{ cancelLabel }}
 						</NcButton>
 					</li>
-					<Signer v-for="({ signer, index }) in sidebarSigners"
+					<Signer
+						v-for="({ signer, index }) in sidebarSigners"
 						:key="index"
 						:signer="signer"
 						:require-request-permission="false"
@@ -53,7 +60,8 @@
 					</Signer>
 				</ul>
 				<div class="sign-details__actions">
-					<NcButton v-if="canSave"
+					<NcButton
+						v-if="canSave"
 						:variant="variantOfSaveButton"
 						:wide="true"
 						:class="{ disabled: signerSelected }"
@@ -61,7 +69,8 @@
 						{{ saveLabel }}
 					</NcButton>
 
-					<NcButton v-if="canSign && !signerSelected"
+					<NcButton
+						v-if="canSign && !signerSelected"
 						:variant="variantOfSignButton"
 						:wide="true"
 						@click="goToSign">
@@ -69,7 +78,8 @@
 					</NcButton>
 				</div>
 			</div>
-			<PdfEditor v-if="!filesStore.loading && pdfEditorFiles.length > 0"
+			<PdfEditor
+				v-if="!filesStore.loading && pdfEditorFiles.length > 0"
 				ref="pdfEditor"
 				width="100%"
 				height="100%"
@@ -549,7 +559,7 @@ const documentFilesForMapping = computed<EditableRequestChildFile[]>(() => {
 })
 const visibleElementsDocument = computed<DocumentLike>(() => toVisibleElementsDocument(document.value))
 const visibleElementsFiles = computed<FileLike[]>(() => documentFiles.value.map(toVisibleElementsFile))
-const sidebarSigners = computed<Array<{ signer: EditableRequestSigner; index: number }>>(() => {
+const sidebarSigners = computed<Array<{ signer: EditableRequestSigner, index: number }>>(() => {
 	const signers: EditableRequestSigner[] = Array.isArray(document.value.signers) ? document.value.signers : []
 	return signers
 		.map((signer, index) => ({ signer, index }))
@@ -789,7 +799,7 @@ async function updateSigners() {
 
 	const fileIndexById = new Map<string, number>(filesToProcess.map((file, index) => [String(file.id), index]))
 	const elements = getVisibleElementsFromDocument(visibleElementsDocument.value)
-	const elementsByDoc = new Map<number, Array<{ element: VisibleElementRecord; signer: SignerSummaryRecord }>>()
+	const elementsByDoc = new Map<number, Array<{ element: VisibleElementRecord, signer: SignerSummaryRecord }>>()
 
 	elements.forEach((element) => {
 		const normalizedElement = normalizeVisibleElement(element)
@@ -1016,7 +1026,9 @@ function buildVisibleElements() {
 	for (let docIndex = 0; docIndex < numDocuments; docIndex++) {
 		const objects = getPdfObjectsForDocument(docIndex)
 		objects.forEach((object: PdfObject) => {
-			if (!object.signer) { return }
+			if (!object.signer) {
+				return
+			}
 
 			if (object.visibleElement?.fileId !== undefined
 				&& object.visibleElement?.signRequestId !== undefined

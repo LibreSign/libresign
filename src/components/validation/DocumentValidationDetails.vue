@@ -37,7 +37,11 @@
 			</NcListItem>
 		</ul>
 		<div class="info-document">
-			<NcRichText v-if="legalInformation" class="legal-information" :text="legalInformation" :use-markdown="true" />
+			<NcRichText
+				v-if="legalInformation"
+				class="legal-information"
+				:text="legalInformation"
+				:use-markdown="true" />
 			<NcButton v-if="document.uuid" variant="primary" @click="viewDocument">
 				<template #icon>
 					<NcIconSvgWrapper :path="mdiEye" :size="20" />
@@ -52,7 +56,8 @@
 					{{ section.title }}
 				</h3>
 				<ul class="signers">
-					<SignerDetails v-for="(signer, signerIndex) in section.participants"
+					<SignerDetails
+						v-for="(signer, signerIndex) in section.participants"
 						:key="`${section.role}-${signerIndex}`"
 						:signer="signer"
 						:workflow-canceled="workflowCanceled" />
@@ -133,8 +138,12 @@ const participantSections = computed<ParticipantSection[]>(() => {
 })
 
 const size = computed(() => {
-	if (document.value.size < 1024) { return document.value.size + ' B' }
-	if (document.value.size < 1048576) { return (document.value.size / 1024).toFixed(2) + ' KB' }
+	if (document.value.size < 1024) {
+		return document.value.size + ' B'
+	}
+	if (document.value.size < 1048576) {
+		return (document.value.size / 1024).toFixed(2) + ' KB'
+	}
 	return (document.value.size / 1048576).toFixed(2) + ' MB'
 })
 

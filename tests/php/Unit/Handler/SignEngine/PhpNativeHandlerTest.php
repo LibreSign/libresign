@@ -22,7 +22,7 @@ use OCA\Libresign\Service\SignatureBackgroundService;
 use OCA\Libresign\Service\SignatureStampPreview\SignatureStampAppearanceBuilder;
 use OCA\Libresign\Service\SignatureTextService;
 use OCA\Libresign\Service\SignerElementsService;
-use OCP\Files\File;
+use OCA\Libresign\Tests\Fixtures\PdfGenerator;
 use OCP\IAppConfig;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\MockObject\MockObject;
@@ -184,6 +184,8 @@ final class PhpNativeHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			'/DocMDP signals existing signature' => ['/DocMDP ', true],
 			'/Perms signals existing signature' => ['/Perms ', true],
 			'plain PDF content has no signature' => ['%PDF-1.4 startxref 0 %%EOF', false],
+			'unreferenced signature dictionary is not an existing signature' => [PdfGenerator::createPdfWithStandaloneDocMdpSignature(1), false],
+			'certification the document uses is an existing signature' => [PdfGenerator::createPdfWithStandaloneDocMdpSignature(1, '/Perms << /DocMDP 5 0 R >>'), true],
 		];
 	}
 
@@ -273,7 +275,6 @@ final class PhpNativeHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	#[DataProvider('providerResolveCertificationLevel')]
 	public function testResolveCertificationLevel(
 		bool $docMdpEnabled,
-		bool $noVisibleElements,
 		string $pdfContent,
 		bool $expectNull,
 	): void {
@@ -285,13 +286,7 @@ final class PhpNativeHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 
 		$handler = $this->getHandler();
 
-		if (!$noVisibleElements) {
-			$inputFile = $this->createMock(File::class);
-			$inputFile->method('getContent')->willReturn($pdfContent);
-			$handler->setInputFile($inputFile);
-		}
-
-		$result = $this->callPrivateMethod($handler, 'resolveCertificationLevel', $noVisibleElements);
+		$result = $this->callPrivateMethod($handler, 'resolveCertificationLevel', $pdfContent);
 
 		if ($expectNull) {
 			$this->assertNull($result);
@@ -303,16 +298,19 @@ final class PhpNativeHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	public static function providerResolveCertificationLevel(): array {
 		return [
 			'DocMDP disabled always returns null' => [
-				false, true, '', true,
+				false, '%PDF-1.4 startxref 0 %%EOF', true,
 			],
-			'DocMDP enabled with no visible elements certifies' => [
-				true, true, '', false,
+			'DocMDP enabled, clean PDF certifies the first signature' => [
+				true, '%PDF-1.4 startxref 0 %%EOF', false,
 			],
-			'DocMDP enabled, visible elements, clean PDF certifies first signature' => [
-				true, false, '%PDF-1.4 startxref 0 %%EOF', false,
+			'DocMDP enabled, PDF already signed skips certification' => [
+				true, '/ByteRange [0 0 0 0]', true,
 			],
-			'DocMDP enabled, visible elements, PDF already signed skips certification' => [
-				true, false, '/ByteRange [0 0 0 0]', true,
+			'DocMDP enabled, PDF already certified skips certification' => [
+				true, '/Perms << /DocMDP 5 0 R >>', true,
+			],
+			'DocMDP enabled, unreferenced signature dictionary still certifies' => [
+				true, PdfGenerator::createPdfWithStandaloneDocMdpSignature(1), false,
 			],
 		];
 	}
@@ -325,7 +323,7 @@ final class PhpNativeHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$handler = $this->getHandler();
 		$handler->setDocMdpLevel($givenLevel);
 
-		$this->assertSame($expected, $this->callPrivateMethod($handler, 'resolveCertificationLevel', true));
+		$this->assertSame($expected, $this->callPrivateMethod($handler, 'resolveCertificationLevel', '%PDF-1.4 startxref 0 %%EOF'));
 	}
 
 	public static function providerTheGivenLevelWinsOverTheCurrentLevel(): array {

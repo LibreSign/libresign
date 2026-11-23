@@ -189,15 +189,13 @@ test('request, sign, and validate device plus IP geolocation from a frozen snaps
 	const saveSignerPayload = saveSignerRequest.postDataJSON() as {
 		signers?: Array<{
 			deviceGeolocationRequired?: boolean
-			identifyMethods?: Array<{ method?: string; value?: string }>
+			identifyMethods?: Array<{ method?: string, value?: string }>
 		}>
 	}
 	expect(saveSignerPayload.signers?.[0]?.deviceGeolocationRequired).toBe(true)
 	expect(saveSignerPayload.signers?.[0]?.identifyMethods?.[0]?.method).toBe('account')
 	// Collaborator search may persist UID or shareWithDisplayNameUnique (email).
-	expect([adminUser, 'admin@email.tld']).toContain(
-		saveSignerPayload.signers?.[0]?.identifyMethods?.[0]?.value,
-	)
+	expect([adminUser, 'admin@email.tld']).toContain(saveSignerPayload.signers?.[0]?.identifyMethods?.[0]?.value)
 
 	await page.getByRole('button', { name: 'Request signatures' }).click()
 	await page.getByRole('button', { name: 'Send' }).click()
@@ -229,9 +227,12 @@ test('request, sign, and validate device plus IP geolocation from a frozen snaps
 		.filter({ hasText: 'Require device-reported location to sign' })).toBeVisible()
 	await page.getByRole('dialog', { name: /Add new signer/i }).last().getByRole('button', { name: 'Cancel' }).click()
 
-	const signDetailResponsePromise = page.waitForResponse((response) => response.request().method() === 'GET'
-		&& response.url().includes('/apps/libresign/api/v1/file/validate/uuid/')
-		&& response.ok(), { timeout: 30_000 })
+	const signDetailResponsePromise = page.waitForResponse(
+		(response) => response.request().method() === 'GET'
+			&& response.url().includes('/apps/libresign/api/v1/file/validate/uuid/')
+			&& response.ok(),
+		{ timeout: 30_000 },
+	)
 	await page.getByRole('button', { name: 'Sign document' }).first().click()
 	await page.waitForURL('**/f/sign/**/pdf')
 	const signDetailResponse = await signDetailResponsePromise
@@ -242,7 +243,7 @@ test('request, sign, and validate device plus IP geolocation from a frozen snaps
 					me?: boolean
 					sign_request_uuid?: string
 					deviceGeolocationRequired?: boolean
-					identifyMethods?: Array<{ method?: string; value?: string }>
+					identifyMethods?: Array<{ method?: string, value?: string }>
 					metadata?: { deviceGeolocationRequirement?: string }
 				}>
 			}
@@ -269,8 +270,11 @@ test('request, sign, and validate device plus IP geolocation from a frozen snaps
 	await expect(page.getByLabel('PDF document to sign')).toBeVisible({ timeout: 15_000 })
 	await expect(page.getByText('Device-reported location is required to sign this document.')).toBeVisible({ timeout: 15_000 })
 
-	const signResponsePromise = page.waitForResponse((response) => response.request().method() === 'POST'
-		&& response.url().includes('/apps/libresign/api/v1/sign/'), { timeout: 30_000 })
+	const signResponsePromise = page.waitForResponse(
+		(response) => response.request().method() === 'POST'
+			&& response.url().includes('/apps/libresign/api/v1/sign/'),
+		{ timeout: 30_000 },
+	)
 	await clickSignDocumentButton(page)
 
 	const confirmSign = page.getByRole('dialog', { name: 'Sign document' }).getByRole('button', { name: 'Sign document' })

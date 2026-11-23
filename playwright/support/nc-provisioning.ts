@@ -13,7 +13,7 @@ import type { APIRequestContext } from '@playwright/test'
 
 export type OcsResponse<T = unknown> = {
 	ocs: {
-		meta: { status: string; statuscode: number; message: string }
+		meta: { status: string, statuscode: number, message: string }
 		data: T
 	}
 }
@@ -229,9 +229,7 @@ export async function deleteUser(
 	const isSuccess = statusCode === 200
 	const isNotFound = statusCode === 404 || statusCode === 998
 	if (!isSuccess && !isNotFound) {
-		throw new Error(
-			`Failed to delete user "${userId}": OCS statuscode ${statusCode} - ${result.ocs?.meta?.message ?? ''}`,
-		)
+		throw new Error(`Failed to delete user "${userId}": OCS statuscode ${statusCode} - ${result.ocs?.meta?.message ?? ''}`)
 	}
 	return result
 }

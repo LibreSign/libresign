@@ -3,10 +3,12 @@
   - SPDX-License-Identifier: AGPL-3.0-or-later
 -->
 <template>
-	<div v-if="signersCount > 0"
+	<div
+		v-if="signersCount > 0"
 		v-tooltip="tooltipContent"
 		class="signers-count">
-		<NcIconSvgWrapper class="signers-count__icon"
+		<NcIconSvgWrapper
+			class="signers-count__icon"
 			:path="mdiAccountMultiple"
 			:size="20" />
 		<span class="signers-count__number">{{ signersCount }}</span>

@@ -110,7 +110,9 @@ test('observer receives validation link and cannot enter signing flow', async ({
 			&& response.request().resourceType() !== 'preflight'
 		))
 		let popupOpened = false
-		page.on('popup', () => { popupOpened = true })
+		page.on('popup', () => {
+			popupOpened = true
+		})
 		await page.getByRole('button', { name: 'View document' }).click()
 		const pdfResponse = await pdfResponsePromise
 		expect(pdfResponse.status()).toBe(200)

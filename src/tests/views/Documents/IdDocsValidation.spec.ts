@@ -110,7 +110,7 @@ vi.mock('@nextcloud/vue/components/NcIconSvgWrapper', () => ({
 }))
 
 describe('IdDocsValidation.vue', () => {
-	type IdDocEntry = components['schemas']['File']
+	type IdDocEntry = components['schemas']['IdDocFile']
 
 	const signedDoc: IdDocEntry = {
 		account: {

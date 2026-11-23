@@ -3,14 +3,16 @@
   - SPDX-License-Identifier: AGPL-3.0-or-later
 -->
 <template>
-	<FileListFilter class="file-list-filter-status"
+	<FileListFilter
+		class="file-list-filter-status"
 		:is-active="isActive"
 		:filter-name="t('libresign', 'Status')"
 		@reset-filter="resetFilter">
 		<template #icon>
 			<NcIconSvgWrapper :path="mdiListStatus" />
 		</template>
-		<NcButton v-for="status of fileStatus"
+		<NcButton
+			v-for="status of fileStatus"
 			:key="status.id"
 			alignment="start"
 			:pressed="selectedOptions.includes(status.id)"
@@ -64,7 +66,9 @@ function setPreset(presets?: number[]) {
 	if (presets && presets.length > 0) {
 		for (const id of presets) {
 			const status = fileStatus.value.find((item) => item.id === id)
-			if (!status) { continue }
+			if (!status) {
+				continue
+			}
 
 			chips.push({
 				id: status.id,
@@ -102,7 +106,9 @@ function setMarkedFilter() {
 	if (selectedOptions.value.length > 0) {
 		for (const id of selectedOptions.value) {
 			const status = fileStatus.value.find((item) => item.id === id)
-			if (!status) { continue }
+			if (!status) {
+				continue
+			}
 
 			chips.push({
 				id: status.id,

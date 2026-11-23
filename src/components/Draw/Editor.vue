@@ -9,17 +9,20 @@
 				<label class="color-label" @click="openColorPicker">
 					{{ t('libresign', 'Color') }}
 				</label>
-				<NcColorPicker ref="colorPicker"
+				<NcColorPicker
+					ref="colorPicker"
 					v-model="color"
 					:palette="customPalette"
 					@submit="updateColor">
-					<button class="color-preview"
+					<button
+						class="color-preview"
 						:style="{ backgroundColor: color }"
 						:aria-label="t('libresign', 'Choose color')" />
 				</NcColorPicker>
 			</div>
 			<!-- TRANSLATORS Accessible label for the button that clears the current drawing from the canvas. Does not delete any saved file. -->
-			<NcButton :aria-label="t('libresign', 'Delete')"
+			<NcButton
+				:aria-label="t('libresign', 'Delete')"
 				@click="clear">
 				<template #icon>
 					<NcIconSvgWrapper :path="mdiDelete" :size="20" />
@@ -31,7 +34,8 @@
 				<!-- TRANSLATORS Screen-reader-only instruction for the signature drawing canvas. "Text" and "Upload" must match the translated labels of the other two tabs in this dialog. -->
 				{{ t('libresign', 'Drawing area. Use a mouse or touch screen to draw your signature. If you cannot draw, use the Text or Upload tabs instead.') }}
 			</p>
-			<canvas ref="canvas"
+			<canvas
+				ref="canvas"
 				class="canvas"
 				:aria-label="t('libresign', 'Draw your signature here')"
 				role="img"
@@ -39,7 +43,8 @@
 				_height="10px" />
 		</div>
 		<div class="action-buttons">
-			<NcButton variant="primary"
+			<NcButton
+				variant="primary"
 				:disabled="!canSave"
 				@click="confirmationDraw">
 				{{ t('libresign', 'Save') }}
@@ -48,7 +53,8 @@
 				{{ t('libresign', 'Cancel') }}
 			</NcButton>
 		</div>
-		<NcDialog v-if="modal"
+		<NcDialog
+			v-if="modal"
 			:name="t('libresign', 'Confirm your signature')"
 			@closing="handleModal(false)">
 			<PreviewSignature :src="imageData" />

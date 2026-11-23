@@ -17,6 +17,7 @@ trait OrderCertificatesTrait {
 		}
 
 		$this->ensureValidStructure($certificates);
+		$certificates = $this->removeIdenticalCertificates($certificates);
 
 		if (count($certificates) === 1) {
 			return $certificates;
@@ -26,36 +27,63 @@ trait OrderCertificatesTrait {
 	}
 
 	private function buildChain(array $certificates): array {
-		$leaf = $this->findLeafCertificate($certificates);
+		$rootConnected = $this->findRootConnectedCertificates($certificates);
+		$leaf = $this->findLeafCertificate($certificates, $rootConnected);
 		if (!$leaf) {
 			return $certificates;
 		}
 
 		$ordered = [$leaf];
-		$remaining = array_filter($certificates, fn ($cert) => $cert['name'] !== $leaf['name']);
-		$remaining = array_values($remaining);
+		$remaining = $certificates;
+		unset($remaining[array_search($leaf, $remaining, true)]);
 
 		while ($remaining && !$this->isRootCertificate(end($ordered))) {
 			$current = end($ordered);
-			$issuer = null;
+			$issuerIndex = null;
 
 			foreach ($remaining as $index => $candidate) {
-				if ($this->isIssuedBy($current, $candidate)) {
-					$issuer = $candidate;
-					unset($remaining[$index]);
-					$remaining = array_values($remaining);
-					break;
+				if (!$this->isIssuedBy($current, $candidate)) {
+					continue;
+				}
+
+				if ($issuerIndex === null || (!isset($rootConnected[$issuerIndex]) && isset($rootConnected[$index]))) {
+					$issuerIndex = $index;
 				}
 			}
 
-			if (!$issuer) {
+			if ($issuerIndex === null) {
 				break;
 			}
 
-			$ordered[] = $issuer;
+			$ordered[] = $remaining[$issuerIndex];
+			unset($remaining[$issuerIndex]);
 		}
 
-		return [...$ordered, ...$remaining];
+		return [...$ordered, ...array_values($remaining)];
+	}
+
+	private function findRootConnectedCertificates(array $certificates): array {
+		$rootConnected = [];
+		$pending = [];
+
+		foreach ($certificates as $index => $certificate) {
+			if ($this->isRootCertificate($certificate)) {
+				$rootConnected[$index] = true;
+				$pending[] = $index;
+			}
+		}
+
+		while ($pending) {
+			$parentIndex = array_pop($pending);
+			foreach ($certificates as $index => $certificate) {
+				if (!isset($rootConnected[$index]) && $this->isIssuedBy($certificate, $certificates[$parentIndex])) {
+					$rootConnected[$index] = true;
+					$pending[] = $index;
+				}
+			}
+		}
+
+		return $rootConnected;
 	}
 
 	private function ensureValidStructure(array $certificates): void {
@@ -65,27 +93,45 @@ trait OrderCertificatesTrait {
 				throw new InvalidArgumentException('Invalid certificate structure. Certificate must have "subject", "issuer", and "name".');
 			}
 		}
-
-		$names = array_column($certificates, 'name');
-		if (count($names) !== count(array_unique($names))) {
-			throw new InvalidArgumentException('Duplicate certificate names detected');
-		}
 	}
 
-	private function findLeafCertificate(array $certificates): ?array {
+	private function removeIdenticalCertificates(array $certificates): array {
+		$unique = [];
 		foreach ($certificates as $cert) {
-			$isLeaf = true;
-			foreach ($certificates as $other) {
-				if ($cert['name'] !== $other['name'] && $this->isIssuedBy($other, $cert)) {
-					$isLeaf = false;
-					break;
-				}
-			}
-			if ($isLeaf) {
-				return $cert;
+			if (!in_array($cert, $unique, true)) {
+				$unique[] = $cert;
 			}
 		}
-		return $certificates[0] ?? null;
+		return $unique;
+	}
+
+	private function findLeafCertificate(array $certificates, array $rootConnected): ?array {
+		$issuerSubjects = [];
+		foreach ($certificates as $child) {
+			foreach ($certificates as $candidate) {
+				if ($child['name'] !== $candidate['name'] && $this->isIssuedBy($child, $candidate)) {
+					$issuerSubjects[$this->normalizeDistinguishedName($candidate['subject'])] = true;
+				}
+			}
+		}
+
+		$fallback = null;
+		$rootFallback = null;
+		foreach ($certificates as $index => $cert) {
+			if (isset($issuerSubjects[$this->normalizeDistinguishedName($cert['subject'])])) {
+				continue;
+			}
+			if ($this->isRootCertificate($cert)) {
+				$rootFallback ??= $cert;
+				continue;
+			}
+			if (isset($rootConnected[$index])) {
+				return $cert;
+			}
+			$fallback ??= $cert;
+		}
+
+		return $fallback ?? $rootFallback ?? $certificates[0] ?? null;
 	}
 
 	private function isRootCertificate(array $cert): bool {
@@ -110,6 +156,15 @@ trait OrderCertificatesTrait {
 	}
 
 	private function validateAkiSkiMatch(array $child, array $parent): bool {
+		$childAki = $child['extensions']['authorityKeyIdentifier'] ?? null;
+		$parentSki = $parent['extensions']['subjectKeyIdentifier'] ?? null;
+		if (is_string($childAki) && is_string($parentSki)) {
+			$match = $this->keyIdentifiersMatch($childAki, $parentSki);
+			if ($match !== null) {
+				return $match;
+			}
+		}
+
 		if (!isset($child['name']) || !isset($parent['name'])) {
 			return true;
 		}
@@ -140,7 +195,22 @@ trait OrderCertificatesTrait {
 		$childAki = $childData['extensions']['authorityKeyIdentifier'];
 		$parentSki = $parentData['extensions']['subjectKeyIdentifier'];
 
-		return str_contains($childAki, $parentSki);
+		return $this->keyIdentifiersMatch($childAki, $parentSki) ?? true;
+	}
+
+	private function keyIdentifiersMatch(string $akiExtension, string $skiExtension): ?bool {
+		$akiExtension = trim($akiExtension);
+		if (preg_match('/^[0-9A-F:]+$/i', $akiExtension) === 1) {
+			$akiHex = $akiExtension;
+		} elseif (preg_match('/(?:^|\R)\h*keyid:\h*([^\r\n]+)/i', $akiExtension, $matches) === 1) {
+			$akiHex = trim($matches[1]);
+		} else {
+			return null;
+		}
+
+		$aki = strtoupper(str_replace(':', '', $akiHex));
+		$ski = strtoupper(str_replace(':', '', trim($skiExtension)));
+		return $aki !== '' && strlen($aki) % 2 === 0 && ctype_xdigit($aki) && $aki === $ski;
 	}
 
 	private function normalizeDistinguishedName(array $dn): string {

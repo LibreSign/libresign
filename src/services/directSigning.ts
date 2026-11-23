@@ -30,7 +30,7 @@ async function encodePdf(pdf: File): Promise<string> {
 	return btoa(segments.join(''))
 }
 
-export async function signPdfDirectly(input: DirectSignInput): Promise<{ pdf: Blob; filename: string }> {
+export async function signPdfDirectly(input: DirectSignInput): Promise<{ pdf: Blob, filename: string }> {
 	if (!input.name.toLowerCase().endsWith('.pdf') || !input.name.trim()) {
 		throw new Error('A PDF filename is required.')
 	}

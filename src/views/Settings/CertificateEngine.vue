@@ -7,7 +7,8 @@
 		:name="t('libresign', 'Certificate engine')"
 		:description="t('libresign', 'Select the certificate engine to generate the root certificate')">
 		<div class="certificate-engine-content">
-			<NcSelect v-model="selectedOption"
+			<NcSelect
+				v-model="selectedOption"
 				input-id="certificateEngine"
 				:aria-label-combobox="t('libresign', 'Select the certificate engine to generate the root certificate')"
 				:clearable="false"
@@ -34,7 +35,7 @@ type EngineOption = {
 }
 
 type ConfigureCheckStore = {
-	saveCertificateEngine: (engine: string) => Promise<{ success: boolean; engine: string }>
+	saveCertificateEngine: (engine: string) => Promise<{ success: boolean, engine: string }>
 }
 
 defineOptions({

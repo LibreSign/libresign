@@ -69,7 +69,7 @@ class PhpNativeHandler extends Pkcs12Handler {
 		$visibleElements = $this->getVisibleElements();
 		$metadata = $this->buildMetadata();
 		$timestamp = $this->buildTimestampOptions();
-		$certificationLevel = $this->resolveCertificationLevel(empty($visibleElements));
+		$certificationLevel = $this->resolveCertificationLevel($pdfContent);
 
 		if (empty($visibleElements)) {
 			return $service->sign(SignPdfRequestDto::fromRequired(
@@ -248,7 +248,7 @@ class PhpNativeHandler extends Pkcs12Handler {
 		return $settings;
 	}
 
-	private function resolveCertificationLevel(bool $noVisibleElements): ?CertificationLevel {
+	private function resolveCertificationLevel(string $pdfContent): ?CertificationLevel {
 		$level = $this->getDocMdpLevel();
 		if ($level === null && $this->docMdpConfigService->isEnabled()) {
 			$level = $this->docMdpConfigService->getLevel();
@@ -257,29 +257,14 @@ class PhpNativeHandler extends Pkcs12Handler {
 			return null;
 		}
 
-		// Only certify on invisible signatures or on the first visible element
-		if ($noVisibleElements || !$this->hasExistingSignatures($this->getInputFile()->getContent())) {
-			// DocMDP values mirror CertificationLevel: 1=NoChanges, 2=FormFilling, 3=FormFillAndAnnotations
-			return CertificationLevel::fromInt($level->value);
+		if ($this->hasExistingSignatures($pdfContent)) {
+			return null;
 		}
 
-		return null;
+		// DocMDP values mirror CertificationLevel: 1=NoChanges, 2=FormFilling, 3=FormFillAndAnnotations
+		return CertificationLevel::fromInt($level->value);
 	}
 
-	private function hasExistingSignatures(string $pdfContent): bool {
-		return (bool)preg_match('/\/ByteRange\s*\[|\/Type\s*\/Sig\b|\/DocMDP\b|\/Perms\b/', $pdfContent);
-	}
-
-	/**
-	 * Builds the xObject (n2 layer) for all render modes using only PDF text operators.
-	 *
-	 * DESCRIPTION_ONLY      → description text, full width.
-	 * GRAPHIC_AND_DESCRIPTION → description text, right half only
-	 *                           (user image is in imagePath/n0, handled natively by signer-php).
-	 * SIGNAME_AND_DESCRIPTION → signer name as large text on the left half
-	 *                           + description text on the right half.
-	 *                           No image generation: pure PDF text operators.
-	 */
 	private function buildXObject(int $width, int $height, string $renderMode): SignatureAppearanceXObjectDto {
 		$params = $this->getSignatureParams();
 		$fallbackCommonName = $this->readCertificate()['subject']['CN'] ?? null;

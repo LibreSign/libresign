@@ -287,6 +287,20 @@ class SignerValidator {
 			return $identifyMethod;
 		}
 		$signMethods = $this->identifyMethodService->getSignMethodsOfIdentifiedFactors($signRequest->getId());
+		$ownerName = $signMethods[$methodName]['identifyMethod'] ?? null;
+		if (is_string($ownerName)) {
+			$identifyMethod = $this->searchMethodByNameAndValue($methodsList, $ownerName, $identifyValue);
+			if ($identifyMethod) {
+				return $identifyMethod;
+			}
+			if ($identifyValue !== null && $identifyValue !== '') {
+				// The catalog retains only the last owner of a shared signature method.
+				$identifyMethod = $this->findPersistedOwnerOfSignatureMethod($methodsList, $methodName, $identifyValue);
+				if ($identifyMethod) {
+					return $identifyMethod;
+				}
+			}
+		}
 		$identifyMethod = $this->searchMethodByNameAndValue($signMethods, $methodName, $identifyValue);
 		if ($identifyMethod) {
 			return $identifyMethod;
@@ -298,6 +312,25 @@ class SignerValidator {
 			return $this->getFirstAvailableMethod($signMethods);
 		}
 		throw new LibresignException($this->l10n->t('Invalid identification method'));
+	}
+
+	/**
+	 * @param array<string, array<IIdentifyMethod>> $methods
+	 */
+	private function findPersistedOwnerOfSignatureMethod(array $methods, string $signatureMethodName, string $identifyValue): ?IIdentifyMethod {
+		foreach ($methods as $identifyMethods) {
+			foreach ($identifyMethods as $identifyMethod) {
+				if ($identifyMethod->getEntity()->getIdentifierValue() !== $identifyValue) {
+					continue;
+				}
+				foreach ($identifyMethod->getSignatureMethods() as $signatureMethod) {
+					if ($signatureMethod->getName() === $signatureMethodName && $signatureMethod->isEnabled()) {
+						return $identifyMethod;
+					}
+				}
+			}
+		}
+		return null;
 	}
 
 	private function searchMethodByNameAndValue(array $methods, string $methodName, ?string $identifyValue): ?IIdentifyMethod {

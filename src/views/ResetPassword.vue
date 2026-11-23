@@ -3,7 +3,8 @@
   - SPDX-License-Identifier: AGPL-3.0-or-later
 -->
 <template>
-	<NcDialog v-if="signMethodsStore.modal.resetPassword"
+	<NcDialog
+		v-if="signMethodsStore.modal.resetPassword"
 		:name="t('libresign', 'Password reset')"
 		class="container"
 		is-form
@@ -11,18 +12,22 @@
 		@keydown.enter.prevent="handleEnter"
 		@closing="onClose">
 		<p>{{ t('libresign', 'Enter new password and then repeat it') }}</p>
-		<NcPasswordField ref="currentPasswordField"
+		<NcPasswordField
+			ref="currentPasswordField"
 			v-model="currentPassword"
 			:label="t('libresign', 'Current password')" />
-		<NcPasswordField ref="newPasswordField"
+		<NcPasswordField
+			ref="newPasswordField"
 			v-model="newPassword"
 			:label="t('libresign', 'New password')" />
-		<NcPasswordField ref="repeatPasswordField"
+		<NcPasswordField
+			ref="repeatPasswordField"
 			v-model="rPassword"
 			:has-error="!validNewPassord"
 			:label="t('libresign', 'Repeat password')" />
 		<template #actions>
-			<NcButton :disabled="!canSave"
+			<NcButton
+				:disabled="!canSave"
 				:class="hasLoading ? 'btn-load loading primary btn-confirm' : 'primary btn-confirm'"
 				type="submit"
 				variant="primary"

@@ -133,7 +133,9 @@ describe('RootCertificateCfssl.vue', () => {
 
 	it('loads the CFSSL engine state and root certificate on mount', async () => {
 		loadStateMock.mockImplementation((_app: string, key: string, fallback: unknown) => {
-			if (key === 'certificate_engine') { return 'cfssl' }
+			if (key === 'certificate_engine') {
+				return 'cfssl'
+			}
 			return fallback
 		})
 

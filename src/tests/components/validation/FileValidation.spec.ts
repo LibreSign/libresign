@@ -233,11 +233,9 @@ describe('FileValidation', () => {
 			})
 
 			const detailsComponent = wrapper.findComponent({ name: 'DocumentValidationDetails' })
-			expect(detailsComponent.props('document')).toEqual(
-				expect.objectContaining({
+			expect(detailsComponent.props('document')).toEqual(expect.objectContaining({
 					name: 'Important.pdf',
-				}),
-			)
+				}))
 		})
 
 		it('passes legalInformation prop', () => {
@@ -350,11 +348,9 @@ describe('FileValidation', () => {
 			})
 
 			const detailsComponent = wrapper.findComponent({ name: 'DocumentValidationDetails' })
-			expect(detailsComponent.props('document')).toEqual(
-				expect.objectContaining({
+			expect(detailsComponent.props('document')).toEqual(expect.objectContaining({
 					name: 'complex.pdf',
-				}),
-			)
+				}))
 		})
 	})
 

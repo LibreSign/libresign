@@ -16,7 +16,8 @@
 			<template #default>
 				<ul style="width: 350px;">
 					<div v-for="option in customNamesOptions" :key="option.id">
-						<NcListItem :name="option.label"
+						<NcListItem
+							:name="option.label"
 							@click="onOptionalAttributeSelect(option)">
 							<template #subname>
 								{{ option.label }}
@@ -27,7 +28,8 @@
 			</template>
 		</NcPopover>
 		<div v-if="certificateList.length > 0">
-			<div v-for="certificate in certificateList"
+			<div
+				v-for="certificate in certificateList"
 				:key="certificate.id"
 				class="customNames">
 				<div v-if="certificate.id === 'OU' && Array.isArray(certificate.value)">
@@ -37,7 +39,8 @@
 							({{ t('libresign', 'Maximum {max} items', {max: MAX_ARRAY_ITEMS}) }})
 						</span>
 						<!-- TRANSLATORS Accessible label for the button that adds another value to a multi-value certificate field. -->
-						<NcButton :aria-label="t('libresign', 'Add another value')"
+						<NcButton
+							:aria-label="t('libresign', 'Add another value')"
 							:disabled="isMaxItemsReached(certificate)"
 							@click="addArrayEntry(certificate.id)">
 							<template #icon>
@@ -45,22 +48,26 @@
 							</template>
 						</NcButton>
 						<!-- TRANSLATORS Accessible label for the button that removes the current optional field from the root certificate form. -->
-						<NcButton :aria-label="t('libresign', 'Remove this certificate field')"
+						<NcButton
+							:aria-label="t('libresign', 'Remove this certificate field')"
 							@click="removeOptionalAttribute(certificate.id)">
 							<template #icon>
 								<NcIconSvgWrapper :path="mdiDelete" :size="20" />
 							</template>
 						</NcButton>
 					</div>
-					<div v-for="(item, index) in certificate.value"
+					<div
+						v-for="(item, index) in certificate.value"
 						:key="`${certificate.id}-${index}`"
 						class="array-item">
-						<NcTextField :id="`${certificate.id}-${index}`"
+						<NcTextField
+							:id="`${certificate.id}-${index}`"
 							v-model="certificate.value[index]"
 							:placeholder="t('libresign', 'Item {index}', {index: index + 1})"
 							@update:modelValue="validateArray(certificate.id)" />
 						<!-- TRANSLATORS Accessible label for the button that removes one value from a multi-value certificate field. -->
-						<NcButton v-if="certificate.value.length > 1"
+						<NcButton
+							v-if="certificate.value.length > 1"
 							:aria-label="t('libresign', 'Remove this value')"
 							@click="removeArrayEntry(certificate.id, index)">
 							<template #icon>
@@ -70,7 +77,8 @@
 					</div>
 				</div>
 				<div v-else class="item">
-					<NcTextField v-if="certificate"
+					<NcTextField
+						v-if="certificate"
 						:id="certificate.id"
 						:model-value="typeof certificate.value === 'string' ? certificate.value : ''"
 						:success="typeof certificate.error === 'boolean' && !certificate.error"
@@ -80,7 +88,8 @@
 						:helper-text="getOptionHelperText(certificate.id)"
 						@update:modelValue="updateCertificateValue(certificate, $event)" />
 					<!-- TRANSLATORS Accessible label for the button that removes the current optional field from the root certificate form. -->
-					<NcButton :aria-label="t('libresign', 'Remove this certificate field')"
+					<NcButton
+						:aria-label="t('libresign', 'Remove this certificate field')"
 						@click="removeOptionalAttribute(certificate.id)">
 						<template #icon>
 							<NcIconSvgWrapper :path="mdiDelete" :size="20" />
@@ -143,7 +152,7 @@ watch(() => props.names, (values: CertificateOption[]) => {
 }, { immediate: true })
 
 function getOptionProperty(id: string, property: 'label' | 'helperText' | 'max') {
-	return availableOptions.value.find((option: { id: string; label?: string; helperText?: string; max?: number }) => option.id === id)?.[property]
+	return availableOptions.value.find((option: { id: string, label?: string, helperText?: string, max?: number }) => option.id === id)?.[property]
 }
 
 function getOptionLabel(id: string) {

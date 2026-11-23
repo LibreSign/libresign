@@ -57,7 +57,11 @@
 			<div class="policy-workbench__empty-state">
 				<p>{{ emptyCatalogSearchMessage }}</p>
 				<div class="policy-workbench__empty-state-actions">
-					<NcButton variant="secondary" :aria-label="clearSettingsFilterAriaLabel" :disabled="!hasActiveFilter" @click="catalogState.clearSettingsFilter">
+					<NcButton
+						variant="secondary"
+						:aria-label="clearSettingsFilterAriaLabel"
+						:disabled="!hasActiveFilter"
+						@click="catalogState.clearSettingsFilter">
 						{{ clearFilterButtonLabel }}
 					</NcButton>
 					<NcButton variant="tertiary" :aria-label="showAllSettingsAriaLabel" @click="catalogState.clearSettingsFilter">
@@ -557,10 +561,10 @@ const ruleDialogButtons = computed(() => {
 	}
 
 	const buttons: Array<{
-		label: string,
-		variant: 'primary' | 'secondary' | 'tertiary',
-		disabled?: boolean,
-		callback: () => false | Promise<false>,
+		label: string
+		variant: 'primary' | 'secondary' | 'tertiary'
+		disabled?: boolean
+		callback: () => false | Promise<false>
 	}> = []
 
 	if (showCreateRuleBackAction.value) {
@@ -674,11 +678,9 @@ function resolveTargetId(option: unknown): string | null {
 
 function onTargetChange(option: unknown[] | unknown | null) {
 	if (Array.isArray(option)) {
-		state.updateDraftTargets(
-			option
+		state.updateDraftTargets(option
 				.map((candidate) => resolveTargetId(candidate))
-				.filter((candidate): candidate is string => candidate !== null),
-		)
+				.filter((candidate): candidate is string => candidate !== null))
 		return
 	}
 

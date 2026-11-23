@@ -18,9 +18,7 @@ import {
 } from './model'
 
 const composeEffectiveValue = (context: RealPolicyPersonalPreferenceContext): EffectivePolicyValue => {
-	return composeSignatureRejectionValue(Object.fromEntries(
-		SIGNATURE_REJECTION_POLICY_KEYS.map((key) => [key, context.getPolicy(key)?.effectiveValue]),
-	))
+	return composeSignatureRejectionValue(Object.fromEntries(SIGNATURE_REJECTION_POLICY_KEYS.map((key) => [key, context.getPolicy(key)?.effectiveValue])))
 }
 
 const canSaveEveryKey = (context: RealPolicyPersonalPreferenceContext): boolean => {

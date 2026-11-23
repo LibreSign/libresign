@@ -167,7 +167,7 @@ describe('router business rules', () => {
 			loadState.mockReturnValue('some-action')
 
 			const signRoute = getRoutes().find((r: RouteRecordNormalized) => r.path === '/p/sign/:uuid')
-			const redirectFn = signRoute?.redirect as (to: RouteLocationNormalized) => { name: string; params: Record<string, string> }
+			const redirectFn = signRoute?.redirect as (to: RouteLocationNormalized) => { name: string, params: Record<string, string> }
 
 			const to = makeRoute({ name: undefined, params: { uuid: 'test-uuid' } })
 			const result = redirectFn(to)
@@ -183,7 +183,7 @@ describe('router business rules', () => {
 			loadState.mockReturnValue('')
 
 			const signRoute = getRoutes().find((r: RouteRecordNormalized) => r.path === '/p/sign/:uuid')
-			const redirectFn = signRoute?.redirect as (to: RouteLocationNormalized) => { name: string; params: Record<string, string> }
+			const redirectFn = signRoute?.redirect as (to: RouteLocationNormalized) => { name: string, params: Record<string, string> }
 
 			const to = makeRoute({ name: undefined, params: { uuid: 'test-uuid' } })
 			const result = redirectFn(to)
@@ -233,9 +233,7 @@ describe('router business rules', () => {
 
 	describe('component lazy loading', () => {
 		it('uses dynamic imports for main views', () => {
-			const signPdfRoute = getRoutes().find(
-					(r: RouteRecordNormalized) => r.name === 'SignPDFExternal',
-			)
+			const signPdfRoute = getRoutes().find((r: RouteRecordNormalized) => r.name === 'SignPDFExternal')
 
 			expect(signPdfRoute).toBeDefined()
 				const component = signPdfRoute?.components?.default
@@ -243,9 +241,7 @@ describe('router business rules', () => {
 		})
 
 		it('dynamic component returns thenable', async () => {
-			const validationRoute = getRoutes().find(
-					(r: RouteRecordNormalized) => r.name === 'ValidationFileExternal',
-			)
+			const validationRoute = getRoutes().find((r: RouteRecordNormalized) => r.name === 'ValidationFileExternal')
 
 				const component = validationRoute?.components?.default
 				expect(component).toBeDefined()
@@ -258,9 +254,7 @@ describe('router business rules', () => {
 	describe('route props configuration', () => {
 		it('passes props to routed components', () => {
 			// /p/sign/:uuid is now a redirect-only route, test /p/sign/:uuid/pdf instead
-			const signRoute = getRoutes().find(
-					(r: RouteRecordNormalized) => r.path === '/p/sign/:uuid/pdf',
-			)
+			const signRoute = getRoutes().find((r: RouteRecordNormalized) => r.path === '/p/sign/:uuid/pdf')
 
 				expect(signRoute).toBeDefined()
 				const props = (signRoute as RouteRecordNormalized).props
@@ -269,9 +263,7 @@ describe('router business rules', () => {
 		})
 
 		it('enables param passing to component', () => {
-			const validationRoute = getRoutes().find(
-					(r: RouteRecordNormalized) => r.path === '/p/validation/:uuid',
-			)
+			const validationRoute = getRoutes().find((r: RouteRecordNormalized) => r.path === '/p/validation/:uuid')
 
 				expect(validationRoute).toBeDefined()
 				const props = (validationRoute as RouteRecordNormalized).props

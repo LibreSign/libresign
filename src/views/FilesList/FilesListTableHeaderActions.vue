@@ -8,7 +8,8 @@
 			container="#app-content-vue"
 			:disabled="!!loading || areFilesLoading"
 			:force-name="true">
-			<NcActionButton v-for="action in visibleMenuActions"
+			<NcActionButton
+				v-for="action in visibleMenuActions"
 				:key="action.id"
 				:aria-label="action.displayName(selectionStore.selected) + ' ' + selectedBatchActionSuffix"
 				:class="'files-list__row-actions-batch-' + action.id"
@@ -20,18 +21,21 @@
 				{{ action.displayName(selectionStore.selected) }}
 			</NcActionButton>
 		</NcActions>
-		<NcDialog v-if="confirmDelete"
+		<NcDialog
+			v-if="confirmDelete"
 			v-model:open="confirmDelete"
 			:name="t('libresign', 'Confirm')"
 			:no-close="deleting">
 			{{ t('libresign', 'The signature request will be deleted. Do you confirm this action?') }}
-			<NcCheckboxRadioSwitch v-model="deleteFile"
+			<NcCheckboxRadioSwitch
+				v-model="deleteFile"
 				type="switch"
 				:disabled="deleting">
 				{{ t('libresign', 'Also delete the file.') }}
 			</NcCheckboxRadioSwitch>
 			<template #actions>
-				<NcButton variant="primary"
+				<NcButton
+					variant="primary"
 					:disabled="deleting"
 					@click="doDelete()">
 					<template #icon>
@@ -39,7 +43,8 @@
 					</template>
 					{{ t('libresign', 'Ok') }}
 				</NcButton>
-				<NcButton :disabled="deleting"
+				<NcButton
+					:disabled="deleting"
 					@click="confirmDelete = false">
 					{{ t('libresign', 'Cancel') }}
 				</NcButton>

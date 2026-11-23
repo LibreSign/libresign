@@ -12,8 +12,12 @@ const invalidUndefined: EffectivePolicyValue = undefined
 // Known remaining limitation: nullable on this union is lost by the generator.
 // @ts-expect-error the generated union still rejects schema-valid null
 const nullable: EffectivePolicyValue = null
-function file(value: FileSummary): FileListResponseDataInner { return value }
-function metadata(value: ValidateMetadata): FileRuntimeMetadata { return value }
+function file(value: FileSummary): FileListResponseDataInner {
+	return value
+}
+function metadata(value: ValidateMetadata): FileRuntimeMetadata {
+	return value
+}
 const objectMetadata: FileRuntimeMetadata = { custom: {} }
 // @ts-expect-error scalar is not a file object
 const invalidFile: FileListResponseDataInner = 42

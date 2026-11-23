@@ -631,11 +631,9 @@ describe('RealPolicyWorkbench.vue', () => {
 		expect(discardDialog).toBeTruthy()
 		await discardDialog?.find('.dialog-close-stub').trigger('click')
 
-		expect(
-			wrapper
+		expect(wrapper
 				.findAll('.dialog-title')
-				.some((title) => title.text() === 'Create rule'),
-		).toBe(true)
+				.some((title) => title.text() === 'Create rule')).toBe(true)
 	})
 
 	it('shows instance option in create rule when only system default is active', async () => {

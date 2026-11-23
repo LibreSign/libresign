@@ -23,7 +23,8 @@
 	</form>
 
 	<!-- Display name -->
-	<component :is="linkTo.is"
+	<component
+		:is="linkTo.is"
 		v-else
 		class="files-list__row-name-link"
 		v-bind="linkTo.params"

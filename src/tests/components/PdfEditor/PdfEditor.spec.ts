@@ -280,8 +280,7 @@ describe('PdfEditor Component - Business Rules', () => {
 			const result = wrapper.vm.startAddingSigner(signer, size)
 
 			expect(result).toBe(true)
-			expect(getPdfElements().startAddingElement).toHaveBeenCalledWith(
-				expect.objectContaining({
+			expect(getPdfElements().startAddingElement).toHaveBeenCalledWith(expect.objectContaining({
 					type: 'signature',
 					x: 0,
 					y: 0,
@@ -290,8 +289,7 @@ describe('PdfEditor Component - Business Rules', () => {
 					signer: expect.objectContaining({
 						email: 'test@example.com',
 					}),
-				}),
-			)
+				}))
 		})
 
 		it('does not start polling before a placement interaction happens', () => {
@@ -830,7 +828,9 @@ describe('PdfEditor Component - Business Rules', () => {
 
 		it('awaits page promise resolution', async () => {
 			let resolveSecondPage: ((value: object) => void) | undefined
-			const secondPagePromise = new Promise<object>((resolve) => { resolveSecondPage = resolve })
+			const secondPagePromise = new Promise<object>((resolve) => {
+				resolveSecondPage = resolve
+			})
 
 			Object.assign(getPdfElements(), {
 				pdfDocuments: [
@@ -841,7 +841,11 @@ describe('PdfEditor Component - Business Rules', () => {
 
 			let resolved = false
 			const waitForPage = wrapper.vm.waitForPageRender
-			const promise = waitForPage ? waitForPage(1, 0).then(() => { resolved = true }) : Promise.resolve()
+			const promise = waitForPage
+				? waitForPage(1, 0).then(() => {
+					resolved = true
+				})
+				: Promise.resolve()
 
 			await wrapper.vm.$nextTick()
 			expect(resolved).toBe(false)
@@ -855,7 +859,9 @@ describe('PdfEditor Component - Business Rules', () => {
 
 		it('waits for a pending page promise before resolving', async () => {
 			let resolveSecondPage: ((value: object) => void) | undefined
-			const secondPagePromise = new Promise<object>((resolve) => { resolveSecondPage = resolve })
+			const secondPagePromise = new Promise<object>((resolve) => {
+				resolveSecondPage = resolve
+			})
 
 			Object.assign(getPdfElements(), {
 				pdfDocuments: [
@@ -866,7 +872,11 @@ describe('PdfEditor Component - Business Rules', () => {
 
 			let resolved = false
 			const waitForPage = wrapper.vm.waitForPageRender
-			const promise = waitForPage ? waitForPage(1, 0).then(() => { resolved = true }) : Promise.resolve()
+			const promise = waitForPage
+				? waitForPage(1, 0).then(() => {
+					resolved = true
+				})
+				: Promise.resolve()
 
 			await wrapper.vm.$nextTick()
 			expect(resolved).toBe(false)
@@ -895,7 +905,9 @@ describe('PdfEditor Component - Business Rules', () => {
 	describe('RULE: addSigner awaits page render for multi-document envelopes', () => {
 		it('awaits second document page before adding element', async () => {
 			let resolveSecondPage: ((value: unknown) => void) | undefined
-			const secondPagePromise = new Promise((resolve) => { resolveSecondPage = resolve })
+			const secondPagePromise = new Promise((resolve) => {
+				resolveSecondPage = resolve
+			})
 
 			Object.assign(getPdfElements(), {
 				selectedDocIndex: 0,
