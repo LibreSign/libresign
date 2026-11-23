@@ -109,7 +109,9 @@ type SignerViewModel = {
 
 const filesStore = useFilesStore()
 const policiesStore = usePoliciesStore()
-const listItem = ref<any | null>(null)
+type ListItemRef = { $refs?: { actions?: { closeMenu?: () => void } } } | null
+
+const listItem = ref<ListItemRef>(null)
 
 const canRequestSign = loadState('libresign', 'can_request_sign', false)
 const methods = computed<IdentifyMethodPolicyEntry[]>(() => {

@@ -255,8 +255,9 @@ async function createAccount() {
 		}
 		const url = router.value.resolve({ name: 'SignPDF' })
 		window.location.href = url.href
-	} catch (error: any) {
-		state.errorMessage = error.response.data.ocs.data.message
+	} catch (error: unknown) {
+		const failure = error as { response?: { data?: { ocs?: { data?: { message?: string } } } } }
+		state.errorMessage = failure.response?.data?.ocs?.data?.message ?? ''
 	}
 	state.loading = false
 }

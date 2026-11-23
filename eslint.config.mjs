@@ -103,7 +103,6 @@ export default [
 
 			// Semantic cleanup needing focused PRs
 			'@typescript-eslint/consistent-type-imports': 'off', // ~66 hits; mostly typeof import() in Vitest mocks
-			'@typescript-eslint/no-explicit-any': 'off', // ~17 hits; needs typed replacements
 			'antfu/top-level-function': 'off', // ~114 hits; style preference, large churn
 			'vue/no-unused-properties': 'off', // ~11 hits; public API / shared editor props
 		},

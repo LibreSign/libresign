@@ -242,6 +242,7 @@ const previewHeight = ref<number | string>(DEFAULT_PREVIEW_HEIGHT)
 const originalWidth = ref<number | string>(DEFAULT_PREVIEW_WIDTH)
 const originalHeight = ref<number | string>(DEFAULT_PREVIEW_HEIGHT)
 const containerHeight = ref<number | null>(null)
+let loadingTimeoutId: ReturnType<typeof setTimeout> | null = null
 const showVariablesDialog = ref(false)
 const templateVariables = ref<Record<string, TemplateVariableMeta>>({})
 const copiedVariable = ref<string | null>(null)
@@ -366,23 +367,22 @@ function setPdfPreview(blob: Blob) {
 		pdfKey.value += 1
 
 		// Timeout to prevent infinite loading if PDFElements doesn't emit end-init
-		const loadingTimeout = setTimeout(() => {
+		loadingTimeoutId = setTimeout(() => {
 			if (loadingPreview.value) {
 				logger.warn('PDF loading timeout - forcing preview ready state')
 				loadingPreview.value = false
 				containerHeight.value = null
 			}
+			loadingTimeoutId = null
 		}, 5000)
-
-		// Store timeout ID so it can be cleared when PDF actually loads
-		;(blob as any).__loadingTimeoutId = loadingTimeout
 	})
 }
 
 function onPdfReady() {
 	// Clear the loading timeout if it exists
-	if (pdfPreviewFile.value && (pdfPreviewFile.value as any).__loadingTimeoutId !== undefined) {
-		clearTimeout((pdfPreviewFile.value as any).__loadingTimeoutId)
+	if (loadingTimeoutId !== null) {
+		clearTimeout(loadingTimeoutId)
+		loadingTimeoutId = null
 	}
 	loadingPreview.value = false
 	containerHeight.value = null
