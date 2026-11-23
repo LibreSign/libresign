@@ -124,10 +124,17 @@ class WorkerStarterTest extends TestCase {
 		try {
 			$this->assertGreaterThan(0, $starter->startWorker($pool));
 			$deadline = microtime(true) + 4;
-			while (!is_file($marker) && microtime(true) < $deadline) {
+			$markerContent = null;
+			do {
+				// The child may have created the file but not yet written its contents.
+				// Wait for the completed marker, not merely for the file to exist.
+				$markerContent = is_file($marker) ? file_get_contents($marker) : null;
+				if ($markerContent === 'completed') {
+					break;
+				}
 				usleep(25000);
-			}
-			$this->assertSame('completed', is_file($marker) ? file_get_contents($marker) : null,
+			} while (microtime(true) < $deadline);
+			$this->assertSame('completed', $markerContent,
 				'Detached child must be able to write output after the request ends');
 		} finally {
 			@unlink($marker);
