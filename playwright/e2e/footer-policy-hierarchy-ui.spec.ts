@@ -242,6 +242,15 @@ async function selectGroupTargetWithOpenDropdown(dialogScope: Locator, target: s
 	expect(response.ok(), `Failed to search group target ${target}: ${response.status()}`).toBe(true)
 	expect(JSON.stringify(await response.json())).toContain(target)
 
+	// vue-select hides its dropdown while options are loading, and does not
+	// automatically reopen on input focus. Wait until loading finishes, then
+	// use the documented keyboard navigation to reopen a closed list.
+	await expect(dialogScope.locator('.nc-select-users').first()).not.toHaveClass(/vs--loading/, { timeout: 8000 })
+	if (await searchInput.getAttribute('aria-expanded') !== 'true') {
+		await searchInput.press('ArrowDown')
+	}
+	await expect(searchInput).toHaveAttribute('aria-expanded', 'true', { timeout: 8000 })
+
 	const option = page.getByRole('option', { name: new RegExp(escapeRegExp(target), 'i') }).first()
 	await expect(option).toBeVisible({ timeout: 8000 })
 	const optionId = await option.getAttribute('id')
