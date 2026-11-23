@@ -82,7 +82,8 @@ final class CscIntegration implements RemoteCertificateDiscoveryInterface, Remot
 	/**
 	 * Invoke at most once for this laboratory operation. A failed submission
 	 * must remain non-retryable until #9603 persists an authoritative outcome.
-	 * SignerPHP v0.5.0 does not classify ambiguous post-signHash responses.
+	 * SignerPHP v0.5.1 classifies unknown post-signHash outcomes; the durable
+	 * session workflow must preserve uncertainty without automatic resubmission.
 	 */
 	#[\Override]
 	public function sign(ExternalSigningPayload $payload, RemoteCertificate $certificate): SignatureValue {

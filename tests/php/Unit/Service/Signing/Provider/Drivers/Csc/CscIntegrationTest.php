@@ -19,6 +19,7 @@ use SignerPHP\PdfSigner\Application\DTO\SignatureAlgorithm;
 use SignerPHP\PdfSigner\Application\DTO\SignatureEncoding;
 use SignerPHP\PdfSigner\Application\DTO\SigningCertificateDto;
 use SignerPHP\PdfSigner\Application\DTO\SigningInputType;
+use SignerPHP\PdfSigner\Domain\Exception\RemoteSigningOutcomeUnknownException;
 use SignerPHP\PdfSigner\Domain\Exception\SignerException;
 use SignerPHP\PdfSigner\Infrastructure\Native\Contract\HttpClientInterface;
 use SignerPHP\PdfSigner\Infrastructure\Native\ValueObject\HttpResponse;
@@ -160,7 +161,7 @@ final class CscIntegrationTest extends TestCase {
 		try {
 			$adapter->sign(self::payload(), $cert);
 			$this->fail('Expected unknown outcome');
-		} catch (SignerException $e) {
+		} catch (RemoteSigningOutcomeUnknownException $e) {
 			$this->assertSame(1, $attempts);
 		}
 		$this->expectException(\LogicException::class);
