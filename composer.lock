@@ -258,7 +258,8 @@
                 "issues": "https://github.com/SignerPHP/pdf-signer/issues",
                 "source": "https://github.com/SignerPHP/pdf-signer/tree/v0.5.1"
             },
-            "time": "2026-11-23T13:51:03+00:00"
+            "time": "2026-11-23T13:51:03+00:00",
+            "published-time": "2026-11-23T13:51:27+00:00"
         }
     ],
     "packages-dev": [
