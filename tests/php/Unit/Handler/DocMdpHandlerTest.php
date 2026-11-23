@@ -390,6 +390,10 @@ final class DocMdpHandlerTest extends TestCase {
 		$this->assertSame($expectedAllowed, $allowed);
 		$expectedLevel = $expectedAllowed ? DocMdpLevel::NOT_CERTIFIED : DocMdpLevel::CERTIFIED_NO_CHANGES_ALLOWED;
 		$this->assertSame($expectedLevel->value, $data['docmdp']['level']);
+		$this->assertSame($expectedAllowed ? 0 : 1, $data['modifications']['revisionCount']);
+		if ($expectedAllowed) {
+			$this->assertFalse($data['modifications']['modified']);
+		}
 	}
 
 	public function testRealJSignPdfWithDocMdpLevel1(): void {
@@ -441,8 +445,12 @@ final class DocMdpHandlerTest extends TestCase {
 			'P=2 DSS' => [2, [self::dssUpdate()]],
 			'P=3 DSS' => [3, [self::dssUpdate()]],
 			'P=1 document timestamp' => [1, [self::timestampUpdate()]],
+			'P=2 document timestamp' => [2, [self::timestampUpdate()]],
+			'P=3 document timestamp' => [3, [self::timestampUpdate()]],
 			'P=1 DSS and document timestamp in one update' => [1, [self::dssUpdate() + self::timestampUpdate()]],
 			'P=1 document timestamp, then DSS' => [1, [self::timestampUpdate(), self::dssUpdate()]],
+			'P=2 document timestamp, then DSS' => [2, [self::timestampUpdate(), self::dssUpdate()]],
+			'P=3 document timestamp, then DSS' => [3, [self::timestampUpdate(), self::dssUpdate()]],
 		];
 	}
 
@@ -521,10 +529,30 @@ final class DocMdpHandlerTest extends TestCase {
 
 	#[DataProvider('forgedTrailerProvider')]
 	public function testP1RejectsValidationDataUpdateWithForgedTrailer(array $trailerOverrides): void {
-		$update = self::dssUpdate() + [20 => '<< /Type /Catalog /Pages 2 0 R >>'];
+		// Keep the certification active when replacing the trailer root:
+		// the test must exercise a forbidden change, not an unsigned document.
+		$replacementCatalog = ($trailerOverrides['/Root'] ?? null) === '20 0 R'
+			? '<< /Type /Catalog /Pages 2 0 R /AcroForm 4 0 R /Perms << /DocMDP 5 0 R >> >>'
+			: '<< /Type /Catalog /Pages 2 0 R >>';
+		$update = self::dssUpdate() + [20 => $replacementCatalog];
 		$result = $this->extractFromUpdates(1, [$update], $trailerOverrides);
 
+		$this->assertSame(DocMdpLevel::CERTIFIED_NO_CHANGES_ALLOWED->value, $result['docmdp']['level']);
 		$this->assertFalse($result['modification_validation']['valid']);
+	}
+
+	public function testRootReplacementWithoutCertificationIsNotReportedAsCertified(): void {
+		$pdf = PdfGenerator::createCertifiedPdfWithIncrementalUpdates(1, [
+			[20 => '<< /Type /Catalog /Pages 2 0 R >>'],
+		], ['/Root' => '20 0 R']);
+		$result = $this->extractFromContent($pdf);
+
+		// The old signature is no longer reachable from the active document.
+		// This is not a valid DocMDP certification and must not be reported as one.
+		$this->assertSame(DocMdpLevel::NOT_CERTIFIED->value, $result['docmdp']['level']);
+		$this->assertFalse($result['docmdp']['isCertifying']);
+		$this->assertSame(0, $result['modifications']['revisionCount']);
+		$this->assertArrayNotHasKey('modification_validation', $result);
 	}
 
 	public function testP1RejectsObjectsOutsideTheUpdateXref(): void {
