@@ -4586,57 +4586,90 @@
                             }
                         }
                     },
-                    "401": {
+                    "422": {
+                        "description": "Invalid data to create the PFX file",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "required": [
+                                        "ocs"
+                                    ],
+                                    "properties": {
+                                        "ocs": {
+                                            "type": "object",
+                                            "required": [
+                                                "meta",
+                                                "data"
+                                            ],
+                                            "properties": {
+                                                "meta": {
+                                                    "$ref": "#/components/schemas/OCSMeta"
+                                                },
+                                                "data": {
+                                                    "$ref": "#/components/schemas/MessageResponse"
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "500": {
                         "description": "Failure to create PFX file",
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "anyOf": [
-                                        {
+                                    "type": "object",
+                                    "required": [
+                                        "ocs"
+                                    ],
+                                    "properties": {
+                                        "ocs": {
                                             "type": "object",
                                             "required": [
-                                                "ocs"
+                                                "meta",
+                                                "data"
                                             ],
                                             "properties": {
-                                                "ocs": {
-                                                    "type": "object",
-                                                    "required": [
-                                                        "meta",
-                                                        "data"
-                                                    ],
-                                                    "properties": {
-                                                        "meta": {
-                                                            "$ref": "#/components/schemas/OCSMeta"
-                                                        },
-                                                        "data": {
-                                                            "$ref": "#/components/schemas/MessageResponse"
-                                                        }
-                                                    }
-                                                }
-                                            }
-                                        },
-                                        {
-                                            "type": "object",
-                                            "required": [
-                                                "ocs"
-                                            ],
-                                            "properties": {
-                                                "ocs": {
-                                                    "type": "object",
-                                                    "required": [
-                                                        "meta",
-                                                        "data"
-                                                    ],
-                                                    "properties": {
-                                                        "meta": {
-                                                            "$ref": "#/components/schemas/OCSMeta"
-                                                        },
-                                                        "data": {}
-                                                    }
+                                                "meta": {
+                                                    "$ref": "#/components/schemas/OCSMeta"
+                                                },
+                                                "data": {
+                                                    "$ref": "#/components/schemas/MessageResponse"
                                                 }
                                             }
                                         }
-                                    ]
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Current user is not logged in",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "required": [
+                                        "ocs"
+                                    ],
+                                    "properties": {
+                                        "ocs": {
+                                            "type": "object",
+                                            "required": [
+                                                "meta",
+                                                "data"
+                                            ],
+                                            "properties": {
+                                                "meta": {
+                                                    "$ref": "#/components/schemas/OCSMeta"
+                                                },
+                                                "data": {}
+                                            }
+                                        }
+                                    }
                                 }
                             }
                         }
@@ -5549,6 +5582,380 @@
                                                 },
                                                 "data": {
                                                     "$ref": "#/components/schemas/MessageResponse"
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Current user is not logged in",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "required": [
+                                        "ocs"
+                                    ],
+                                    "properties": {
+                                        "ocs": {
+                                            "type": "object",
+                                            "required": [
+                                                "meta",
+                                                "data"
+                                            ],
+                                            "properties": {
+                                                "meta": {
+                                                    "$ref": "#/components/schemas/OCSMeta"
+                                                },
+                                                "data": {}
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/ocs/v2.php/apps/libresign/api/{apiVersion}/sign/direct": {
+            "post": {
+                "operationId": "direct_sign-sign-direct",
+                "summary": "Sign one PDF immediately and return the signed document.",
+                "description": "The authenticated user must be authorized to request signatures and have the requested account signature method enabled. This endpoint does not accept arbitrary signers, visible fields or remote URLs.\nUses ordinary Nextcloud application-password authentication and OCS-APIRequest: true. This is a synchronous convenience operation. The caller is responsible for not retrying an uncertain result as a brand-new request: no additional idempotency state is introduced.\nNo visible signature elements are requested, but an enabled PDF footer policy may still change the visual presentation of the document.",
+                "tags": [
+                    "signing"
+                ],
+                "security": [
+                    {
+                        "bearer_auth": []
+                    },
+                    {
+                        "basic_auth": []
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object",
+                                "required": [
+                                    "file",
+                                    "name"
+                                ],
+                                "properties": {
+                                    "file": {
+                                        "type": "object",
+                                        "description": "One PDF: exactly one of base64, nodeId or path",
+                                        "properties": {
+                                            "base64": {
+                                                "type": "string"
+                                            },
+                                            "nodeId": {
+                                                "oneOf": [
+                                                    {
+                                                        "type": "integer",
+                                                        "format": "int64",
+                                                        "minimum": 0
+                                                    },
+                                                    {
+                                                        "type": "string"
+                                                    }
+                                                ]
+                                            },
+                                            "path": {
+                                                "type": "string"
+                                            }
+                                        }
+                                    },
+                                    "name": {
+                                        "type": "string",
+                                        "description": "PDF filename ending in .pdf"
+                                    },
+                                    "method": {
+                                        "type": "string",
+                                        "default": "clickToSign",
+                                        "enum": [
+                                            "clickToSign",
+                                            "password"
+                                        ],
+                                        "description": "Account signature method"
+                                    },
+                                    "token": {
+                                        "type": "string",
+                                        "default": "",
+                                        "description": "Token or certificate password if required by method"
+                                    },
+                                    "settings": {
+                                        "type": "object",
+                                        "default": {},
+                                        "description": "Optional request file settings",
+                                        "properties": {
+                                            "folderName": {
+                                                "type": "string"
+                                            },
+                                            "path": {
+                                                "type": "string"
+                                            },
+                                            "separator": {
+                                                "type": "string"
+                                            },
+                                            "folderPatterns": {
+                                                "type": "object",
+                                                "required": [
+                                                    "name"
+                                                ],
+                                                "properties": {
+                                                    "name": {
+                                                        "type": "string"
+                                                    },
+                                                    "setting": {
+                                                        "type": "string"
+                                                    }
+                                                }
+                                            },
+                                            "envelopeFolderId": {
+                                                "type": "integer",
+                                                "format": "int64"
+                                            }
+                                        }
+                                    },
+                                    "policy": {
+                                        "type": "object",
+                                        "nullable": true,
+                                        "default": null,
+                                        "description": "Authorized request-level policy overrides",
+                                        "additionalProperties": {
+                                            "type": "object"
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                "parameters": [
+                    {
+                        "name": "apiVersion",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "enum": [
+                                "v1"
+                            ],
+                            "default": "v1"
+                        }
+                    },
+                    {
+                        "name": "OCS-APIRequest",
+                        "in": "header",
+                        "description": "Required to be true for the API request to pass",
+                        "required": true,
+                        "schema": {
+                            "type": "boolean",
+                            "default": true
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Signed PDF document",
+                        "content": {
+                            "application/pdf": {
+                                "schema": {
+                                    "type": "string",
+                                    "format": "binary"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid direct-sign payload",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "required": [
+                                        "ocs"
+                                    ],
+                                    "properties": {
+                                        "ocs": {
+                                            "type": "object",
+                                            "required": [
+                                                "meta",
+                                                "data"
+                                            ],
+                                            "properties": {
+                                                "meta": {
+                                                    "$ref": "#/components/schemas/OCSMeta"
+                                                },
+                                                "data": {
+                                                    "type": "object",
+                                                    "required": [
+                                                        "message"
+                                                    ],
+                                                    "properties": {
+                                                        "message": {
+                                                            "type": "string"
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "Account signing not permitted",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "required": [
+                                        "ocs"
+                                    ],
+                                    "properties": {
+                                        "ocs": {
+                                            "type": "object",
+                                            "required": [
+                                                "meta",
+                                                "data"
+                                            ],
+                                            "properties": {
+                                                "meta": {
+                                                    "$ref": "#/components/schemas/OCSMeta"
+                                                },
+                                                "data": {
+                                                    "type": "object",
+                                                    "required": [
+                                                        "message"
+                                                    ],
+                                                    "properties": {
+                                                        "message": {
+                                                            "type": "string"
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "409": {
+                        "description": "Signing not completed",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "required": [
+                                        "ocs"
+                                    ],
+                                    "properties": {
+                                        "ocs": {
+                                            "type": "object",
+                                            "required": [
+                                                "meta",
+                                                "data"
+                                            ],
+                                            "properties": {
+                                                "meta": {
+                                                    "$ref": "#/components/schemas/OCSMeta"
+                                                },
+                                                "data": {
+                                                    "type": "object",
+                                                    "required": [
+                                                        "message"
+                                                    ],
+                                                    "properties": {
+                                                        "message": {
+                                                            "type": "string"
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Signing validation failed",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "required": [
+                                        "ocs"
+                                    ],
+                                    "properties": {
+                                        "ocs": {
+                                            "type": "object",
+                                            "required": [
+                                                "meta",
+                                                "data"
+                                            ],
+                                            "properties": {
+                                                "meta": {
+                                                    "$ref": "#/components/schemas/OCSMeta"
+                                                },
+                                                "data": {
+                                                    "type": "object",
+                                                    "required": [
+                                                        "message"
+                                                    ],
+                                                    "properties": {
+                                                        "message": {
+                                                            "type": "string"
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Unexpected signing failure",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "required": [
+                                        "ocs"
+                                    ],
+                                    "properties": {
+                                        "ocs": {
+                                            "type": "object",
+                                            "required": [
+                                                "meta",
+                                                "data"
+                                            ],
+                                            "properties": {
+                                                "meta": {
+                                                    "$ref": "#/components/schemas/OCSMeta"
+                                                },
+                                                "data": {
+                                                    "type": "object",
+                                                    "required": [
+                                                        "message"
+                                                    ],
+                                                    "properties": {
+                                                        "message": {
+                                                            "type": "string"
+                                                        }
+                                                    }
                                                 }
                                             }
                                         }
@@ -7229,61 +7636,6 @@
                             }
                         }
                     },
-                    "401": {
-                        "description": "Failed",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "anyOf": [
-                                        {
-                                            "type": "object",
-                                            "required": [
-                                                "ocs"
-                                            ],
-                                            "properties": {
-                                                "ocs": {
-                                                    "type": "object",
-                                                    "required": [
-                                                        "meta",
-                                                        "data"
-                                                    ],
-                                                    "properties": {
-                                                        "meta": {
-                                                            "$ref": "#/components/schemas/OCSMeta"
-                                                        },
-                                                        "data": {
-                                                            "$ref": "#/components/schemas/MessageResponse"
-                                                        }
-                                                    }
-                                                }
-                                            }
-                                        },
-                                        {
-                                            "type": "object",
-                                            "required": [
-                                                "ocs"
-                                            ],
-                                            "properties": {
-                                                "ocs": {
-                                                    "type": "object",
-                                                    "required": [
-                                                        "meta",
-                                                        "data"
-                                                    ],
-                                                    "properties": {
-                                                        "meta": {
-                                                            "$ref": "#/components/schemas/OCSMeta"
-                                                        },
-                                                        "data": {}
-                                                    }
-                                                }
-                                            }
-                                        }
-                                    ]
-                                }
-                            }
-                        }
-                    },
                     "422": {
                         "description": "Failed",
                         "content": {
@@ -7305,8 +7657,73 @@
                                                     "$ref": "#/components/schemas/OCSMeta"
                                                 },
                                                 "data": {
-                                                    "$ref": "#/components/schemas/ActionErrorResponse"
+                                                    "anyOf": [
+                                                        {
+                                                            "$ref": "#/components/schemas/MessageResponse"
+                                                        },
+                                                        {
+                                                            "$ref": "#/components/schemas/ActionErrorResponse"
+                                                        }
+                                                    ]
                                                 }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Unexpected failure",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "required": [
+                                        "ocs"
+                                    ],
+                                    "properties": {
+                                        "ocs": {
+                                            "type": "object",
+                                            "required": [
+                                                "meta",
+                                                "data"
+                                            ],
+                                            "properties": {
+                                                "meta": {
+                                                    "$ref": "#/components/schemas/OCSMeta"
+                                                },
+                                                "data": {
+                                                    "$ref": "#/components/schemas/MessageResponse"
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Current user is not logged in",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "required": [
+                                        "ocs"
+                                    ],
+                                    "properties": {
+                                        "ocs": {
+                                            "type": "object",
+                                            "required": [
+                                                "meta",
+                                                "data"
+                                            ],
+                                            "properties": {
+                                                "meta": {
+                                                    "$ref": "#/components/schemas/OCSMeta"
+                                                },
+                                                "data": {}
                                             }
                                         }
                                     }
@@ -12778,61 +13195,6 @@
                             }
                         }
                     },
-                    "401": {
-                        "description": "Failed",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "anyOf": [
-                                        {
-                                            "type": "object",
-                                            "required": [
-                                                "ocs"
-                                            ],
-                                            "properties": {
-                                                "ocs": {
-                                                    "type": "object",
-                                                    "required": [
-                                                        "meta",
-                                                        "data"
-                                                    ],
-                                                    "properties": {
-                                                        "meta": {
-                                                            "$ref": "#/components/schemas/OCSMeta"
-                                                        },
-                                                        "data": {
-                                                            "$ref": "#/components/schemas/MessageResponse"
-                                                        }
-                                                    }
-                                                }
-                                            }
-                                        },
-                                        {
-                                            "type": "object",
-                                            "required": [
-                                                "ocs"
-                                            ],
-                                            "properties": {
-                                                "ocs": {
-                                                    "type": "object",
-                                                    "required": [
-                                                        "meta",
-                                                        "data"
-                                                    ],
-                                                    "properties": {
-                                                        "meta": {
-                                                            "$ref": "#/components/schemas/OCSMeta"
-                                                        },
-                                                        "data": {}
-                                                    }
-                                                }
-                                            }
-                                        }
-                                    ]
-                                }
-                            }
-                        }
-                    },
                     "422": {
                         "description": "Failed",
                         "content": {
@@ -12863,6 +13225,34 @@
                                                         }
                                                     ]
                                                 }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Current user is not logged in",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "required": [
+                                        "ocs"
+                                    ],
+                                    "properties": {
+                                        "ocs": {
+                                            "type": "object",
+                                            "required": [
+                                                "meta",
+                                                "data"
+                                            ],
+                                            "properties": {
+                                                "meta": {
+                                                    "$ref": "#/components/schemas/OCSMeta"
+                                                },
+                                                "data": {}
                                             }
                                         }
                                     }
@@ -12954,61 +13344,6 @@
                             }
                         }
                     },
-                    "401": {
-                        "description": "Failed",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "anyOf": [
-                                        {
-                                            "type": "object",
-                                            "required": [
-                                                "ocs"
-                                            ],
-                                            "properties": {
-                                                "ocs": {
-                                                    "type": "object",
-                                                    "required": [
-                                                        "meta",
-                                                        "data"
-                                                    ],
-                                                    "properties": {
-                                                        "meta": {
-                                                            "$ref": "#/components/schemas/OCSMeta"
-                                                        },
-                                                        "data": {
-                                                            "$ref": "#/components/schemas/MessageResponse"
-                                                        }
-                                                    }
-                                                }
-                                            }
-                                        },
-                                        {
-                                            "type": "object",
-                                            "required": [
-                                                "ocs"
-                                            ],
-                                            "properties": {
-                                                "ocs": {
-                                                    "type": "object",
-                                                    "required": [
-                                                        "meta",
-                                                        "data"
-                                                    ],
-                                                    "properties": {
-                                                        "meta": {
-                                                            "$ref": "#/components/schemas/OCSMeta"
-                                                        },
-                                                        "data": {}
-                                                    }
-                                                }
-                                            }
-                                        }
-                                    ]
-                                }
-                            }
-                        }
-                    },
                     "422": {
                         "description": "Failed",
                         "content": {
@@ -13030,8 +13365,73 @@
                                                     "$ref": "#/components/schemas/OCSMeta"
                                                 },
                                                 "data": {
-                                                    "$ref": "#/components/schemas/ActionErrorResponse"
+                                                    "anyOf": [
+                                                        {
+                                                            "$ref": "#/components/schemas/MessageResponse"
+                                                        },
+                                                        {
+                                                            "$ref": "#/components/schemas/ActionErrorResponse"
+                                                        }
+                                                    ]
                                                 }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Unexpected failure",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "required": [
+                                        "ocs"
+                                    ],
+                                    "properties": {
+                                        "ocs": {
+                                            "type": "object",
+                                            "required": [
+                                                "meta",
+                                                "data"
+                                            ],
+                                            "properties": {
+                                                "meta": {
+                                                    "$ref": "#/components/schemas/OCSMeta"
+                                                },
+                                                "data": {
+                                                    "$ref": "#/components/schemas/MessageResponse"
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Current user is not logged in",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "required": [
+                                        "ocs"
+                                    ],
+                                    "properties": {
+                                        "ocs": {
+                                            "type": "object",
+                                            "required": [
+                                                "meta",
+                                                "data"
+                                            ],
+                                            "properties": {
+                                                "meta": {
+                                                    "$ref": "#/components/schemas/OCSMeta"
+                                                },
+                                                "data": {}
                                             }
                                         }
                                     }
@@ -15262,57 +15662,90 @@
                             }
                         }
                     },
-                    "401": {
-                        "description": "Account not found",
+                    "422": {
+                        "description": "Invalid certificate data",
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "anyOf": [
-                                        {
+                                    "type": "object",
+                                    "required": [
+                                        "ocs"
+                                    ],
+                                    "properties": {
+                                        "ocs": {
                                             "type": "object",
                                             "required": [
-                                                "ocs"
+                                                "meta",
+                                                "data"
                                             ],
                                             "properties": {
-                                                "ocs": {
-                                                    "type": "object",
-                                                    "required": [
-                                                        "meta",
-                                                        "data"
-                                                    ],
-                                                    "properties": {
-                                                        "meta": {
-                                                            "$ref": "#/components/schemas/OCSMeta"
-                                                        },
-                                                        "data": {
-                                                            "$ref": "#/components/schemas/MessageResponse"
-                                                        }
-                                                    }
-                                                }
-                                            }
-                                        },
-                                        {
-                                            "type": "object",
-                                            "required": [
-                                                "ocs"
-                                            ],
-                                            "properties": {
-                                                "ocs": {
-                                                    "type": "object",
-                                                    "required": [
-                                                        "meta",
-                                                        "data"
-                                                    ],
-                                                    "properties": {
-                                                        "meta": {
-                                                            "$ref": "#/components/schemas/OCSMeta"
-                                                        },
-                                                        "data": {}
-                                                    }
+                                                "meta": {
+                                                    "$ref": "#/components/schemas/OCSMeta"
+                                                },
+                                                "data": {
+                                                    "$ref": "#/components/schemas/MessageResponse"
                                                 }
                                             }
                                         }
-                                    ]
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Failure to generate the certificate",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "required": [
+                                        "ocs"
+                                    ],
+                                    "properties": {
+                                        "ocs": {
+                                            "type": "object",
+                                            "required": [
+                                                "meta",
+                                                "data"
+                                            ],
+                                            "properties": {
+                                                "meta": {
+                                                    "$ref": "#/components/schemas/OCSMeta"
+                                                },
+                                                "data": {
+                                                    "$ref": "#/components/schemas/MessageResponse"
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Current user is not logged in",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "required": [
+                                        "ocs"
+                                    ],
+                                    "properties": {
+                                        "ocs": {
+                                            "type": "object",
+                                            "required": [
+                                                "meta",
+                                                "data"
+                                            ],
+                                            "properties": {
+                                                "meta": {
+                                                    "$ref": "#/components/schemas/OCSMeta"
+                                                },
+                                                "data": {}
+                                            }
+                                        }
+                                    }
                                 }
                             }
                         }
@@ -15476,57 +15909,90 @@
                             }
                         }
                     },
-                    "401": {
-                        "description": "Account not found",
+                    "422": {
+                        "description": "Invalid certificate data",
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "anyOf": [
-                                        {
+                                    "type": "object",
+                                    "required": [
+                                        "ocs"
+                                    ],
+                                    "properties": {
+                                        "ocs": {
                                             "type": "object",
                                             "required": [
-                                                "ocs"
+                                                "meta",
+                                                "data"
                                             ],
                                             "properties": {
-                                                "ocs": {
-                                                    "type": "object",
-                                                    "required": [
-                                                        "meta",
-                                                        "data"
-                                                    ],
-                                                    "properties": {
-                                                        "meta": {
-                                                            "$ref": "#/components/schemas/OCSMeta"
-                                                        },
-                                                        "data": {
-                                                            "$ref": "#/components/schemas/MessageResponse"
-                                                        }
-                                                    }
-                                                }
-                                            }
-                                        },
-                                        {
-                                            "type": "object",
-                                            "required": [
-                                                "ocs"
-                                            ],
-                                            "properties": {
-                                                "ocs": {
-                                                    "type": "object",
-                                                    "required": [
-                                                        "meta",
-                                                        "data"
-                                                    ],
-                                                    "properties": {
-                                                        "meta": {
-                                                            "$ref": "#/components/schemas/OCSMeta"
-                                                        },
-                                                        "data": {}
-                                                    }
+                                                "meta": {
+                                                    "$ref": "#/components/schemas/OCSMeta"
+                                                },
+                                                "data": {
+                                                    "$ref": "#/components/schemas/MessageResponse"
                                                 }
                                             }
                                         }
-                                    ]
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Failure to generate the certificate",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "required": [
+                                        "ocs"
+                                    ],
+                                    "properties": {
+                                        "ocs": {
+                                            "type": "object",
+                                            "required": [
+                                                "meta",
+                                                "data"
+                                            ],
+                                            "properties": {
+                                                "meta": {
+                                                    "$ref": "#/components/schemas/OCSMeta"
+                                                },
+                                                "data": {
+                                                    "$ref": "#/components/schemas/MessageResponse"
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Current user is not logged in",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "required": [
+                                        "ocs"
+                                    ],
+                                    "properties": {
+                                        "ocs": {
+                                            "type": "object",
+                                            "required": [
+                                                "meta",
+                                                "data"
+                                            ],
+                                            "properties": {
+                                                "meta": {
+                                                    "$ref": "#/components/schemas/OCSMeta"
+                                                },
+                                                "data": {}
+                                            }
+                                        }
+                                    }
                                 }
                             }
                         }

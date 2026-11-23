@@ -3,9 +3,11 @@
   - SPDX-License-Identifier: AGPL-3.0-or-later
 -->
 <template>
-	<tr v-if="filesStore.ordered.length > 0"
+	<tr
+		v-if="filesStore.ordered.length > 0"
 		class="files-list__row-head">
-		<th v-if="showSelectionCheckbox"
+		<th
+			v-if="showSelectionCheckbox"
 			class="files-list__column files-list__row-checkbox"
 			scope="col"
 			@keyup.esc.exact="resetSelection">
@@ -15,7 +17,8 @@
 		<!-- Columns display -->
 
 		<!-- Link to file -->
-		<th class="files-list__column files-list__row-name files-list__column--sortable"
+		<th
+			class="files-list__column files-list__row-name files-list__column--sortable"
 			scope="col"
 			:aria-sort="ariaSortForMode('name')">
 			<!-- Icon or preview -->
@@ -29,7 +32,8 @@
 		<th class="files-list__row-actions" scope="col" />
 
 		<!-- Custom views columns -->
-		<th v-for="column in columns"
+		<th
+			v-for="column in columns"
 			:key="column.id"
 			scope="col"
 			:class="classForColumn(column)"

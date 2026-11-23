@@ -203,7 +203,7 @@ OC.L10N.register(
     "Other" : "–ë—É—Å–∞–¥",
     "default" : "анхдагч",
     "{value} seconds" : "{value} секунд",
-    "{value} days" : "{value} өдөр",
+    "_%n day_::_%n days_" : ["%n хоног","%n хоног"],
     "Custom URL" : "Тусгай URL",
     "Default background" : "Өгөгдмөл дэвсгэр",
     "Custom background" : "Тохируулсан дэвсгэр",

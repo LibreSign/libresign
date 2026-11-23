@@ -180,7 +180,9 @@ test('preview request always includes writeQrcodeOnFooter when template is custo
 	const onReq = await onReqPromise
 	const body = onReq.postDataJSON() as Record<string, unknown>
 
-	expect(Object.hasOwn(body, 'writeQrcodeOnFooter'),
-		'writeQrcodeOnFooter field must be present in the preview request').toBe(true)
+	expect(
+		Object.hasOwn(body, 'writeQrcodeOnFooter'),
+		'writeQrcodeOnFooter field must be present in the preview request',
+	).toBe(true)
 	expect(body.writeQrcodeOnFooter, 'writeQrcodeOnFooter must be true when switch is ON').toBe(true)
 })

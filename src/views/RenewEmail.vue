@@ -11,19 +11,23 @@
 			<h2 v-if="response.length === 0" class="content__headline">
 				{{ title }}
 			</h2>
-			<div v-if="response.length === 0 && error.length === 0"
+			<div
+				v-if="response.length === 0 && error.length === 0"
 				class="content__body">
 				{{ body }}
 			</div>
-			<NcNoteCard v-if="response.length > 0"
+			<NcNoteCard
+				v-if="response.length > 0"
 				type="success">
 				{{ response }}
 			</NcNoteCard>
-			<NcNoteCard v-if="error.length > 0"
+			<NcNoteCard
+				v-if="error.length > 0"
 				type="error">
 				{{ error }}
 			</NcNoteCard>
-			<NcButton v-if="response.length === 0 && error.length === 0"
+			<NcButton
+				v-if="response.length === 0 && error.length === 0"
 				variant="primary"
 				:wide="true"
 				:disabled="hasLoading"

@@ -6,13 +6,13 @@
 import 'vitest'
 
 type L10nMockFactoryOptions = {
-	t?: (...args: Array<any>) => string,
-	translate?: (...args: Array<any>) => string,
-	n?: (...args: Array<any>) => string,
-	translatePlural?: (...args: Array<any>) => string,
-	language?: string,
-	locale?: string,
-	isRTL?: boolean,
+	t?: (...args: Array<any>) => string
+	translate?: (...args: Array<any>) => string
+	n?: (...args: Array<any>) => string
+	translatePlural?: (...args: Array<any>) => string
+	language?: string
+	locale?: string
+	isRTL?: boolean
 }
 
 declare global {

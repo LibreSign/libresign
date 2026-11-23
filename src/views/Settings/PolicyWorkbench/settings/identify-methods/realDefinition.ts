@@ -4,7 +4,7 @@
  */
 
 import { loadState } from '@nextcloud/initial-state'
-import { t } from '@nextcloud/l10n'
+import { n, t } from '@nextcloud/l10n'
 
 import IdentifyMethodsRuleEditor from './IdentifyMethodsRuleEditor.vue'
 
@@ -57,9 +57,7 @@ function getInitialIdentifyMethods(): string {
 		requirement: 'optional' as const,
 	}))
 
-	return serializeIdentifyMethodsPolicy(
-		permissiveDefaults,
-	)
+	return serializeIdentifyMethodsPolicy(permissiveDefaults)
 }
 
 export const identifyMethodsRealDefinition: RealPolicySettingDefinition = {
@@ -105,8 +103,8 @@ export const identifyMethodsRealDefinition: RealPolicySettingDefinition = {
 			return enabled.map((entry) => entry.friendly_name ?? entry.name).join(', ')
 		}
 
-		// TRANSLATORS Summary showing how many identification factors are enabled. {count} is the number of enabled factors.
-		return t('libresign', '{count} enabled factors', { count: String(enabled.length) })
+		// TRANSLATORS Summary showing how many identification factors are enabled. %n is the number of enabled factors.
+		return n('libresign', '%n enabled factor', '%n enabled factors', enabled.length)
 	},
 	formatAllowOverride: (allowChildOverride: boolean) => {
 		if (allowChildOverride) {

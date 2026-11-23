@@ -10,21 +10,15 @@ const getWorkbenchDefinition = (policyKey: string) => {
 	return realDefinitions[policyKey as keyof typeof realDefinitions] ?? null
 }
 
-const policySupportsPersonalPreference = (
-	policy: { meta?: { supportsUserPreference?: boolean } } | null | undefined,
-): boolean => {
+const policySupportsPersonalPreference = (policy: { meta?: { supportsUserPreference?: boolean } } | null | undefined): boolean => {
 	return policy?.meta?.supportsUserPreference === true
 }
 
-const policySupportsDescendantRuleCreation = (
-	policy: { meta?: { canCreateDescendantRules?: boolean } } | null | undefined,
-): boolean => {
+const policySupportsDescendantRuleCreation = (policy: { meta?: { canCreateDescendantRules?: boolean } } | null | undefined): boolean => {
 	return policy?.meta?.canCreateDescendantRules === true
 }
 
-const defaultCanRenderWorkbenchPolicyForGroupAdmin = (
-	policy: Pick<EffectivePolicyState, 'editableByCurrentActor' | 'canSaveAsUserDefault' | 'meta'> | null | undefined,
-): boolean => {
+const defaultCanRenderWorkbenchPolicyForGroupAdmin = (policy: Pick<EffectivePolicyState, 'editableByCurrentActor' | 'canSaveAsUserDefault' | 'meta'> | null | undefined): boolean => {
 	if (!policy) {
 		return false
 	}

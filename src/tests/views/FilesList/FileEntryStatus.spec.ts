@@ -8,7 +8,7 @@ import { mount } from '@vue/test-utils'
 
 import FileEntryStatus from '../../../views/FilesList/FileEntry/FileEntryStatus.vue'
 
-function mountStatus(props: { status: number; statusText: string; signers?: unknown[] }) {
+function mountStatus(props: { status: number, statusText: string, signers?: unknown[] }) {
 	return mount(FileEntryStatus, {
 		props: {
 			signers: [],

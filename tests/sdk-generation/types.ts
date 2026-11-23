@@ -20,7 +20,9 @@ const request: RequestSignatureRequestSignatureRequest = { status: null }
 const badRequest: RequestSignatureRequestSignatureRequest = { status: 'pending' }
 // @ts-expect-error status is a finite numeric enum
 const badStatus: SignerDetail['status'] = 99
-function account(response: AccountMe200Response): string { return response.ocs.data.account.uid }
+function account(response: AccountMe200Response): string {
+	return response.ocs.data.account.uid
+}
 void [file1, file2, badFile, signer, badSigner, request, badRequest, badStatus, account]
 
 // @ts-expect-error the generated request has no upload parameter

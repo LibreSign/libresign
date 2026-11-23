@@ -61,7 +61,7 @@ async function loadTabModule(readyState: DocumentReadyState = 'complete') {
 	await import('../tab')
 }
 
-function getRegisteredTabConfig<T = { id: string; tagName: string }>() {
+function getRegisteredTabConfig<T = { id: string, tagName: string }>() {
 	expect(mockRegisterSidebarTab).toHaveBeenCalledOnce()
 	return mockRegisterSidebarTab.mock.calls[0][0] as T
 }

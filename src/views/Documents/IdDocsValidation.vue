@@ -11,7 +11,8 @@
 						<template #icon>
 							<NcIconSvgWrapper :path="mdiFilter" :size="20" />
 						</template>
-						<NcActionInput v-model="filters.owner"
+						<NcActionInput
+							v-model="filters.owner"
 							:label="t('libresign', 'Owner')"
 							@update:modelValue="onFilterChange">
 							<template #icon>
@@ -19,7 +20,8 @@
 							</template>
 						</NcActionInput>
 
-						<NcActionButton type="radio"
+						<NcActionButton
+							type="radio"
 							:model-value="filters.status?.value === 'signed'"
 							@update:modelValue="setStatusFilter('signed', $event)">
 							<template #icon>
@@ -29,7 +31,8 @@
 							{{ t('libresign', 'Approved') }}
 						</NcActionButton>
 
-						<NcActionButton type="radio"
+						<NcActionButton
+							type="radio"
 							:model-value="filters.status?.value === 'pending'"
 							@update:modelValue="setStatusFilter('pending', $event)">
 							<template #icon>
@@ -41,7 +44,8 @@
 
 						<NcActionSeparator v-if="hasActiveFilters" />
 
-						<NcActionButton v-if="hasActiveFilters"
+						<NcActionButton
+							v-if="hasActiveFilters"
 							@click="clearFilters">
 							<template #icon>
 								<NcIconSvgWrapper :path="mdiClose" :size="20" />
@@ -55,14 +59,16 @@
 
 			<NcLoadingIcon v-if="loading" :size="44" />
 
-			<NcEmptyContent v-else-if="filteredDocuments.length === 0"
+			<NcEmptyContent
+				v-else-if="filteredDocuments.length === 0"
 				:name="t('libresign', 'No documents to validate')">
 				<template #icon>
 					<NcIconSvgWrapper :path="mdiFileDocument" :size="64" />
 				</template>
 			</NcEmptyContent>
 
-			<div v-else
+			<div
+				v-else
 				ref="scrollContainer"
 				class="container-account-docs-to-validate"
 				@scroll="onScroll">
@@ -97,7 +103,8 @@
 					<tbody>
 						<tr v-for="(doc, index) in filteredDocuments" :key="`doc-${index}-${doc.file.file.nodeId}-${doc.file_type.type}`">
 							<td class="id-docs-table__cell--spacer id-docs-table__cell--frozen-left id-docs-table__cell--frozen-spacer">
-								<NcAvatar :user="doc.account?.userId ?? doc.account?.displayName"
+								<NcAvatar
+									:user="doc.account?.userId ?? doc.account?.displayName"
 									:display-name="doc.account?.displayName || doc.account?.userId"
 									:size="32"
 									:disable-menu="true" />
@@ -113,7 +120,8 @@
 							</td>
 							<td>
 								<template v-if="doc.file?.signers?.length > 0 && doc.file.signers[0].sign_date">
-									<NcAvatar v-if="doc.file.signers[0].uid"
+									<NcAvatar
+										v-if="doc.file.signers[0].uid"
 										:user="doc.file.signers[0].uid"
 										:display-name="doc.file.signers[0].displayName"
 										:size="32"
@@ -143,7 +151,8 @@
 											{{ t('libresign', 'Open file') }}
 										</NcActionButton>
 									</template>
-									<NcActionButton v-if="doc.file?.status === FILE_STATUS.ABLE_TO_SIGN || doc.file?.status === FILE_STATUS.PARTIAL_SIGNED"
+									<NcActionButton
+										v-if="doc.file?.status === FILE_STATUS.ABLE_TO_SIGN || doc.file?.status === FILE_STATUS.PARTIAL_SIGNED"
 										:aria-label="reviewAndApproveLabel"
 										@click="openApprove(doc)">
 										<template #icon>
@@ -280,8 +289,12 @@ const filters = reactive({
 const hasActiveFilters = computed(() => !!(filters.owner || filters.status))
 const activeFilterCount = computed(() => {
 	let count = 0
-	if (filters.owner) { count++ }
-	if (filters.status) { count++ }
+	if (filters.owner) {
+		count++
+	}
+	if (filters.status) {
+		count++
+	}
 	return count
 })
 const filterActionLabel = computed(() => {

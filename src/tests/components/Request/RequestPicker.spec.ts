@@ -44,10 +44,14 @@ const tWithMaxUploads: TranslationFn = (_domain, key, params) => {
 let filePickerBuilder: FilePickerBuilder
 const filePickerPick = vi.fn()
 
+const spawnDialogMock = vi.hoisted(() => vi.fn<(...args: unknown[]) => Promise<boolean | 'prepare' | undefined>>())
+vi.mock('@nextcloud/vue/functions/dialog', () => ({ spawnDialog: spawnDialogMock }))
+
 vi.mock('@nextcloud/initial-state')
 vi.mock('@nextcloud/capabilities')
 vi.mock('@nextcloud/dialogs', () => ({
 	showError: vi.fn(),
+	showSuccess: vi.fn(),
 	getFilePickerBuilder: vi.fn(() => filePickerBuilder),
 }))
 
@@ -65,9 +69,10 @@ describe('RequestPicker component rules', () => {
 	type FilesStoreMock = {
 		upload: MockedFunction<(
 			formData: FormData | { file: { url: string } },
-			config?: { onUploadProgress?: (event: { loaded: number; total: number }) => void },
+			config?: { onUploadProgress?: (event: { loaded: number, total: number }) => void },
 		) => Promise<number>>
 		selectFile: MockedFunction<(id?: number) => void>
+		updateAllFiles: MockedFunction<() => Promise<unknown>>
 	}
 
 	type SidebarStoreMock = {
@@ -108,6 +113,7 @@ describe('RequestPicker component rules', () => {
 		filesStore = {
 			upload: vi.fn(),
 			selectFile: vi.fn(),
+			updateAllFiles: vi.fn(),
 		}
 
 		sidebarStore = {
@@ -174,6 +180,27 @@ describe('RequestPicker component rules', () => {
 				},
 			}) as RequestPickerWrapper
 			expect(newWrapper.find('div').exists()).toBe(false)
+		})
+	})
+
+	describe('immediate signing availability', () => {
+		it('offers a one-time action only with an allowed account click-to-sign method', () => {
+			loadStateMock.mockImplementation((_app, key) => key === 'effective_policies'
+				? { policies: { identify_methods: { effectiveValue: { factors: [
+					{ name: 'account', enabled: true, signatureMethods: { clickToSign: { enabled: true } } },
+				] } } } }
+				: true)
+			const withPolicy = mount(RequestPicker, {
+				props: { inline: true },
+				global: { stubs: {
+					NcActions: true, NcActionButton: true, NcButton: true, NcDialog: true,
+					NcLoadingIcon: true, NcNoteCard: true, NcTextField: true,
+					UploadProgress: true,
+				} },
+			})
+			expect((withPolicy.vm as unknown as { canDirectSign: boolean }).canDirectSign).toBe(true)
+			withPolicy.unmount()
+			expect((wrapper.vm as unknown as { canDirectSign: boolean }).canDirectSign).toBe(false)
 		})
 	})
 
@@ -310,12 +337,10 @@ describe('RequestPicker component rules', () => {
 			filePickerPick.mockResolvedValue(nodes)
 			filesStore.upload.mockResolvedValue(1)
 			await wrapper.vm.openFilePicker()
-			expect(filesStore.upload).toHaveBeenCalledWith(
-				expect.objectContaining({
+			expect(filesStore.upload).toHaveBeenCalledWith(expect.objectContaining({
 					file: { path: '/Documents/file.pdf' },
 					name: 'file',
-				}),
-			)
+				}))
 		})
 	})
 
@@ -676,7 +701,7 @@ describe('RequestPicker component rules', () => {
 			const files = [{ name: 'document.pdf', size: 1000 }]
 			await wrapper.vm.upload(files)
 			expect(filesStore.upload).toHaveBeenCalled()
-			const [formData] = filesStore.upload.mock.calls[0] as [FormData, { onUploadProgress?: (event: { loaded: number; total: number }) => void } | undefined]
+			const [formData] = filesStore.upload.mock.calls[0] as [FormData, { onUploadProgress?: (event: { loaded: number, total: number }) => void } | undefined]
 			expect(formData.get('name')).toBe('document')
 			expect(formData.get('expectedFilesCount')).toBe('1')
 		})
@@ -743,7 +768,7 @@ describe('RequestPicker component rules', () => {
 			]
 			await wrapper.vm.upload(files, 'My Envelope')
 			expect(filesStore.upload).toHaveBeenCalled()
-			const [formData] = filesStore.upload.mock.calls[0] as [FormData, { onUploadProgress?: (event: { loaded: number; total: number }) => void } | undefined]
+			const [formData] = filesStore.upload.mock.calls[0] as [FormData, { onUploadProgress?: (event: { loaded: number, total: number }) => void } | undefined]
 			expect(formData.get('name')).toBe('My Envelope')
 			expect(formData.get('expectedFilesCount')).toBe('2')
 			expect(formData.getAll('files[]')).toHaveLength(2)
@@ -757,7 +782,7 @@ describe('RequestPicker component rules', () => {
 			]
 			await wrapper.vm.upload(files, '  Envelope Name  ')
 			expect(filesStore.upload).toHaveBeenCalled()
-			const [formData] = filesStore.upload.mock.calls[0] as [FormData, { onUploadProgress?: (event: { loaded: number; total: number }) => void } | undefined]
+			const [formData] = filesStore.upload.mock.calls[0] as [FormData, { onUploadProgress?: (event: { loaded: number, total: number }) => void } | undefined]
 			expect(formData.get('name')).toBe('Envelope Name')
 		})
 
@@ -787,13 +812,24 @@ describe('RequestPicker component rules', () => {
 		})
 	})
 
+	it('refreshes the file list after direct signing without uploading a second request', async () => {
+		spawnDialogMock.mockResolvedValueOnce(true)
+		const createElement = vi.spyOn(document, 'createElement')
+		wrapper.vm.signPdfNow()
+		const input = createElement.mock.results.find(result => result.value?.type === 'file')!.value as HTMLInputElement
+		Object.defineProperty(input, 'files', { value: { item: () => new File(['%PDF-'], 'signed.pdf', { type: 'application/pdf' }) } })
+		input.dispatchEvent(new Event('change'))
+		await flushPromises()
+		expect(filesStore.updateAllFiles).toHaveBeenCalledExactlyOnceWith()
+		expect(filesStore.upload).not.toHaveBeenCalled()
+		createElement.mockRestore()
+	})
+
 	describe('direct file upload dialog', () => {
 		it('opens file input with PDF filter', () => {
 			const createElementSpy = vi.spyOn(document, 'createElement')
 			wrapper.vm.uploadFile()
-			const fileInputResult = createElementSpy.mock.results.find(
-				result => result.value?.type === 'file',
-			)
+			const fileInputResult = createElementSpy.mock.results.find(result => result.value?.type === 'file')
 			const fileInput = fileInputResult?.value as HTMLInputElement | undefined
 			expect(fileInput).toBeDefined()
 			if (!fileInput) {
@@ -837,9 +873,7 @@ describe('RequestPicker component rules', () => {
 			}) as RequestPickerWrapper
 			const createElementSpy = vi.spyOn(document, 'createElement')
 			newWrapper.vm.uploadFile()
-			const fileInputResult = createElementSpy.mock.results.find(
-				result => result.value?.type === 'file',
-			)
+			const fileInputResult = createElementSpy.mock.results.find(result => result.value?.type === 'file')
 			const fileInput = fileInputResult?.value as HTMLInputElement | undefined
 			expect(fileInput).toBeDefined()
 			if (!fileInput) {
@@ -853,9 +887,7 @@ describe('RequestPicker component rules', () => {
 		it('disables multiple selection when envelope not enabled', () => {
 			const createElementSpy = vi.spyOn(document, 'createElement')
 			wrapper.vm.uploadFile()
-			const fileInputResult = createElementSpy.mock.results.find(
-				result => result.value?.type === 'file',
-			)
+			const fileInputResult = createElementSpy.mock.results.find(result => result.value?.type === 'file')
 			const fileInput = fileInputResult?.value as HTMLInputElement | undefined
 			expect(fileInput).toBeDefined()
 			if (!fileInput) {
@@ -940,12 +972,10 @@ describe('RequestPicker component rules', () => {
 			filesStore.upload.mockResolvedValue(1)
 			const nodes = [{ path: '/Documents/report.pdf' }]
 			await wrapper.vm.handleFileChoose(nodes)
-			expect(filesStore.upload).toHaveBeenCalledWith(
-				expect.objectContaining({
+			expect(filesStore.upload).toHaveBeenCalledWith(expect.objectContaining({
 					file: { path: '/Documents/report.pdf' },
 					name: 'report',
-				}),
-			)
+				}))
 		})
 
 		it('shows error from server when upload fails', async () => {

@@ -456,11 +456,9 @@ describe('DocumentValidationDetails', () => {
 
 			await wrapper.vm.viewDocument()
 
-			expect(viewer.openDocument).toHaveBeenCalledWith(
-				expect.objectContaining({
+			expect(viewer.openDocument).toHaveBeenCalledWith(expect.objectContaining({
 					filename: 'Important Document.pdf',
-				}),
-			)
+				}))
 		})
 
 		it('does not open viewer without required viewer data', async () => {
@@ -555,12 +553,10 @@ describe('DocumentValidationDetails', () => {
 			})
 
 			const signerComponent = wrapper.findComponent({ name: 'SignerDetails' })
-			expect(signerComponent.props('signer')).toEqual(
-				expect.objectContaining({
+			expect(signerComponent.props('signer')).toEqual(expect.objectContaining({
 					displayName: 'John Doe',
 					visibleElements,
-				}),
-			)
+				}))
 		})
 	})
 

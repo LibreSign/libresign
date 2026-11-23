@@ -56,7 +56,7 @@ async function runSelfSigningFlow(page: Page): Promise<void> {
 	const targetRow = page.locator('[data-cy-files-list-tbody] tr.files-list__row').filter({ hasText: uniqueName })
 	await expect(targetRow).toBeVisible({ timeout: 20000 })
 	await targetRow.getByRole('button', { name: 'Actions' }).click()
-	await page.getByRole('menuitem', { name: 'Sign' }).click()
+	await page.getByRole('menuitem', { name: 'Sign', exact: true }).click()
 
 	await page.waitForURL('**/f/sign/**/pdf')
 	await expect(page.getByLabel('PDF document to sign')).toBeVisible({ timeout: 15_000 })
@@ -66,8 +66,7 @@ async function runSelfSigningFlow(page: Page): Promise<void> {
 
 	const signResponsePromise = page.waitForResponse((response) =>
 		response.request().method() === 'POST'
-		&& response.url().includes('/apps/libresign/api/v1/sign/'),
-	)
+		&& response.url().includes('/apps/libresign/api/v1/sign/'))
 	await page.getByRole('dialog', { name: 'Sign document' }).getByRole('button', { name: 'Sign document' }).click()
 	const signResponse = await signResponsePromise
 	const signResponseBody = await signResponse.text()

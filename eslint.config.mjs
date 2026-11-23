@@ -86,15 +86,9 @@ export default [
 			// Formatting — large autofix churn; follow-up PR
 			'@stylistic/arrow-parens': 'off', // ~168 hits
 			'@stylistic/exp-list-style': 'off', // ~34 hits
-			'@stylistic/function-paren-newline': 'off', // ~177 hits
 			'@stylistic/implicit-arrow-linebreak': 'off', // ~39 hits
 			'@stylistic/indent': 'off', // ~778 hits; tabs vs spaces migration
-			'@stylistic/max-statements-per-line': 'off', // ~100 hits
-			'@stylistic/member-delimiter-style': 'off', // ~180 hits
 			'@stylistic/no-tabs': 'off', // ~190 hits; tabs vs spaces migration
-			'@stylistic/semi': 'off', // ~16 hits
-			'vue/first-attribute-linebreak': 'off', // ~435 hits; formatting churn
-			'vue/max-attributes-per-line': 'off', // ~68 hits; formatting churn
 
 			// Import sorting / extensions — large churn; needs dedicated PR
 			'perfectionist/sort-imports': 'off', // ~1216 hits
@@ -116,6 +110,16 @@ export default [
 			'no-use-before-define': 'off', // ~8 hits; non-fixable (JS twin)
 			'antfu/top-level-function': 'off', // ~114 hits; style preference, large churn
 			'vue/no-unused-properties': 'off', // ~11 hits; public API / shared editor props
+		},
+	},
+
+	{
+		name: 'libresign/playwright-indentation',
+		files: ['playwright/**/*.ts'],
+		rules: {
+			// Enforce the existing tab-indented Playwright convention without
+			// lifting the app-wide formatting migration exemptions.
+			'@stylistic/indent': ['error', 'tab'],
 		},
 	},
 ]

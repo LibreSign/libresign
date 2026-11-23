@@ -112,9 +112,7 @@ export function useFooterPolicyGuard(): void {
  *
  * @param baselineValue Policy value to force during the test body.
  */
-export function useRequestSignPolicyGuard(
-	baselineValue: string = REQUEST_SIGN_ADMIN_BASELINE_VALUE,
-): void {
+export function useRequestSignPolicyGuard(baselineValue: string = REQUEST_SIGN_ADMIN_BASELINE_VALUE): void {
 	let adminContext: APIRequestContext
 	let originalRequestSignPolicy: string | null = null
 

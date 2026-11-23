@@ -13,6 +13,7 @@ use OC\Config\ConfigManager;
 use OC\Config\PresetManager;
 use OC\Memcache\Factory as CacheFactory;
 use OCP\Exceptions\AppConfigTypeConflictException;
+use OCP\Exceptions\AppConfigUnknownKeyException;
 use OCP\IConfig;
 use OCP\IDBConnection;
 use OCP\Security\ICrypto;
@@ -150,6 +151,24 @@ class AppConfigOverwrite extends AppConfig {
 
 	public function setValueInt(string $app, string $key, int $value, bool $lazy = false, bool $sensitive = false): bool {
 		return $this->setOverwrite($app, $key, $value);
+	}
+
+	public function getValueType(string $app, string $key, ?bool $lazy = null): int {
+		if ($this->isDeleted($app, $key)) {
+			throw new AppConfigUnknownKeyException('unknown config key');
+		}
+
+		if (isset($this->overWrite[$app]) && array_key_exists($key, $this->overWrite[$app])) {
+			return match (true) {
+				is_int($this->overWrite[$app][$key]) => self::VALUE_INT,
+				is_float($this->overWrite[$app][$key]) => self::VALUE_FLOAT,
+				is_bool($this->overWrite[$app][$key]) => self::VALUE_BOOL,
+				is_array($this->overWrite[$app][$key]) => self::VALUE_ARRAY,
+				default => self::VALUE_STRING,
+			};
+		}
+
+		return parent::getValueType($app, $key, $lazy);
 	}
 
 	public function deleteKey(string $app, string $key): void {

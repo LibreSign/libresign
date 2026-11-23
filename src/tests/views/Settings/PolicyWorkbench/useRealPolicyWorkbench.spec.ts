@@ -149,8 +149,7 @@ describe('useRealPolicyWorkbench', () => {
 						label: 'Email token',
 					},
 				},
-			},
-		)
+			})
 		axiosGet.mockReset()
 		saveSystemPolicy.mockReset()
 		saveGroupPolicy.mockReset()
@@ -496,12 +495,10 @@ describe('useRealPolicyWorkbench', () => {
 			if (url === 'cloud/users/details') {
 				const offset = config?.params?.offset ?? 0
 				if (offset === 0) {
-					const firstPageUsers = Object.fromEntries(
-						Array.from({ length: 20 }, (_, index) => {
+					const firstPageUsers = Object.fromEntries(Array.from({ length: 20 }, (_, index) => {
 							const id = `user${index + 1}`
 							return [id, { id, displayname: `User ${index + 1}` }]
-						}),
-					)
+						}))
 
 					return Promise.resolve({
 						data: {

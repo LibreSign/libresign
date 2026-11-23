@@ -887,11 +887,11 @@ class FileController extends AEnvironmentAwareOCSController {
 	 *
 	 * @param integer $fileId LibreSign file ID
 	 * @param boolean $deleteFile Whether to delete the physical file from Nextcloud (default: true)
-	 * @return DataResponse<Http::STATUS_OK, LibresignMessageResponse, array{}>|DataResponse<Http::STATUS_UNAUTHORIZED, LibresignMessageResponse, array{}>|DataResponse<Http::STATUS_UNPROCESSABLE_ENTITY, LibresignActionErrorResponse, array{}>
+	 * @return DataResponse<Http::STATUS_OK, LibresignMessageResponse, array{}>|DataResponse<Http::STATUS_UNPROCESSABLE_ENTITY, LibresignMessageResponse|LibresignActionErrorResponse, array{}>|DataResponse<Http::STATUS_INTERNAL_SERVER_ERROR, LibresignMessageResponse, array{}>
 	 *
 	 * 200: OK
-	 * 401: Failed
 	 * 422: Failed
+	 * 500: Unexpected failure
 	 */
 	#[NoAdminRequired]
 	#[NoCSRFRequired]
@@ -913,7 +913,9 @@ class FileController extends AEnvironmentAwareOCSController {
 				[
 					'message' => $th->getMessage(),
 				],
-				Http::STATUS_UNAUTHORIZED
+				$th instanceof LibresignException
+					? Http::STATUS_UNPROCESSABLE_ENTITY
+					: Http::STATUS_INTERNAL_SERVER_ERROR,
 			);
 		}
 		return new DataResponse(

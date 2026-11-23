@@ -24,9 +24,7 @@ function unwrap(response: { data?: OcsGeoIpResponse }): GeoIpConfig {
 }
 
 export async function getGeoIpConfig(): Promise<GeoIpConfig> {
-	const response = await axios.get<OcsGeoIpResponse>(
-		generateOcsUrl('/apps/libresign/api/v1/admin/geoip'),
-	)
+	const response = await axios.get<OcsGeoIpResponse>(generateOcsUrl('/apps/libresign/api/v1/admin/geoip'))
 	return unwrap(response)
 }
 

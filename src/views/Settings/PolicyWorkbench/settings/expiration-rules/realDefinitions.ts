@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
 
-import { t } from '@nextcloud/l10n'
+import { n, t } from '@nextcloud/l10n'
 
 import type { EffectivePolicyValue } from '../../../../../types/index'
 import type { RealPolicySettingDefinition } from '../realTypes'
@@ -146,8 +146,8 @@ export const expiryInDaysRealDefinition: RealPolicySettingDefinition = {
 	},
 	summarizeValue: (value: EffectivePolicyValue) => {
 		const normalized = normalizePositiveInt(value, DEFAULT_EXPIRY_IN_DAYS)
-		// TRANSLATORS Summary value. {value} is number of days before generated certificate expiration.
-		return t('libresign', '{value} days', { value: String(normalized) })
+		// TRANSLATORS Summary value. %n is number of days before generated certificate expiration.
+		return n('libresign', '%n day', '%n days', normalized)
 	},
 	formatAllowOverride: (allowChildOverride: boolean) =>
 		allowChildOverride

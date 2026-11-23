@@ -354,6 +354,45 @@ final class RequestSignatureControllerTest extends TestCase {
 		$this->assertSame(Http::STATUS_OK, $response->getStatus());
 	}
 
+	public static function libresignExceptionCodes(): array {
+		return [
+			'default code' => [0],
+			'former unauthorized code' => [401],
+			'unprocessable code' => [422],
+		];
+	}
+
+	#[DataProvider('libresignExceptionCodes')]
+	public function testRemoveSignerReportsAnyLibresignExceptionAsUnprocessable(int $code): void {
+		$this->signingRequestValidator
+			->method('validateExistingFile')
+			->willThrowException(new LibresignException('The signing workflow of this document is already closed.', $code));
+
+		$response = $this->controller->removeSigner(10, 20);
+
+		$this->assertSame(Http::STATUS_UNPROCESSABLE_ENTITY, $response->getStatus());
+		$this->assertSame(['message' => 'The signing workflow of this document is already closed.'], $response->getData());
+	}
+
+	public static function deleteFailureScenarios(): array {
+		return [
+			'business failure' => [new LibresignException('Invalid fileID'), Http::STATUS_UNPROCESSABLE_ENTITY],
+			'unexpected failure' => [new \RuntimeException('database is gone'), Http::STATUS_INTERNAL_SERVER_ERROR],
+		];
+	}
+
+	#[DataProvider('deleteFailureScenarios')]
+	public function testDeleteSignatureRequestMapsTheFailureToItsStatus(\Throwable $failure, int $status): void {
+		$this->signingRequestValidator
+			->method('validateExistingFile')
+			->willThrowException($failure);
+
+		$response = $this->controller->deleteSignatureRequest(10);
+
+		$this->assertSame($status, $response->getStatus());
+		$this->assertSame(['message' => $failure->getMessage()], $response->getData());
+	}
+
 	public static function statusPayloadScenarios(): array {
 		return [
 			'null status is omitted' => [

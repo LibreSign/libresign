@@ -114,6 +114,17 @@ class FolderService {
 	}
 
 	/**
+	 * Look up a node in the unauthenticated container without creating it.
+	 *
+	 * @throws NotFoundException
+	 */
+	public function getUnauthenticatedFileByNodeId(int $nodeId): File {
+		$service = clone $this;
+		$service->setUserId(null);
+		return $service->getFileByNodeId($nodeId);
+	}
+
+	/**
 	 * @throws NotFoundException
 	 */
 	public function getFileByNodeId(int $nodeId): File {
@@ -222,6 +233,18 @@ class FolderService {
 
 		$folderName = $this->getFolderName($data, $identifier);
 		return $userFolder->newFolder($folderName);
+	}
+
+	/**
+	 * Resolve the folder for a new file of the given user, independently of
+	 * the user currently bound to this service.
+	 *
+	 * @throws LibresignException
+	 */
+	public function getFolderForUserFile(IUser $user, array $data): Folder {
+		$service = clone $this;
+		$service->setUserId($user->getUID());
+		return $service->getFolderForFile($data, $user);
 	}
 
 	/**

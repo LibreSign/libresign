@@ -4,11 +4,13 @@
 -->
 <template>
 	<div class="identifySigner">
-		<SignerSelect v-if="isNewSigner"
+		<SignerSelect
+			v-if="isNewSigner"
 			:key="participantRole"
 			:placeholder="placeholder"
 			:method="method"
 			:participant-role="props.participantRole"
+			:allow-self="props.allowSelf"
 			@update:signer="applySelectedSigner" />
 		<NcNoteCard v-else type="info">
 			<template #icon>
@@ -18,10 +20,12 @@
 		</NcNoteCard>
 
 		<NcNoteCard v-if="disabled" type="warning" class="disabled-warning">
+			<!-- TRANSLATORS Warning when the selected signing identity method is disabled; {method} is its display name. -->
 			{{ t('libresign', 'This signer cannot be used because the identification method "{method}" has been disabled by the administrator.', { method: identifyMethodLabel }) }}
 		</NcNoteCard>
 
-		<NcTextField v-if="signerSelected && !disabled"
+		<NcTextField
+			v-if="signerSelected && !disabled"
 			v-model="displayName"
 			aria-describedby="name-input"
 			autocapitalize="none"
@@ -33,13 +37,15 @@
 			@update:modelValue="onNameChange" />
 
 		<div v-if="signerSelected && showCustomMessage && !disabled" class="description-wrapper">
-			<NcCheckboxRadioSwitch v-model="enableCustomMessage"
+			<NcCheckboxRadioSwitch
+				v-model="enableCustomMessage"
 				type="switch"
 				@update:model-value="onToggleCustomMessage">
 				<!-- TRANSLATORS Switch label to enable personalized message for signer. -->
 				{{ t('libresign', 'Add custom message') }}
 			</NcCheckboxRadioSwitch>
-			<NcTextArea v-if="enableCustomMessage"
+			<NcTextArea
+				v-if="enableCustomMessage"
 				v-model="description"
 				aria-describedby="description-input"
 				maxlength="500"
@@ -50,7 +56,8 @@
 		</div>
 
 		<div v-if="signerSelected && showGeolocationRequirementToggle && !disabled" class="geolocation-wrapper">
-			<NcCheckboxRadioSwitch v-model="deviceGeolocationRequired"
+			<NcCheckboxRadioSwitch
+				v-model="deviceGeolocationRequired"
 				type="switch">
 				<!-- TRANSLATORS Switch label allowing the requester to require device-reported location for this signer. -->
 				{{ t('libresign', 'Require device-reported location to sign') }}
@@ -63,7 +70,8 @@
 					<!-- TRANSLATORS Button label to close signer editor without saving changes. -->
 					{{ t('libresign', 'Cancel') }}
 				</NcButton>
-				<NcButton variant="primary"
+				<NcButton
+					variant="primary"
 					:disabled="!signerSelected"
 					@click="saveSigner">
 					{{ saveButtonText }}
@@ -114,6 +122,7 @@ const props = withDefaults(defineProps<{
 	methods?: IdentifyMethodConfig[]
 	disabled?: boolean
 	participantRole?: ParticipantRole
+	allowSelf?: boolean
 }>(), {
 	signerToEdit: () => ({
 		displayName: '',
@@ -125,6 +134,7 @@ const props = withDefaults(defineProps<{
 	methods: () => [],
 	disabled: false,
 	participantRole: PARTICIPANT_ROLE.SIGNER,
+	allowSelf: false,
 })
 
 const iconMap = {

@@ -5,7 +5,8 @@
 <template>
 	<div ref="root" class="markdown-heading-menu">
 		<!-- TRANSLATORS Aria label for the markdown editor toolbar button that opens the menu for choosing paragraph or heading styles. -->
-		<button ref="toggle"
+		<button
+			ref="toggle"
 			type="button"
 			class="markdown-heading-menu__toggle"
 			:aria-expanded="isOpen ? 'true' : 'false'"
@@ -17,14 +18,16 @@
 			<span>H</span>
 		</button>
 
-		<ul v-if="isOpen"
+		<ul
+			v-if="isOpen"
 			ref="menu"
 			class="markdown-heading-menu__menu"
 			role="menu"
 			:style="menuStyle"
 			@keydown.escape.prevent="closeMenu">
 			<li role="none">
-				<button type="button"
+				<button
+					type="button"
 					role="menuitem"
 					class="markdown-heading-menu__item"
 					@click="clearHeading">
@@ -35,7 +38,8 @@
 				</button>
 			</li>
 			<li v-for="level in headingLevels" :key="level" role="none">
-				<button type="button"
+				<button
+					type="button"
 					role="menuitem"
 					class="markdown-heading-menu__item"
 					@click="applyHeading(level)">

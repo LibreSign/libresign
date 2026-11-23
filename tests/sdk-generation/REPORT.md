@@ -15,9 +15,9 @@ keeps `| null` at the properties that reference it (disjoint `oneOf` contract,
 `@nextcloud/axios` injection all pass.
 
 The decision remains No-Go for unmodified input because three generated models
-and seven merged 422 error-body models of the remaining 17 `anyOf` constructs
-are still incorrect (the other seven, envelope 401/403 bodies, read the contract
-faithfully; see [Remaining model defects](#remaining-model-defects)), and multipart
+and nine merged 422 error-body models of the remaining 13 `anyOf` constructs
+are still incorrect (the other one, the `footer-template` 403 envelope body,
+reads the contract faithfully; see [Remaining model defects](#remaining-model-defects)), and multipart
 bodies are still absent from the contract. Every blocker left is on the
 extractor/generator side or needs a maintainer decision about the contract
 shape; see [UPSTREAM-NOTES.md](UPSTREAM-NOTES.md). This evaluation selects no
@@ -34,7 +34,7 @@ type alias for the renamed schema and a type predicate in
   to `IdDocFile`, literal media types for the CRL and the admin background, and
   annotations aligned with what the code returns (see
   [Annotations aligned with the code](#annotations-aligned-with-the-code)).
-- `openapi-full.json` SHA-256 with those changes: `b586418da879f0650b4e9ee4f9b0553c8cb3b72472c80cd998cf395491855387`
+- `openapi-full.json` SHA-256 with those changes: `49410bb42e286791713e9ce3d36728875c2d36cf28f19998c8dfa4f3b0fcd343`
   (`64c52fa2ba243af292eba30055982954bfd8c19136567e50e28c4abcffcc9405` on `main`).
 - Extractor used to produce the contract: `nextcloud/openapi-extractor` 1.9.1.
 - Generator: `openapitools/openapi-generator-cli` 7.27.0 at
@@ -106,10 +106,11 @@ soon as one of them fails (TS2578 or TS2322):
 | `FileRuntimeMetadata` | `anyOf` `ValidateMetadata`, `{ [key]: DynamicMetadataValue }` | only the `ValidateMetadata` fields, with `extension` and `p` required | a valid dynamic metadata object is rejected |
 | `RequestPolicyOverrides` values | `anyOf` `EffectivePolicyValue`, array of it | empty interface `RequestPolicyOverridesValue` | accepts any non-null value |
 
-The other 14 `anyOf` occurrences are in 4xx bodies. Seven (the 422 responses of
+The other 10 `anyOf` occurrences are in 4xx bodies. Nine (the 422 responses of
 `notify-signers`, `notify-signer`, `request-signature`,
-`update-signature-request`, `removeSigner`, `file-save` and
-`file-add-file-to-envelope`) are real unions of an
+`update-signature-request`, `removeSigner`, `file-save`,
+`file-add-file-to-envelope`, `deleteFile` and `deleteSignatureRequest`) are real
+unions of an
 `{action, errors}` body (`ActionErrorResponse`, a `LibresignException` with a
 JSON message) and a `{message}` body (`MessageResponse`). For
 `request-signature` (POST and PATCH), `removeSigner`, `file-save` and
@@ -122,10 +123,9 @@ exception and `afterException` serializes both bodies (JSON message as
 `{action, errors}`, plain message as `{message}`). The generator merges
 the alternatives into one interface (for example
 `NotifySigners422ResponseOcsData` requires `action` and `errors`, which the
-`MessageResponse` alternative does not have). The other seven (six 401 bodies
-and the `footer-template` 403) are envelope-level `anyOf` whose second branch
-has an untyped `data: {}`; they are generated as `...AnyOf1Ocs` models with
-`data: any`. That reads the contract faithfully: the extractor's implicit 401/403
+`MessageResponse` alternative does not have). The tenth, the `footer-template`
+403, is an envelope-level `anyOf` whose second branch has an untyped
+`data: {}`; it is generated as an `...AnyOf1Ocs` model with `data: any`. That reads the contract faithfully: the extractor's implicit 401/403
 has no typed body, so `X | {}` accepts anything. The typed branch is not lost by
 the generator; the extractor adds the untyped one next to it. In
 both cases the generator creates models for error bodies but method return
@@ -182,21 +182,34 @@ LibreSign annotations that did not match the data were corrected:
 block (`InjectionMiddleware.php`, `SigningRequestValidator.php`), so the
 original `ActionErrorResponse` documentation was kept.
 
-Open decision for the maintainers, not changed here: several methods answer
-HTTP 401 for failures that are not authentication failures.
-`signatureGenerate`, the two certificate generators (`catch \Exception`),
-`deleteFile` and `deleteSignatureRequest` (`catch \Throwable`) return 401 for
-every caught failure, including validation and business errors, and
-`removeSigner` returns 401 for any `LibresignException` whose code is not 422.
-A 401 means "unauthenticated", so an SDK cannot tell an invalid session from a
-business failure. Changing the status breaks compatibility and the Behat
-scenarios, so it needs its own change.
+### Failures no longer reported as 401
+
+Six operations answered HTTP 401 for failures that are not authentication
+failures: `account/signature` (POST), the two certificate generators
+(`catch \Exception`), `deleteFile` and `deleteSignatureRequest`
+(`catch \Throwable`), and `removeSigner` (any `LibresignException` whose code was
+not 422). A 401 means "unauthenticated", so an SDK could not tell an invalid
+session from "CN is required" or from a closed signing workflow, which the
+neighbouring `notify` and `sign` endpoints already answered with 422. This is a
+breaking change of the API:
+
+- a `LibresignException` (and an `InvalidArgumentException` in the PFX and
+  certificate generators) is now HTTP 422 with the same `{message}` body;
+- any other failure that these methods already caught is now HTTP 500 with the
+  same `{message}` body (before, it was 401);
+- the real authentication failure is still the framework's 401, now the only
+  one in those operations, and it is untyped (`data: {}`).
+
+Six of the former envelope `anyOf` disappeared with the explicit 401
+(17 became 13); `deleteFile` and `deleteSignatureRequest` gained the
+`MessageResponse | ActionErrorResponse` 422 union, because the catch block and
+the permission middleware answer different bodies.
 
 ## Normalized-input experiment
 
 `normalize-input.cjs` writes only
 `build/sdk-generation/normalized/openapi-full.oneof.json`, renaming the
-remaining 17 `anyOf` keywords to `oneOf`. It generates
+remaining 13 `anyOf` keywords to `oneOf`. It generates
 `FileListResponseDataInner = DetailedFile | FileSummary` and
 `FileRuntimeMetadata = ValidateMetadata | { [key: string]: ... }`, and
 `test:normalized` passes. It is generator-input normalization only: object
@@ -240,7 +253,7 @@ the extractor support above (or another reviewed design) and a regeneration.
 
 Maintainers must choose among these options; this evaluation selects none:
 
-1. Conditional Go with a reviewed generator-input normalization of the 17
+1. Conditional Go with a reviewed generator-input normalization of the 13
    `anyOf` constructs, documented as non-contractual.
 2. Fix the generator's `anyOf` merge and type the extractor's implicit 401/403
    body upstream, and adjust LibreSign's own types or annotations where

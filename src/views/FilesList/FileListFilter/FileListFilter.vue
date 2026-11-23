@@ -17,7 +17,8 @@
 				<slot />
 				<template v-if="isActive">
 					<hr class="file-list-filter__separator">
-					<NcButton class="file-list-filter__clear-button"
+					<NcButton
+						class="file-list-filter__clear-button"
 						alignment="start"
 						variant="tertiary"
 						wide

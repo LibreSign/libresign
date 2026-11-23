@@ -482,7 +482,7 @@ OC.L10N.register(
     "Other" : "Muu",
     "default" : "oletus",
     "{value} seconds" : "{value} sekuntia",
-    "{value} days" : "{value} päivää",
+    "_%n day_::_%n days_" : ["%n päivä","%n päivää"],
     "This information will appear on the validation page" : "Tämä tieto näkyy validointisivulla",
     "Custom template" : "Mukautettu malli",
     "Default background" : "Oletustausta",

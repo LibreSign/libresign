@@ -95,7 +95,11 @@
 		{{ personalRulesInheritanceNotice }}
 	</p>
 
-	<div v-if="rulesLoading" class="policy-workbench__table-loading" aria-live="polite" aria-busy="true">
+	<div
+		v-if="rulesLoading"
+		class="policy-workbench__table-loading"
+		aria-live="polite"
+		aria-busy="true">
 		<NcLoadingIcon :size="32" />
 		<p>{{ loadingRulesLabel }}</p>
 	</div>
@@ -157,7 +161,11 @@
 					</tr>
 				</tbody>
 			</table>
-			<div v-if="loadingMoreCrudRows" class="policy-workbench__table-loading-more" aria-live="polite" aria-busy="true">
+			<div
+				v-if="loadingMoreCrudRows"
+				class="policy-workbench__table-loading-more"
+				aria-live="polite"
+				aria-busy="true">
 				<NcLoadingIcon :size="20" />
 				<span>{{ loadingMoreRulesLabel }}</span>
 			</div>

@@ -97,6 +97,50 @@ class IdDocsMapper extends QBMapper {
 		return $this->findEntity($qb);
 	}
 
+	/**
+	 * Identification documents uploaded by signers without an account, with
+	 * the references needed to locate their node and its expected owner.
+	 *
+	 * @return list<array{id_doc_id: int, file_id: int, sign_request_id: ?int, file_exists: bool, node_id: ?int, signed_node_id: ?int, owner: ?string, signed_document_id: ?int, signed_document_owner: ?string, signed_document_exists: bool}>
+	 */
+	public function getExternalSignerDocuments(): array {
+		$qb = $this->db->getQueryBuilder();
+		$qb->select('id.id', 'id.file_id', 'id.sign_request_id')
+			->selectAlias('f.id', 'file_row_id')
+			->selectAlias('f.node_id', 'node_id')
+			->selectAlias('f.signed_node_id', 'signed_node_id')
+			->selectAlias('f.user_id', 'owner')
+			->selectAlias('sr.id', 'sign_request_row_id')
+			->selectAlias('sr.file_id', 'signed_document_id')
+			->selectAlias('sf.id', 'signed_document_row_id')
+			->selectAlias('sf.user_id', 'signed_document_owner')
+			->from($this->getTableName(), 'id')
+			->leftJoin('id', 'libresign_file', 'f', 'f.id = id.file_id')
+			->leftJoin('id', 'libresign_sign_request', 'sr', 'sr.id = id.sign_request_id')
+			->leftJoin('sr', 'libresign_file', 'sf', 'sf.id = sr.file_id')
+			->where($qb->expr()->isNull('id.user_id'))
+			->orderBy('id.id');
+
+		$rows = [];
+		$result = $qb->executeQuery();
+		while ($row = $result->fetch()) {
+			$rows[] = [
+				'id_doc_id' => (int)$row['id'],
+				'file_id' => (int)$row['file_id'],
+				'sign_request_id' => $row['sign_request_row_id'] === null ? null : (int)$row['sign_request_row_id'],
+				'file_exists' => $row['file_row_id'] !== null,
+				'node_id' => $row['node_id'] === null ? null : (int)$row['node_id'],
+				'signed_node_id' => $row['signed_node_id'] === null ? null : (int)$row['signed_node_id'],
+				'owner' => $row['owner'] === null || $row['owner'] === '' ? null : (string)$row['owner'],
+				'signed_document_id' => $row['signed_document_id'] === null ? null : (int)$row['signed_document_id'],
+				'signed_document_owner' => $row['signed_document_owner'] === null || $row['signed_document_owner'] === '' ? null : (string)$row['signed_document_owner'],
+				'signed_document_exists' => $row['signed_document_row_id'] !== null,
+			];
+		}
+		$result->closeCursor();
+		return $rows;
+	}
+
 	public function getByFileId(int $fileId): IdDocs {
 		$qb = $this->db->getQueryBuilder();
 		$qb->select('*')

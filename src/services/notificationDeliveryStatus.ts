@@ -24,9 +24,9 @@ interface WatchOptions {
 }
 
 export type NotificationSubmitResult
-	= | { kind: 'accepted' | 'not_found' | 'status_unavailable'; message?: string }
+	= | { kind: 'accepted' | 'not_found' | 'status_unavailable', message?: string }
 		| { kind: 'unconfirmed' }
-		| { kind: 'invalid_request'; error: unknown }
+		| { kind: 'invalid_request', error: unknown }
 
 type NotifySignerSuccess = operations['notify-signer']['responses'][200]['content']['application/json']
 

@@ -276,7 +276,7 @@ final class RequestSignatureServiceTest extends \OCA\Libresign\Tests\Unit\TestCa
 				'userManager' => $this->user,
 			]);
 			$this->fail('A node registered more than once must not be saved.');
-		} catch (LibresignException $e) {
+		} catch (\OCA\Libresign\Exception\FileProcessingValidationException $e) {
 			$this->assertSame(422, $e->getCode());
 			$this->assertStringNotContainsString('SELECT', $e->getMessage());
 		}

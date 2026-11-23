@@ -4,7 +4,8 @@
 -->
 <template>
 	<NcAppContent>
-		<div class="container"
+		<div
+			class="container"
 			@dragenter="onDragEnter"
 			@dragover="onDragOver"
 			@dragleave="onDragLeave"
@@ -22,10 +23,12 @@
 					</p>
 				</header>
 				<div class="content-request">
-					<File v-show="!!filesStore.selectedFileId"
+					<File
+						v-show="!!filesStore.selectedFileId"
 						status="0"
 						status-text="none" />
-					<RequestPicker v-if="!sidebarStore.isVisible"
+					<RequestPicker
+						v-if="!sidebarStore.isVisible"
 						ref="requestPickerRef"
 						:inline="true" />
 				</div>

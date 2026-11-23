@@ -105,9 +105,11 @@ final class TemplateLoaderTest extends TestCase {
 			->method('addStyle')
 			->with(Application::APP_ID, 'libresign-tab');
 
+		$this->accountService->method('getConfig')->with($user)->willReturn(['skip_direct_sign_confirmation' => true]);
+
 		$capturedState = [];
 		$this->initialState
-			->expects($this->exactly(3))
+			->expects($this->exactly(4))
 			->method('provideInitialState')
 			->willReturnCallback(static function (string $key, mixed $value) use (&$capturedState): void {
 				$capturedState[$key] = $value;
@@ -117,6 +119,7 @@ final class TemplateLoaderTest extends TestCase {
 		$loader->handle(new LoadSidebar());
 
 		$expectedState = [
+			'config' => ['skip_direct_sign_confirmation' => true],
 			'certificate_ok' => true,
 			'effective_policies' => [
 				'policies' => [
@@ -198,7 +201,7 @@ final class TemplateLoaderTest extends TestCase {
 
 		$capturedState = [];
 		$this->initialState
-			->expects($this->exactly(3))
+			->expects($this->exactly(4))
 			->method('provideInitialState')
 			->willReturnCallback(static function (string $key, mixed $value) use (&$capturedState): void {
 				$capturedState[$key] = $value;

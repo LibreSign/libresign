@@ -10,12 +10,14 @@ namespace OCA\Libresign\Handler\SignEngine;
 
 use InvalidArgumentException;
 use OCA\Libresign\DataObjects\VisibleElementAssoc;
+use OCA\Libresign\Enum\DocMdpLevel;
 use OCA\Libresign\Exception\EmptyCertificateException;
 use OCA\Libresign\Exception\LibresignException;
 use OCA\Libresign\Exception\PasswordToSignNotDefinedException;
 use OCA\Libresign\Handler\CertificateEngine\CertificateEngineFactory;
 use OCA\Libresign\Handler\CertificateEngine\IEngineHandler;
 use OCA\Libresign\Service\FolderService;
+use OCA\Libresign\Vendor\LibreSign\PdfSignatureValidator\Parser\PdfSignatureInventoryReader;
 use OCP\Files\File;
 use OCP\Files\InvalidPathException;
 use OCP\Files\NotFoundException;
@@ -31,6 +33,7 @@ abstract class SignEngineHandler implements IPkcs12SignEngineHandler {
 	/** @var VisibleElementAssoc[] */
 	private array $visibleElements = [];
 	private array $signatureParams = [];
+	private ?DocMdpLevel $docMdpLevel = null;
 
 	public function __construct(
 		private IL10N $l10n,
@@ -119,6 +122,33 @@ abstract class SignEngineHandler implements IPkcs12SignEngineHandler {
 		return $this;
 	}
 
+	/**
+	 * The certification level to sign with, used as is. Without one, the
+	 * current level applies.
+	 */
+	public function setDocMdpLevel(?DocMdpLevel $docMdpLevel): self {
+		$this->docMdpLevel = $docMdpLevel;
+		return $this;
+	}
+
+	public function getDocMdpLevel(): ?DocMdpLevel {
+		return $this->docMdpLevel;
+	}
+
+	/**
+	 * Whether the PDF already has a signature that the document uses. A
+	 * signature dictionary that nothing points to does not count, so it does
+	 * not prevent the certification. When the structure cannot be read, any
+	 * signature marker counts.
+	 */
+	protected function hasExistingSignatures(string $pdfContent): bool {
+		$inventory = (new PdfSignatureInventoryReader())->readFromString($pdfContent);
+		if ($inventory->isConclusive) {
+			return $inventory->activeSignatureCount > 0;
+		}
+		return (bool)preg_match('/\/ByteRange\s*\[|\/Type\s*\/Sig\b|\/DocMDP\b|\/Perms\b/', $pdfContent);
+	}
+
 	public function setLeafExpiryOverrideInDays(?int $days): self {
 		$this->getCertificateEngine()->setLeafExpiryOverrideInDays($days);
 		return $this;
@@ -150,7 +180,7 @@ abstract class SignEngineHandler implements IPkcs12SignEngineHandler {
 			throw new LibresignException($this->l10n->t('Invalid data to generate certificate'));
 		} catch (\Throwable) {
 			// TRANSLATORS Error while LibreSign creates a user's signing certificate: the certificate engine failed unexpectedly during generation.
-			throw new LibresignException($this->l10n->t('Failure on generate certificate'));
+			throw new LibresignException($this->l10n->t('Failure to generate certificate'));
 		}
 		if (!$content) {
 			// TRANSLATORS Error while LibreSign creates a user's signing certificate: generation finished without returning a PFX/certificate payload.

@@ -119,7 +119,7 @@ test('personas can manage policies according to permissions and override toggles
 	)
 	expect(result.httpStatus).toBe(400)
 
-		let endUserEffective = await getEffectivePolicy(endUserRequest, POLICY_KEY)
+	let endUserEffective = await getEffectivePolicy(endUserRequest, POLICY_KEY)
 	expect(endUserEffective?.effectiveValue).toBe('ordered_numeric')
 	expect(endUserEffective?.canSaveAsUserDefault).toBe(false)
 
@@ -141,7 +141,7 @@ test('personas can manage policies according to permissions and override toggles
 	)
 	expect(result.httpStatus).toBe(200)
 
-		endUserEffective = await getEffectivePolicy(endUserRequest, POLICY_KEY)
+	endUserEffective = await getEffectivePolicy(endUserRequest, POLICY_KEY)
 	expect(endUserEffective?.effectiveValue).toBe('parallel')
 	expect(endUserEffective?.sourceScope).toBe('user')
 	expect(endUserEffective?.canSaveAsUserDefault).toBe(true)
@@ -158,29 +158,29 @@ test('admin can remove explicit instance policy and restore system baseline', as
 
 	await clearUserPolicyPreference(instanceResetUserRequest, POLICY_KEY)
 
-		let result = await policyRequest(
-			adminRequestContext,
-			'POST',
-			`/apps/libresign/api/v1/policies/system/${POLICY_KEY}`,
-			{ value: 'parallel', allowChildOverride: true },
-		)
-		expect(result.httpStatus).toBe(200)
+	let result = await policyRequest(
+		adminRequestContext,
+		'POST',
+		`/apps/libresign/api/v1/policies/system/${POLICY_KEY}`,
+		{ value: 'parallel', allowChildOverride: true },
+	)
+	expect(result.httpStatus).toBe(200)
 
-		let effectivePolicy = await getEffectivePolicy(instanceResetUserRequest, POLICY_KEY)
-		expect(effectivePolicy?.effectiveValue).toBe('parallel')
-		expect(effectivePolicy?.sourceScope).toBe('global')
+	let effectivePolicy = await getEffectivePolicy(instanceResetUserRequest, POLICY_KEY)
+	expect(effectivePolicy?.effectiveValue).toBe('parallel')
+	expect(effectivePolicy?.sourceScope).toBe('global')
 
-		result = await policyRequest(
-			adminRequestContext,
-			'POST',
-			`/apps/libresign/api/v1/policies/system/${POLICY_KEY}`,
-			{ value: null, allowChildOverride: false },
-		)
-		expect(result.httpStatus).toBe(200)
+	result = await policyRequest(
+		adminRequestContext,
+		'POST',
+		`/apps/libresign/api/v1/policies/system/${POLICY_KEY}`,
+		{ value: null, allowChildOverride: false },
+	)
+	expect(result.httpStatus).toBe(200)
 
-		effectivePolicy = await getEffectivePolicy(instanceResetUserRequest, POLICY_KEY)
-		expect(effectivePolicy?.effectiveValue).toBe('none')
-		expect(effectivePolicy?.sourceScope).toBe('system')
+	effectivePolicy = await getEffectivePolicy(instanceResetUserRequest, POLICY_KEY)
+	expect(effectivePolicy?.effectiveValue).toBe('none')
+	expect(effectivePolicy?.sourceScope).toBe('system')
 	await instanceResetUserRequest.dispose()
 })
 

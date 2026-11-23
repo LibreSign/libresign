@@ -13,7 +13,8 @@
 		<!-- Narrow: single collapsed button; turns primary-blue when filters are active -->
 		<NcPopover v-else :boundary="boundary">
 			<template #trigger>
-				<NcButton :aria-label="t('libresign', 'Filters')"
+				<NcButton
+					:aria-label="t('libresign', 'Filters')"
 					:pressed="hasActiveFilters"
 					variant="tertiary">
 					<template #icon>

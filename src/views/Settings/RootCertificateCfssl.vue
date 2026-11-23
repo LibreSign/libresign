@@ -4,7 +4,8 @@
 -->
 
 <template>
-	<NcSettingsSection v-if="isThisEngine && loaded && configureCheckStore.cfsslBinariesOk()"
+	<NcSettingsSection
+		v-if="isThisEngine && loaded && configureCheckStore.cfsslBinariesOk()"
 		:name="t('libresign', 'Root certificate data')"
 		:description="description">
 		<div v-if="configureOk && isCertificateGenerated" id="tableRootCertificateCfssl" class="form-libresign">
@@ -47,17 +48,20 @@
 				<!-- TRANSLATORS Button label for regenerating system root certificate used by LibreSign PKI. -->
 				{{ t('libresign', 'Regenerate root certificate') }}
 			</NcButton>
-			<NcDialog v-if="modal"
+			<NcDialog
+				v-if="modal"
 				:name="t('libresign', 'Confirm')"
 				@closing="closeModal">
 				<!-- TRANSLATORS High-risk confirmation warning: regenerating root certificate invalidates existing signing keys. -->
 				{{ t('libresign', 'Regenerate root certificate will invalidate all signatures keys. Do you confirm this action?') }}
 				<template #actions>
-					<NcButton variant="error"
+					<NcButton
+						variant="error"
 						@click="clearAndShowForm">
 						{{ t('libresign', 'Yes') }}
 					</NcButton>
-					<NcButton variant="primary"
+					<NcButton
+						variant="primary"
 						@click="closeModal">
 						{{ t('libresign', 'No') }}
 					</NcButton>
@@ -68,7 +72,8 @@
 			<div class="form-group">
 				<label for="commonName" class="form-heading--required">{{ t('libresign', 'Common Name (CN)') }}</label>
 				<!-- TRANSLATORS Helper text explaining Common Name (CN) value for generated root certificate subject. -->
-				<NcTextField id="commonName"
+				<NcTextField
+					id="commonName"
 					v-model="certificate.rootCert.commonName"
 					:helper-text="t('libresign', 'Full name of the main company or main person of this instance')"
 					:minlength="1"
@@ -78,17 +83,20 @@
 			</div>
 			<CertificateCustonOptions v-model:names="certificate.rootCert.names" />
 			<div>
-				<NcCheckboxRadioSwitch v-model="toggleCertificatePolicy"
+				<NcCheckboxRadioSwitch
+					v-model="toggleCertificatePolicy"
 					:disabled="formDisabled"
 					type="switch">
 					{{ t('libresign', 'Include certificate policy') }}
 				</NcCheckboxRadioSwitch>
 			</div>
-			<CertificatePolicy v-if="toggleCertificatePolicy"
+			<CertificatePolicy
+				v-if="toggleCertificatePolicy"
 				:disabled="formDisabled"
 				@certificate-policy-valid="handleCertificatePolicyValid" />
 			<div>
-				<NcCheckboxRadioSwitch v-model="customData"
+				<NcCheckboxRadioSwitch
+					v-model="customData"
 					:disabled="formDisabled"
 					type="switch">
 					{{ t('libresign', 'Define custom values to use {engine}', {engine: 'CFSSL'}) }}
@@ -96,7 +104,8 @@
 			</div>
 			<div v-if="customData" class="form-group">
 				<label for="cfsslUri">{{ t('libresign', 'CFSSL API URI') }}</label>
-				<NcTextField id="cfsslUri"
+				<NcTextField
+					id="cfsslUri"
 					v-model="certificate.cfsslUri"
 					:label-outside="true"
 					:placeholder="notMandatoryDefaultPlaceholder"
@@ -104,13 +113,15 @@
 			</div>
 			<div v-if="customData" class="form-group">
 				<label for="configPath">{{ t('libresign', 'Config path') }}</label>
-				<NcTextField id="configPath"
+				<NcTextField
+					id="configPath"
 					v-model="certificate.configPath"
 					:label-outside="true"
 					:placeholder="notMandatoryDefaultPlaceholder"
 					:disabled="formDisabled" />
 			</div>
-			<NcButton :disabled="!canSave"
+			<NcButton
+				:disabled="!canSave"
 				@click="generateCertificate">
 				{{ submitLabel }}
 			</NcButton>

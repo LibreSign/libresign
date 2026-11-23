@@ -5,7 +5,8 @@
 <template>
 	<div v-if="isUploading" class="upload-picker-container">
 		<div class="upload-picker__progress">
-			<NcProgressBar :value="uploadProgress"
+			<NcProgressBar
+				:value="uploadProgress"
 				:error="false"
 				size="small"
 				aria-label="Upload progress" />
@@ -13,7 +14,8 @@
 				<span :title="uploadEta">{{ uploadEta }}</span>
 			</p>
 		</div>
-		<NcButton class="upload-picker__cancel"
+		<NcButton
+			class="upload-picker__cancel"
 			variant="tertiary"
 			:aria-label="t('libresign', 'Cancel upload')"
 			@click="$emit('cancel')">

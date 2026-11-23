@@ -232,6 +232,7 @@ OC.L10N.register(
     "Other" : "その他",
     "default" : "デフォルト",
     "{value} seconds" : "{value} 秒",
+    "_%n day_::_%n days_" : ["%n日"],
     "Custom URL" : "カスタムURL",
     "Custom template" : "カスタムテンプレート",
     "Default background" : "デフォルト背景",

@@ -12,7 +12,8 @@
 		<NcNoteCard v-if="localErrorMessage" type="error">
 			{{ localErrorMessage }}
 		</NcNoteCard>
-		<NcTextField v-model="localName"
+		<NcTextField
+			v-model="localName"
 			autofocus
 			:label="label"
 			:placeholder="placeholder"

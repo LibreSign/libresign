@@ -130,7 +130,7 @@ class NotifyService {
 		if ($error !== null) {
 			$message = match ($error['code']) {
 				// TRANSLATORS Error shown when notifying a person who was never asked to sign. %s is the signer identifier.
-				'not_requested' => $this->l10n->t('No signature was requested to %s', $error['params']),
+				'not_requested' => $this->l10n->t('No signature was requested from %s', $error['params']),
 				// TRANSLATORS Error shown when notifying a signer who already completed their signature. %s is the signer name.
 				'already_signed' => $this->l10n->t('%s already signed this file', $error['params']),
 				// TRANSLATORS Error shown when the signer data used for a notification is invalid.

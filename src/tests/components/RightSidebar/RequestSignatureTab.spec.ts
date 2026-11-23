@@ -10,6 +10,7 @@ import { createPinia, setActivePinia } from 'pinia'
 import axios from '@nextcloud/axios'
 import { emit } from '@nextcloud/event-bus'
 import { loadState } from '@nextcloud/initial-state'
+import { getCurrentUser } from '@nextcloud/auth'
 import type { useFilesStore as useFilesStoreType } from '../../../store/files.js'
 import { usePoliciesStore } from '../../../store/policies'
 import RequestSignatureTab from '../../../components/RightSidebar/RequestSignatureTab.vue'
@@ -44,7 +45,9 @@ vi.mock('@nextcloud/initial-state', () => ({
 				warn_without_visible_signature_fields: true,
 			}
 		}
-		if (key === 'can_request_sign') { return true }
+		if (key === 'can_request_sign') {
+			return true
+		}
 		if (key === 'effective_policies') {
 			return {
 				policies: {
@@ -90,6 +93,10 @@ vi.mock('@nextcloud/capabilities', () => ({
 			},
 		},
 	})),
+}))
+
+vi.mock('@nextcloud/auth', () => ({
+	getCurrentUser: vi.fn(() => ({ uid: 'admin', displayName: 'Administrator' })),
 }))
 
 vi.mock('@nextcloud/event-bus', () => ({
@@ -327,6 +334,33 @@ describe('RequestSignatureTab - Critical Business Rules', () => {
 	afterEach(() => {
 		wrapper.unmount()
 		vi.restoreAllMocks()
+	})
+
+	describe('RULE: include the current user without selecting an account', () => {
+		it('shows the shortcut only for an enabled account method', async () => {
+			await updateMethods([{ name: 'email', enabled: true }])
+			expect(wrapper.vm.canIncludeMyself).toBe(false)
+			await updateIdentifyMethodsPolicy([{ name: 'account', enabled: true }])
+			expect(wrapper.vm.canIncludeMyself).toBe(true)
+		})
+
+		it('hides the shortcut when the current user is already a signer', async () => {
+			await updateIdentifyMethodsPolicy([{ name: 'account', enabled: true }])
+			await updateFile({
+				signers: [{
+					displayName: 'Administrator',
+					participantRole: PARTICIPANT_ROLE.SIGNER,
+					identifyMethods: [{ method: 'account', value: 'admin' }],
+				}],
+			})
+			expect(wrapper.vm.canIncludeMyself).toBe(false)
+		})
+
+		it('does not offer self-selection when request editing is forbidden', async () => {
+			await updateIdentifyMethodsPolicy([{ name: 'account', enabled: true }])
+			filesStore.canRequestSign = false
+			expect(wrapper.vm.canIncludeMyself).toBe(false)
+		})
 	})
 
 	describe('RULE: showDocMdpWarning when DocMDP level prevents changes', () => {
@@ -950,7 +984,9 @@ describe('RequestSignatureTab - Critical Business Rules', () => {
 						warn_without_visible_signature_fields: true,
 					}
 				}
-				if (key === 'can_request_sign') { return true }
+				if (key === 'can_request_sign') {
+					return true
+				}
 				return defaultValue
 			})
 
@@ -1248,7 +1284,9 @@ describe('RequestSignatureTab - Critical Business Rules', () => {
 			const signer = filesStore.getFile()?.signers?.[0]
 			expect(signer).toBeDefined()
 			let resolveRequest!: (value: unknown) => void
-			const pending = new Promise(resolve => { resolveRequest = resolve })
+			const pending = new Promise(resolve => {
+				resolveRequest = resolve
+			})
 			vi.mocked(axios.post).mockImplementation(async () => pending as Awaited<ReturnType<typeof axios.post>>)
 			vi.mocked(axios.get).mockResolvedValueOnce({
 				data: { ocs: { data: { status: 'completed', complete: true, channels: [{ channel: 'mail', state: 'accepted' }] } } },

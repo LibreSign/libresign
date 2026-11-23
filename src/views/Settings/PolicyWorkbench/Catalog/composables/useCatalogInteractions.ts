@@ -8,24 +8,24 @@ import { ref } from 'vue'
 type Surface = 'cards' | 'compact'
 
 type LastPress = {
-	surface: Surface,
-	key: string,
-	x: number,
-	y: number,
+	surface: Surface
+	key: string
+	x: number
+	y: number
 }
 
 type RecentSelectionGesture = {
-	surface: Surface,
-	key: string,
-	at: number,
+	surface: Surface
+	key: string
+	at: number
 }
 
 const DRAG_OPEN_THRESHOLD_PX = 6
 const SELECTION_GUARD_WINDOW_MS = 400
 
 type UseCatalogInteractionsOptions = {
-	getFilter: () => string,
-	onOpenSetting: (key: string) => void,
+	getFilter: () => string
+	onOpenSetting: (key: string) => void
 }
 
 export function useCatalogInteractions(options: UseCatalogInteractionsOptions) {

@@ -10,36 +10,36 @@ import { t } from '@nextcloud/l10n'
 export type CatalogCrudScope = 'system' | 'group' | 'user'
 
 export type CatalogCrudRow = {
-	key: string,
-	ruleId: string | null,
-	scope: CatalogCrudScope,
-	targetLabel: string,
-	valueLabel: string,
-	canRemove: boolean,
+	key: string
+	ruleId: string | null
+	scope: CatalogCrudScope
+	targetLabel: string
+	valueLabel: string
+	canRemove: boolean
 }
 
 type PolicyRuleLike = {
-	id: string,
-	targetId?: string | null,
-	value: unknown,
-	canRemove?: boolean,
+	id: string
+	targetId?: string | null
+	value: unknown
+	canRemove?: boolean
 }
 
 type CatalogStateLike = {
-	inheritedSystemRule: { id: string } | null,
-	hasGlobalDefault: boolean,
-	viewMode: 'system-admin' | 'group-admin',
-	summary?: { currentBaseValue?: string } | null,
-	visibleGroupRules: PolicyRuleLike[],
-	visibleUserRules: PolicyRuleLike[],
-	resolveTargetLabel: (scope: 'group' | 'user', targetId: string) => string,
+	inheritedSystemRule: { id: string } | null
+	hasGlobalDefault: boolean
+	viewMode: 'system-admin' | 'group-admin'
+	summary?: { currentBaseValue?: string } | null
+	visibleGroupRules: PolicyRuleLike[]
+	visibleUserRules: PolicyRuleLike[]
+	resolveTargetLabel: (scope: 'group' | 'user', targetId: string) => string
 }
 
 const CRUD_PAGE_SIZE = 20
 
 export const useCatalogCrudTable = (options: {
-	state: CatalogStateLike,
-	summarizeRuleValue: (value: unknown) => string,
+	state: CatalogStateLike
+	summarizeRuleValue: (value: unknown) => string
 }) => {
 	const crudSearch = ref('')
 	const crudScopeFilter = ref<'all' | CatalogCrudScope>('all')

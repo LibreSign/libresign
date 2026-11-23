@@ -5,12 +5,14 @@
 <template>
 	<div class="draw-file-input">
 		<div class="file-input-container">
-			<NcButton variant="primary"
+			<NcButton
+				variant="primary"
 				:wide="true"
 				@click="file?.click()">
 				{{ filePickerButtonLabel }}
 			</NcButton>
-			<input id="signature-file"
+			<input
+				id="signature-file"
 				ref="file"
 				type="file"
 				name="signature-file"
@@ -19,14 +21,16 @@
 		</div>
 
 		<div v-if="hasImage" ref="cropperContainer" class="cropper-container">
-			<Cropper ref="cropper"
+			<Cropper
+				ref="cropper"
 				:src="image"
 				:default-size="defaultStencilSize"
 				:stencil-props="stencilProps"
 				image-restriction="none"
 				@change="change" />
 			<div class="zoom-controls">
-				<NcButton variant="tertiary"
+				<NcButton
+					variant="tertiary"
 					:aria-label="decreaseZoomLevelLabel"
 					:title="decreaseZoomLevelLabel"
 					:disabled="!hasImage"
@@ -35,7 +39,8 @@
 						<NcIconSvgWrapper :path="mdiMagnifyMinusOutline" :size="20" />
 					</template>
 				</NcButton>
-				<NcButton variant="tertiary"
+				<NcButton
+					variant="tertiary"
 					:aria-label="increaseZoomLevelLabel"
 					:title="increaseZoomLevelLabel"
 					:disabled="!hasImage"
@@ -44,7 +49,8 @@
 						<NcIconSvgWrapper :path="mdiMagnifyPlusOutline" :size="20" />
 					</template>
 				</NcButton>
-				<NcButton variant="tertiary"
+				<NcButton
+					variant="tertiary"
 					:aria-label="fitImageToFrameLabel"
 					:title="fitImageToFrameLabel"
 					:disabled="!hasImage"
@@ -83,7 +89,8 @@
 			</div>
 		</div>
 
-		<NcDialog v-if="modal"
+		<NcDialog
+			v-if="modal"
 			:name="confirmSignatureDialogTitle"
 			content-classes="confirm-dialog__content"
 			@closing="cancel">

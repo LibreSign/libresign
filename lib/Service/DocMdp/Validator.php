@@ -11,9 +11,11 @@ namespace OCA\Libresign\Service\DocMdp;
 
 use OCA\Libresign\Db\File;
 use OCA\Libresign\Db\FileMapper;
+use OCA\Libresign\Enum\DocMdpLevel;
 use OCA\Libresign\Enum\ParticipantRole;
 use OCA\Libresign\Exception\LibresignException;
 use OCA\Libresign\Service\File\Pdf\PdfValidator;
+use OCA\Libresign\Service\Policy\Provider\DocMdp\FilePolicy\DocMdpFilePolicyApplier;
 use OCP\AppFramework\Db\DoesNotExistException;
 use OCP\Files\IRootFolder;
 use OCP\IL10N;
@@ -25,6 +27,7 @@ class Validator {
 		private ConfigService $configService,
 		private PdfValidator $pdfValidator,
 		private IRootFolder $root,
+		private DocMdpFilePolicyApplier $docMdpFilePolicyApplier,
 	) {
 	}
 
@@ -96,22 +99,33 @@ class Validator {
 		return $count;
 	}
 
+	/**
+	 * Signers are checked before the request is saved, so this is the level the
+	 * request will certify with once saved, not the one it stores now. An
+	 * envelope is not certified itself: each of its documents is, with its own
+	 * level, so one that allows no changes is enough to refuse more signers.
+	 */
 	private function getDocMdpLevel(array $data, ?File &$file): int {
-		$docMdpLevel = null;
-
 		if (!empty($data['uuid'])) {
 			try {
 				$file = $this->fileMapper->getByUuid($data['uuid']);
-				$docMdpLevel = $file->getDocmdpLevel();
 			} catch (DoesNotExistException) {
-				// File doesn't exist, use global configured level
+				// File doesn't exist, resolve the level of a new request
 			}
 		}
 
-		if ($docMdpLevel === null || $docMdpLevel === 0) {
-			return $this->configService->getLevel()->value;
+		$documents = $file?->isEnvelope() ? $this->fileMapper->getChildrenFiles($file->getId()) : [];
+		if ($documents === []) {
+			$documents = [$file];
 		}
+		$levels = array_map(
+			fn (?File $document): int => ($this->docMdpFilePolicyApplier->resolveLevel($document, $data)
+				?? $this->configService->getLevel())->value,
+			$documents,
+		);
 
-		return $docMdpLevel;
+		return in_array(DocMdpLevel::CERTIFIED_NO_CHANGES_ALLOWED->value, $levels, true)
+			? DocMdpLevel::CERTIFIED_NO_CHANGES_ALLOWED->value
+			: $levels[0];
 	}
 }

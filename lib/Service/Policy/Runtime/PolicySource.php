@@ -27,6 +27,7 @@ use OCP\IL10N;
 class PolicySource implements IPolicySource {
 	public function __construct(
 		private IAppConfig $appConfig,
+		private PolicyAppConfigValueReader $appConfigReader,
 		private PermissionSetMapper $permissionSetMapper,
 		private PermissionSetBindingMapper $bindingMapper,
 		private PolicyRegistry $registry,
@@ -717,52 +718,7 @@ class PolicySource implements IPolicySource {
 	}
 
 	private function readSystemValue(string $key, mixed $defaultValue): mixed {
-		try {
-			if (is_int($defaultValue)) {
-				return $this->appConfig->getAppValueInt($key, $defaultValue);
-			}
-
-			if (is_bool($defaultValue)) {
-				return $this->appConfig->getAppValueBool($key, $defaultValue);
-			}
-
-			if (is_float($defaultValue)) {
-				return $this->appConfig->getAppValueFloat($key, $defaultValue);
-			}
-
-			if (is_array($defaultValue)) {
-				return $this->appConfig->getAppValueArray($key, $defaultValue);
-			}
-
-			return $this->appConfig->getAppValueString($key, (string)$defaultValue);
-		} catch (AppConfigTypeConflictException $exception) {
-			if (is_string($defaultValue)) {
-				try {
-					$arrayValue = $this->appConfig->getAppValueArray($key, []);
-					return json_encode($arrayValue, JSON_THROW_ON_ERROR);
-				} catch (AppConfigTypeConflictException) {
-					return $this->appConfig->getAppValueBool($key, in_array(strtolower(trim($defaultValue)), ['1', 'true', 'yes', 'on'], true));
-				} catch (\JsonException) {
-					return (string)$defaultValue;
-				}
-			}
-
-			if (is_bool($defaultValue)) {
-				return $this->appConfig->getAppValueString($key, $defaultValue ? '1' : '0');
-			}
-
-			if (is_array($defaultValue)) {
-				// Value was stored as a scalar (e.g., by Nextcloud provisioning API).
-				// Return the raw string so the policy normalizer can decode it.
-				try {
-					return $this->appConfig->getAppValueString($key, '');
-				} catch (AppConfigTypeConflictException) {
-					return $defaultValue;
-				}
-			}
-
-			throw $exception;
-		}
+		return $this->appConfigReader->readUsingStoredType($key, $defaultValue);
 	}
 
 	private function writeSystemValue(string $key, mixed $value): void {

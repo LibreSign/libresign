@@ -18,7 +18,15 @@
 				</NcButton>
 			</div>
 			<div class="ste__input-unit">
-				<input :id="`ste-tfs-${id}`" :value="templateFontSize" type="number" :min="0.1" :max="30" :step="0.1" class="ste__num-input" @input="emitNumber($event, 'templateFontSize')">
+				<input
+					:id="`ste-tfs-${id}`"
+					:value="templateFontSize"
+					type="number"
+					:min="0.1"
+					:max="30"
+					:step="0.1"
+					class="ste__num-input"
+					@input="emitNumber($event, 'templateFontSize')">
 				<span class="ste__unit">pt</span>
 			</div>
 		</div>
@@ -37,7 +45,15 @@
 				</NcButton>
 			</div>
 			<div class="ste__input-unit">
-				<input :id="`ste-sfs-${id}`" :value="signatureFontSize" type="number" :min="0.1" :max="30" :step="0.1" class="ste__num-input" @input="emitNumber($event, 'signatureFontSize')">
+				<input
+					:id="`ste-sfs-${id}`"
+					:value="signatureFontSize"
+					type="number"
+					:min="0.1"
+					:max="30"
+					:step="0.1"
+					class="ste__num-input"
+					@input="emitNumber($event, 'signatureFontSize')">
 				<span class="ste__unit">pt</span>
 			</div>
 		</div>
@@ -56,7 +72,14 @@
 				</NcButton>
 			</div>
 			<div class="ste__input-unit">
-				<input :id="`ste-w-${id}`" :value="signatureWidth" type="number" :min="1" :max="800" class="ste__num-input" @input="emitNumber($event, 'signatureWidth')">
+				<input
+					:id="`ste-w-${id}`"
+					:value="signatureWidth"
+					type="number"
+					:min="1"
+					:max="800"
+					class="ste__num-input"
+					@input="emitNumber($event, 'signatureWidth')">
 				<span class="ste__unit">px</span>
 			</div>
 		</div>
@@ -75,7 +98,14 @@
 				</NcButton>
 			</div>
 			<div class="ste__input-unit">
-				<input :id="`ste-h-${id}`" :value="signatureHeight" type="number" :min="1" :max="800" class="ste__num-input" @input="emitNumber($event, 'signatureHeight')">
+				<input
+					:id="`ste-h-${id}`"
+					:value="signatureHeight"
+					type="number"
+					:min="1"
+					:max="800"
+					class="ste__num-input"
+					@input="emitNumber($event, 'signatureHeight')">
 				<span class="ste__unit">px</span>
 			</div>
 		</div>
@@ -93,16 +123,16 @@ import NcIconSvgWrapper from '@nextcloud/vue/components/NcIconSvgWrapper'
 type DisplayMode = 'default' | 'graphic' | 'text' | 'description_only'
 
 defineProps<{
-	id: string;
-	renderMode: DisplayMode;
-	templateFontSize: number;
-	signatureFontSize: number;
-	signatureWidth: number;
-	signatureHeight: number;
-	showResetTemplateFontSizeButton?: boolean;
-	showResetSignatureFontSizeButton?: boolean;
-	showResetWidthButton?: boolean;
-	showResetHeightButton?: boolean;
+	id: string
+	renderMode: DisplayMode
+	templateFontSize: number
+	signatureFontSize: number
+	signatureWidth: number
+	signatureHeight: number
+	showResetTemplateFontSizeButton?: boolean
+	showResetSignatureFontSizeButton?: boolean
+	showResetWidthButton?: boolean
+	showResetHeightButton?: boolean
 }>()
 
 const emit = defineEmits<{

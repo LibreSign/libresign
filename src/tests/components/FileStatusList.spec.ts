@@ -65,7 +65,7 @@ vi.mock('@nextcloud/vue/components/NcIconSvgWrapper', () => ({
 }))
 
 describe('FileStatusList.vue', () => {
-	const createWrapper = (props: { fileIds?: number[]; updateInterval?: number } = {}) => mount(FileStatusList, {
+	const createWrapper = (props: { fileIds?: number[], updateInterval?: number } = {}) => mount(FileStatusList, {
 		props: {
 			fileIds: [],
 			updateInterval: 2000,

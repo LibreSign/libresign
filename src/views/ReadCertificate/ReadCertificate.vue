@@ -3,7 +3,8 @@
   - SPDX-License-Identifier: AGPL-3.0-or-later
 -->
 <template>
-	<NcDialog v-if="signMethodsStore.modal.readCertificate"
+	<NcDialog
+		v-if="signMethodsStore.modal.readCertificate"
 		:name="t('libresign', 'Certificate data')"
 		:size="size"
 		is-form
@@ -12,18 +13,21 @@
 		<NcNoteCard v-if="error" type="error">
 			<p>{{ error }}</p>
 		</NcNoteCard>
-		<CertificateContent v-if="Object.keys(certificate).length"
+		<CertificateContent
+			v-if="Object.keys(certificate).length"
 			:certificate="certificate" />
 		<div v-else class="container">
 			<div class="input-group">
-				<NcPasswordField v-model="password"
+				<NcPasswordField
+					v-model="password"
 					:disabled="hasLoading"
 					:label="t('libresign', 'Certificate password')"
 					:placeholder="t('libresign', 'Certificate password')" />
 			</div>
 		</div>
 		<template v-if="Object.keys(certificate).length === 0" #actions>
-			<NcButton :disabled="hasLoading"
+			<NcButton
+				:disabled="hasLoading"
 				type="submit"
 				variant="primary"
 				@click="send()">

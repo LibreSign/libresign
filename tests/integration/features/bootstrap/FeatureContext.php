@@ -100,6 +100,61 @@ class FeatureContext extends NextcloudApiContext implements OpenedEmailStorageAw
 		$this->fields['SIGN_REQUEST_UUID'] = $matches['uuid'];
 	}
 
+	#[\Behat\Step\Then('the direct-sign response should contain a signed PDF named :filename')]
+	public function assertDirectSignedPdfResponse(string $filename): void {
+		Assert::same($this->response->getStatusCode(), 200);
+		Assert::contains($this->response->getHeaderLine('Content-Type'), 'application/pdf');
+		Assert::same($this->response->getHeaderLine('Cache-Control'), 'no-store');
+		Assert::stringNotEmpty($this->response->getHeaderLine('X-LibreSign-File-UUID'));
+		$disposition = $this->response->getHeaderLine('Content-Disposition');
+		Assert::contains($disposition, 'attachment;');
+		Assert::regex(
+			$disposition,
+			'/filename="?' . preg_quote(pathinfo($filename, PATHINFO_FILENAME), '/') . '(?:\.signed_\d+)?\.pdf"?/i',
+		);
+
+		$body = $this->response->getBody();
+		$body->rewind();
+		$pdf = $body->getContents();
+		Assert::startsWith($pdf, '%PDF-');
+		Assert::contains($pdf, '/ByteRange');
+		Assert::greaterThan(strlen($pdf), 1024);
+	}
+
+	#[Given('I retrieve the Nextcloud node ID for :path as :alias')]
+	public function retrieveNodeIdForPdf(string $path, string $alias): void {
+		$this->sendWebDavRequest('admin', 'PROPFIND', $path, <<<'XML'
+			<?xml version="1.0"?>
+			<d:propfind xmlns:d="DAV:" xmlns:oc="http://owncloud.org/ns">
+			  <d:prop><oc:fileid/></d:prop>
+			</d:propfind>
+			XML, ['Depth' => '0']);
+		$this->fetchWebDavPropertyTo('oc:fileid', $alias);
+		$id = trim($this->fields[$alias]);
+		Assert::regex($id, '/^[1-9][0-9]*$/', 'Nextcloud WebDAV fileid must be positive');
+		$this->fields[$alias] = $id;
+	}
+
+	#[\Behat\Step\When('I directly sign PDF :filename using the stored WebDAV node ID :alias')]
+	public function signPdfUsingWebDavNodeId(string $filename, string $alias): void {
+		Assert::keyExists($this->fields, $alias, 'WebDAV node ID was not fetched');
+		$nodeId = $this->fields[$alias];
+		Assert::regex($nodeId, '/^[1-9][0-9]*$/', 'Invalid WebDAV node ID');
+		$this->sendOCSRequest('post', '/apps/libresign/api/v1/sign/direct', [
+			'file' => ['nodeId' => (int)$nodeId],
+			'name' => $filename,
+			'method' => 'clickToSign',
+		]);
+	}
+
+	#[Given('user :user uploads the valid PDF fixture to :path')]
+	public function uploadValidPdfFixture(string $user, string $path): void {
+		$pdf = file_get_contents(__DIR__ . '/../../../php/fixtures/pdfs/small_valid.pdf');
+		Assert::stringNotEmpty($pdf, 'The PDF fixture must exist');
+		$this->sendWebDavRequest($user, 'PUT', $path, $pdf);
+		Assert::inArray($this->response->getStatusCode(), [201, 204]);
+	}
+
 	#[Given('I send a file to be signed')]
 	public function iSendAFileToBeSigned(DataTable $body): void {
 		$this->sendOCSRequest('post', '/apps/libresign/api/v1/request-signature', $body);

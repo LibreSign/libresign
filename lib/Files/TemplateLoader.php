@@ -66,6 +66,7 @@ class TemplateLoader implements IEventListener {
 
 	protected function getInitialStatePayload(): array {
 		return [
+			'config' => $this->accountService->getConfig($this->userSession->getUser()),
 			'certificate_ok' => $this->certificateEngineFactory->getEngine()->isSetupOk(),
 			'effective_policies' => [
 				'policies' => $this->policyService->resolveKnownPolicyStates(),

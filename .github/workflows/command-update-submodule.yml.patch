@@ -1,0 +1,21 @@
+--- a/.github/workflows/command-update-submodule.yml
++++ b/.github/workflows/command-update-submodule.yml
+@@ -12,7 +12,7 @@
+ 
+ jobs:
+   update:
+-    if: github.event.issue.pull_request != '' && vars.SUBMODULE_UPDATE_COMMAND != '' && github.event.comment.body == vars.SUBMODULE_UPDATE_COMMAND
++    if: github.event.issue.pull_request != '' && github.event.comment.body == '/update-3rdparty'
+     runs-on: ubuntu-latest
+     steps:
+       - name: Check actor permission
+@@ -50,7 +50,7 @@
+         uses: LibreCodeCoop/.github/actions/update-submodule@a66cc351b9b5e8c189941b57f01d1b8b1be911d2 # source pinned
+         with:
+           token: ${{ steps.workflow-app-token.outputs.token }}
+-          source-repository: ${{ vars.SUBMODULE_SOURCE_REPOSITORY }}
+-          submodule-path: ${{ vars.SUBMODULE_PATH }}
++          source-repository: LibreSign/3rdparty
++          submodule-path: 3rdparty
+           signer-name: ${{ steps.signer.outputs.name }}
+           signer-email: ${{ steps.signer.outputs.email }}

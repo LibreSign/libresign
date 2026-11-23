@@ -324,7 +324,7 @@ async function expectSignatureTextEffectiveState(
  *
  * @param value Raw signature-stamp policy value.
  */
-function parseSignatureTextValue(value: unknown): { template: string; renderMode: string } {
+function parseSignatureTextValue(value: unknown): { template: string, renderMode: string } {
 	if (typeof value === 'string') {
 		const trimmed = value.trim()
 		if (!trimmed.startsWith('{')) {
@@ -332,7 +332,7 @@ function parseSignatureTextValue(value: unknown): { template: string; renderMode
 		}
 
 		try {
-			const parsed = JSON.parse(trimmed) as { template?: string; render_mode?: string }
+			const parsed = JSON.parse(trimmed) as { template?: string, render_mode?: string }
 			return {
 				template: String(parsed.template ?? ''),
 				renderMode: String(parsed.render_mode ?? ''),

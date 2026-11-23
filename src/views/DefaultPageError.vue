@@ -6,20 +6,23 @@
 <template>
 	<div class="error-page">
 		<div class="logo-header">
-			<img :src="logoLibreSign"
+			<img
+				:src="logoLibreSign"
 				:alt="t('libresign', 'LibreSign')"
 				class="logo-icon">
 		</div>
 
 		<div class="error-container">
-			<NcEmptyContent :name="title"
+			<NcEmptyContent
+				:name="title"
 				:description="description">
 				<template #icon>
 					<NcIconSvgWrapper :path="iconPath" :size="80" :class="iconClass" />
 				</template>
 				<template #action>
 					<div v-if="errors.length" class="error-messages">
-						<NcNoteCard v-for="(error, index) in errors"
+						<NcNoteCard
+							v-for="(error, index) in errors"
 							:key="index"
 							:type="noteCardType">
 							{{ error.message }}

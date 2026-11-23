@@ -1,0 +1,56 @@
+# SPDX-FileCopyrightText: 2026 LibreCode coop and contributors
+# SPDX-License-Identifier: AGPL-3.0-or-later
+name: Update submodule reference
+
+on:
+  issue_comment: # zizmor: ignore[dangerous-triggers]
+    types: [created]
+
+permissions:
+  contents: read
+  pull-requests: read
+
+jobs:
+  update:
+    if: github.event.issue.pull_request != '' && github.event.comment.body == '/update-3rdparty'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check actor permission
+        uses: skjnldsv/check-actor-permission@69e92a3c4711150929bca9fcf34448c5bf5526e7 # v3.0
+        with:
+          require: write
+
+      - name: Create scoped GitHub App token
+        id: workflow-app-token
+        uses: actions/create-github-app-token@64ab729a6294000f5aa4a4bc0b73d1f32bc45510 # v3.3.0
+        with:
+          client-id: ${{ vars.WORKFLOW_SYNC_APP_CLIENT_ID }}
+          private-key: ${{ secrets.WORKFLOW_SYNC_APP_PRIVATE_KEY }}
+          owner: ${{ github.repository_owner }}
+          repositories: ${{ github.event.repository.name }}
+          permission-contents: write
+          permission-pull-requests: write
+          permission-workflows: write
+
+      - name: Resolve GitHub App commit identity
+        id: signer
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+          APP_SLUG: ${{ steps.workflow-app-token.outputs.app-slug }}
+        run: |
+          set -euo pipefail
+          [[ "$APP_SLUG" =~ ^[a-zA-Z0-9-]+$ ]] || exit 1
+          bot_user_id="$(gh api "users/${APP_SLUG}[bot]" --jq '.id')"
+          [[ "$bot_user_id" =~ ^[0-9]+$ ]] || exit 1
+          echo "name=${APP_SLUG}[bot]" >> "$GITHUB_OUTPUT"
+          echo "email=${bot_user_id}+${APP_SLUG}[bot]@users.noreply.github.com" >> "$GITHUB_OUTPUT"
+
+      - name: Update merged submodule reference
+        uses: LibreCodeCoop/.github/actions/update-submodule@a32978e11ca26cb66bfee0d3678f6ccc98fc6912 # source pinned
+        with:
+          token: ${{ steps.workflow-app-token.outputs.token }}
+          source-repository: LibreSign/3rdparty
+          submodule-path: 3rdparty
+          signer-name: ${{ steps.signer.outputs.name }}
+          signer-email: ${{ steps.signer.outputs.email }}

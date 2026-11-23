@@ -276,8 +276,7 @@ describe('Sign.vue - signWithTokenCode', () => {
 				) {
 					const tokenMethods: TokenMethodKey[] = ['smsToken', 'whatsappToken', 'signalToken', 'telegramToken', 'xmppToken']
 					const activeMethod = tokenMethods.find(method =>
-						Object.hasOwn(this.signMethodsStore.settings, method),
-					)
+						Object.hasOwn(this.signMethodsStore.settings, method))
 
 					if (!activeMethod) {
 						throw new Error('No active token method found')
@@ -1038,8 +1037,7 @@ describe('Sign.vue - signWithTokenCode', () => {
 					) {
 						const tokenMethods: TokenMethodKey[] = ['smsToken', 'whatsappToken', 'signalToken', 'telegramToken', 'xmppToken']
 						const activeMethod = tokenMethods.find(method =>
-							Object.hasOwn(this.signMethodsStore.settings, method),
-						)
+							Object.hasOwn(this.signMethodsStore.settings, method))
 
 						if (!activeMethod) {
 							throw new Error('No active token method found')
@@ -1159,8 +1157,7 @@ describe('Sign.vue - signWithTokenCode', () => {
 					) {
 						const tokenMethods: TokenMethodKey[] = ['smsToken', 'whatsappToken', 'signalToken', 'telegramToken', 'xmppToken']
 						const activeMethod = tokenMethods.find(method =>
-							Object.hasOwn(this.signMethodsStore.settings, method),
-						)
+							Object.hasOwn(this.signMethodsStore.settings, method))
 
 						if (!activeMethod) {
 							throw new Error('No active token method found')

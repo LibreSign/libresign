@@ -43,53 +43,53 @@ single and repeated files (not yet testable, see G5).
 As #9494 showed, the extractor emitted `oneOf` for the policy value once its
 scalar branches became disjoint. Unions that include objects or arrays (the policy-override one pairs a value with
 an array of values) are still emitted as `anyOf`,
-and OpenAPI Generator mishandles them (G1). Affected schemas, 17 in total:
+and OpenAPI Generator mishandles them (G1). Affected schemas, 13 in total:
 
 - `FileListResponse.data[]` items: `FileSummary | DetailedFile`;
 - `FileRuntimeMetadata`: `ValidateMetadata | array<string, DynamicMetadataValue>`;
 - `RequestPolicyOverrides` values: `EffectivePolicyValue | list<EffectivePolicyValue>`;
-- 7 `422` bodies: `MessageResponse | ActionErrorResponse` (notify-signers,
+- 9 `422` bodies: `MessageResponse | ActionErrorResponse` (notify-signers,
   notify-signer, request-signature, update-signature-request, `removeSigner`,
-  `file-save` and `file-add-file-to-envelope`). The union is real. The other
-  five get `{action, errors}` from `#[RequireManager]` (`canRequestSign()` runs
-  before the method; `afterException` serializes the `LibresignException`) and
-  `{message}` from a `DataResponse` built in their own `catch` blocks. The
-  notify endpoints have no `RequireManager`: `NotifyService` calls
-  `canRequestSign()` inside the action, `NotifyController::sendNotification()`
-  rethrows, and `afterException` serializes both bodies (a JSON message becomes
-  `{action, errors}`, a plain one `{message}`);
-- 7 error bodies (six 401 and the footer-template 403): an envelope `anyOf`
-  whose second branch has an untyped `data: {}`. Cause confirmed: for every
-  non-public OCS method the extractor adds an implicit 401 with an untyped
-  `data`, and a 403 for admin methods (`ControllerMethod.php`, about lines
-  414-440 in 1.9.1). The `anyOf` appears exactly when the controller also
-  declares that same status in its `@return` for a method that is not
-  `#[PublicPage]` (401) or not `#[NoAdminRequired]` (403). A scan of
-  `lib/Controller` finds exactly seven such methods, the same seven operations:
-  `AccountController::signatureGenerate`,
-  `AdminController::generateCertificateCfssl` and `generateCertificateOpenSsl`,
-  `FileController::deleteFile`, `FooterTemplateController::saveFooterTemplate`
-  (403), `RequestSignatureController::removeSigner` and `deleteSignatureRequest`.
-  Public methods that declare a 401 (for example `IdDocsController::delete`)
-  generate a single typed response, and the 82 other 401/403 responses have an
-  untyped `data: {}`, mostly the implicit ones (a few are explicit `list<empty>`
-  declarations, for example `FileController.php:138`). The explicit declarations describe what the code returns, so
-  removing them would only erase the typed body and leave `data: {}`. The
-  request to the extractor is therefore to give the implicit 401/403 a typed
-  body (or to let the controller refine it), not to let an explicit declaration
-  replace the implicit one: the implicit response models what the framework
-  sends (not verified here, Nextcloud's security middleware was not read), so
-  both bodies are plausible and `anyOf` is correct. The generator then produces
-  `data: any`, a faithful reading of `X | {}`. Separately, several of these
-  methods use 401 for failures that are not authentication failures, which is a
-  LibreSign decision (see "Left in LibreSign").
+  `file-save`, `file-add-file-to-envelope`, `deleteFile` and
+  `deleteSignatureRequest`). The union is real. The notify endpoints have no
+  `RequireManager`: `NotifyService` calls `canRequestSign()` inside the action,
+  `NotifyController::sendNotification()` rethrows, and `afterException`
+  serializes both bodies (a JSON message becomes `{action, errors}`, a plain one
+  `{message}`). The other seven get `{action, errors}` from `#[RequireManager]`
+  (`canRequestSign()` runs before the method; `afterException` serializes the
+  `LibresignException`) and `{message}` from a `DataResponse` built in their own
+  `catch` blocks;
+- 1 error body (the footer-template 403): an envelope `anyOf` whose second
+  branch has an untyped `data: {}`. Cause confirmed: for every non-public OCS
+  method the extractor adds an implicit 401 with an untyped `data`, and a 403 for
+  admin methods (`ControllerMethod.php`, about lines 414-440 in 1.9.1). The
+  `anyOf` appears exactly when the controller also declares that same status in
+  its `@return` for a method that is not `#[PublicPage]` (401) or not
+  `#[NoAdminRequired]` (403). Six more cases existed (the 401 of
+  `AccountController::signatureGenerate`, the two certificate generators,
+  `FileController::deleteFile`, `RequestSignatureController::removeSigner` and
+  `deleteSignatureRequest`), but there the LibreSign annotation was wrong: those
+  methods used 401 for failures that are not authentication failures. They now
+  answer 422 or 500, the explicit 401 is gone and so are those six `anyOf`.
+  `saveFooterTemplate` really answers 403 (`NoAdminRequired` is absent on
+  purpose: it writes the global template), so its two bodies coexist. Public
+  methods that declare a 401 (for example `IdDocsController::delete`) generate a
+  single typed response, and the other 401/403 responses have an untyped
+  `data: {}`, mostly the implicit ones (a few are explicit `list<empty>`
+  declarations, for example `FileController.php:138`). The request to the
+  extractor is to give the implicit 401/403 a typed body (or to let the
+  controller refine it), not to let an explicit declaration replace the implicit
+  one: the implicit response models what the framework sends (not verified here,
+  Nextcloud's security middleware was not read), so both bodies are plausible and
+  `anyOf` is correct. The generator then produces `data: any`, a faithful
+  reading of `X | {}`.
 
 For the object unions, `anyOf` is semantically correct: without
 `additionalProperties: false` an object carrying every key of two alternatives
 matches both (a detailed file can match both `FileSummary` and `DetailedFile`),
 so `oneOf` would be wrong. The defect is the generator's merge (G1), not the
 extractor's choice. Evidence: `npm run test:anyof` (`union-defects.ts`) and
-`npm run test:normalized`, which renames the 17 keywords in a disposable copy
+`npm run test:normalized`, which renames the 13 keywords in a disposable copy
 and passes.
 
 ### E3. `mixed` maps to `{ type: object }`
@@ -138,13 +138,13 @@ The generated interface merges both alternatives and keeps required fields from
 one of them: `FileListResponseDataInner` requires `files`, `size` and
 `visibleElements` and narrows `nodeId` to `number`; `FileRuntimeMetadata` loses
 its dynamic branch; the `RequestPolicyOverridesValue` union becomes an empty
-interface; the seven 422 bodies such as `NotifySigners422ResponseOcsData` require
-`action` and `errors`, and the seven envelope `anyOf` bodies become `data: any`. Upstream status: `OpenAPITools/openapi-generator#8894`
+interface; the nine 422 bodies such as `NotifySigners422ResponseOcsData` require
+`action` and `errors`, and the footer-template 403 envelope body becomes `data: any`. Upstream status: `OpenAPITools/openapi-generator#8894`
 ("`anyOf` creates same interface as `allOf`", reported against 5.0.1) is open
-and matches the merged-interface cases (`FileListResponseDataInner` and the seven
+and matches the merged-interface cases (`FileListResponseDataInner` and the nine
 422 bodies). It does not describe the lost dynamic branch of
-`FileRuntimeMetadata`, the empty `RequestPolicyOverridesValue` or the seven
-envelope cases, where the generator keeps `data: any`; those may need their own
+`FileRuntimeMetadata`, the empty `RequestPolicyOverridesValue` or the
+envelope case, where the generator keeps `data: any`; those may need their own
 reports. The fix was not tracked here. The earlier evaluation recorded the former `EffectivePolicyValue` defect, a different `anyOf` case, in both 7.15.0 and 7.27.0; the object cases above were checked only with 7.27.0.
 A union of two arrays (`list<A>|list<B>` as `anyOf`) becomes an empty interface
 (tested on a disposable spec copy). `oneOf` produces correct unions, so the choice is: fix the generator, add a
@@ -158,8 +158,8 @@ success response. The SDK layer must expose typed access to
 `error.response.data` itself (for example through a wrapper or documented type
 guards). Do not assume this is unwrapped or typed automatically. The success
 types can also carry misleading names: `notifySigners` returns
-`AxiosPromise<AccountSignatureGenerate401ResponseAnyOf>`, a model deduplicated
-from a 401 body that shares the 200 `MessageResponse` shape. If this matters for
+`AxiosPromise<AccountSignatureGenerate422Response>`, a model named after the 422
+body of another operation, deduplicated against the 200 `MessageResponse` shape. If this matters for
 the public SDK surface, it needs naming control (for example
 `inlineSchemaNameMapping`), which was not tested.
 
@@ -207,9 +207,18 @@ patched locally and no local extractor workaround is added; defects above are
 reported upstream. Anything whose cause is in LibreSign's own code is adjusted
 in LibreSign. Candidates, each needing its cause confirmed first:
 
-- the 7 error bodies with an untyped `data: {}` (E2): investigated; the
-  controllers' explicit 401/403 declarations describe what the code returns, so
-  the untyped body is the extractor's and needs no LibreSign change;
+- the six 401 error bodies of E2 (done, breaking change): they came from LibreSign
+  methods that answered 401 for failures that are not authentication failures.
+  `AccountController::signatureGenerate`, the `AdminController` certificate
+  generators, `FileController::deleteFile`,
+  `RequestSignatureController::deleteSignatureRequest` and `removeSigner` now
+  answer 422 for a `LibresignException` (and an `InvalidArgumentException` in the
+  PFX and certificate generators) and 500 for any other failure they already
+  caught, with the same `{message}` body. The framework's own 401 is the only one
+  left in those operations. Behat scenarios, the API test and the frontend type
+  of `removeSigner` were updated;
+- the footer-template 403 (E2): the explicit 403 describes what the code returns,
+  so the untyped implicit body is the extractor's and needs no LibreSign change;
 - annotations that did not match the data (done): `removeSigner`, `file-save`
   and `file-add-file-to-envelope` now document `MessageResponse |
   ActionErrorResponse` for 422 (their `catch` answers `{message}`, the
@@ -223,15 +232,6 @@ in LibreSign. Candidates, each needing its cause confirmed first:
   `{action, errors}` 422 before the method runs. `SignFileController::signByFileId`
   is public and documents `SignActionErrorResponse`, which accommodates that
   payload; unchanged;
-- **open maintainer decision**: several methods answer HTTP 401 for failures
-  that are not authentication failures. `AccountController::signatureGenerate`,
-  the `AdminController` certificate generators (`catch \Exception`),
-  `FileController::deleteFile` and
-  `RequestSignatureController::deleteSignatureRequest` (`catch \Throwable`)
-  return 401 for every caught failure; `removeSigner` returns 401 for a
-  `LibresignException` whose code is not 422. Moving business failures to
-  422/400 is a compatibility-breaking change that needs its own change and
-  Behat updates; not done here;
 - `DetailedFile.policySnapshotFrozen` is declared required, but
   `formatSingleFileData` omits it without a user (`FileListService.php:273-275`)
   while `formatFileWithChildren` always sets it (`:881`); not changed because it

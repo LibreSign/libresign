@@ -7,7 +7,8 @@
 	<NcSettingsSection
 		:name="signatureRequestAccessTitle"
 		:description="signatureRequestAccessDescription">
-		<NcSelect :key="idKey"
+		<NcSelect
+			:key="idKey"
 			v-model="groupsSelected"
 			label="displayname"
 			:no-wrap="false"
