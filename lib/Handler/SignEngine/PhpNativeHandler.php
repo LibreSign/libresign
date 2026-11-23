@@ -265,16 +265,6 @@ class PhpNativeHandler extends Pkcs12Handler {
 		return CertificationLevel::fromInt($level->value);
 	}
 
-	/**
-	 * Builds the xObject (n2 layer) for all render modes using only PDF text operators.
-	 *
-	 * DESCRIPTION_ONLY      → description text, full width.
-	 * GRAPHIC_AND_DESCRIPTION → description text, right half only
-	 *                           (user image is in imagePath/n0, handled natively by signer-php).
-	 * SIGNAME_AND_DESCRIPTION → signer name as large text on the left half
-	 *                           + description text on the right half.
-	 *                           No image generation: pure PDF text operators.
-	 */
 	private function buildXObject(int $width, int $height, string $renderMode): SignatureAppearanceXObjectDto {
 		$params = $this->getSignatureParams();
 		$fallbackCommonName = $this->readCertificate()['subject']['CN'] ?? null;
