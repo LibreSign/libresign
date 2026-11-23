@@ -1014,17 +1014,6 @@ async function onRememberFooterTemplateChange(value: boolean): Promise<void> {
 	}
 }
 
-function onFooterTemplateSourceChange(): void {
-	if (rememberFooterTemplate.value && canSaveFooterPreference.value) {
-		const footerPolicyValue = getFooterPolicyPayloadForSave()
-		if (footerPolicyValue) {
-			void saveFooterTemplatePreference(footerPolicyValue)
-		}
-	}
-
-	debouncedSave()
-}
-
 function getSignerMethod(signer: { identifyMethods?: Array<Pick<IdentifyMethodRecord, 'method'>> }): string | undefined {
 	return signer.identifyMethods?.[0]?.method
 }
@@ -1437,6 +1426,17 @@ const debouncedSave = debounce(async () => {
 		showRequestError(error, t('libresign', 'Failed to save signature request'))
 	}
 }, 1000)
+
+function onFooterTemplateSourceChange(): void {
+	if (rememberFooterTemplate.value && canSaveFooterPreference.value) {
+		const footerPolicyValue = getFooterPolicyPayloadForSave()
+		if (footerPolicyValue) {
+			void saveFooterTemplatePreference(footerPolicyValue)
+		}
+	}
+
+	debouncedSave()
+}
 
 const debouncedTabChange = debounce((tabId: string) => {
 	userConfigStore.update('files_list_signer_identify_tab', tabId)

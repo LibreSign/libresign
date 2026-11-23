@@ -26,6 +26,11 @@ import {
 	waitForPolicyCanSaveAsUserDefault,
 } from '../support/policy-api'
 
+const ADMIN_USER = process.env.NEXTCLOUD_ADMIN_USER ?? 'admin'
+const ADMIN_PASSWORD = process.env.NEXTCLOUD_ADMIN_PASSWORD ?? 'admin'
+const END_USER = 'policy-preferences-member'
+const DEFAULT_TEST_PASSWORD = '123456'
+
 const test = base.extend<{
 	adminRequestContext: APIRequestContext
 	endUserRequestContext: APIRequestContext
@@ -50,12 +55,7 @@ const test = base.extend<{
 
 test.describe.configure({ retries: 0, timeout: 90000 })
 
-const ADMIN_USER = process.env.NEXTCLOUD_ADMIN_USER ?? 'admin'
-const ADMIN_PASSWORD = process.env.NEXTCLOUD_ADMIN_PASSWORD ?? 'admin'
-const DEFAULT_TEST_PASSWORD = '123456'
-
 const GROUP_ID = 'policy-preferences-group'
-const END_USER = 'policy-preferences-member'
 const POLICY_KEY = 'signature_flow'
 const FOOTER_POLICY_KEY = 'add_footer'
 const REQUEST_SIGN_GROUPS = JSON.stringify({ allowGroups: ['admin', GROUP_ID], denyGroups: [] })

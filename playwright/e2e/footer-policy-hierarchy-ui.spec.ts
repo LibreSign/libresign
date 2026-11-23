@@ -21,6 +21,11 @@ import {
 	setSystemPolicyEntry,
 } from '../support/policy-api'
 
+const ADMIN_USER = process.env.NEXTCLOUD_ADMIN_USER ?? 'admin'
+const ADMIN_PASSWORD = process.env.NEXTCLOUD_ADMIN_PASSWORD ?? 'admin'
+const END_USER = 'signer1'
+const DEFAULT_TEST_PASSWORD = '123456'
+
 const test = base.extend<{
 	adminRequestContext: APIRequestContext
 	endUserRequestContext: APIRequestContext
@@ -39,12 +44,7 @@ const test = base.extend<{
 
 test.describe.configure({ mode: 'serial', retries: 0, timeout: 120000 })
 
-const ADMIN_USER = process.env.NEXTCLOUD_ADMIN_USER ?? 'admin'
-const ADMIN_PASSWORD = process.env.NEXTCLOUD_ADMIN_PASSWORD ?? 'admin'
-const DEFAULT_TEST_PASSWORD = '123456'
-
 const GROUP_ID = 'libresign-footer-ui-flow-group'
-const END_USER = 'signer1'
 const FOOTER_POLICY_KEY = 'add_footer'
 const REQUEST_SIGN_POLICY_KEY = 'groups_request_sign'
 const REQUEST_SIGN_GROUP_POLICY_VALUE = JSON.stringify({

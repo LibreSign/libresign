@@ -161,6 +161,20 @@ export const getCurrentUserSignRequestIds = (document: DocumentLike): number[] =
 	return Array.from(signRequestIds)
 }
 
+export const getVisibleElementsFromFile = (file: FileLike): VisibleElementRecord[] => {
+	const topLevel = Array.isArray(file?.visibleElements) ? file.visibleElements : []
+	const nested = collectSignerVisibleElements(getFileSigners(file))
+	return deduplicateVisibleElements([...topLevel, ...nested])
+}
+
+export const aggregateVisibleElementsByFiles = (files: FileLike[]): VisibleElementRecord[] => {
+	if (!Array.isArray(files) || files.length === 0) {
+		return []
+	}
+	const all = files.flatMap(getVisibleElementsFromFile)
+	return deduplicateVisibleElements(all)
+}
+
 export const getVisibleElementsFromDocument = (document: DocumentLike): VisibleElementRecord[] => {
 	const topLevel = Array.isArray(document?.visibleElements) ? document.visibleElements : []
 	const signers = Array.isArray(document?.signers) ? document.signers : []
@@ -177,20 +191,6 @@ export const hasVisibleElementsForCurrentUser = (document: DocumentLike): boolea
 
 	return getVisibleElementsFromDocument(document)
 		.some((element) => element.signRequestId !== undefined && signRequestIds.has(element.signRequestId))
-}
-
-export const getVisibleElementsFromFile = (file: FileLike): VisibleElementRecord[] => {
-	const topLevel = Array.isArray(file?.visibleElements) ? file.visibleElements : []
-	const nested = collectSignerVisibleElements(getFileSigners(file))
-	return deduplicateVisibleElements([...topLevel, ...nested])
-}
-
-export const aggregateVisibleElementsByFiles = (files: FileLike[]): VisibleElementRecord[] => {
-	if (!Array.isArray(files) || files.length === 0) {
-		return []
-	}
-	const all = files.flatMap(getVisibleElementsFromFile)
-	return deduplicateVisibleElements(all)
 }
 
 export const findFileById = (files: FileLike[], fileId: unknown): FileLike | null => {

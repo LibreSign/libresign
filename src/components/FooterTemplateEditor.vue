@@ -293,6 +293,10 @@ function copyToClipboard(text: string) {
 	}, 2000)
 }
 
+const debouncedSaveFooterTemplate = debounce(saveFooterTemplate, 500)
+const debouncedUpdateScale = debounce(updateScale, 300)
+const debouncedSaveDimensions = debounce(saveDimensions, 500)
+
 function onTemplateChange() {
 	emit('template-changed')
 	debouncedSaveFooterTemplate()
@@ -398,10 +402,6 @@ function updateScale() {
 		pdfPreview.value.scale = Number(zoomLevel.value) / 100
 	}
 }
-
-const debouncedSaveFooterTemplate = debounce(saveFooterTemplate, 500)
-const debouncedUpdateScale = debounce(updateScale, 300)
-const debouncedSaveDimensions = debounce(saveDimensions, 500)
 
 onMounted(() => {
 	axios.get(generateOcsUrl('/apps/libresign/api/v1/footer-template'))

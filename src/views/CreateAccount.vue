@@ -195,6 +195,8 @@ const v$ = {
 	}),
 }
 
+const isEqualEmail = computed(() => state.settings.accountHash === md5(email.value))
+
 const emailError = computed(() => {
 	if (email.value) {
 		if (v$.email.$error) {
@@ -222,8 +224,6 @@ const confirmPasswordError = computed(() => {
 	}
 	return ''
 })
-
-const isEqualEmail = computed(() => state.settings.accountHash === md5(email.value))
 
 const canSave = computed(() => {
 	return state.password.length > 0

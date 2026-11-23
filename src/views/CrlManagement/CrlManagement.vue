@@ -450,14 +450,6 @@ const reasonCodeOptions: ReasonOption[] = [
 ]
 
 const hasActiveFilters = computed(() => !!(filters.serialNumber || filters.status || filters.owner))
-const filterActionLabel = computed(() => {
-	if (hasActiveFilters.value) {
-		// TRANSLATORS {count} is the number of active filters on the certificate revocation list.
-		return t('libresign', 'Filters ({count})', { count: activeFilterCount.value })
-	}
-	// TRANSLATORS Accessibility label for the button opening certificate revocation list filters.
-	return t('libresign', 'Filters')
-})
 const activeFilterCount = computed(() => {
 	let count = 0
 	if (filters.serialNumber) {
@@ -527,6 +519,15 @@ async function loadEntries(append = false) {
 		loadingMore.value = false
 	}
 }
+
+const filterActionLabel = computed(() => {
+	if (hasActiveFilters.value) {
+		// TRANSLATORS {count} is the number of active filters on the certificate revocation list.
+		return t('libresign', 'Filters ({count})', { count: activeFilterCount.value })
+	}
+	// TRANSLATORS Accessibility label for the button opening certificate revocation list filters.
+	return t('libresign', 'Filters')
+})
 
 function onFilterChange() {
 	clearTimeout(filterTimeout)
