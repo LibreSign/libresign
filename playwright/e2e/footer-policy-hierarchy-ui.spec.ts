@@ -297,7 +297,23 @@ async function selectGroupTargetWithOpenDropdown(dialogScope: Locator, target: s
 		// handler, which opens the list and restores focus to its search input.
 		await picker.locator('.vs__open-indicator-button').click()
 	}
-	await expect(searchInput).toHaveAttribute('aria-expanded', 'true', { timeout: 8000 })
+	try {
+		await expect(searchInput).toHaveAttribute('aria-expanded', 'true', { timeout: 8000 })
+	} catch (error) {
+		// Report real picker state without weakening the failed assertion.
+		const state = await picker.evaluate((element) => {
+			const input = element.querySelector<HTMLInputElement>('[role="combobox"]')
+			return {
+				classes: element.className,
+				expanded: input?.getAttribute('aria-expanded'),
+				focused: input === document.activeElement,
+				localOptions: element.querySelectorAll('[role="option"]').length,
+				dropdown: element.querySelectorAll('.vs__dropdown-menu').length,
+			}
+		})
+		console.error('Group picker state after reopening:', JSON.stringify(state))
+		throw error
+	}
 	await expect(option).toBeVisible({ timeout: 8000 })
 	await option.click()
 	await expect(picker.locator('.vs__selected').filter({ hasText: groupLabel })).toBeVisible()

@@ -21,6 +21,7 @@
 					:model-value="selectedTargetOptions"
 					:options="availableTargets"
 					:filterable="false"
+					:append-to-body="false"
 					:aria-label="targetScopeLabel"
 					:placeholder="targetScopeSearchPlaceholder"
 					:loading="loadingTargets"
