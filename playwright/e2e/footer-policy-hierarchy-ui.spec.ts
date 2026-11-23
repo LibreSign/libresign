@@ -221,14 +221,14 @@ async function ensureFooterTemplateEditorVisible(scope: Page | Locator): Promise
 }
 
 /**
- * Open the group picker before searching. Clicking an already-focused
- * NcSelectUsers input after its OCS response can close the populated menu.
- * Keep the existing user picker path unchanged.
+ * Choose a group through the real NcSelectUsers dropdown. The server already
+ * filters results by group ID, so wait for those results and use the select's
+ * own dropdown control if asynchronous updates have closed the menu.
  */
 async function selectGroupTargetWithOpenDropdown(dialogScope: Locator, target: string): Promise<void> {
 	const page = dialogScope.page()
-	const searchInput = dialogScope.getByRole('combobox')
-	await expect(searchInput).toHaveCount(1)
+	const picker = dialogScope.locator('.nc-select-users').first()
+	const searchInput = picker.getByRole('combobox')
 	await expect(searchInput).toBeVisible({ timeout: 8000 })
 
 	const searchResponse = page.waitForResponse((response) => {
@@ -236,31 +236,25 @@ async function selectGroupTargetWithOpenDropdown(dialogScope: Locator, target: s
 			&& new URL(response.url()).searchParams.get('search') === target
 	}, { timeout: 15000 })
 
-	await searchInput.click()
 	await searchInput.fill(target)
 	const response = await searchResponse
 	expect(response.ok(), `Failed to search group target ${target}: ${response.status()}`).toBe(true)
-	expect(JSON.stringify(await response.json())).toContain(target)
+	const body = await response.json() as { ocs?: { data?: { groups?: Array<{ id: string, displayname?: string }> } } }
+	const matchingGroup = body.ocs?.data?.groups?.find((group) => group.id === target)
+	expect(matchingGroup, `OCS returned no matching group for ${target}`).toBeDefined()
+	const groupLabel = matchingGroup?.displayname || target
 
-	// vue-select hides its dropdown while options are loading, and does not
-	// automatically reopen on input focus. Wait until loading finishes, then
-	// use the documented keyboard navigation to reopen a closed list.
-	await expect(dialogScope.locator('.nc-select-users').first()).not.toHaveClass(/vs--loading/, { timeout: 8000 })
+	await expect(picker).not.toHaveClass(/vs--loading/, { timeout: 8000 })
+	const option = page.getByRole('option', { name: new RegExp(escapeRegExp(groupLabel), 'i') }).first()
 	if (await searchInput.getAttribute('aria-expanded') !== 'true') {
-		await searchInput.press('ArrowDown')
+		// Clicking the dropdown indicator uses vue-select's actual mouse
+		// handler, which opens the list and restores focus to its search input.
+		await picker.locator('.vs__open-indicator-button').click()
 	}
 	await expect(searchInput).toHaveAttribute('aria-expanded', 'true', { timeout: 8000 })
-
-	const option = page.getByRole('option', { name: new RegExp(escapeRegExp(target), 'i') }).first()
 	await expect(option).toBeVisible({ timeout: 8000 })
-	const optionId = await option.getAttribute('id')
-	expect(optionId).toBeTruthy()
-	if (await searchInput.getAttribute('aria-activedescendant') !== optionId) {
-		await searchInput.press('ArrowDown')
-	}
-	await expect(searchInput).toHaveAttribute('aria-activedescendant', optionId!)
-	await searchInput.press('Enter')
-	await expect(dialogScope.getByText(target, { exact: true })).toBeVisible()
+	await option.click()
+	await expect(picker.locator('.vs__selected').filter({ hasText: groupLabel })).toBeVisible()
 }
 
 async function createFooterRuleViaUi(

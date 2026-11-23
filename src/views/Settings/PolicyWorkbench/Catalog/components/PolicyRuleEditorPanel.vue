@@ -18,6 +18,7 @@
 				<NcSelectUsers
 					:model-value="selectedTargetOptions"
 					:options="availableTargets"
+					:filterable="false"
 					:aria-label="targetScopeLabel"
 					:placeholder="targetScopeSearchPlaceholder"
 					:loading="loadingTargets"
