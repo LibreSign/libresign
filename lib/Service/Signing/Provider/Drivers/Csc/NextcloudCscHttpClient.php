@@ -76,11 +76,18 @@ final class NextcloudCscHttpClient implements HttpClientInterface {
 				return new HttpResponse(0, '', 'CSC transport failed.');
 			}
 		}
-		$responseBody = $response->getBody();
+		try {
+			$statusCode = $response->getStatusCode();
+			$responseBody = $response->getBody();
+		} catch (\Throwable) {
+			// A response accessor may fail after an HTTP request was submitted.
+			// Its exception can contain URLs, headers or credentials.
+			return new HttpResponse(0, '', 'CSC transport failed.');
+		}
 		if (!is_string($responseBody)) {
-			return new HttpResponse($response->getStatusCode(), '', 'CSC response body is not a string.');
+			return new HttpResponse($statusCode, '', 'CSC response body is not a string.');
 		}
 
-		return new HttpResponse($response->getStatusCode(), $responseBody);
+		return new HttpResponse($statusCode, $responseBody);
 	}
 }

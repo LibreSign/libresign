@@ -52,6 +52,20 @@ final class NextcloudCscHttpClientTest extends TestCase {
 		$this->assertStringNotContainsString('leaked-secret', $received->transportError);
 	}
 
+	public function testRedactsExceptionsFromResponseBodyAccess(): void {
+		$response = $this->createMock(IResponse::class);
+		$response->method('getStatusCode')->willReturn(200);
+		$response->method('getBody')->willThrowException(new \RuntimeException('Bearer private-token'));
+		$client = $this->createMock(IClient::class);
+		$client->expects($this->once())->method('post')->willReturn($response);
+		$service = $this->createMock(IClientService::class);
+		$service->method('newClient')->willReturn($client);
+		$result = (new NextcloudCscHttpClient($service, $this->config()))->request('POST', 'https://csc.example.org');
+		$this->assertSame(0, $result->statusCode);
+		$this->assertSame('CSC transport failed.', $result->transportError);
+		$this->assertStringNotContainsString('private-token', $result->transportError);
+	}
+
 	public function testRefusesFollowingRedirectBeforeNetwork(): void {
 		$service = $this->createMock(IClientService::class);
 		$service->expects($this->never())->method('newClient');
