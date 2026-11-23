@@ -11,15 +11,11 @@
 				<PolicyPrecedenceHint :scopes="precedenceScopes" variant="editor" />
 			</div>
 
-			<div v-if="editorDraft.scope !== 'system'" class="policy-workbench__field">
-				<label v-if="!hideTargetSelector" class="policy-workbench__label">
-					{{ targetScopeLabel }}
-				</label>
+			<div v-if="editorDraft.scope !== 'system' && !hideTargetSelector" class="policy-workbench__field">
 				<NcSelectUsers
-					v-if="!hideTargetSelector"
 					:model-value="selectedTargetOptions"
 					:options="availableTargets"
-					:aria-label="targetScopeLabel"
+					:input-label="targetScopeLabel"
 					:placeholder="targetScopeSearchPlaceholder"
 					:loading="loadingTargets"
 					:multiple="true"
@@ -266,15 +262,6 @@ const isIdentifyMethodsEditor = computed(() => {
 		margin: 0;
 		font-size: 0.85rem;
 	}
-}
-
-.policy-workbench__label {
-	font-size: 0.74rem;
-	font-weight: 500;
-	text-transform: none;
-	letter-spacing: 0;
-	color: var(--color-text-maxcontrast);
-	opacity: 0.85;
 }
 
 .policy-workbench__field {

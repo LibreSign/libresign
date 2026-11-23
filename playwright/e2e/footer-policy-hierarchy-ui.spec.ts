@@ -20,7 +20,6 @@ import {
 	setGroupPolicyEntry,
 	setSystemPolicyEntry,
 } from '../support/policy-api'
-import { clickVisibleOptionOrFallback } from '../support/select-option'
 
 const test = base.extend<{
 	adminRequestContext: APIRequestContext
@@ -202,13 +201,11 @@ async function selectTarget(dialogScope: Locator, kind: 'group' | 'user', target
 
 	await expect(scopeLabel).toBeVisible({ timeout: 8000 })
 	await expect(searchInput).toBeVisible({ timeout: 8000 })
-	if (await isSelectionConfirmed()) {
-		return
-	}
+	await searchInput.fill(target)
 
-	const targetPattern = new RegExp(escapeRegExp(target), 'i')
-	for (let attempt = 0; attempt < 3; attempt += 1) {
-		await searchInput.fill(target, { timeout: 8000 })
+	const option = dialogScope.page().getByRole('option', { name: new RegExp(escapeRegExp(target), 'i') }).first()
+	await expect(option).toBeVisible({ timeout: 8000 })
+	await option.click()
 
 	const searchInput = targetInput.locator('input, textarea, [contenteditable="true"]').first()
 	if (await searchInput.isVisible({ timeout: 1000 }).catch(() => false)) {
