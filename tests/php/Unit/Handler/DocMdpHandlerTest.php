@@ -386,7 +386,7 @@ final class DocMdpHandlerTest extends TestCase {
 	/** @return array<int, string> */
 	private static function timestampUpdate(string $field = '/FT /Sig /T (Timestamp1) /Type /Annot /Subtype /Widget /F 132 /Rect [0 0 0 0] /P 3 0 R /V 12 0 R'): array {
 		return [
-			12 => '<< /Type /DocTimeStamp /Filter /Adobe.PPKLite /SubFilter /ETSI.RFC3161 /ByteRange [0 10 20 10] /Contents <00> >>',
+			12 => '<< /Type /DocTimeStamp /Filter /Adobe.PPKLite /SubFilter /ETSI.RFC3161 /ByteRange [0000000000 0000000000 0000000000 0000000000] /Contents <00> >>',
 			13 => "<< {$field} >>",
 			3 => '<< /Type /Page /Parent 2 0 R /MediaBox [0 0 612 792] /Annots [13 0 R] >>',
 			4 => '<< /SigFlags 3 /Fields [6 0 R 13 0 R] >>',
@@ -516,6 +516,28 @@ final class DocMdpHandlerTest extends TestCase {
 		$result = $this->handler->extractDocMdpData($resource);
 		fclose($resource);
 		return $result;
+	}
+
+	public static function standaloneDocMdpSignatureProvider(): array {
+		return [
+			'Unreferenced P=1 dictionary is not a certification' => ['', [], true],
+			'Unreferenced P=1 dictionary next to an empty signature field is not a certification' => ['/AcroForm << /Fields [6 0 R] >>', [6 => '<< /FT /Sig /T (Signature1) >>'], true],
+			'P=1 dictionary referenced from /Perms still blocks' => ['/Perms << /DocMDP 5 0 R >>', [], false],
+			'P=1 dictionary referenced from a signature field still blocks' => ['/AcroForm << /Fields [6 0 R] >>', [6 => '<< /FT /Sig /T (Signature1) /V 5 0 R >>'], false],
+		];
+	}
+
+	#[DataProvider('standaloneDocMdpSignatureProvider')]
+	public function testOnlyReferencedSignatureDictionariesCertify(string $catalogExtra, array $extraObjects, bool $expectedAllowed): void {
+		$pdfContent = PdfGenerator::createPdfWithStandaloneDocMdpSignature(1, $catalogExtra, $extraObjects);
+		$resource = PdfGenerator::createResourceFromContent($pdfContent);
+		$allowed = $this->handler->allowsAdditionalSignatures($resource);
+		$data = $this->handler->extractDocMdpData($resource);
+		fclose($resource);
+
+		$this->assertSame($expectedAllowed, $allowed);
+		$expectedLevel = $expectedAllowed ? DocMdpLevel::NOT_CERTIFIED : DocMdpLevel::CERTIFIED_NO_CHANGES_ALLOWED;
+		$this->assertSame($expectedLevel->value, $data['docmdp']['level']);
 	}
 
 	public function testRealJSignPdfWithDocMdpLevel1(): void {
