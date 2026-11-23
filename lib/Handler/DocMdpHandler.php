@@ -455,7 +455,7 @@ class DocMdpHandler {
 		}
 		foreach ($inventory->activeSignatures as $signature) {
 			if ($signature->isCertifying) {
-				return (new DocMdpValidationDataInspector())->hasOnlyValidationDataUpdates(
+				return (new \OCA\Libresign\Vendor\LibreSign\PdfSignatureValidator\Validation\DocMdp\DocMdpValidationDataInspector())->hasOnlyValidationDataUpdates(
 					$content,
 					$signature->signedRevisionEnd,
 				);
