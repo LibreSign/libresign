@@ -47,7 +47,7 @@ class SignatureStampAppearanceBuilder {
 		$textStartX = $isDescriptionOnly ? $leftPadding : ((float)$width / 2.0) + $leftPadding;
 		$availableWidth = $isDescriptionOnly ? (float)$width : (float)$width / 2.0;
 
-		$stream = '';
+		$layout = new SignatureStampPdfLayout();
 
 		if ($renderMode === SignerElementsService::RENDER_MODE_SIGNAME_AND_DESCRIPTION) {
 			$commonName = !empty($context['SignerCommonName'])
@@ -65,51 +65,27 @@ class SignatureStampAppearanceBuilder {
 				$nameY = $nameStartY;
 				$estimatedCharWidth = $nameFontSize * 0.52;
 				foreach ($nameLines as $nameLine) {
-					$lineWidth = mb_strlen($nameLine) * $estimatedCharWidth;
+					$lineWidth = mb_strlen($nameLine, 'UTF-8') * $estimatedCharWidth;
 					$nameX = max($leftPadding, ($leftHalfW - $lineWidth) / 2.0);
-					$escaped = $this->escapePdfText($nameLine);
-					$stream .= "BT\n";
-					$stream .= sprintf("/F1 %.2F Tf\n", $nameFontSize);
-					$stream .= "0 0 0 rg\n";
-					$stream .= sprintf("%.2F %.2F Td\n", $nameX, $nameY);
-					$stream .= sprintf("(%s) Tj\n", $escaped);
-					$stream .= "ET\n";
+					$layout->addLine($nameLine, $nameX, $nameY, $nameFontSize);
 					$nameY -= $nameFontSize * 1.0;
 				}
 			}
 		}
 
 		$currentY = (float)$height - $descFontSize - 2.0;
-		foreach (explode(PHP_EOL, $parsed) as $line) {
+		foreach (preg_split('/\r\n|\r|\n/', $parsed) ?: [] as $line) {
 			$wrappedLines = $this->wrapTextForPdf($line, $availableWidth, $descFontSize);
 			foreach ($wrappedLines as $wrappedLine) {
 				if ($currentY < 0) {
 					break 2;
 				}
-				$escaped = $this->escapePdfText($wrappedLine);
-				$stream .= "BT\n";
-				$stream .= sprintf("/F1 %.2F Tf\n", $descFontSize);
-				$stream .= "0 0 0 rg\n";
-				$stream .= sprintf("%.2F %.2F Td\n", $textStartX, $currentY);
-				$stream .= sprintf("(%s) Tj\n", $escaped);
-				$stream .= "ET\n";
+				$layout->addLine($wrappedLine, $textStartX, $currentY, $descFontSize);
 				$currentY -= $descLineHeight;
 			}
 		}
 
-		return new SignatureAppearanceXObjectDto(
-			stream: $stream,
-			resources: [
-				'Font' => [
-					'F1' => [
-						'Type' => '/Font',
-						'Subtype' => '/Type1',
-						'BaseFont' => '/Helvetica',
-						'Encoding' => '/WinAnsiEncoding',
-					],
-				],
-			],
-		);
+		return $layout->build($width, $height);
 	}
 
 	/**
@@ -123,7 +99,7 @@ class SignatureStampAppearanceBuilder {
 
 		$estimatedCharWidth = max(1.0, $fontSize * 0.52);
 		$maxChars = max(1, (int)floor($availableWidth / $estimatedCharWidth));
-		if (mb_strlen($trimmed) <= $maxChars) {
+		if (mb_strlen($trimmed, 'UTF-8') <= $maxChars) {
 			return [$trimmed];
 		}
 
@@ -135,7 +111,7 @@ class SignatureStampAppearanceBuilder {
 			}
 
 			$candidate = $current === '' ? $word : $current . ' ' . $word;
-			if (mb_strlen($candidate) <= $maxChars) {
+			if (mb_strlen($candidate, 'UTF-8') <= $maxChars) {
 				$current = $candidate;
 				continue;
 			}
@@ -145,9 +121,9 @@ class SignatureStampAppearanceBuilder {
 				$current = '';
 			}
 
-			while (mb_strlen($word) > $maxChars) {
-				$result[] = mb_substr($word, 0, $maxChars);
-				$word = mb_substr($word, $maxChars);
+			while (mb_strlen($word, 'UTF-8') > $maxChars) {
+				$result[] = mb_substr($word, 0, $maxChars, 'UTF-8');
+				$word = mb_substr($word, $maxChars, null, 'UTF-8');
 			}
 
 			$current = $word;
@@ -161,17 +137,6 @@ class SignatureStampAppearanceBuilder {
 	}
 
 	public function escapePdfText(string $value): string {
-		$encoded = mb_convert_encoding($value, 'Windows-1252', 'UTF-8');
-		if (mb_convert_encoding($encoded, 'UTF-8', 'Windows-1252') !== $value) {
-			throw new \InvalidArgumentException(
-				'signature stamp contains characters that cannot be represented by WinAnsiEncoding',
-			);
-		}
-
-		$encoded = str_replace('\\', '\\\\', $encoded);
-		$encoded = str_replace('(', '\\(', $encoded);
-		$encoded = str_replace(')', '\\)', $encoded);
-
-		return $encoded;
+		return SignatureStampPdfLayout::escapePdfText($value);
 	}
 }
