@@ -590,6 +590,82 @@ describe('useRealPolicyWorkbench', () => {
 		])
 	})
 
+	it.each([
+		['group', 'cloud/groups/details'],
+		['user', 'cloud/users/details'],
+	] as const)('ignores an outdated %s search response', async (scope, endpoint) => {
+		const state = createRealPolicyWorkbenchState()
+		state.openSetting('signature_flow')
+		state.startEditor({ scope })
+		await vi.waitFor(() => expect(state.loadingTargets).toBe(false))
+
+		const pendingSearches = new Map<string, (response: unknown) => void>()
+		axiosGet.mockImplementation((url: string, config: { params: { search: string } }) => {
+			if (url !== endpoint) {
+				return Promise.resolve({ data: { ocs: { data: {} } } })
+			}
+
+			return new Promise<unknown>((resolve) => {
+				pendingSearches.set(config.params.search, resolve)
+			})
+		})
+		const responseFor = (id: string) => ({
+			data: {
+				ocs: {
+					data: scope === 'group'
+						? { groups: [{ id, displayname: id, usercount: 1 }] }
+						: { users: { [id]: { id, displayname: id } } },
+				},
+			},
+		})
+
+		state.searchAvailableTargets('older')
+		state.searchAvailableTargets('newer')
+		expect([...pendingSearches.keys()]).toEqual(['older', 'newer'])
+
+		pendingSearches.get('newer')!(responseFor('newer'))
+		await vi.waitFor(() => expect(state.availableTargets.map((target) => target.id)).toEqual(['newer']))
+
+		pendingSearches.get('older')!(responseFor('older'))
+		await Promise.resolve()
+		await Promise.resolve()
+		expect(state.availableTargets.map((target) => target.id)).toEqual(['newer'])
+	})
+
+	it.each([
+		['group', 'cloud/groups/details'],
+		['user', 'cloud/users/details'],
+	] as const)('keeps %s loading until the latest search finishes', async (scope, endpoint) => {
+		const state = createRealPolicyWorkbenchState()
+		state.openSetting('signature_flow')
+		state.startEditor({ scope })
+		await vi.waitFor(() => expect(state.loadingTargets).toBe(false))
+
+		const pendingSearches = new Map<string, (response: unknown) => void>()
+		axiosGet.mockImplementation((url: string, config: { params: { search: string } }) => {
+			if (url !== endpoint) {
+				return Promise.resolve({ data: { ocs: { data: {} } } })
+			}
+
+			return new Promise<unknown>((resolve) => {
+				pendingSearches.set(config.params.search, resolve)
+			})
+		})
+
+		state.searchAvailableTargets('older')
+		state.searchAvailableTargets('newer')
+		expect([...pendingSearches.keys()]).toEqual(['older', 'newer'])
+		expect(state.loadingTargets).toBe(true)
+
+		pendingSearches.get('older')!({ data: { ocs: { data: {} } } })
+		await Promise.resolve()
+		await Promise.resolve()
+		expect(state.loadingTargets).toBe(true)
+
+		pendingSearches.get('newer')!({ data: { ocs: { data: {} } } })
+		await vi.waitFor(() => expect(state.loadingTargets).toBe(false))
+	})
+
 	it('loads group targets using cloud/groups for group-admin without exception fallback', async () => {
 		currentUserState.isAdmin = false
 
