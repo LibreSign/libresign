@@ -1011,6 +1011,48 @@ namespace OCA\Libresign;
  *     },
  *     version: string,
  * }
+ *
+ * Experimental, provider-neutral external signing contracts
+ *
+ * @psalm-type LibresignExternalSigningSession = array{
+ *     id: string,
+ *     status: string,
+ *     revision: int,
+ *     integrationId: string,
+ *     credentialId: string,
+ *     certificateSha256: string,
+ *     expiresAt: string,
+ * }
+ * @psalm-type LibresignExternalSigningCredential = array{
+ *     id: string,
+ *     certificateSha256: string,
+ *     subject: string,
+ *     validTo: string,
+ *     signatureAlgorithm: string,
+ *     digestAlgorithm: string,
+ *     profiles: list<string>,
+ * }
+ * @psalm-type LibresignExternalSigningAvailabilityResponse = array{
+ *     integration: array{id:string,name:string,driverId:string},
+ *     credentials: list<LibresignExternalSigningCredential>,
+ *     syntheticOnly: bool,
+ *     personalSignerAuthorization: bool,
+ *     session: ?LibresignExternalSigningSession,
+ * }
+ * @psalm-type LibresignExternalSigningSessionResponse = array{
+ *     session: ?LibresignExternalSigningSession,
+ * }
+ * @psalm-type LibresignExternalSigningPublication = array{
+ *     status: string,
+ *     sessionId: string,
+ *     signedNodeId: int,
+ *     signedHash: string,
+ * }
+ * @psalm-type LibresignExternalSigningContinueResponse = array{
+ *     session: LibresignExternalSigningSession,
+ *     retryAllowed: bool,
+ *     publication: ?LibresignExternalSigningPublication,
+ * }
  */
 class ResponseDefinitions {
 }
