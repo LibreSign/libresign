@@ -857,6 +857,130 @@
                     }
                 }
             },
+            "ExternalIntegrationDeletionResponse": {
+                "type": "object",
+                "required": [
+                    "deleted"
+                ],
+                "properties": {
+                    "deleted": {
+                        "type": "boolean"
+                    }
+                }
+            },
+            "ExternalIntegrationListResponse": {
+                "type": "object",
+                "required": [
+                    "items",
+                    "nextCursor"
+                ],
+                "properties": {
+                    "items": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/ExternalIntegrationSummary"
+                        }
+                    },
+                    "nextCursor": {
+                        "type": "integer",
+                        "format": "int64",
+                        "nullable": true
+                    }
+                }
+            },
+            "ExternalIntegrationResponse": {
+                "allOf": [
+                    {
+                        "$ref": "#/components/schemas/ExternalIntegrationSummary"
+                    },
+                    {
+                        "type": "object",
+                        "required": [
+                            "secretFields"
+                        ],
+                        "properties": {
+                            "secretFields": {
+                                "type": "array",
+                                "items": {
+                                    "$ref": "#/components/schemas/ExternalIntegrationSecretField"
+                                }
+                            }
+                        }
+                    }
+                ]
+            },
+            "ExternalIntegrationSecretField": {
+                "type": "object",
+                "required": [
+                    "key",
+                    "isConfigured"
+                ],
+                "properties": {
+                    "key": {
+                        "type": "string"
+                    },
+                    "isConfigured": {
+                        "type": "boolean"
+                    }
+                }
+            },
+            "ExternalIntegrationSummary": {
+                "type": "object",
+                "required": [
+                    "id",
+                    "driverId",
+                    "name",
+                    "scopeType",
+                    "scopeId",
+                    "configuration",
+                    "enabled",
+                    "hasSecrets",
+                    "revision",
+                    "createdAt",
+                    "updatedAt",
+                    "driverAvailable"
+                ],
+                "properties": {
+                    "id": {
+                        "type": "string"
+                    },
+                    "driverId": {
+                        "type": "string"
+                    },
+                    "name": {
+                        "type": "string"
+                    },
+                    "scopeType": {
+                        "type": "string"
+                    },
+                    "scopeId": {
+                        "type": "string"
+                    },
+                    "configuration": {
+                        "type": "object",
+                        "additionalProperties": true
+                    },
+                    "enabled": {
+                        "type": "boolean"
+                    },
+                    "hasSecrets": {
+                        "type": "boolean"
+                    },
+                    "revision": {
+                        "type": "integer",
+                        "format": "int64"
+                    },
+                    "createdAt": {
+                        "type": "string"
+                    },
+                    "updatedAt": {
+                        "type": "string"
+                    },
+                    "driverAvailable": {
+                        "type": "boolean"
+                    }
+                }
+            },
             "ExternalSigningAvailabilityResponse": {
                 "type": "object",
                 "required": [
@@ -990,6 +1114,104 @@
                         "type": "array",
                         "items": {
                             "type": "string"
+                        }
+                    }
+                }
+            },
+            "ExternalSigningDriver": {
+                "type": "object",
+                "required": [
+                    "id",
+                    "name",
+                    "description",
+                    "experimental",
+                    "available",
+                    "unavailableReason",
+                    "fields"
+                ],
+                "properties": {
+                    "id": {
+                        "type": "string"
+                    },
+                    "name": {
+                        "type": "string"
+                    },
+                    "description": {
+                        "type": "string"
+                    },
+                    "experimental": {
+                        "type": "boolean"
+                    },
+                    "available": {
+                        "type": "boolean"
+                    },
+                    "unavailableReason": {
+                        "type": "string",
+                        "nullable": true
+                    },
+                    "fields": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/ExternalSigningField"
+                        }
+                    }
+                }
+            },
+            "ExternalSigningDriversResponse": {
+                "type": "object",
+                "required": [
+                    "drivers"
+                ],
+                "properties": {
+                    "drivers": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/ExternalSigningDriver"
+                        }
+                    }
+                }
+            },
+            "ExternalSigningField": {
+                "type": "object",
+                "required": [
+                    "key",
+                    "label",
+                    "type",
+                    "required",
+                    "secret"
+                ],
+                "properties": {
+                    "key": {
+                        "type": "string"
+                    },
+                    "label": {
+                        "type": "string"
+                    },
+                    "type": {
+                        "type": "string",
+                        "enum": [
+                            "url",
+                            "password"
+                        ]
+                    },
+                    "required": {
+                        "type": "boolean"
+                    },
+                    "secret": {
+                        "type": "boolean"
+                    },
+                    "validation": {
+                        "type": "object",
+                        "properties": {
+                            "schemes": {
+                                "type": "array",
+                                "items": {
+                                    "type": "string"
+                                }
+                            },
+                            "allowUserInfo": {
+                                "type": "boolean"
+                            }
                         }
                     }
                 }
@@ -3956,7 +4178,7 @@
                     "200": {
                         "description": "CRL retrieved successfully in DER format",
                         "content": {
-                            "application/pkix-crl": {
+                            "*/*": {
                                 "schema": {
                                     "type": "string",
                                     "format": "binary"
@@ -4257,90 +4479,57 @@
                             }
                         }
                     },
-                    "422": {
-                        "description": "Invalid data to create the PFX file",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "type": "object",
-                                    "required": [
-                                        "ocs"
-                                    ],
-                                    "properties": {
-                                        "ocs": {
-                                            "type": "object",
-                                            "required": [
-                                                "meta",
-                                                "data"
-                                            ],
-                                            "properties": {
-                                                "meta": {
-                                                    "$ref": "#/components/schemas/OCSMeta"
-                                                },
-                                                "data": {
-                                                    "$ref": "#/components/schemas/MessageResponse"
-                                                }
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    },
-                    "500": {
+                    "401": {
                         "description": "Failure to create PFX file",
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "type": "object",
-                                    "required": [
-                                        "ocs"
-                                    ],
-                                    "properties": {
-                                        "ocs": {
+                                    "anyOf": [
+                                        {
                                             "type": "object",
                                             "required": [
-                                                "meta",
-                                                "data"
+                                                "ocs"
                                             ],
                                             "properties": {
-                                                "meta": {
-                                                    "$ref": "#/components/schemas/OCSMeta"
-                                                },
-                                                "data": {
-                                                    "$ref": "#/components/schemas/MessageResponse"
+                                                "ocs": {
+                                                    "type": "object",
+                                                    "required": [
+                                                        "meta",
+                                                        "data"
+                                                    ],
+                                                    "properties": {
+                                                        "meta": {
+                                                            "$ref": "#/components/schemas/OCSMeta"
+                                                        },
+                                                        "data": {
+                                                            "$ref": "#/components/schemas/MessageResponse"
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                        },
+                                        {
+                                            "type": "object",
+                                            "required": [
+                                                "ocs"
+                                            ],
+                                            "properties": {
+                                                "ocs": {
+                                                    "type": "object",
+                                                    "required": [
+                                                        "meta",
+                                                        "data"
+                                                    ],
+                                                    "properties": {
+                                                        "meta": {
+                                                            "$ref": "#/components/schemas/OCSMeta"
+                                                        },
+                                                        "data": {}
+                                                    }
                                                 }
                                             }
                                         }
-                                    }
-                                }
-                            }
-                        }
-                    },
-                    "401": {
-                        "description": "Current user is not logged in",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "type": "object",
-                                    "required": [
-                                        "ocs"
-                                    ],
-                                    "properties": {
-                                        "ocs": {
-                                            "type": "object",
-                                            "required": [
-                                                "meta",
-                                                "data"
-                                            ],
-                                            "properties": {
-                                                "meta": {
-                                                    "$ref": "#/components/schemas/OCSMeta"
-                                                },
-                                                "data": {}
-                                            }
-                                        }
-                                    }
+                                    ]
                                 }
                             }
                         }
@@ -5656,6 +5845,2364 @@
                                                     "$ref": "#/components/schemas/OCSMeta"
                                                 },
                                                 "data": {}
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/ocs/v2.php/apps/libresign/api/{apiVersion}/admin/signing/drivers": {
+            "get": {
+                "operationId": "external_signing_drivers-index",
+                "summary": "List registered external signing driver types for system administrators",
+                "description": "This endpoint does not expose configured integration instances or secrets.",
+                "tags": [
+                    "system"
+                ],
+                "security": [
+                    {
+                        "bearer_auth": []
+                    },
+                    {
+                        "basic_auth": []
+                    }
+                ],
+                "parameters": [
+                    {
+                        "name": "apiVersion",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "enum": [
+                                "v1"
+                            ],
+                            "default": "v1"
+                        }
+                    },
+                    {
+                        "name": "OCS-APIRequest",
+                        "in": "header",
+                        "description": "Required to be true for the API request to pass",
+                        "required": true,
+                        "schema": {
+                            "type": "boolean",
+                            "default": true
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Registered experimental driver definitions",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "required": [
+                                        "ocs"
+                                    ],
+                                    "properties": {
+                                        "ocs": {
+                                            "type": "object",
+                                            "required": [
+                                                "meta",
+                                                "data"
+                                            ],
+                                            "properties": {
+                                                "meta": {
+                                                    "$ref": "#/components/schemas/OCSMeta"
+                                                },
+                                                "data": {
+                                                    "$ref": "#/components/schemas/ExternalSigningDriversResponse"
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Authentication required",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "anyOf": [
+                                        {
+                                            "type": "object",
+                                            "required": [
+                                                "ocs"
+                                            ],
+                                            "properties": {
+                                                "ocs": {
+                                                    "type": "object",
+                                                    "required": [
+                                                        "meta",
+                                                        "data"
+                                                    ],
+                                                    "properties": {
+                                                        "meta": {
+                                                            "$ref": "#/components/schemas/OCSMeta"
+                                                        },
+                                                        "data": {
+                                                            "$ref": "#/components/schemas/ErrorResponse"
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                        },
+                                        {
+                                            "type": "object",
+                                            "required": [
+                                                "ocs"
+                                            ],
+                                            "properties": {
+                                                "ocs": {
+                                                    "type": "object",
+                                                    "required": [
+                                                        "meta",
+                                                        "data"
+                                                    ],
+                                                    "properties": {
+                                                        "meta": {
+                                                            "$ref": "#/components/schemas/OCSMeta"
+                                                        },
+                                                        "data": {}
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "System administrator required",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "required": [
+                                        "ocs"
+                                    ],
+                                    "properties": {
+                                        "ocs": {
+                                            "type": "object",
+                                            "required": [
+                                                "meta",
+                                                "data"
+                                            ],
+                                            "properties": {
+                                                "meta": {
+                                                    "$ref": "#/components/schemas/OCSMeta"
+                                                },
+                                                "data": {
+                                                    "$ref": "#/components/schemas/ErrorResponse"
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Experimental features disabled",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "required": [
+                                        "ocs"
+                                    ],
+                                    "properties": {
+                                        "ocs": {
+                                            "type": "object",
+                                            "required": [
+                                                "meta",
+                                                "data"
+                                            ],
+                                            "properties": {
+                                                "meta": {
+                                                    "$ref": "#/components/schemas/OCSMeta"
+                                                },
+                                                "data": {
+                                                    "$ref": "#/components/schemas/ErrorResponse"
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/ocs/v2.php/apps/libresign/api/{apiVersion}/admin/signing/integrations": {
+            "get": {
+                "operationId": "external_signing_integrations-index",
+                "summary": "List configured external signing integrations with keyset pagination",
+                "description": "List items are summaries: detailed secretFields status is returned by single-integration reads and mutation responses only.",
+                "tags": [
+                    "system"
+                ],
+                "security": [
+                    {
+                        "bearer_auth": []
+                    },
+                    {
+                        "basic_auth": []
+                    }
+                ],
+                "parameters": [
+                    {
+                        "name": "apiVersion",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "enum": [
+                                "v1"
+                            ],
+                            "default": "v1"
+                        }
+                    },
+                    {
+                        "name": "afterId",
+                        "in": "query",
+                        "description": "Keyset cursor, zero for the first page",
+                        "schema": {
+                            "type": "integer",
+                            "format": "int64",
+                            "default": 0
+                        }
+                    },
+                    {
+                        "name": "pageSize",
+                        "in": "query",
+                        "description": "Page size between one and 200",
+                        "schema": {
+                            "type": "integer",
+                            "format": "int64",
+                            "default": 50
+                        }
+                    },
+                    {
+                        "name": "scopeType",
+                        "in": "query",
+                        "description": "Connection scope: system, group or user",
+                        "schema": {
+                            "type": "string",
+                            "default": "system"
+                        }
+                    },
+                    {
+                        "name": "scopeId",
+                        "in": "query",
+                        "description": "Group ID or account UID; empty for system",
+                        "schema": {
+                            "type": "string",
+                            "default": ""
+                        }
+                    },
+                    {
+                        "name": "OCS-APIRequest",
+                        "in": "header",
+                        "description": "Required to be true for the API request to pass",
+                        "required": true,
+                        "schema": {
+                            "type": "boolean",
+                            "default": true
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Page of integrations",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "required": [
+                                        "ocs"
+                                    ],
+                                    "properties": {
+                                        "ocs": {
+                                            "type": "object",
+                                            "required": [
+                                                "meta",
+                                                "data"
+                                            ],
+                                            "properties": {
+                                                "meta": {
+                                                    "$ref": "#/components/schemas/OCSMeta"
+                                                },
+                                                "data": {
+                                                    "$ref": "#/components/schemas/ExternalIntegrationListResponse"
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Authentication required",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "anyOf": [
+                                        {
+                                            "type": "object",
+                                            "required": [
+                                                "ocs"
+                                            ],
+                                            "properties": {
+                                                "ocs": {
+                                                    "type": "object",
+                                                    "required": [
+                                                        "meta",
+                                                        "data"
+                                                    ],
+                                                    "properties": {
+                                                        "meta": {
+                                                            "$ref": "#/components/schemas/OCSMeta"
+                                                        },
+                                                        "data": {
+                                                            "$ref": "#/components/schemas/ErrorResponse"
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                        },
+                                        {
+                                            "type": "object",
+                                            "required": [
+                                                "ocs"
+                                            ],
+                                            "properties": {
+                                                "ocs": {
+                                                    "type": "object",
+                                                    "required": [
+                                                        "meta",
+                                                        "data"
+                                                    ],
+                                                    "properties": {
+                                                        "meta": {
+                                                            "$ref": "#/components/schemas/OCSMeta"
+                                                        },
+                                                        "data": {}
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "Administrator not delegated for this connection scope",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "required": [
+                                        "ocs"
+                                    ],
+                                    "properties": {
+                                        "ocs": {
+                                            "type": "object",
+                                            "required": [
+                                                "meta",
+                                                "data"
+                                            ],
+                                            "properties": {
+                                                "meta": {
+                                                    "$ref": "#/components/schemas/OCSMeta"
+                                                },
+                                                "data": {
+                                                    "$ref": "#/components/schemas/ErrorResponse"
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Experimental features disabled",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "required": [
+                                        "ocs"
+                                    ],
+                                    "properties": {
+                                        "ocs": {
+                                            "type": "object",
+                                            "required": [
+                                                "meta",
+                                                "data"
+                                            ],
+                                            "properties": {
+                                                "meta": {
+                                                    "$ref": "#/components/schemas/OCSMeta"
+                                                },
+                                                "data": {
+                                                    "$ref": "#/components/schemas/ErrorResponse"
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid pagination",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "required": [
+                                        "ocs"
+                                    ],
+                                    "properties": {
+                                        "ocs": {
+                                            "type": "object",
+                                            "required": [
+                                                "meta",
+                                                "data"
+                                            ],
+                                            "properties": {
+                                                "meta": {
+                                                    "$ref": "#/components/schemas/OCSMeta"
+                                                },
+                                                "data": {
+                                                    "$ref": "#/components/schemas/ErrorResponse"
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "409": {
+                        "description": "Integration conflict",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "required": [
+                                        "ocs"
+                                    ],
+                                    "properties": {
+                                        "ocs": {
+                                            "type": "object",
+                                            "required": [
+                                                "meta",
+                                                "data"
+                                            ],
+                                            "properties": {
+                                                "meta": {
+                                                    "$ref": "#/components/schemas/OCSMeta"
+                                                },
+                                                "data": {
+                                                    "$ref": "#/components/schemas/ErrorResponse"
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "required": [
+                                        "ocs"
+                                    ],
+                                    "properties": {
+                                        "ocs": {
+                                            "type": "object",
+                                            "required": [
+                                                "meta",
+                                                "data"
+                                            ],
+                                            "properties": {
+                                                "meta": {
+                                                    "$ref": "#/components/schemas/OCSMeta"
+                                                },
+                                                "data": {
+                                                    "$ref": "#/components/schemas/ErrorResponse"
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "post": {
+                "operationId": "external_signing_integrations-create",
+                "summary": "Create a disabled integration with write-only credentials",
+                "tags": [
+                    "system"
+                ],
+                "security": [
+                    {
+                        "bearer_auth": []
+                    },
+                    {
+                        "basic_auth": []
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object",
+                                "required": [
+                                    "driverId",
+                                    "name",
+                                    "configuration"
+                                ],
+                                "properties": {
+                                    "driverId": {
+                                        "type": "string",
+                                        "description": "Registered driver identifier"
+                                    },
+                                    "name": {
+                                        "type": "string",
+                                        "description": "Administrator-defined display name"
+                                    },
+                                    "configuration": {
+                                        "type": "object",
+                                        "description": "Non-secret driver settings",
+                                        "additionalProperties": {
+                                            "type": "string"
+                                        }
+                                    },
+                                    "secrets": {
+                                        "type": "object",
+                                        "default": {},
+                                        "description": "Write-only credential values",
+                                        "additionalProperties": {
+                                            "type": "string"
+                                        }
+                                    },
+                                    "scopeType": {
+                                        "type": "string",
+                                        "default": "system",
+                                        "description": "Connection scope: system, group or user"
+                                    },
+                                    "scopeId": {
+                                        "type": "string",
+                                        "default": "",
+                                        "description": "Group ID or account UID; empty for system"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                "parameters": [
+                    {
+                        "name": "apiVersion",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "enum": [
+                                "v1"
+                            ],
+                            "default": "v1"
+                        }
+                    },
+                    {
+                        "name": "OCS-APIRequest",
+                        "in": "header",
+                        "description": "Required to be true for the API request to pass",
+                        "required": true,
+                        "schema": {
+                            "type": "boolean",
+                            "default": true
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Integration created, initially disabled",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "required": [
+                                        "ocs"
+                                    ],
+                                    "properties": {
+                                        "ocs": {
+                                            "type": "object",
+                                            "required": [
+                                                "meta",
+                                                "data"
+                                            ],
+                                            "properties": {
+                                                "meta": {
+                                                    "$ref": "#/components/schemas/OCSMeta"
+                                                },
+                                                "data": {
+                                                    "$ref": "#/components/schemas/ExternalIntegrationResponse"
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Authentication required",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "anyOf": [
+                                        {
+                                            "type": "object",
+                                            "required": [
+                                                "ocs"
+                                            ],
+                                            "properties": {
+                                                "ocs": {
+                                                    "type": "object",
+                                                    "required": [
+                                                        "meta",
+                                                        "data"
+                                                    ],
+                                                    "properties": {
+                                                        "meta": {
+                                                            "$ref": "#/components/schemas/OCSMeta"
+                                                        },
+                                                        "data": {
+                                                            "$ref": "#/components/schemas/ErrorResponse"
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                        },
+                                        {
+                                            "type": "object",
+                                            "required": [
+                                                "ocs"
+                                            ],
+                                            "properties": {
+                                                "ocs": {
+                                                    "type": "object",
+                                                    "required": [
+                                                        "meta",
+                                                        "data"
+                                                    ],
+                                                    "properties": {
+                                                        "meta": {
+                                                            "$ref": "#/components/schemas/OCSMeta"
+                                                        },
+                                                        "data": {}
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "Administrator not delegated for this connection scope",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "required": [
+                                        "ocs"
+                                    ],
+                                    "properties": {
+                                        "ocs": {
+                                            "type": "object",
+                                            "required": [
+                                                "meta",
+                                                "data"
+                                            ],
+                                            "properties": {
+                                                "meta": {
+                                                    "$ref": "#/components/schemas/OCSMeta"
+                                                },
+                                                "data": {
+                                                    "$ref": "#/components/schemas/ErrorResponse"
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Experimental features disabled",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "required": [
+                                        "ocs"
+                                    ],
+                                    "properties": {
+                                        "ocs": {
+                                            "type": "object",
+                                            "required": [
+                                                "meta",
+                                                "data"
+                                            ],
+                                            "properties": {
+                                                "meta": {
+                                                    "$ref": "#/components/schemas/OCSMeta"
+                                                },
+                                                "data": {
+                                                    "$ref": "#/components/schemas/ErrorResponse"
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid driver or configuration",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "required": [
+                                        "ocs"
+                                    ],
+                                    "properties": {
+                                        "ocs": {
+                                            "type": "object",
+                                            "required": [
+                                                "meta",
+                                                "data"
+                                            ],
+                                            "properties": {
+                                                "meta": {
+                                                    "$ref": "#/components/schemas/OCSMeta"
+                                                },
+                                                "data": {
+                                                    "$ref": "#/components/schemas/ErrorResponse"
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "409": {
+                        "description": "Integration conflict",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "required": [
+                                        "ocs"
+                                    ],
+                                    "properties": {
+                                        "ocs": {
+                                            "type": "object",
+                                            "required": [
+                                                "meta",
+                                                "data"
+                                            ],
+                                            "properties": {
+                                                "meta": {
+                                                    "$ref": "#/components/schemas/OCSMeta"
+                                                },
+                                                "data": {
+                                                    "$ref": "#/components/schemas/ErrorResponse"
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "required": [
+                                        "ocs"
+                                    ],
+                                    "properties": {
+                                        "ocs": {
+                                            "type": "object",
+                                            "required": [
+                                                "meta",
+                                                "data"
+                                            ],
+                                            "properties": {
+                                                "meta": {
+                                                    "$ref": "#/components/schemas/OCSMeta"
+                                                },
+                                                "data": {
+                                                    "$ref": "#/components/schemas/ErrorResponse"
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/ocs/v2.php/apps/libresign/api/{apiVersion}/admin/signing/integrations/{id}": {
+            "get": {
+                "operationId": "external_signing_integrations-show",
+                "summary": "Inspect a configured integration without exposing credentials",
+                "tags": [
+                    "system"
+                ],
+                "security": [
+                    {
+                        "bearer_auth": []
+                    },
+                    {
+                        "basic_auth": []
+                    }
+                ],
+                "parameters": [
+                    {
+                        "name": "apiVersion",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "enum": [
+                                "v1"
+                            ],
+                            "default": "v1"
+                        }
+                    },
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "Opaque integration identifier",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "OCS-APIRequest",
+                        "in": "header",
+                        "description": "Required to be true for the API request to pass",
+                        "required": true,
+                        "schema": {
+                            "type": "boolean",
+                            "default": true
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Integration metadata and configured secret field indicators",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "required": [
+                                        "ocs"
+                                    ],
+                                    "properties": {
+                                        "ocs": {
+                                            "type": "object",
+                                            "required": [
+                                                "meta",
+                                                "data"
+                                            ],
+                                            "properties": {
+                                                "meta": {
+                                                    "$ref": "#/components/schemas/OCSMeta"
+                                                },
+                                                "data": {
+                                                    "$ref": "#/components/schemas/ExternalIntegrationResponse"
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Authentication required",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "anyOf": [
+                                        {
+                                            "type": "object",
+                                            "required": [
+                                                "ocs"
+                                            ],
+                                            "properties": {
+                                                "ocs": {
+                                                    "type": "object",
+                                                    "required": [
+                                                        "meta",
+                                                        "data"
+                                                    ],
+                                                    "properties": {
+                                                        "meta": {
+                                                            "$ref": "#/components/schemas/OCSMeta"
+                                                        },
+                                                        "data": {
+                                                            "$ref": "#/components/schemas/ErrorResponse"
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                        },
+                                        {
+                                            "type": "object",
+                                            "required": [
+                                                "ocs"
+                                            ],
+                                            "properties": {
+                                                "ocs": {
+                                                    "type": "object",
+                                                    "required": [
+                                                        "meta",
+                                                        "data"
+                                                    ],
+                                                    "properties": {
+                                                        "meta": {
+                                                            "$ref": "#/components/schemas/OCSMeta"
+                                                        },
+                                                        "data": {}
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "Administrator not delegated for this connection scope",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "required": [
+                                        "ocs"
+                                    ],
+                                    "properties": {
+                                        "ocs": {
+                                            "type": "object",
+                                            "required": [
+                                                "meta",
+                                                "data"
+                                            ],
+                                            "properties": {
+                                                "meta": {
+                                                    "$ref": "#/components/schemas/OCSMeta"
+                                                },
+                                                "data": {
+                                                    "$ref": "#/components/schemas/ErrorResponse"
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Integration not found or experimental features disabled",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "required": [
+                                        "ocs"
+                                    ],
+                                    "properties": {
+                                        "ocs": {
+                                            "type": "object",
+                                            "required": [
+                                                "meta",
+                                                "data"
+                                            ],
+                                            "properties": {
+                                                "meta": {
+                                                    "$ref": "#/components/schemas/OCSMeta"
+                                                },
+                                                "data": {
+                                                    "$ref": "#/components/schemas/ErrorResponse"
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid integration request",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "required": [
+                                        "ocs"
+                                    ],
+                                    "properties": {
+                                        "ocs": {
+                                            "type": "object",
+                                            "required": [
+                                                "meta",
+                                                "data"
+                                            ],
+                                            "properties": {
+                                                "meta": {
+                                                    "$ref": "#/components/schemas/OCSMeta"
+                                                },
+                                                "data": {
+                                                    "$ref": "#/components/schemas/ErrorResponse"
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "409": {
+                        "description": "Integration conflict",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "required": [
+                                        "ocs"
+                                    ],
+                                    "properties": {
+                                        "ocs": {
+                                            "type": "object",
+                                            "required": [
+                                                "meta",
+                                                "data"
+                                            ],
+                                            "properties": {
+                                                "meta": {
+                                                    "$ref": "#/components/schemas/OCSMeta"
+                                                },
+                                                "data": {
+                                                    "$ref": "#/components/schemas/ErrorResponse"
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "required": [
+                                        "ocs"
+                                    ],
+                                    "properties": {
+                                        "ocs": {
+                                            "type": "object",
+                                            "required": [
+                                                "meta",
+                                                "data"
+                                            ],
+                                            "properties": {
+                                                "meta": {
+                                                    "$ref": "#/components/schemas/OCSMeta"
+                                                },
+                                                "data": {
+                                                    "$ref": "#/components/schemas/ErrorResponse"
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "patch": {
+                "operationId": "external_signing_integrations-update",
+                "summary": "Update integration settings and write-only secrets",
+                "description": "Secret keys omitted from the patch preserve their current ciphertext. Explicit null removes only an optional secret. Revision is mandatory.",
+                "tags": [
+                    "system"
+                ],
+                "security": [
+                    {
+                        "bearer_auth": []
+                    },
+                    {
+                        "basic_auth": []
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object",
+                                "required": [
+                                    "revision"
+                                ],
+                                "properties": {
+                                    "revision": {
+                                        "type": "integer",
+                                        "format": "int64",
+                                        "description": "Expected revision for optimistic locking"
+                                    },
+                                    "name": {
+                                        "type": "string",
+                                        "nullable": true,
+                                        "default": null,
+                                        "description": "Updated display name, if supplied"
+                                    },
+                                    "configuration": {
+                                        "type": "object",
+                                        "nullable": true,
+                                        "default": null,
+                                        "description": "Full replacement public configuration, if supplied",
+                                        "additionalProperties": {
+                                            "type": "string"
+                                        }
+                                    },
+                                    "secrets": {
+                                        "type": "object",
+                                        "default": {},
+                                        "description": "Write-only secret changes",
+                                        "additionalProperties": {
+                                            "type": "string",
+                                            "nullable": true
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                "parameters": [
+                    {
+                        "name": "apiVersion",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "enum": [
+                                "v1"
+                            ],
+                            "default": "v1"
+                        }
+                    },
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "Opaque integration identifier",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "OCS-APIRequest",
+                        "in": "header",
+                        "description": "Required to be true for the API request to pass",
+                        "required": true,
+                        "schema": {
+                            "type": "boolean",
+                            "default": true
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Integration updated",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "required": [
+                                        "ocs"
+                                    ],
+                                    "properties": {
+                                        "ocs": {
+                                            "type": "object",
+                                            "required": [
+                                                "meta",
+                                                "data"
+                                            ],
+                                            "properties": {
+                                                "meta": {
+                                                    "$ref": "#/components/schemas/OCSMeta"
+                                                },
+                                                "data": {
+                                                    "$ref": "#/components/schemas/ExternalIntegrationResponse"
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Authentication required",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "anyOf": [
+                                        {
+                                            "type": "object",
+                                            "required": [
+                                                "ocs"
+                                            ],
+                                            "properties": {
+                                                "ocs": {
+                                                    "type": "object",
+                                                    "required": [
+                                                        "meta",
+                                                        "data"
+                                                    ],
+                                                    "properties": {
+                                                        "meta": {
+                                                            "$ref": "#/components/schemas/OCSMeta"
+                                                        },
+                                                        "data": {
+                                                            "$ref": "#/components/schemas/ErrorResponse"
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                        },
+                                        {
+                                            "type": "object",
+                                            "required": [
+                                                "ocs"
+                                            ],
+                                            "properties": {
+                                                "ocs": {
+                                                    "type": "object",
+                                                    "required": [
+                                                        "meta",
+                                                        "data"
+                                                    ],
+                                                    "properties": {
+                                                        "meta": {
+                                                            "$ref": "#/components/schemas/OCSMeta"
+                                                        },
+                                                        "data": {}
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "Administrator not delegated for this connection scope",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "required": [
+                                        "ocs"
+                                    ],
+                                    "properties": {
+                                        "ocs": {
+                                            "type": "object",
+                                            "required": [
+                                                "meta",
+                                                "data"
+                                            ],
+                                            "properties": {
+                                                "meta": {
+                                                    "$ref": "#/components/schemas/OCSMeta"
+                                                },
+                                                "data": {
+                                                    "$ref": "#/components/schemas/ErrorResponse"
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Integration not found or experimental features disabled",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "required": [
+                                        "ocs"
+                                    ],
+                                    "properties": {
+                                        "ocs": {
+                                            "type": "object",
+                                            "required": [
+                                                "meta",
+                                                "data"
+                                            ],
+                                            "properties": {
+                                                "meta": {
+                                                    "$ref": "#/components/schemas/OCSMeta"
+                                                },
+                                                "data": {
+                                                    "$ref": "#/components/schemas/ErrorResponse"
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid configuration or revision",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "required": [
+                                        "ocs"
+                                    ],
+                                    "properties": {
+                                        "ocs": {
+                                            "type": "object",
+                                            "required": [
+                                                "meta",
+                                                "data"
+                                            ],
+                                            "properties": {
+                                                "meta": {
+                                                    "$ref": "#/components/schemas/OCSMeta"
+                                                },
+                                                "data": {
+                                                    "$ref": "#/components/schemas/ErrorResponse"
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "409": {
+                        "description": "Stale revision",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "required": [
+                                        "ocs"
+                                    ],
+                                    "properties": {
+                                        "ocs": {
+                                            "type": "object",
+                                            "required": [
+                                                "meta",
+                                                "data"
+                                            ],
+                                            "properties": {
+                                                "meta": {
+                                                    "$ref": "#/components/schemas/OCSMeta"
+                                                },
+                                                "data": {
+                                                    "$ref": "#/components/schemas/ErrorResponse"
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "required": [
+                                        "ocs"
+                                    ],
+                                    "properties": {
+                                        "ocs": {
+                                            "type": "object",
+                                            "required": [
+                                                "meta",
+                                                "data"
+                                            ],
+                                            "properties": {
+                                                "meta": {
+                                                    "$ref": "#/components/schemas/OCSMeta"
+                                                },
+                                                "data": {
+                                                    "$ref": "#/components/schemas/ErrorResponse"
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "operationId": "external_signing_integrations-destroy",
+                "summary": "Delete an integration and erase its credentials",
+                "tags": [
+                    "system"
+                ],
+                "security": [
+                    {
+                        "bearer_auth": []
+                    },
+                    {
+                        "basic_auth": []
+                    }
+                ],
+                "parameters": [
+                    {
+                        "name": "apiVersion",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "enum": [
+                                "v1"
+                            ],
+                            "default": "v1"
+                        }
+                    },
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "Opaque integration identifier",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "revision",
+                        "in": "query",
+                        "description": "Expected revision for optimistic locking",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "format": "int64"
+                        }
+                    },
+                    {
+                        "name": "OCS-APIRequest",
+                        "in": "header",
+                        "description": "Required to be true for the API request to pass",
+                        "required": true,
+                        "schema": {
+                            "type": "boolean",
+                            "default": true
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Integration deleted",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "required": [
+                                        "ocs"
+                                    ],
+                                    "properties": {
+                                        "ocs": {
+                                            "type": "object",
+                                            "required": [
+                                                "meta",
+                                                "data"
+                                            ],
+                                            "properties": {
+                                                "meta": {
+                                                    "$ref": "#/components/schemas/OCSMeta"
+                                                },
+                                                "data": {
+                                                    "$ref": "#/components/schemas/ExternalIntegrationDeletionResponse"
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Authentication required",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "anyOf": [
+                                        {
+                                            "type": "object",
+                                            "required": [
+                                                "ocs"
+                                            ],
+                                            "properties": {
+                                                "ocs": {
+                                                    "type": "object",
+                                                    "required": [
+                                                        "meta",
+                                                        "data"
+                                                    ],
+                                                    "properties": {
+                                                        "meta": {
+                                                            "$ref": "#/components/schemas/OCSMeta"
+                                                        },
+                                                        "data": {
+                                                            "$ref": "#/components/schemas/ErrorResponse"
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                        },
+                                        {
+                                            "type": "object",
+                                            "required": [
+                                                "ocs"
+                                            ],
+                                            "properties": {
+                                                "ocs": {
+                                                    "type": "object",
+                                                    "required": [
+                                                        "meta",
+                                                        "data"
+                                                    ],
+                                                    "properties": {
+                                                        "meta": {
+                                                            "$ref": "#/components/schemas/OCSMeta"
+                                                        },
+                                                        "data": {}
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "Administrator not delegated for this connection scope",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "required": [
+                                        "ocs"
+                                    ],
+                                    "properties": {
+                                        "ocs": {
+                                            "type": "object",
+                                            "required": [
+                                                "meta",
+                                                "data"
+                                            ],
+                                            "properties": {
+                                                "meta": {
+                                                    "$ref": "#/components/schemas/OCSMeta"
+                                                },
+                                                "data": {
+                                                    "$ref": "#/components/schemas/ErrorResponse"
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Integration not found or experimental features disabled",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "required": [
+                                        "ocs"
+                                    ],
+                                    "properties": {
+                                        "ocs": {
+                                            "type": "object",
+                                            "required": [
+                                                "meta",
+                                                "data"
+                                            ],
+                                            "properties": {
+                                                "meta": {
+                                                    "$ref": "#/components/schemas/OCSMeta"
+                                                },
+                                                "data": {
+                                                    "$ref": "#/components/schemas/ErrorResponse"
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid revision",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "required": [
+                                        "ocs"
+                                    ],
+                                    "properties": {
+                                        "ocs": {
+                                            "type": "object",
+                                            "required": [
+                                                "meta",
+                                                "data"
+                                            ],
+                                            "properties": {
+                                                "meta": {
+                                                    "$ref": "#/components/schemas/OCSMeta"
+                                                },
+                                                "data": {
+                                                    "$ref": "#/components/schemas/ErrorResponse"
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "409": {
+                        "description": "Stale revision",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "required": [
+                                        "ocs"
+                                    ],
+                                    "properties": {
+                                        "ocs": {
+                                            "type": "object",
+                                            "required": [
+                                                "meta",
+                                                "data"
+                                            ],
+                                            "properties": {
+                                                "meta": {
+                                                    "$ref": "#/components/schemas/OCSMeta"
+                                                },
+                                                "data": {
+                                                    "$ref": "#/components/schemas/ErrorResponse"
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "required": [
+                                        "ocs"
+                                    ],
+                                    "properties": {
+                                        "ocs": {
+                                            "type": "object",
+                                            "required": [
+                                                "meta",
+                                                "data"
+                                            ],
+                                            "properties": {
+                                                "meta": {
+                                                    "$ref": "#/components/schemas/OCSMeta"
+                                                },
+                                                "data": {
+                                                    "$ref": "#/components/schemas/ErrorResponse"
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/ocs/v2.php/apps/libresign/api/{apiVersion}/admin/signing/integrations/{id}/enable": {
+            "post": {
+                "operationId": "external_signing_integrations-enable",
+                "summary": "Enable an integration without changing the global feature flag",
+                "tags": [
+                    "system"
+                ],
+                "security": [
+                    {
+                        "bearer_auth": []
+                    },
+                    {
+                        "basic_auth": []
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object",
+                                "required": [
+                                    "revision"
+                                ],
+                                "properties": {
+                                    "revision": {
+                                        "type": "integer",
+                                        "format": "int64",
+                                        "description": "Expected revision for optimistic locking"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                "parameters": [
+                    {
+                        "name": "apiVersion",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "enum": [
+                                "v1"
+                            ],
+                            "default": "v1"
+                        }
+                    },
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "Opaque integration identifier",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "OCS-APIRequest",
+                        "in": "header",
+                        "description": "Required to be true for the API request to pass",
+                        "required": true,
+                        "schema": {
+                            "type": "boolean",
+                            "default": true
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Integration enabled",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "required": [
+                                        "ocs"
+                                    ],
+                                    "properties": {
+                                        "ocs": {
+                                            "type": "object",
+                                            "required": [
+                                                "meta",
+                                                "data"
+                                            ],
+                                            "properties": {
+                                                "meta": {
+                                                    "$ref": "#/components/schemas/OCSMeta"
+                                                },
+                                                "data": {
+                                                    "$ref": "#/components/schemas/ExternalIntegrationResponse"
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Authentication required",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "anyOf": [
+                                        {
+                                            "type": "object",
+                                            "required": [
+                                                "ocs"
+                                            ],
+                                            "properties": {
+                                                "ocs": {
+                                                    "type": "object",
+                                                    "required": [
+                                                        "meta",
+                                                        "data"
+                                                    ],
+                                                    "properties": {
+                                                        "meta": {
+                                                            "$ref": "#/components/schemas/OCSMeta"
+                                                        },
+                                                        "data": {
+                                                            "$ref": "#/components/schemas/ErrorResponse"
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                        },
+                                        {
+                                            "type": "object",
+                                            "required": [
+                                                "ocs"
+                                            ],
+                                            "properties": {
+                                                "ocs": {
+                                                    "type": "object",
+                                                    "required": [
+                                                        "meta",
+                                                        "data"
+                                                    ],
+                                                    "properties": {
+                                                        "meta": {
+                                                            "$ref": "#/components/schemas/OCSMeta"
+                                                        },
+                                                        "data": {}
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "Administrator not delegated for this connection scope",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "required": [
+                                        "ocs"
+                                    ],
+                                    "properties": {
+                                        "ocs": {
+                                            "type": "object",
+                                            "required": [
+                                                "meta",
+                                                "data"
+                                            ],
+                                            "properties": {
+                                                "meta": {
+                                                    "$ref": "#/components/schemas/OCSMeta"
+                                                },
+                                                "data": {
+                                                    "$ref": "#/components/schemas/ErrorResponse"
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Integration not found or experimental features disabled",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "required": [
+                                        "ocs"
+                                    ],
+                                    "properties": {
+                                        "ocs": {
+                                            "type": "object",
+                                            "required": [
+                                                "meta",
+                                                "data"
+                                            ],
+                                            "properties": {
+                                                "meta": {
+                                                    "$ref": "#/components/schemas/OCSMeta"
+                                                },
+                                                "data": {
+                                                    "$ref": "#/components/schemas/ErrorResponse"
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid revision",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "required": [
+                                        "ocs"
+                                    ],
+                                    "properties": {
+                                        "ocs": {
+                                            "type": "object",
+                                            "required": [
+                                                "meta",
+                                                "data"
+                                            ],
+                                            "properties": {
+                                                "meta": {
+                                                    "$ref": "#/components/schemas/OCSMeta"
+                                                },
+                                                "data": {
+                                                    "$ref": "#/components/schemas/ErrorResponse"
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "409": {
+                        "description": "Stale revision or driver unavailable",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "required": [
+                                        "ocs"
+                                    ],
+                                    "properties": {
+                                        "ocs": {
+                                            "type": "object",
+                                            "required": [
+                                                "meta",
+                                                "data"
+                                            ],
+                                            "properties": {
+                                                "meta": {
+                                                    "$ref": "#/components/schemas/OCSMeta"
+                                                },
+                                                "data": {
+                                                    "$ref": "#/components/schemas/ErrorResponse"
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "required": [
+                                        "ocs"
+                                    ],
+                                    "properties": {
+                                        "ocs": {
+                                            "type": "object",
+                                            "required": [
+                                                "meta",
+                                                "data"
+                                            ],
+                                            "properties": {
+                                                "meta": {
+                                                    "$ref": "#/components/schemas/OCSMeta"
+                                                },
+                                                "data": {
+                                                    "$ref": "#/components/schemas/ErrorResponse"
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/ocs/v2.php/apps/libresign/api/{apiVersion}/admin/signing/integrations/{id}/disable": {
+            "post": {
+                "operationId": "external_signing_integrations-disable",
+                "summary": "Disable an integration without changing the global feature flag",
+                "tags": [
+                    "system"
+                ],
+                "security": [
+                    {
+                        "bearer_auth": []
+                    },
+                    {
+                        "basic_auth": []
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object",
+                                "required": [
+                                    "revision"
+                                ],
+                                "properties": {
+                                    "revision": {
+                                        "type": "integer",
+                                        "format": "int64",
+                                        "description": "Expected revision for optimistic locking"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                "parameters": [
+                    {
+                        "name": "apiVersion",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "enum": [
+                                "v1"
+                            ],
+                            "default": "v1"
+                        }
+                    },
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "Opaque integration identifier",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "OCS-APIRequest",
+                        "in": "header",
+                        "description": "Required to be true for the API request to pass",
+                        "required": true,
+                        "schema": {
+                            "type": "boolean",
+                            "default": true
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Integration disabled",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "required": [
+                                        "ocs"
+                                    ],
+                                    "properties": {
+                                        "ocs": {
+                                            "type": "object",
+                                            "required": [
+                                                "meta",
+                                                "data"
+                                            ],
+                                            "properties": {
+                                                "meta": {
+                                                    "$ref": "#/components/schemas/OCSMeta"
+                                                },
+                                                "data": {
+                                                    "$ref": "#/components/schemas/ExternalIntegrationResponse"
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Authentication required",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "anyOf": [
+                                        {
+                                            "type": "object",
+                                            "required": [
+                                                "ocs"
+                                            ],
+                                            "properties": {
+                                                "ocs": {
+                                                    "type": "object",
+                                                    "required": [
+                                                        "meta",
+                                                        "data"
+                                                    ],
+                                                    "properties": {
+                                                        "meta": {
+                                                            "$ref": "#/components/schemas/OCSMeta"
+                                                        },
+                                                        "data": {
+                                                            "$ref": "#/components/schemas/ErrorResponse"
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                        },
+                                        {
+                                            "type": "object",
+                                            "required": [
+                                                "ocs"
+                                            ],
+                                            "properties": {
+                                                "ocs": {
+                                                    "type": "object",
+                                                    "required": [
+                                                        "meta",
+                                                        "data"
+                                                    ],
+                                                    "properties": {
+                                                        "meta": {
+                                                            "$ref": "#/components/schemas/OCSMeta"
+                                                        },
+                                                        "data": {}
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "Administrator not delegated for this connection scope",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "required": [
+                                        "ocs"
+                                    ],
+                                    "properties": {
+                                        "ocs": {
+                                            "type": "object",
+                                            "required": [
+                                                "meta",
+                                                "data"
+                                            ],
+                                            "properties": {
+                                                "meta": {
+                                                    "$ref": "#/components/schemas/OCSMeta"
+                                                },
+                                                "data": {
+                                                    "$ref": "#/components/schemas/ErrorResponse"
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Integration not found or experimental features disabled",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "required": [
+                                        "ocs"
+                                    ],
+                                    "properties": {
+                                        "ocs": {
+                                            "type": "object",
+                                            "required": [
+                                                "meta",
+                                                "data"
+                                            ],
+                                            "properties": {
+                                                "meta": {
+                                                    "$ref": "#/components/schemas/OCSMeta"
+                                                },
+                                                "data": {
+                                                    "$ref": "#/components/schemas/ErrorResponse"
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid revision",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "required": [
+                                        "ocs"
+                                    ],
+                                    "properties": {
+                                        "ocs": {
+                                            "type": "object",
+                                            "required": [
+                                                "meta",
+                                                "data"
+                                            ],
+                                            "properties": {
+                                                "meta": {
+                                                    "$ref": "#/components/schemas/OCSMeta"
+                                                },
+                                                "data": {
+                                                    "$ref": "#/components/schemas/ErrorResponse"
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "409": {
+                        "description": "Stale revision",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "required": [
+                                        "ocs"
+                                    ],
+                                    "properties": {
+                                        "ocs": {
+                                            "type": "object",
+                                            "required": [
+                                                "meta",
+                                                "data"
+                                            ],
+                                            "properties": {
+                                                "meta": {
+                                                    "$ref": "#/components/schemas/OCSMeta"
+                                                },
+                                                "data": {
+                                                    "$ref": "#/components/schemas/ErrorResponse"
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "required": [
+                                        "ocs"
+                                    ],
+                                    "properties": {
+                                        "ocs": {
+                                            "type": "object",
+                                            "required": [
+                                                "meta",
+                                                "data"
+                                            ],
+                                            "properties": {
+                                                "meta": {
+                                                    "$ref": "#/components/schemas/OCSMeta"
+                                                },
+                                                "data": {
+                                                    "$ref": "#/components/schemas/ErrorResponse"
+                                                }
                                             }
                                         }
                                     }
@@ -8070,14 +10617,7 @@
                                                     "$ref": "#/components/schemas/OCSMeta"
                                                 },
                                                 "data": {
-                                                    "anyOf": [
-                                                        {
-                                                            "$ref": "#/components/schemas/MessageResponse"
-                                                        },
-                                                        {
-                                                            "$ref": "#/components/schemas/ActionErrorResponse"
-                                                        }
-                                                    ]
+                                                    "$ref": "#/components/schemas/MessageResponse"
                                                 }
                                             }
                                         }
@@ -8278,14 +10818,7 @@
                                                     "$ref": "#/components/schemas/OCSMeta"
                                                 },
                                                 "data": {
-                                                    "anyOf": [
-                                                        {
-                                                            "$ref": "#/components/schemas/MessageResponse"
-                                                        },
-                                                        {
-                                                            "$ref": "#/components/schemas/ActionErrorResponse"
-                                                        }
-                                                    ]
+                                                    "$ref": "#/components/schemas/MessageResponse"
                                                 }
                                             }
                                         }
@@ -8415,6 +10948,61 @@
                             }
                         }
                     },
+                    "401": {
+                        "description": "Failed",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "anyOf": [
+                                        {
+                                            "type": "object",
+                                            "required": [
+                                                "ocs"
+                                            ],
+                                            "properties": {
+                                                "ocs": {
+                                                    "type": "object",
+                                                    "required": [
+                                                        "meta",
+                                                        "data"
+                                                    ],
+                                                    "properties": {
+                                                        "meta": {
+                                                            "$ref": "#/components/schemas/OCSMeta"
+                                                        },
+                                                        "data": {
+                                                            "$ref": "#/components/schemas/MessageResponse"
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                        },
+                                        {
+                                            "type": "object",
+                                            "required": [
+                                                "ocs"
+                                            ],
+                                            "properties": {
+                                                "ocs": {
+                                                    "type": "object",
+                                                    "required": [
+                                                        "meta",
+                                                        "data"
+                                                    ],
+                                                    "properties": {
+                                                        "meta": {
+                                                            "$ref": "#/components/schemas/OCSMeta"
+                                                        },
+                                                        "data": {}
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    ]
+                                }
+                            }
+                        }
+                    },
                     "422": {
                         "description": "Failed",
                         "content": {
@@ -8436,73 +11024,8 @@
                                                     "$ref": "#/components/schemas/OCSMeta"
                                                 },
                                                 "data": {
-                                                    "anyOf": [
-                                                        {
-                                                            "$ref": "#/components/schemas/MessageResponse"
-                                                        },
-                                                        {
-                                                            "$ref": "#/components/schemas/ActionErrorResponse"
-                                                        }
-                                                    ]
+                                                    "$ref": "#/components/schemas/ActionErrorResponse"
                                                 }
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    },
-                    "500": {
-                        "description": "Unexpected failure",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "type": "object",
-                                    "required": [
-                                        "ocs"
-                                    ],
-                                    "properties": {
-                                        "ocs": {
-                                            "type": "object",
-                                            "required": [
-                                                "meta",
-                                                "data"
-                                            ],
-                                            "properties": {
-                                                "meta": {
-                                                    "$ref": "#/components/schemas/OCSMeta"
-                                                },
-                                                "data": {
-                                                    "$ref": "#/components/schemas/MessageResponse"
-                                                }
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    },
-                    "401": {
-                        "description": "Current user is not logged in",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "type": "object",
-                                    "required": [
-                                        "ocs"
-                                    ],
-                                    "properties": {
-                                        "ocs": {
-                                            "type": "object",
-                                            "required": [
-                                                "meta",
-                                                "data"
-                                            ],
-                                            "properties": {
-                                                "meta": {
-                                                    "$ref": "#/components/schemas/OCSMeta"
-                                                },
-                                                "data": {}
                                             }
                                         }
                                     }
@@ -10188,36 +12711,6 @@
                                                 },
                                                 "data": {
                                                     "$ref": "#/components/schemas/IdentifyAccountsResponse"
-                                                }
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    },
-                    "422": {
-                        "description": "User is not allowed to request signatures",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "type": "object",
-                                    "required": [
-                                        "ocs"
-                                    ],
-                                    "properties": {
-                                        "ocs": {
-                                            "type": "object",
-                                            "required": [
-                                                "meta",
-                                                "data"
-                                            ],
-                                            "properties": {
-                                                "meta": {
-                                                    "$ref": "#/components/schemas/OCSMeta"
-                                                },
-                                                "data": {
-                                                    "$ref": "#/components/schemas/ActionErrorResponse"
                                                 }
                                             }
                                         }
@@ -13779,6 +16272,61 @@
                             }
                         }
                     },
+                    "401": {
+                        "description": "Failed",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "anyOf": [
+                                        {
+                                            "type": "object",
+                                            "required": [
+                                                "ocs"
+                                            ],
+                                            "properties": {
+                                                "ocs": {
+                                                    "type": "object",
+                                                    "required": [
+                                                        "meta",
+                                                        "data"
+                                                    ],
+                                                    "properties": {
+                                                        "meta": {
+                                                            "$ref": "#/components/schemas/OCSMeta"
+                                                        },
+                                                        "data": {
+                                                            "$ref": "#/components/schemas/MessageResponse"
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                        },
+                                        {
+                                            "type": "object",
+                                            "required": [
+                                                "ocs"
+                                            ],
+                                            "properties": {
+                                                "ocs": {
+                                                    "type": "object",
+                                                    "required": [
+                                                        "meta",
+                                                        "data"
+                                                    ],
+                                                    "properties": {
+                                                        "meta": {
+                                                            "$ref": "#/components/schemas/OCSMeta"
+                                                        },
+                                                        "data": {}
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    ]
+                                }
+                            }
+                        }
+                    },
                     "422": {
                         "description": "Failed",
                         "content": {
@@ -13800,43 +16348,8 @@
                                                     "$ref": "#/components/schemas/OCSMeta"
                                                 },
                                                 "data": {
-                                                    "anyOf": [
-                                                        {
-                                                            "$ref": "#/components/schemas/MessageResponse"
-                                                        },
-                                                        {
-                                                            "$ref": "#/components/schemas/ActionErrorResponse"
-                                                        }
-                                                    ]
+                                                    "$ref": "#/components/schemas/ActionErrorResponse"
                                                 }
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    },
-                    "401": {
-                        "description": "Current user is not logged in",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "type": "object",
-                                    "required": [
-                                        "ocs"
-                                    ],
-                                    "properties": {
-                                        "ocs": {
-                                            "type": "object",
-                                            "required": [
-                                                "meta",
-                                                "data"
-                                            ],
-                                            "properties": {
-                                                "meta": {
-                                                    "$ref": "#/components/schemas/OCSMeta"
-                                                },
-                                                "data": {}
                                             }
                                         }
                                     }
@@ -13928,6 +16441,61 @@
                             }
                         }
                     },
+                    "401": {
+                        "description": "Failed",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "anyOf": [
+                                        {
+                                            "type": "object",
+                                            "required": [
+                                                "ocs"
+                                            ],
+                                            "properties": {
+                                                "ocs": {
+                                                    "type": "object",
+                                                    "required": [
+                                                        "meta",
+                                                        "data"
+                                                    ],
+                                                    "properties": {
+                                                        "meta": {
+                                                            "$ref": "#/components/schemas/OCSMeta"
+                                                        },
+                                                        "data": {
+                                                            "$ref": "#/components/schemas/MessageResponse"
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                        },
+                                        {
+                                            "type": "object",
+                                            "required": [
+                                                "ocs"
+                                            ],
+                                            "properties": {
+                                                "ocs": {
+                                                    "type": "object",
+                                                    "required": [
+                                                        "meta",
+                                                        "data"
+                                                    ],
+                                                    "properties": {
+                                                        "meta": {
+                                                            "$ref": "#/components/schemas/OCSMeta"
+                                                        },
+                                                        "data": {}
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    ]
+                                }
+                            }
+                        }
+                    },
                     "422": {
                         "description": "Failed",
                         "content": {
@@ -13949,73 +16517,8 @@
                                                     "$ref": "#/components/schemas/OCSMeta"
                                                 },
                                                 "data": {
-                                                    "anyOf": [
-                                                        {
-                                                            "$ref": "#/components/schemas/MessageResponse"
-                                                        },
-                                                        {
-                                                            "$ref": "#/components/schemas/ActionErrorResponse"
-                                                        }
-                                                    ]
+                                                    "$ref": "#/components/schemas/ActionErrorResponse"
                                                 }
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    },
-                    "500": {
-                        "description": "Unexpected failure",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "type": "object",
-                                    "required": [
-                                        "ocs"
-                                    ],
-                                    "properties": {
-                                        "ocs": {
-                                            "type": "object",
-                                            "required": [
-                                                "meta",
-                                                "data"
-                                            ],
-                                            "properties": {
-                                                "meta": {
-                                                    "$ref": "#/components/schemas/OCSMeta"
-                                                },
-                                                "data": {
-                                                    "$ref": "#/components/schemas/MessageResponse"
-                                                }
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    },
-                    "401": {
-                        "description": "Current user is not logged in",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "type": "object",
-                                    "required": [
-                                        "ocs"
-                                    ],
-                                    "properties": {
-                                        "ocs": {
-                                            "type": "object",
-                                            "required": [
-                                                "meta",
-                                                "data"
-                                            ],
-                                            "properties": {
-                                                "meta": {
-                                                    "$ref": "#/components/schemas/OCSMeta"
-                                                },
-                                                "data": {}
                                             }
                                         }
                                     }
