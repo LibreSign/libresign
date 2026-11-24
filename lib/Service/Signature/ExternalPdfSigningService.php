@@ -11,10 +11,10 @@ namespace OCA\Libresign\Service\Signature;
 use OCA\Libresign\Handler\DocMdpHandler;
 use OCA\Libresign\Service\Signature\Exception\ExternalSigningException;
 use OCA\Libresign\Vendor\phpseclib4\File\CMS\SignedData;
-use SignerPHP\PdfSigner\Application\DTO\HashAlgorithm;
-use SignerPHP\PdfSigner\Application\DTO\SignatureProfile;
-use SignerPHP\PdfSigner\Application\DTO\SigningContextDto;
-use SignerPHP\PdfSigner\Infrastructure\Native\Service\ExternalPdfSigningService as UpstreamExternalPdfSigningService;
+use OCA\Libresign\Vendor\SignerPHP\PdfSigner\Application\DTO\HashAlgorithm;
+use OCA\Libresign\Vendor\SignerPHP\PdfSigner\Application\DTO\SignatureProfile;
+use OCA\Libresign\Vendor\SignerPHP\PdfSigner\Application\DTO\SigningContextDto;
+use OCA\Libresign\Vendor\SignerPHP\PdfSigner\Infrastructure\Native\Service\ExternalPdfSigningService as UpstreamExternalPdfSigningService;
 
 /**
  * Internal, resumable external PDF-signing integration for issue #8354.
@@ -118,7 +118,7 @@ final class ExternalPdfSigningService {
 	 * their contents and baseline validity.
 	 *
 	 * @throws ExternalSigningException when the completed output fails validation
-	 * @throws \SignerPHP\PdfSigner\Domain\Exception\SignerException on upstream rejection (empty signature, corrupted state, size overflow)
+	 * @throws \OCA\Libresign\Vendor\SignerPHP\PdfSigner\Domain\Exception\SignerException on upstream rejection (empty signature, corrupted state, size overflow)
 	 */
 	public function complete(
 		PreparedExternalOperation $prepared,
