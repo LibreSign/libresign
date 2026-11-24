@@ -39,7 +39,8 @@ final class ExternalSigningLaboratoryFactory {
 	 *
 	 * @return list<array{id:string,name:string,driverId:string}>
 	 */
-	public function listEligible(): array {
+	/** @param callable(ExternalIntegrationRecord): bool|null $allowedScope */
+	public function listEligible(?callable $allowedScope = null): array {
 		$items = [];
 		$pinnedUrl = $this->systemConfig->getSystemValueString('libresign_csc_synthetic_lab_url', '');
 		$pinnedHash = $this->systemConfig->getSystemValueString('libresign_csc_synthetic_lab_certificate_sha256', '');
@@ -57,7 +58,8 @@ final class ExternalSigningLaboratoryFactory {
 				// Skip unrelated integrations without a database lookup or
 				// HTTP client creation for each record in the page.
 				if ($record->driverId !== CscDriver::ID || !$record->enabled || $record->hasSecrets
-					|| ($record->configuration['baseUrl'] ?? null) !== $pinnedUrl) {
+					|| ($record->configuration['baseUrl'] ?? null) !== $pinnedUrl
+					|| ($allowedScope !== null && !$allowedScope($record))) {
 					continue;
 				}
 				try {

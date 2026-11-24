@@ -11,6 +11,7 @@ namespace OCA\Libresign\Service\Signing;
 use OCA\Libresign\Db\File as LibreSignFile;
 use OCA\Libresign\Db\FileMapper;
 use OCA\Libresign\Service\FolderService;
+use OCA\Libresign\Service\IdentifyMethodService;
 use OCA\Libresign\Service\Signing\Provider\Drivers\Csc\CscIntegration;
 use OCP\Files\File as NextcloudFile;
 use SignerPHP\PdfSigner\Application\DTO\PdfContentDto;
@@ -43,6 +44,7 @@ final class ExternalSigningWorkflowService {
 		private ExternalSigningPublicationService $publisher,
 		private FileMapper $files,
 		private FolderService $folders,
+		private ExternalSigningIntegrationScopeAccess $scopeAccess,
 	) {
 	}
 
@@ -63,7 +65,7 @@ final class ExternalSigningWorkflowService {
 		$session = $this->sessions->findForSignRequest($actor->signRequest->getId(), $actor->actorId);
 		if ($integrationId === '') {
 			return [
-				'integrations' => $this->laboratories->listEligible(),
+				'integrations' => $this->laboratories->listEligible(fn (ExternalIntegrationRecord $record): bool => $this->canUseIntegration($record, $actor, $method, $identity)),
 				'integration' => null,
 				'credentials' => [],
 				'syntheticOnly' => true,
@@ -72,6 +74,7 @@ final class ExternalSigningWorkflowService {
 			];
 		}
 		$lab = $this->laboratories->resolve($integrationId);
+		$this->assertCanUseIntegration($lab['record'], $actor, $method, $identity);
 		$selection = $this->selection->discoverSynthetic($signRequestUuid, $method, $identity,
 			$token, $integrationId, $lab['laboratory']);
 		$selection['integrations'] = [$selection['integration']];
@@ -97,6 +100,7 @@ final class ExternalSigningWorkflowService {
 	): array {
 		$actor = $this->authorization->authorize($signRequestUuid, $method, $identity, $token);
 		$lab = $this->laboratories->resolve($integrationId);
+		$this->assertCanUseIntegration($lab['record'], $actor, $method, $identity);
 		$selection = $this->selection->discoverSynthetic($signRequestUuid, $method, $identity,
 			$token, $integrationId, $lab['laboratory']);
 		$chosen = null;
@@ -163,6 +167,7 @@ final class ExternalSigningWorkflowService {
 			return ['session' => $session, 'retryAllowed' => false, 'publication' => null];
 		}
 		$lab = $this->laboratories->resolve((string)$session['integrationId']);
+		$this->assertCanUseIntegration($lab['record'], $actor, $method, $identity);
 		if ($lab['record']->revision !== (int)$session['integrationRevision']) {
 			throw new \DomainException('External signing integration changed during signing');
 		}
@@ -209,7 +214,33 @@ final class ExternalSigningWorkflowService {
 		#[\SensitiveParameter] string $token,
 	): ?array {
 		$actor = $this->authorization->authorize($signRequestUuid, $method, $identity, $token);
-		return $this->sessions->findForSignRequest($actor->signRequest->getId(), $actor->actorId);
+		$session = $this->sessions->findForSignRequest($actor->signRequest->getId(), $actor->actorId);
+		if ($session !== null) {
+			$lab = $this->laboratories->resolve((string)$session['integrationId']);
+			$this->assertCanUseIntegration($lab['record'], $actor, $method, $identity);
+		}
+		return $session;
+	}
+
+	private function canUseIntegration(
+		ExternalIntegrationRecord $record,
+		AuthorizedExternalSigningRequest $actor,
+		string $method,
+		string $identity,
+	): bool {
+		$signerUid = $method === IdentifyMethodService::IDENTIFY_ACCOUNT ? $identity : null;
+		return $this->scopeAccess->canUse($record, $actor->file->getUserId(), $signerUid);
+	}
+
+	private function assertCanUseIntegration(
+		ExternalIntegrationRecord $record,
+		AuthorizedExternalSigningRequest $actor,
+		string $method,
+		string $identity,
+	): void {
+		if (!$this->canUseIntegration($record, $actor, $method, $identity)) {
+			throw new \DomainException('External signing integration is not permitted for this policy scope');
+		}
 	}
 
 	/**

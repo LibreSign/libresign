@@ -24,6 +24,8 @@ use OCA\Libresign\Service\FileStatusService;
 use OCA\Libresign\Service\FolderService;
 use OCA\Libresign\Service\IdentifyMethod\IIdentifyMethod;
 use OCA\Libresign\Service\IdentifyMethodService;
+use OCA\Libresign\Service\Policy\Model\ResolvedPolicy;
+use OCA\Libresign\Service\Policy\PolicyService;
 use OCA\Libresign\Service\SequentialSigningService;
 use OCA\Libresign\Service\Signature\ExternalPdfSigningService;
 use OCA\Libresign\Service\Signature\PdfSignatureValidationService;
@@ -31,6 +33,7 @@ use OCA\Libresign\Service\Signing\ExternalIntegrationAvailability;
 use OCA\Libresign\Service\Signing\ExternalIntegrationStore;
 use OCA\Libresign\Service\Signing\ExternalSigningAuthorizationService;
 use OCA\Libresign\Service\Signing\ExternalSigningCredentialSelectionService;
+use OCA\Libresign\Service\Signing\ExternalSigningIntegrationScopeAccess;
 use OCA\Libresign\Service\Signing\ExternalSigningLaboratoryFactory;
 use OCA\Libresign\Service\Signing\ExternalSigningPublicationService;
 use OCA\Libresign\Service\Signing\ExternalSigningSessionStore;
@@ -43,13 +46,16 @@ use OCA\Libresign\Service\Webhook\NativeWebhookEventPublisher;
 use OCP\AppFramework\Http;
 use OCP\EventDispatcher\IEventDispatcher;
 use OCP\Files\IRootFolder;
+use OCP\Group\ISubAdmin;
 use OCP\Http\Client\IClient;
 use OCP\Http\Client\IClientService;
 use OCP\Http\Client\IResponse;
 use OCP\IConfig;
 use OCP\IDBConnection;
+use OCP\IGroupManager;
 use OCP\IRequest;
 use OCP\IUser;
+use OCP\IUserManager;
 use OCP\IUserSession;
 use OCP\L10N\IFactory;
 use OCP\Security\ICrypto;
@@ -173,7 +179,23 @@ final class ExternalSigningWorkflowServiceTest extends \OCA\Libresign\Tests\Inte
 		);
 		$this->service = new ExternalSigningWorkflowService(
 			$authorization, $laboratories, $selection, $this->sessions, $crypto, $publisher,
-			Server::get(FileMapper::class), Server::get(FolderService::class));
+			Server::get(FileMapper::class), Server::get(FolderService::class),
+			new ExternalSigningIntegrationScopeAccess(
+				$this->allowPolicyForWorkflowTest(),
+				Server::get(IGroupManager::class),
+				Server::get(IUserManager::class), Server::get(IUserSession::class),
+				Server::get(ISubAdmin::class),
+			),
+		);
+	}
+
+	/** The signing laboratory tests exercise the CSC lifecycle, not the policy resolver. */
+	private function allowPolicyForWorkflowTest(): PolicyService {
+		$policy = $this->createMock(PolicyService::class);
+		$policy->method('resolveForUserId')->willReturn(
+			(new ResolvedPolicy())->setEffectiveValue(true),
+		);
+		return $policy;
 	}
 
 	#[\Override]
