@@ -10,7 +10,7 @@ import type { Locator, Page } from '@playwright/test'
 
 import { bootstrapLibreSignAdmin, ensureCatalogSettingCardVisible } from '../support/footer-policy-workbench'
 import { deleteUser, ensureUserExists } from '../support/nc-provisioning'
-import { clearPolicyWorkbenchRules } from '../support/policy-workbench-rules'
+import { createAuthenticatedRequestContext, setSystemPolicyEntry } from '../support/policy-api'
 
 test.describe.configure({ mode: 'serial', retries: 0, timeout: 90000 })
 
@@ -23,7 +23,13 @@ const ADMIN_USER = process.env.NEXTCLOUD_ADMIN_USER ?? 'admin'
 const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || process.env.NEXTCLOUD_ADMIN_PASSWORD || 'admin'
 
 test.afterEach(async ({ request }) => {
-	await deleteUser(request, TEST_USER_TARGET, ADMIN_USER, ADMIN_PASSWORD).catch(() => {})
+	const ctx = await createAuthenticatedRequestContext(ADMIN_USER, ADMIN_PASSWORD)
+	try {
+		await setSystemPolicyEntry(ctx, 'signature_flow', null, false)
+	} finally {
+		await ctx.dispose()
+		await deleteUser(request, TEST_USER_TARGET, ADMIN_USER, ADMIN_PASSWORD)
+	}
 })
 
 async function getActiveRuleDialog(page: Page): Promise<Locator> {
@@ -184,62 +190,23 @@ async function openRuleActions(dialog: Locator, scope: 'Instance' | 'Group' | 'U
 	return row
 }
 
-async function clickRuleMenuAction(dialog: Locator, actionName: 'Edit' | 'Remove'): Promise<boolean> {
-	const page = dialog.page()
-	const actionPattern = actionName === 'Remove'
-		? /^(Remove|Delete)$/i
-		: /^Edit$/i
-	const actionItem = page
-		.locator('.action-item:visible, [role="menuitem"]:visible, li.action:visible')
-		.filter({ hasText: actionPattern })
-		.first()
-
-	if (!(await actionItem.isVisible().catch(() => false))) {
-		return false
-	}
-
-	const clicked = await actionItem.click({ timeout: 1500 }).then(() => true).catch(() => false)
-	if (!clicked) {
-		return false
-	}
-
-	return true
+async function clickRuleMenuAction(dialog: Locator, actionName: 'Edit' | 'Remove') {
+	const menu = dialog.page().getByRole('menu', { name: 'Rule actions' })
+	await menu.getByRole('menuitem', { name: actionName, exact: true }).click()
 }
 
 async function editRule(dialog: Locator, scope: 'Instance' | 'Group' | 'User', targetLabel: string) {
-	for (let attempt = 0; attempt < 3; attempt += 1) {
-		await openRuleActions(dialog, scope, targetLabel)
-		if (await clickRuleMenuAction(dialog, 'Edit')) {
-			return
-		}
-		await dialog.page().waitForTimeout(200)
-	}
-
-	expect(false, 'Expected Edit action to be visible in rule menu').toBe(true)
+	await openRuleActions(dialog, scope, targetLabel)
+	await clickRuleMenuAction(dialog, 'Edit')
+	await expect(await getActiveRuleDialog(dialog.page())).toBeVisible()
 }
 
 async function removeRule(dialog: Locator, scope: 'Instance' | 'Group' | 'User', targetLabel: string) {
-	for (let attempt = 0; attempt < 3; attempt += 1) {
-		await openRuleActions(dialog, scope, targetLabel)
-		if (await clickRuleMenuAction(dialog, 'Remove')) {
-			const page = dialog.page()
-			const removeExceptionButton = page.getByRole('button', { name: removeExceptionButtonName }).first()
-			if (await removeExceptionButton.isVisible().catch(() => false)) {
-				await removeExceptionButton.click()
-			} else {
-				const removeExceptionText = page.getByText(/^Remove exception$/i).first()
-				if (await removeExceptionText.isVisible().catch(() => false)) {
-					await removeExceptionText.click()
-				}
-			}
-			await waitForEditorIdle(dialog)
-			await dialog.page().waitForTimeout(150)
-			return
-		}
-		await dialog.page().waitForTimeout(200)
-	}
-
-	expect(false, 'Expected Remove action to be visible in rule menu').toBe(true)
+	await openRuleActions(dialog, scope, targetLabel)
+	await clickRuleMenuAction(dialog, 'Remove')
+	const confirmation = dialog.page().getByRole('dialog', { name: 'Confirm rule removal' })
+	await confirmation.getByRole('button', { name: removeExceptionButtonName }).click()
+	await expect(confirmation).toBeHidden()
 }
 
 async function chooseTarget(dialog: Locator, target: string) {
@@ -317,28 +284,14 @@ async function resetSystemRuleToBaseline(dialog: Locator) {
 	await clearSystemSignatureFlowValue(dialog.page())
 }
 
-async function clearExistingRules(dialog: Locator) {
-	await clearPolicyWorkbenchRules(dialog, { maxRounds: 6 })
-
-	if (await dialog.getByText(/\(custom\)/i).first().isVisible().catch(() => false)) {
-		await resetSystemRuleToBaseline(dialog)
-	}
-
-	await expect(dialog).toBeVisible()
-}
-
 test('system default persists across edit cycles and can be reset to the system baseline', async ({ page }) => {
 	await bootstrapLibreSignAdmin(page)
+	await clearSystemSignatureFlowValue(page)
 
 	await page.goto('./settings/admin/libresign')
 
 	await openSigningOrderDialog(page)
 
-	const signingOrderDialog = await getSigningOrderDialog(page)
-	await clearExistingRules(signingOrderDialog)
-
-	await page.reload()
-	await openSigningOrderDialog(page)
 	const stableDialog = await getSigningOrderDialog(page)
 
 	await openSystemDefaultEditor(stableDialog)
@@ -366,15 +319,11 @@ test('admin can manage instance, group, and user rules when system default is fi
 	await ensureUserExists(page.request, userTarget)
 
 	await bootstrapLibreSignAdmin(page)
+	await clearSystemSignatureFlowValue(page)
 
 	await page.goto('./settings/admin/libresign')
 	await openSigningOrderDialog(page)
 
-	const dialog = await getSigningOrderDialog(page)
-	await clearExistingRules(dialog)
-
-	await page.reload()
-	await openSigningOrderDialog(page)
 	const stableDialog = await getSigningOrderDialog(page)
 
 	// Global rule: edit
@@ -383,25 +332,13 @@ test('admin can manage instance, group, and user rules when system default is fi
 	await submitSystemRuleAndWait(stableDialog)
 	expect(await getSystemSignatureFlowValue(page)).toBe('ordered_numeric')
 
+	// Exercise the interval before the nested modal activates its own focus trap.
+	await page.addStyleTag({ content: '.policy-workbench__rule-dialog.fade-enter-active { transition-duration: 1500ms !important; }' })
 	await stableDialog.getByRole('button', { name: 'Create rule' }).first().click()
 	const groupScopeOption = await getCreateScopeOption(stableDialog.page(), 'Group')
 	const userScopeOption = await getCreateScopeOption(stableDialog.page(), 'User')
-	const groupScopeEnabled = await groupScopeOption.isEnabled()
-	const userScopeEnabled = await userScopeOption.isEnabled()
-
-	if (!groupScopeEnabled || !userScopeEnabled) {
-		await expect(groupScopeOption).toBeDisabled()
-		await expect(userScopeOption).toBeDisabled()
-
-		const createRuleButton = stableDialog.getByRole('button', { name: /^Create rule$/i }).first()
-		if (await createRuleButton.isVisible().catch(() => false)) {
-			await expect(createRuleButton).toBeDisabled()
-		}
-
-		await resetSystemRuleToBaseline(stableDialog)
-		expect([null, 'none']).toContain(await getSystemSignatureFlowValue(page))
-		return
-	}
+	await expect(groupScopeOption).toBeEnabled()
+	await expect(userScopeOption).toBeEnabled()
 
 	// User rule: create
 	await userScopeOption.click()
@@ -417,28 +354,20 @@ test('admin can manage instance, group, and user rules when system default is fi
 	await chooseTarget(stableDialog, 'Target users', userTarget)
 	expect(await setSigningFlow(stableDialog, 'parallel'), 'Expected signing-flow radios in user editor').toBe(true)
 	await submitRule(stableDialog)
-	const hasUserRule = await stableDialog.getByText(new RegExp(userTarget, 'i')).first().isVisible({ timeout: 1500 }).catch(() => false)
-	if (!hasUserRule) {
-		await resetSystemRuleToBaseline(stableDialog)
-		expect([null, 'none']).toContain(await getSystemSignatureFlowValue(page))
-		return
-	}
-	await expect(stableDialog).toContainText(userTarget)
-	await expect(stableDialog).toContainText('Parallel')
+	await expect(getRuleRow(stableDialog, 'User', userTarget)).toContainText('Parallel', { timeout: 10000 })
+	await expect(page.getByRole('dialog', { name: ruleDialogName })).toHaveCount(0)
 
 	// User rule: edit
 	await editRule(stableDialog, 'User', userTarget)
 	expect(await setSigningFlow(stableDialog, 'ordered_numeric'), 'Expected signing-flow radios in user editor').toBe(true)
 	await submitRule(stableDialog)
-	await expect(stableDialog).toContainText(userTarget)
-	await expect(stableDialog).toContainText('Sequential')
+	await expect(getRuleRow(stableDialog, 'User', userTarget)).toContainText('Sequential')
 
 	await page.reload()
 	await openSigningOrderDialog(page)
 	const reloadedDialog = await getSigningOrderDialog(page)
 	expect(await getSystemSignatureFlowValue(page)).toBe('ordered_numeric')
-	await expect(reloadedDialog).toContainText(userTarget)
-	await expect(reloadedDialog).toContainText('Sequential')
+	await expect(getRuleRow(reloadedDialog, 'User', userTarget)).toContainText('Sequential')
 
 	// User rule: delete
 	await removeRule(reloadedDialog, 'User', userTarget)
