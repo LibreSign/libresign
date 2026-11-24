@@ -134,30 +134,39 @@ final class ExternalIntegrationStore {
 			throw new \InvalidArgumentException('Invalid integration revision');
 		}
 		$this->validateName($name);
-		$configJson = $this->encodeConfiguration($validatedConfiguration);
-		$qb = $this->db->getQueryBuilder();
-		$qb->update(self::TABLE)
-			->set('name', $qb->createNamedParameter(trim($name)))
-			->set('configuration', $qb->createNamedParameter($configJson))
-			->set('revision', $qb->createFunction('revision + 1'))
-			->set('updated_at', $qb->createNamedParameter($this->now(), IQueryBuilder::PARAM_DATETIME_MUTABLE));
+		$this->db->beginTransaction();
+		try {
+			$this->lockIntegrationRow($publicId, $expectedRevision);
+			$this->assertNoUnresolvedSigningSessions($publicId);
+			$configJson = $this->encodeConfiguration($validatedConfiguration);
+			$qb = $this->db->getQueryBuilder();
+			$qb->update(self::TABLE)
+				->set('name', $qb->createNamedParameter(trim($name)))
+				->set('configuration', $qb->createNamedParameter($configJson))
+				->set('revision', $qb->createFunction('revision + 1'))
+				->set('updated_at', $qb->createNamedParameter($this->now(), IQueryBuilder::PARAM_DATETIME_MUTABLE));
 
-		if ($validatedSecretChanges !== []) {
-			$row = $this->loadRow($publicId, false);
-			if ($row === null || (int)$row['revision'] !== $expectedRevision) {
+			if ($validatedSecretChanges !== []) {
+				$row = $this->loadRow($publicId, false);
+				if ($row === null || (int)$row['revision'] !== $expectedRevision) {
+					throw new ExternalIntegrationConflictException();
+				}
+				$encrypted = $replaceAllSecrets
+					? $this->secrets->encrypt(array_filter($validatedSecretChanges, static fn (?string $value): bool => $value !== null))
+					: $this->secrets->applyChanges((string)$row['secrets_enc'], $validatedSecretChanges);
+				$qb->set('secrets_enc', $qb->createNamedParameter($encrypted));
+			}
+			$changed = $qb->where($qb->expr()->eq('public_id', $qb->createNamedParameter($publicId)))
+				->andWhere($qb->expr()->isNull('deleted_at'))
+				->andWhere($qb->expr()->eq('revision', $qb->createNamedParameter($expectedRevision, IQueryBuilder::PARAM_INT)))
+				->executeStatement();
+			if ($changed !== 1) {
 				throw new ExternalIntegrationConflictException();
 			}
-			$encrypted = $replaceAllSecrets
-				? $this->secrets->encrypt(array_filter($validatedSecretChanges, static fn (?string $value): bool => $value !== null))
-				: $this->secrets->applyChanges((string)$row['secrets_enc'], $validatedSecretChanges);
-			$qb->set('secrets_enc', $qb->createNamedParameter($encrypted));
-		}
-		$changed = $qb->where($qb->expr()->eq('public_id', $qb->createNamedParameter($publicId)))
-			->andWhere($qb->expr()->isNull('deleted_at'))
-			->andWhere($qb->expr()->eq('revision', $qb->createNamedParameter($expectedRevision, IQueryBuilder::PARAM_INT)))
-			->executeStatement();
-		if ($changed !== 1) {
-			throw new ExternalIntegrationConflictException();
+			$this->db->commit();
+		} catch (\Throwable $e) {
+			$this->db->rollBack();
+			throw $e;
 		}
 		return $this->get($publicId);
 	}
@@ -180,22 +189,77 @@ final class ExternalIntegrationStore {
 		if ($expectedRevision < 1) {
 			throw new \InvalidArgumentException('Invalid integration revision');
 		}
+		$this->db->beginTransaction();
+		try {
+			$this->lockIntegrationRow($publicId, $expectedRevision);
+			if (!$enabled || $delete) {
+				$this->assertNoUnresolvedSigningSessions($publicId);
+			}
+			$qb = $this->db->getQueryBuilder();
+			$qb->update(self::TABLE)
+				->set('enabled', $qb->createNamedParameter($enabled ? 1 : 0, IQueryBuilder::PARAM_INT))
+				->set('revision', $qb->createFunction('revision + 1'))
+				->set('updated_at', $qb->createNamedParameter($this->now(), IQueryBuilder::PARAM_DATETIME_MUTABLE));
+			if ($delete) {
+				$qb->set('deleted_at', $qb->createNamedParameter($this->now(), IQueryBuilder::PARAM_DATETIME_MUTABLE))
+					->set('configuration', $qb->createNamedParameter('{}'))
+					->set('secrets_enc', $qb->createNamedParameter(''));
+			}
+			$changed = $qb->where($qb->expr()->eq('public_id', $qb->createNamedParameter($publicId)))
+				->andWhere($qb->expr()->isNull('deleted_at'))
+				->andWhere($qb->expr()->eq('revision', $qb->createNamedParameter($expectedRevision, IQueryBuilder::PARAM_INT)))
+				->executeStatement();
+			if ($changed !== 1) {
+				throw new ExternalIntegrationConflictException();
+			}
+			$this->db->commit();
+		} catch (\Throwable $e) {
+			$this->db->rollBack();
+			throw $e;
+		}
+	}
+
+	/**
+	 * Acquire a database write lock on the integration row for the duration of
+	 * the caller's transaction. A no-op UPDATE is portable across SQLite,
+	 * PostgreSQL, MariaDB and MySQL (unlike SELECT FOR UPDATE on SQLite).
+	 * The caller must hold an open transaction until session insertion or the
+	 * guarded administrative change has committed.
+	 */
+	public function lockIntegrationRow(string $publicId, int $expectedRevision): void {
 		$qb = $this->db->getQueryBuilder();
 		$qb->update(self::TABLE)
-			->set('enabled', $qb->createNamedParameter($enabled ? 1 : 0, IQueryBuilder::PARAM_INT))
-			->set('revision', $qb->createFunction('revision + 1'))
-			->set('updated_at', $qb->createNamedParameter($this->now(), IQueryBuilder::PARAM_DATETIME_MUTABLE));
-		if ($delete) {
-			$qb->set('deleted_at', $qb->createNamedParameter($this->now(), IQueryBuilder::PARAM_DATETIME_MUTABLE))
-				->set('configuration', $qb->createNamedParameter('{}'))
-				->set('secrets_enc', $qb->createNamedParameter(''));
-		}
-		$changed = $qb->where($qb->expr()->eq('public_id', $qb->createNamedParameter($publicId)))
+			->set('revision', $qb->createFunction('revision'))
+			->where($qb->expr()->eq('public_id', $qb->createNamedParameter($publicId)))
 			->andWhere($qb->expr()->isNull('deleted_at'))
 			->andWhere($qb->expr()->eq('revision', $qb->createNamedParameter($expectedRevision, IQueryBuilder::PARAM_INT)))
 			->executeStatement();
-		if ($changed !== 1) {
+		$current = $this->find($publicId);
+		if ($current === null || $current->revision !== $expectedRevision) {
 			throw new ExternalIntegrationConflictException();
+		}
+	}
+
+	/**
+	 * Do not invalidate the pinned integration revision or erase secrets while
+	 * a remote operation may still require reconciliation. A timed-out CSC
+	 * submission is unresolved even after its nominal session expiry.
+	 *
+	 * All callers serialize on the same integration row before checking.
+	 */
+	private function assertNoUnresolvedSigningSessions(string $publicId): void {
+		$qb = $this->db->getQueryBuilder();
+		$hasUnresolved = $qb->select('public_id')
+			->from('libresign_ext_sign_session')
+			->where($qb->expr()->eq('integration_id', $qb->createNamedParameter($publicId)))
+			->andWhere($qb->expr()->notIn('status', $qb->createNamedParameter(
+				['completed', 'rejected', 'expired', 'failed'],
+				IQueryBuilder::PARAM_STR_ARRAY,
+			)))
+			->setMaxResults(1)
+			->executeQuery()->fetchOne();
+		if ($hasUnresolved !== false) {
+			throw new \DomainException('Integration has unresolved external signing sessions');
 		}
 	}
 

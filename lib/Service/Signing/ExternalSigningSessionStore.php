@@ -77,10 +77,6 @@ final class ExternalSigningSessionStore {
 			|| $expiresAt->getTimestamp() <= time()) {
 			throw new \InvalidArgumentException('Invalid external signing session context');
 		}
-		$this->assertIntegration($integration->id, $integration->revision);
-		if (!$integration->enabled) {
-			throw new \DomainException('External signing integration is disabled');
-		}
 		$documentHash = hash('sha256', $pdfBytes);
 		if (!hash_equals($documentHash, $prepared->preparationInputSha256)) {
 			throw new \DomainException('Prepared payload does not match authoritative document');
@@ -93,6 +89,8 @@ final class ExternalSigningSessionStore {
 		$now = $this->now();
 		$this->db->beginTransaction();
 		try {
+			$this->integrations->lockIntegrationRow($integration->id, $integration->revision);
+			$this->assertIntegration($integration->id, $integration->revision);
 			$qb = $this->db->getQueryBuilder();
 			$qb->insert(self::TABLE)->values([
 				'public_id' => $qb->createNamedParameter($id),

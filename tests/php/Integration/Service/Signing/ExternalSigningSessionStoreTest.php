@@ -583,12 +583,48 @@ PHP);
 		$this->sessions->resume((string)$row['id'], 'synthetic-user', 'file-123-etag-456', 'synthetic-source-pdf', 'not-a-certificate');
 	}
 
-	public function testIntegrationRevisionChangesInvalidateSession(): void {
+	public function testIntegrationCannotBeDisabledWithUnresolvedSession(): void {
 		$integration = $this->integration();
 		$row = $this->create($integration);
-		$this->integrations->setEnabled($integration->id, $integration->revision, false);
-		$this->expectException(\DomainException::class);
-		$this->sessions->resume((string)$row['id'], 'synthetic-user', 'file-123-etag-456', 'synthetic-source-pdf', $this->certificate);
+		try {
+			$this->integrations->setEnabled($integration->id, $integration->revision, false);
+			self::fail('Disabling an unresolved integration must fail');
+		} catch (\DomainException $e) {
+			self::assertStringContainsString('unresolved', $e->getMessage());
+		}
+		self::assertTrue($this->integrations->get($integration->id)->enabled);
+		self::assertSame('preparing', $this->sessions->get((string)$row['id'], 'synthetic-user')['status']);
+	}
+
+	public function testIntegrationCannotBeDeletedOrReconfiguredWithUncertainSession(): void {
+		$integration = $this->integration();
+		$row = $this->create($integration);
+		$row = $this->advance($row, ExternalSigningSessionState::READY_TO_SIGN);
+		$row = $this->claim($row);
+		$row = $this->advance($row, ExternalSigningSessionState::UNCERTAIN);
+		foreach (['update', 'delete'] as $action) {
+			try {
+				if ($action === 'update') {
+					$this->integrations->update($integration->id, $integration->revision, 'Changed CSC', ['serviceUrl' => 'https://changed.example.org']);
+				} else {
+					$this->integrations->softDelete($integration->id, $integration->revision);
+				}
+				self::fail('An unresolved CSC submission must prevent ' . $action);
+			} catch (\DomainException $e) {
+				self::assertStringContainsString('unresolved', $e->getMessage());
+			}
+		}
+		self::assertSame($integration->revision, $this->integrations->get($integration->id)->revision);
+	}
+
+	public function testIntegrationCanBeReconfiguredAfterSessionIsRejected(): void {
+		$integration = $this->integration();
+		$row = $this->create($integration);
+		$this->advance($row, ExternalSigningSessionState::REJECTED);
+		$updated = $this->integrations->update($integration->id, $integration->revision,
+			'Updated CSC', ['serviceUrl' => 'https://updated.example.org']);
+		self::assertSame($integration->revision + 1, $updated->revision);
+		self::assertSame('Updated CSC', $updated->name);
 	}
 
 	public function testPrivateContinuationEncryptedAndRemovedAfterRejection(): void {
