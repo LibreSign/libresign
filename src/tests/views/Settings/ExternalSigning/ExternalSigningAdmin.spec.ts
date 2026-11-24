@@ -97,7 +97,7 @@ describe('ExternalSigningAdmin', () => {
 		await flushPromises()
 		const removeButton = wrapper.findAll('button').find(button => button.text().includes('Remove'))
 		expect(removeButton).toBeDefined()
-		const confirmation = vi.spyOn(window, 'confirm').mockReturnValue(true)
+		vi.stubGlobal('confirm', vi.fn().mockReturnValue(true))
 		try {
 			await removeButton!.trigger('click')
 			await flushPromises()
@@ -106,7 +106,7 @@ describe('ExternalSigningAdmin', () => {
 			expect(wrapper.text()).toContain('unresolved signing sessions')
 			expect(wrapper.text()).not.toContain('Integration updated.')
 		} finally {
-			confirmation.mockRestore()
+			vi.unstubAllGlobals()
 			wrapper.unmount()
 		}
 	})
