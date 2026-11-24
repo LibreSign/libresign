@@ -62,19 +62,19 @@
 							</div>
 							<div class="external-signing-admin__actions">
 								<NcActions :aria-label="getActionsLabel(instance)">
-									<NcActionButton :disabled="busy" @click="edit(instance)">
+									<NcActionButton :close-after-click="true" :disabled="busy" @click="edit(instance)">
 										<template #icon>
 											<NcIconSvgWrapper :path="mdiPencil" :size="20" />
 										</template>
 										{{ t('libresign', 'Edit') }}
 									</NcActionButton>
-									<NcActionButton :disabled="busy || (!instance.enabled && !isDriverAvailable(instance))" @click="toggle(instance)">
+									<NcActionButton :close-after-click="true" :disabled="busy || (!instance.enabled && !isDriverAvailable(instance))" @click="toggle(instance)">
 										<template #icon>
 											<NcIconSvgWrapper :path="instance.enabled ? mdiPowerOff : mdiPower" :size="20" />
 										</template>
 										{{ getToggleLabel(instance) }}
 									</NcActionButton>
-									<NcActionButton :disabled="busy" @click="remove(instance)">
+									<NcActionButton :close-after-click="true" :disabled="busy" @click="remove(instance)">
 										<template #icon>
 											<NcIconSvgWrapper :path="mdiDelete" :size="20" />
 										</template>

@@ -35,10 +35,13 @@ const adapter: ExternalSigningAdminAdapter = {
 
 const mountedCleanup: Array<() => void> = []
 
-afterEach(() => {
+afterEach(async () => {
+	// Allow the popover's asynchronous close to complete before detaching its focus target.
+	await flushPromises()
 	for (const cleanup of mountedCleanup.splice(0)) {
 		cleanup()
 	}
+	await flushPromises()
 })
 
 function mountAdmin(options: { adapter?: ExternalSigningAdminAdapter, layout?: 'cards' | 'compact', catalogLoader?: () => Promise<ExternalSigningDriver[]> } = {}) {
@@ -152,6 +155,8 @@ describe('ExternalSigningAdmin', () => {
 		await flushPromises()
 		const buttons = actions.findAllComponents({ name: 'NcActionButton' })
 		expect(buttons.map(button => button.text())).toEqual(['Edit', 'Enable', 'Remove'])
+		// Nextcloud's NcActionButton defaults to leaving its popover open.
+		expect(buttons.map(button => button.props('closeAfterClick'))).toEqual([true, true, true])
 		expect(buttons.map(button => button.findAllComponents({ name: 'NcIconSvgWrapper' }).length)).toEqual([1, 1, 1])
 		expect(buttons[1].props('disabled')).toBe(true)
 		await buttons[1].find('button').trigger('click')
