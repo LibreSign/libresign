@@ -590,108 +590,64 @@ describe('useRealPolicyWorkbench', () => {
 		])
 	})
 
-	it.each([
-		['group', 'cloud/groups/details'],
-		['user', 'cloud/users/details'],
-	] as const)('ignores an outdated %s search response', async (scope, endpoint) => {
+	it('keeps the latest group search after a slow preload completes', async () => {
+		let resolvePreload!: (value: unknown) => void
+		const preload = new Promise((resolve) => {
+			resolvePreload = resolve
+		})
+		axiosGet.mockImplementation((url: string, options: { params?: { search?: string } } = {}) => {
+			if (url === 'cloud/groups/details') {
+				return options.params?.search === ''
+					? preload
+					: Promise.resolve({ data: { ocs: { data: { groups: [
+						{ id: 'new-group', displayname: 'New Group' },
+					] } } } })
+			}
+			return Promise.resolve({ data: { ocs: { data: { users: {} } } } })
+		})
+
 		const state = createRealPolicyWorkbenchState()
 		state.openSetting('signature_flow')
-		state.startEditor({ scope })
-		await vi.waitFor(() => expect(state.loadingTargets).toBe(false))
+		state.startEditor({ scope: 'group' })
+		state.searchAvailableTargets('new-group')
+		await vi.waitFor(() => expect(state.availableTargets.map((target) => target.id)).toEqual(['new-group']))
+		expect(state.loadingTargets).toBe(false)
 
-		const pendingSearches = new Map<string, (response: unknown) => void>()
-		axiosGet.mockImplementation((url: string, config: { params: { search: string } }) => {
-			if (url !== endpoint) {
-				return Promise.resolve({ data: { ocs: { data: {} } } })
-			}
-
-			return new Promise<unknown>((resolve) => {
-				pendingSearches.set(config.params.search, resolve)
-			})
-		})
-		const responseFor = (id: string) => ({
-			data: {
-				ocs: {
-					data: scope === 'group'
-						? { groups: [{ id, displayname: id, usercount: 1 }] }
-						: { users: { [id]: { id, displayname: id } } },
-				},
-			},
-		})
-
-		state.searchAvailableTargets('older')
-		state.searchAvailableTargets('newer')
-		expect([...pendingSearches.keys()]).toEqual(['older', 'newer'])
-
-		pendingSearches.get('newer')!(responseFor('newer'))
-		await vi.waitFor(() => expect(state.availableTargets.map((target) => target.id)).toContain('newer'))
-
-		pendingSearches.get('older')!(responseFor('older'))
+		resolvePreload({ data: { ocs: { data: { groups: [{ id: 'old-group', displayname: 'Old Group' }] } } } })
 		await Promise.resolve()
 		await Promise.resolve()
-		expect(state.availableTargets.map((target) => target.id)).toContain('newer')
-		expect(state.availableTargets.map((target) => target.id)).not.toContain('older')
+		expect(state.availableTargets.map((target) => target.id)).toEqual(['new-group'])
 	})
 
-	it.each([
-		['group', 'cloud/groups/details'],
-		['user', 'cloud/users/details'],
-	] as const)('keeps %s loading until the latest search finishes', async (scope, endpoint) => {
-		const state = createRealPolicyWorkbenchState()
-		state.openSetting('signature_flow')
-		state.startEditor({ scope })
-		await vi.waitFor(() => expect(state.loadingTargets).toBe(false))
-
-		const pendingSearches = new Map<string, (response: unknown) => void>()
-		axiosGet.mockImplementation((url: string, config: { params: { search: string } }) => {
-			if (url !== endpoint) {
-				return Promise.resolve({ data: { ocs: { data: {} } } })
+	it('keeps the latest user search after a slow preload completes', async () => {
+		let resolvePreload!: (value: unknown) => void
+		const preload = new Promise((resolve) => {
+			resolvePreload = resolve
+		})
+		axiosGet.mockImplementation((url: string, options: { params?: { search?: string } } = {}) => {
+			if (url === 'cloud/users/details') {
+				return options.params?.search === ''
+					? preload
+					: Promise.resolve({ data: { ocs: { data: { users: {
+						newUser: { id: 'new-user', displayname: 'New User' },
+					} } } } })
 			}
-
-			return new Promise<unknown>((resolve) => {
-				pendingSearches.set(config.params.search, resolve)
-			})
+			return Promise.resolve({ data: { ocs: { data: { groups: [] } } } })
 		})
 
-		state.searchAvailableTargets('older')
-		state.searchAvailableTargets('newer')
-		expect([...pendingSearches.keys()]).toEqual(['older', 'newer'])
-		expect(state.loadingTargets).toBe(true)
-
-		pendingSearches.get('older')!({ data: { ocs: { data: {} } } })
-		await Promise.resolve()
-		await Promise.resolve()
-		expect(state.loadingTargets).toBe(true)
-
-		pendingSearches.get('newer')!({ data: { ocs: { data: {} } } })
-		await vi.waitFor(() => expect(state.loadingTargets).toBe(false))
-	})
-
-	it.each([
-		['group', 'cloud/groups/details'],
-		['user', 'cloud/users/details'],
-	] as const)('retains discovered %s targets when another search returns different options', async (scope, endpoint) => {
 		const state = createRealPolicyWorkbenchState()
 		state.openSetting('signature_flow')
-		state.startEditor({ scope })
-		await vi.waitFor(() => expect(state.loadingTargets).toBe(false))
+		state.startEditor({ scope: 'user' })
+		state.searchAvailableTargets('new-user')
+		await vi.waitFor(() => expect(state.availableTargets.map((target) => target.id)).toEqual(['new-user']))
+		expect(state.loadingTargets).toBe(false)
 
-		axiosGet.mockImplementation((url: string, config: { params: { search: string } }) => {
-			if (url !== endpoint) {
-				return Promise.resolve({ data: { ocs: { data: {} } } })
-			}
-			const id = config.params.search === 'searched-target' ? 'searched-target' : 'other-target'
-			return Promise.resolve({ data: { ocs: { data: scope === 'group'
-				? { groups: [{ id, displayname: id, usercount: 1 }] }
-				: { users: { [id]: { id, displayname: id } } } } } })
-		})
-
-		state.searchAvailableTargets('searched-target')
-		await vi.waitFor(() => expect(state.availableTargets.map((target) => target.id)).toContain('searched-target'))
-
-		state.searchAvailableTargets('')
-		await vi.waitFor(() => expect(state.loadingTargets).toBe(false))
-		expect(state.availableTargets.map((target) => target.id)).toContain('searched-target')
+		resolvePreload({ data: { ocs: { data: { users: {
+			oldUser: { id: 'old-user', displayname: 'Old User' },
+		} } } } })
+		await Promise.resolve()
+		await Promise.resolve()
+		expect(state.availableTargets.map((target) => target.id)).toEqual(['new-user'])
 	})
 
 	it('loads group targets using cloud/groups for group-admin without exception fallback', async () => {
@@ -886,6 +842,110 @@ describe('useRealPolicyWorkbench', () => {
 			{ id: 'user3', displayName: 'User Three', subname: 'user3@example.com', user: 'user3' },
 		])
 		expect(state.availableTargets.some((target) => target.id === 'finance')).toBe(false)
+	})
+
+	it.each([
+		['group', 'cloud/groups/details'],
+		['user', 'cloud/users/details'],
+	] as const)('ignores an outdated %s search response', async (scope, endpoint) => {
+		const state = createRealPolicyWorkbenchState()
+		state.openSetting('signature_flow')
+		state.startEditor({ scope })
+		await vi.waitFor(() => expect(state.loadingTargets).toBe(false))
+
+		const pendingSearches = new Map<string, (response: unknown) => void>()
+		axiosGet.mockImplementation((url: string, config: { params: { search: string } }) => {
+			if (url !== endpoint) {
+				return Promise.resolve({ data: { ocs: { data: {} } } })
+			}
+
+			return new Promise<unknown>((resolve) => {
+				pendingSearches.set(config.params.search, resolve)
+			})
+		})
+		const responseFor = (id: string) => ({
+			data: {
+				ocs: {
+					data: scope === 'group'
+						? { groups: [{ id, displayname: id, usercount: 1 }] }
+						: { users: { [id]: { id, displayname: id } } },
+				},
+			},
+		})
+
+		state.searchAvailableTargets('older')
+		state.searchAvailableTargets('newer')
+		expect([...pendingSearches.keys()]).toEqual(['older', 'newer'])
+
+		pendingSearches.get('newer')!(responseFor('newer'))
+		await vi.waitFor(() => expect(state.availableTargets.map((target) => target.id)).toContain('newer'))
+
+		pendingSearches.get('older')!(responseFor('older'))
+		await Promise.resolve()
+		await Promise.resolve()
+		expect(state.availableTargets.map((target) => target.id)).toContain('newer')
+		expect(state.availableTargets.map((target) => target.id)).not.toContain('older')
+	})
+
+	it.each([
+		['group', 'cloud/groups/details'],
+		['user', 'cloud/users/details'],
+	] as const)('keeps %s loading until the latest search finishes', async (scope, endpoint) => {
+		const state = createRealPolicyWorkbenchState()
+		state.openSetting('signature_flow')
+		state.startEditor({ scope })
+		await vi.waitFor(() => expect(state.loadingTargets).toBe(false))
+
+		const pendingSearches = new Map<string, (response: unknown) => void>()
+		axiosGet.mockImplementation((url: string, config: { params: { search: string } }) => {
+			if (url !== endpoint) {
+				return Promise.resolve({ data: { ocs: { data: {} } } })
+			}
+
+			return new Promise<unknown>((resolve) => {
+				pendingSearches.set(config.params.search, resolve)
+			})
+		})
+
+		state.searchAvailableTargets('older')
+		state.searchAvailableTargets('newer')
+		expect([...pendingSearches.keys()]).toEqual(['older', 'newer'])
+		expect(state.loadingTargets).toBe(true)
+
+		pendingSearches.get('older')!({ data: { ocs: { data: {} } } })
+		await Promise.resolve()
+		await Promise.resolve()
+		expect(state.loadingTargets).toBe(true)
+
+		pendingSearches.get('newer')!({ data: { ocs: { data: {} } } })
+		await vi.waitFor(() => expect(state.loadingTargets).toBe(false))
+	})
+
+	it.each([
+		['group', 'cloud/groups/details'],
+		['user', 'cloud/users/details'],
+	] as const)('keeps selected %s targets but replaces unselected results of earlier searches', async (scope, endpoint) => {
+		const state = createRealPolicyWorkbenchState()
+		state.openSetting('signature_flow')
+		state.startEditor({ scope })
+		await vi.waitFor(() => expect(state.loadingTargets).toBe(false))
+
+		axiosGet.mockImplementation((url: string, config: { params: { search: string } }) => {
+			if (url !== endpoint) {
+				return Promise.resolve({ data: { ocs: { data: {} } } })
+			}
+			const ids = config.params.search === 'first' ? ['selected', 'unselected'] : ['next']
+			return Promise.resolve({ data: { ocs: { data: scope === 'group'
+				? { groups: ids.map((id) => ({ id, displayname: id })) }
+				: { users: Object.fromEntries(ids.map((id) => [id, { id, displayname: id }])) } } } })
+		})
+
+		state.searchAvailableTargets('first')
+		await vi.waitFor(() => expect(state.availableTargets.map((target) => target.id)).toEqual(['selected', 'unselected']))
+		state.updateDraftTargets(['selected'])
+		state.searchAvailableTargets('next')
+		await vi.waitFor(() => expect(state.availableTargets.map((target) => target.id)).toEqual(['selected', 'next']))
+		expect(state.editorDraft?.targetIds).toEqual(['selected'])
 	})
 
 	it('saves system signature_flow rule', async () => {

@@ -90,6 +90,7 @@
 		<NcDialog
 			v-if="state.activeDefinition"
 			:name="state.activeDefinition.title"
+			:additional-trap-elements="ruleDialogTrapElements"
 			size="full"
 			@closing="requestCloseSetting()">
 			<CatalogSettingDialogFrame
@@ -160,6 +161,7 @@
 
 		<NcDialog
 			v-if="showCreateScopeDialog || state.editorDraft"
+			:id="ruleDialogId"
 			:key="ruleDialogInstanceKey"
 			:name="ruleDialogTitle"
 			:size="ruleEditorDialogSize"
@@ -233,7 +235,7 @@ import {
 	mdiFilterVariant,
 	mdiPlus,
 } from '@mdi/js'
-import { computed, nextTick, onBeforeUnmount, onMounted, reactive, ref, watch } from 'vue'
+import { computed, nextTick, onBeforeUnmount, onMounted, reactive, ref, useId, watch } from 'vue'
 import { t } from '@nextcloud/l10n'
 
 import NcButton from '@nextcloud/vue/components/NcButton'
@@ -289,6 +291,13 @@ const pendingDiscardAction = ref<PendingDiscardActionKey | null>(null)
 const showCreateScopeDialog = ref(false)
 const selectedCreateScope = ref<CreateRuleScope | null>(null)
 const ruleDialogInstanceKey = ref(0)
+const ruleDialogIdPrefix = useId()
+const ruleDialogId = computed(() => `policy-rule-${ruleDialogIdPrefix}-${ruleDialogInstanceKey.value}`)
+// NcModal activates the nested focus trap only after its enter transition.
+// Until then the parent trap must also allow focus inside the rule dialog.
+const ruleDialogTrapElements = computed(() => showCreateScopeDialog.value || state.editorDraft
+	? [`#${ruleDialogId.value}`]
+	: [])
 const isRemovingRule = ref(false)
 const removalFeedback = ref<string | null>(null)
 const removalFeedbackTimeout = ref<number | null>(null)

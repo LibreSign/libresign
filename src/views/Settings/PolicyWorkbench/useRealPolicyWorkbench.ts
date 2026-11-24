@@ -219,14 +219,12 @@ export function createRealPolicyWorkbenchState() {
 	const groups = ref<PolicyTargetOption[]>([])
 	const users = ref<PolicyTargetOption[]>([])
 	const canManageGroups = ref<boolean | null>(null)
-	const targetRequestSequence = { group: 0, user: 0 }
-	const targetLoadingByScope = reactive({ group: false, user: false })
-	const loadingTargets = computed(() => {
-		const scope = editorDraft.value?.scope
-		return scope === 'group' || scope === 'user'
-			? targetLoadingByScope[scope]
-			: false
-	})
+	const loadingGroups = ref(false)
+	const loadingUsers = ref(false)
+	const loadingTargets = computed(() => editorDraft.value?.scope === 'group'
+		? loadingGroups.value
+		: editorDraft.value?.scope === 'user' && loadingUsers.value)
+	const targetRequestVersion = { group: 0, user: 0 }
 	const rulesLoading = ref(false)
 	const hydratePersistedRulesRequestId = ref(0)
 	const editorInitialSnapshot = ref('')
@@ -1035,18 +1033,14 @@ export function createRealPolicyWorkbenchState() {
 		})
 	}
 
-	function mergeTargetOptions(scope: 'group' | 'user', fetchedTargets: PolicyTargetOption[]) {
+	function mergeSelectedTargets(scope: 'group' | 'user', fetchedTargets: PolicyTargetOption[]) {
 		const existingTargets = scope === 'group' ? groups.value : users.value
-		// NcSelectUsers can emit additional searches while the menu is opened.
-		// Keep previously discovered options so an unrelated search response
-		// cannot remove an option before the user selects it.
-		const optionsById = new Map<string, PolicyTargetOption>()
-		for (const target of [...existingTargets, ...fetchedTargets]) {
-			optionsById.set(target.id, target)
-		}
+		const selectedIds = editorDraft.value?.scope === scope ? editorDraft.value.targetIds : []
+		const selectedTargets = existingTargets.filter((target) => {
+			return selectedIds.includes(target.id) && !fetchedTargets.some((option) => option.id === target.id)
+		})
 
-		return [...optionsById.values()]
-			.sort((left, right) => left.displayName.localeCompare(right.displayName))
+		return [...selectedTargets, ...fetchedTargets]
 	}
 
 	async function fetchGroups(query = '', limit = 20, offset = 0): Promise<PolicyTargetOption[]> {
@@ -1139,17 +1133,16 @@ export function createRealPolicyWorkbenchState() {
 	}
 
 	async function loadTargets(scope: 'group' | 'user', query = '', includeAll = false) {
-		// Preloads and interactive searches can overlap. Only the most recent
-		// request for each scope may update options or clear its loading state.
-		const requestId = ++targetRequestSequence[scope]
-		targetLoadingByScope[scope] = true
+		const requestId = ++targetRequestVersion[scope]
+		const loading = scope === 'group' ? loadingGroups : loadingUsers
+		loading.value = true
 		try {
 			if (scope === 'group') {
 				const fetchedGroups = includeAll && query === ''
 					? await fetchAllTargets('group')
 					: await fetchGroups(query)
-				if (requestId === targetRequestSequence[scope]) {
-					groups.value = mergeTargetOptions('group', fetchedGroups)
+				if (requestId === targetRequestVersion.group) {
+					groups.value = mergeSelectedTargets('group', fetchedGroups)
 				}
 				return
 			}
@@ -1157,8 +1150,8 @@ export function createRealPolicyWorkbenchState() {
 			const fetchedUsers = includeAll && query === ''
 				? await fetchAllTargets('user')
 				: await fetchUsers(query)
-			if (requestId === targetRequestSequence[scope]) {
-				users.value = mergeTargetOptions('user', fetchedUsers)
+			if (requestId === targetRequestVersion.user) {
+				users.value = mergeSelectedTargets('user', fetchedUsers)
 			}
 		} catch (error) {
 			logger.debug('Could not load policy workbench targets', {
@@ -1167,8 +1160,9 @@ export function createRealPolicyWorkbenchState() {
 				query,
 			})
 		} finally {
-			if (requestId === targetRequestSequence[scope]) {
-				targetLoadingByScope[scope] = false
+			// Only the newest request can end the loading state for this scope.
+			if (requestId === targetRequestVersion[scope]) {
+				loading.value = false
 			}
 		}
 	}
