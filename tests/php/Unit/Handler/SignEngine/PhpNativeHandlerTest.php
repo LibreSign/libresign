@@ -142,13 +142,12 @@ final class PhpNativeHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 				'hello', 100.0, 10.0, ['hello'],
 			],
 			'multiple words wrapped at word boundaries' => [
-				// fontSize=10 → estimatedCharWidth=5.2; availableWidth=20 → maxChars=3
-				// 'ab cd ef' → ['ab', 'cd', 'ef']
+				// At 10 pt these word pairs exceed the 20 pt available width.
 				'ab cd ef', 20.0, 10.0, ['ab', 'cd', 'ef'],
 			],
-			'single long word is hard-split at maxChars' => [
-				// maxChars=floor(15/5.2)=2: 'abcdefgh' → ['ab','cd','ef','gh']
-				'abcdefgh', 15.0, 10.0, ['ab', 'cd', 'ef', 'gh'],
+			'single long word is split using glyph advances' => [
+				// Narrower e, f and g fit together within 15 pt.
+				'abcdefgh', 15.0, 10.0, ['ab', 'cd', 'efg', 'h'],
 			],
 		];
 	}
@@ -457,8 +456,8 @@ final class PhpNativeHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	 *
 	 * Layout math for width=200, height=80, fontSize=20, name="Al":
 	 *   leftHalfW      = 100.0
-	 *   lineWidth      = mb_strlen("Al") * (20 * 0.52) = 2 * 10.4 = 20.8
-	 *   nameX          = max(2.0, (100 - 20.8) / 2) = 39.6  →  "39.60"
+	 *   lineWidth      = (667 + 222) / 1000 * 20 = 17.78
+	 *   nameX          = max(2.0, (100 - 17.78) / 2) = 41.11
 	 *   totalNameHeight = 1 * 20 * 1.0 = 20  (lineHeight factor = 1.0)
 	 *   nameStartY     = (80 + 20) / 2 - 20 = 30.0           →  "30.00"
 	 * Old (broken) code always used leftPadding=2.0  →  "2.00 30.00"
@@ -471,7 +470,7 @@ final class PhpNativeHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		);
 
 		// Centred position must appear
-		$this->assertMatchesRegularExpression('/1 0 0 1 39\.60* 30(?:\.0+)? Tm/', $xObject->stream);
+		$this->assertMatchesRegularExpression('/1 0 0 1 41\.110* 30(?:\.0+)? Tm/', $xObject->stream);
 		// Old left-aligned position must NOT appear
 		$this->assertDoesNotMatchRegularExpression('/1 0 0 1 2(?:\.0+)? 30(?:\.0+)? Tm/', $xObject->stream);
 	}

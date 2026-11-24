@@ -13,7 +13,9 @@ use OCA\Libresign\Vendor\LibreSign\XObjectTemplate\Layout\LayoutLine;
 use OCA\Libresign\Vendor\LibreSign\XObjectTemplate\Layout\LayoutResult;
 use OCA\Libresign\Vendor\LibreSign\XObjectTemplate\Pdf\PdfEscaper;
 use OCA\Libresign\Vendor\LibreSign\XObjectTemplate\Pdf\SignerPhpCoreXObjectResourceBuilder;
+use OCA\Libresign\Vendor\LibreSign\XObjectTemplate\Pdf\StandardFontMetrics;
 use OCA\Libresign\Vendor\LibreSign\XObjectTemplate\Pdf\TemplateDocumentBuilder;
+use OCA\Libresign\Vendor\LibreSign\XObjectTemplate\Pdf\TrueTypeFont;
 use OCA\Libresign\Vendor\SignerPHP\PdfCore\PdfDocument;
 use OCA\Libresign\Vendor\SignerPHP\PdfCore\PdfValue\PDFValueReference;
 use OCA\Libresign\Vendor\SignerPHP\PdfSigner\Application\DTO\SignatureAppearanceXObjectDto;
@@ -27,23 +29,83 @@ final class SignatureStampPdfLayout {
 
 	/** @var list<LayoutLine> */
 	private array $lines = [];
+	private ?TrueTypeFont $unicodeFont = null;
+
+	private function getUnicodeFont(): TrueTypeFont {
+		return $this->unicodeFont ??= new TrueTypeFont(
+			dirname(__DIR__, 3) . '/3rdparty/composer/mpdf/mpdf/ttfonts/DejaVuSansCondensed.ttf',
+		);
+	}
+
+	public function measureText(string $text, float $fontSize): float {
+		$fonts = preg_match('/[^\x00-\x7F]/', $text) === 1 ? [$this->getUnicodeFont()] : [];
+		return (new StandardFontMetrics($fonts))->measureString('F1', $fontSize, $text);
+	}
+
+	/** @return list<string> */
+	public function wrapText(string $text, float $availableWidth, float $fontSize): array {
+		// NFC keeps canonically equivalent Latin accents on the direct glyph path,
+		// without requiring the optional native shapers for decomposed input.
+		$normalized = \Normalizer::normalize(trim($text), \Normalizer::FORM_C);
+		if ($normalized === false) {
+			throw new \InvalidArgumentException('Signature stamp text must be valid UTF-8.');
+		}
+		if ($normalized === '' || $this->measureText($normalized, $fontSize) <= $availableWidth) {
+			return [$normalized];
+		}
+
+		$result = [];
+		$current = '';
+		foreach (preg_split('/\s+/', $normalized, -1, PREG_SPLIT_NO_EMPTY) ?: [] as $word) {
+			$candidate = $current === '' ? $word : $current . ' ' . $word;
+			if ($this->measureText($candidate, $fontSize) <= $availableWidth) {
+				$current = $candidate;
+				continue;
+			}
+			if ($current !== '') {
+				$result[] = $current;
+				$current = '';
+			}
+
+			if ($this->measureText($word, $fontSize) <= $availableWidth) {
+				$current = $word;
+				continue;
+			}
+
+			// Do not introduce hyphens into names or split a grapheme cluster.
+			preg_match_all('/\X/u', $word, $matches);
+			foreach ($matches[0] as $grapheme) {
+				$candidate = $current . $grapheme;
+				if ($current !== '' && $this->measureText($candidate, $fontSize) > $availableWidth) {
+					$result[] = $current;
+					$current = $grapheme;
+				} else {
+					$current = $candidate;
+				}
+			}
+		}
+
+		if ($current !== '') {
+			$result[] = $current;
+		}
+
+		return $result;
+	}
 
 	public function addLine(string $text, float $x, float $y, float $fontSize): void {
+		if (preg_match('/[^\x00-\x7F]/', $text) === 1) {
+			$this->getUnicodeFont();
+		}
 		$this->lines[] = new LayoutLine($text, $x, $y, $fontSize, 'F1', '#000000');
 	}
 
 	public function build(int $width, int $height): SignatureAppearanceXObjectDto {
 		// The existing layout contains literal text, not HTML. Let the XObject
 		// library encode glyphs and build the font resources for that layout.
-		$documentBuilder = (new TemplateDocumentBuilder())->withFontResources(['F1' => self::BASE_FONT]);
-		foreach ($this->lines as $line) {
-			if (preg_match('/[^\x00-\x7F]/', $line->text) === 1) {
-				$documentBuilder = $documentBuilder->withUnicodeFontFiles([
-					dirname(__DIR__, 3) . '/3rdparty/composer/mpdf/mpdf/ttfonts/DejaVuSansCondensed.ttf',
-				]);
-				break;
-			}
-		}
+		$documentBuilder = new TemplateDocumentBuilder(
+			fontResources: ['F1' => self::BASE_FONT],
+			unicodeFonts: $this->unicodeFont === null ? [] : [$this->unicodeFont],
+		);
 		$result = $documentBuilder->build(
 			new CompileRequest('', (float)$width, (float)$height),
 			new LayoutResult($this->lines, []),

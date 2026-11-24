@@ -14,6 +14,8 @@ use OCA\Libresign\Service\SignatureStampPreview\SignatureStampAppearanceBuilder;
 use OCA\Libresign\Service\SignatureStampPreview\SignatureStampPreviewNativeService;
 use OCA\Libresign\Service\SignatureTextService;
 use OCA\Libresign\Service\SignerElementsService;
+use OCA\Libresign\Vendor\Smalot\PdfParser\Parser;
+use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\MockObject\MockObject;
 
 final class SignatureStampPreviewNativeServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
@@ -49,11 +51,12 @@ final class SignatureStampPreviewNativeServiceTest extends \OCA\Libresign\Tests\
 		$this->assertStringContainsString('/Helvetica', $pdf);
 	}
 
-	public function testRenderPreviewPdfEmbedsUnicodeAlongsideSignatureImage(): void {
+	#[DataProvider('providerUnicodePreviewText')]
+	public function testRenderPreviewPdfEmbedsUnicodeAlongsideSignatureImage(string $text, string $expected, string $unicodeHex): void {
 		$signatureTextService = $this->createMock(SignatureTextService::class);
 		$signatureTextService->method('getPreviewSignerName')->willReturn('Renée');
 		$signatureTextService->method('parse')->willReturn([
-			'parsed' => 'Signé par Renée',
+			'parsed' => $text,
 			'templateFontSize' => 10.0,
 		]);
 		$service = new SignatureStampPreviewNativeService(
@@ -72,9 +75,19 @@ final class SignatureStampPreviewNativeServiceTest extends \OCA\Libresign\Tests\
 		$this->assertTrue(str_contains($pdf, '/Encoding /Identity-H'));
 		$this->assertTrue(str_contains($pdf, '/FontFile2'));
 		$this->assertTrue(str_contains($pdf, '/ToUnicode'));
-		$this->assertSame(1, preg_match('/<[0-9A-F]{4}> <00E9>/', $pdf));
+		$this->assertSame(1, preg_match('/<[0-9A-F]{4}> <' . $unicodeHex . '>/', $pdf));
+		$this->assertSame($expected, trim((new Parser())->parseContent($pdf)->getText()));
 		$this->assertTrue(str_contains($pdf, '/Im2 Do'));
 		$this->assertTrue(str_contains($pdf, '/SMask'));
+	}
+
+	public static function providerUnicodePreviewText(): array {
+		return [
+			'French' => ['Signé par Renée', 'Signé par Renée', '00E9'],
+			'decomposed French' => ["Signe\u{0301} par Rene\u{0301}e", 'Signé par Renée', '00E9'],
+			'Portuguese' => ['João Gonçalves', 'João Gonçalves', '00E3'],
+			'Cyrillic' => ['Иван Иванов', 'Иван Иванов', '0418'],
+		];
 	}
 
 	public function testRenderPreviewPdfUsesPreviewDummyContextForTemplateVariables(): void {
