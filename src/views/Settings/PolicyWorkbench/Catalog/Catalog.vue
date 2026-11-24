@@ -231,7 +231,6 @@ import {
 } from '@mdi/js'
 import { computed, nextTick, onBeforeUnmount, onMounted, reactive, ref, watch } from 'vue'
 import { t } from '@nextcloud/l10n'
-import { getCurrentUser } from '@nextcloud/auth'
 import { fetchExternalSigningDrivers } from '../../../../services/externalSigningAdmin'
 
 import NcButton from '@nextcloud/vue/components/NcButton'
@@ -278,13 +277,11 @@ defineOptions({
 
 const policiesStore = usePoliciesStore()
 const externalSigningPolicyVisible = ref(false)
-if (getCurrentUser()?.isAdmin === true) {
-	void fetchExternalSigningDrivers().then(drivers => {
+void fetchExternalSigningDrivers().then(drivers => {
 		externalSigningPolicyVisible.value = drivers.length > 0
 	}).catch(() => {
 		externalSigningPolicyVisible.value = false
 	})
-}
 const userConfigStore = useUserConfigStore()
 const state = reactive(createRealPolicyWorkbenchState())
 const visibleSettingsForCatalog = computed(() => state.visibleSettingSummaries.filter(summary =>
@@ -429,7 +426,11 @@ const activeEditorProps = computed<Record<string, unknown>>(() => {
 	const baseEditorProps = state.activeDefinition.editorProps ?? {}
 	const activePolicy = policiesStore.getPolicy(state.activeDefinition.key)
 
-	return state.activeDefinition.resolveEditorProps?.(activePolicy, baseEditorProps) ?? baseEditorProps
+    const resolved = state.activeDefinition.resolveEditorProps?.(activePolicy, baseEditorProps) ?? baseEditorProps
+    if (state.activeDefinition.key === 'external_signing_enabled') {
+        return { ...resolved, scopeTargetIds: state.editorDraft?.targetIds ?? [] }
+    }
+    return resolved
 })
 
 const selectedTargetOptions = computed(() => {

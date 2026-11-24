@@ -68,6 +68,13 @@
 				</div>
 			</NcSettingsSection>
 
+			<NcSettingsSection
+				v-if="personalExternalSigningAdapter"
+				:name="t('libresign', 'Personal external signing providers')"
+				:description="t('libresign', 'Configure the CSC connections delegated specifically to your account.')">
+				<ExternalSigningAdmin :adapter="personalExternalSigningAdapter" embedded layout="compact" />
+			</NcSettingsSection>
+
 			<!-- TRANSLATORS Title and description for personal signature request preferences. -->
 			<NcSettingsSection
 				:name="t('libresign', 'Signature requests')"
@@ -137,6 +144,7 @@
 <script setup lang="ts">
 import { computed, onBeforeUnmount, onMounted, reactive, ref } from 'vue'
 
+import { getCurrentUser } from '@nextcloud/auth'
 import { t } from '@nextcloud/l10n'
 import { mdiCheckCircleOutline, mdiUndoVariant } from '@mdi/js'
 
@@ -148,6 +156,9 @@ import NcLoadingIcon from '@nextcloud/vue/components/NcLoadingIcon'
 import NcNoteCard from '@nextcloud/vue/components/NcNoteCard'
 import NcSettingsSection from '@nextcloud/vue/components/NcSettingsSection'
 
+import { createExternalSigningAdminOcsAdapter } from '../../services/externalSigningAdminOcs'
+import type { ExternalSigningAdminAdapter } from '../../services/externalSigningAdmin'
+import ExternalSigningAdmin from '../Settings/ExternalSigning/ExternalSigningAdmin.vue'
 import { usePoliciesStore } from '../../store/policies'
 import { useUserConfigStore } from '../../store/userconfig.js'
 import type { EffectivePolicyValue, SignatureFlowMode } from '../../types/index'
@@ -163,6 +174,21 @@ defineOptions({
 const policiesStore = usePoliciesStore()
 const userConfigStore = useUserConfigStore()
 const preferencesReady = ref(false)
+const personalExternalSigningAdapter = ref<ExternalSigningAdminAdapter | null>(null)
+async function loadPersonalExternalSigning() {
+    const uid = getCurrentUser()?.uid
+    if (!uid) {
+        return
+    }
+    const adapter = createExternalSigningAdminOcsAdapter({ scopeType: 'user', scopeId: uid })
+    try {
+        // A successful scoped read is the backend-owned delegation check.
+        await adapter.list()
+        personalExternalSigningAdapter.value = adapter
+    } catch {
+        personalExternalSigningAdapter.value = null
+    }
+}
 const saving = ref(false)
 const errorMessageByKey = reactive<Record<string, string>>({})
 const selectedPreferenceValues = reactive<Record<string, EffectivePolicyValue>>({})
@@ -514,6 +540,7 @@ onMounted(async () => {
 		syncAllSelectedPreferences()
 	} finally {
 		preferencesReady.value = true
+		void loadPersonalExternalSigning()
 	}
 })
 

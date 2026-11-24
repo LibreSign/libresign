@@ -7,7 +7,6 @@ import { t } from '@nextcloud/l10n'
 import type { EffectivePolicyValue } from '../../../../../types/index'
 import type { RealPolicySettingDefinition } from '../realTypes'
 import ExternalSigningEnabledRuleEditor from './ExternalSigningEnabledRuleEditor.vue'
-import ExternalSigningPolicySettings from './ExternalSigningPolicySettings.vue'
 
 function resolveEnabled(value: EffectivePolicyValue): boolean | null {
 	if (typeof value === 'boolean') {
@@ -32,7 +31,6 @@ export const externalSigningRealDefinition: RealPolicySettingDefinition = {
 	groupAdminBehavior: {
 		allowGroupRuleCreationFromDescendantDelegation: true,
 	},
-	settingDialogExtras: ExternalSigningPolicySettings,
 	editor: ExternalSigningEnabledRuleEditor,
 	createEmptyValue: () => false,
 	normalizeDraftValue: (value) => resolveEnabled(value) ?? false,

@@ -15,7 +15,7 @@
 				<h3 id="external-signing-admin-title">
 					{{ t('libresign', 'External signing providers') }}
 				</h3>
-				<p>{{ t('libresign', 'Manage external signing integrations independently of signing policies.') }}</p>
+				<p>{{ t('libresign', 'Manage CSC connections for this policy rule.') }}</p>
 				<p
 					v-if="!adapter"
 					id="external-signing-admin-unavailable"
@@ -126,7 +126,6 @@
 <script setup lang="ts">
 import { mdiDelete, mdiPencil, mdiPower, mdiPowerOff } from '@mdi/js'
 import { computed, ref, watch } from 'vue'
-import { getCurrentUser } from '@nextcloud/auth'
 import { t } from '@nextcloud/l10n'
 import NcActionButton from '@nextcloud/vue/components/NcActionButton'
 import NcActions from '@nextcloud/vue/components/NcActions'
@@ -293,14 +292,12 @@ watch(dialogOpen, isOpen => {
 
 // A successful administrator-only catalog response is the server-owned experimental gate.
 // No fixture or client-side flag can make a hidden production control available.
-if (getCurrentUser()?.isAdmin === true) {
-	void (props.catalogLoader ?? fetchExternalSigningDrivers)().then(data => {
+void (props.catalogLoader ?? fetchExternalSigningDrivers)().then(data => {
 		drivers.value = data
 		visible.value = data.length > 0
 	}).catch(() => {
 		visible.value = false
 	})
-}
 </script>
 
 <style scoped lang="scss">
