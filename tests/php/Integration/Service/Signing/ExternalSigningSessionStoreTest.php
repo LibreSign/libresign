@@ -583,6 +583,72 @@ PHP);
 		$this->sessions->resume((string)$row['id'], 'synthetic-user', 'file-123-etag-456', 'synthetic-source-pdf', 'not-a-certificate');
 	}
 
+	public function testAuthorizedSignerCanRecoverOnlyOwnSignRequestSessionWithoutSecrets(): void {
+		$row = $this->create();
+		self::assertSame($row, $this->sessions->findForSignRequest(12345, 'synthetic-user'));
+		self::assertSame($row, $this->sessions->getForSignRequest((string)$row['id'], 12345, 'synthetic-user'));
+		self::assertNull($this->sessions->findForSignRequest(12345, 'another-actor'));
+		self::assertNull($this->sessions->findForSignRequest(12346, 'synthetic-user'));
+		$json = json_encode($row, JSON_THROW_ON_ERROR);
+		self::assertStringNotContainsString('synthetic-opaque-state', $json);
+		self::assertStringNotContainsString('synthetic-source-pdf', $json);
+		self::assertArrayNotHasKey('secrets', $row);
+		self::assertArrayNotHasKey('prepared', $row);
+	}
+
+	public function testSessionLookupRejectsCrossRequestAndCrossActorId(): void {
+		$row = $this->create();
+		foreach ([
+			[12346, 'synthetic-user'],
+			[12345, 'another-actor'],
+		] as [$requestId, $actorId]) {
+			try {
+				$this->sessions->getForSignRequest((string)$row['id'], $requestId, $actorId);
+				self::fail('Cross-request or cross-actor session lookup must fail');
+			} catch (\OutOfBoundsException $e) {
+				self::assertSame('Signing session not found', $e->getMessage());
+			}
+		}
+	}
+
+	public function testUncertainSessionCanBeFoundAfterReloadWithoutReplayingSigning(): void {
+		$row = $this->create();
+		$row = $this->advance($row, ExternalSigningSessionState::READY_TO_SIGN);
+		$row = $this->claim($row);
+		$row = $this->advance($row, ExternalSigningSessionState::UNCERTAIN);
+		$second = new ExternalSigningSessionStore(
+			$this->db, Server::get(ICrypto::class),
+			new ExperimentalFeaturesService($this->createEnabledAppConfig()),
+			$this->integrations,
+		);
+		self::assertSame('uncertain', $second->findForSignRequest(12345, 'synthetic-user')['status']);
+		self::assertSame($row['id'], $second->getForSignRequest((string)$row['id'], 12345, 'synthetic-user')['id']);
+		$this->expectException(\DomainException::class);
+		$second->claimSigning((string)$row['id'], 'synthetic-user', (int)$row['revision'],
+			'file-123-etag-456', 'synthetic-source-pdf', $this->certificate);
+	}
+
+	public function testRecoveryLookupIsGatedAndRejectsMalformedContext(): void {
+		$row = $this->create();
+		foreach ([[0, 'synthetic-user'], [12345, ''], [12345, str_repeat('x', 256)]] as [$requestId, $actorId]) {
+			try {
+				$this->sessions->findForSignRequest($requestId, $actorId);
+				self::fail('Malformed authorized lookup context must be rejected');
+			} catch (\InvalidArgumentException $e) {
+				self::assertSame('Invalid signing session context', $e->getMessage());
+			}
+		}
+		$this->enabled = false;
+		try {
+			$this->sessions->findForSignRequest(12345, 'synthetic-user');
+			self::fail('Feature-disabled discovery must be rejected');
+		} catch (\DomainException $e) {
+			self::assertStringContainsString('disabled', $e->getMessage());
+		}
+		$this->expectException(\DomainException::class);
+		$this->sessions->getForSignRequest((string)$row['id'], 12345, 'synthetic-user');
+	}
+
 	public function testIntegrationCannotBeDisabledWithUnresolvedSession(): void {
 		$integration = $this->integration();
 		$row = $this->create($integration);

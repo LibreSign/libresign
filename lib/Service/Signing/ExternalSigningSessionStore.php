@@ -85,7 +85,7 @@ final class ExternalSigningSessionStore {
 		$encrypted = $this->protectPrepared($prepared);
 		$id = bin2hex(random_bytes(16));
 		$attemptKey = hash('sha256', $signRequestId . ':' . strlen($actorId) . ':' . $actorId . ':' . $attemptId);
-		$slot = hash('sha256', $signRequestId . ':' . strlen($actorId) . ':' . $actorId);
+		$slot = self::signerSlot($signRequestId, $actorId);
 		$now = $this->now();
 		$this->db->beginTransaction();
 		try {
@@ -143,6 +143,14 @@ final class ExternalSigningSessionStore {
 		return $this->get($id, $actorId);
 	}
 
+	/**
+	 * A stable, per-actor SignRequest slot permits safe session recovery on a
+	 * subsequent request or PHP worker without client-supplied prepared state.
+	 */
+	private static function signerSlot(int $signRequestId, string $actorId): string {
+		return hash('sha256', $signRequestId . ':' . strlen($actorId) . ':' . $actorId);
+	}
+
 	/** @return array<string, mixed>|null */
 	private function findBySlot(string $slot, string $actorId): ?array {
 		$qb = $this->db->getQueryBuilder();
@@ -161,6 +169,45 @@ final class ExternalSigningSessionStore {
 	public function get(string $id, string $actorId): array {
 		$row = $this->load($id, $actorId);
 		return $this->metadata($row);
+	}
+
+	/**
+	 * Find the sole durable session for the server-authorized signer and
+	 * SignRequest, including terminal or uncertain states. No secret material
+	 * or trusted prepared state is returned. An API caller MUST first resolve
+	 * the current authenticated or invited signer, authorize the SignRequest,
+	 * then supply the server-derived actor ID. This method is NOT an access
+	 * policy or permission to submit another private-key operation.
+	 *
+	 * @return array<string, int|string>|null
+	 */
+	public function findForSignRequest(int $signRequestId, string $actorId): ?array {
+		$this->assertFeatureEnabled();
+		$this->validateSignerContext($signRequestId, $actorId);
+		$row = $this->findBySlot(self::signerSlot($signRequestId, $actorId), $actorId);
+		return $row === null ? null : $this->metadata($row);
+	}
+
+	/**
+	 * Read one session only if it belongs to the expected server-authorized
+	 * actor AND SignRequest. A session ID is never a bearer access token.
+	 *
+	 * @return array<string, int|string>
+	 */
+	public function getForSignRequest(string $sessionId, int $signRequestId, string $actorId): array {
+		$this->assertFeatureEnabled();
+		$this->validateSignerContext($signRequestId, $actorId);
+		$row = $this->load($sessionId, $actorId);
+		if ((int)$row['sign_request_id'] !== $signRequestId) {
+			throw new \OutOfBoundsException('Signing session not found');
+		}
+		return $this->metadata($row);
+	}
+
+	private function validateSignerContext(int $signRequestId, string $actorId): void {
+		if ($signRequestId < 1 || $actorId === '' || strlen($actorId) > 255) {
+			throw new \InvalidArgumentException('Invalid signing session context');
+		}
 	}
 
 	/**
