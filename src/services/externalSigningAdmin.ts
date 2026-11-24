@@ -26,6 +26,11 @@ export interface ExternalSigningDriver {
 	fields: ExternalSigningField[]
 }
 
+export interface ExternalSigningScope {
+    scopeType: 'system' | 'group' | 'user'
+    scopeId: string
+}
+
 /** Frontend instance model; persistence must be supplied by the administrative adapter. */
 export interface ExternalSigningInstance {
 	id: string
@@ -35,12 +40,16 @@ export interface ExternalSigningInstance {
 	configuration: Record<string, string>
 	configuredSecretFields: string[]
 	revision: number
+	scopeType?: ExternalSigningScope['scopeType']
+	scopeId?: string
 	hasSecrets?: boolean
 	driverAvailable?: boolean
 }
 
 export interface ExternalSigningDraft {
 	id?: string
+	scopeType?: ExternalSigningScope['scopeType']
+	scopeId?: string
 	driverId: string
 	name: string
 	configuration: Record<string, string>

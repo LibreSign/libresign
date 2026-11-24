@@ -29,6 +29,8 @@ function summary(overrides: Record<string, unknown> = {}) {
 		hasSecrets: true,
 		driverAvailable: false,
 		revision: 3,
+		scopeType: 'system' as const,
+		scopeId: '',
 		...overrides,
 	}
 }
@@ -65,8 +67,8 @@ describe('external signing administrative OCS adapter', () => {
 		const instances = await createExternalSigningAdminOcsAdapter().list()
 		expect(instances.map(item => item.id)).toEqual([firstId, secondId])
 		expect(instances[0].configuration.baseUrl).toBe('https://csc.example.org')
-		expect(vi.mocked(axios.get).mock.calls[0]).toEqual([endpoint, { params: { afterId: 0, pageSize: 50 } }])
-		expect(vi.mocked(axios.get).mock.calls[1]).toEqual([endpoint, { params: { afterId: 8, pageSize: 50 } }])
+		expect(vi.mocked(axios.get).mock.calls[0]).toEqual([endpoint, { params: { scopeType: 'system', scopeId: '', afterId: 0, pageSize: 50 } }])
+		expect(vi.mocked(axios.get).mock.calls[1]).toEqual([endpoint, { params: { scopeType: 'system', scopeId: '', afterId: 8, pageSize: 50 } }])
 	})
 
 	it('loads configured secret indicators on demand without exposing stored credentials', async () => {
@@ -88,6 +90,8 @@ describe('external signing administrative OCS adapter', () => {
 		const result = await createExternalSigningAdminOcsAdapter().save(draft({ id: undefined, revision: undefined, secretReplacements: { accessToken: 'synthetic-token' } }))
 		expect(result.enabled).toBe(false)
 		expect(axios.post).toHaveBeenCalledWith(endpoint, {
+			scopeType: 'system',
+			scopeId: '',
 			driverId: 'csc-v1',
 			name: 'Corporate signing',
 			configuration: { baseUrl: 'https://csc.example.org' },
@@ -139,6 +143,34 @@ describe('external signing administrative OCS adapter', () => {
 			expect(String(error)).not.toContain('private-token')
 		}
 	})
+
+	it('lists only the selected group scope and rejects a cross-client server response', async () => {
+        const adapter = createExternalSigningAdminOcsAdapter({ scopeType: 'group', scopeId: 'client-a' })
+        vi.mocked(axios.get).mockResolvedValueOnce(ocs({ items: [summary({ scopeType: 'group', scopeId: 'client-a' })], nextCursor: null }))
+        expect((await adapter.list()).map(item => item.id)).toEqual([firstId])
+        expect(axios.get).toHaveBeenCalledWith(endpoint, { params: {
+            afterId: 0, pageSize: 50, scopeType: 'group', scopeId: 'client-a',
+        } })
+        vi.mocked(axios.get).mockResolvedValueOnce(ocs({ items: [summary({ id: secondId, scopeType: 'group', scopeId: 'client-b' })], nextCursor: null }))
+        await expect(adapter.list()).rejects.toThrow('Integration belongs to another policy scope')
+    })
+
+    it('creates an individual connection only in the explicitly delegated account scope', async () => {
+        const adapter = createExternalSigningAdminOcsAdapter({ scopeType: 'user', scopeId: 'alice' })
+        vi.mocked(axios.post).mockResolvedValue(ocs(detail({ scopeType: 'user', scopeId: 'alice', revision: 1 })))
+        await adapter.save(draft({ id: undefined, revision: undefined }))
+        expect(axios.post).toHaveBeenCalledWith(endpoint, expect.objectContaining({ scopeType: 'user', scopeId: 'alice' }))
+        await expect(adapter.setEnabled({ ...summary({ scopeType: 'user', scopeId: 'bob' }), configuredSecretFields: [] }, true))
+            .rejects.toThrow('Integration belongs to another policy scope')
+    })
+
+    it.each([
+        [{ scopeType: 'system' as const, scopeId: 'client-a' }],
+        [{ scopeType: 'group' as const, scopeId: '' }],
+        [{ scopeType: 'user' as const, scopeId: '' }],
+    ])('rejects inconsistent local scope %j', scope => {
+        expect(() => createExternalSigningAdminOcsAdapter(scope)).toThrow('Invalid external integration policy scope')
+    })
 
 	it('rejects broken pagination instead of looping or silently dropping configured integrations', async () => {
 		vi.mocked(axios.get).mockResolvedValue(ocs({ items: [summary()], nextCursor: 0 }))

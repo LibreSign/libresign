@@ -10,7 +10,10 @@ namespace OCA\Libresign\Service\Policy\Provider\ExternalSigning;
 
 use OCA\Libresign\Service\Policy\Contract\IPolicyDefinition;
 use OCA\Libresign\Service\Policy\Contract\IPolicyDefinitionProvider;
+use OCA\Libresign\Service\Policy\Model\PolicyContext;
+use OCA\Libresign\Service\Policy\Model\PolicyLayer;
 use OCA\Libresign\Service\Policy\Model\PolicySpec;
+use OCA\Libresign\Service\Policy\Provider\Helper\DelegationLayerHelper;
 use OCA\Libresign\Service\Policy\Provider\Helper\PolicyKeyNormalizer;
 
 /**
@@ -51,6 +54,57 @@ final class ExternalSigningPolicy implements IPolicyDefinitionProvider {
 					PolicySpec::SCOPE_GROUP,
 					PolicySpec::SCOPE_USER,
 				],
+				groupPolicyManager: static function (PolicyContext $context, ?PolicyLayer $systemPolicy, array $groupLayers): bool {
+					$actorRole = $context->getActorRole();
+
+					if ($actorRole->canManageSystemPolicies) {
+						return true;
+					}
+
+					if (!$actorRole->canManageGroupPolicies) {
+						return false;
+					}
+
+					if ($actorRole->manageableGroupCount < 1) {
+						return false;
+					}
+
+					if (DelegationLayerHelper::hasExplicitGlobalDelegation($systemPolicy)) {
+						return true;
+					}
+
+					return DelegationLayerHelper::hasSystemCreatedGroupDelegation($groupLayers);
+				},
+				systemCreatedGroupRuleEditor: static function (PolicyContext $context, ?PolicyLayer $systemPolicy, PolicyLayer $existingPolicy): bool {
+					$actorRole = $context->getActorRole();
+
+					if ($actorRole->canManageSystemPolicies) {
+						return true;
+					}
+
+					if (!$actorRole->canManageGroupPolicies) {
+						return false;
+					}
+
+					if (!$existingPolicy->isVisibleToChild()) {
+						return false;
+					}
+
+					if (!$existingPolicy->isAllowChildOverride()) {
+						return false;
+					}
+
+					if ($existingPolicy->getValue() === null) {
+						return false;
+					}
+
+					if (DelegationLayerHelper::hasExplicitGlobalDelegation($systemPolicy)) {
+						return true;
+					}
+
+					return $existingPolicy->isCreatedBySystemAdmin();
+				},
+				supportsGroupAdminDelegation: true,
 			),
 			default => throw new \InvalidArgumentException('Unknown policy key: ' . PolicyKeyNormalizer::normalize($policyKey)),
 		};
