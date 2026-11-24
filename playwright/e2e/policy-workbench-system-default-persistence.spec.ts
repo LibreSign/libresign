@@ -242,14 +242,11 @@ async function removeRule(dialog: Locator, scope: 'Instance' | 'Group' | 'User',
 	expect(false, 'Expected Remove action to be visible in rule menu').toBe(true)
 }
 
-async function chooseTarget(dialog: Locator, ariaLabel: 'Target groups' | 'Target users', optionText: string) {
-	await waitForEditorIdle(dialog)
-	const page = dialog.page()
-	const activeDialog = await getActiveRuleDialog(page).catch(() => null)
-	const root = activeDialog ?? dialog
-	const labelPattern = ariaLabel === 'Target groups'
-		? /^(Scope groups|Target groups)$/i
-		: /^(Scope accounts|Target users)$/i
+async function chooseTarget(dialog: Locator, target: string) {
+	const root = await getActiveRuleDialog(dialog.page())
+	const picker = root.locator('.nc-select-users')
+	const input = picker.getByRole('combobox', { name: 'Scope accounts' })
+	await expect(input).toBeVisible({ timeout: 8000 })
 
 	const combobox = root.getByRole('combobox', { name: labelPattern }).first()
 	const labeledInput = root.getByLabel(labelPattern).first()

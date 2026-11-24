@@ -164,7 +164,7 @@ async function openCreateRuleEditor(dialog: Locator, scopeName: 'Group' | 'User'
 
 	const scopeDialog = dialog.page().getByRole('dialog').last()
 	await expect(scopeDialog).toBeVisible({ timeout: 10000 })
-	await scopeDialog.getByRole('option', { name: new RegExp(`^${scopeName}`) }).click()
+	await scopeDialog.getByRole('option', { name: new RegExp(`^${scopeName === 'User' ? 'Account' : scopeName}`) }).click()
 }
 
 async function selectTarget(dialogScope: Locator, kind: 'group' | 'user', target: string): Promise<void> {
@@ -332,6 +332,20 @@ test.beforeEach(async ({ page, adminRequestContext, endUserRequestContext }) => 
 test.afterEach(async ({ adminRequestContext, endUserRequestContext }) => {
 	await resetFooterHierarchyState(adminRequestContext, endUserRequestContext)
 	await deleteGroupPolicyEntry(adminRequestContext, GROUP_ID, REQUEST_SIGN_POLICY_KEY)
+})
+
+test('rule target picker retains focus during nested dialog entry', async ({ page }) => {
+	await login(page.request, ADMIN_USER, ADMIN_PASSWORD)
+	for (const [scope, kind, target] of [
+		['Group', 'group', GROUP_ID],
+		['User', 'user', END_USER],
+	] as const) {
+		const dialog = await openFooterPolicyDialog(page)
+		// Exercise the interval before the nested modal activates its own focus trap.
+		await page.addStyleTag({ content: '.policy-workbench__rule-dialog.fade-enter-active { transition-duration: 1500ms !important; }' })
+		await openCreateRuleEditor(dialog, scope)
+		await selectTarget(page.getByRole('dialog', { name: 'Create rule' }).last(), kind, target)
+	}
 })
 
 test('footer hierarchy works through policies and preferences UI', async ({ page, adminRequestContext, endUserRequestContext }) => {
