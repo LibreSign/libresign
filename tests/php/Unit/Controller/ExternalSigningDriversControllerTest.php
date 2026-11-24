@@ -10,13 +10,17 @@ namespace OCA\Libresign\Tests\Unit\Controller;
 
 use OCA\Libresign\Controller\ExternalSigningDriversController;
 use OCA\Libresign\Service\ExperimentalFeaturesService;
+use OCA\Libresign\Service\Policy\PolicyService;
+use OCA\Libresign\Service\Signing\ExternalSigningIntegrationScopeAccess;
 use OCA\Libresign\Service\Signing\Provider\Drivers\Csc\CscDriver;
 use OCA\Libresign\Service\Signing\Provider\ExternalSigningDriverCatalog;
 use OCP\AppFramework\Http;
+use OCP\Group\ISubAdmin;
 use OCP\IGroupManager;
 use OCP\IL10N;
 use OCP\IRequest;
 use OCP\IUser;
+use OCP\IUserManager;
 use OCP\IUserSession;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
@@ -39,6 +43,11 @@ final class ExternalSigningDriversControllerTest extends TestCase {
 			$this->session,
 			$this->groups,
 			new ExternalSigningDriverCatalog($this->feature, new CscDriver($l10n)),
+			new ExternalSigningIntegrationScopeAccess(
+				$this->createMock(PolicyService::class), $this->groups,
+				$this->createMock(IUserManager::class), $this->session,
+				$this->createMock(ISubAdmin::class),
+			),
 		);
 	}
 
@@ -95,6 +104,6 @@ final class ExternalSigningDriversControllerTest extends TestCase {
 		$user = $this->createMock(IUser::class);
 		$user->method('getUID')->willReturn('actor');
 		$this->session->method('getUser')->willReturn($user);
-		$this->groups->expects($this->once())->method('isAdmin')->with('actor')->willReturn($admin);
+		$this->groups->expects($this->atLeastOnce())->method('isAdmin')->with('actor')->willReturn($admin);
 	}
 }

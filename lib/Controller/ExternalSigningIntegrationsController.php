@@ -14,9 +14,12 @@ use OCA\Libresign\ResponseDefinitions;
 use OCA\Libresign\Service\ExperimentalFeaturesService;
 use OCA\Libresign\Service\Signing\ExternalIntegrationAdministration;
 use OCA\Libresign\Service\Signing\ExternalIntegrationRecord;
+use OCA\Libresign\Service\Signing\ExternalIntegrationStore;
+use OCA\Libresign\Service\Signing\ExternalSigningIntegrationScopeAccess;
 use OCA\Libresign\Service\Signing\Provider\ExternalSigningDriverCatalog;
 use OCP\AppFramework\Http;
 use OCP\AppFramework\Http\Attribute\ApiRoute;
+use OCP\AppFramework\Http\Attribute\NoAdminRequired;
 use OCP\AppFramework\Http\Attribute\OpenAPI;
 use OCP\AppFramework\Http\DataResponse;
 use OCP\IGroupManager;
@@ -42,6 +45,7 @@ final class ExternalSigningIntegrationsController extends AEnvironmentAwareOCSCo
 		private ExperimentalFeaturesService $experimentalFeatures,
 		private ExternalSigningDriverCatalog $catalog,
 		private ExternalIntegrationAdministration $administration,
+		private ExternalSigningIntegrationScopeAccess $scopeAccess,
 		private LoggerInterface $logger,
 	) {
 		parent::__construct(Application::APP_ID, $request);
@@ -65,15 +69,16 @@ final class ExternalSigningIntegrationsController extends AEnvironmentAwareOCSCo
 	 * 409: Integration conflict
 	 * 500: Internal error
 	 */
+	#[NoAdminRequired]
 	#[OpenAPI(tags: ['system'])]
 	#[ApiRoute(verb: 'GET', url: '/api/{apiVersion}/admin/signing/integrations', requirements: ['apiVersion' => '(v1)'])]
-	public function index(int $afterId = 0, int $pageSize = 50): DataResponse {
-		if (($denied = $this->authorize()) !== null) {
+	public function index(int $afterId = 0, int $pageSize = 50, string $scopeType = 'system', string $scopeId = ''): DataResponse {
+		if (($denied = $this->authorizeScope($scopeType, $scopeId)) !== null) {
 			return $denied;
 		}
 
-		return $this->execute(function () use ($afterId, $pageSize): array {
-			$page = $this->administration->listPage($afterId, $pageSize);
+		return $this->execute(function () use ($afterId, $pageSize, $scopeType, $scopeId): array {
+			$page = $this->administration->listPage($afterId, $pageSize, $scopeType, $scopeId);
 			$drivers = $this->driversById();
 			$items = [];
 			foreach ($page['items'] as $record) {
@@ -104,16 +109,17 @@ final class ExternalSigningIntegrationsController extends AEnvironmentAwareOCSCo
 	 * 409: Integration conflict
 	 * 500: Internal error
 	 */
+	#[NoAdminRequired]
 	#[OpenAPI(tags: ['system'])]
 	#[ApiRoute(verb: 'POST', url: '/api/{apiVersion}/admin/signing/integrations', requirements: ['apiVersion' => '(v1)'])]
-	public function create(string $driverId, string $name, array $configuration, #[\SensitiveParameter] array $secrets = []): DataResponse {
-		if (($denied = $this->authorize()) !== null) {
+	public function create(string $driverId, string $name, array $configuration, #[\SensitiveParameter] array $secrets = [], string $scopeType = 'system', string $scopeId = ''): DataResponse {
+		if (($denied = $this->authorizeScope($scopeType, $scopeId)) !== null) {
 			return $denied;
 		}
 
-		return $this->execute(function () use ($driverId, $name, $configuration, $secrets): array {
+		return $this->execute(function () use ($driverId, $name, $configuration, $secrets, $scopeType, $scopeId): array {
 			$driver = $this->driver($driverId);
-			$record = $this->administration->create($driver, $name, $configuration, $secrets);
+			$record = $this->administration->create($driver, $name, $configuration, $secrets, $scopeType, $scopeId);
 			return $this->describeWithDriver($driver, $record->id);
 		}, Http::STATUS_CREATED);
 	}
@@ -132,6 +138,7 @@ final class ExternalSigningIntegrationsController extends AEnvironmentAwareOCSCo
 	 * 409: Integration conflict
 	 * 500: Internal error
 	 */
+	#[NoAdminRequired]
 	#[OpenAPI(tags: ['system'])]
 	#[ApiRoute(verb: 'GET', url: '/api/{apiVersion}/admin/signing/integrations/{id}', requirements: ['apiVersion' => '(v1)'])]
 	public function show(string $id): DataResponse {
@@ -163,6 +170,7 @@ final class ExternalSigningIntegrationsController extends AEnvironmentAwareOCSCo
 	 * 409: Stale revision
 	 * 500: Internal error
 	 */
+	#[NoAdminRequired]
 	#[OpenAPI(tags: ['system'])]
 	#[ApiRoute(verb: 'PATCH', url: '/api/{apiVersion}/admin/signing/integrations/{id}', requirements: ['apiVersion' => '(v1)'])]
 	public function update(string $id, int $revision, ?string $name = null, ?array $configuration = null, #[\SensitiveParameter] array $secrets = []): DataResponse {
@@ -173,6 +181,7 @@ final class ExternalSigningIntegrationsController extends AEnvironmentAwareOCSCo
 		return $this->execute(function () use ($id, $revision, $name, $configuration, $secrets): array {
 			$this->assertRevision($revision);
 			$record = $this->administration->get($id);
+			$this->assertCanManageRecord($record);
 			$driver = $this->driverForRecord($record);
 			$this->administration->update($driver, $id, $revision, $name, $configuration, $secrets);
 			return $this->describeWithDriver($driver, $id);
@@ -194,6 +203,7 @@ final class ExternalSigningIntegrationsController extends AEnvironmentAwareOCSCo
 	 * 409: Stale revision or driver unavailable
 	 * 500: Internal error
 	 */
+	#[NoAdminRequired]
 	#[OpenAPI(tags: ['system'])]
 	#[ApiRoute(verb: 'POST', url: '/api/{apiVersion}/admin/signing/integrations/{id}/enable', requirements: ['apiVersion' => '(v1)'])]
 	public function enable(string $id, int $revision): DataResponse {
@@ -215,6 +225,7 @@ final class ExternalSigningIntegrationsController extends AEnvironmentAwareOCSCo
 	 * 409: Stale revision
 	 * 500: Internal error
 	 */
+	#[NoAdminRequired]
 	#[OpenAPI(tags: ['system'])]
 	#[ApiRoute(verb: 'POST', url: '/api/{apiVersion}/admin/signing/integrations/{id}/disable', requirements: ['apiVersion' => '(v1)'])]
 	public function disable(string $id, int $revision): DataResponse {
@@ -236,6 +247,7 @@ final class ExternalSigningIntegrationsController extends AEnvironmentAwareOCSCo
 	 * 409: Stale revision
 	 * 500: Internal error
 	 */
+	#[NoAdminRequired]
 	#[OpenAPI(tags: ['system'])]
 	#[ApiRoute(verb: 'DELETE', url: '/api/{apiVersion}/admin/signing/integrations/{id}', requirements: ['apiVersion' => '(v1)'])]
 	public function destroy(string $id, int $revision): DataResponse {
@@ -246,7 +258,7 @@ final class ExternalSigningIntegrationsController extends AEnvironmentAwareOCSCo
 		return $this->execute(function () use ($id, $revision): array {
 			$this->assertRevision($revision);
 			// Deletion is permitted even if the installed driver was removed.
-			$this->administration->get($id);
+			$this->assertCanManageRecord($this->administration->get($id));
 			$this->administration->delete($id, $revision);
 			return ['deleted' => true];
 		});
@@ -263,6 +275,7 @@ final class ExternalSigningIntegrationsController extends AEnvironmentAwareOCSCo
 		return $this->execute(function () use ($id, $revision, $enabled): array {
 			$this->assertRevision($revision);
 			$record = $this->administration->get($id);
+			$this->assertCanManageRecord($record);
 			$driver = $this->driverForRecord($record);
 			$this->administration->setEnabled($driver, $id, $revision, $enabled);
 			return $this->describeWithDriver($driver, $id);
@@ -270,12 +283,32 @@ final class ExternalSigningIntegrationsController extends AEnvironmentAwareOCSCo
 	}
 
 	/** @return null|DataResponse<Http::STATUS_UNAUTHORIZED|Http::STATUS_FORBIDDEN|Http::STATUS_NOT_FOUND, LibresignErrorResponse, array{}> */
+	private function authorizeScope(string $scopeType, string $scopeId): ?DataResponse {
+		if (($denied = $this->authorize()) !== null) {
+			return $denied;
+		}
+		try {
+			ExternalIntegrationStore::validateScope($scopeType, $scopeId);
+		} catch (\InvalidArgumentException) {
+			return new DataResponse(['error' => 'Invalid scope'], Http::STATUS_BAD_REQUEST);
+		}
+		return $this->scopeAccess->canManage($scopeType, $scopeId)
+			? null : new DataResponse(['error' => 'Forbidden'], Http::STATUS_FORBIDDEN);
+	}
+
+	private function assertCanManageRecord(ExternalIntegrationRecord $record): void {
+		// Treat a cross-scope ID exactly like a missing integration.
+		if (!$this->scopeAccess->canManage($record->scopeType, $record->scopeId)) {
+			throw new \OutOfBoundsException('Integration not found');
+		}
+	}
+
 	private function authorize(): ?DataResponse {
 		$user = $this->userSession->getUser();
 		if ($user === null) {
 			return new DataResponse(['error' => 'Unauthorized'], Http::STATUS_UNAUTHORIZED);
 		}
-		if (!$this->groupManager->isAdmin($user->getUID())) {
+		if (!$this->scopeAccess->canManageAny()) {
 			return new DataResponse(['error' => 'Forbidden'], Http::STATUS_FORBIDDEN);
 		}
 		if (!$this->experimentalFeatures->isEnabled()) {
@@ -287,6 +320,7 @@ final class ExternalSigningIntegrationsController extends AEnvironmentAwareOCSCo
 	/** @return LibresignExternalIntegrationResponse */
 	private function describe(string $id): array {
 		$record = $this->administration->get($id);
+		$this->assertCanManageRecord($record);
 		return $this->describeWithDriver($this->driverForRecord($record), $id);
 	}
 

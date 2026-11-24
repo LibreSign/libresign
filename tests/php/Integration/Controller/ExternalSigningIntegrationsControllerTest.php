@@ -10,15 +10,21 @@ namespace OCA\Libresign\Tests\Integration\Controller;
 
 use OCA\Libresign\Controller\ExternalSigningIntegrationsController;
 use OCA\Libresign\Service\ExperimentalFeaturesService;
+use OCA\Libresign\Service\Policy\Model\PolicyLayer;
+use OCA\Libresign\Service\Policy\PolicyService;
 use OCA\Libresign\Service\Signing\ExternalIntegrationAdministration;
+use OCA\Libresign\Service\Signing\ExternalSigningIntegrationScopeAccess;
 use OCA\Libresign\Service\Signing\Provider\Drivers\Csc\CscDriver;
 use OCA\Libresign\Service\Signing\Provider\ExternalSigningDriverCatalog;
 use OCP\AppFramework\Http;
+use OCP\Group\ISubAdmin;
 use OCP\IDBConnection;
+use OCP\IGroup;
 use OCP\IGroupManager;
 use OCP\IL10N;
 use OCP\IRequest;
 use OCP\IUser;
+use OCP\IUserManager;
 use OCP\IUserSession;
 use OCP\Server;
 
@@ -49,6 +55,11 @@ final class ExternalSigningIntegrationsControllerTest extends \OCA\Libresign\Tes
 			$features,
 			new ExternalSigningDriverCatalog($features, new CscDriver($this->createMock(IL10N::class))),
 			Server::get(ExternalIntegrationAdministration::class),
+			new ExternalSigningIntegrationScopeAccess(
+				Server::get(PolicyService::class), $groups,
+				Server::get(IUserManager::class), $session,
+				Server::get(ISubAdmin::class),
+			),
 			Server::get(\Psr\Log\LoggerInterface::class),
 		);
 	}
@@ -64,6 +75,76 @@ final class ExternalSigningIntegrationsControllerTest extends \OCA\Libresign\Tes
 		} finally {
 			parent::tearDown();
 		}
+	}
+
+	/**
+	 * A subadmin delegated Client A must not list or mutate Client B connections,
+	 * even when they know the opaque ID. The database access remains scoped.
+	 */
+	public function testDelegatedGroupAdministratorCannotAccessOtherClientConnections(): void {
+		$first = $this->create('Client A', 'a', 'sensitive-a');
+		$second = $this->create('Client B', 'b', 'sensitive-b');
+		$administration = Server::get(ExternalIntegrationAdministration::class);
+		$firstRecord = $administration->get($first['id']);
+		$secondRecord = $administration->get($second['id']);
+		// Existing system-scoped fixtures are not mutable from a delegated group.
+		// Create genuine group-scoped connections for the two clients.
+		$createdA = $administration->create(
+			['id' => 'csc-v1', 'fields' => [
+				['key' => 'baseUrl', 'type' => 'url', 'required' => true, 'secret' => false, 'validation' => ['schemes' => ['https']]],
+				['key' => 'accessToken', 'type' => 'password', 'required' => false, 'secret' => true],
+			]],
+			'Scoped Client A', ['baseUrl' => 'https://example.org'], [], 'group', 'client-a',
+		);
+		$createdB = $administration->create(
+			['id' => 'csc-v1', 'fields' => [
+				['key' => 'baseUrl', 'type' => 'url', 'required' => true, 'secret' => false, 'validation' => ['schemes' => ['https']]],
+				['key' => 'accessToken', 'type' => 'password', 'required' => false, 'secret' => true],
+			]],
+			'Scoped Client B', ['baseUrl' => 'https://example.org'], [], 'group', 'client-b',
+		);
+		$this->created[] = $createdA->id;
+		$this->created[] = $createdB->id;
+
+		$actor = $this->createMock(IUser::class);
+		$actor->method('getUID')->willReturn('subadmin-a');
+		$session = $this->createMock(IUserSession::class);
+		$session->method('getUser')->willReturn($actor);
+		$groups = $this->createMock(IGroupManager::class);
+		$groups->method('isAdmin')->willReturn(false);
+		$subAdmin = $this->createMock(ISubAdmin::class);
+		$subAdmin->method('isSubAdmin')->willReturn(true);
+		$group = $this->createMock(IGroup::class);
+		$group->method('getGID')->willReturn('client-a');
+		$subAdmin->method('getSubAdminsGroups')->willReturn([$group]);
+		$policies = $this->createMock(PolicyService::class);
+		$policies->method('getGroupPolicy')->willReturnCallback(
+			fn (string $key, string $scope): ?PolicyLayer => $scope === 'client-a'
+				? (new PolicyLayer())->setValue(true)->setVisibleToChild(true)->setAllowChildOverride(true)
+				: null,
+		);
+		$features = $this->createMock(ExperimentalFeaturesService::class);
+		$features->method('isEnabled')->willReturn(true);
+		$delegated = new ExternalSigningIntegrationsController(
+			$this->createMock(IRequest::class), $session, $groups, $features,
+			new ExternalSigningDriverCatalog($features, new CscDriver($this->createMock(IL10N::class))),
+			$administration,
+			new ExternalSigningIntegrationScopeAccess(
+				$policies, $groups, Server::get(IUserManager::class), $session, $subAdmin,
+			),
+			Server::get(\Psr\Log\LoggerInterface::class),
+		);
+
+		self::assertSame(Http::STATUS_OK, $delegated->index(0, 50, 'group', 'client-a')->getStatus());
+		$visible = $delegated->index(0, 50, 'group', 'client-a')->getData()['items'];
+		self::assertSame([$createdA->id], array_column($visible, 'id'));
+		self::assertSame(Http::STATUS_FORBIDDEN, $delegated->index(0, 50, 'group', 'client-b')->getStatus());
+		self::assertSame(Http::STATUS_NOT_FOUND, $delegated->show($createdB->id)->getStatus());
+		self::assertSame(Http::STATUS_NOT_FOUND, $delegated->update($createdB->id, 1, 'hijacked')->getStatus());
+		self::assertSame(Http::STATUS_NOT_FOUND, $delegated->destroy($createdB->id, 1)->getStatus());
+		self::assertSame(Http::STATUS_NOT_FOUND, $delegated->show($firstRecord->id)->getStatus());
+		self::assertSame(Http::STATUS_NOT_FOUND, $delegated->show($secondRecord->id)->getStatus());
+		self::assertSame(Http::STATUS_OK, $delegated->show($createdA->id)->getStatus());
 	}
 
 	/**
