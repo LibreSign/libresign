@@ -59,8 +59,10 @@ final class ExternalIntegrationStoreTest extends \OCA\Libresign\Tests\Integratio
 		string $name,
 		array $configuration,
 		#[\SensitiveParameter] array $secrets,
+		string $scopeType = 'system',
+		string $scopeId = '',
 	): \OCA\Libresign\Service\Signing\ExternalIntegrationRecord {
-		$record = $this->store->create($driverId, $name, $configuration, $secrets);
+		$record = $this->store->create($driverId, $name, $configuration, $secrets, $scopeType, $scopeId);
 		$this->created[] = $record->id;
 		return $record;
 	}
@@ -82,6 +84,22 @@ final class ExternalIntegrationStoreTest extends \OCA\Libresign\Tests\Integratio
 		$this->assertFalse($one->enabled);
 		$this->assertFalse($two->enabled);
 		$this->assertSame($one->id, $this->store->get($one->id)->id);
+	}
+
+	public function testScopedIntegrationsArePersistedAndPaginatedWithoutCrossClientLeakage(): void {
+		$system = $this->createTracked('csc', 'Global', [], [], 'system', '');
+		$alpha = $this->createTracked('csc', 'Client A', [], [], 'group', 'client-a');
+		$beta = $this->createTracked('csc', 'Client B', [], [], 'group', 'client-b');
+		$personal = $this->createTracked('csc', 'Personal', [], [], 'user', 'alice');
+
+		$this->assertSame('group', $this->store->get($alpha->id)->scopeType);
+		$this->assertSame('client-a', $this->store->get($alpha->id)->scopeId);
+		$this->assertSame(['scopeType' => 'group', 'scopeId' => 'client-a'],
+			array_intersect_key($this->store->get($alpha->id)->jsonSerialize(), ['scopeType' => true, 'scopeId' => true]));
+		$this->assertSame([$alpha->id], array_column($this->store->listPage(0, 50, 'group', 'client-a')['items'], 'id'));
+		$this->assertSame([$beta->id], array_column($this->store->listPage(0, 50, 'group', 'client-b')['items'], 'id'));
+		$this->assertSame([$personal->id], array_column($this->store->listPage(0, 50, 'user', 'alice')['items'], 'id'));
+		$this->assertContains($system->id, array_column($this->store->listPage(0, 50, 'system', '')['items'], 'id'));
 	}
 
 	public function testPersistedSecretIsEncryptedAndRedactedFromRead(): void {

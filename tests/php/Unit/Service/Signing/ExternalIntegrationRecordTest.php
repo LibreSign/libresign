@@ -33,7 +33,7 @@ final class ExternalIntegrationRecordTest extends TestCase {
 		$this->assertTrue($payload->hasSecrets);
 		$this->assertSame([
 			'id', 'driverId', 'name', 'configuration', 'enabled',
-			'hasSecrets', 'revision', 'createdAt', 'updatedAt',
+			'hasSecrets', 'revision', 'createdAt', 'updatedAt', 'scopeType', 'scopeId',
 		], array_keys(get_object_vars($payload)));
 	}
 }

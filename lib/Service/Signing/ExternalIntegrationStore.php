@@ -37,7 +37,10 @@ final class ExternalIntegrationStore {
 		string $name,
 		#[\SensitiveParameter] array $validatedConfiguration,
 		#[\SensitiveParameter] array $validatedSecrets,
+		string $scopeType = 'system',
+		string $scopeId = '',
 	): ExternalIntegrationRecord {
+		self::validateScope($scopeType, $scopeId);
 		$this->validateIdentity($driverId, $name);
 		$configJson = $this->encodeConfiguration($validatedConfiguration);
 		$encrypted = $this->secrets->encrypt($validatedSecrets);
@@ -49,6 +52,8 @@ final class ExternalIntegrationStore {
 				'public_id' => $qb->createNamedParameter($publicId),
 				'driver_id' => $qb->createNamedParameter($driverId),
 				'name' => $qb->createNamedParameter(trim($name)),
+				'scope_type' => $qb->createNamedParameter($scopeType),
+				'scope_id' => $qb->createNamedParameter($scopeId),
 				'configuration' => $qb->createNamedParameter($configJson),
 				'secrets_enc' => $qb->createNamedParameter($encrypted),
 				'enabled' => $qb->createNamedParameter(0, IQueryBuilder::PARAM_INT),
@@ -92,7 +97,10 @@ final class ExternalIntegrationStore {
 	 *
 	 * @return array{items: list<ExternalIntegrationRecord>, nextCursor: ?int}
 	 */
-	public function listPage(int $afterId = 0, int $pageSize = 50): array {
+	public function listPage(int $afterId = 0, int $pageSize = 50, ?string $scopeType = null, string $scopeId = ''): array {
+		if ($scopeType !== null) {
+			self::validateScope($scopeType, $scopeId);
+		}
 		if ($afterId < 0 || $pageSize < 1 || $pageSize > 200) {
 			throw new \InvalidArgumentException('Invalid integration page');
 		}
@@ -102,8 +110,12 @@ final class ExternalIntegrationStore {
 			->where($qb->expr()->isNull('deleted_at'))
 			->andWhere($qb->expr()->gt('id', $qb->createNamedParameter($afterId, IQueryBuilder::PARAM_INT)))
 			->orderBy('id', 'ASC')
-			->setMaxResults($pageSize + 1)
-			->executeQuery()->fetchAllAssociative();
+			->setMaxResults($pageSize + 1);
+		if ($scopeType !== null) {
+			$qb->andWhere($qb->expr()->eq('scope_type', $qb->createNamedParameter($scopeType)))
+				->andWhere($qb->expr()->eq('scope_id', $qb->createNamedParameter($scopeId)));
+		}
+		$rows = $qb->executeQuery()->fetchAllAssociative();
 
 		$hasNext = count($rows) > $pageSize;
 		$rows = array_slice($rows, 0, $pageSize);
@@ -313,6 +325,8 @@ final class ExternalIntegrationStore {
 			(int)$row['revision'],
 			$this->iso8601((string)$row['created_at']),
 			$this->iso8601((string)$row['updated_at']),
+			(string)$row['scope_type'],
+			(string)$row['scope_id'],
 		);
 	}
 
@@ -322,6 +336,23 @@ final class ExternalIntegrationStore {
 
 	private function now(): \DateTime {
 		return new \DateTime('now', new \DateTimeZone('UTC'));
+	}
+
+	/**
+	 * A scope is bound to a policy rule, not to a caller-controlled URL path.
+	 * This invariant is enforced on every administrative create and list.
+	 */
+	public static function validateScope(string $scopeType, string $scopeId): void {
+		if ($scopeType === 'system' && $scopeId === '') {
+			return;
+		}
+		if (in_array($scopeType, ['group', 'user'], true)
+			&& $scopeId !== '' && strlen($scopeId) <= 255
+			&& mb_check_encoding($scopeId, 'UTF-8')
+			&& preg_match('/[\\x00-\\x1f\\x7f]/', $scopeId) !== 1) {
+			return;
+		}
+		throw new \InvalidArgumentException('Invalid integration policy scope');
 	}
 
 	private function validateIdentity(string $driverId, string $name): void {

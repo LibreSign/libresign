@@ -118,6 +118,8 @@ namespace OCA\Libresign;
  *     id: string,
  *     driverId: string,
  *     name: string,
+ *     scopeType: string,
+ *     scopeId: string,
  *     configuration: object,
  *     enabled: bool,
  *     hasSecrets: bool,
