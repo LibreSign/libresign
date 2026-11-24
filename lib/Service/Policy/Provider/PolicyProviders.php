@@ -16,6 +16,7 @@ use OCA\Libresign\Service\Policy\Provider\DefaultUserFolder\DefaultUserFolderPol
 use OCA\Libresign\Service\Policy\Provider\DocMdp\DocMdpPolicy;
 use OCA\Libresign\Service\Policy\Provider\EmailSignerSignature\EmailSignerSignaturePolicy;
 use OCA\Libresign\Service\Policy\Provider\Envelope\EnvelopePolicy;
+use OCA\Libresign\Service\Policy\Provider\ExternalSigning\ExternalSigningPolicy;
 use OCA\Libresign\Service\Policy\Provider\ExpirationRules\ExpirationRulesPolicy;
 use OCA\Libresign\Service\Policy\Provider\Footer\FooterPolicy;
 use OCA\Libresign\Service\Policy\Provider\IdentificationDocuments\IdentificationDocumentsPolicy;
@@ -48,6 +49,7 @@ final class PolicyProviders {
 		DocMdpPolicy::KEY => DocMdpPolicy::class,
 		EmailSignerSignaturePolicy::KEY => EmailSignerSignaturePolicy::class,
 		EnvelopePolicy::KEY => EnvelopePolicy::class,
+		ExternalSigningPolicy::KEY => ExternalSigningPolicy::class,
 		ExpirationRulesPolicy::KEY_MAXIMUM_VALIDITY => ExpirationRulesPolicy::class,
 		ExpirationRulesPolicy::KEY_RENEWAL_INTERVAL => ExpirationRulesPolicy::class,
 		ExpirationRulesPolicy::KEY_EXPIRY_IN_DAYS => ExpirationRulesPolicy::class,

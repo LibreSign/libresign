@@ -6,11 +6,12 @@
 	<section
 		v-if="visible"
 		class="external-signing-admin"
-		:class="{ 'external-signing-admin--compact': layout === 'compact' }"
-		aria-labelledby="external-signing-admin-title"
+		:class="{ 'external-signing-admin--compact': layout === 'compact', 'external-signing-admin--embedded': embedded }"
+		:aria-labelledby="embedded ? undefined : 'external-signing-admin-title'"
+		:aria-label="embedded ? t('libresign', 'External signing providers') : undefined"
 		data-cy="external-signing-admin">
 		<div class="external-signing-admin__entry">
-			<div class="external-signing-admin__details">
+			<div v-if="!embedded" class="external-signing-admin__details">
 				<h3 id="external-signing-admin-title">
 					{{ t('libresign', 'External signing providers') }}
 				</h3>
@@ -138,7 +139,7 @@ import type { ExternalSigningAdminAdapter, ExternalSigningDriver, ExternalSignin
 import ExternalSigningIntegrationForm from './ExternalSigningIntegrationForm.vue'
 
 /** A production adapter is not supplied until the administrative CRUD API is available. */
-const props = defineProps<{ adapter?: ExternalSigningAdminAdapter, catalogLoader?: () => Promise<ExternalSigningDriver[]>, layout?: 'cards' | 'compact' }>()
+const props = defineProps<{ adapter?: ExternalSigningAdminAdapter, catalogLoader?: () => Promise<ExternalSigningDriver[]>, layout?: 'cards' | 'compact', embedded?: boolean }>()
 const drivers = ref<ExternalSigningDriver[]>([])
 const visible = ref(false)
 const dialogOpen = ref(false)
@@ -313,6 +314,18 @@ if (getCurrentUser()?.isAdmin === true) {
 		radial-gradient(circle at top right, color-mix(in srgb, var(--color-primary-element) 14%, transparent), transparent 45%),
 		linear-gradient(180deg, color-mix(in srgb, var(--color-main-background) 92%, white), var(--color-main-background));
 	text-align: start;
+
+	&--embedded {
+		min-height: 0;
+		padding: 0;
+		border: 0;
+		border-radius: 0;
+		background: transparent;
+
+		.external-signing-admin__footer {
+			margin-top: 0;
+		}
+	}
 
 	&--compact {
 		min-height: 0;

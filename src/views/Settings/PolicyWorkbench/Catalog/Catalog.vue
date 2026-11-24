@@ -50,11 +50,7 @@
 				@mark-selection="markSelectionGesture($event.layout, $event.key)"
 				@open-from-pointer="openSettingFromPointer($event.layout, $event.key, $event.event)"
 				@open-from-keyboard="openSettingFromKeyboard"
-				@open-from-action="openSettingFromAction($event.key, $event.event)">
-				<template #auxiliary="{ layout }">
-					<slot name="how-signing-works-auxiliary" :layout="layout" />
-				</template>
-			</CatalogCategorySection>
+				@open-from-action="openSettingFromAction($event.key, $event.event)" />
 		</div>
 
 		<NcNoteCard v-if="filteredSettingSummaries.length === 0" type="info">
@@ -235,6 +231,8 @@ import {
 } from '@mdi/js'
 import { computed, nextTick, onBeforeUnmount, onMounted, reactive, ref, watch } from 'vue'
 import { t } from '@nextcloud/l10n'
+import { getCurrentUser } from '@nextcloud/auth'
+import { fetchExternalSigningDrivers } from '../../../../services/externalSigningAdmin'
 
 import NcButton from '@nextcloud/vue/components/NcButton'
 import NcDialog from '@nextcloud/vue/components/NcDialog'
@@ -279,8 +277,18 @@ defineOptions({
 })
 
 const policiesStore = usePoliciesStore()
+const externalSigningPolicyVisible = ref(false)
+if (getCurrentUser()?.isAdmin === true) {
+	void fetchExternalSigningDrivers().then(drivers => {
+		externalSigningPolicyVisible.value = drivers.length > 0
+	}).catch(() => {
+		externalSigningPolicyVisible.value = false
+	})
+}
 const userConfigStore = useUserConfigStore()
 const state = reactive(createRealPolicyWorkbenchState())
+const visibleSettingsForCatalog = computed(() => state.visibleSettingSummaries.filter(summary =>
+	summary.key !== 'external_signing_enabled' || externalSigningPolicyVisible.value))
 const isSmallViewport = ref(false)
 const saveStatus = ref<PolicyWorkbenchSaveStatus>('idle')
 const saveFeedbackTimeout = ref<number | null>(null)
@@ -344,7 +352,7 @@ const {
 	catalogViewButtonLabel,
 	catalogCollapseButtonLabel,
 } = useCatalogPresentation({
-	visibleSettingSummaries: computed(() => state.visibleSettingSummaries),
+	visibleSettingSummaries: visibleSettingsForCatalog,
 	settingsFilter: catalogState.settingsFilter,
 	catalogLayout: catalogState.catalogLayout,
 	isCatalogCollapsed: catalogState.isCatalogCollapsed,

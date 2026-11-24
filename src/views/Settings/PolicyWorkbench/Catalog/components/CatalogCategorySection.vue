@@ -73,7 +73,6 @@
 						</NcButton>
 					</div>
 				</article>
-				<slot v-if="category.key === 'how-signing-works' && isExpanded" name="auxiliary" layout="cards" />
 			</div>
 
 			<div v-else class="policy-workbench__settings-list" role="list">
@@ -111,7 +110,6 @@
 						{{ configureButtonLabel }}
 					</NcButton>
 				</article>
-				<slot v-if="category.key === 'how-signing-works' && isExpanded" name="auxiliary" layout="compact" />
 			</div>
 		</div>
 	</section>

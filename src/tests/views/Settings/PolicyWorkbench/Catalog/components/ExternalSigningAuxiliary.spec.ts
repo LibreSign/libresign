@@ -15,19 +15,19 @@ const category: Category = {
 	key: 'how-signing-works',
 	label: 'How signing works',
 	summaries: [{
-		key: 'signature_flow',
-		title: 'Signing order',
+		key: 'external_signing_enabled',
+		title: 'External signing providers',
 		context: null,
-		description: 'Signing order description',
-		defaultSummary: 'Instance default',
+		description: 'Control external signing access',
+		defaultSummary: 'Disabled',
 		groupCount: 0,
 		userCount: 0,
 		everyoneCount: 0,
 	}],
 }
 
-describe('External signing auxiliary placement', () => {
-	it('keeps auxiliary administration in the workbench layout without creating a policy tile', async () => {
+describe('External signing policy placement', () => {
+	it('uses the same policy tile, configuration action, and compact row as other policies', async () => {
 		const wrapper = mount(CatalogCategorySection, {
 			props: {
 				category,
@@ -40,23 +40,20 @@ describe('External signing auxiliary placement', () => {
 				resolveOverridesStatLabel: () => 'Custom rules',
 				formatOverrideSummary: () => 'none',
 			},
-			slots: {
-				auxiliary: '<aside data-cy="auxiliary-provider">External signing provider</aside>',
-			},
 			global: {
 				stubs: {
-					NcButton: true,
+					NcButton: { template: '<button><slot /></button>' },
 					NcIconSvgWrapper: true,
 				},
 			},
 		})
-
-		expect(wrapper.find('.policy-workbench__settings-grid > [data-cy="auxiliary-provider"]').exists()).toBe(true)
 		expect(wrapper.findAll('.policy-workbench__setting-tile')).toHaveLength(1)
+		expect(wrapper.text()).toContain('External signing providers')
+		expect(wrapper.find('.policy-workbench__setting-tile').attributes('tabindex')).toBe('0')
+		expect(wrapper.find('.policy-workbench__setting-footer .policy-workbench__manage-button').exists()).toBe(true)
+
 		await wrapper.setProps({ layout: 'compact' })
-		expect(wrapper.find('.policy-workbench__settings-list > [data-cy="auxiliary-provider"]').exists()).toBe(true)
 		expect(wrapper.findAll('.policy-workbench__settings-row')).toHaveLength(1)
-		await wrapper.setProps({ category: { ...category, key: 'trust-and-verification' } })
-		expect(wrapper.find('[data-cy="auxiliary-provider"]').exists()).toBe(false)
+		expect(wrapper.find('.policy-workbench__settings-row').text()).toContain('External signing providers')
 	})
 })
