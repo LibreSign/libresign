@@ -654,6 +654,33 @@ describe('useRealPolicyWorkbench', () => {
 		expect(state.availableTargets.map((target) => target.id)).toEqual(['new-user'])
 	})
 
+	it.each([
+		['group', 'cloud/groups/details'],
+		['user', 'cloud/users/details'],
+	] as const)('retains discovered %s targets when another search returns different options', async (scope, endpoint) => {
+		const state = createRealPolicyWorkbenchState()
+		state.openSetting('signature_flow')
+		state.startEditor({ scope })
+		await vi.waitFor(() => expect(state.loadingTargets).toBe(false))
+
+		axiosGet.mockImplementation((url: string, config: { params: { search: string } }) => {
+			if (url !== endpoint) {
+				return Promise.resolve({ data: { ocs: { data: {} } } })
+			}
+			const id = config.params.search === 'searched-target' ? 'searched-target' : 'other-target'
+			return Promise.resolve({ data: { ocs: { data: scope === 'group'
+				? { groups: [{ id, displayname: id, usercount: 1 }] }
+				: { users: { [id]: { id, displayname: id } } } } } })
+		})
+
+		state.searchAvailableTargets('searched-target')
+		await vi.waitFor(() => expect(state.availableTargets.map((target) => target.id)).toContain('searched-target'))
+
+		state.searchAvailableTargets('')
+		await vi.waitFor(() => expect(state.loadingTargets).toBe(false))
+		expect(state.availableTargets.map((target) => target.id)).toContain('searched-target')
+	})
+
 	it('loads group targets using cloud/groups for group-admin without exception fallback', async () => {
 		currentUserState.isAdmin = false
 
