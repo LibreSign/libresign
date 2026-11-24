@@ -436,6 +436,9 @@ async function fetchEnvelopeFiles(parentFileId: number | string): Promise<RawSig
 		length: '100',
 		parentFileId: parentFileId.toString(),
 		signer_uuid: getRouteUuid() || '',
+		// The summary payload has no PDF url for child files, so the envelope
+		// would fail with "Failed to load envelope files".
+		details: 'true',
 	})
 	const finalUrl = addIdDocApprovalParam(`${url}?${params.toString()}`) || `${url}?${params.toString()}`
 	const response = await axios.get<EnvelopeFileListResponse>(finalUrl)

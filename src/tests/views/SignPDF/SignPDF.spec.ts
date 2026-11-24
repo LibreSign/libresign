@@ -158,6 +158,49 @@ describe('SignPDF.vue', () => {
 		expect(signStore.document!.files).toEqual(envelopeFiles)
 	})
 
+	it('requests detailed envelope files so child files carry a PDF url', async () => {
+		const SignPDF = (await import('../../../views/SignPDF/SignPDF.vue')).default
+		const { loadState } = await import('@nextcloud/initial-state')
+		const axios = (await import('@nextcloud/axios')).default
+		const { useSignStore } = await import('../../../store/sign.js')
+		const signStore = useSignStore()
+
+		signStore.document = createSignDocument({
+			nodeType: 'envelope',
+			files: [],
+		})
+
+		const wrapper = mount(SignPDF, {
+			global: {
+				stubs: {
+					TopBar: true,
+					PdfEditor: true,
+					NcNoteCard: true,
+					NcButton: true,
+				},
+				mocks: {
+					$route: { name: 'TestRoute', params: { uuid: 'uuid-123' }, query: {} },
+				},
+			},
+		})
+
+		// No envelope files in the initial state, as on /f/sign after a full page load.
+		vi.mocked(loadState).mockImplementation((app, key, defaultValue) => defaultValue)
+		const childFiles = [
+			{ id: 245, name: 'file1', url: '/apps/libresign/pdf/child-uuid-1', metadata: { extension: 'pdf' } },
+		]
+		vi.mocked(axios.get).mockResolvedValue({ data: { ocs: { data: { data: childFiles } } } })
+
+		const files = await wrapper.vm.fetchEnvelopeFiles(244)
+
+		expect(files).toEqual(childFiles)
+		const requested = vi.mocked(axios.get).mock.calls
+			.map(([url]) => new URL(String(url), 'http://localhost'))
+			.find((url) => url.searchParams.get('parentFileId') === '244')
+		expect(requested?.pathname).toBe('/ocs/v2.php/apps/libresign/api/v1/file/list')
+		expect(requested?.searchParams.get('details')).toBe('true')
+	})
+
 	it('normalizes envelope visible elements when loading child files', async () => {
 		const SignPDF = (await import('../../../views/SignPDF/SignPDF.vue')).default
 		const { loadState } = await import('@nextcloud/initial-state')
