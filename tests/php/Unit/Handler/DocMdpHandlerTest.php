@@ -412,4 +412,189 @@ final class DocMdpHandlerTest extends TestCase {
 		$this->assertSame(1, $data['docmdp']['level'], 'Should detect DocMDP level 1 from real JSignPdf');
 		$this->assertFalse($allows, 'Should not allow additional signatures for DocMDP level 1');
 	}
+	/** @return array<int, string> */
+	private static function dssUpdate(): array {
+		return [
+			10 => "<< /Length 4 >>\nstream\n0000\nendstream",
+			11 => '<< /Type /DSS /Certs [10 0 R] /OCSPs [] /CRLs [] >>',
+			// Same catalog rewritten by another writer, plus /DSS, /Extensions and /Version.
+			1 => '<</Type/Catalog/Pages 2 0 R/AcroForm 4 0 R/Perms<</DocMDP 5 0 R>>/DSS 11 0 R'
+				. '/Extensions<</ADBE<</BaseVersion/1.7/ExtensionLevel 5>>>>/Version/1.7>>',
+			// Information dictionary rewritten: strings re-encoded, new /ModDate and /Producer.
+			7 => '<< /Producer (Generator\073 LTV) /ModDate <443a32303236303230323030303030305a> >>',
+		];
+	}
+
+	/** @return array<int, string> */
+	private static function timestampUpdate(string $field = '/FT /Sig /T (Timestamp1) /Type /Annot /Subtype /Widget /F 132 /Rect [0 0 0 0] /P 3 0 R /V 12 0 R'): array {
+		return [
+			12 => '<< /Type /DocTimeStamp /Filter /Adobe.PPKLite /SubFilter /ETSI.RFC3161 /ByteRange [0000000000 0000000000 0000000000 0000000000] /Contents <00> >>',
+			13 => "<< {$field} >>",
+			3 => '<< /Type /Page /Parent 2 0 R /MediaBox [0 0 612 792] /Annots [13 0 R] >>',
+			4 => '<< /SigFlags 3 /Fields [6 0 R 13 0 R] >>',
+		];
+	}
+
+	public static function validationDataUpdateProvider(): array {
+		return [
+			'P=1 DSS' => [1, [self::dssUpdate()]],
+			'P=2 DSS' => [2, [self::dssUpdate()]],
+			'P=3 DSS' => [3, [self::dssUpdate()]],
+			'P=1 document timestamp' => [1, [self::timestampUpdate()]],
+			'P=2 document timestamp' => [2, [self::timestampUpdate()]],
+			'P=3 document timestamp' => [3, [self::timestampUpdate()]],
+			'P=1 DSS and document timestamp in one update' => [1, [self::dssUpdate() + self::timestampUpdate()]],
+			'P=1 document timestamp, then DSS' => [1, [self::timestampUpdate(), self::dssUpdate()]],
+			'P=2 document timestamp, then DSS' => [2, [self::timestampUpdate(), self::dssUpdate()]],
+			'P=3 document timestamp, then DSS' => [3, [self::timestampUpdate(), self::dssUpdate()]],
+		];
+	}
+
+	/**
+	 * ISO 32000-2 12.8.2.2.1 / ETSI EN 319 142-1 5.4: adding a DSS or a document
+	 * timestamp after certification is allowed at every DocMDP level.
+	 */
+	#[DataProvider('validationDataUpdateProvider')]
+	public function testValidationDataUpdateAfterCertificationIsAllowed(int $pValue, array $updates): void {
+		$result = $this->extractFromUpdates($pValue, $updates);
+
+		$this->assertSame($pValue, $result['docmdp']['level']);
+		$this->assertTrue($result['modifications']['modified']);
+		$this->assertTrue($result['modification_validation']['valid']);
+		$this->assertSame(File::MODIFICATION_ALLOWED, $result['modification_validation']['status']);
+	}
+
+	public static function contentChangeWithValidationDataProvider(): array {
+		$timestampField = '/FT /Sig /T (Timestamp1) /Type /Annot /Subtype /Widget /F 132 /Rect [0 0 0 0] /P 3 0 R /V 12 0 R';
+		return [
+			'page content added' => [[self::dssUpdate() + [
+				20 => "<< /Length 18 >>\nstream\nBT (changed) Tj ET\nendstream",
+				3 => '<< /Type /Page /Parent 2 0 R /MediaBox [0 0 612 792] /Contents 20 0 R >>',
+			]]],
+			'catalog action added' => [[[
+				10 => '<< /Type /DSS >>',
+				1 => '<< /Type /Catalog /Pages 2 0 R /AcroForm 4 0 R /Perms << /DocMDP 5 0 R >> /DSS 10 0 R /OpenAction 3 0 R >>',
+			]]],
+			'duplicate catalog key' => [[[
+				10 => '<< /Type /DSS >>',
+				1 => '<< /Type /Catalog /Pages 2 0 R /Pages 20 0 R /AcroForm 4 0 R /Perms << /DocMDP 5 0 R >> /DSS 10 0 R >>',
+			]]],
+			'information dictionary title changed' => [[[7 => '<< /Producer (Generator) /ModDate (D:20260101000000Z) /Title (Changed) >>']]],
+			'pages tree rewritten' => [[[2 => '<< /Type /Pages /Kids [3 0 R 20 0 R] /Count 2 >>', 20 => '<< /Type /Page /Parent 2 0 R /MediaBox [0 0 612 792] >>']]],
+			'text annotation added' => [[self::dssUpdate() + [
+				20 => '<< /Type /Annot /Subtype /Text /Rect [100 100 200 200] >>',
+				3 => '<< /Type /Page /Parent 2 0 R /MediaBox [0 0 612 792] /Annots [20 0 R] >>',
+			]]],
+			'non-signature field appended' => [[self::dssUpdate() + [
+				20 => '<< /FT /Tx /T (Text1) /V (changed) >>',
+				4 => '<< /SigFlags 3 /Fields [6 0 R 20 0 R] >>',
+			]]],
+			'existing field removed' => [[array_replace(self::timestampUpdate(), [4 => '<< /SigFlags 3 /Fields [13 0 R] >>'])]],
+			'approval signature added' => [[self::dssUpdate() + [
+				20 => '<< /Type /Sig /Filter /Adobe.PPKLite /SubFilter /ETSI.CAdES.detached /ByteRange [0 10 20 10] /Contents <00> >>',
+				21 => '<< /FT /Sig /T (Signature2) /V 20 0 R >>',
+				4 => '<< /SigFlags 3 /Fields [6 0 R 21 0 R] >>',
+			]]],
+			'signature field value is not a document timestamp' => [[array_replace(self::timestampUpdate(), [
+				12 => '<< /Filter /Adobe.PPKLite /SubFilter /adbe.pkcs7.detached /ByteRange [0 10 20 10] /Contents <00> >>',
+			])]],
+			'visible timestamp widget' => [[self::timestampUpdate(str_replace('[0 0 0 0]', '[0 0 612 792]', $timestampField))]],
+			'timestamp field with an action' => [[self::timestampUpdate($timestampField . ' /AA << /F << /S /JavaScript /JS (x) >> >>')]],
+			'timestamp field with kids' => [[self::timestampUpdate($timestampField . ' /Kids [3 0 R]')]],
+			'object stream' => [[self::dssUpdate() + [20 => "<< /Type /ObjStm /N 1 /First 5 /Length 8 >>\nstream\n3 0 <<>>\nendstream"]]],
+			'object stream behind a name escape' => [[self::dssUpdate() + [20 => "<< /Type /Obj#53tm /N 1 /First 5 /Length 8 >>\nstream\n3 0 <<>>\nendstream"]]],
+		];
+	}
+
+	#[DataProvider('contentChangeWithValidationDataProvider')]
+	public function testP1RejectsContentChangeAlongsideValidationData(array $updates): void {
+		$result = $this->extractFromUpdates(1, $updates);
+
+		$this->assertFalse($result['modification_validation']['valid']);
+		$this->assertSame(File::MODIFICATION_VIOLATION, $result['modification_validation']['status']);
+	}
+
+	public static function forgedTrailerProvider(): array {
+		return [
+			'root replaced' => [['/Root' => '20 0 R']],
+			'information dictionary replaced' => [['/Info' => '20 0 R']],
+			'encryption added' => [['/Encrypt' => '20 0 R']],
+			'previous section skipped' => [['/Prev' => '0']],
+		];
+	}
+
+	#[DataProvider('forgedTrailerProvider')]
+	public function testP1RejectsValidationDataUpdateWithForgedTrailer(array $trailerOverrides): void {
+		// Keep the certification active when replacing the trailer root:
+		// the test must exercise a forbidden change, not an unsigned document.
+		$replacementCatalog = ($trailerOverrides['/Root'] ?? null) === '20 0 R'
+			? '<< /Type /Catalog /Pages 2 0 R /AcroForm 4 0 R /Perms << /DocMDP 5 0 R >> >>'
+			: '<< /Type /Catalog /Pages 2 0 R >>';
+		$update = self::dssUpdate() + [20 => $replacementCatalog];
+		$result = $this->extractFromUpdates(1, [$update], $trailerOverrides);
+
+		$this->assertSame(DocMdpLevel::CERTIFIED_NO_CHANGES_ALLOWED->value, $result['docmdp']['level']);
+		$this->assertFalse($result['modification_validation']['valid']);
+	}
+
+	public function testRootReplacementWithoutCertificationIsNotReportedAsCertified(): void {
+		$pdf = PdfGenerator::createCertifiedPdfWithIncrementalUpdates(1, [
+			[20 => '<< /Type /Catalog /Pages 2 0 R >>'],
+		], ['/Root' => '20 0 R']);
+		$result = $this->extractFromContent($pdf);
+
+		// The old signature is no longer reachable from the active document.
+		// This is not a valid DocMDP certification and must not be reported as one.
+		$this->assertSame(DocMdpLevel::NOT_CERTIFIED->value, $result['docmdp']['level']);
+		$this->assertFalse($result['docmdp']['isCertifying']);
+		$this->assertSame(0, $result['modifications']['revisionCount']);
+		$this->assertArrayNotHasKey('modification_validation', $result);
+	}
+
+	public function testP1RejectsObjectsOutsideTheUpdateXref(): void {
+		$pdf = PdfGenerator::createCertifiedPdfWithIncrementalUpdates(1, [self::dssUpdate()]);
+		// An object the xref does not list still reaches readers that rebuild the xref.
+		$pos = strrpos($pdf, "xref\n");
+		$pdf = substr($pdf, 0, $pos) . "2 0 obj\n<< /Type /Pages /Kids [] /Count 0 >>\nendobj\n" . substr($pdf, $pos);
+
+		$result = $this->extractFromContent($pdf);
+
+		$this->assertFalse($result['modification_validation']['valid']);
+	}
+
+	public function testP1RejectsValidationDataInXrefStreamUpdate(): void {
+		$pdf = PdfGenerator::createCertifiedPdfWithIncrementalUpdates(1, [self::dssUpdate()]);
+		$pdf = substr($pdf, 0, strrpos($pdf, "xref\n"))
+			. "30 0 obj\n<< /Type /XRef /Size 31 /Root 1 0 R /W [1 4 1] /Length 0 >>\nstream\n\nendstream\nendobj\n"
+			. "startxref\n" . strlen($pdf) . "\n%%EOF\n";
+
+		$result = $this->extractFromContent($pdf);
+
+		$this->assertFalse($result['modification_validation']['valid']);
+	}
+
+	private function extractFromUpdates(int $pValue, array $updates, array $trailerOverrides = []): array {
+		return $this->extractFromContent(PdfGenerator::createCertifiedPdfWithIncrementalUpdates($pValue, $updates, $trailerOverrides));
+	}
+
+	private function extractFromContent(string $pdfContent): array {
+		$resource = PdfGenerator::createResourceFromContent($pdfContent);
+		$result = $this->handler->extractDocMdpData($resource);
+		fclose($resource);
+		return $result;
+	}
+
+	#[DataProvider('standaloneDocMdpSignatureProvider')]
+	public function testRevisionCountUsesActiveSignatures(string $catalogExtra, array $extraObjects, bool $expectedAllowed): void {
+		$pdf = PdfGenerator::createPdfWithStandaloneDocMdpSignature(1, $catalogExtra, $extraObjects);
+		$resource = PdfGenerator::createResourceFromContent($pdf);
+		$result = $this->handler->extractDocMdpData($resource);
+		fclose($resource);
+
+		$this->assertSame($expectedAllowed ? 0 : 1, $result['modifications']['revisionCount']);
+		if ($expectedAllowed) {
+			$this->assertFalse($result['modifications']['modified']);
+		}
+	}
+
 }

@@ -229,7 +229,12 @@ export function createRealPolicyWorkbenchState() {
 	const groups = ref<PolicyTargetOption[]>([])
 	const users = ref<PolicyTargetOption[]>([])
 	const canManageGroups = ref<boolean | null>(null)
-	const loadingTargets = ref(false)
+	const loadingGroups = ref(false)
+	const loadingUsers = ref(false)
+	const loadingTargets = computed(() => editorDraft.value?.scope === 'group'
+		? loadingGroups.value
+		: editorDraft.value?.scope === 'user' && loadingUsers.value)
+	const targetRequestVersion = { group: 0, user: 0 }
 	const rulesLoading = ref(false)
 	const hydratePersistedRulesRequestId = ref(0)
 	const editorInitialSnapshot = ref('')
@@ -1191,20 +1196,26 @@ export function createRealPolicyWorkbenchState() {
 	}
 
 	async function loadTargets(scope: 'group' | 'user', query = '', includeAll = false) {
-		loadingTargets.value = true
+		const requestId = ++targetRequestVersion[scope]
+		const loading = scope === 'group' ? loadingGroups : loadingUsers
+		loading.value = true
 		try {
 			if (scope === 'group') {
 				const fetchedGroups = includeAll && query === ''
 					? await fetchAllTargets('group')
 					: await fetchGroups(query)
-				groups.value = mergeSelectedTargets('group', fetchedGroups)
+				if (requestId === targetRequestVersion.group) {
+					groups.value = mergeSelectedTargets('group', fetchedGroups)
+				}
 				return
 			}
 
 			const fetchedUsers = includeAll && query === ''
 				? await fetchAllTargets('user')
 				: await fetchUsers(query)
-			users.value = mergeSelectedTargets('user', fetchedUsers)
+			if (requestId === targetRequestVersion.user) {
+				users.value = mergeSelectedTargets('user', fetchedUsers)
+			}
 		} catch (error) {
 			logger.debug('Could not load policy workbench targets', {
 				error,
@@ -1212,7 +1223,10 @@ export function createRealPolicyWorkbenchState() {
 				query,
 			})
 		} finally {
-			loadingTargets.value = false
+			// Only the newest request can end the loading state for this scope.
+			if (requestId === targetRequestVersion[scope]) {
+				loading.value = false
+			}
 		}
 	}
 

@@ -594,6 +594,66 @@ describe('useRealPolicyWorkbench', () => {
 		])
 	})
 
+	it('keeps the latest group search after a slow preload completes', async () => {
+		let resolvePreload!: (value: unknown) => void
+		const preload = new Promise((resolve) => {
+			resolvePreload = resolve
+		})
+		axiosGet.mockImplementation((url: string, options: { params?: { search?: string } } = {}) => {
+			if (url === 'cloud/groups/details') {
+				return options.params?.search === ''
+					? preload
+					: Promise.resolve({ data: { ocs: { data: { groups: [
+						{ id: 'new-group', displayname: 'New Group' },
+					] } } } })
+			}
+			return Promise.resolve({ data: { ocs: { data: { users: {} } } } })
+		})
+
+		const state = createRealPolicyWorkbenchState()
+		state.openSetting('signature_flow')
+		state.startEditor({ scope: 'group' })
+		state.searchAvailableTargets('new-group')
+		await vi.waitFor(() => expect(state.availableTargets.map((target) => target.id)).toEqual(['new-group']))
+		expect(state.loadingTargets).toBe(false)
+
+		resolvePreload({ data: { ocs: { data: { groups: [{ id: 'old-group', displayname: 'Old Group' }] } } } })
+		await Promise.resolve()
+		await Promise.resolve()
+		expect(state.availableTargets.map((target) => target.id)).toEqual(['new-group'])
+	})
+
+	it('keeps the latest user search after a slow preload completes', async () => {
+		let resolvePreload!: (value: unknown) => void
+		const preload = new Promise((resolve) => {
+			resolvePreload = resolve
+		})
+		axiosGet.mockImplementation((url: string, options: { params?: { search?: string } } = {}) => {
+			if (url === 'cloud/users/details') {
+				return options.params?.search === ''
+					? preload
+					: Promise.resolve({ data: { ocs: { data: { users: {
+						newUser: { id: 'new-user', displayname: 'New User' },
+					} } } } })
+			}
+			return Promise.resolve({ data: { ocs: { data: { groups: [] } } } })
+		})
+
+		const state = createRealPolicyWorkbenchState()
+		state.openSetting('signature_flow')
+		state.startEditor({ scope: 'user' })
+		state.searchAvailableTargets('new-user')
+		await vi.waitFor(() => expect(state.availableTargets.map((target) => target.id)).toEqual(['new-user']))
+		expect(state.loadingTargets).toBe(false)
+
+		resolvePreload({ data: { ocs: { data: { users: {
+			oldUser: { id: 'old-user', displayname: 'Old User' },
+		} } } } })
+		await Promise.resolve()
+		await Promise.resolve()
+		expect(state.availableTargets.map((target) => target.id)).toEqual(['new-user'])
+	})
+
 	it('loads group targets using cloud/groups for group-admin without exception fallback', async () => {
 		currentUserState.isAdmin = false
 
