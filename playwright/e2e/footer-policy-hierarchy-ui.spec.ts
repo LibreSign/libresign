@@ -164,14 +164,15 @@ async function openCreateRuleEditor(dialog: Locator, scopeName: 'Group' | 'User'
 
 	const scopeDialog = dialog.page().getByRole('dialog').last()
 	await expect(scopeDialog).toBeVisible({ timeout: 10000 })
-	await scopeDialog.getByRole('option', { name: new RegExp(`^${scopeName}`) }).click()
+	await scopeDialog.getByRole('option', { name: new RegExp(`^${scopeName === 'User' ? 'Account' : scopeName}`) }).click()
 }
 
 async function selectTarget(dialogScope: Locator, kind: 'group' | 'user', target: string): Promise<void> {
 	const page = dialogScope.page()
 	const scopeLabel = kind === 'group' ? 'Scope groups' : 'Scope accounts'
 	await expect(dialogScope.getByText(scopeLabel, { exact: true })).toBeVisible()
-	const searchInput = dialogScope.getByRole('combobox')
+	const picker = dialogScope.locator('.nc-select-users')
+	const searchInput = picker.getByRole('combobox', { name: scopeLabel })
 	await expect(searchInput).toHaveCount(1)
 	await expect(searchInput).toBeVisible({ timeout: 8000 })
 
@@ -187,17 +188,13 @@ async function selectTarget(dialogScope: Locator, kind: 'group' | 'user', target
 	const results = await response.json()
 	expect(JSON.stringify(results), `Search did not return ${kind} target ${target}`).toContain(target)
 
-	// Receiving the OCS response precedes Vue's reactive state update. Wait for
-	// the async NcSelectUsers loading cycle to finish before opening its menu;
-	// otherwise a pending options update can detach the item during the click.
-	await expect(dialogScope.locator('.vs--loading')).toHaveCount(0, { timeout: 10000 })
-	const option = page.getByRole('option', { name: new RegExp(escapeRegExp(target), 'i') }).first()
-	if (await searchInput.getAttribute('aria-expanded') !== 'true') {
-		await searchInput.click()
-	}
+	await expect(picker).not.toHaveClass(/vs--loading/, { timeout: 10000 })
+	await expect(searchInput).toBeFocused()
+	await expect(searchInput).toHaveAttribute('aria-expanded', 'true')
+	const option = picker.getByRole('listbox').getByRole('option', { name: new RegExp(escapeRegExp(target), 'i') }).first()
 	await expect(option).toBeVisible({ timeout: 10000 })
 	await option.click({ timeout: 10000 })
-	await expect(dialogScope.locator('.vs__selected')).toContainText(target)
+	await expect(picker.locator('.vs__selected')).toContainText(target)
 }
 
 async function ensureSwitchEnabled(scope: Page | Locator, switchLabel: string): Promise<void> {
@@ -332,6 +329,20 @@ test.beforeEach(async ({ page, adminRequestContext, endUserRequestContext }) => 
 test.afterEach(async ({ adminRequestContext, endUserRequestContext }) => {
 	await resetFooterHierarchyState(adminRequestContext, endUserRequestContext)
 	await deleteGroupPolicyEntry(adminRequestContext, GROUP_ID, REQUEST_SIGN_POLICY_KEY)
+})
+
+test('rule target picker retains focus during nested dialog entry', async ({ page }) => {
+	await login(page.request, ADMIN_USER, ADMIN_PASSWORD)
+	for (const [scope, kind, target] of [
+		['Group', 'group', GROUP_ID],
+		['User', 'user', END_USER],
+	] as const) {
+		const dialog = await openFooterPolicyDialog(page)
+		// Exercise the interval before the nested modal activates its own focus trap.
+		await page.addStyleTag({ content: '.policy-workbench__rule-dialog.fade-enter-active { transition-duration: 1500ms !important; }' })
+		await openCreateRuleEditor(dialog, scope)
+		await selectTarget(page.getByRole('dialog', { name: 'Create rule' }).last(), kind, target)
+	}
 })
 
 test('footer hierarchy works through policies and preferences UI', async ({ page, adminRequestContext, endUserRequestContext }) => {

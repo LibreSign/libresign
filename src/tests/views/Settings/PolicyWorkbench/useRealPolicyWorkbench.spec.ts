@@ -844,6 +844,110 @@ describe('useRealPolicyWorkbench', () => {
 		expect(state.availableTargets.some((target) => target.id === 'finance')).toBe(false)
 	})
 
+	it.each([
+		['group', 'cloud/groups/details'],
+		['user', 'cloud/users/details'],
+	] as const)('ignores an outdated %s search response', async (scope, endpoint) => {
+		const state = createRealPolicyWorkbenchState()
+		state.openSetting('signature_flow')
+		state.startEditor({ scope })
+		await vi.waitFor(() => expect(state.loadingTargets).toBe(false))
+
+		const pendingSearches = new Map<string, (response: unknown) => void>()
+		axiosGet.mockImplementation((url: string, config: { params: { search: string } }) => {
+			if (url !== endpoint) {
+				return Promise.resolve({ data: { ocs: { data: {} } } })
+			}
+
+			return new Promise<unknown>((resolve) => {
+				pendingSearches.set(config.params.search, resolve)
+			})
+		})
+		const responseFor = (id: string) => ({
+			data: {
+				ocs: {
+					data: scope === 'group'
+						? { groups: [{ id, displayname: id, usercount: 1 }] }
+						: { users: { [id]: { id, displayname: id } } },
+				},
+			},
+		})
+
+		state.searchAvailableTargets('older')
+		state.searchAvailableTargets('newer')
+		expect([...pendingSearches.keys()]).toEqual(['older', 'newer'])
+
+		pendingSearches.get('newer')!(responseFor('newer'))
+		await vi.waitFor(() => expect(state.availableTargets.map((target) => target.id)).toContain('newer'))
+
+		pendingSearches.get('older')!(responseFor('older'))
+		await Promise.resolve()
+		await Promise.resolve()
+		expect(state.availableTargets.map((target) => target.id)).toContain('newer')
+		expect(state.availableTargets.map((target) => target.id)).not.toContain('older')
+	})
+
+	it.each([
+		['group', 'cloud/groups/details'],
+		['user', 'cloud/users/details'],
+	] as const)('keeps %s loading until the latest search finishes', async (scope, endpoint) => {
+		const state = createRealPolicyWorkbenchState()
+		state.openSetting('signature_flow')
+		state.startEditor({ scope })
+		await vi.waitFor(() => expect(state.loadingTargets).toBe(false))
+
+		const pendingSearches = new Map<string, (response: unknown) => void>()
+		axiosGet.mockImplementation((url: string, config: { params: { search: string } }) => {
+			if (url !== endpoint) {
+				return Promise.resolve({ data: { ocs: { data: {} } } })
+			}
+
+			return new Promise<unknown>((resolve) => {
+				pendingSearches.set(config.params.search, resolve)
+			})
+		})
+
+		state.searchAvailableTargets('older')
+		state.searchAvailableTargets('newer')
+		expect([...pendingSearches.keys()]).toEqual(['older', 'newer'])
+		expect(state.loadingTargets).toBe(true)
+
+		pendingSearches.get('older')!({ data: { ocs: { data: {} } } })
+		await Promise.resolve()
+		await Promise.resolve()
+		expect(state.loadingTargets).toBe(true)
+
+		pendingSearches.get('newer')!({ data: { ocs: { data: {} } } })
+		await vi.waitFor(() => expect(state.loadingTargets).toBe(false))
+	})
+
+	it.each([
+		['group', 'cloud/groups/details'],
+		['user', 'cloud/users/details'],
+	] as const)('keeps selected %s targets but replaces unselected results of earlier searches', async (scope, endpoint) => {
+		const state = createRealPolicyWorkbenchState()
+		state.openSetting('signature_flow')
+		state.startEditor({ scope })
+		await vi.waitFor(() => expect(state.loadingTargets).toBe(false))
+
+		axiosGet.mockImplementation((url: string, config: { params: { search: string } }) => {
+			if (url !== endpoint) {
+				return Promise.resolve({ data: { ocs: { data: {} } } })
+			}
+			const ids = config.params.search === 'first' ? ['selected', 'unselected'] : ['next']
+			return Promise.resolve({ data: { ocs: { data: scope === 'group'
+				? { groups: ids.map((id) => ({ id, displayname: id })) }
+				: { users: Object.fromEntries(ids.map((id) => [id, { id, displayname: id }])) } } } })
+		})
+
+		state.searchAvailableTargets('first')
+		await vi.waitFor(() => expect(state.availableTargets.map((target) => target.id)).toEqual(['selected', 'unselected']))
+		state.updateDraftTargets(['selected'])
+		state.searchAvailableTargets('next')
+		await vi.waitFor(() => expect(state.availableTargets.map((target) => target.id)).toEqual(['selected', 'next']))
+		expect(state.editorDraft?.targetIds).toEqual(['selected'])
+	})
+
 	it('saves system signature_flow rule', async () => {
 		const state = createRealPolicyWorkbenchState()
 		state.openSetting('signature_flow')
