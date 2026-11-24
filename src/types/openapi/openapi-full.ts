@@ -217,7 +217,7 @@ export type paths = {
         };
         get?: never;
         put?: never;
-        /** List eligible synthetic laboratory credentials for one authorized signer. */
+        /** List eligible synthetic laboratory credentials for one authorized signer */
         post: operations["external_signing_workflow-availability"];
         delete?: never;
         options?: never;
@@ -234,7 +234,7 @@ export type paths = {
         };
         get?: never;
         put?: never;
-        /** Prepare an external synthetic signature without submitting the private key. */
+        /** Prepare an external synthetic signature without submitting the private key */
         post: operations["external_signing_workflow-start"];
         delete?: never;
         options?: never;
@@ -251,7 +251,7 @@ export type paths = {
         };
         get?: never;
         put?: never;
-        /** Continue a prepared CSC operation once, or reconcile its existing result. Unknown post-signHash outcomes never retry the private key operation. */
+        /** Continue a prepared CSC operation once or reconcile its existing result Unknown post-signHash outcomes never retry the private key operation. */
         post: operations["external_signing_workflow-continue"];
         delete?: never;
         options?: never;
@@ -268,7 +268,7 @@ export type paths = {
         };
         get?: never;
         put?: never;
-        /** Read the current non-secret signing session, rechecking signer identity. Completed documents use LibreSign's established signed-file progress API. */
+        /** Read the current non-secret signing session, rechecking signer identity Completed documents use LibreSign's established signed-file progress API. */
         post: operations["external_signing_workflow-status"];
         delete?: never;
         options?: never;
@@ -1904,11 +1904,16 @@ export type components = {
             driverAvailable: boolean;
         };
         ExternalSigningAvailabilityResponse: {
+            integrations: {
+                id: string;
+                name: string;
+                driverId: string;
+            }[];
             integration: {
                 id: string;
                 name: string;
                 driverId: string;
-            };
+            } | null;
             credentials: components["schemas"]["ExternalSigningCredential"][];
             syntheticOnly: boolean;
             personalSignerAuthorization: boolean;
@@ -3629,8 +3634,11 @@ export interface operations {
                     identifyValue: string;
                     /** @description Verified signer code; never sent in a URL */
                     token: string;
-                    /** @description Configured integration reference */
-                    integrationId: string;
+                    /**
+                     * @description Optional configured integration reference; omit to list eligible providers
+                     * @default
+                     */
+                    integrationId?: string;
                 };
             };
         };

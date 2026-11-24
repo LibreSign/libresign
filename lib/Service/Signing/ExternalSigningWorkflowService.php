@@ -57,13 +57,25 @@ final class ExternalSigningWorkflowService {
 		string $method,
 		string $identity,
 		#[\SensitiveParameter] string $token,
-		string $integrationId,
+		string $integrationId = '',
 	): array {
 		$actor = $this->authorization->authorize($signRequestUuid, $method, $identity, $token);
+		$session = $this->sessions->findForSignRequest($actor->signRequest->getId(), $actor->actorId);
+		if ($integrationId === '') {
+			return [
+				'integrations' => $this->laboratories->listEligible(),
+				'integration' => null,
+				'credentials' => [],
+				'syntheticOnly' => true,
+				'personalSignerAuthorization' => false,
+				'session' => $session,
+			];
+		}
 		$lab = $this->laboratories->resolve($integrationId);
 		$selection = $this->selection->discoverSynthetic($signRequestUuid, $method, $identity,
 			$token, $integrationId, $lab['laboratory']);
-		$selection['session'] = $this->sessions->findForSignRequest($actor->signRequest->getId(), $actor->actorId);
+		$selection['integrations'] = [$selection['integration']];
+		$selection['session'] = $session;
 		return $selection;
 	}
 

@@ -74,6 +74,22 @@ final class ExternalSigningLaboratoryFactoryTest extends \OCA\Libresign\Tests\In
 		$result['laboratory']->assertSyntheticLaboratory(self::ENDPOINT);
 	}
 
+	public function testOnlyOperatorPinnedEnabledLaboratoryAppearsInSignerChoices(): void {
+		$other = $this->store->create(CscDriver::ID, 'Unpinned provider',
+			['baseUrl' => 'https://other-csc.example.org'], []);
+		try {
+			$items = $this->factory()->listEligible();
+			self::assertCount(1, $items);
+			self::assertSame($this->record->id, $items[0]['id']);
+			self::assertSame('Pinned synthetic CSC', $items[0]['name']);
+		} finally {
+			$qb = Server::get(IDBConnection::class)->getQueryBuilder();
+			$qb->delete('libresign_signing_integration')->where(
+				$qb->expr()->eq('public_id', $qb->createNamedParameter($other->id)),
+			)->executeStatement();
+		}
+	}
+
 	public function testAdminTokenCannotMakeAConfiguredIntegrationSynthetic(): void {
 		$this->record = $this->store->update($this->record->id, $this->record->revision,
 			$this->record->name, ['baseUrl' => self::ENDPOINT], ['accessToken' => 'not-signer-consent']);

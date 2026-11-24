@@ -1033,7 +1033,8 @@ namespace OCA\Libresign;
  *     profiles: list<string>,
  * }
  * @psalm-type LibresignExternalSigningAvailabilityResponse = array{
- *     integration: array{id:string,name:string,driverId:string},
+ *     integrations: list<array{id:string,name:string,driverId:string}>,
+ *     integration: ?array{id:string,name:string,driverId:string},
  *     credentials: list<LibresignExternalSigningCredential>,
  *     syntheticOnly: bool,
  *     personalSignerAuthorization: bool,

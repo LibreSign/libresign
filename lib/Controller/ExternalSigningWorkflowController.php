@@ -54,7 +54,7 @@ final class ExternalSigningWorkflowController extends AEnvironmentAwareOCSContro
 	 * @param string $method Bound LibreSign identity method
 	 * @param string $identifyValue Exact bound signer identity
 	 * @param string $token Verified signer code; never sent in a URL
-	 * @param string $integrationId Configured integration reference
+	 * @param string $integrationId Optional configured integration reference; omit to list eligible providers
 	 * @return DataResponse<Http::STATUS_OK, LibresignExternalSigningAvailabilityResponse, array{}>|DataResponse<Http::STATUS_FORBIDDEN|Http::STATUS_NOT_FOUND|Http::STATUS_BAD_REQUEST|Http::STATUS_CONFLICT|Http::STATUS_INTERNAL_SERVER_ERROR, LibresignErrorResponse, array{}>
 	 *
 	 * 200: Eligible synthetic credentials
@@ -71,7 +71,7 @@ final class ExternalSigningWorkflowController extends AEnvironmentAwareOCSContro
 	#[UserRateLimit(limit: 30, period: 60)]
 	#[OpenAPI(tags: ['signing'])]
 	#[ApiRoute(verb: 'POST', url: '/api/{apiVersion}/signing/external/{uuid}/availability', requirements: ['apiVersion' => '(v1)'])]
-	public function availability(string $uuid, string $method, string $identifyValue, #[\SensitiveParameter] string $token, string $integrationId): DataResponse {
+	public function availability(string $uuid, string $method, string $identifyValue, #[\SensitiveParameter] string $token, string $integrationId = ''): DataResponse {
 		return $this->execute(function () use ($uuid, $method, $identifyValue, $token, $integrationId): array {
 			$result = $this->workflow->availability($uuid, $method, $identifyValue, $token, $integrationId);
 			$result['session'] = $this->publicSession($result['session']);

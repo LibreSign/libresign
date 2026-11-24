@@ -859,6 +859,7 @@
             "ExternalSigningAvailabilityResponse": {
                 "type": "object",
                 "required": [
+                    "integrations",
                     "integration",
                     "credentials",
                     "syntheticOnly",
@@ -866,8 +867,31 @@
                     "session"
                 ],
                 "properties": {
+                    "integrations": {
+                        "type": "array",
+                        "items": {
+                            "type": "object",
+                            "required": [
+                                "id",
+                                "name",
+                                "driverId"
+                            ],
+                            "properties": {
+                                "id": {
+                                    "type": "string"
+                                },
+                                "name": {
+                                    "type": "string"
+                                },
+                                "driverId": {
+                                    "type": "string"
+                                }
+                            }
+                        }
+                    },
                     "integration": {
                         "type": "object",
+                        "nullable": true,
                         "required": [
                             "id",
                             "name",
@@ -5631,8 +5655,7 @@
                                 "required": [
                                     "method",
                                     "identifyValue",
-                                    "token",
-                                    "integrationId"
+                                    "token"
                                 ],
                                 "properties": {
                                     "method": {
@@ -5649,7 +5672,8 @@
                                     },
                                     "integrationId": {
                                         "type": "string",
-                                        "description": "Configured integration reference"
+                                        "default": "",
+                                        "description": "Optional configured integration reference; omit to list eligible providers"
                                     }
                                 }
                             }

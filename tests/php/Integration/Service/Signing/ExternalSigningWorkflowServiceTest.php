@@ -310,6 +310,17 @@ final class ExternalSigningWorkflowServiceTest extends \OCA\Libresign\Tests\Inte
 			Server::get(SignRequestMapper::class)->getById($this->request->getId())->getStatusEnum());
 	}
 
+	public function testGuestCanListOnlyOperatorPinnedIntegrationsWithoutCredentialEnumeration(): void {
+		$controller = $this->controller();
+		$available = $controller->availability($this->uuid(), 'email', self::EMAIL, self::TOKEN);
+		self::assertSame(Http::STATUS_OK, $available->getStatus());
+		self::assertCount(1, $available->getData()['integrations']);
+		self::assertSame($this->integrationId, $available->getData()['integrations'][0]['id']);
+		self::assertSame([], $available->getData()['credentials']);
+		self::assertNull($available->getData()['integration']);
+		self::assertNull($available->getData()['session']);
+	}
+
 	public function testPublicApiDoesNotDiscloseRemoteCredentialsForMissingGuestCode(): void {
 		$controller = $this->controller();
 		$response = $controller->availability($this->uuid(), 'email', self::EMAIL,
@@ -346,6 +357,11 @@ final class ExternalSigningWorkflowServiceTest extends \OCA\Libresign\Tests\Inte
 	}
 
 	public function testAuthorizedGuestCanDiscoverPrepareContinueAndPublishSyntheticPdf(): void {
+		$discover = $this->service->availability($this->uuid(), 'email', self::EMAIL, self::TOKEN);
+		self::assertCount(1, $discover['integrations']);
+		self::assertSame($this->integrationId, $discover['integrations'][0]['id']);
+		self::assertNull($discover['integration']);
+		self::assertSame([], $discover['credentials']);
 		$available = $this->service->availability($this->uuid(), 'email', self::EMAIL,
 			self::TOKEN, $this->integrationId);
 		self::assertCount(1, $available['credentials']);
