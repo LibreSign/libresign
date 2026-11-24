@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "ed4ce71c27208b51eb7f72a945b133dc",
+    "content-hash": "e8e74149e19d894454e8cf66f7c97417",
     "packages": [
         {
             "name": "cweagans/composer-configurable-plugin",
@@ -131,16 +131,16 @@
         },
         {
             "name": "signerphp/pdf-core",
-            "version": "v0.1.2",
+            "version": "v0.2.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/SignerPHP/pdf-core.git",
-                "reference": "9ffc3d17bcba1c368d7e2ea3e17b9dc742ab1be7"
+                "reference": "b8753cb172e410a15593fb90e3eb30c6aed48991"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/SignerPHP/pdf-core/zipball/9ffc3d17bcba1c368d7e2ea3e17b9dc742ab1be7",
-                "reference": "9ffc3d17bcba1c368d7e2ea3e17b9dc742ab1be7",
+                "url": "https://api.github.com/repos/SignerPHP/pdf-core/zipball/b8753cb172e410a15593fb90e3eb30c6aed48991",
+                "reference": "b8753cb172e410a15593fb90e3eb30c6aed48991",
                 "shasum": ""
             },
             "require": {
@@ -187,21 +187,21 @@
                 "issues": "https://github.com/SignerPHP/pdf-core/issues",
                 "source": "https://github.com/SignerPHP/pdf-core"
             },
-            "time": "2026-11-21T19:05:41+00:00",
-            "published-time": "2026-11-21T19:06:26+00:00"
+            "time": "2026-11-24T02:41:24+00:00",
+            "published-time": "2026-11-24T02:42:19+00:00"
         },
         {
             "name": "signerphp/pdf-signer",
-            "version": "v0.5.2",
+            "version": "v0.5.3",
             "source": {
                 "type": "git",
                 "url": "https://github.com/SignerPHP/pdf-signer.git",
-                "reference": "56354056a83703c6ddb927a23892b08eef6adf81"
+                "reference": "b6de848cc4fcf87c9d0ca06c693e4cbb30e4dad5"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/SignerPHP/pdf-signer/zipball/56354056a83703c6ddb927a23892b08eef6adf81",
-                "reference": "56354056a83703c6ddb927a23892b08eef6adf81",
+                "url": "https://api.github.com/repos/SignerPHP/pdf-signer/zipball/b6de848cc4fcf87c9d0ca06c693e4cbb30e4dad5",
+                "reference": "b6de848cc4fcf87c9d0ca06c693e4cbb30e4dad5",
                 "shasum": ""
             },
             "require": {
@@ -210,7 +210,7 @@
                 "ext-openssl": "*",
                 "ext-zlib": "*",
                 "php": "^8.2",
-                "signerphp/pdf-core": "^0.1.1"
+                "signerphp/pdf-core": "^0.2.0"
             },
             "require-dev": {
                 "deptrac/deptrac": "^4.6",
@@ -257,10 +257,10 @@
             ],
             "support": {
                 "issues": "https://github.com/SignerPHP/pdf-signer/issues",
-                "source": "https://github.com/SignerPHP/pdf-signer/tree/v0.5.2"
+                "source": "https://github.com/SignerPHP/pdf-signer/tree/v0.5.3"
             },
-            "time": "2026-11-24T02:33:17+00:00",
-            "published-time": "2026-11-24T02:42:44+00:00"
+            "time": "2026-11-24T02:50:49+00:00",
+            "published-time": "2026-11-24T02:51:18+00:00"
         }
     ],
     "packages-dev": [
