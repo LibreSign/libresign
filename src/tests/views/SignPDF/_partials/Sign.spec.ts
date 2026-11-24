@@ -189,4 +189,51 @@ describe('Sign.vue approval labels and signing methods', () => {
 			{ documentId: 42 },
 		)
 	})
+	it.each([
+		{ approval: false, available: true },
+		{ approval: true, available: false },
+	])('keeps experimental external signing out of approval workflows (approval: $approval)', async ({ approval, available }) => {
+		setActivePinia(createPinia())
+		const signStore = useSignStore()
+		const signMethodsStore = useSignMethodsStore()
+		const uuid = 'bound-sign-request'
+		const methods = { emailToken: { label: 'Email', identifyMethod: 'email' as const, needCode: true, hasConfirmCode: true, blurredEmail: 'g***@example.org', hashOfEmail: 'test-hash' } }
+		signStore.document = {
+			id: 75,
+			name: 'Document.pdf',
+			description: '',
+			status: FILE_STATUS.ABLE_TO_SIGN,
+			statusText: 'Ready to sign',
+			url: '/apps/libresign/p/pdf/example',
+			nodeId: 75,
+			nodeType: 'file',
+			uuid: 'file-uuid',
+			signers: [{ me: true, signRequestId: 51, status: SIGN_REQUEST_STATUS.ABLE_TO_SIGN, sign_request_uuid: uuid }],
+			visibleElements: [],
+			settings: { canSign: true, isApprover: approval, signatureMethods: methods },
+		}
+		signMethodsStore.settings = methods
+		currentRoute.name = approval ? 'IdDocsApprove' : 'SignPDF'
+		currentRoute.params.uuid = uuid
+		currentRoute.query = approval ? { idDocApproval: 'true' } : {}
+		currentRoute.path = approval ? `/f/id-docs/approve/${uuid}` : `/f/sign/${uuid}/pdf`
+		wrapper = mount(Sign, {
+			global: { stubs: {
+				Draw: true,
+				Documents: true,
+				Signatures: true,
+				ManagePassword: true,
+				CreatePassword: true,
+				UploadCertificate: true,
+				ExternalSigning: true,
+			} },
+		})
+		await flushPromises()
+		const externalButton = wrapper.findAll('button').find(button => button.text().includes('External signing (experimental)'))
+		expect(Boolean(externalButton)).toBe(available)
+		if (externalButton) {
+			await externalButton.trigger('click')
+			expect(wrapper.find('.external-signing-option').exists()).toBe(true)
+		}
+	})
 })

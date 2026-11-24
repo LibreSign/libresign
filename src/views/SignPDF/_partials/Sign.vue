@@ -133,6 +133,16 @@
 					{{ t('libresign', 'Unable to sign.') }}
 				</p>
 			</div>
+			<div v-if="externalSigningUiAllowed" class="external-signing-option">
+				<NcButton :disabled="loading" @click="showExternalSigning = !showExternalSigning">
+					{{ t('libresign', 'External signing (experimental)') }}
+				</NcButton>
+				<ExternalSigning v-if="showExternalSigning"
+					:sign-request-uuid="signRequestUuid"
+					:email-method="signMethodsStore.settings.emailToken?.identifyMethod || ''"
+					:bound-email-hash="String(signMethodsStore.settings.emailToken?.hashOfEmail ?? '')"
+					@signed="onExternalSigned" />
+			</div>
 		</div>
 		<NcDialog v-if="signMethodsStore.modal.clickToSign"
 			:no-close="loading"
@@ -287,6 +297,7 @@ import NcNoteCard from '@nextcloud/vue/components/NcNoteCard'
 import NcPasswordField from '@nextcloud/vue/components/NcPasswordField'
 import NcRichText from '@nextcloud/vue/components/NcRichText'
 
+import ExternalSigning from './ExternalSigning.vue'
 import ModalVerificationCode from './ModalVerificationCode.vue'
 import { NON_RETRIABLE_SIGN_ERROR_CODE, shouldCloseCurrentModalOnSignError } from './signErrorUtils'
 import Draw from '../../../components/Draw/Draw.vue'
@@ -459,6 +470,7 @@ type SignatureMethodSetting = {
 	hasSignatureFile?: boolean
 	label?: string
 	hashOfIdentifier?: string
+	hashOfEmail?: string
 	blurredEmail?: string
 	hasConfirmCode?: boolean
 }
@@ -694,6 +706,20 @@ const canCreateSignature = computed(() => {
 })
 const ableToSign = computed(() => signStore.ableToSign)
 const hasBlockingSignError = computed(() => signStore.errors.some((error) => Number(error?.code) === NON_RETRIABLE_SIGN_ERROR_CODE))
+const showExternalSigning = ref(false)
+const externalSigningUiAllowed = computed(() => !isApprovalRoute.value
+	&& ableToSign.value && Boolean(signRequestUuid.value)
+	&& !requiresDeviceGeolocation.value
+	&& !needIdentificationDocuments.value
+	&& !hasVisibleSignatureField.value
+	&& !hasBlockingSignError.value
+	&& (Boolean(getCurrentUser()) || signMethodsStore.settings.emailToken?.identifyMethod === 'email'))
+
+function onExternalSigned(payload: { signRequestUuid: string }) {
+	showExternalSigning.value = false
+	sidebarStore.hideSidebar()
+	emit('signed', payload)
+}
 
 function openModal(modalCode: string) {
 	ensureServices()
@@ -1083,6 +1109,7 @@ watch(signRequestUuid, (newUuid, oldUuid) => {
 		signStore.clearSigningErrors()
 		showManagePassword.value = false
 		signPassword.value = ''
+		showExternalSigning.value = false
 	}
 })
 
@@ -1187,7 +1214,7 @@ defineExpose({
 }
 
 .button-wrapper {
-	padding: calc(var(--default-grid-baseline, 4px)*2);
+	padding: calc(var(--default-grid-baseline, 4px) * 2);
 }
 
 .sign-elements {
