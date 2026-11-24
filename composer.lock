@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "e88e9803cf35e40cb7a0297f98a4681b",
+    "content-hash": "e8e74149e19d894454e8cf66f7c97417",
     "packages": [
         {
             "name": "cweagans/composer-configurable-plugin",
@@ -130,182 +130,17 @@
             "time": "2025-10-30T23:44:22+00:00"
         },
         {
-            "name": "libresign/xobject-template",
-            "version": "v0.1.0",
-            "source": {
-                "type": "git",
-                "url": "https://github.com/LibreSign/xobject-template.git",
-                "reference": "da2d1d808cf10f9b001f0b9c1e5e37b5d6de7661"
-            },
-            "dist": {
-                "type": "zip",
-                "url": "https://api.github.com/repos/LibreSign/xobject-template/zipball/da2d1d808cf10f9b001f0b9c1e5e37b5d6de7661",
-                "reference": "da2d1d808cf10f9b001f0b9c1e5e37b5d6de7661",
-                "shasum": ""
-            },
-            "require": {
-                "php": "^8.2",
-                "symfony/process": "^7.0"
-            },
-            "require-dev": {
-                "bamarni/composer-bin-plugin": "^1.8",
-                "roave/security-advisories": "dev-latest",
-                "signerphp/pdf-core": "^0.1.2"
-            },
-            "type": "library",
-            "extra": {
-                "bamarni-bin": {
-                    "bin-links": false,
-                    "forward-command": false
-                }
-            },
-            "autoload": {
-                "psr-4": {
-                    "LibreSign\\XObjectTemplate\\": "src/"
-                }
-            },
-            "autoload-dev": {
-                "psr-4": {
-                    "LibreSign\\XObjectTemplate\\Tests\\": "tests/"
-                }
-            },
-            "scripts": {
-                "lint": [
-                    "@php:lint",
-                    "@cs:check",
-                    "@rector:check",
-                    "@psalm",
-                    "@duplication:check",
-                    "@composer:validate"
-                ],
-                "php:lint": [
-                    "find . -type f -name '*.php' -not -path './vendor/*' -not -path './vendor-bin/*' -not -path './build/*' -print0 | xargs -0 -n1 php -l"
-                ],
-                "cs:check": [
-                    "vendor-bin/phpcs/vendor/squizlabs/php_codesniffer/bin/phpcs -q"
-                ],
-                "cs:fix": [
-                    "vendor-bin/phpcs/vendor/squizlabs/php_codesniffer/bin/phpcbf -q"
-                ],
-                "rector:check": [
-                    "vendor-bin/rector/vendor/rector/rector/bin/rector process --dry-run"
-                ],
-                "rector:fix": [
-                    "vendor-bin/rector/vendor/rector/rector/bin/rector process"
-                ],
-                "psalm": [
-                    "vendor-bin/psalm/vendor/vimeo/psalm/psalm --no-progress"
-                ],
-                "phpmd": [
-                    "vendor-bin/phpmd/vendor/phpmd/phpmd/src/bin/phpmd src,tests text phpmd.xml"
-                ],
-                "psalm:update-baseline": [
-                    "vendor-bin/psalm/vendor/vimeo/psalm/psalm --set-baseline=psalm-baseline.xml"
-                ],
-                "duplication:check": [
-                    "vendor-bin/phpcpd/vendor/sebastian/phpcpd/phpcpd --min-lines=6 --min-tokens=50 --exclude vendor --exclude tests/Fixtures --exclude tests/Snapshots src tests"
-                ],
-                "composer:validate": [
-                    "composer validate --strict"
-                ],
-                "composer:normalize:check": [
-                    "vendor-bin/qa/vendor/ergebnis/composer-normalize/bin/composer-normalize --dry-run"
-                ],
-                "bc:check": [
-                    "vendor-bin/qa/vendor/roave/backward-compatibility-check/bin/roave-backward-compatibility-check --from=origin/main --to=HEAD"
-                ],
-                "changelog:check": [
-                    "echo 'Handled by GitHub Action: .github/workflows/changelog.yml'"
-                ],
-                "release:draft": [
-                    "echo 'Handled by GitHub Action: .github/workflows/release-draft.yml'"
-                ],
-                "deps:audit": [
-                    "composer audit"
-                ],
-                "docker:lint": [
-                    "docker run --rm -i hadolint/hadolint < .docker/Dockerfile"
-                ],
-                "sh:lint": [
-                    "shfmt -d scripts"
-                ],
-                "sh:security": [
-                    "shellcheck scripts/*.sh"
-                ],
-                "test:unit": [
-                    "vendor-bin/phpunit/vendor/phpunit/phpunit/phpunit --testsuite unit"
-                ],
-                "test:integration": [
-                    "vendor-bin/phpunit/vendor/phpunit/phpunit/phpunit --testsuite integration"
-                ],
-                "examples:test": [
-                    "vendor-bin/phpunit/vendor/phpunit/phpunit/phpunit --testsuite integration --filter ExamplesOutputScenarioTest"
-                ],
-                "docs:watch": [
-                    "mkdocs serve -f docs/mkdocs.yml -a 0.0.0.0:8000"
-                ],
-                "test:coverage": [
-                    "XDEBUG_MODE=coverage vendor-bin/phpunit/vendor/phpunit/phpunit/phpunit --coverage-text --coverage-clover=build/coverage/clover.xml"
-                ],
-                "mutation:test": [
-                    "vendor-bin/mutation/vendor/infection/infection/bin/infection --threads=max"
-                ],
-                "benchmark:run": [
-                    "vendor-bin/phpbench/vendor/phpbench/phpbench/bin/phpbench run --config=phpbench.json --report=aggregate"
-                ],
-                "benchmark:run:ci": [
-                    "mkdir -p build && vendor-bin/phpbench/vendor/phpbench/phpbench/bin/phpbench run --config=phpbench.json --iterations=20 --revs=10 --warmup=2 --progress=plain --report=aggregate --dump-file=build/benchmark-results.xml"
-                ],
-                "benchmark:baseline:update": [
-                    "mkdir -p build && vendor-bin/phpbench/vendor/phpbench/phpbench/bin/phpbench run --config=phpbench.json --iterations=20 --revs=10 --warmup=2 --progress=plain --report=aggregate --dump-file=build/benchmark-results.xml --store --tag=baseline"
-                ],
-                "benchmark:baseline:check": [
-                    "vendor-bin/phpbench/vendor/phpbench/phpbench/bin/phpbench run --config=phpbench.json --iterations=20 --revs=10 --warmup=2 --progress=plain --report=aggregate --ref=baseline --assert=\"mode(variant.time.avg) <= mode(baseline.time.avg) +/- 25%\""
-                ],
-                "benchmark:baseline:exists": [
-                    "vendor-bin/phpbench/vendor/phpbench/phpbench/bin/phpbench log --config=phpbench.json | grep -q 'Tag: baseline'"
-                ],
-                "bin": [
-                    "composer bin all list"
-                ]
-            },
-            "license": [
-                "AGPL-3.0-or-later"
-            ],
-            "description": "Minimal HTML+CSS to reusable PDF Form XObject compiler.",
-            "keywords": [
-                "css",
-                "html",
-                "layout",
-                "pdf",
-                "rendering",
-                "template",
-                "xobject"
-            ],
-            "support": {
-                "source": "https://github.com/LibreSign/xobject-template/tree/v0.1.0",
-                "issues": "https://github.com/LibreSign/xobject-template/issues"
-            },
-            "funding": [
-                {
-                    "type": "github",
-                    "url": "https://github.com/libresign"
-                }
-            ],
-            "time": "2026-11-24T02:39:12+00:00"
-        },
-        {
             "name": "signerphp/pdf-core",
-            "version": "v0.1.2",
+            "version": "v0.2.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/SignerPHP/pdf-core.git",
-                "reference": "9ffc3d17bcba1c368d7e2ea3e17b9dc742ab1be7"
+                "reference": "b8753cb172e410a15593fb90e3eb30c6aed48991"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/SignerPHP/pdf-core/zipball/9ffc3d17bcba1c368d7e2ea3e17b9dc742ab1be7",
-                "reference": "9ffc3d17bcba1c368d7e2ea3e17b9dc742ab1be7",
+                "url": "https://api.github.com/repos/SignerPHP/pdf-core/zipball/b8753cb172e410a15593fb90e3eb30c6aed48991",
+                "reference": "b8753cb172e410a15593fb90e3eb30c6aed48991",
                 "shasum": ""
             },
             "require": {
@@ -352,21 +187,21 @@
                 "issues": "https://github.com/SignerPHP/pdf-core/issues",
                 "source": "https://github.com/SignerPHP/pdf-core"
             },
-            "time": "2026-11-21T19:05:41+00:00",
-            "published-time": "2026-11-21T19:06:26+00:00"
+            "time": "2026-11-24T02:41:24+00:00",
+            "published-time": "2026-11-24T02:42:19+00:00"
         },
         {
             "name": "signerphp/pdf-signer",
-            "version": "v0.5.0",
+            "version": "v0.5.3",
             "source": {
                 "type": "git",
                 "url": "https://github.com/SignerPHP/pdf-signer.git",
-                "reference": "76834671bbc06bad0001faf5f6238a329666d919"
+                "reference": "b6de848cc4fcf87c9d0ca06c693e4cbb30e4dad5"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/SignerPHP/pdf-signer/zipball/76834671bbc06bad0001faf5f6238a329666d919",
-                "reference": "76834671bbc06bad0001faf5f6238a329666d919",
+                "url": "https://api.github.com/repos/SignerPHP/pdf-signer/zipball/b6de848cc4fcf87c9d0ca06c693e4cbb30e4dad5",
+                "reference": "b6de848cc4fcf87c9d0ca06c693e4cbb30e4dad5",
                 "shasum": ""
             },
             "require": {
@@ -375,7 +210,7 @@
                 "ext-openssl": "*",
                 "ext-zlib": "*",
                 "php": "^8.2",
-                "signerphp/pdf-core": "^0.1.1"
+                "signerphp/pdf-core": "^0.2.0"
             },
             "require-dev": {
                 "deptrac/deptrac": "^4.6",
@@ -422,76 +257,10 @@
             ],
             "support": {
                 "issues": "https://github.com/SignerPHP/pdf-signer/issues",
-                "source": "https://github.com/SignerPHP/pdf-signer/tree/v0.5.0"
+                "source": "https://github.com/SignerPHP/pdf-signer/tree/v0.5.3"
             },
-            "time": "2026-11-22T13:49:05+00:00",
-            "published-time": "2026-11-22T13:50:14+00:00"
-        },
-        {
-            "name": "symfony/process",
-            "version": "v7.4.22",
-            "source": {
-                "type": "git",
-                "url": "https://github.com/symfony/process.git",
-                "reference": "a5a6912edbbfc4c98cd080bc4bbe37c8e7eeb20a"
-            },
-            "dist": {
-                "type": "zip",
-                "url": "https://api.github.com/repos/symfony/process/zipball/a5a6912edbbfc4c98cd080bc4bbe37c8e7eeb20a",
-                "reference": "a5a6912edbbfc4c98cd080bc4bbe37c8e7eeb20a",
-                "shasum": ""
-            },
-            "require": {
-                "php": ">=8.2"
-            },
-            "type": "library",
-            "autoload": {
-                "psr-4": {
-                    "Symfony\\Component\\Process\\": ""
-                },
-                "exclude-from-classmap": [
-                    "/Tests/"
-                ]
-            },
-            "notification-url": "https://packagist.org/downloads/",
-            "license": [
-                "MIT"
-            ],
-            "authors": [
-                {
-                    "name": "Fabien Potencier",
-                    "email": "fabien@symfony.com"
-                },
-                {
-                    "name": "Symfony Community",
-                    "homepage": "https://symfony.com/contributors"
-                }
-            ],
-            "description": "Executes commands in sub-processes",
-            "homepage": "https://symfony.com",
-            "support": {
-                "source": "https://github.com/symfony/process/tree/v7.4.22"
-            },
-            "funding": [
-                {
-                    "url": "https://symfony.com/sponsor",
-                    "type": "custom"
-                },
-                {
-                    "url": "https://github.com/fabpot",
-                    "type": "github"
-                },
-                {
-                    "url": "https://github.com/nicolas-grekas",
-                    "type": "github"
-                },
-                {
-                    "url": "https://tidelift.com/funding/github/packagist/symfony/symfony",
-                    "type": "tidelift"
-                }
-            ],
-            "time": "2026-10-25T14:40:16+00:00",
-            "published-time": "2026-10-28T18:21:18+00:00"
+            "time": "2026-11-24T02:50:49+00:00",
+            "published-time": "2026-11-24T02:51:18+00:00"
         }
     ],
     "packages-dev": [

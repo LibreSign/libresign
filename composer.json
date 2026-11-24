@@ -69,13 +69,6 @@
 	},
 	"require": {
 		"cweagans/composer-patches": "^2.0",
-		"libresign/xobject-template": "^0.1.0",
-		"signerphp/pdf-signer": "^0.5.0"
-	},
-	"repositories": [{
-		"name": "xobject-template",
-		"type": "vcs",
-		"url": "https://github.com/LibreSign/xobject-template",
-		"only": ["libresign/xobject-template"]
-	}]
+		"signerphp/pdf-signer": "^0.5.3"
+	}
 }
