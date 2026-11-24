@@ -15,6 +15,7 @@
 				<label v-if="!hideTargetSelector" class="policy-workbench__label">
 					{{ targetScopeLabel }}
 				</label>
+				<!-- Keep the dropdown inside NcDialog's focus trap instead of portaling it to body. -->
 				<NcSelectUsers
 					v-if="!hideTargetSelector"
 					:model-value="selectedTargetOptions"
@@ -24,6 +25,7 @@
 					:loading="loadingTargets"
 					:multiple="true"
 					:keep-open="true"
+					:append-to-body="false"
 					:disabled="saveStatus === 'saving'"
 					@search="$emit('search-targets', $event)"
 					@update:modelValue="$emit('update-targets', $event)" />
