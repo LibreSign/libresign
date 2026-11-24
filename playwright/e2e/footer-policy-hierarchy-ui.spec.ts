@@ -220,6 +220,59 @@ async function ensureFooterTemplateEditorVisible(scope: Page | Locator): Promise
 	return footerTemplateField
 }
 
+/**
+ * Choose a group through the real NcSelectUsers dropdown. The server already
+ * filters results by group ID, so wait for those results and use the select's
+ * own dropdown control if asynchronous updates have closed the menu.
+ */
+async function selectGroupTargetWithOpenDropdown(dialogScope: Locator, target: string): Promise<void> {
+	const page = dialogScope.page()
+	const picker = dialogScope.locator('.nc-select-users').first()
+	const searchInput = picker.getByRole('combobox')
+	await expect(searchInput).toBeVisible({ timeout: 8000 })
+
+	const searchResponse = page.waitForResponse((response) => {
+		return response.url().includes('/cloud/groups/details')
+			&& new URL(response.url()).searchParams.get('search') === target
+	}, { timeout: 15000 })
+
+	await searchInput.fill(target)
+	const response = await searchResponse
+	expect(response.ok(), `Failed to search group target ${target}: ${response.status()}`).toBe(true)
+	const body = await response.json() as { ocs?: { data?: { groups?: Array<{ id: string, displayname?: string }> } } }
+	const matchingGroup = body.ocs?.data?.groups?.find((group) => group.id === target)
+	expect(matchingGroup, `OCS returned no matching group for ${target}`).toBeDefined()
+	const groupLabel = matchingGroup?.displayname || target
+
+	await expect(picker).not.toHaveClass(/vs--loading/, { timeout: 8000 })
+	const option = page.getByRole('option', { name: new RegExp(escapeRegExp(groupLabel), 'i') }).first()
+	if (await searchInput.getAttribute('aria-expanded') !== 'true') {
+		// Clicking the dropdown indicator uses vue-select's actual mouse
+		// handler, which opens the list and restores focus to its search input.
+		await picker.locator('.vs__open-indicator-button').click()
+	}
+	try {
+		await expect(searchInput).toHaveAttribute('aria-expanded', 'true', { timeout: 8000 })
+	} catch (error) {
+		// Report real picker state without weakening the failed assertion.
+		const state = await picker.evaluate((element) => {
+			const input = element.querySelector<HTMLInputElement>('[role="combobox"]')
+			return {
+				classes: element.className,
+				expanded: input?.getAttribute('aria-expanded'),
+				focused: input === document.activeElement,
+				localOptions: element.querySelectorAll('[role="option"]').length,
+				dropdown: element.querySelectorAll('.vs__dropdown-menu').length,
+			}
+		})
+		console.error('Group picker state after reopening:', JSON.stringify(state))
+		throw error
+	}
+	await expect(option).toBeVisible({ timeout: 8000 })
+	await option.click()
+	await expect(picker.locator('.vs__selected').filter({ hasText: groupLabel })).toBeVisible()
+}
+
 async function createFooterRuleViaUi(
 	page: Page,
 	scopeName: 'Group' | 'User',
@@ -234,7 +287,7 @@ async function createFooterRuleViaUi(
 	await expect(createRuleDialog).toBeVisible({ timeout: 10000 })
 
 	if (scopeName === 'Group') {
-		await selectTarget(createRuleDialog, 'group', target)
+		await selectGroupTargetWithOpenDropdown(createRuleDialog, target)
 	} else {
 		await selectTarget(createRuleDialog, 'user', target)
 	}
