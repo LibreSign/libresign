@@ -16,8 +16,8 @@ use OCA\Libresign\Service\Policy\Provider\DefaultUserFolder\DefaultUserFolderPol
 use OCA\Libresign\Service\Policy\Provider\DocMdp\DocMdpPolicy;
 use OCA\Libresign\Service\Policy\Provider\EmailSignerSignature\EmailSignerSignaturePolicy;
 use OCA\Libresign\Service\Policy\Provider\Envelope\EnvelopePolicy;
-use OCA\Libresign\Service\Policy\Provider\ExternalSigning\ExternalSigningPolicy;
 use OCA\Libresign\Service\Policy\Provider\ExpirationRules\ExpirationRulesPolicy;
+use OCA\Libresign\Service\Policy\Provider\ExternalSigning\ExternalSigningPolicy;
 use OCA\Libresign\Service\Policy\Provider\Footer\FooterPolicy;
 use OCA\Libresign\Service\Policy\Provider\IdentificationDocuments\IdentificationDocumentsPolicy;
 use OCA\Libresign\Service\Policy\Provider\IdentifyMethods\IdentifyMethodsPolicy;
