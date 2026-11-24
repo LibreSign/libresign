@@ -124,6 +124,34 @@ describe('external signing within the existing signer UI', () => {
 		wrapper.unmount()
 	})
 
+	it('requires a status read and reuses the attempt after a preparation timeout', async () => {
+		vi.stubGlobal('crypto', { randomUUID: () => 'retry-safe-attempt' })
+		vi.mocked(discoverExternalSigning).mockImplementation(async (_identity, integrationId) => integrationId
+			? { integrations, integration: integrations[0], credentials, syntheticOnly: true, personalSignerAuthorization: false, session: null }
+			: { integrations, integration: null, credentials: [], syntheticOnly: true, personalSignerAuthorization: false, session: null })
+		vi.mocked(startExternalSigning)
+			.mockRejectedValueOnce(new Error('lost HTTP response'))
+			.mockResolvedValueOnce(baseSession)
+		vi.mocked(statusExternalSigning).mockResolvedValueOnce(null)
+		const wrapper = mountSigner()
+		await authorize(wrapper)
+		await wrapper.find('#external-signing-integration').setValue('lab')
+		await flushPromises()
+		await wrapper.find('#external-signing-credential').setValue('synthetic-cert')
+		await clickButton(wrapper, 'Prepare external signature')
+		expect(startExternalSigning).toHaveBeenCalledTimes(1)
+		expect(wrapper.text()).toContain('Check the signing session before another preparation attempt.')
+		const prepare = wrapper.findAll('button').find(button => button.text().includes('Prepare external signature'))
+		expect(prepare?.attributes('disabled')).toBeDefined()
+		await clickButton(wrapper, 'Check signing status')
+		expect(statusExternalSigning).toHaveBeenCalledTimes(1)
+		await clickButton(wrapper, 'Prepare external signature')
+		expect(startExternalSigning).toHaveBeenCalledTimes(2)
+		expect(vi.mocked(startExternalSigning).mock.calls[0][3]).toBe('retry-safe-attempt')
+		expect(vi.mocked(startExternalSigning).mock.calls[1][3]).toBe('retry-safe-attempt')
+		wrapper.unmount()
+	})
+
 	it('restores a pending session only after the signer reauthorizes', async () => {
 		vi.mocked(discoverExternalSigning).mockResolvedValue({
 			integrations, integration: null, credentials: [], syntheticOnly: true,
