@@ -15,6 +15,7 @@ use OCA\Libresign\Service\SignatureTextService;
 use OCA\Libresign\Service\SignerElementsService;
 use OCA\Libresign\Vendor\LibreSign\XObjectTemplate\Dto\CompileResult;
 use OCA\Libresign\Vendor\LibreSign\XObjectTemplate\Pdf\EmbeddedPdfImage;
+use OCA\Libresign\Vendor\LibreSign\XObjectTemplate\Pdf\FilesystemPdfImageEmbedder;
 use OCA\Libresign\Vendor\LibreSign\XObjectTemplate\Pdf\PdfImageEmbedderInterface;
 use OCA\Libresign\Vendor\LibreSign\XObjectTemplate\Pdf\SinglePagePdfExporter;
 use OCP\Files\NotFoundException;
@@ -86,16 +87,7 @@ class SignatureStampPreviewNativeService {
 		];
 	}
 
-	/**
-	 * Loads the preview signature asset (PNG converted to JPEG) for placement in the preview PDF.
-	 *
-	 * The asset is located at img/preview_signature.png and is embedded directly into the
-	 * preview PDF for graphic modes. This simplifies the implementation significantly compared
-	 * to procedurally drawing Bezier curves, and makes the preview nature of the graphic clear.
-	 *
-	 * @return array{kind:'rgba',width:int,height:int,rgbData:string,alphaData:string}|null
-	 */
-	private function getPreviewSignatureImage(string $renderMode): ?array {
+	private function getPreviewSignatureImage(string $renderMode): ?EmbeddedPdfImage {
 		if (
 			$renderMode !== SignerElementsService::RENDER_MODE_GRAPHIC_ONLY
 			&& $renderMode !== SignerElementsService::RENDER_MODE_GRAPHIC_AND_DESCRIPTION
@@ -104,23 +96,17 @@ class SignatureStampPreviewNativeService {
 		}
 
 		$assetPath = dirname(__DIR__, 3) . '/img/preview_signature.png';
-		if (!file_exists($assetPath)) {
+		if (!is_readable($assetPath)) {
 			return null;
 		}
-		$blob = @file_get_contents($assetPath);
-		if (!is_string($blob) || $blob === '') {
-			return null;
-		}
-
-		return $this->convertImageBlobToPdfRgbaImage($blob);
+		return (new FilesystemPdfImageEmbedder())->embed($assetPath);
 	}
 
 	/**
 	 * @param array<string, mixed> $resources
 	 * @param array{width:int,height:int,data:string}|null $backgroundJpeg
-	 * @param array{kind:'rgba',width:int,height:int,rgbData:string,alphaData:string}|null $previewSignatureImage
 	 */
-	private function buildSinglePagePdf(float $width, float $height, string $contentStream, array $resources, ?array $backgroundJpeg, ?array $previewSignatureImage, string $renderMode): string {
+	private function buildSinglePagePdf(float $width, float $height, string $contentStream, array $resources, ?array $backgroundJpeg, ?EmbeddedPdfImage $previewSignatureImage, string $renderMode): string {
 		$stream = '';
 		$images = [];
 
@@ -156,8 +142,8 @@ class SignatureStampPreviewNativeService {
 				? (int)round($width)
 				: (int)round($width / 2.0);
 			$fit = $this->fitWithinBounds(
-				width: $previewSignatureImage['width'],
-				height: $previewSignatureImage['height'],
+				width: (int)$previewSignatureImage->dictionary['Width'],
+				height: (int)$previewSignatureImage->dictionary['Height'],
 				maxWidth: $maxSignatureWidth,
 				maxHeight: (int)round($height),
 				allowUpscale: false,
@@ -170,24 +156,7 @@ class SignatureStampPreviewNativeService {
 					$fit['x'],
 					$fit['y'],
 				);
-				$dictionary = [
-					'Type' => '/XObject',
-					'Subtype' => '/Image',
-					'Width' => $previewSignatureImage['width'],
-					'Height' => $previewSignatureImage['height'],
-					'BitsPerComponent' => 8,
-					'Filter' => '/FlateDecode',
-				];
-				$alphaData = gzcompress($previewSignatureImage['alphaData']);
-				$rgbData = gzcompress($previewSignatureImage['rgbData']);
-				if ($alphaData === false || $rgbData === false) {
-					throw new \RuntimeException('Unable to compress the signature preview image.');
-				}
-				$images['Im2'] = new EmbeddedPdfImage(
-					$dictionary + ['ColorSpace' => '/DeviceRGB'],
-					$rgbData,
-					new EmbeddedPdfImage($dictionary + ['ColorSpace' => '/DeviceGray'], $alphaData),
-				);
+				$images['Im2'] = $previewSignatureImage;
 			}
 		}
 
@@ -297,66 +266,4 @@ class SignatureStampPreviewNativeService {
 		];
 	}
 
-	/**
-	 * @return array{kind:'rgba',width:int,height:int,rgbData:string,alphaData:string}|null
-	 */
-	private function convertImageBlobToPdfRgbaImage(string $blob): ?array {
-		try {
-			$image = new Imagick();
-			$image->readImageBlob($blob);
-
-			$width = max(1, (int)$image->getImageWidth());
-			$height = max(1, (int)$image->getImageHeight());
-
-			$rgbPixels = $image->exportImagePixels(0, 0, $width, $height, 'RGB', Imagick::PIXEL_CHAR);
-			$alphaPixels = $image->exportImagePixels(0, 0, $width, $height, 'A', Imagick::PIXEL_CHAR);
-
-			if (!is_array($rgbPixels) || !is_array($alphaPixels)) {
-				$image->destroy();
-				return null;
-			}
-
-			$rgbData = $this->pixelsToBinary($rgbPixels);
-			$alphaData = $this->pixelsToBinary($alphaPixels);
-
-			$image->destroy();
-
-			if ($rgbData === '' || $alphaData === '') {
-				return null;
-			}
-
-			return [
-				'kind' => 'rgba',
-				'width' => $width,
-				'height' => $height,
-				'rgbData' => $rgbData,
-				'alphaData' => $alphaData,
-			];
-		} catch (\Throwable) {
-			return null;
-		}
-	}
-
-	/**
-	 * @param list<int|float|string> $pixels
-	 */
-	private function pixelsToBinary(array $pixels): string {
-		$data = '';
-		$chunk = [];
-		$chunkSize = 8192;
-
-		foreach ($pixels as $value) {
-			$chunk[] = (int)$value;
-			if (count($chunk) >= $chunkSize) {
-				$data .= pack('C*', ...$chunk);
-				$chunk = [];
-			}
-		}
-
-		if ($chunk !== []) {
-			$data .= pack('C*', ...$chunk);
-		}
-
-		return $data;
-	}
 }
