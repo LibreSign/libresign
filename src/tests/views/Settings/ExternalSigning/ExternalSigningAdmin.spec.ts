@@ -4,7 +4,7 @@
  */
 
 import { flushPromises, mount } from '@vue/test-utils'
-import { describe, expect, it, vi } from 'vitest'
+import { afterEach, describe, expect, it, vi } from 'vitest'
 import NcButton from '@nextcloud/vue/components/NcButton'
 import NcDialog from '@nextcloud/vue/components/NcDialog'
 import ExternalSigningAdmin from '../../../../views/Settings/ExternalSigning/ExternalSigningAdmin.vue'
@@ -33,8 +33,20 @@ const adapter: ExternalSigningAdminAdapter = {
 	remove: async () => { throw new Error('not invoked') },
 }
 
+const mountedCleanup: Array<() => void> = []
+
+afterEach(() => {
+	for (const cleanup of mountedCleanup.splice(0)) {
+		cleanup()
+	}
+})
+
 function mountAdmin(options: { adapter?: ExternalSigningAdminAdapter, layout?: 'cards' | 'compact', catalogLoader?: () => Promise<ExternalSigningDriver[]> } = {}) {
-	return mount(ExternalSigningAdmin, {
+	// Nextcloud dialogs and action menus may teleport into document.body.
+	const host = document.createElement('div')
+	document.body.appendChild(host)
+	const wrapper = mount(ExternalSigningAdmin, {
+		attachTo: host,
 		props: {
 			catalogLoader: async () => [driver],
 			...options,
@@ -52,6 +64,11 @@ function mountAdmin(options: { adapter?: ExternalSigningAdminAdapter, layout?: '
 			},
 		},
 	})
+	mountedCleanup.push(() => {
+		wrapper.unmount()
+		host.remove()
+	})
+	return wrapper
 }
 
 describe('ExternalSigningAdmin', () => {
@@ -105,11 +122,10 @@ describe('ExternalSigningAdmin', () => {
 			await flushPromises()
 			expect(remove).toHaveBeenCalledOnce()
 			expect(remove).toHaveBeenCalledWith(instance)
-			expect(document.body.textContent).toContain('unresolved signing sessions')
+			expect(document.body.querySelector('.external-signing-admin__dialog p[role="alert"]')?.textContent).toContain('unresolved signing sessions')
 			expect(wrapper.text()).not.toContain('Integration updated.')
 		} finally {
 			vi.unstubAllGlobals()
-			wrapper.unmount()
 		}
 	})
 
@@ -166,7 +182,7 @@ describe('ExternalSigningAdmin', () => {
 		await disableButton!.find('button').trigger('click')
 		await flushPromises()
 		expect(setEnabled).toHaveBeenCalledWith(instance, false)
-		expect(document.body.textContent).toContain('Integration updated.')
+		expect(document.body.querySelector('.external-signing-admin__dialog p[role="status"]')?.textContent).toContain('Integration updated.')
 	})
 
 	it('uses compact presentation without introducing policy semantics', async () => {
