@@ -192,9 +192,8 @@ async function selectTarget(dialogScope: Locator, kind: 'group' | 'user', target
 	// otherwise a pending options update can detach the item during the click.
 	await expect(dialogScope.locator('.vs--loading')).toHaveCount(0, { timeout: 10000 })
 	const option = page.getByRole('option', { name: new RegExp(escapeRegExp(target), 'i') }).first()
-	if (await searchInput.getAttribute('aria-expanded') !== 'true') {
-		await searchInput.click()
-	}
+	// ArrowDown opens the menu without toggling an already open picker closed.
+	await searchInput.press('ArrowDown')
 	await expect(option).toBeVisible({ timeout: 10000 })
 	await option.click({ timeout: 10000 })
 	await expect(dialogScope.locator('.vs__selected')).toContainText(target)
