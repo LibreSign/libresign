@@ -501,6 +501,23 @@ PHP);
 		);
 	}
 
+	public function testDifferentActorCannotCreateAnotherSessionForTheSameSignRequest(): void {
+		$integration = $this->integration();
+		$this->create($integration);
+		try {
+			$other = $this->sessions->create(
+				'other-authorized-actor', 12345, 'other-attempt', $integration,
+				'synthetic-credential', $this->certificate, 'file-123-etag-456',
+				'synthetic-source-pdf', $this->prepared('synthetic-source-pdf'),
+				new \DateTimeImmutable('+1 hour'),
+			);
+			$this->createdSessions[] = (string)$other['id'];
+			self::fail('A SignRequest must never have two sessions, even across actors');
+		} catch (\DomainException $e) {
+			self::assertStringContainsString('Another signing actor', $e->getMessage());
+		}
+	}
+
 	public function testGenericTransitionCannotClaimSigningWithoutDurableLedger(): void {
 		$row = $this->create();
 		$row = $this->advance($row, ExternalSigningSessionState::READY_TO_SIGN);

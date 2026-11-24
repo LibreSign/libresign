@@ -135,12 +135,33 @@ final class ExternalSigningSessionStore {
 				$this->assertContext($existing, $documentRevision, $pdfBytes, $certificatePem);
 				return $this->metadata($existing);
 			}
+			// A unique SignRequest constraint also rejects a second actor
+			// (for example after switching from guest to Nextcloud login).
+			// Do not reveal the existing actor/session identity to the caller.
+			if ($this->findBySignRequestId($signRequestId) !== null) {
+				throw new \DomainException('Another signing actor already occupies this SignRequest', 0, $e);
+			}
 			throw $e;
 		} catch (\Throwable $e) {
 			$this->db->rollBack();
 			throw $e;
 		}
 		return $this->get($id, $actorId);
+	}
+
+	/**
+	 * Internal conflict lookup only, never exposed as an API: a foreign
+	 * actor must not discover another signer's credential or session ID.
+	 *
+	 * @return array<string, mixed>|null
+	 */
+	private function findBySignRequestId(int $signRequestId): ?array {
+		$qb = $this->db->getQueryBuilder();
+		$row = $qb->select('id')->from(self::TABLE)
+			->where($qb->expr()->eq('sign_request_id',
+				$qb->createNamedParameter($signRequestId, IQueryBuilder::PARAM_INT)))
+			->setMaxResults(1)->executeQuery()->fetchAssociative();
+		return $row === false ? null : $row;
 	}
 
 	/**
