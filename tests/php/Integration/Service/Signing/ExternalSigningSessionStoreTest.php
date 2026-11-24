@@ -596,6 +596,21 @@ PHP);
 		self::assertSame('preparing', $this->sessions->get((string)$row['id'], 'synthetic-user')['status']);
 	}
 
+	public function testReenablingActiveIntegrationDoesNotInvalidatePendingSession(): void {
+		$integration = $this->integration();
+		$row = $this->create($integration);
+		try {
+			$this->integrations->setEnabled($integration->id, $integration->revision, true);
+			self::fail('Re-enabling an active integration would invalidate the session');
+		} catch (\DomainException $e) {
+			self::assertStringContainsString('unresolved', $e->getMessage());
+		}
+		self::assertSame($integration->revision, $this->integrations->get($integration->id)->revision);
+		$prepared = $this->sessions->resume((string)$row['id'], 'synthetic-user',
+			'file-123-etag-456', 'synthetic-source-pdf', $this->certificate);
+		self::assertSame($this->prepared('synthetic-source-pdf')->preparationInputSha256, $prepared->preparationInputSha256);
+	}
+
 	public function testIntegrationCannotBeDeletedOrReconfiguredWithUncertainSession(): void {
 		$integration = $this->integration();
 		$row = $this->create($integration);

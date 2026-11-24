@@ -192,9 +192,9 @@ final class ExternalIntegrationStore {
 		$this->db->beginTransaction();
 		try {
 			$this->lockIntegrationRow($publicId, $expectedRevision);
-			if (!$enabled || $delete) {
-				$this->assertNoUnresolvedSigningSessions($publicId);
-			}
+			// Even enabling an already-enabled integration increments its revision.
+			// Any administrative lifecycle change would invalidate pinned sessions.
+			$this->assertNoUnresolvedSigningSessions($publicId);
 			$qb = $this->db->getQueryBuilder();
 			$qb->update(self::TABLE)
 				->set('enabled', $qb->createNamedParameter($enabled ? 1 : 0, IQueryBuilder::PARAM_INT))
