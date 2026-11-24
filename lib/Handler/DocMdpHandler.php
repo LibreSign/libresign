@@ -312,6 +312,14 @@ class DocMdpHandler {
 			);
 		}
 
+		if ($this->hasOnlyValidationDataUpdatesFromInventory($pdfResource)) {
+			return $this->buildValidationResult(
+				true,
+				File::MODIFICATION_ALLOWED,
+				'Only validation data or document timestamps were added after signing (allowed by DocMDP)'
+			);
+		}
+
 		$modificationType = $this->analyzeModificationType($pdfResource, $modificationInfo);
 		$allowedTypes = self::ALLOWED_MODIFICATIONS[$docmdpLevel->name] ?? null;
 
@@ -419,6 +427,28 @@ class DocMdpHandler {
 		}
 
 		return 'unknown';
+	}
+
+	/**
+	 * Only the active certification signature can define the signed revision.
+	 * An inconclusive inventory cannot grant the validation-data exemption.
+	 */
+	private function hasOnlyValidationDataUpdatesFromInventory($pdfResource): bool {
+		rewind($pdfResource);
+		$content = (string)stream_get_contents($pdfResource);
+		$inventory = (new PdfSignatureInventoryReader())->readFromString($content);
+		if (!$inventory->isConclusive || $inventory->docMdpPermission === null) {
+			return false;
+		}
+		foreach ($inventory->activeSignatures as $signature) {
+			if ($signature->isCertifying) {
+				return (new \OCA\Libresign\Vendor\LibreSign\PdfSignatureValidator\Validation\DocMdp\DocMdpValidationDataInspector())->hasOnlyValidationDataUpdates(
+					$content,
+					$signature->signedRevisionEnd,
+				);
+			}
+		}
+		return false;
 	}
 
 	/**
