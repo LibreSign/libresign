@@ -34,6 +34,7 @@ final class CscIntegration implements RemoteCertificateDiscoveryInterface, Remot
 	private function __construct(
 		private readonly CscClient $client,
 		private readonly bool $syntheticLab,
+		private readonly ?string $syntheticLabEndpoint = null,
 	) {
 	}
 
@@ -70,7 +71,19 @@ final class CscIntegration implements RemoteCertificateDiscoveryInterface, Remot
 	public static function forSyntheticLab(HttpClientInterface $httpClient, string $baseUrl): self {
 		$baseUrl = self::validatedEndpoint(['baseUrl' => $baseUrl], true);
 
-		return new self(new CscClient($httpClient, $baseUrl), true);
+		return new self(new CscClient($httpClient, $baseUrl), true, $baseUrl);
+	}
+
+	/**
+	 * Internal synthetic-laboratory proof for the CSC v1 execution path.
+	 * Merely having a configured integration or administrator access token is
+	 * never sufficient to authorize a real signer private-key operation.
+	 */
+	public function assertSyntheticLaboratory(string $configuredEndpoint): void {
+		if (!$this->syntheticLab || $this->syntheticLabEndpoint === null
+			|| !hash_equals($this->syntheticLabEndpoint, $configuredEndpoint)) {
+			throw new \DomainException('CSC signing is restricted to the configured synthetic laboratory');
+		}
 	}
 
 	/** @return list<RemoteCertificate> */
