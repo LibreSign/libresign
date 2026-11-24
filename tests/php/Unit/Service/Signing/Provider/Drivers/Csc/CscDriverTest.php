@@ -42,14 +42,14 @@ final class CscDriverTest extends TestCase {
 		$this->assertArrayNotHasKey('value', $metadata['fields'][1]);
 		$this->assertArrayNotHasKey('configured', $metadata['fields'][1]);
 
-		$this->assertTrue(class_exists(\SignerPHP\PdfSigner\Infrastructure\Remote\Csc\CscClient::class));
+		$this->assertTrue(class_exists(\OCA\Libresign\Vendor\SignerPHP\PdfSigner\Infrastructure\Remote\Csc\CscClient::class));
 		$this->assertTrue(is_subclass_of(
-			\SignerPHP\PdfSigner\Infrastructure\Remote\Csc\CscCertificateDiscovery::class,
-			\SignerPHP\PdfSigner\RemoteSigning\Contract\RemoteCertificateDiscoveryInterface::class,
+			\OCA\Libresign\Vendor\SignerPHP\PdfSigner\Infrastructure\Remote\Csc\CscCertificateDiscovery::class,
+			\OCA\Libresign\Vendor\SignerPHP\PdfSigner\RemoteSigning\Contract\RemoteCertificateDiscoveryInterface::class,
 		));
 		$this->assertTrue(is_subclass_of(
-			\SignerPHP\PdfSigner\Infrastructure\Remote\Csc\CscSignatureProvider::class,
-			\SignerPHP\PdfSigner\RemoteSigning\Contract\RemoteSignatureProviderInterface::class,
+			\OCA\Libresign\Vendor\SignerPHP\PdfSigner\Infrastructure\Remote\Csc\CscSignatureProvider::class,
+			\OCA\Libresign\Vendor\SignerPHP\PdfSigner\RemoteSigning\Contract\RemoteSignatureProviderInterface::class,
 		));
 		$this->assertTrue($metadata['available']);
 		$this->assertNull($metadata['unavailableReason']);

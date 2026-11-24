@@ -15,20 +15,20 @@ use OCA\Libresign\Service\Signature\PdfSignatureValidationService;
 use OCA\Libresign\Service\Signature\PreparedExternalOperation;
 use OCA\Libresign\Tests\Integration\TestCase;
 use OCA\Libresign\Vendor\phpseclib4\File\X509;
+use OCA\Libresign\Vendor\SignerPHP\PdfSigner\Application\DTO\CertificationLevel;
+use OCA\Libresign\Vendor\SignerPHP\PdfSigner\Application\DTO\PdfContentDto;
+use OCA\Libresign\Vendor\SignerPHP\PdfSigner\Application\DTO\SignatureActorDto;
+use OCA\Libresign\Vendor\SignerPHP\PdfSigner\Application\DTO\SignatureMetadataDto;
+use OCA\Libresign\Vendor\SignerPHP\PdfSigner\Application\DTO\SignatureProfile;
+use OCA\Libresign\Vendor\SignerPHP\PdfSigner\Application\DTO\SigningCertificateDto;
+use OCA\Libresign\Vendor\SignerPHP\PdfSigner\Application\DTO\SigningContextDto;
+use OCA\Libresign\Vendor\SignerPHP\PdfSigner\Application\DTO\SigningOptionsDto;
+use OCA\Libresign\Vendor\SignerPHP\PdfSigner\Application\DTO\TimestampOptionsDto;
+use OCA\Libresign\Vendor\SignerPHP\PdfSigner\Domain\Exception\SignerException;
+use OCA\Libresign\Vendor\SignerPHP\PdfSigner\Presentation\Signer;
 use OCP\ITempManager;
 use PHPUnit\Framework\Attributes\DataProvider;
 use Psr\Log\LoggerInterface;
-use SignerPHP\PdfSigner\Application\DTO\CertificationLevel;
-use SignerPHP\PdfSigner\Application\DTO\PdfContentDto;
-use SignerPHP\PdfSigner\Application\DTO\SignatureActorDto;
-use SignerPHP\PdfSigner\Application\DTO\SignatureMetadataDto;
-use SignerPHP\PdfSigner\Application\DTO\SignatureProfile;
-use SignerPHP\PdfSigner\Application\DTO\SigningCertificateDto;
-use SignerPHP\PdfSigner\Application\DTO\SigningContextDto;
-use SignerPHP\PdfSigner\Application\DTO\SigningOptionsDto;
-use SignerPHP\PdfSigner\Application\DTO\TimestampOptionsDto;
-use SignerPHP\PdfSigner\Domain\Exception\SignerException;
-use SignerPHP\PdfSigner\Presentation\Signer;
 
 /**
  * Integration tests for the internal resumable external PDF-signing
@@ -389,14 +389,14 @@ final class ExternalPdfSigningServiceTest extends TestCase {
 		$char = $state[$marker];
 		$state[$marker] = $char === 'A' ? 'B' : 'A';
 		$corrupted = new PreparedExternalOperation(
-			new \SignerPHP\PdfSigner\Application\DTO\PreparedExternalSignature(
+			new \OCA\Libresign\Vendor\SignerPHP\PdfSigner\Application\DTO\PreparedExternalSignature(
 				$prepared->upstream->payload,
 				$state,
 			),
 			$prepared->preparationInputSha256,
 		);
 
-		$this->expectException(\SignerPHP\PdfSigner\Domain\Exception\SignerException::class);
+		$this->expectException(\OCA\Libresign\Vendor\SignerPHP\PdfSigner\Domain\Exception\SignerException::class);
 		$this->service->complete($corrupted, random_bytes(256), $pdf, $identity['certificate']);
 	}
 

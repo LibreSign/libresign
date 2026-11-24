@@ -8,7 +8,7 @@ declare(strict_types=1);
 
 namespace OCA\Libresign\Service\Signature;
 
-use SignerPHP\PdfSigner\Application\DTO\PreparedExternalSignature;
+use OCA\Libresign\Vendor\SignerPHP\PdfSigner\Application\DTO\PreparedExternalSignature;
 
 /**
  * LibreSign's envelope around one upstream prepared external-signature
