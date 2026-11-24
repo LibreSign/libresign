@@ -9,9 +9,9 @@ declare(strict_types=1);
 namespace OCA\Libresign\Service\Signing\Provider\Drivers\Csc;
 
 use OCA\Libresign\ResponseDefinitions;
+use OCA\Libresign\Vendor\SignerPHP\PdfSigner\RemoteSigning\Contract\RemoteCertificateDiscoveryInterface;
+use OCA\Libresign\Vendor\SignerPHP\PdfSigner\RemoteSigning\Contract\RemoteSignatureProviderInterface;
 use OCP\IL10N;
-use SignerPHP\PdfSigner\RemoteSigning\Contract\RemoteCertificateDiscoveryInterface;
-use SignerPHP\PdfSigner\RemoteSigning\Contract\RemoteSignatureProviderInterface;
 
 /**
  * Administrative metadata for the experimental CSC v1 adapter.
@@ -71,8 +71,8 @@ final class CscDriver {
 	 * administrative instance is configured or ready to sign.
 	 */
 	private function isAdapterInstalled(): bool {
-		return class_exists('SignerPHP\\PdfSigner\\Infrastructure\\Remote\\Csc\\CscClient')
-			&& is_subclass_of('SignerPHP\\PdfSigner\\Infrastructure\\Remote\\Csc\\CscCertificateDiscovery', RemoteCertificateDiscoveryInterface::class)
-			&& is_subclass_of('SignerPHP\\PdfSigner\\Infrastructure\\Remote\\Csc\\CscSignatureProvider', RemoteSignatureProviderInterface::class);
+		return class_exists('OCA\\Libresign\\Vendor\\SignerPHP\\PdfSigner\\Infrastructure\\Remote\\Csc\\CscClient')
+			&& is_subclass_of('OCA\\Libresign\\Vendor\\SignerPHP\\PdfSigner\\Infrastructure\\Remote\\Csc\\CscCertificateDiscovery', RemoteCertificateDiscoveryInterface::class)
+			&& is_subclass_of('OCA\\Libresign\\Vendor\\SignerPHP\\PdfSigner\\Infrastructure\\Remote\\Csc\\CscSignatureProvider', RemoteSignatureProviderInterface::class);
 	}
 }

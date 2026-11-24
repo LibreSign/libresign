@@ -23,13 +23,13 @@ use OCA\Libresign\Service\SignatureStampPreview\SignatureStampAppearanceBuilder;
 use OCA\Libresign\Service\SignatureTextService;
 use OCA\Libresign\Service\SignerElementsService;
 use OCA\Libresign\Tests\Fixtures\PdfGenerator;
+use OCA\Libresign\Vendor\SignerPHP\PdfSigner\Application\DTO\CertificationLevel;
+use OCA\Libresign\Vendor\SignerPHP\PdfSigner\Application\DTO\HashAlgorithm;
+use OCA\Libresign\Vendor\SignerPHP\PdfSigner\Application\DTO\SignatureAppearanceDto;
+use OCA\Libresign\Vendor\SignerPHP\PdfSigner\Application\DTO\TimestampOptionsDto;
 use OCP\IAppConfig;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\MockObject\MockObject;
-use SignerPHP\PdfSigner\Application\DTO\CertificationLevel;
-use SignerPHP\PdfSigner\Application\DTO\HashAlgorithm;
-use SignerPHP\PdfSigner\Application\DTO\SignatureAppearanceDto;
-use SignerPHP\PdfSigner\Application\DTO\TimestampOptionsDto;
 
 final class PhpNativeHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	private IAppConfig $appConfig;
