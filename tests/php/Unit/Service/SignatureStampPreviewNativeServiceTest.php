@@ -49,6 +49,34 @@ final class SignatureStampPreviewNativeServiceTest extends \OCA\Libresign\Tests\
 		$this->assertStringContainsString('/Helvetica', $pdf);
 	}
 
+	public function testRenderPreviewPdfEmbedsUnicodeAlongsideSignatureImage(): void {
+		$signatureTextService = $this->createMock(SignatureTextService::class);
+		$signatureTextService->method('getPreviewSignerName')->willReturn('Renée');
+		$signatureTextService->method('parse')->willReturn([
+			'parsed' => 'Signé par Renée',
+			'templateFontSize' => 10.0,
+		]);
+		$service = new SignatureStampPreviewNativeService(
+			new SignatureStampAppearanceBuilder($signatureTextService),
+			$signatureTextService,
+			$this->signatureBackgroundService,
+		);
+
+		$pdf = $service->renderPreviewPdf(
+			signatureWidth: 240,
+			signatureHeight: 80,
+			renderMode: SignerElementsService::RENDER_MODE_GRAPHIC_AND_DESCRIPTION,
+			backgroundType: 'deleted',
+		);
+
+		$this->assertTrue(str_contains($pdf, '/Encoding /Identity-H'));
+		$this->assertTrue(str_contains($pdf, '/FontFile2'));
+		$this->assertTrue(str_contains($pdf, '/ToUnicode'));
+		$this->assertSame(1, preg_match('/<[0-9A-F]{4}> <00E9>/', $pdf));
+		$this->assertTrue(str_contains($pdf, '/Im2 Do'));
+		$this->assertTrue(str_contains($pdf, '/SMask'));
+	}
+
 	public function testRenderPreviewPdfUsesPreviewDummyContextForTemplateVariables(): void {
 		$capturedContext = null;
 		$this->signatureTextService->expects($this->once())

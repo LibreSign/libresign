@@ -13,6 +13,10 @@ use OCA\Libresign\Service\Policy\Provider\SignatureText\SignatureTextPolicyValue
 use OCA\Libresign\Service\SignatureBackgroundService;
 use OCA\Libresign\Service\SignatureTextService;
 use OCA\Libresign\Service\SignerElementsService;
+use OCA\Libresign\Vendor\LibreSign\XObjectTemplate\Dto\CompileResult;
+use OCA\Libresign\Vendor\LibreSign\XObjectTemplate\Pdf\EmbeddedPdfImage;
+use OCA\Libresign\Vendor\LibreSign\XObjectTemplate\Pdf\PdfImageEmbedderInterface;
+use OCA\Libresign\Vendor\LibreSign\XObjectTemplate\Pdf\SinglePagePdfExporter;
 use OCP\Files\NotFoundException;
 
 class SignatureStampPreviewNativeService {
@@ -55,12 +59,10 @@ class SignatureStampPreviewNativeService {
 			fallbackCommonName: $this->signatureTextService->getPreviewSignerName(),
 		);
 
-		$contentStream = $xObject->stream;
-
 		$backgroundJpeg = $this->resolveBackgroundJpeg($backgroundType);
 		$previewSignatureImage = $this->getPreviewSignatureImage($renderMode);
 
-		return $this->buildSinglePagePdf($width, $height, $contentStream, $backgroundJpeg, $previewSignatureImage, $renderMode);
+		return $this->buildSinglePagePdf($width, $height, $xObject->stream, $xObject->resources ?? [], $backgroundJpeg, $previewSignatureImage, $renderMode);
 	}
 
 	/**
@@ -114,21 +116,13 @@ class SignatureStampPreviewNativeService {
 	}
 
 	/**
+	 * @param array<string, mixed> $resources
 	 * @param array{width:int,height:int,data:string}|null $backgroundJpeg
 	 * @param array{kind:'rgba',width:int,height:int,rgbData:string,alphaData:string}|null $previewSignatureImage
 	 */
-	private function buildSinglePagePdf(float $width, float $height, string $contentStream, ?array $backgroundJpeg, ?array $previewSignatureImage, string $renderMode): string {
-		$widthFormatted = number_format($width, 2, '.', '');
-		$heightFormatted = number_format($height, 2, '.', '');
+	private function buildSinglePagePdf(float $width, float $height, string $contentStream, array $resources, ?array $backgroundJpeg, ?array $previewSignatureImage, string $renderMode): string {
 		$stream = '';
-		$xObjectReferences = [];
-		$nextObjectId = 5;
-
-		$objects = [
-			1 => '<< /Type /Catalog /Pages 2 0 R >>',
-			2 => '<< /Type /Pages /Kids [3 0 R] /Count 1 >>',
-			4 => '<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>',
-		];
+		$images = [];
 
 		if ($backgroundJpeg !== null) {
 			$fit = $this->fitWithinBounds(
@@ -145,16 +139,15 @@ class SignatureStampPreviewNativeService {
 					$fit['x'],
 					$fit['y'],
 				);
-				$backgroundObjectId = $nextObjectId;
-				$nextObjectId += 1;
-				$xObjectReferences[] = '/Im1 ' . $backgroundObjectId . ' 0 R';
-				$objects[$backgroundObjectId] = sprintf(
-					"<< /Type /XObject /Subtype /Image /Width %d /Height %d /ColorSpace /DeviceRGB /BitsPerComponent 8 /Filter /DCTDecode /Length %d >>\nstream\n%sendstream",
-					$backgroundJpeg['width'],
-					$backgroundJpeg['height'],
-					strlen($backgroundJpeg['data']),
-					$backgroundJpeg['data'],
-				);
+				$images['Im1'] = new EmbeddedPdfImage([
+					'Type' => '/XObject',
+					'Subtype' => '/Image',
+					'Width' => $backgroundJpeg['width'],
+					'Height' => $backgroundJpeg['height'],
+					'ColorSpace' => '/DeviceRGB',
+					'BitsPerComponent' => 8,
+					'Filter' => '/DCTDecode',
+				], $backgroundJpeg['data']);
 			}
 		}
 
@@ -177,54 +170,50 @@ class SignatureStampPreviewNativeService {
 					$fit['x'],
 					$fit['y'],
 				);
-				$signatureObjectId = $nextObjectId;
-				$nextObjectId += 1;
-
-				$alphaMaskObjectId = $nextObjectId;
-				$nextObjectId += 1;
-
-				$xObjectReferences[] = '/Im2 ' . $signatureObjectId . ' 0 R';
-
-				$alphaData = gzcompress($previewSignatureImage['alphaData']) ?: '';
-				$objects[$alphaMaskObjectId] = sprintf(
-					"<< /Type /XObject /Subtype /Image /Width %d /Height %d /ColorSpace /DeviceGray /BitsPerComponent 8 /Filter /FlateDecode /Length %d >>\nstream\n%sendstream",
-					$previewSignatureImage['width'],
-					$previewSignatureImage['height'],
-					strlen($alphaData),
-					$alphaData,
-				);
-
-				$rgbData = gzcompress($previewSignatureImage['rgbData']) ?: '';
-				$objects[$signatureObjectId] = sprintf(
-					"<< /Type /XObject /Subtype /Image /Width %d /Height %d /ColorSpace /DeviceRGB /BitsPerComponent 8 /SMask %d 0 R /Filter /FlateDecode /Length %d >>\nstream\n%sendstream",
-					$previewSignatureImage['width'],
-					$previewSignatureImage['height'],
-					$alphaMaskObjectId,
-					strlen($rgbData),
+				$dictionary = [
+					'Type' => '/XObject',
+					'Subtype' => '/Image',
+					'Width' => $previewSignatureImage['width'],
+					'Height' => $previewSignatureImage['height'],
+					'BitsPerComponent' => 8,
+					'Filter' => '/FlateDecode',
+				];
+				$alphaData = gzcompress($previewSignatureImage['alphaData']);
+				$rgbData = gzcompress($previewSignatureImage['rgbData']);
+				if ($alphaData === false || $rgbData === false) {
+					throw new \RuntimeException('Unable to compress the signature preview image.');
+				}
+				$images['Im2'] = new EmbeddedPdfImage(
+					$dictionary + ['ColorSpace' => '/DeviceRGB'],
 					$rgbData,
+					new EmbeddedPdfImage($dictionary + ['ColorSpace' => '/DeviceGray'], $alphaData),
 				);
 			}
 		}
 
-		$stream .= "q\n" . $contentStream . "Q\n";
-		$contentObjectId = $nextObjectId;
+		// The exporter owns PDF object allocation, including Unicode fonts
+		// and image masks. Only the in-memory preview images can be resolved.
+		foreach (array_keys($images) as $alias) {
+			$resources['XObject'][$alias] = ['Source' => $alias];
+		}
+		$imageEmbedder = new class($images) implements PdfImageEmbedderInterface {
+			/** @param array<string, EmbeddedPdfImage> $images */
+			public function __construct(
+				private array $images,
+			) {
+			}
 
-		$xObjectDict = $xObjectReferences !== [] ? ' /XObject << ' . implode(' ', $xObjectReferences) . ' >>' : '';
-		$objects[3] = sprintf(
-			'<< /Type /Page /Parent 2 0 R /MediaBox [0 0 %s %s] /Resources << /Font << /F1 4 0 R >>%s >> /Contents %d 0 R >>',
-			$widthFormatted,
-			$heightFormatted,
-			$xObjectDict,
-			$contentObjectId,
+			public function embed(string $source): EmbeddedPdfImage {
+				return $this->images[$source] ?? throw new \InvalidArgumentException('Unknown preview image.');
+			}
+		};
+		$result = new CompileResult(
+			contentStream: $stream . "q\n" . $contentStream . "\nQ\n",
+			resources: $resources,
+			bbox: [0.0, 0.0, $width, $height],
 		);
 
-		$objects[$contentObjectId] = sprintf(
-			"<< /Length %d >>\nstream\n%sendstream",
-			strlen($stream),
-			$stream,
-		);
-
-		return $this->assemblePdf($objects);
+		return (new SinglePagePdfExporter($imageEmbedder))->export($result);
 	}
 
 	/**
@@ -369,34 +358,5 @@ class SignatureStampPreviewNativeService {
 		}
 
 		return $data;
-	}
-
-	/**
-	 * @param array<int, string> $objects
-	 */
-	private function assemblePdf(array $objects): string {
-		$pdf = "%PDF-1.4\n";
-		$offsets = [0 => 0];
-
-		$objectCount = count($objects);
-		for ($i = 1; $i <= $objectCount; $i++) {
-			$offsets[$i] = strlen($pdf);
-			$pdf .= sprintf("%d 0 obj\n%s\nendobj\n", $i, $objects[$i]);
-		}
-
-		$xrefOffset = strlen($pdf);
-		$pdf .= sprintf("xref\n0 %d\n", $objectCount + 1);
-		$pdf .= "0000000000 65535 f \n";
-		for ($i = 1; $i <= $objectCount; $i++) {
-			$pdf .= sprintf("%010d 00000 n \n", $offsets[$i]);
-		}
-
-		$pdf .= sprintf(
-			"trailer\n<< /Size %d /Root 1 0 R >>\nstartxref\n%d\n%%%%EOF",
-			$objectCount + 1,
-			$xrefOffset,
-		);
-
-		return $pdf;
 	}
 }
