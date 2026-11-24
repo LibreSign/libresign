@@ -192,16 +192,16 @@
         },
         {
             "name": "signerphp/pdf-signer",
-            "version": "v0.5.0",
+            "version": "v0.5.2",
             "source": {
                 "type": "git",
                 "url": "https://github.com/SignerPHP/pdf-signer.git",
-                "reference": "76834671bbc06bad0001faf5f6238a329666d919"
+                "reference": "56354056a83703c6ddb927a23892b08eef6adf81"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/SignerPHP/pdf-signer/zipball/76834671bbc06bad0001faf5f6238a329666d919",
-                "reference": "76834671bbc06bad0001faf5f6238a329666d919",
+                "url": "https://api.github.com/repos/SignerPHP/pdf-signer/zipball/56354056a83703c6ddb927a23892b08eef6adf81",
+                "reference": "56354056a83703c6ddb927a23892b08eef6adf81",
                 "shasum": ""
             },
             "require": {
@@ -257,10 +257,10 @@
             ],
             "support": {
                 "issues": "https://github.com/SignerPHP/pdf-signer/issues",
-                "source": "https://github.com/SignerPHP/pdf-signer/tree/v0.5.0"
+                "source": "https://github.com/SignerPHP/pdf-signer/tree/v0.5.2"
             },
-            "time": "2026-11-22T13:49:05+00:00",
-            "published-time": "2026-11-22T13:50:14+00:00"
+            "time": "2026-11-24T02:33:17+00:00",
+            "published-time": "2026-11-24T02:42:44+00:00"
         }
     ],
     "packages-dev": [
