@@ -7,9 +7,8 @@ declare(strict_types=1);
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
 
-namespace OCA\Libresign\Tests\Integration\Handler;
+namespace OCA\Libresign\Tests\Unit\Handler;
 
-use OCA\Libresign\AppInfo\Application;
 use OCA\Libresign\Db\File as LibreSignFile;
 use OCA\Libresign\Enum\DocMdpLevel;
 use OCA\Libresign\Handler\CertificateEngine\CertificateEngineFactory;
@@ -17,12 +16,18 @@ use OCA\Libresign\Handler\CertificateEngine\IEngineHandler;
 use OCA\Libresign\Handler\DocMdpHandler;
 use OCA\Libresign\Handler\SignEngine\PhpNativeHandler;
 use OCA\Libresign\Service\DocMdp\ConfigService;
+use OCA\Libresign\Service\Policy\Model\ResolvedPolicy;
+use OCA\Libresign\Service\Policy\PolicyService;
 use OCA\Libresign\Service\Signature\PdfSignatureValidationService;
-use OCA\Libresign\Tests\Integration\TestCase;
+use OCA\Libresign\Service\SignatureBackgroundService;
+use OCA\Libresign\Service\SignatureStampPreview\SignatureStampAppearanceBuilder;
+use OCA\Libresign\Service\SignatureTextService;
 use OCA\Libresign\Vendor\LibreSign\PdfSignatureValidator\Parser\PdfSignatureInventoryReader;
 use OCP\Files\File;
-use OCP\L10N\IFactory as IL10NFactory;
+use OCP\IAppConfig;
+use OCP\IL10N;
 use PHPUnit\Framework\Attributes\DataProvider;
+use PHPUnit\Framework\TestCase;
 use Psr\Log\LoggerInterface;
 
 /**
@@ -187,16 +192,22 @@ final class DocMdpHandlerValidationDataTest extends TestCase {
 
 	private function extractDocMdpData(string $pdf): array {
 		$resource = $this->resource($pdf);
-		$result = \OCP\Server::get(DocMdpHandler::class)->extractDocMdpData($resource);
+		$l10n = $this->createMock(IL10N::class);
+		$l10n->method('t')->willReturnArgument(0);
+		$result = (new DocMdpHandler($l10n))->extractDocMdpData($resource);
 		fclose($resource);
 		return $result;
 	}
 
 	private function assertSignatureStillValid(string $pdf): void {
+		$appConfig = $this->createMock(IAppConfig::class);
+		$appConfig->method('getValueString')->willReturn('');
+		$l10n = $this->createMock(IL10N::class);
+		$l10n->method('t')->willReturnArgument(0);
 		$validationService = new PdfSignatureValidationService(
-			$this->getMockAppConfigWithReset(),
-			\OCP\Server::get(IL10NFactory::class)->get(Application::APP_ID),
-			\OCP\Server::get(LoggerInterface::class),
+			$appConfig,
+			$l10n,
+			$this->createMock(LoggerInterface::class),
 		);
 		$resource = $this->resource($pdf);
 		$entries = $validationService->validateFromResource($resource);
@@ -287,13 +298,18 @@ final class DocMdpHandlerValidationDataTest extends TestCase {
 		$certificateEngineFactory = $this->createMock(CertificateEngineFactory::class);
 		$certificateEngineFactory->method('getEngine')->willReturn($this->createMock(IEngineHandler::class));
 
+		$appConfig = $this->createMock(IAppConfig::class);
+		$appConfig->method('getValueString')->willReturn('');
+		$signatureTextService = $this->createMock(SignatureTextService::class);
+		$policyService = $this->createMock(PolicyService::class);
+		$policyService->method('resolve')->willReturn(new ResolvedPolicy());
 		$handler = new PhpNativeHandler(
-			$this->getMockAppConfigWithReset(),
+			$appConfig,
 			$docMdpConfig,
-			\OCP\Server::get(\OCA\Libresign\Service\SignatureTextService::class),
-			\OCP\Server::get(\OCA\Libresign\Service\SignatureStampPreview\SignatureStampAppearanceBuilder::class),
-			\OCP\Server::get(\OCA\Libresign\Service\SignatureBackgroundService::class),
-			\OCP\Server::get(\OCA\Libresign\Service\Policy\PolicyService::class),
+			$signatureTextService,
+			new SignatureStampAppearanceBuilder($signatureTextService),
+			$this->createMock(SignatureBackgroundService::class),
+			$policyService,
 			$certificateEngineFactory,
 		);
 

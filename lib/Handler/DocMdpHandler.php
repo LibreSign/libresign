@@ -316,7 +316,7 @@ class DocMdpHandler {
 		}
 
 		if ($this->hasOnlyValidationDataUpdatesFromInventory($pdfResource)) {
-			// TRANSLATORS Validation result for a certified PDF where, after signing, only long-term validation data (DSS: certificates, CRLs, OCSP responses) or document timestamps were added. DocMDP (document modification policy) permits this at every level.
+			// TRANSLATORS: Validation result for a certified PDF where, after signing, only long-term validation data (DSS: certificates, CRLs, OCSP responses) or document timestamps were added. DocMDP (document modification policy) permits this at every level.
 			return $this->buildValidationResult(
 				true,
 				File::MODIFICATION_ALLOWED,
