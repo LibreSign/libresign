@@ -71,7 +71,9 @@ describe('external signing within the existing signer UI', () => {
 			integrations, integration: null, credentials: [], syntheticOnly: true, personalSignerAuthorization: false, session: null,
 		})
 	})
-	afterEach(() => { vi.unstubAllGlobals() })
+	afterEach(() => {
+		vi.unstubAllGlobals()
+	})
 
 	it('does not discover or expose providers before a guest supplies verified identity', async () => {
 		const wrapper = mountSigner()
@@ -210,7 +212,9 @@ describe('external signing within the existing signer UI', () => {
 
 	it('ignores a stale provider list after switching SignRequest', async () => {
 		let resolveRequest!: (data: Awaited<ReturnType<typeof discoverExternalSigning>>) => void
-		vi.mocked(discoverExternalSigning).mockImplementation(() => new Promise(resolve => { resolveRequest = resolve }))
+		vi.mocked(discoverExternalSigning).mockImplementation(() => new Promise(resolve => {
+			resolveRequest = resolve
+		}))
 		const wrapper = mountSigner()
 		await wrapper.find('input[type="email"]').setValue('guest@example.org')
 		await clickButton(wrapper, 'Send verification code')

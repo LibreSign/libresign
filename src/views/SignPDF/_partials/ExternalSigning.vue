@@ -24,21 +24,25 @@
 				</select>
 			</div>
 			<template v-if="identityMethod === 'email'">
-				<NcTextField v-model="emailAddress"
+				<NcTextField
+					v-model="emailAddress"
 					:disabled="busy"
 					type="email"
 					:label="t('libresign', 'Email used for this signature request')" />
-				<NcButton :disabled="busy || !emailMatchesRequest"
+				<NcButton
+					:disabled="busy || !emailMatchesRequest"
 					@click="requestCode">
 					{{ t('libresign', 'Send verification code') }}
 				</NcButton>
-				<NcTextField v-model="verificationCode"
+				<NcTextField
+					v-model="verificationCode"
 					:disabled="busy"
 					type="text"
 					autocomplete="one-time-code"
 					:label="t('libresign', 'Verification code')" />
 			</template>
-			<NcButton variant="primary"
+			<NcButton
+				variant="primary"
 				:disabled="busy || !mayAuthorize"
 				@click="loadIntegrations">
 				{{ t('libresign', 'Find available signing providers') }}
@@ -51,8 +55,11 @@
 			<template v-if="!session">
 				<div v-if="integrations.length > 0" class="external-signing__field">
 					<label for="external-signing-integration">{{ t('libresign', 'Signing provider') }}</label>
-					<select id="external-signing-integration" v-model="selectedIntegrationId"
-						:disabled="busy" @change="loadCredentials">
+					<select
+						id="external-signing-integration"
+						v-model="selectedIntegrationId"
+						:disabled="busy"
+						@change="loadCredentials">
 						<option value="">
 							{{ t('libresign', 'Choose a provider') }}
 						</option>
@@ -87,7 +94,8 @@
 						</option>
 					</select>
 				</div>
-				<NcButton v-if="selectedCredential"
+				<NcButton
+					v-if="selectedCredential"
 					variant="primary"
 					:disabled="busy || mustRefreshBeforeContinue || !supportedProfiles.includes(selectedProfile)"
 					@click="startSigning">
@@ -108,8 +116,10 @@
 					<!-- TRANSLATORS An unknown external signing outcome must not be submitted again. -->
 					{{ t('libresign', 'The provider may already have signed. Another signature cannot be submitted automatically. Contact your administrator to reconcile this request.') }}
 				</NcNoteCard>
-				<NcButton v-if="canContinue"
-					variant="primary" :disabled="busy || mustRefreshBeforeContinue"
+				<NcButton
+					v-if="canContinue"
+					variant="primary"
+					:disabled="busy || mustRefreshBeforeContinue"
 					@click="continueSigning">
 					{{ t('libresign', 'Continue external signing') }}
 				</NcButton>
@@ -191,9 +201,7 @@ const mayAuthorize = computed(() => props.signRequestUuid.length > 0 && (identit
 	? accountUid.length > 0
 	: emailMatchesRequest.value && codeRequested.value && verificationCode.value.trim().length > 0))
 const selectedCredential = computed(() => credentials.value.find(item => item.id === selectedCredentialId.value))
-const supportedProfiles = computed(() => (selectedCredential.value?.profiles ?? []).filter(
-	(profile): profile is 'pdf-basic' | 'pades-baseline-b' => profile === 'pdf-basic' || profile === 'pades-baseline-b',
-))
+const supportedProfiles = computed(() => (selectedCredential.value?.profiles ?? []).filter((profile): profile is 'pdf-basic' | 'pades-baseline-b' => profile === 'pdf-basic' || profile === 'pades-baseline-b'))
 const canContinue = computed(() => session.value !== null && mayContinueExternalSigning(session.value.status))
 const requiresReconciliation = computed(() => session.value !== null && externalSigningRequiresReconciliation(session.value.status))
 const statusMessage = computed(() => {
@@ -245,7 +253,9 @@ watch([() => props.signRequestUuid, identityMethod, emailAddress], () => {
 	verificationCode.value = ''
 })
 watch(verificationCode, () => resetSigningContext())
-onBeforeUnmount(() => { requestGeneration++ })
+onBeforeUnmount(() => {
+	requestGeneration++
+})
 
 async function execute<T>(callback: () => Promise<T>, onSuccess: (value: T) => void): Promise<void> {
 	if (busy.value) {
