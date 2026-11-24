@@ -45,7 +45,7 @@ class SignatureStampAppearanceBuilder {
 
 		$isDescriptionOnly = $renderMode === SignerElementsService::RENDER_MODE_DESCRIPTION_ONLY;
 		$textStartX = $isDescriptionOnly ? $leftPadding : ((float)$width / 2.0) + $leftPadding;
-		$availableWidth = $isDescriptionOnly ? (float)$width : (float)$width / 2.0;
+		$availableWidth = ($isDescriptionOnly ? (float)$width : (float)$width / 2.0) - $leftPadding * 2;
 
 		$layout = new SignatureStampPdfLayout();
 
@@ -57,15 +57,14 @@ class SignatureStampAppearanceBuilder {
 			if ($commonName !== '') {
 				$nameFontSize = $signatureFontSize ?? $this->signatureTextService->getSignatureFontSize();
 				$leftHalfW = (float)$width / 2.0;
-				$nameLines = $this->wrapTextForPdf($commonName, $leftHalfW - $leftPadding * 2, $nameFontSize);
+				$nameLines = $layout->wrapText($commonName, $leftHalfW - $leftPadding * 2, $nameFontSize);
 				$nameLineCount = count($nameLines);
 				$totalNameHeight = $nameLineCount * $nameFontSize * 1.0;
 				$nameStartY = ((float)$height + $totalNameHeight) / 2.0 - $nameFontSize;
 				$nameStartY = max(0.0, $nameStartY);
 				$nameY = $nameStartY;
-				$estimatedCharWidth = $nameFontSize * 0.52;
 				foreach ($nameLines as $nameLine) {
-					$lineWidth = mb_strlen($nameLine, 'UTF-8') * $estimatedCharWidth;
+					$lineWidth = $layout->measureText($nameLine, $nameFontSize);
 					$nameX = max($leftPadding, ($leftHalfW - $lineWidth) / 2.0);
 					$layout->addLine($nameLine, $nameX, $nameY, $nameFontSize);
 					$nameY -= $nameFontSize * 1.0;
@@ -75,7 +74,7 @@ class SignatureStampAppearanceBuilder {
 
 		$currentY = (float)$height - $descFontSize - 2.0;
 		foreach (preg_split('/\r\n|\r|\n/', $parsed) ?: [] as $line) {
-			$wrappedLines = $this->wrapTextForPdf($line, $availableWidth, $descFontSize);
+			$wrappedLines = $layout->wrapText($line, $availableWidth, $descFontSize);
 			foreach ($wrappedLines as $wrappedLine) {
 				if ($currentY < 0) {
 					break 2;
@@ -92,48 +91,7 @@ class SignatureStampAppearanceBuilder {
 	 * @return string[]
 	 */
 	public function wrapTextForPdf(string $line, float $availableWidth, float $fontSize): array {
-		$trimmed = trim($line);
-		if ($trimmed === '') {
-			return [''];
-		}
-
-		$estimatedCharWidth = max(1.0, $fontSize * 0.52);
-		$maxChars = max(1, (int)floor($availableWidth / $estimatedCharWidth));
-		if (mb_strlen($trimmed, 'UTF-8') <= $maxChars) {
-			return [$trimmed];
-		}
-
-		$result = [];
-		$current = '';
-		foreach (preg_split('/\s+/', $trimmed) ?: [] as $word) {
-			if ($word === '') {
-				continue;
-			}
-
-			$candidate = $current === '' ? $word : $current . ' ' . $word;
-			if (mb_strlen($candidate, 'UTF-8') <= $maxChars) {
-				$current = $candidate;
-				continue;
-			}
-
-			if ($current !== '') {
-				$result[] = $current;
-				$current = '';
-			}
-
-			while (mb_strlen($word, 'UTF-8') > $maxChars) {
-				$result[] = mb_substr($word, 0, $maxChars, 'UTF-8');
-				$word = mb_substr($word, $maxChars, null, 'UTF-8');
-			}
-
-			$current = $word;
-		}
-
-		if ($current !== '') {
-			$result[] = $current;
-		}
-
-		return $result;
+		return (new SignatureStampPdfLayout())->wrapText($line, $availableWidth, $fontSize);
 	}
 
 	public function escapePdfText(string $value): string {
