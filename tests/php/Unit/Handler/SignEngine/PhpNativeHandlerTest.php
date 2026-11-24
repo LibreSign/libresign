@@ -125,49 +125,6 @@ final class PhpNativeHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$this->callPrivateMethod($handler, 'resolvePageHeight', [], 0);
 	}
 
-	#[DataProvider('providerWrapTextForPdf')]
-	public function testWrapTextForPdf(string $line, float $availableWidth, float $fontSize, array $expected): void {
-		$handler = $this->getHandler();
-		$actual = $this->callPrivateMethod($handler, 'wrapTextForPdf', $line, $availableWidth, $fontSize);
-		$this->assertSame($expected, $actual);
-	}
-
-	public static function providerWrapTextForPdf(): array {
-		return [
-			'empty string returns single empty element' => [
-				'', 100.0, 10.0, [''],
-			],
-			'short text that fits in one line' => [
-				'hello', 100.0, 10.0, ['hello'],
-			],
-			'multiple words wrapped at word boundaries' => [
-				// At 10 pt these word pairs exceed the 20 pt available width.
-				'ab cd ef', 20.0, 10.0, ['ab', 'cd', 'ef'],
-			],
-			'single long word is split using glyph advances' => [
-				// Narrower e, f and g fit together within 15 pt.
-				'abcdefgh', 15.0, 10.0, ['ab', 'cd', 'efg', 'h'],
-			],
-		];
-	}
-
-	#[DataProvider('providerEscapePdfText')]
-	public function testEscapePdfText(string $input, string $expected): void {
-		$handler = $this->getHandler();
-		$actual = $this->callPrivateMethod($handler, 'escapePdfText', $input);
-		$this->assertSame($expected, $actual);
-	}
-
-	public static function providerEscapePdfText(): array {
-		return [
-			'plain text is unchanged' => ['hello world', 'hello world'],
-			'backslash is doubled' => ['back\\slash', 'back\\\\slash'],
-			'opening parenthesis is escaped' => ['open(paren', 'open\\(paren'],
-			'closing parenthesis is escaped' => ['close)paren', 'close\\)paren'],
-			'multiple special chars in one string' => ['a\\b(c)d', 'a\\\\b\\(c\\)d'],
-		];
-	}
-
 	#[DataProvider('providerHasExistingSignatures')]
 	public function testHasExistingSignatures(string $pdfContent, bool $expected): void {
 		$handler = $this->getHandler();

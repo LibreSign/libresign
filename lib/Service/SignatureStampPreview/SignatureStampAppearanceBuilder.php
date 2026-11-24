@@ -40,61 +40,58 @@ class SignatureStampAppearanceBuilder {
 
 		$descFontSize = $templateFontSize
 			?? (float)($textData['templateFontSize'] ?? $this->signatureTextService->getTemplateFontSize());
-		$descLineHeight = $descFontSize * 1.0;
-		$leftPadding = max(2.0, $descFontSize * 0.15);
-
+		$padding = max(2.0, $descFontSize * 0.15);
 		$isDescriptionOnly = $renderMode === SignerElementsService::RENDER_MODE_DESCRIPTION_ONLY;
-		$textStartX = $isDescriptionOnly ? $leftPadding : ((float)$width / 2.0) + $leftPadding;
-		$availableWidth = ($isDescriptionOnly ? (float)$width : (float)$width / 2.0) - $leftPadding * 2;
+		$columnWidth = $isDescriptionOnly ? (float)$width : $width / 2.0;
+		$textWidth = $columnWidth - 2 * $padding;
+		$blocks = [];
 
-		$layout = new SignatureStampPdfLayout();
-
-		if ($renderMode === SignerElementsService::RENDER_MODE_SIGNAME_AND_DESCRIPTION) {
-			$commonName = !empty($context['SignerCommonName'])
-				? (string)$context['SignerCommonName']
-				: ($fallbackCommonName ?? '');
-
-			if ($commonName !== '') {
-				$nameFontSize = $signatureFontSize ?? $this->signatureTextService->getSignatureFontSize();
-				$leftHalfW = (float)$width / 2.0;
-				$nameLines = $layout->wrapText($commonName, $leftHalfW - $leftPadding * 2, $nameFontSize);
-				$nameLineCount = count($nameLines);
-				$totalNameHeight = $nameLineCount * $nameFontSize * 1.0;
-				$nameStartY = ((float)$height + $totalNameHeight) / 2.0 - $nameFontSize;
-				$nameStartY = max(0.0, $nameStartY);
-				$nameY = $nameStartY;
-				foreach ($nameLines as $nameLine) {
-					$lineWidth = $layout->measureText($nameLine, $nameFontSize);
-					$nameX = max($leftPadding, ($leftHalfW - $lineWidth) / 2.0);
-					$layout->addLine($nameLine, $nameX, $nameY, $nameFontSize);
-					$nameY -= $nameFontSize * 1.0;
+		if ($textWidth > 0 && $height > 0) {
+			if ($renderMode === SignerElementsService::RENDER_MODE_SIGNAME_AND_DESCRIPTION) {
+				$commonName = (string)($context['SignerCommonName'] ?? '');
+				if ($commonName === '') {
+					$commonName = $fallbackCommonName ?? '';
 				}
+				if ($commonName !== '') {
+					$blocks[] = new \OCA\Libresign\Vendor\LibreSign\XObjectTemplate\Dto\PlainTextBlock(
+						$commonName,
+						$padding,
+						0.0,
+						$textWidth,
+						(float)$height,
+						$signatureFontSize ?? $this->signatureTextService->getSignatureFontSize(),
+						'center',
+						'center',
+					);
+				}
+			}
+			if ($height > 2 && $parsed !== '') {
+				$blocks[] = new \OCA\Libresign\Vendor\LibreSign\XObjectTemplate\Dto\PlainTextBlock(
+					$parsed,
+					($isDescriptionOnly ? 0.0 : $columnWidth) + $padding,
+					2.0,
+					$textWidth,
+					$height - 2.0,
+					$descFontSize,
+				);
 			}
 		}
 
-		$currentY = (float)$height - $descFontSize - 2.0;
-		foreach (preg_split('/\r\n|\r|\n/', $parsed) ?: [] as $line) {
-			$wrappedLines = $layout->wrapText($line, $availableWidth, $descFontSize);
-			foreach ($wrappedLines as $wrappedLine) {
-				if ($currentY < 0) {
-					break 2;
-				}
-				$layout->addLine($wrappedLine, $textStartX, $currentY, $descFontSize);
-				$currentY -= $descLineHeight;
-			}
+		if ($blocks === []) {
+			return new SignatureAppearanceXObjectDto(stream: '', resources: []);
 		}
 
-		return $layout->build($width, $height);
-	}
+		$compiler = new \OCA\Libresign\Vendor\LibreSign\XObjectTemplate\PlainTextCompiler(
+			(new \OCA\Libresign\Vendor\LibreSign\XObjectTemplate\Pdf\TemplateDocumentBuilder())->withUnicodeFontFiles([
+				dirname(__DIR__, 3) . '/3rdparty/composer/mpdf/mpdf/ttfonts/DejaVuSansCondensed.ttf',
+			]),
+		);
+		$result = $compiler->compile($blocks, (float)$width, (float)$height);
 
-	/**
-	 * @return string[]
-	 */
-	public function wrapTextForPdf(string $line, float $availableWidth, float $fontSize): array {
-		return (new SignatureStampPdfLayout())->wrapText($line, $availableWidth, $fontSize);
-	}
-
-	public function escapePdfText(string $value): string {
-		return SignatureStampPdfLayout::escapePdfText($value);
+		return new SignatureAppearanceXObjectDto(
+			stream: $result->contentStream,
+			resources: $result->resources,
+			resourcesBuilder: (new \OCA\Libresign\Vendor\LibreSign\XObjectTemplate\Pdf\SignerPhpCoreXObjectResourceBuilder())->resourcesBuilder(),
+		);
 	}
 }
