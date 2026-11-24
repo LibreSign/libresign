@@ -18,6 +18,7 @@
       <file>OpenApiPolicyNumberUnionTest.php</file>
       <file>OpenApiRequestHeadersTest.php</file>
       <file>OpenApiSigningRequestContractsTest.php</file>
+      <file>ExternalSigningScopeOpenApiTest.php</file>
     </testsuite>
   </testsuites>
 </phpunit>

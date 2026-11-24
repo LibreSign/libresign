@@ -59,12 +59,14 @@ final class ExternalSigningIntegrationsController extends AEnvironmentAwareOCSCo
 	 *
 	 * @param int $afterId Keyset cursor, zero for the first page
 	 * @param int $pageSize Page size between one and 200
+	 * @param string $scopeType Connection scope: system, group or user
+	 * @param string $scopeId Group ID or account UID; empty for system
 	 * @return DataResponse<Http::STATUS_OK, LibresignExternalIntegrationListResponse, array{}>|DataResponse<Http::STATUS_UNAUTHORIZED|Http::STATUS_FORBIDDEN|Http::STATUS_NOT_FOUND|Http::STATUS_BAD_REQUEST|Http::STATUS_CONFLICT|Http::STATUS_INTERNAL_SERVER_ERROR, LibresignErrorResponse, array{}>
 	 *
 	 * 200: Page of integrations
 	 * 400: Invalid pagination
 	 * 401: Authentication required
-	 * 403: System administrator required
+	 * 403: Administrator not delegated for this connection scope
 	 * 404: Experimental features disabled
 	 * 409: Integration conflict
 	 * 500: Internal error
@@ -99,12 +101,14 @@ final class ExternalSigningIntegrationsController extends AEnvironmentAwareOCSCo
 	 * @param string $name Administrator-defined display name
 	 * @param array<string, string> $configuration Non-secret driver settings
 	 * @param array<string, string> $secrets Write-only credential values
+	 * @param string $scopeType Connection scope: system, group or user
+	 * @param string $scopeId Group ID or account UID; empty for system
 	 * @return DataResponse<Http::STATUS_CREATED, LibresignExternalIntegrationResponse, array{}>|DataResponse<Http::STATUS_UNAUTHORIZED|Http::STATUS_FORBIDDEN|Http::STATUS_NOT_FOUND|Http::STATUS_BAD_REQUEST|Http::STATUS_CONFLICT|Http::STATUS_INTERNAL_SERVER_ERROR, LibresignErrorResponse, array{}>
 	 *
 	 * 201: Integration created, initially disabled
 	 * 400: Invalid driver or configuration
 	 * 401: Authentication required
-	 * 403: System administrator required
+	 * 403: Administrator not delegated for this connection scope
 	 * 404: Experimental features disabled
 	 * 409: Integration conflict
 	 * 500: Internal error
@@ -133,7 +137,7 @@ final class ExternalSigningIntegrationsController extends AEnvironmentAwareOCSCo
 	 * 200: Integration metadata and configured secret field indicators
 	 * 400: Invalid integration request
 	 * 401: Authentication required
-	 * 403: System administrator required
+	 * 403: Administrator not delegated for this connection scope
 	 * 404: Integration not found or experimental features disabled
 	 * 409: Integration conflict
 	 * 500: Internal error
@@ -165,7 +169,7 @@ final class ExternalSigningIntegrationsController extends AEnvironmentAwareOCSCo
 	 * 200: Integration updated
 	 * 400: Invalid configuration or revision
 	 * 401: Authentication required
-	 * 403: System administrator required
+	 * 403: Administrator not delegated for this connection scope
 	 * 404: Integration not found or experimental features disabled
 	 * 409: Stale revision
 	 * 500: Internal error
@@ -198,7 +202,7 @@ final class ExternalSigningIntegrationsController extends AEnvironmentAwareOCSCo
 	 * 200: Integration enabled
 	 * 400: Invalid revision
 	 * 401: Authentication required
-	 * 403: System administrator required
+	 * 403: Administrator not delegated for this connection scope
 	 * 404: Integration not found or experimental features disabled
 	 * 409: Stale revision or driver unavailable
 	 * 500: Internal error
@@ -220,7 +224,7 @@ final class ExternalSigningIntegrationsController extends AEnvironmentAwareOCSCo
 	 * 200: Integration disabled
 	 * 400: Invalid revision
 	 * 401: Authentication required
-	 * 403: System administrator required
+	 * 403: Administrator not delegated for this connection scope
 	 * 404: Integration not found or experimental features disabled
 	 * 409: Stale revision
 	 * 500: Internal error
@@ -242,7 +246,7 @@ final class ExternalSigningIntegrationsController extends AEnvironmentAwareOCSCo
 	 * 200: Integration deleted
 	 * 400: Invalid revision
 	 * 401: Authentication required
-	 * 403: System administrator required
+	 * 403: Administrator not delegated for this connection scope
 	 * 404: Integration not found or experimental features disabled
 	 * 409: Stale revision
 	 * 500: Internal error
