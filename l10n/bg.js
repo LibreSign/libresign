@@ -380,7 +380,6 @@ OC.L10N.register(
     "Sign »%s«" : "Подпис »%s«",
     "LibreSign: There is a file for you to sign" : "LibreSign: Има файл, който трябва да подпишете",
     "LibreSign: Code to sign file" : "LibreSign: Код за подписване на файл",
-    "No signature was requested to %s" : "Не беше поискан подпис на %s",
     "Underline" : "Подчертаване",
     "User" : "Потребител",
     "Choose the file to request signatures." : "Изберете файла, за да поискате подписи.",

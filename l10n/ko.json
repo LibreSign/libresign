@@ -343,7 +343,6 @@
     "Sign »%s«" : "»%s« 사인하기",
     "LibreSign: There is a file for you to sign" : "LibreSign: 당신이 서명할 파일이 있습니다.",
     "LibreSign: Code to sign file" : "LibreSign: 파일에 서명할 코드",
-    "No signature was requested to %s" : "%s에 서명이 요청되지 않았습니다.",
     "Underline" : "밑줄",
     "User" : "사용자",
     "Choose the file to request signatures." : "서명을 요청할 파일을 선택하십시오.",

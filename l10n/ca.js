@@ -387,7 +387,6 @@ OC.L10N.register(
     "Sign »%s«" : "Signar »%s«",
     "LibreSign: There is a file for you to sign" : "LibreSign: hi ha un fitxer per signar",
     "LibreSign: Code to sign file" : "LibreSign: codi per signar el fitxer",
-    "No signature was requested to %s" : "No s'ha sol·licitat cap signatura a %s",
     "Underline" : "Subratllat",
     "User" : "Usuari",
     "Choose the file to request signatures." : "Trieu el fitxer per sol·licitar signatures.",
