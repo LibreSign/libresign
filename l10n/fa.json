@@ -905,7 +905,6 @@
     "Invalid id-doc request" : "درخواست id-doc نامعتبر است",
     "Notification sent with success." : "اعلان با موفقیت ارسال شد",
     "From: %s • Date: %s" : "از: %s • تاریخ: %s",
-    "Failure on generate certificate" : "خطا در تولید گواهی.",
     "Cannot read file" : "امکان خواندن فایل وجود ندارد",
     "visible element" : "عنصر قابل مشاهده",
     "You are not allowed to request signing" : "شما مجاز به درخواست امضا نیستید",
@@ -913,7 +912,6 @@
     "Changes have been made in a file that you have to sign. Access the link below:" : "تغییراتی در فایلی که باید امضا کنید اعمال شده است. از لینک زیر وارد شوید:",
     "LibreSign: A file has been signed" : "لیبرساین: یک فایل امضا شده است",
     "Changes have been made in a file that you have to sign." : "تغییراتی در فایلی که باید امضا کنید اعمال شده است",
-    "Parameter '%s' should be betweeen %s and %s." : "پارامتر '%s' باید بین %s و %s باشد",
     "You cannot request signature for this document, please contact your administrator" : "امکان درخواست امضا برای این سند وجود ندارد، لطفاً با مدیر خود تماس بگیرید",
     "Link expired." : "لینک منقضی شده است",
     "LibreSign: Changes into a file for you to sign" : "LibreSign: تغییرات در فایلی برای امضای شما",
@@ -922,7 +920,6 @@
     "LibreSign: There is a file for you to sign" : "LibreSign: یک فایل برای امضای شما وجود دارد",
     "View signed file »%s«" : "مشاهده فایل امضا شده »%s«",
     "LibreSign: Code to sign file" : "LibreSign: کد امضای فایل",
-    "No signature was requested to %s" : "هیچ درخواست امضایی برای %s ارسال نشده است",
     "Date when the signer sent the request to sign (without time, in their local time zone)." : "تاریخی که امضاکننده درخواست امضا را ارسال کرده (بدون زمان، به وقت محلی خود).",
     "Date and time when the signer sent the request to sign (in their local time zone)." : "تاریخ و زمانی که امضاکننده درخواست امضا را ارسال کرده (به وقت محلی خود).",
     "Time zone of signer when sent the request to sign (in their local time zone)." : "منطقه زمانی امضاکننده هنگام ارسال درخواست امضا (به وقت محلی خود).",
@@ -1015,7 +1012,6 @@
     "Timestamp Authority (TSA) settings for digitally signing documents." : "تنظیمات مرجع زمان‌سنج (TSA) برای امضای دیجیتال اسناد.",
     "Make validation URL acessible only by authenticated users" : "دسترسی به آدرس URL اعتبارسنجی فقط برای کاربران احراز هویت شده",
     "{method} is not configured. Please contact your administrator." : "{method} پیکربندی نشده است. لطفاً با مدیر خود تماس بگیرید.",
-    "Sign the document." : "سند را امضا کنید.",
-    "Failed to remove file(s) from envelope" : "حذف فایل(ها) از پاکت ناموفق بود"
+    "Sign the document." : "سند را امضا کنید."
 },"pluralForm" :"nplurals=2; plural=(n > 1);"
 }
