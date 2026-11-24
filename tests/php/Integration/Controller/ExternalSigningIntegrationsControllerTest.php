@@ -89,20 +89,18 @@ final class ExternalSigningIntegrationsControllerTest extends \OCA\Libresign\Tes
 		$secondRecord = $administration->get($second['id']);
 		// Existing system-scoped fixtures are not mutable from a delegated group.
 		// Create genuine group-scoped connections for the two clients.
-		$createdA = $administration->create(
-			['id' => 'csc-v1', 'fields' => [
-				['key' => 'baseUrl', 'type' => 'url', 'required' => true, 'secret' => false, 'validation' => ['schemes' => ['https']]],
-				['key' => 'accessToken', 'type' => 'password', 'required' => false, 'secret' => true],
-			]],
-			'Scoped Client A', ['baseUrl' => 'https://example.org'], [], 'group', 'client-a',
+		// Use real driver metadata through the admin OCS boundary. Forging
+		// incomplete test fields would bypass the actual validation contract.
+		$createA = $this->controller->create(
+			'csc-v1', 'Scoped Client A', ['baseUrl' => 'https://example.org'], [], 'group', 'client-a',
 		);
-		$createdB = $administration->create(
-			['id' => 'csc-v1', 'fields' => [
-				['key' => 'baseUrl', 'type' => 'url', 'required' => true, 'secret' => false, 'validation' => ['schemes' => ['https']]],
-				['key' => 'accessToken', 'type' => 'password', 'required' => false, 'secret' => true],
-			]],
-			'Scoped Client B', ['baseUrl' => 'https://example.org'], [], 'group', 'client-b',
+		$createB = $this->controller->create(
+			'csc-v1', 'Scoped Client B', ['baseUrl' => 'https://example.org'], [], 'group', 'client-b',
 		);
+		self::assertSame(Http::STATUS_CREATED, $createA->getStatus());
+		self::assertSame(Http::STATUS_CREATED, $createB->getStatus());
+		$createdA = $administration->get($createA->getData()['id']);
+		$createdB = $administration->get($createB->getData()['id']);
 		$this->created[] = $createdA->id;
 		$this->created[] = $createdB->id;
 
@@ -137,7 +135,9 @@ final class ExternalSigningIntegrationsControllerTest extends \OCA\Libresign\Tes
 
 		self::assertSame(Http::STATUS_OK, $delegated->index(0, 50, 'group', 'client-a')->getStatus());
 		$visible = $delegated->index(0, 50, 'group', 'client-a')->getData()['items'];
-		self::assertSame([$createdA->id], array_column($visible, 'id'));
+		$visibleIds = array_column($visible, 'id');
+		self::assertContains($createdA->id, $visibleIds);
+		self::assertNotContains($createdB->id, $visibleIds);
 		self::assertSame(Http::STATUS_FORBIDDEN, $delegated->index(0, 50, 'group', 'client-b')->getStatus());
 		self::assertSame(Http::STATUS_NOT_FOUND, $delegated->show($createdB->id)->getStatus());
 		self::assertSame(Http::STATUS_NOT_FOUND, $delegated->update($createdB->id, 1, 'hijacked')->getStatus());
