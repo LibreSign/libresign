@@ -9,6 +9,7 @@ declare(strict_types=1);
 namespace OCA\Libresign\Service\Signing;
 
 use OCA\Libresign\Service\Signature\ExternalPdfSigningService;
+use OCA\Libresign\Service\Signing\Provider\Drivers\Csc\CscCredentialEligibility;
 use OCA\Libresign\Service\Signing\Provider\Drivers\Csc\CscDriver;
 use OCA\Libresign\Service\Signing\Provider\Drivers\Csc\CscIntegration;
 use SignerPHP\PdfSigner\Application\DTO\HashAlgorithm;
@@ -208,18 +209,7 @@ final class SyntheticCscSigningOperation {
 		if (count($available) !== 1 || !hash_equals($credentialId, $available[0]->identifier)) {
 			throw new \DomainException('CSC laboratory credential is not eligible');
 		}
-		$parsed = openssl_x509_parse($available[0]->certificate->certificatePem);
-		$time = time();
-		if (!is_array($parsed)
-			|| ($parsed['validFrom_time_t'] ?? PHP_INT_MAX) > $time
-			|| ($parsed['validTo_time_t'] ?? 0) <= $time) {
-			throw new \DomainException('CSC laboratory credential certificate is not currently valid');
-		}
-		$usage = $parsed['extensions']['keyUsage'] ?? '';
-		if (!is_string($usage) || ($usage !== '' && !str_contains($usage, 'Digital Signature')
-			&& !str_contains($usage, 'Non Repudiation'))) {
-			throw new \DomainException('CSC laboratory credential cannot sign documents');
-		}
+		(new CscCredentialEligibility())->describe($available[0]);
 		return $available[0];
 	}
 
