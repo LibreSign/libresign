@@ -75,8 +75,9 @@ final class ExternalSigningWorkflowController extends AEnvironmentAwareOCSContro
 		return $this->execute(function () use ($uuid, $method, $identifyValue, $token, $integrationId): array {
 			$result = $this->workflow->availability($uuid, $method, $identifyValue, $token, $integrationId);
 			$result['session'] = $this->publicSession($result['session']);
+			/** @var LibresignExternalSigningAvailabilityResponse $result */
 			return $result;
-		});
+		}, false);
 	}
 
 	/**
@@ -111,7 +112,7 @@ final class ExternalSigningWorkflowController extends AEnvironmentAwareOCSContro
 		return $this->execute(fn (): array => ['session' => $this->publicSession(
 			$this->workflow->start($uuid, $method, $identifyValue, $token,
 				$integrationId, $credentialId, $attemptId, $profile),
-		)]);
+		)], false);
 	}
 
 	/**
@@ -144,7 +145,12 @@ final class ExternalSigningWorkflowController extends AEnvironmentAwareOCSContro
 		#[\SensitiveParameter] string $token, string $sessionId): DataResponse {
 		return $this->execute(function () use ($uuid, $method, $identifyValue, $token, $sessionId): array {
 			$result = $this->workflow->continue($uuid, $method, $identifyValue, $token, $sessionId);
-			$result['session'] = $this->publicSession($result['session']);
+			$publicSession = $this->publicSession($result['session']);
+			if ($publicSession === null) {
+				throw new \DomainException('External signing session metadata is missing');
+			}
+			$result['session'] = $publicSession;
+			/** @var LibresignExternalSigningContinueResponse $result */
 			return $result;
 		}, true);
 	}
@@ -176,7 +182,7 @@ final class ExternalSigningWorkflowController extends AEnvironmentAwareOCSContro
 	public function status(string $uuid, string $method, string $identifyValue, #[\SensitiveParameter] string $token): DataResponse {
 		return $this->execute(fn (): array => ['session' => $this->publicSession(
 			$this->workflow->status($uuid, $method, $identifyValue, $token),
-		)]);
+		)], false);
 	}
 
 	/**
@@ -200,8 +206,14 @@ final class ExternalSigningWorkflowController extends AEnvironmentAwareOCSContro
 		];
 	}
 
-	/** @param callable():array<string, mixed> $operation */
-	private function execute(callable $operation, bool $mayBePending = false): DataResponse {
+	/**
+	 * @template TData of array<string, mixed>
+	 * @template TAllowAccepted of bool
+	 * @param callable():TData $operation
+	 * @param TAllowAccepted $mayBePending
+	 * @return DataResponse<(TAllowAccepted is true ? Http::STATUS_OK|Http::STATUS_ACCEPTED : Http::STATUS_OK), TData, array{}>|DataResponse<Http::STATUS_FORBIDDEN|Http::STATUS_NOT_FOUND|Http::STATUS_BAD_REQUEST|Http::STATUS_CONFLICT|Http::STATUS_INTERNAL_SERVER_ERROR, LibresignErrorResponse, array{}>
+	 */
+	private function execute(callable $operation, bool $mayBePending): DataResponse {
 		if ($this->userSession->getUser() !== null && !$this->request->passesCSRFCheck()) {
 			return new DataResponse(['error' => 'External signing authorization required'], Http::STATUS_FORBIDDEN);
 		}

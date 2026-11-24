@@ -86,9 +86,10 @@ final class ExternalSigningLaboratoryFactory {
 			|| !is_string($integration->configuration['baseUrl'])) {
 			throw new \DomainException('No eligible configured synthetic signing laboratory');
 		}
+		$configuration = ['baseUrl' => $integration->configuration['baseUrl']];
 		$laboratory = CscIntegration::fromConfiguredSyntheticLab(
-			$this->clientService, $this->systemConfig, $integration->configuration);
-		$laboratory->assertSyntheticLaboratory($integration->configuration['baseUrl']);
+			$this->clientService, $this->systemConfig, $configuration);
+		$laboratory->assertSyntheticLaboratory($configuration['baseUrl']);
 		return ['record' => $integration, 'laboratory' => $laboratory];
 	}
 }
