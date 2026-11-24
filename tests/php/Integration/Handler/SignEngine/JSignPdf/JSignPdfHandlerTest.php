@@ -826,8 +826,8 @@ final class JSignPdfHandlerTest extends \OCA\Libresign\Tests\Integration\AppData
 		$control = $this->signDocument($this->getInstance(), DocMdpLevel::NOT_CERTIFIED, $secondVisible);
 
 		$this->assertStringContainsString("'--certification-level=" . DocMdpLevel::CERTIFIED_NO_CHANGES_ALLOWED->name . "'", $certified[0]);
-		$this->assertStringNotContainsString("--certification-level", $control[0]);
-		$this->assertStringNotContainsString("--certification-level", $uncertified[0]);
+		$this->assertStringNotContainsString('--certification-level', $control[0]);
+		$this->assertStringNotContainsString('--certification-level', $uncertified[0]);
 	}
 
 	public static function providerAReusedHandlerDoesNotCertifyAnUncertifiedDocument(): array {
@@ -1371,7 +1371,7 @@ final class JSignPdfHandlerTest extends \OCA\Libresign\Tests\Integration\AppData
 
 		$this->assertCount(2, $paramsSeen);
 		$this->assertStringContainsString("'--certification-level=" . DocMdpLevel::CERTIFIED_FORM_FILLING_AND_ANNOTATIONS->name . "'", $paramsSeen[0]);
-		$this->assertStringNotContainsString("--certification-level", $paramsSeen[1]);
+		$this->assertStringNotContainsString('--certification-level', $paramsSeen[1]);
 	}
 
 	public static function providerCertificationLevelWithoutVisibleElements(): array {
