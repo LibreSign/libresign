@@ -172,6 +172,7 @@ class SignatureStampPreviewNativeService {
 			) {
 			}
 
+			#[\Override]
 			public function embed(string $source): EmbeddedPdfImage {
 				return $this->images[$source] ?? throw new \InvalidArgumentException('Unknown preview image.');
 			}
