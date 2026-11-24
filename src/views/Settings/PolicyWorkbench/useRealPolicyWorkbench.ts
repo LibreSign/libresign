@@ -219,7 +219,14 @@ export function createRealPolicyWorkbenchState() {
 	const groups = ref<PolicyTargetOption[]>([])
 	const users = ref<PolicyTargetOption[]>([])
 	const canManageGroups = ref<boolean | null>(null)
-	const loadingTargets = ref(false)
+	const targetRequestSequence = { group: 0, user: 0 }
+	const targetLoadingByScope = reactive({ group: false, user: false })
+	const loadingTargets = computed(() => {
+		const scope = editorDraft.value?.scope
+		return scope === 'group' || scope === 'user'
+			? targetLoadingByScope[scope]
+			: false
+	})
 	const rulesLoading = ref(false)
 	const hydratePersistedRulesRequestId = ref(0)
 	const editorInitialSnapshot = ref('')
@@ -1128,20 +1135,27 @@ export function createRealPolicyWorkbenchState() {
 	}
 
 	async function loadTargets(scope: 'group' | 'user', query = '', includeAll = false) {
-		loadingTargets.value = true
+		// Preloads and interactive searches can overlap. Only the most recent
+		// request for each scope may update options or clear its loading state.
+		const requestId = ++targetRequestSequence[scope]
+		targetLoadingByScope[scope] = true
 		try {
 			if (scope === 'group') {
 				const fetchedGroups = includeAll && query === ''
 					? await fetchAllTargets('group')
 					: await fetchGroups(query)
-				groups.value = mergeSelectedTargets('group', fetchedGroups)
+				if (requestId === targetRequestSequence[scope]) {
+					groups.value = mergeSelectedTargets('group', fetchedGroups)
+				}
 				return
 			}
 
 			const fetchedUsers = includeAll && query === ''
 				? await fetchAllTargets('user')
 				: await fetchUsers(query)
-			users.value = mergeSelectedTargets('user', fetchedUsers)
+			if (requestId === targetRequestSequence[scope]) {
+				users.value = mergeSelectedTargets('user', fetchedUsers)
+			}
 		} catch (error) {
 			logger.debug('Could not load policy workbench targets', {
 				error,
@@ -1149,7 +1163,9 @@ export function createRealPolicyWorkbenchState() {
 				query,
 			})
 		} finally {
-			loadingTargets.value = false
+			if (requestId === targetRequestSequence[scope]) {
+				targetLoadingByScope[scope] = false
+			}
 		}
 	}
 
