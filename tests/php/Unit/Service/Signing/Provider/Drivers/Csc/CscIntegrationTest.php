@@ -9,7 +9,9 @@ declare(strict_types=1);
 namespace OCA\Libresign\Tests\Unit\Service\Signing\Provider\Drivers\Csc;
 
 use OCA\Libresign\Service\Signing\Provider\Drivers\Csc\CscIntegration;
+use OCP\Http\Client\IClient;
 use OCP\Http\Client\IClientService;
+use OCP\Http\Client\IResponse;
 use OCP\IConfig;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
@@ -166,6 +168,86 @@ final class CscIntegrationTest extends TestCase {
 		}
 		$this->expectException(\LogicException::class);
 		$adapter->sign(self::payload(), $cert);
+	}
+
+	private function pinnedConfig(string $baseUrl, string $fingerprint): IConfig {
+		$config = $this->config();
+		$config->method('getSystemValueString')->willReturnCallback(static fn (string $key, string $default = ''): string => match ($key) {
+			'libresign_csc_synthetic_lab_url' => $baseUrl,
+			'libresign_csc_synthetic_lab_certificate_sha256' => $fingerprint,
+			default => $default,
+		});
+		return $config;
+	}
+
+	public function testConfiguredLaboratoryMustBePinnedByServerOperator(): void {
+		$service = $this->createMock(IClientService::class);
+		$service->expects($this->never())->method('newClient');
+		$this->expectException(\DomainException::class);
+		CscIntegration::fromConfiguredSyntheticLab($service, $this->config(),
+			['baseUrl' => 'https://csc.example.org']);
+	}
+
+	public function testConfiguredLaboratoryRejectsEndpointSubstitution(): void {
+		$service = $this->createMock(IClientService::class);
+		$service->expects($this->never())->method('newClient');
+		$this->expectException(\DomainException::class);
+		CscIntegration::fromConfiguredSyntheticLab($service,
+			$this->pinnedConfig('https://csc.example.org', str_repeat('a', 64)),
+			['baseUrl' => 'https://evil.example.org']);
+	}
+
+	public function testConfiguredLaboratoryRejectsInvalidCertificatePin(): void {
+		$service = $this->createMock(IClientService::class);
+		$service->expects($this->never())->method('newClient');
+		$this->expectException(\DomainException::class);
+		CscIntegration::fromConfiguredSyntheticLab($service,
+			$this->pinnedConfig('https://csc.example.org', 'invalid'),
+			['baseUrl' => 'https://csc.example.org']);
+	}
+
+	public function testConfiguredLabAllowsOnlyPinnedCertificateAndUsesTokenlessSsrfSafeTransport(): void {
+		[$pem, $key] = self::syntheticCert();
+		[$other] = self::syntheticCert();
+		$allowedHash = openssl_x509_fingerprint($pem, 'sha256');
+		$this->assertIsString($allowedHash);
+		$client = $this->createMock(IClient::class);
+		$requests = [];
+		$client->method('post')->willReturnCallback(function (string $url, array $options) use ($pem, $other, $key, &$requests): IResponse {
+			$this->assertArrayNotHasKey('Authorization', $options['headers']);
+			$this->assertFalse($options['allow_redirects']);
+			$this->assertFalse($options['nextcloud']['allow_local_address']);
+			$this->assertTrue($options['verify']);
+			$operation = substr((string)parse_url($url, PHP_URL_PATH), strlen('/csc/v1/'));
+			$payload = json_decode($options['body'], true, flags: JSON_THROW_ON_ERROR);
+			$requests[] = $operation;
+			$info = match ($operation) {
+				'info' => ['specs' => '1.0.4.0'],
+				'credentials/list' => ['credentialIDs' => ['synthetic', 'other']],
+				'credentials/info' => self::credentialInfo(($payload['credentialID'] ?? '') === 'other' ? $other : $pem),
+				'credentials/authorize' => ['SAD' => 'pinned-operation-sad'],
+				'signatures/signHash' => self::signWithPrivateKey($payload, $key),
+				default => throw new \LogicException('Unexpected CSC operation'),
+			};
+			$response = $this->createMock(IResponse::class);
+			$response->method('getStatusCode')->willReturn(200);
+			$response->method('getBody')->willReturn(json_encode($info, JSON_THROW_ON_ERROR));
+			return $response;
+		});
+		$service = $this->createMock(IClientService::class);
+		$service->method('newClient')->willReturn($client);
+		$adapter = CscIntegration::fromConfiguredSyntheticLab($service,
+			$this->pinnedConfig('https://csc.example.org', $allowedHash),
+			['baseUrl' => 'https://csc.example.org']);
+		$adapter->assertSyntheticLaboratory('https://csc.example.org');
+		$certificates = $adapter->certificates();
+		$this->assertCount(1, $certificates);
+		$this->assertSame('synthetic', $certificates[0]->identifier);
+		$this->assertNotSame('', $adapter->sign(self::payload(), $certificates[0])->bytes);
+		$this->assertContains('credentials/authorize', $requests);
+		$this->assertContains('signatures/signHash', $requests);
+		$this->expectException(\DomainException::class);
+		$adapter->sign(self::payload(), new RemoteCertificate('other', new SigningCertificateDto($other)));
 	}
 
 	private function config(): IConfig {

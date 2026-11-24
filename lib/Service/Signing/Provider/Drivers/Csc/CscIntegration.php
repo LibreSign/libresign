@@ -35,6 +35,7 @@ final class CscIntegration implements RemoteCertificateDiscoveryInterface, Remot
 		private readonly CscClient $client,
 		private readonly bool $syntheticLab,
 		private readonly ?string $syntheticLabEndpoint = null,
+		private readonly ?string $syntheticCertificateSha256 = null,
 	) {
 	}
 
@@ -64,6 +65,36 @@ final class CscIntegration implements RemoteCertificateDiscoveryInterface, Remot
 	}
 
 	/**
+	 * Operationally pinned synthetic CSC laboratory. The administrator may
+	 * configure a public HTTPS CSC instance, but a server operator MUST also
+	 * pin both its exact endpoint and the test certificate SHA-256 fingerprint
+	 * in the Nextcloud system configuration. A configured administrator token
+	 * cannot authorize this factory and is never accepted here.
+	 *
+	 * This opt-in is not proof of personal signer authentication, certificate
+	 * qualification or trust in production CSC providers.
+	 *
+	 * @param array{baseUrl: string} $configuration
+	 */
+	public static function fromConfiguredSyntheticLab(
+		IClientService $clientService,
+		IConfig $systemConfig,
+		array $configuration,
+	): self {
+		// Reuse all Nextcloud SSRF, public HTTPS, DNS pinning and redirect
+		// restrictions of the normal configured CSC transport.
+		$normal = self::fromConfiguredInstance($clientService, $systemConfig, $configuration);
+		$baseUrl = self::validatedEndpoint($configuration, false);
+		$pinnedUrl = $systemConfig->getSystemValueString('libresign_csc_synthetic_lab_url', '');
+		$fingerprint = $systemConfig->getSystemValueString('libresign_csc_synthetic_lab_certificate_sha256', '');
+		if ($pinnedUrl === '' || !hash_equals($pinnedUrl, $baseUrl)
+			|| preg_match('/^[a-f0-9]{64}$/D', $fingerprint) !== 1) {
+			throw new \DomainException('CSC synthetic laboratory endpoint or certificate is not pinned by the server operator');
+		}
+		return new self($normal->client, true, $baseUrl, $fingerprint);
+	}
+
+	/**
 	 * Opt-in test fixture only. The endpoint must be HTTP loopback and must
 	 * expose exclusively synthetic test certificates. Never route user requests
 	 * or administrator-managed personal credentials through this factory.
@@ -89,7 +120,12 @@ final class CscIntegration implements RemoteCertificateDiscoveryInterface, Remot
 	/** @return list<RemoteCertificate> */
 	#[\Override]
 	public function certificates(?string $identifier = null): array {
-		return (new CscCertificateDiscovery($this->client))->certificates($identifier);
+		$certificates = (new CscCertificateDiscovery($this->client))->certificates($identifier);
+		if ($this->syntheticCertificateSha256 === null) {
+			return $certificates;
+		}
+		return array_values(array_filter($certificates,
+			fn (RemoteCertificate $certificate): bool => $this->hasPinnedSyntheticCertificate($certificate)));
 	}
 
 	/**
@@ -103,12 +139,23 @@ final class CscIntegration implements RemoteCertificateDiscoveryInterface, Remot
 		if (!$this->syntheticLab) {
 			throw new \LogicException('CSC personal signing requires verified signer-bound authorization.');
 		}
+		if ($this->syntheticCertificateSha256 !== null && !$this->hasPinnedSyntheticCertificate($certificate)) {
+			throw new \DomainException('CSC credential certificate does not match the pinned synthetic laboratory');
+		}
 		if ($this->signAttempted) {
 			throw new \LogicException('CSC signing was already attempted; reconcile the outcome before any resubmission.');
 		}
 		$this->signAttempted = true;
 
 		return (new CscSignatureProvider($this->client))->sign($payload, $certificate);
+	}
+
+	private function hasPinnedSyntheticCertificate(RemoteCertificate $certificate): bool {
+		if ($this->syntheticCertificateSha256 === null) {
+			return false;
+		}
+		$fingerprint = @openssl_x509_fingerprint($certificate->certificate->certificatePem, 'sha256');
+		return is_string($fingerprint) && hash_equals($this->syntheticCertificateSha256, strtolower($fingerprint));
 	}
 
 	/** @param array<string, mixed> $configuration */
