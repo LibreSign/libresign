@@ -10,7 +10,7 @@ import type { Locator, Page } from '@playwright/test'
 
 import { bootstrapLibreSignAdmin, ensureCatalogSettingCardVisible } from '../support/footer-policy-workbench'
 import { deleteUser, ensureUserExists } from '../support/nc-provisioning'
-import { clearPolicyWorkbenchRules } from '../support/policy-workbench-rules'
+import { createAuthenticatedRequestContext, setSystemPolicyEntry } from '../support/policy-api'
 
 test.describe.configure({ mode: 'serial', retries: 0, timeout: 90000 })
 
@@ -23,7 +23,13 @@ const ADMIN_USER = process.env.NEXTCLOUD_ADMIN_USER ?? 'admin'
 const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || process.env.NEXTCLOUD_ADMIN_PASSWORD || 'admin'
 
 test.afterEach(async ({ request }) => {
-	await deleteUser(request, TEST_USER_TARGET, ADMIN_USER, ADMIN_PASSWORD).catch(() => {})
+	const ctx = await createAuthenticatedRequestContext(ADMIN_USER, ADMIN_PASSWORD)
+	try {
+		await setSystemPolicyEntry(ctx, 'signature_flow', null, false)
+	} finally {
+		await ctx.dispose()
+		await deleteUser(request, TEST_USER_TARGET, ADMIN_USER, ADMIN_PASSWORD)
+	}
 })
 
 async function getActiveRuleDialog(page: Page): Promise<Locator> {
@@ -184,164 +190,64 @@ async function openRuleActions(dialog: Locator, scope: 'Instance' | 'Group' | 'U
 	return row
 }
 
-async function clickRuleMenuAction(dialog: Locator, actionName: 'Edit' | 'Remove'): Promise<boolean> {
-	const page = dialog.page()
-	const actionPattern = actionName === 'Remove'
-		? /^(Remove|Delete)$/i
-		: /^Edit$/i
-	const actionItem = page
-		.locator('.action-item:visible, [role="menuitem"]:visible, li.action:visible')
-		.filter({ hasText: actionPattern })
-		.first()
-
-	if (!(await actionItem.isVisible().catch(() => false))) {
-		return false
-	}
-
-	const clicked = await actionItem.click({ timeout: 1500 }).then(() => true).catch(() => false)
-	if (!clicked) {
-		return false
-	}
-
-	return true
+async function clickRuleMenuAction(dialog: Locator, actionName: 'Edit' | 'Remove') {
+	const menu = dialog.page().getByRole('menu', { name: 'Rule actions' })
+	await menu.getByRole('menuitem', { name: actionName, exact: true }).click()
 }
 
 async function editRule(dialog: Locator, scope: 'Instance' | 'Group' | 'User', targetLabel: string) {
-	for (let attempt = 0; attempt < 3; attempt += 1) {
-		await openRuleActions(dialog, scope, targetLabel)
-		if (await clickRuleMenuAction(dialog, 'Edit')) {
-			return
-		}
-		await dialog.page().waitForTimeout(200)
-	}
-
-	expect(false, 'Expected Edit action to be visible in rule menu').toBe(true)
+	await openRuleActions(dialog, scope, targetLabel)
+	await clickRuleMenuAction(dialog, 'Edit')
+	await expect(await getActiveRuleDialog(dialog.page())).toBeVisible()
 }
 
 async function removeRule(dialog: Locator, scope: 'Instance' | 'Group' | 'User', targetLabel: string) {
-	for (let attempt = 0; attempt < 3; attempt += 1) {
-		await openRuleActions(dialog, scope, targetLabel)
-		if (await clickRuleMenuAction(dialog, 'Remove')) {
-			const page = dialog.page()
-			const removeExceptionButton = page.getByRole('button', { name: removeExceptionButtonName }).first()
-			if (await removeExceptionButton.isVisible().catch(() => false)) {
-				await removeExceptionButton.click()
-			} else {
-				const removeExceptionText = page.getByText(/^Remove exception$/i).first()
-				if (await removeExceptionText.isVisible().catch(() => false)) {
-					await removeExceptionText.click()
-				}
-			}
-			await waitForEditorIdle(dialog)
-			await dialog.page().waitForTimeout(150)
-			return
-		}
-		await dialog.page().waitForTimeout(200)
-	}
-
-	expect(false, 'Expected Remove action to be visible in rule menu').toBe(true)
+	await openRuleActions(dialog, scope, targetLabel)
+	await clickRuleMenuAction(dialog, 'Remove')
+	const confirmation = dialog.page().getByRole('dialog', { name: 'Confirm rule removal' })
+	await confirmation.getByRole('button', { name: removeExceptionButtonName }).click()
+	await expect(confirmation).toBeHidden()
 }
 
-async function chooseTarget(dialog: Locator, ariaLabel: 'Target groups' | 'Target users', optionText: string) {
-	await waitForEditorIdle(dialog)
-	const page = dialog.page()
-	const activeDialog = await getActiveRuleDialog(page).catch(() => null)
-	const root = activeDialog ?? dialog
-	const labelPattern = ariaLabel === 'Target groups'
-		? /^(Scope groups|Target groups)$/i
-		: /^(Scope accounts|Target users)$/i
+async function chooseTarget(dialog: Locator, target: string) {
+	const root = await getActiveRuleDialog(dialog.page())
+	const picker = root.locator('.nc-select-users')
+	const input = picker.getByRole('combobox', { name: 'Scope accounts' })
+	await expect(input).toBeVisible({ timeout: 8000 })
 
-	const combobox = root.getByRole('combobox', { name: labelPattern }).first()
-	const labeledInput = root.getByLabel(labelPattern).first()
-	const targetInput = await combobox.count() ? combobox : labeledInput
-	const selectedTarget = root.locator('.vs__selected').filter({ hasText: new RegExp(optionText, 'i') }).first()
-	const submitButton = root.getByRole('button', {
-		name: /Create rule|Create policy rule|Save changes|Save policy rule changes|Save rule changes/i,
-	}).last()
+	const searchResponse = dialog.page().waitForResponse((response) => {
+		return response.url().includes('/cloud/users/details')
+			&& new URL(response.url()).searchParams.get('search') === target
+	})
+	await input.fill(target)
+	const response = await searchResponse
+	expect(response.ok()).toBe(true)
+	const result = await response.json() as { ocs?: { data?: { users?: Record<string, unknown> } } }
+	expect(result.ocs?.data?.users).toHaveProperty(target)
+	await expect(picker).not.toHaveClass(/vs--loading/)
+	await expect(input).toBeFocused()
+	await expect(input).toHaveAttribute('aria-expanded', 'true')
 
-	const isSelectionConfirmed = async () => {
-		if (await selectedTarget.isVisible({ timeout: 1000 }).catch(() => false)) {
-			return true
-		}
-		if (await submitButton.isVisible({ timeout: 1000 }).catch(() => false)) {
-			return submitButton.isEnabled().catch(() => false)
-		}
-		return false
-	}
-
-	await expect(targetInput).toBeVisible({ timeout: 8000 })
-	await targetInput.click()
-
-	if (await isSelectionConfirmed()) {
-		return
-	}
-
-	const searchInput = targetInput.locator('input, textarea, [contenteditable="true"]').first()
-	if (await searchInput.isVisible({ timeout: 1000 }).catch(() => false)) {
-		for (let attempt = 0; attempt < 3; attempt += 1) {
-			await searchInput.fill(optionText)
-
-			const matchingOption = page.getByRole('option', { name: new RegExp(optionText, 'i') }).first()
-			const matchingVisible = await matchingOption.waitFor({ state: 'visible', timeout: 3000 }).then(() => true).catch(() => false)
-			if (matchingVisible) {
-				await matchingOption.click()
-			} else {
-				const floatingOption = page.locator('ul[role="listbox"] li, .vs__dropdown-menu--floating li').filter({ hasText: new RegExp(optionText, 'i') }).first()
-				if (await floatingOption.isVisible({ timeout: 2000 }).catch(() => false)) {
-					await floatingOption.click()
-				} else {
-					await searchInput.press('ArrowDown')
-					await searchInput.press('Enter')
-				}
-			}
-
-			await page.keyboard.press('Escape').catch(() => {})
-			await searchInput.press('Tab').catch(() => {})
-			if (await isSelectionConfirmed()) {
-				break
-			}
-		}
-		await expect.poll(isSelectionConfirmed, { timeout: 8000 }).toBe(true)
-	} else {
-		await page.keyboard.type(optionText)
-		const matchingOption = page.getByRole('option', { name: new RegExp(optionText, 'i') }).first()
-		if (await matchingOption.waitFor({ state: 'visible', timeout: 3000 }).then(() => true).catch(() => false)) {
-			await matchingOption.click()
-		} else {
-			await page.keyboard.press('ArrowDown')
-			await page.keyboard.press('Enter')
-		}
-		await page.keyboard.press('Tab').catch(() => {})
-		await expect.poll(isSelectionConfirmed, { timeout: 8000 }).toBe(true)
-	}
+	const option = picker.getByRole('listbox').getByRole('option', { name: target })
+	await expect(option).toBeVisible()
+	await option.click()
+	await expect(picker.locator('.vs__selected')).toContainText(target)
+	await input.press('Tab')
+	await expect(root).toBeVisible()
 }
 
 async function resetSystemRuleToBaseline(dialog: Locator) {
 	await clearSystemSignatureFlowValue(dialog.page())
 }
 
-async function clearExistingRules(dialog: Locator) {
-	await clearPolicyWorkbenchRules(dialog, { maxRounds: 6 })
-
-	if (await dialog.getByText(/\(custom\)/i).first().isVisible().catch(() => false)) {
-		await resetSystemRuleToBaseline(dialog)
-	}
-
-	await expect(dialog).toBeVisible()
-}
-
 test('system default persists across edit cycles and can be reset to the system baseline', async ({ page }) => {
 	await bootstrapLibreSignAdmin(page)
+	await clearSystemSignatureFlowValue(page)
 
 	await page.goto('./settings/admin/libresign')
 
 	await openSigningOrderDialog(page)
 
-	const signingOrderDialog = await getSigningOrderDialog(page)
-	await clearExistingRules(signingOrderDialog)
-
-	await page.reload()
-	await openSigningOrderDialog(page)
 	const stableDialog = await getSigningOrderDialog(page)
 
 	await openSystemDefaultEditor(stableDialog)
@@ -369,15 +275,11 @@ test('admin can manage instance, group, and user rules when system default is fi
 	await ensureUserExists(page.request, userTarget)
 
 	await bootstrapLibreSignAdmin(page)
+	await clearSystemSignatureFlowValue(page)
 
 	await page.goto('./settings/admin/libresign')
 	await openSigningOrderDialog(page)
 
-	const dialog = await getSigningOrderDialog(page)
-	await clearExistingRules(dialog)
-
-	await page.reload()
-	await openSigningOrderDialog(page)
 	const stableDialog = await getSigningOrderDialog(page)
 
 	// Global rule: edit
@@ -386,62 +288,33 @@ test('admin can manage instance, group, and user rules when system default is fi
 	await submitSystemRuleAndWait(stableDialog)
 	expect(await getSystemSignatureFlowValue(page)).toBe('ordered_numeric')
 
+	// Exercise the interval before the nested modal activates its own focus trap.
+	await page.addStyleTag({ content: '.policy-workbench__rule-dialog.fade-enter-active { transition-duration: 1500ms !important; }' })
 	await stableDialog.getByRole('button', { name: 'Create rule' }).first().click()
 	const groupScopeOption = await getCreateScopeOption(stableDialog.page(), 'Group')
 	const userScopeOption = await getCreateScopeOption(stableDialog.page(), 'User')
-	const groupScopeEnabled = await groupScopeOption.isEnabled()
-	const userScopeEnabled = await userScopeOption.isEnabled()
-
-	if (!groupScopeEnabled || !userScopeEnabled) {
-		await expect(groupScopeOption).toBeDisabled()
-		await expect(userScopeOption).toBeDisabled()
-
-		const createRuleButton = stableDialog.getByRole('button', { name: /^Create rule$/i }).first()
-		if (await createRuleButton.isVisible().catch(() => false)) {
-			await expect(createRuleButton).toBeDisabled()
-		}
-
-		await resetSystemRuleToBaseline(stableDialog)
-		expect([null, 'none']).toContain(await getSystemSignatureFlowValue(page))
-		return
-	}
+	await expect(groupScopeOption).toBeEnabled()
+	await expect(userScopeOption).toBeEnabled()
 
 	// User rule: create
 	await userScopeOption.click()
-	const targetUsersCombobox = stableDialog.page().getByRole('combobox', { name: /^(Scope accounts|Target users)$/i }).first()
-	const targetUsersLabel = stableDialog.page().getByLabel(/^(Scope accounts|Target users)$/i).first()
-	const hasTargetUsersSelector = await targetUsersCombobox.isVisible({ timeout: 2000 }).catch(() => false)
-			|| await targetUsersLabel.isVisible({ timeout: 2000 }).catch(() => false)
-	if (!hasTargetUsersSelector) {
-		await resetSystemRuleToBaseline(stableDialog)
-		expect([null, 'none']).toContain(await getSystemSignatureFlowValue(page))
-		return
-	}
-	await chooseTarget(stableDialog, 'Target users', userTarget)
+	await chooseTarget(stableDialog, userTarget)
 	expect(await setSigningFlow(stableDialog, 'parallel'), 'Expected signing-flow radios in user editor').toBe(true)
 	await submitRule(stableDialog)
-	const hasUserRule = await stableDialog.getByText(new RegExp(userTarget, 'i')).first().isVisible({ timeout: 1500 }).catch(() => false)
-	if (!hasUserRule) {
-		await resetSystemRuleToBaseline(stableDialog)
-		expect([null, 'none']).toContain(await getSystemSignatureFlowValue(page))
-		return
-	}
-	await expect(stableDialog).toContainText(userTarget)
-	await expect(stableDialog).toContainText('Parallel')
+	await expect(getRuleRow(stableDialog, 'User', userTarget)).toContainText('Parallel', { timeout: 10000 })
+	await expect(page.getByRole('dialog', { name: ruleDialogName })).toHaveCount(0)
 
 	// User rule: edit
 	await editRule(stableDialog, 'User', userTarget)
 	expect(await setSigningFlow(stableDialog, 'ordered_numeric'), 'Expected signing-flow radios in user editor').toBe(true)
 	await submitRule(stableDialog)
-	await expect(stableDialog).toContainText(userTarget)
-	await expect(stableDialog).toContainText('Sequential')
+	await expect(getRuleRow(stableDialog, 'User', userTarget)).toContainText('Sequential')
 
 	await page.reload()
 	await openSigningOrderDialog(page)
 	const reloadedDialog = await getSigningOrderDialog(page)
 	expect(await getSystemSignatureFlowValue(page)).toBe('ordered_numeric')
-	await expect(reloadedDialog).toContainText(userTarget)
-	await expect(reloadedDialog).toContainText('Sequential')
+	await expect(getRuleRow(reloadedDialog, 'User', userTarget)).toContainText('Sequential')
 
 	// User rule: delete
 	await removeRule(reloadedDialog, 'User', userTarget)
