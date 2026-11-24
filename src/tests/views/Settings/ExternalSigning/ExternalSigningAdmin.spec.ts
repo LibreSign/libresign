@@ -73,7 +73,7 @@ describe('ExternalSigningAdmin', () => {
 		await flushPromises()
 
 		expect(wrapper.find('button').attributes('disabled')).toBeUndefined()
-		wrapper.findComponent(NcButton).vm.$emit('click')
+		await wrapper.find('.external-signing-admin__footer button').trigger('click')
 		await flushPromises()
 		expect(wrapper.findComponent(NcDialog).exists()).toBe(true)
 		expect(list).toHaveBeenCalledOnce()
@@ -93,22 +93,80 @@ describe('ExternalSigningAdmin', () => {
 		const remove = vi.fn().mockRejectedValue(new ExternalSigningAdminError(409))
 		const wrapper = mountAdmin({ adapter: { ...adapter, list: async () => [instance], remove } })
 		await flushPromises()
-		wrapper.findComponent(NcButton).vm.$emit('click')
+		await wrapper.find('.external-signing-admin__footer button').trigger('click')
 		await flushPromises()
-		const removeButton = wrapper.findAll('button').find(button => button.text().includes('Remove'))
+		await wrapper.findComponent({ name: 'NcActions' }).find('button').trigger('click')
+		await flushPromises()
+		const removeButton = wrapper.findAllComponents({ name: 'NcActionButton' }).find(button => button.text().includes('Remove'))
 		expect(removeButton).toBeDefined()
 		vi.stubGlobal('confirm', vi.fn().mockReturnValue(true))
 		try {
-			await removeButton!.trigger('click')
+			await removeButton!.find('button').trigger('click')
 			await flushPromises()
 			expect(remove).toHaveBeenCalledOnce()
 			expect(remove).toHaveBeenCalledWith(instance)
-			expect(wrapper.text()).toContain('unresolved signing sessions')
+			expect(document.body.textContent).toContain('unresolved signing sessions')
 			expect(wrapper.text()).not.toContain('Integration updated.')
 		} finally {
 			vi.unstubAllGlobals()
 			wrapper.unmount()
 		}
+	})
+
+	it('shows one accessible native action menu per integration and blocks unavailable drivers', async () => {
+		const instance = {
+			id: 'b'.repeat(32),
+			driverId: 'csc-v1',
+			name: 'Test CSC',
+			configuration: {},
+			enabled: false,
+			configuredSecretFields: [],
+			revision: 1,
+			driverAvailable: false,
+		}
+		const setEnabled = vi.fn()
+		const wrapper = mountAdmin({ adapter: { ...adapter, list: async () => [instance], setEnabled } })
+		await flushPromises()
+		await wrapper.find('.external-signing-admin__footer button').trigger('click')
+		await flushPromises()
+
+		const actions = wrapper.findComponent({ name: 'NcActions' })
+		expect(actions.props('ariaLabel')).toBe('Actions for Test CSC')
+		await actions.find('button').trigger('click')
+		await flushPromises()
+		const buttons = actions.findAllComponents({ name: 'NcActionButton' })
+		expect(buttons.map(button => button.text())).toEqual(['Edit', 'Enable', 'Remove'])
+		expect(buttons.map(button => button.findAllComponents({ name: 'NcIconSvgWrapper' }).length)).toEqual([1, 1, 1])
+		expect(buttons[1].props('disabled')).toBe(true)
+		await buttons[1].find('button').trigger('click')
+		expect(setEnabled).not.toHaveBeenCalled()
+	})
+
+	it('allows disabling an enabled integration from its action menu', async () => {
+		const instance = {
+			id: 'c'.repeat(32),
+			driverId: 'csc-v1',
+			name: 'Active CSC',
+			configuration: {},
+			enabled: true,
+			configuredSecretFields: [],
+			revision: 2,
+			driverAvailable: true,
+		}
+		const setEnabled = vi.fn().mockResolvedValue(undefined)
+		const wrapper = mountAdmin({ adapter: { ...adapter, list: async () => [instance], setEnabled } })
+		await flushPromises()
+		await wrapper.find('.external-signing-admin__footer button').trigger('click')
+		await flushPromises()
+
+		await wrapper.findComponent({ name: 'NcActions' }).find('button').trigger('click')
+		await flushPromises()
+		const disableButton = wrapper.findAllComponents({ name: 'NcActionButton' }).find(button => button.text().includes('Disable'))
+		expect(disableButton).toBeDefined()
+		await disableButton!.find('button').trigger('click')
+		await flushPromises()
+		expect(setEnabled).toHaveBeenCalledWith(instance, false)
+		expect(document.body.textContent).toContain('Integration updated.')
 	})
 
 	it('uses compact presentation without introducing policy semantics', async () => {

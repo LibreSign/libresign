@@ -61,15 +61,26 @@
 								<p>{{ driverById(instance.driverId)?.name ?? instance.driverId }} · {{ getInstanceStatusLabel(instance) }} · {{ getDriverStatusLabel(instance) }}</p>
 							</div>
 							<div class="external-signing-admin__actions">
-								<NcButton :disabled="busy" @click="edit(instance)">
-									{{ t('libresign', 'Edit') }}
-								</NcButton>
-								<NcButton :disabled="busy || (!instance.enabled && !isDriverAvailable(instance))" @click="toggle(instance)">
-									{{ getToggleLabel(instance) }}
-								</NcButton>
-								<NcButton :disabled="busy" @click="remove(instance)">
-									{{ t('libresign', 'Remove') }}
-								</NcButton>
+								<NcActions :aria-label="getActionsLabel(instance)">
+									<NcActionButton :disabled="busy" @click="edit(instance)">
+										<template #icon>
+											<NcIconSvgWrapper :path="mdiPencil" :size="20" />
+										</template>
+										{{ t('libresign', 'Edit') }}
+									</NcActionButton>
+									<NcActionButton :disabled="busy || (!instance.enabled && !isDriverAvailable(instance))" @click="toggle(instance)">
+										<template #icon>
+											<NcIconSvgWrapper :path="instance.enabled ? mdiPowerOff : mdiPower" :size="20" />
+										</template>
+										{{ getToggleLabel(instance) }}
+									</NcActionButton>
+									<NcActionButton :disabled="busy" @click="remove(instance)">
+										<template #icon>
+											<NcIconSvgWrapper :path="mdiDelete" :size="20" />
+										</template>
+										{{ t('libresign', 'Remove') }}
+									</NcActionButton>
+								</NcActions>
 							</div>
 						</li>
 					</ul>
@@ -112,11 +123,15 @@
 </template>
 
 <script setup lang="ts">
+import { mdiDelete, mdiPencil, mdiPower, mdiPowerOff } from '@mdi/js'
 import { computed, ref, watch } from 'vue'
 import { getCurrentUser } from '@nextcloud/auth'
 import { t } from '@nextcloud/l10n'
+import NcActionButton from '@nextcloud/vue/components/NcActionButton'
+import NcActions from '@nextcloud/vue/components/NcActions'
 import NcButton from '@nextcloud/vue/components/NcButton'
 import NcDialog from '@nextcloud/vue/components/NcDialog'
+import NcIconSvgWrapper from '@nextcloud/vue/components/NcIconSvgWrapper'
 import { fetchExternalSigningDrivers } from '../../../services/externalSigningAdmin'
 import { ExternalSigningAdminError } from '../../../services/externalSigningAdminOcs'
 import type { ExternalSigningAdminAdapter, ExternalSigningDriver, ExternalSigningInstance } from '../../../services/externalSigningAdmin'
@@ -180,6 +195,10 @@ function administrationErrorMessage(error: unknown): string {
 		// TRANSLATORS An external signing administration operation failed.
 		return t('libresign', 'The operation could not be completed. Refresh and try again.')
 	}
+}
+function getActionsLabel(instance: ExternalSigningInstance): string {
+	// TRANSLATORS Label for the actions menu of a configured external signing integration.
+	return t('libresign', 'Actions for {name}', { name: instance.name })
 }
 function getToggleLabel(instance: ExternalSigningInstance): string {
 	if (instance.enabled) {
@@ -393,8 +412,8 @@ if (getCurrentUser()?.isAdmin === true) {
 
 	&__actions {
 		display: flex;
-		flex-wrap: wrap;
-		gap: 6px;
+		align-items: center;
+		flex-shrink: 0;
 	}
 }
 
@@ -412,6 +431,10 @@ if (getCurrentUser()?.isAdmin === true) {
 		&__instances li {
 			align-items: stretch;
 			flex-direction: column;
+		}
+
+		&__actions {
+			align-self: flex-end;
 		}
 	}
 }
