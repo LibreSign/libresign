@@ -20,6 +20,7 @@ const expectedTopLevelKeys = [
 	'enable_observer_profile',
 	'signature_flow',
 	'envelope_enabled',
+	'external_signing_enabled',
 	'rejection_enabled',
 	'add_footer',
 	'signature_stamp',
