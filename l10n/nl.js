@@ -373,7 +373,6 @@ OC.L10N.register(
     "Sign »%s«" : "Onderteken »%s«",
     "LibreSign: There is a file for you to sign" : "LibreSign: Je kunt een document ondertekenen",
     "LibreSign: Code to sign file" : "LibreSign: Code om bestand te ondertekenen",
-    "No signature was requested to %s" : "Geen handtekening gevraagd %s",
     "Underline" : "Onderstrepen",
     "User" : "Gebruiker",
     "Choose the file to request signatures." : "Kies het bestand dat getekend moet worden.",

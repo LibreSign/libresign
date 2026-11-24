@@ -361,7 +361,6 @@ OC.L10N.register(
     "Sign »%s«" : "签署 »%s«",
     "LibreSign: There is a file for you to sign" : "LibreSign: 有一份文件要你签名",
     "LibreSign: Code to sign file" : "LibreSign：文件签名代码",
-    "No signature was requested to %s" : "没有发给 %s 的签名请求",
     "Underline" : "下划线",
     "User" : "用户",
     "Choose the file to request signatures." : "选择请求签名的文件",

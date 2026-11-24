@@ -406,7 +406,6 @@ OC.L10N.register(
     "Sign »%s«" : "Sinatu »%s«",
     "LibreSign: There is a file for you to sign" : "LibreSign: fitxategi bat dago zuk sinatzeko",
     "LibreSign: Code to sign file" : "LibreSign: fitxategia sinatzeko kodea",
-    "No signature was requested to %s" : "Ez da %s(e)rako sinadura eskatu",
     "Underline" : "Azpimarratu",
     "User" : "Erabiltzailea",
     "Choose the file to request signatures." : "Aukeratu fitxategia sinadurak eskatzeko.",
