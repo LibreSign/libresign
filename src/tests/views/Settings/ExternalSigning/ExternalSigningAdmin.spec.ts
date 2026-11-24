@@ -8,6 +8,7 @@ import { describe, expect, it, vi } from 'vitest'
 import NcButton from '@nextcloud/vue/components/NcButton'
 import NcDialog from '@nextcloud/vue/components/NcDialog'
 import ExternalSigningAdmin from '../../../../views/Settings/ExternalSigning/ExternalSigningAdmin.vue'
+import { ExternalSigningAdminError } from '../../../../services/externalSigningAdminOcs'
 import type { ExternalSigningAdminAdapter, ExternalSigningDriver } from '../../../../services/externalSigningAdmin'
 
 vi.mock('@nextcloud/l10n', () => globalThis.mockNextcloudL10n())
@@ -76,6 +77,38 @@ describe('ExternalSigningAdmin', () => {
 		await flushPromises()
 		expect(wrapper.findComponent(NcDialog).exists()).toBe(true)
 		expect(list).toHaveBeenCalledOnce()
+	})
+
+	it('reports unresolved signing sessions using the actual server conflict response', async () => {
+		const instance = {
+			id: 'a'.repeat(32),
+			driverId: 'csc-v1',
+			name: 'Synthetic CSC',
+			configuration: { baseUrl: 'https://csc.example.org' },
+			enabled: true,
+			configuredSecretFields: [],
+			revision: 3,
+			driverAvailable: true,
+		}
+		const remove = vi.fn().mockRejectedValue(new ExternalSigningAdminError(409))
+		const wrapper = mountAdmin({ adapter: { ...adapter, list: async () => [instance], remove } })
+		await flushPromises()
+		wrapper.findComponent(NcButton).vm.$emit('click')
+		await flushPromises()
+		const removeButton = wrapper.findAll('button').find(button => button.text().includes('Remove'))
+		expect(removeButton).toBeDefined()
+		const confirmation = vi.spyOn(window, 'confirm').mockReturnValue(true)
+		try {
+			await removeButton!.trigger('click')
+			await flushPromises()
+			expect(remove).toHaveBeenCalledOnce()
+			expect(remove).toHaveBeenCalledWith(instance)
+			expect(wrapper.text()).toContain('unresolved signing sessions')
+			expect(wrapper.text()).not.toContain('Integration updated.')
+		} finally {
+			confirmation.mockRestore()
+			wrapper.unmount()
+		}
 	})
 
 	it('uses compact presentation without introducing policy semantics', async () => {

@@ -59,9 +59,6 @@
 							<div>
 								<strong>{{ instance.name }}</strong>
 								<p>{{ driverById(instance.driverId)?.name ?? instance.driverId }} · {{ getInstanceStatusLabel(instance) }} · {{ getDriverStatusLabel(instance) }}</p>
-								<p v-if="instance.hasActiveSessions">
-									{{ t('libresign', 'An active signing session may restrict changes.') }}
-								</p>
 							</div>
 							<div class="external-signing-admin__actions">
 								<NcButton :disabled="busy" @click="edit(instance)">
@@ -70,7 +67,7 @@
 								<NcButton :disabled="busy || (!instance.enabled && !isDriverAvailable(instance))" @click="toggle(instance)">
 									{{ getToggleLabel(instance) }}
 								</NcButton>
-								<NcButton :disabled="busy || instance.hasActiveSessions" @click="remove(instance)">
+								<NcButton :disabled="busy" @click="remove(instance)">
 									{{ t('libresign', 'Remove') }}
 								</NcButton>
 							</div>
@@ -177,8 +174,8 @@ function administrationErrorMessage(error: unknown): string {
 		// TRANSLATORS The external signing integration or experimental feature is unavailable.
 		return t('libresign', 'The integration is unavailable. Refresh to check its status.')
 	case 409:
-		// TRANSLATORS Another administrator updated the external signing integration.
-		return t('libresign', 'This integration was changed. Refresh before trying again.')
+		// TRANSLATORS The integration was updated elsewhere or cannot change while remote signing sessions are unresolved.
+		return t('libresign', 'This integration was changed or has unresolved signing sessions. Refresh before trying again.')
 	default:
 		// TRANSLATORS An external signing administration operation failed.
 		return t('libresign', 'The operation could not be completed. Refresh and try again.')

@@ -37,7 +37,6 @@ export interface ExternalSigningInstance {
 	revision: number
 	hasSecrets?: boolean
 	driverAvailable?: boolean
-	hasActiveSessions?: boolean
 }
 
 export interface ExternalSigningDraft {
