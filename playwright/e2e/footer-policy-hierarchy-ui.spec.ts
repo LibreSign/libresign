@@ -169,10 +169,11 @@ async function openCreateRuleEditor(dialog: Locator, scopeName: 'Group' | 'User'
 
 async function selectTarget(dialogScope: Locator, kind: 'group' | 'user', target: string): Promise<void> {
 	const page = dialogScope.page()
-	const labelPattern = getTargetFieldPattern(kind)
-	const scopeLabel = dialogScope.locator('.policy-workbench__label').filter({ hasText: labelPattern }).first()
-	const searchInput = dialogScope.locator('.nc-select-users .vs__search input').first()
-	await expect(scopeLabel).toBeVisible({ timeout: 8000 })
+	const scopeLabel = kind === 'group' ? 'Scope groups' : 'Scope accounts'
+	await expect(dialogScope.getByText(scopeLabel, { exact: true })).toBeVisible()
+	const picker = dialogScope.locator('.nc-select-users')
+	const searchInput = picker.getByRole('combobox', { name: scopeLabel })
+	await expect(searchInput).toHaveCount(1)
 	await expect(searchInput).toBeVisible({ timeout: 8000 })
 
 	const searchEndpoint = kind === 'group' ? '/cloud/groups/details' : '/cloud/users/details'
@@ -186,18 +187,14 @@ async function selectTarget(dialogScope: Locator, kind: 'group' | 'user', target
 
 	const results = await response.json()
 	expect(JSON.stringify(results), `Search did not return ${kind} target ${target}`).toContain(target)
-	await searchInput.click()
-	const option = page.getByRole('option', { name: new RegExp(escapeRegExp(target), 'i') }).first()
-	await expect(option).toBeVisible({ timeout: 8000 })
-	const optionId = await option.getAttribute('id')
-	expect(optionId).toBeTruthy()
-	if (!await searchInput.getAttribute('aria-activedescendant')) {
-		await searchInput.press('ArrowDown')
-	}
-	await expect(searchInput).toHaveAttribute('aria-activedescendant', optionId!)
-	await searchInput.press('Enter')
 
-	await expect(dialogScope.getByText(target, { exact: true })).toBeVisible()
+	await expect(picker).not.toHaveClass(/vs--loading/, { timeout: 10000 })
+	await expect(searchInput).toBeFocused()
+	await expect(searchInput).toHaveAttribute('aria-expanded', 'true')
+	const option = picker.getByRole('listbox').getByRole('option', { name: new RegExp(escapeRegExp(target), 'i') }).first()
+	await expect(option).toBeVisible({ timeout: 10000 })
+	await option.click({ timeout: 10000 })
+	await expect(picker.locator('.vs__selected')).toContainText(target)
 }
 
 async function ensureSwitchEnabled(scope: Page | Locator, switchLabel: string): Promise<void> {

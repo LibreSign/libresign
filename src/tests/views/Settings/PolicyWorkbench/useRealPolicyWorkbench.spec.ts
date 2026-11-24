@@ -654,25 +654,6 @@ describe('useRealPolicyWorkbench', () => {
 		expect(state.availableTargets.map((target) => target.id)).toEqual(['new-user'])
 	})
 
-	it.each([
-		['group', 'cloud/groups/details'],
-		['user', 'cloud/users/details'],
-	] as const)('retains discovered %s targets when another search returns different options', async (scope, endpoint) => {
-		const state = createRealPolicyWorkbenchState()
-		state.openSetting('signature_flow')
-		state.startEditor({ scope: 'user' })
-		state.searchAvailableTargets('new-user')
-		await vi.waitFor(() => expect(state.availableTargets.map((target) => target.id)).toEqual(['new-user']))
-		expect(state.loadingTargets).toBe(false)
-
-		resolvePreload({ data: { ocs: { data: { users: {
-			oldUser: { id: 'old-user', displayname: 'Old User' },
-		} } } } })
-		await Promise.resolve()
-		await Promise.resolve()
-		expect(state.availableTargets.map((target) => target.id)).toEqual(['new-user'])
-	})
-
 	it('loads group targets using cloud/groups for group-admin without exception fallback', async () => {
 		currentUserState.isAdmin = false
 

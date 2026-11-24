@@ -140,6 +140,7 @@
 
 			<NcDialog
 				v-if="showCreateScopeDialog || state.editorDraft"
+				:id="ruleDialogId"
 				:key="ruleDialogInstanceKey"
 				:name="ruleDialogTitle"
 				:size="ruleEditorDialogSize"

@@ -215,69 +215,25 @@ async function chooseTarget(dialog: Locator, target: string) {
 	const input = picker.getByRole('combobox', { name: 'Scope accounts' })
 	await expect(input).toBeVisible({ timeout: 8000 })
 
-	const combobox = root.getByRole('combobox', { name: labelPattern }).first()
-	const labeledInput = root.getByLabel(labelPattern).first()
-	const targetInput = await combobox.count() ? combobox : labeledInput
-	const selectedTarget = root.locator('.vs__selected').filter({ hasText: new RegExp(optionText, 'i') }).first()
-	const submitButton = root.getByRole('button', {
-		name: /Create rule|Create policy rule|Save changes|Save policy rule changes|Save rule changes/i,
-	}).last()
+	const searchResponse = dialog.page().waitForResponse((response) => {
+		return response.url().includes('/cloud/users/details')
+			&& new URL(response.url()).searchParams.get('search') === target
+	})
+	await input.fill(target)
+	const response = await searchResponse
+	expect(response.ok()).toBe(true)
+	const result = await response.json() as { ocs?: { data?: { users?: Record<string, unknown> } } }
+	expect(result.ocs?.data?.users).toHaveProperty(target)
+	await expect(picker).not.toHaveClass(/vs--loading/)
+	await expect(input).toBeFocused()
+	await expect(input).toHaveAttribute('aria-expanded', 'true')
 
-	const isSelectionConfirmed = async () => {
-		if (await selectedTarget.isVisible({ timeout: 1000 }).catch(() => false)) {
-			return true
-		}
-		if (await submitButton.isVisible({ timeout: 1000 }).catch(() => false)) {
-			return submitButton.isEnabled().catch(() => false)
-		}
-		return false
-	}
-
-	await expect(targetInput).toBeVisible({ timeout: 8000 })
-	await targetInput.click()
-
-	if (await isSelectionConfirmed()) {
-		return
-	}
-
-	const searchInput = targetInput.locator('input, textarea, [contenteditable="true"]').first()
-	if (await searchInput.isVisible({ timeout: 1000 }).catch(() => false)) {
-		for (let attempt = 0; attempt < 3; attempt += 1) {
-			await searchInput.fill(optionText)
-
-			const matchingOption = page.getByRole('option', { name: new RegExp(optionText, 'i') }).first()
-			const matchingVisible = await matchingOption.waitFor({ state: 'visible', timeout: 3000 }).then(() => true).catch(() => false)
-			if (matchingVisible) {
-				await matchingOption.click()
-			} else {
-				const floatingOption = page.locator('ul[role="listbox"] li, .vs__dropdown-menu--floating li').filter({ hasText: new RegExp(optionText, 'i') }).first()
-				if (await floatingOption.isVisible({ timeout: 2000 }).catch(() => false)) {
-					await floatingOption.click()
-				} else {
-					await searchInput.press('ArrowDown')
-					await searchInput.press('Enter')
-				}
-			}
-
-			await page.keyboard.press('Escape').catch(() => {})
-			await searchInput.press('Tab').catch(() => {})
-			if (await isSelectionConfirmed()) {
-				break
-			}
-		}
-		await expect.poll(isSelectionConfirmed, { timeout: 8000 }).toBe(true)
-	} else {
-		await page.keyboard.type(optionText)
-		const matchingOption = page.getByRole('option', { name: new RegExp(optionText, 'i') }).first()
-		if (await matchingOption.waitFor({ state: 'visible', timeout: 3000 }).then(() => true).catch(() => false)) {
-			await matchingOption.click()
-		} else {
-			await page.keyboard.press('ArrowDown')
-			await page.keyboard.press('Enter')
-		}
-		await page.keyboard.press('Tab').catch(() => {})
-		await expect.poll(isSelectionConfirmed, { timeout: 8000 }).toBe(true)
-	}
+	const option = picker.getByRole('listbox').getByRole('option', { name: target })
+	await expect(option).toBeVisible()
+	await option.click()
+	await expect(picker.locator('.vs__selected')).toContainText(target)
+	await input.press('Tab')
+	await expect(root).toBeVisible()
 }
 
 async function resetSystemRuleToBaseline(dialog: Locator) {
@@ -342,16 +298,7 @@ test('admin can manage instance, group, and user rules when system default is fi
 
 	// User rule: create
 	await userScopeOption.click()
-	const targetUsersCombobox = stableDialog.page().getByRole('combobox', { name: /^(Scope accounts|Target users)$/i }).first()
-	const targetUsersLabel = stableDialog.page().getByLabel(/^(Scope accounts|Target users)$/i).first()
-	const hasTargetUsersSelector = await targetUsersCombobox.isVisible({ timeout: 2000 }).catch(() => false)
-			|| await targetUsersLabel.isVisible({ timeout: 2000 }).catch(() => false)
-	if (!hasTargetUsersSelector) {
-		await resetSystemRuleToBaseline(stableDialog)
-		expect([null, 'none']).toContain(await getSystemSignatureFlowValue(page))
-		return
-	}
-	await chooseTarget(stableDialog, 'Target users', userTarget)
+	await chooseTarget(stableDialog, userTarget)
 	expect(await setSigningFlow(stableDialog, 'parallel'), 'Expected signing-flow radios in user editor').toBe(true)
 	await submitRule(stableDialog)
 	await expect(getRuleRow(stableDialog, 'User', userTarget)).toContainText('Parallel', { timeout: 10000 })
