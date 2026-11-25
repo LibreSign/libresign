@@ -37,8 +37,9 @@ final class NextcloudHttpTransport implements HttpClientInterface {
 		bool $followRedirects = false,
 	): HttpResponse {
 		$this->assertSafeRequest($method, $timeoutSeconds, $followRedirects);
+		$httpHeaders = self::parseHeaders($headers);
 		$client = $this->clientService->newClient();
-		$response = $this->send($client, $url, $body, $timeoutSeconds, self::parseHeaders($headers));
+		$response = $this->send($client, $url, $body, $timeoutSeconds, $httpHeaders);
 
 		return $this->toResponse($response);
 	}
