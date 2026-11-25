@@ -11,7 +11,7 @@ namespace OCA\Libresign\Tests\Unit\Controller;
 use OCA\Libresign\Controller\ExternalSigningDriversController;
 use OCA\Libresign\Service\ExperimentalFeaturesService;
 use OCA\Libresign\Service\Policy\PolicyService;
-use OCA\Libresign\Service\Signing\ExternalSigningIntegrationScopeAccess;
+use OCA\Libresign\Service\Signing\External\IntegrationScopeAccess;
 use OCA\Libresign\Service\Signing\Provider\Drivers\Csc\CscDriver;
 use OCA\Libresign\Service\Signing\Provider\ExternalSigningDriverCatalog;
 use OCP\AppFramework\Http;
@@ -43,7 +43,7 @@ final class ExternalSigningDriversControllerTest extends TestCase {
 			$this->session,
 			$this->groups,
 			new ExternalSigningDriverCatalog($this->feature, new CscDriver($l10n)),
-			new ExternalSigningIntegrationScopeAccess(
+			new IntegrationScopeAccess(
 				$this->createMock(PolicyService::class), $this->groups,
 				$this->createMock(IUserManager::class), $this->session,
 				$this->createMock(ISubAdmin::class),

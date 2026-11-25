@@ -10,7 +10,7 @@ namespace OCA\Libresign\Controller;
 
 use OCA\Libresign\AppInfo\Application;
 use OCA\Libresign\ResponseDefinitions;
-use OCA\Libresign\Service\Signing\ExternalSigningIntegrationScopeAccess;
+use OCA\Libresign\Service\Signing\External\IntegrationScopeAccess;
 use OCA\Libresign\Service\Signing\Provider\ExternalSigningDriverCatalog;
 use OCP\AppFramework\Http;
 use OCP\AppFramework\Http\Attribute\ApiRoute;
@@ -31,7 +31,7 @@ final class ExternalSigningDriversController extends AEnvironmentAwareOCSControl
 		private IUserSession $userSession,
 		private IGroupManager $groupManager,
 		private ExternalSigningDriverCatalog $catalog,
-		private ExternalSigningIntegrationScopeAccess $scopeAccess,
+		private IntegrationScopeAccess $scopeAccess,
 	) {
 		parent::__construct(Application::APP_ID, $request);
 	}
