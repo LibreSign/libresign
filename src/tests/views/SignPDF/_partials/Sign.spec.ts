@@ -229,7 +229,7 @@ describe('Sign.vue approval labels and signing methods', () => {
 			} },
 		})
 		await flushPromises()
-		const externalButton = wrapper.findAll('button').find(button => button.text().includes('External signing'))
+		const externalButton = wrapper.findAll('button').find(button => button.text().trim() === 'External signing')
 		expect(Boolean(externalButton)).toBe(available)
 		if (externalButton) {
 			await externalButton.trigger('click')

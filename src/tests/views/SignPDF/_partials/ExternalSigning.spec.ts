@@ -6,6 +6,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { flushPromises, mount } from '@vue/test-utils'
 import axios from '@nextcloud/axios'
+import { getCurrentUser } from '@nextcloud/auth'
 
 import ExternalSigning from '../../../../views/SignPDF/_partials/ExternalSigning.vue'
 import {
@@ -64,6 +65,14 @@ async function authorize(wrapper: ReturnType<typeof mountSigner>) {
 }
 
 describe('external signing within the existing signer UI', () => {
+	it('labels identity options without naming the hosting platform', () => {
+		vi.mocked(getCurrentUser).mockReturnValueOnce({ uid: 'signed-in-user' } as ReturnType<typeof getCurrentUser>)
+		const wrapper = mountSigner()
+		expect(wrapper.text()).toContain('Use my account')
+		expect(wrapper.text()).toContain('Verify by email')
+		wrapper.unmount()
+	})
+
 	it('uses a neutral signing title without a development-status label', () => {
 		const wrapper = mountSigner()
 		expect(wrapper.text()).toContain('External signing')
