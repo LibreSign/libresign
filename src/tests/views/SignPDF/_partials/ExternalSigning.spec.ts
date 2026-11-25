@@ -227,4 +227,48 @@ describe('external signing within the existing signer UI', () => {
 		expect(wrapper.text()).not.toContain('Synthetic provider')
 		wrapper.unmount()
 	})
+
+	it.each([
+		{ change: 'bound email hash', props: { boundEmailHash: 'another-signer-hash' } },
+		{ change: 'identification method', props: { emailMethod: 'account' } },
+	])('invalidates cached signing authorization when the $change changes', async ({ props }) => {
+		vi.mocked(discoverExternalSigning).mockResolvedValue({
+			integrations, integration: null, credentials: [], syntheticOnly: true,
+			personalSignerAuthorization: false, session: null,
+		})
+		const wrapper = mountSigner()
+		await authorize(wrapper)
+		expect(wrapper.text()).toContain('Synthetic provider')
+		await wrapper.setProps(props)
+		expect(wrapper.text()).not.toContain('Synthetic provider')
+		expect(wrapper.text()).toContain('Find available signing providers')
+		wrapper.unmount()
+	})
+
+	it('ignores an obsolete signing status refresh after switching documents', async () => {
+		vi.mocked(discoverExternalSigning).mockResolvedValue({
+			integrations, integration: null, credentials: [], syntheticOnly: true,
+			personalSignerAuthorization: false, session: baseSession,
+		})
+		let finishOld!: (session: typeof baseSession) => void
+		vi.mocked(statusExternalSigning).mockImplementationOnce(() => new Promise(resolve => {
+			finishOld = resolve
+		}))
+		const wrapper = mountSigner()
+		await authorize(wrapper)
+		expect(wrapper.text()).toContain('Preparing the document')
+		const refresh = wrapper.findAll('button').find(button => button.text().includes('Check signing status'))
+		expect(refresh).toBeDefined()
+		await refresh!.trigger('click')
+		expect(statusExternalSigning).toHaveBeenCalledExactlyOnceWith({
+			uuid: 'request-one', method: 'email', identifyValue: 'guest@example.org', token: '123456',
+		})
+		await wrapper.setProps({ signRequestUuid: 'request-two' })
+		finishOld({ ...baseSession, status: 'completed' })
+		await flushPromises()
+		expect(wrapper.text()).not.toContain('Document signed successfully')
+		expect(wrapper.text()).not.toContain('Preparing the document')
+		expect(wrapper.emitted('signed')).toBeUndefined()
+		wrapper.unmount()
+	})
 })

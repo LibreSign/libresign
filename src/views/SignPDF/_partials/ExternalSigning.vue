@@ -247,7 +247,7 @@ function resetSigningContext() {
 	attemptId = ''
 }
 
-watch([() => props.signRequestUuid, identityMethod, emailAddress], () => {
+watch([() => props.signRequestUuid, () => props.emailMethod, () => props.boundEmailHash, identityMethod, emailAddress], () => {
 	resetSigningContext()
 	codeRequested.value = false
 	verificationCode.value = ''
