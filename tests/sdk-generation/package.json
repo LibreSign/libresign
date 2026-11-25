@@ -9,7 +9,8 @@
     "test:anyof": "tsc --noEmit --strict --skipLibCheck --target ES2020 --module commonjs --moduleResolution node anyof-defect.ts union-defects.ts",
     "test:live": "tsx live.ts",
     "test:nextcloud": "node nextcloud-import.mjs",
-    "test:normalized": "tsc --noEmit --strict --skipLibCheck --target ES2020 --module commonjs --moduleResolution node ../../build/sdk-generation/normalized/typescript/*.ts normalized-types.ts"
+    "test:normalized": "tsc --noEmit --strict --skipLibCheck --target ES2020 --module commonjs --moduleResolution node ../../build/sdk-generation/normalized/typescript/*.ts normalized-types.ts",
+    "test:policy-contract": "tsc --noEmit --strict --skipLibCheck --target ES2020 --module commonjs --moduleResolution node policy-value-contracts.ts"
   },
   "dependencies": {
     "@nextcloud/axios": "2.6.0",

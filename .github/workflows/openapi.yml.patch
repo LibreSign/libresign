@@ -9,12 +9,19 @@ diff --git a/.github/workflows/openapi.yml b/.github/workflows/openapi.yml
  
        - name: Get php version
          id: php_versions
-@@ -84,6 +85,9 @@
+@@ -83,6 +84,16 @@
        - name: Regenerate OpenAPI
          run: composer run openapi
  
 +      - name: Check OpenAPI functional tags
 +        run: vendor/bin/phpunit -c tests/php/openapi/phpunit.xml --no-coverage --fail-on-warning --fail-on-risky
++
++      # TODO(shared-workflow): Remove this local override once the shared OpenAPI
++      # workflow template runs the policy contract typecheck. Tracking: #9453
++      - name: Check policy value TypeScript contracts
++        run: |
++          npm ci --prefix tests/sdk-generation --ignore-scripts --no-audit --no-fund
++          npm run test:policy-contract --prefix tests/sdk-generation
 +
        - name: Check openapi*.json and typescript changes
          run: |

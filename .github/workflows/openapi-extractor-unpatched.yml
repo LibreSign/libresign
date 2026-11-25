@@ -1,0 +1,91 @@
+# SPDX-FileCopyrightText: 2026 LibreCode coop and contributors
+# SPDX-License-Identifier: AGPL-3.0-or-later
+
+# Detects when .patches/openapi-extractor-mixed-object.diff is obsolete.
+#
+# The regression tests are run against a pristine, unpatched install of the
+# newest allowed nextcloud/openapi-extractor. This job is red when:
+#   - the tests pass (the upstream release fixed the issue: remove the patch);
+#   - the installation or the test run itself breaks (never counted as success).
+# It is green only when the unpatched extractor still fails the assertions.
+
+name: OpenAPI extractor patch
+
+on:
+  pull_request:
+    paths:
+      - '.github/workflows/openapi-extractor-unpatched.yml'
+      - '.patches/openapi-extractor-mixed-object.diff'
+      - 'tests/php/openapi/**'
+      - 'vendor-bin/openapi-extractor/**'
+  schedule:
+    - cron: '17 4 * * 1'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: openapi-extractor-patch-${{ github.head_ref || github.run_id }}
+  cancel-in-progress: true
+
+jobs:
+  unpatched-extractor:
+    runs-on: ubuntu-latest
+
+    if: ${{ github.repository_owner != 'nextcloud-gmbh' }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Get php version
+        id: php_versions
+        uses: nextcloud-libraries/nextcloud-version-matrix@71959de73c244b11ecbf4503b87c41d65b0f64ae # v1.3.4
+
+      - name: Set up php
+        uses: shivammathur/setup-php@eb7c497e18156a6bbabfef1d3a82760b9eda3962 # 2.40.0
+        with:
+          php-version: ${{ steps.php_versions.outputs.php-available }}
+          extensions: xml
+          coverage: none
+          ini-file: development
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Install composer dependencies
+        uses: ramsey/composer-install@65e4f84970763564f46a70b8a54b90d033b3bdda # 4.0.0
+
+      - name: Install the newest unpatched extractor
+        run: |
+          set -euo pipefail
+          dir="$RUNNER_TEMP/openapi-extractor-unpatched"
+          mkdir -p "$dir"
+          jq 'del(.extra) | del(.["require-dev"]["cweagans/composer-patches"]) | del(.config["allow-plugins"])' \
+            vendor-bin/openapi-extractor/composer.json > "$dir/composer.json"
+          composer update --working-dir="$dir" --no-interaction --no-progress --prefer-dist
+          test -f "$dir/vendor/autoload.php"
+          echo "OPENAPI_EXTRACTOR_AUTOLOAD=$dir/vendor/autoload.php" >> "$GITHUB_ENV"
+          composer show --working-dir="$dir" nextcloud/openapi-extractor
+
+      - name: Run the regression tests against the unpatched extractor
+        run: |
+          set +e
+          vendor/bin/phpunit -c tests/php/openapi/phpunit.xml --no-coverage --filter OpenApiExtractorSchemaTest
+          status=$?
+          set -e
+          case "$status" in
+            0)
+              echo "::error::The unpatched extractor passes the regression tests. Remove .patches/openapi-extractor-mixed-object.diff, its entry in vendor-bin/openapi-extractor/patches.json and the TODO(#9453) in OpenApiExtractorSchemaTest."
+              exit 1
+              ;;
+            1)
+              echo "The unpatched extractor still fails the assertions; the patch is still required."
+              ;;
+            *)
+              echo "::error::The test run did not complete (exit code $status); this is not a valid result."
+              exit "$status"
+              ;;
+          esac
