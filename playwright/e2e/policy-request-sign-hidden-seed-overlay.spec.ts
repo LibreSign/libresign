@@ -399,9 +399,7 @@ test('delegated group admin can keep a sibling allow while denying a hidden requ
 		`/apps/libresign/api/v1/policies/group/${COMPANY_GROUP}/${POLICY_KEY}`,
 	)
 	expect(companyPolicyAfterCreate.httpStatus).toBe(200)
-	expect((companyPolicyAfterCreate.data.policy as { value?: string } | undefined)?.value).toBe(
-		JSON.stringify({ allowGroups: [COMPANY_GROUP], denyGroups: [] }),
-	)
+	expect((companyPolicyAfterCreate.data.policy as { value?: string } | undefined)?.value).toBe(JSON.stringify({ allowGroups: [COMPANY_GROUP], denyGroups: [] }))
 
 	const effectivePolicyAfterCreate = await getEffectivePolicy(groupAdminRequestContext, POLICY_KEY)
 	expect(effectivePolicyAfterCreate?.sourceScope).toBe('group')
@@ -413,9 +411,7 @@ test('delegated group admin can keep a sibling allow while denying a hidden requ
 		`/apps/libresign/api/v1/policies/group/${BOARD_GROUP}/${POLICY_KEY}`,
 	)
 	expect(boardPolicyAfterCreate.httpStatus).toBe(200)
-	expect((boardPolicyAfterCreate.data.policy as { value?: string } | undefined)?.value).toBe(
-		JSON.stringify({ allowGroups: [BOARD_GROUP], denyGroups: [BOARD_GROUP] }),
-	)
+	expect((boardPolicyAfterCreate.data.policy as { value?: string } | undefined)?.value).toBe(JSON.stringify({ allowGroups: [BOARD_GROUP], denyGroups: [BOARD_GROUP] }))
 
 	const groupAdminBoardPolicyAfterCreate = await policyRequest(
 		groupAdminRequestContext,
@@ -423,9 +419,7 @@ test('delegated group admin can keep a sibling allow while denying a hidden requ
 		`/apps/libresign/api/v1/policies/group/${BOARD_GROUP}/${POLICY_KEY}`,
 	)
 	expect(groupAdminBoardPolicyAfterCreate.httpStatus).toBe(200)
-	expect((groupAdminBoardPolicyAfterCreate.data.policy as { value?: string } | undefined)?.value).toBe(
-		JSON.stringify({ allowGroups: [BOARD_GROUP], denyGroups: [BOARD_GROUP] }),
-	)
+	expect((groupAdminBoardPolicyAfterCreate.data.policy as { value?: string } | undefined)?.value).toBe(JSON.stringify({ allowGroups: [BOARD_GROUP], denyGroups: [BOARD_GROUP] }))
 
 	await expect(getRuleRow(settingDialog, BOARD_GROUP)).toBeVisible({ timeout: 10000 })
 	await expect(getRuleRow(settingDialog, COMPANY_GROUP)).toBeVisible({ timeout: 10000 })
@@ -448,9 +442,7 @@ test('delegated group admin can keep a sibling allow while denying a hidden requ
 		`/apps/libresign/api/v1/policies/group/${BOARD_GROUP}/${POLICY_KEY}`,
 	)
 	expect(boardPolicyAfterDelete.httpStatus).toBe(200)
-	expect((boardPolicyAfterDelete.data.policy as { value?: string } | undefined)?.value).toBe(
-		JSON.stringify({ allowGroups: [BOARD_GROUP], denyGroups: [] }),
-	)
+	expect((boardPolicyAfterDelete.data.policy as { value?: string } | undefined)?.value).toBe(JSON.stringify({ allowGroups: [BOARD_GROUP], denyGroups: [] }))
 
 	const companyPolicyAfterDelete = await policyRequest(
 		adminRequestContext,
@@ -458,9 +450,7 @@ test('delegated group admin can keep a sibling allow while denying a hidden requ
 		`/apps/libresign/api/v1/policies/group/${COMPANY_GROUP}/${POLICY_KEY}`,
 	)
 	expect(companyPolicyAfterDelete.httpStatus).toBe(200)
-	expect((companyPolicyAfterDelete.data.policy as { value?: string } | undefined)?.value).toBe(
-		JSON.stringify({ allowGroups: [COMPANY_GROUP], denyGroups: [] }),
-	)
+	expect((companyPolicyAfterDelete.data.policy as { value?: string } | undefined)?.value).toBe(JSON.stringify({ allowGroups: [COMPANY_GROUP], denyGroups: [] }))
 
 	const effectivePolicyAfterDelete = await getEffectivePolicy(groupAdminRequestContext, POLICY_KEY)
 	expect(effectivePolicyAfterDelete?.sourceScope).toBe('group')

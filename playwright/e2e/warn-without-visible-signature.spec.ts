@@ -40,9 +40,7 @@ function getVisiblePdfOverlay(dialog: Locator) {
 async function uploadSamplePdf(page: Page) {
 	await page.goto('./apps/libresign')
 	await page.getByRole('button', { name: 'Upload from URL' }).click()
-	await page.getByRole('textbox', { name: 'URL of a PDF file' }).fill(
-		'https://raw.githubusercontent.com/LibreSign/libresign/main/tests/php/fixtures/pdfs/small_valid.pdf',
-	)
+	await page.getByRole('textbox', { name: 'URL of a PDF file' }).fill('https://raw.githubusercontent.com/LibreSign/libresign/main/tests/php/fixtures/pdfs/small_valid.pdf')
 	await page.getByRole('button', { name: 'Send' }).click()
 	await expect(page.locator('#request-signature-tab')).toBeVisible({ timeout: 15_000 })
 }
@@ -173,9 +171,7 @@ test.describe('Warn requesters when signers have no visible signature field (#83
 		await expect(confirmDialog.getByText('Some signers have no visible signature field.')).toBeVisible()
 		await expect(confirmDialog.getByText('No visible signature:')).toBeVisible()
 		await expect(confirmDialog.getByText('Alice Signer')).toBeVisible()
-		await expect(
-			confirmDialog.getByText('Do not warn me again when signers have no visible signature field'),
-		).toBeVisible()
+		await expect(confirmDialog.getByText('Do not warn me again when signers have no visible signature field')).toBeVisible()
 
 		// Request can still be sent
 		await confirmDialog.getByRole('button', { name: 'Send' }).click()

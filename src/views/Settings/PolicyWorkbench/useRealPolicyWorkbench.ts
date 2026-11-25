@@ -195,11 +195,9 @@ export function createRealPolicyWorkbenchState() {
 	const currentUser = getCurrentUser()
 	const isInstanceAdmin = currentUser?.isAdmin === true
 	const config = loadState<{ can_manage_group_policies?: boolean, manageable_policy_group_ids?: string[] }>('libresign', 'config', {})
-	const manageablePolicyGroupIds = new Set(
-		Array.isArray(config.manageable_policy_group_ids)
+	const manageablePolicyGroupIds = new Set(Array.isArray(config.manageable_policy_group_ids)
 			? config.manageable_policy_group_ids.filter((groupId): groupId is string => typeof groupId === 'string' && groupId.trim().length > 0)
-			: [],
-	)
+			: [])
 	const initialViewMode: 'system-admin' | 'group-admin' = currentUser?.isAdmin
 		? 'system-admin'
 		: config.can_manage_group_policies
@@ -221,7 +219,12 @@ export function createRealPolicyWorkbenchState() {
 	const groups = ref<PolicyTargetOption[]>([])
 	const users = ref<PolicyTargetOption[]>([])
 	const canManageGroups = ref<boolean | null>(null)
-	const loadingTargets = ref(false)
+	const loadingGroups = ref(false)
+	const loadingUsers = ref(false)
+	const loadingTargets = computed(() => editorDraft.value?.scope === 'group'
+		? loadingGroups.value
+		: editorDraft.value?.scope === 'user' && loadingUsers.value)
+	const targetRequestVersion = { group: 0, user: 0 }
 	const rulesLoading = ref(false)
 	const hydratePersistedRulesRequestId = ref(0)
 	const editorInitialSnapshot = ref('')
@@ -597,11 +600,9 @@ export function createRealPolicyWorkbenchState() {
 		}
 
 		const selectedTargetIds = new Set(editorDraft.value.targetIds)
-		const assignedTargetIds = new Set(
-			(scope === 'group' ? visibleGroupRules.value : userRules.value)
+		const assignedTargetIds = new Set((scope === 'group' ? visibleGroupRules.value : userRules.value)
 				.map((rule) => rule.targetId)
-				.filter((targetId): targetId is string => !!targetId),
-		)
+				.filter((targetId): targetId is string => !!targetId))
 
 		return targets.filter((target) => {
 			return selectedTargetIds.has(target.id) || !assignedTargetIds.has(target.id)
@@ -1132,20 +1133,26 @@ export function createRealPolicyWorkbenchState() {
 	}
 
 	async function loadTargets(scope: 'group' | 'user', query = '', includeAll = false) {
-		loadingTargets.value = true
+		const requestId = ++targetRequestVersion[scope]
+		const loading = scope === 'group' ? loadingGroups : loadingUsers
+		loading.value = true
 		try {
 			if (scope === 'group') {
 				const fetchedGroups = includeAll && query === ''
 					? await fetchAllTargets('group')
 					: await fetchGroups(query)
-				groups.value = mergeSelectedTargets('group', fetchedGroups)
+				if (requestId === targetRequestVersion.group) {
+					groups.value = mergeSelectedTargets('group', fetchedGroups)
+				}
 				return
 			}
 
 			const fetchedUsers = includeAll && query === ''
 				? await fetchAllTargets('user')
 				: await fetchUsers(query)
-			users.value = mergeSelectedTargets('user', fetchedUsers)
+			if (requestId === targetRequestVersion.user) {
+				users.value = mergeSelectedTargets('user', fetchedUsers)
+			}
 		} catch (error) {
 			logger.debug('Could not load policy workbench targets', {
 				error,
@@ -1153,7 +1160,10 @@ export function createRealPolicyWorkbenchState() {
 				query,
 			})
 		} finally {
-			loadingTargets.value = false
+			// Only the newest request can end the loading state for this scope.
+			if (requestId === targetRequestVersion[scope]) {
+				loading.value = false
+			}
 		}
 	}
 
@@ -1341,9 +1351,7 @@ export function createRealPolicyWorkbenchState() {
 			&& editorDraft.value.targetIds.length === 0
 			&& activeDefinition.value.extractScopeTargets
 		) {
-			editorDraft.value.targetIds = Array.from(
-				new Set(activeDefinition.value.extractScopeTargets(scope, editorDraft.value.value).filter(Boolean)),
-			)
+			editorDraft.value.targetIds = Array.from(new Set(activeDefinition.value.extractScopeTargets(scope, editorDraft.value.value).filter(Boolean)))
 		}
 
 		editorInitialTargetIds.value = [...editorDraft.value.targetIds]
@@ -1390,9 +1398,7 @@ export function createRealPolicyWorkbenchState() {
 		// so 'Save' stays enabled without requiring manual scope-group selection.
 		const extractFn = activeDefinition.value?.extractScopeTargets
 		if (extractFn && editorDraft.value.scope === 'group') {
-			editorDraft.value.targetIds = Array.from(
-				new Set(extractFn(editorDraft.value.scope, value).filter(Boolean)),
-			)
+			editorDraft.value.targetIds = Array.from(new Set(extractFn(editorDraft.value.scope, value).filter(Boolean)))
 		}
 	}
 

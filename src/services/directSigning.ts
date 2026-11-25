@@ -19,8 +19,7 @@ export function canSignDirectly(value: EffectivePolicyValue): boolean {
 	return normalizeIdentifyMethodsPolicy(value).some(factor =>
 		factor.name === 'account'
 		&& factor.enabled
-		&& factor.signatureMethods.clickToSign?.enabled === true,
-	)
+		&& factor.signatureMethods.clickToSign?.enabled === true)
 }
 
 async function encodePdf(pdf: File): Promise<string> {
@@ -32,7 +31,7 @@ async function encodePdf(pdf: File): Promise<string> {
 	return btoa(segments.join(''))
 }
 
-export async function signPdfDirectly(input: DirectSignInput): Promise<{ pdf: Blob; filename: string }> {
+export async function signPdfDirectly(input: DirectSignInput): Promise<{ pdf: Blob, filename: string }> {
 	if (!input.name.toLowerCase().endsWith('.pdf') || !input.name.trim()) {
 		throw new Error('A PDF filename is required.')
 	}

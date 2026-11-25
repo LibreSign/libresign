@@ -50,7 +50,7 @@ use OCP\Preview\IMimeIconProvider;
 use Psr\Log\LoggerInterface;
 
 /**
- * @psalm-import-type LibresignFile from \OCA\Libresign\ResponseDefinitions
+ * @psalm-import-type LibresignIdDocFile from \OCA\Libresign\ResponseDefinitions
  * @psalm-import-type LibresignDetailedFile from \OCA\Libresign\ResponseDefinitions
  * @psalm-import-type LibresignDetailedFileResponse from \OCA\Libresign\ResponseDefinitions
  * @psalm-import-type LibresignActionErrorResponse from \OCA\Libresign\ResponseDefinitions
@@ -585,7 +585,7 @@ class FileController extends AEnvironmentAwareOCSController {
 	 * @param string $name The name of file to sign
 	 * @param LibresignFolderSettings $settings Settings to define how and where the file should be stored
 	 * @param list<LibresignNewFile> $files Multiple files to create an envelope (optional, use either file or files)
-	 * @return DataResponse<Http::STATUS_OK, LibresignDetailedFileResponse, array{}>|DataResponse<Http::STATUS_UNPROCESSABLE_ENTITY, LibresignMessageResponse, array{}>
+	 * @return DataResponse<Http::STATUS_OK, LibresignDetailedFileResponse, array{}>|DataResponse<Http::STATUS_UNPROCESSABLE_ENTITY, LibresignMessageResponse|LibresignActionErrorResponse, array{}>
 	 *
 	 * 200: OK
 	 * 422: Failed to save data
@@ -630,7 +630,7 @@ class FileController extends AEnvironmentAwareOCSController {
 	 * Multipart clients can send optional expectedFilesCount to reject incomplete batches.
 	 *
 	 * @param string $uuid The UUID of the envelope
-	 * @return DataResponse<Http::STATUS_OK, LibresignDetailedFileResponse, array{}>|DataResponse<Http::STATUS_BAD_REQUEST|Http::STATUS_NOT_FOUND|Http::STATUS_UNPROCESSABLE_ENTITY, LibresignMessageResponse, array{}>
+	 * @return DataResponse<Http::STATUS_OK, LibresignDetailedFileResponse, array{}>|DataResponse<Http::STATUS_BAD_REQUEST|Http::STATUS_NOT_FOUND, LibresignMessageResponse, array{}>|DataResponse<Http::STATUS_UNPROCESSABLE_ENTITY, LibresignMessageResponse|LibresignActionErrorResponse, array{}>
 	 *
 	 * 200: Files added successfully
 	 * 400: Invalid request
@@ -887,11 +887,11 @@ class FileController extends AEnvironmentAwareOCSController {
 	 *
 	 * @param integer $fileId LibreSign file ID
 	 * @param boolean $deleteFile Whether to delete the physical file from Nextcloud (default: true)
-	 * @return DataResponse<Http::STATUS_OK, LibresignMessageResponse, array{}>|DataResponse<Http::STATUS_UNAUTHORIZED, LibresignMessageResponse, array{}>|DataResponse<Http::STATUS_UNPROCESSABLE_ENTITY, LibresignActionErrorResponse, array{}>
+	 * @return DataResponse<Http::STATUS_OK, LibresignMessageResponse, array{}>|DataResponse<Http::STATUS_UNPROCESSABLE_ENTITY, LibresignMessageResponse|LibresignActionErrorResponse, array{}>|DataResponse<Http::STATUS_INTERNAL_SERVER_ERROR, LibresignMessageResponse, array{}>
 	 *
 	 * 200: OK
-	 * 401: Failed
 	 * 422: Failed
+	 * 500: Unexpected failure
 	 */
 	#[NoAdminRequired]
 	#[NoCSRFRequired]
@@ -913,7 +913,9 @@ class FileController extends AEnvironmentAwareOCSController {
 				[
 					'message' => $th->getMessage(),
 				],
-				Http::STATUS_UNAUTHORIZED
+				$th instanceof LibresignException
+					? Http::STATUS_UNPROCESSABLE_ENTITY
+					: Http::STATUS_INTERNAL_SERVER_ERROR,
 			);
 		}
 		return new DataResponse(

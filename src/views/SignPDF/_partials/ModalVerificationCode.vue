@@ -3,7 +3,8 @@
   - SPDX-License-Identifier: AGPL-3.0-or-later
 -->
 <template>
-	<NcDialog size="normal"
+	<NcDialog
+		size="normal"
 		:no-close="loading"
 		:name="dialogTitle"
 		@closing="close">
@@ -20,7 +21,8 @@
 			<div v-if="signMethodsStore.blurredEmail().length > 0" class="email">
 				{{ signMethodsStore.blurredEmail() }}
 			</div>
-			<NcTextField v-model="sendTo"
+			<NcTextField
+				v-model="sendTo"
 				autofocus
 				:disabled="loading"
 				:label="emailFieldLabel"
@@ -39,7 +41,8 @@
 			<p class="step-explanation">
 				{{ tokenInstructionText }}
 			</p>
-			<NcTextField v-model="newPhoneNumber"
+			<NcTextField
+				v-model="newPhoneNumber"
 				autofocus
 				:disabled="loading"
 				name="cellphone"
@@ -57,7 +60,8 @@
 			<div class="contact-display">
 				{{ displayContact }}
 			</div>
-			<NcTextField v-model="token"
+			<NcTextField
+				v-model="token"
 				autofocus
 				:disabled="loading"
 				:label="verificationCodeFieldLabel"
@@ -84,7 +88,8 @@
 
 		<template #actions>
 			<!-- Step 1 action (common button, mode-specific disabled logic) -->
-			<NcButton v-if="step1Active"
+			<NcButton
+				v-if="step1Active"
 				:disabled="loading || !canRequestCode"
 				type="submit"
 				variant="primary"
@@ -98,7 +103,8 @@
 
 			<!-- Step 2 actions (common) -->
 			<template v-else-if="!identityVerified">
-				<NcButton :disabled="loading"
+				<NcButton
+					:disabled="loading"
 					type="submit"
 					@click="requestNewCode">
 					<template #icon>
@@ -107,7 +113,8 @@
 					<!-- TRANSLATORS Button label. Sends a new numeric one-time password (OTP) to the signer via email, SMS, WhatsApp, Telegram, Signal, or XMPP. "code" here means a short numeric verification code, not source code. -->
 					{{ t('libresign', 'Request new code') }}
 				</NcButton>
-				<NcButton :disabled="!canSendCode"
+				<NcButton
+					:disabled="!canSendCode"
 					type="submit"
 					variant="primary"
 					@click="sendCode">
@@ -120,7 +127,8 @@
 			</template>
 
 			<!-- Step 3 action (common) -->
-			<NcButton v-else
+			<NcButton
+				v-else
 				:disabled="loading"
 				type="submit"
 				variant="primary"
@@ -225,7 +233,7 @@ type SignStore = {
 	document: {
 		fileId?: number
 		uuid?: string | null
-		signers?: Array<{ me?: boolean; sign_request_uuid?: string }>
+		signers?: Array<{ me?: boolean, sign_request_uuid?: string }>
 		settings?: { isApprover?: boolean } | null
 	}
 	errors?: Array<{ message?: string }>

@@ -66,9 +66,7 @@ const _configureCheckStore = defineStore('configureCheck', () => {
 	const checkSetup = async () => {
 		state.value = 'in progress'
 		downloadInProgress.value = true
-		await axios.get(
-			generateOcsUrl('/apps/libresign/api/v1/admin/configure-check'),
-		)
+		await axios.get(generateOcsUrl('/apps/libresign/api/v1/admin/configure-check'))
 			.then(({ data }) => {
 				updateItems(data.ocs?.data || [])
 			})

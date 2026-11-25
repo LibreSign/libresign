@@ -20,6 +20,8 @@
 				<NcSelectUsers
 					:model-value="selectedTargetOptions"
 					:options="availableTargets"
+					:filterable="false"
+					:append-to-body="false"
 					:aria-label="targetScopeLabel"
 					:placeholder="targetScopeSearchPlaceholder"
 					:loading="loadingTargets"
@@ -61,19 +63,37 @@
 			</NcNoteCard>
 
 			<div v-if="showInlineActions !== false" class="policy-workbench__editor-actions" :class="{ 'policy-workbench__editor-actions--sticky-mobile': stickyActions }">
-				<NcButton v-if="showBackButton" variant="tertiary" :aria-label="goBackToRuleTypeSelectionLabel" :disabled="saveStatus === 'saving'" @click="$emit('back')">
+				<NcButton
+					v-if="showBackButton"
+					variant="tertiary"
+					:aria-label="goBackToRuleTypeSelectionLabel"
+					:disabled="saveStatus === 'saving'"
+					@click="$emit('back')">
 					{{ backButtonLabel }}
 				</NcButton>
-				<NcButton variant="primary" :aria-label="savePolicyRuleActionLabel" :loading="saveStatus === 'saving'" :disabled="!canSaveDraft" @click="$emit('save')">
+				<NcButton
+					variant="primary"
+					:aria-label="savePolicyRuleActionLabel"
+					:loading="saveStatus === 'saving'"
+					:disabled="!canSaveDraft"
+					@click="$emit('save')">
 					{{ saveActionButtonLabel }}
 				</NcButton>
-				<NcButton variant="secondary" :aria-label="cancelEditingLabel" :disabled="saveStatus === 'saving'" @click="$emit('cancel')">
+				<NcButton
+					variant="secondary"
+					:aria-label="cancelEditingLabel"
+					:disabled="saveStatus === 'saving'"
+					@click="$emit('cancel')">
 					{{ cancelButtonLabel }}
 				</NcButton>
 			</div>
 		</div>
 
-		<div v-if="saveStatus === 'saving'" class="policy-workbench__saving-overlay" aria-live="polite" aria-busy="true">
+		<div
+			v-if="saveStatus === 'saving'"
+			class="policy-workbench__saving-overlay"
+			aria-live="polite"
+			aria-busy="true">
 			<div class="policy-workbench__saving-spinner" aria-hidden="true" />
 		</div>
 	</section>

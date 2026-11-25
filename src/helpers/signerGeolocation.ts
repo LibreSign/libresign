@@ -84,9 +84,7 @@ function isMatchingGeolocationSigner(
 	return typeof signer.sign_request_uuid === 'string' && signer.sign_request_uuid === signRequestUuid
 }
 
-function resolveRequirementFromSigner(
-	signer: SignerWithGeolocationMetadata,
-): GeolocationRequirement | undefined {
+function resolveRequirementFromSigner(signer: SignerWithGeolocationMetadata): GeolocationRequirement | undefined {
 	const requirement = signer.metadata?.deviceGeolocationRequirement
 	if (requirement === 'disabled' || requirement === 'required') {
 		return requirement
@@ -227,9 +225,7 @@ export function formatDeviceReportedLocationAccuracy(
 	return t('libresign', '±{accuracy}', { accuracy: formattedAccuracy })
 }
 
-export function formatDeviceReportedCoordinates(
-	geolocation: Pick<DeviceReportedLocation, 'latitude' | 'longitude'> | null | undefined,
-): string | null {
+export function formatDeviceReportedCoordinates(geolocation: Pick<DeviceReportedLocation, 'latitude' | 'longitude'> | null | undefined): string | null {
 	if (!geolocation || typeof geolocation !== 'object') {
 		return null
 	}

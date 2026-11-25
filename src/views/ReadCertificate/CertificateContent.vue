@@ -6,7 +6,8 @@
 	<div v-if="Object.keys(certificate).length" class="certificate-content">
 		<NcSettingsSection :name="t('libresign', 'Owner of certificate')">
 			<div class="certificate-fields">
-				<div v-for="(value, customName, fieldIndex) in orderList(certificate.subject)"
+				<div
+					v-for="(value, customName, fieldIndex) in orderList(certificate.subject)"
 					:key="`subject-${customName}-${fieldIndex}`"
 					class="certificate-field">
 					<span class="field-label">{{ getLabelFromId(customName) }}</span>
@@ -15,10 +16,12 @@
 			</div>
 		</NcSettingsSection>
 
-		<NcSettingsSection v-if="index !== '0'"
+		<NcSettingsSection
+			v-if="index !== '0'"
 			:name="t('libresign', 'Issuer of certificate')">
 			<div class="certificate-fields">
-				<div v-for="(value, customName, fieldIndex) in orderList(certificate.issuer)"
+				<div
+					v-for="(value, customName, fieldIndex) in orderList(certificate.issuer)"
 					:key="`issuer-${customName}-${fieldIndex}`"
 					class="certificate-field">
 					<span class="field-label">{{ getLabelFromId(customName) }}</span>
@@ -27,10 +30,12 @@
 			</div>
 		</NcSettingsSection>
 
-		<NcSettingsSection v-if="certificate.extracerts && index === '0'"
+		<NcSettingsSection
+			v-if="certificate.extracerts && index === '0'"
 			:name="t('libresign', 'Certificate chain')">
 			<div class="certificate-chain-container">
-				<div v-for="(extra, key) in certificate.extracerts"
+				<div
+					v-for="(extra, key) in certificate.extracerts"
 					:key="`extracerts-${key}`"
 					class="chain-certificate">
 					<h4 class="chain-certificate-title">
@@ -83,7 +88,8 @@
 			</div>
 		</NcSettingsSection>
 
-		<NcSettingsSection v-if="index === '0'"
+		<NcSettingsSection
+			v-if="index === '0'"
 			:name="t('libresign', 'Technical details')">
 			<div class="certificate-fields">
 				<div class="certificate-field">
@@ -91,7 +97,8 @@
 					<span class="field-label">{{ t('libresign', 'Name') }}</span>
 					<span class="field-value">{{ certificate.name }}</span>
 				</div>
-				<div v-for="(value, name, fieldIndex) in certificate.extensions"
+				<div
+					v-for="(value, name, fieldIndex) in certificate.extensions"
 					:key="`extension-${name}-${fieldIndex}`"
 					class="certificate-field">
 					<span class="field-label">{{ camelCaseToTitleCase(name) }}</span>
@@ -110,10 +117,12 @@
 			</div>
 		</NcSettingsSection>
 
-		<NcSettingsSection v-if="shouldShowPurposes"
+		<NcSettingsSection
+			v-if="shouldShowPurposes"
 			:name="t('libresign', 'Certificate purposes')">
 			<div class="purposes-grid">
-				<NcNoteCard v-for="(purpose, purposeIndex) in certificate.purposes"
+				<NcNoteCard
+					v-for="(purpose, purposeIndex) in certificate.purposes"
 					:key="purposeIndex"
 					:type="purpose[0] ? 'success' : 'error'"
 					:heading="formatPurposeName(purpose[2])">
@@ -223,11 +232,9 @@ const crlStatusMap = computed<Record<string, StatusChip>>(() => ({
 	validation_error: { text: t('libresign', 'CRL Validation Error'), variant: 'tertiary', icon: mdiHelpCircle },
 }))
 
-const shouldShowPurposes = computed(() => Boolean(
-	props.certificate.purposes
+const shouldShowPurposes = computed(() => Boolean(props.certificate.purposes
 	&& Object.keys(props.certificate.purposes).length
-	&& props.index === '0',
-))
+	&& props.index === '0'))
 
 const certificateValidityStatus = computed(() => validityStatusMap.value[getValidityStatus()])
 const crlValidationStatus = computed<StatusChip>(() => crlStatusMap.value[props.certificate.crl_validation ?? ''] || {

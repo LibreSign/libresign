@@ -361,7 +361,6 @@ OC.L10N.register(
     "Sign »%s«" : "Firmar »%s«",
     "LibreSign: There is a file for you to sign" : "LibreSign: Hay un archivo para que lo firmes",
     "LibreSign: Code to sign file" : "LibreSign: Código para firmar el archivo",
-    "No signature was requested to %s" : "No se solicitó firma a %s",
     "Underline" : "Subrayado",
     "User" : "Usuario",
     "Choose the file to request signatures." : "Elige el archivo para solicitar firmas.",

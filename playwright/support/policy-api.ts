@@ -14,7 +14,7 @@ import { expect, request, type APIRequestContext } from '@playwright/test'
 
 type OcsPolicyResponse = {
 	ocs?: {
-		meta?: { statuscode?: number; message?: string }
+		meta?: { statuscode?: number, message?: string }
 		data?: Record<string, unknown>
 	}
 }

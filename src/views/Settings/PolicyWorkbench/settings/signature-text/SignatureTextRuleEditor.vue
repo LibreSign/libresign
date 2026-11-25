@@ -124,7 +124,7 @@ const STAMP_PREVIEW_ZOOM_STORAGE_KEY = 'libresign.policy.signatureStamp.previewZ
 
 ensurePdfWorker()
 
-const backgroundOptions: Array<{ value: BackgroundType; label: string; description: string }> = [
+const backgroundOptions: Array<{ value: BackgroundType, label: string, description: string }> = [
 	{
 		value: 'default',
 		// TRANSLATORS Option label selecting built-in default signature background image.
@@ -148,7 +148,7 @@ const backgroundOptions: Array<{ value: BackgroundType; label: string; descripti
 	},
 ]
 
-const displayModeOptions: Array<{ value: DisplayMode; label: string; description: string }> = [
+const displayModeOptions: Array<{ value: DisplayMode, label: string, description: string }> = [
 	{
 		value: 'description_only',
 		// TRANSLATORS Render mode label where only textual stamp description is shown.
@@ -482,7 +482,9 @@ onUnmounted(() => {
 })
 
 function clampZoom(value: number): number {
-	if (!Number.isFinite(value)) { return 100 }
+	if (!Number.isFinite(value)) {
+		return 100
+	}
 	return Math.max(25, Math.min(400, Math.round(value)))
 }
 

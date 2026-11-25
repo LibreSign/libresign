@@ -5,7 +5,8 @@
 
 <template>
 	<div class="tsa-editor">
-		<NcCheckboxRadioSwitch type="switch"
+		<NcCheckboxRadioSwitch
+			type="switch"
 			:model-value="enabled"
 			@update:modelValue="onToggleEnabled">
 			<!-- TRANSLATORS Toggle label to enable or disable use of a TSA (Time-Stamp Authority) server during digital signing. -->
@@ -13,27 +14,32 @@
 		</NcCheckboxRadioSwitch>
 
 		<div v-if="enabled" class="tsa-editor__fields">
-			<NcTextField :model-value="config.url"
+			<NcTextField
+				:model-value="config.url"
 				:label="tsaServerUrlLabel"
 				:placeholder="tsaServerUrlPlaceholder"
 				@update:modelValue="onUrlChange" />
 
-			<NcTextField :model-value="config.policy_oid"
+			<NcTextField
+				:model-value="config.policy_oid"
 				:label="tsaPolicyOidLabel"
 				:placeholder="optionalPlaceholder"
 				@update:modelValue="onPolicyOidChange" />
 
-			<NcSelect v-model="selectedHashAlgorithm"
+			<NcSelect
+				v-model="selectedHashAlgorithm"
 				:options="hashAlgorithmOptions"
 				:input-label="tsaHashAlgorithmLabel"
 				:clearable="false" />
 
-			<NcSelect v-model="selectedAuthType"
+			<NcSelect
+				v-model="selectedAuthType"
 				:options="authOptions"
 				:input-label="tsaAuthenticationLabel"
 				clearable />
 
-			<NcTextField v-if="config.auth_type === 'basic'"
+			<NcTextField
+				v-if="config.auth_type === 'basic'"
 				:model-value="config.username"
 				:label="usernameLabel"
 				:placeholder="usernameLabel"

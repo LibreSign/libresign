@@ -55,6 +55,45 @@ class PdfGenerator {
 		return $pdf;
 	}
 
+	/**
+	 * Unsigned PDF with a leftover DocMDP signature dictionary in object 5.
+	 * The xref offsets and the /ByteRange are real, so the PDF structure can be
+	 * read. Object 5 is referenced from nowhere unless a referrer is given,
+	 * such as '/Perms << /DocMDP 5 0 R >>' for the catalog.
+	 *
+	 * @param array<int, string> $extraObjects Object bodies by object number, from 6 up.
+	 */
+	public static function createPdfWithStandaloneDocMdpSignature(int $pValue, string $catalogExtra = '', array $extraObjects = []): string {
+		$placeholder = '0000000000 0000000000 0000000000 0000000000';
+		$objects = [
+			1 => "<< /Type /Catalog /Pages 2 0 R $catalogExtra >>",
+			2 => '<< /Type /Pages /Kids [3 0 R] /Count 1 >>',
+			3 => '<< /Type /Page /Parent 2 0 R /MediaBox [0 0 612 792] >>',
+			5 => "<< /Type /Sig /Filter /Adobe.PPKLite /SubFilter /adbe.pkcs7.detached /ByteRange [$placeholder] /Contents <" . str_repeat('0', 64) . '>'
+				. " /Reference [<< /Type /SigRef /TransformMethod /DocMDP /TransformParams << /Type /TransformParams /P $pValue /V /1.2 >> >>] >>",
+		] + $extraObjects;
+		ksort($objects);
+
+		$pdf = "%PDF-1.7\n";
+		$offsets = [];
+		foreach ($objects as $number => $body) {
+			$offsets[$number] = strlen($pdf);
+			$pdf .= "$number 0 obj\n$body\nendobj\n";
+		}
+		$size = max(array_keys($objects)) + 1;
+		$startxref = strlen($pdf);
+		$pdf .= "xref\n0 $size\n";
+		for ($number = 0; $number < $size; $number++) {
+			$pdf .= isset($offsets[$number]) ? sprintf("%010d 00000 n \n", $offsets[$number]) : "0000000000 65535 f \n";
+		}
+		$pdf .= "trailer\n<< /Size $size /Root 1 0 R >>\nstartxref\n$startxref\n%%EOF\n";
+
+		$contentsStart = strpos($pdf, '/Contents <') + strlen('/Contents ');
+		$contentsEnd = strpos($pdf, '>', $contentsStart) + 1;
+		$byteRange = sprintf('%010d %010d %010d %010d', 0, $contentsStart, $contentsEnd, strlen($pdf) - $contentsEnd);
+		return str_replace($placeholder, $byteRange, $pdf);
+	}
+
 	public static function createPdfWithFormFieldModification(int $pValue): string {
 		$pdf = "%PDF-1.7\n";
 		$pdf .= "1 0 obj\n<< /Type /Catalog /Pages 2 0 R /AcroForm 4 0 R /Perms << /DocMDP 5 0 R >> >>\nendobj\n";
@@ -635,4 +674,93 @@ class PdfGenerator {
 		$pdf .= "xref\n0 7\ntrailer\n<< /Size 7 /Root 1 0 R >>\n%%EOF";
 		return $pdf;
 	}
+	/**
+	 * Certified PDF with classic xref tables: objects 1-7 (catalog, pages,
+	 * page, AcroForm, signature, signature field, information dictionary,
+	 * /Size 8), followed by one incremental update per entry of $updates
+	 * (object number => object body).
+	 *
+	 * @param list<array<int, string>> $updates
+	 * @param array<string, ?string> $trailerOverrides Entries replaced (or removed with null) in the trailers of the updates
+	 */
+	public static function createCertifiedPdfWithIncrementalUpdates(int $pValue, array $updates, array $trailerOverrides = []): string {
+		$byteRangePlaceholder = str_repeat('#', 32);
+		$objects = [
+			1 => '<< /Type /Catalog /Pages 2 0 R /AcroForm 4 0 R /Perms << /DocMDP 5 0 R >> >>',
+			2 => '<< /Type /Pages /Kids [3 0 R] /Count 1 >>',
+			3 => '<< /Type /Page /Parent 2 0 R /MediaBox [0 0 612 792] >>',
+			4 => '<< /SigFlags 3 /Fields [6 0 R] >>',
+			5 => "<< /Type /Sig /Filter /Adobe.PPKLite /SubFilter /ETSI.CAdES.detached\n"
+				. "/ByteRange [ 0 {$byteRangePlaceholder} ]\n"
+				. "/Reference [ << /Type /SigRef /TransformMethod /DocMDP\n"
+				. "/TransformParams << /Type /TransformParams /P {$pValue} /V /1.2 >> >> ]\n"
+				. '/Contents <' . str_repeat('00', 50) . '> >>',
+			6 => '<< /FT /Sig /T (Signature1) /V 5 0 R >>',
+			7 => '<< /Producer (Generator) /ModDate (D:20260101000000Z) >>',
+		];
+
+		$pdf = "%PDF-1.7\n";
+		$offsets = [];
+		foreach ($objects as $number => $body) {
+			$offsets[$number] = strlen($pdf);
+			$pdf .= "{$number} 0 obj\n{$body}\nendobj\n";
+		}
+		$xrefOffset = strlen($pdf);
+		$pdf .= "xref\n0 8\n0000000000 65535 f \n";
+		foreach ($offsets as $offset) {
+			$pdf .= sprintf("%010d 00000 n \n", $offset);
+		}
+		$pdf .= "trailer\n<< /Size 8 /Root 1 0 R /Info 7 0 R >>\nstartxref\n{$xrefOffset}\n%%EOF\n";
+
+		$contentsStart = (int)strpos($pdf, '/Contents <', $offsets[5]) + strlen('/Contents ');
+		$contentsEnd = (int)strpos($pdf, '>', $contentsStart) + 1;
+		$byteRange = str_pad("{$contentsStart} {$contentsEnd} " . (strlen($pdf) - $contentsEnd), strlen($byteRangePlaceholder));
+		$pdf = str_replace($byteRangePlaceholder, $byteRange, $pdf);
+
+		$size = 8;
+		foreach ($updates as $updateObjects) {
+			$offsets = [];
+			foreach ($updateObjects as $number => $body) {
+				$offsets[$number] = strlen($pdf);
+				$pdf .= "{$number} 0 obj\n{$body}\nendobj\n";
+			}
+			$previousXref = $xrefOffset;
+			$xrefOffset = strlen($pdf);
+			$pdf .= "xref\n0 1\n0000000000 65535 f \n";
+			foreach ($offsets as $number => $offset) {
+				$pdf .= "{$number} 1\n" . sprintf("%010d 00000 n \n", $offset);
+			}
+			$size = max($size, max(array_keys($updateObjects)) + 1);
+			$trailer = array_filter(array_replace(
+				['/Size' => (string)$size, '/Root' => '1 0 R', '/Info' => '7 0 R', '/Prev' => (string)$previousXref],
+				$trailerOverrides,
+			), static fn (?string $value): bool => $value !== null);
+			$pdf .= "trailer\n<<";
+			foreach ($trailer as $key => $value) {
+				$pdf .= " {$key} {$value}";
+			}
+			$pdf .= " >>\nstartxref\n{$xrefOffset}\n%%EOF\n";
+
+			// Fill document timestamp ranges after the revision length is final.
+			// Equal-width replacements preserve all xref offsets.
+			foreach ($updateObjects as $number => $body) {
+				if (!str_contains($body, '/Type /DocTimeStamp')) {
+					continue;
+				}
+				$placeholder = '0000000000 0000000000 0000000000 0000000000';
+				$rangeStart = strpos($pdf, $placeholder, $offsets[$number]);
+				$contentsStart = strpos($pdf, '/Contents <', $offsets[$number]);
+				if ($rangeStart === false || $contentsStart === false) {
+					continue;
+				}
+				$contentsStart += strlen('/Contents ');
+				$contentsEnd = (int)strpos($pdf, '>', $contentsStart) + 1;
+				$range = sprintf('%010d %010d %010d %010d', 0, $contentsStart, $contentsEnd, strlen($pdf) - $contentsEnd);
+				$pdf = substr_replace($pdf, $range, $rangeStart, strlen($placeholder));
+			}
+		}
+
+		return $pdf;
+	}
+
 }

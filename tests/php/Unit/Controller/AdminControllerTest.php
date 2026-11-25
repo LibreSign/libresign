@@ -9,6 +9,7 @@ declare(strict_types=1);
 namespace OCA\Libresign\Tests\Unit\Controller;
 
 use OCA\Libresign\Controller\AdminController;
+use OCA\Libresign\Exception\LibresignException;
 use OCA\Libresign\Handler\CertificateEngine\CertificateEngineFactory;
 use OCA\Libresign\Service\ActiveSigningsService;
 use OCA\Libresign\Service\Certificate\ValidateService;
@@ -20,31 +21,36 @@ use OCA\Libresign\Service\Install\InstallService;
 use OCA\Libresign\Service\SetupCheckResultService;
 use OCA\Libresign\Service\SignatureBackgroundService;
 use OCP\AppFramework\Http;
+use OCP\Files\SimpleFS\ISimpleFile;
 use OCP\IAppConfig;
 use OCP\IEventSource;
 use OCP\IEventSourceFactory;
 use OCP\IL10N;
 use OCP\IRequest;
 use OCP\ISession;
+use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 
 class AdminControllerTest extends TestCase {
 	private AdminController $controller;
 	private ActiveSigningsService&MockObject $activeSigningsService;
+	private SignatureBackgroundService&MockObject $signatureBackgroundService;
+	private InstallService&MockObject $installService;
+	private ValidateService&MockObject $validateService;
 	private IRequest&MockObject $request;
 
 	protected function setUp(): void {
 		$this->request = $this->createMock(IRequest::class);
 		$appConfig = $this->createMock(IAppConfig::class);
-		$installService = $this->createMock(InstallService::class);
+		$this->installService = $this->createMock(InstallService::class);
 		$certificateEngineFactory = $this->createMock(CertificateEngineFactory::class);
 		$eventSourceFactory = $this->createMock(IEventSourceFactory::class);
 		$l10n = $this->createMock(IL10N::class);
 		$session = $this->createMock(ISession::class);
-		$signatureBackgroundService = $this->createMock(SignatureBackgroundService::class);
+		$this->signatureBackgroundService = $this->createMock(SignatureBackgroundService::class);
 		$certificatePolicyService = $this->createMock(CertificatePolicyService::class);
-		$validateService = $this->createMock(ValidateService::class);
+		$this->validateService = $this->createMock(ValidateService::class);
 		$identifyMethodService = $this->createMock(IdentifyMethodService::class);
 		$this->activeSigningsService = $this->createMock(ActiveSigningsService::class);
 		$setupCheckResultService = $this->createMock(SetupCheckResultService::class);
@@ -59,14 +65,14 @@ class AdminControllerTest extends TestCase {
 		$this->controller = new AdminController(
 			$this->request,
 			$appConfig,
-			$installService,
+			$this->installService,
 			$certificateEngineFactory,
 			$eventSourceFactory,
 			$l10n,
 			$session,
-			$signatureBackgroundService,
+			$this->signatureBackgroundService,
 			$certificatePolicyService,
-			$validateService,
+			$this->validateService,
 			$identifyMethodService,
 			$this->activeSigningsService,
 			$setupCheckResultService,
@@ -113,5 +119,61 @@ class AdminControllerTest extends TestCase {
 
 		$this->assertSame(Http::STATUS_INTERNAL_SERVER_ERROR, $response->getStatus());
 		$this->assertSame(['error' => 'boom'], $response->getData());
+	}
+
+	public static function certificateGenerators(): array {
+		return [
+			'openssl' => ['generateCertificateOpenSsl'],
+			'cfssl' => ['generateCertificateCfssl'],
+		];
+	}
+
+	#[DataProvider('certificateGenerators')]
+	public function testCertificateGenerationReportsInvalidInputAsUnprocessable(string $method): void {
+		$this->validateService
+			->method('validate')
+			->willThrowException(new \InvalidArgumentException("Parameter 'CN' is required!"));
+
+		$response = $this->controller->$method(['commonName' => '']);
+
+		$this->assertSame(Http::STATUS_UNPROCESSABLE_ENTITY, $response->getStatus());
+		$this->assertSame(['message' => "Parameter 'CN' is required!"], $response->getData());
+	}
+
+	#[DataProvider('certificateGenerators')]
+	public function testCertificateGenerationReportsLibresignExceptionAsUnprocessable(string $method): void {
+		$this->installService
+			->method('generate')
+			->willThrowException(new LibresignException('Invalid configuration'));
+
+		$response = $this->controller->$method(['commonName' => 'Common Name']);
+
+		$this->assertSame(Http::STATUS_UNPROCESSABLE_ENTITY, $response->getStatus());
+	}
+
+	#[DataProvider('certificateGenerators')]
+	public function testCertificateGenerationReportsUnexpectedFailureAsServerError(string $method): void {
+		$this->installService
+			->method('generate')
+			->willThrowException(new \RuntimeException('openssl is unavailable'));
+
+		$response = $this->controller->$method(['commonName' => 'Common Name']);
+
+		$this->assertSame(Http::STATUS_INTERNAL_SERVER_ERROR, $response->getStatus());
+		$this->assertSame(['message' => 'openssl is unavailable'], $response->getData());
+	}
+
+	public function testSignatureBackgroundGetSendsTheDocumentedHeaders(): void {
+		$this->signatureBackgroundService
+			->expects($this->once())
+			->method('getImage')
+			->willReturn($this->createMock(ISimpleFile::class));
+
+		$response = $this->controller->signatureBackgroundGet();
+
+		$this->assertSame(Http::STATUS_OK, $response->getStatus());
+		$headers = $response->getHeaders();
+		$this->assertSame('image/png', $headers['Content-Type']);
+		$this->assertSame('attachment; filename="background.png"', $headers['Content-Disposition']);
 	}
 }

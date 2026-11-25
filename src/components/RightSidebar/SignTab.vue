@@ -26,14 +26,16 @@
 				<p>
 					{{ t('libresign', 'Open the document to review it before signing.') }}
 				</p>
-				<NcButton :wide="true"
+				<NcButton
+					:wide="true"
 					:disabled="!canOpenSignDocument"
 					variant="primary"
 					@click="openSignDocument">
 					{{ t('libresign', 'Review and sign document') }}
 				</NcButton>
 			</div>
-			<Sign v-else-if="signStore.mounted"
+			<Sign
+				v-else-if="signStore.mounted"
 				@signed="onSigned"
 				@signing-started="onSigningStarted" />
 		</main>

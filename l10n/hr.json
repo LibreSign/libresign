@@ -326,7 +326,6 @@
     "File to sign" : "Datoteka za potpisivanje",
     "Sign »%s«" : "Potpiši »%s«",
     "LibreSign: There is a file for you to sign" : "LibreSign: postoji datoteka koju trebate potpisati",
-    "No signature was requested to %s" : "Nije zatražen potpis od %s",
     "Underline" : "Podcrtano",
     "User" : "@string/user_icon",
     "Choose the file to request signatures." : "Odaberite datoteku za traženje potpisa.",

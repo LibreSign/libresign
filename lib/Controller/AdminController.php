@@ -8,8 +8,10 @@ declare(strict_types=1);
 
 namespace OCA\Libresign\Controller;
 
+use InvalidArgumentException;
 use OCA\Libresign\AppInfo\Application;
 use OCA\Libresign\Controller\Traits\UploadValidator;
+use OCA\Libresign\Exception\LibresignException;
 use OCA\Libresign\Handler\CertificateEngine\CertificateEngineFactory;
 use OCA\Libresign\Handler\CertificateEngine\IEngineHandler;
 use OCA\Libresign\Service\ActiveSigningsService;
@@ -83,10 +85,11 @@ class AdminController extends AEnvironmentAwareOCSController {
 	 * @param array{commonName: string, names: array<string, array{value:string|list<string>}>} $rootCert fields of root certificate
 	 * @param string $cfsslUri URI of CFSSL API
 	 * @param string $configPath Path of config files of CFSSL
-	 * @return DataResponse<Http::STATUS_OK, LibresignEngineHandlerResponse, array{}>|DataResponse<Http::STATUS_UNAUTHORIZED, LibresignMessageResponse, array{}>
+	 * @return DataResponse<Http::STATUS_OK, LibresignEngineHandlerResponse, array{}>|DataResponse<Http::STATUS_UNPROCESSABLE_ENTITY|Http::STATUS_INTERNAL_SERVER_ERROR, LibresignMessageResponse, array{}>
 	 *
 	 * 200: OK
-	 * 401: Account not found
+	 * 422: Invalid certificate data
+	 * 500: Failure to generate the certificate
 	 */
 	#[NoCSRFRequired]
 	#[OpenAPI(tags: ['certificates'])]
@@ -110,7 +113,9 @@ class AdminController extends AEnvironmentAwareOCSController {
 				[
 					'message' => $exception->getMessage()
 				],
-				Http::STATUS_UNAUTHORIZED
+				$exception instanceof LibresignException || $exception instanceof InvalidArgumentException
+					? Http::STATUS_UNPROCESSABLE_ENTITY
+					: Http::STATUS_INTERNAL_SERVER_ERROR,
 			);
 		}
 	}
@@ -120,10 +125,11 @@ class AdminController extends AEnvironmentAwareOCSController {
 	 *
 	 * @param array{commonName: string, names: array<string, array{value:string|list<string>}>} $rootCert fields of root certificate
 	 * @param string $configPath Path of config files of CFSSL
-	 * @return DataResponse<Http::STATUS_OK, LibresignEngineHandlerResponse, array{}>|DataResponse<Http::STATUS_UNAUTHORIZED, LibresignMessageResponse, array{}>
+	 * @return DataResponse<Http::STATUS_OK, LibresignEngineHandlerResponse, array{}>|DataResponse<Http::STATUS_UNPROCESSABLE_ENTITY|Http::STATUS_INTERNAL_SERVER_ERROR, LibresignMessageResponse, array{}>
 	 *
 	 * 200: OK
-	 * 401: Account not found
+	 * 422: Invalid certificate data
+	 * 500: Failure to generate the certificate
 	 */
 	#[NoCSRFRequired]
 	#[OpenAPI(tags: ['certificates'])]
@@ -145,7 +151,9 @@ class AdminController extends AEnvironmentAwareOCSController {
 				[
 					'message' => $exception->getMessage()
 				],
-				Http::STATUS_UNAUTHORIZED
+				$exception instanceof LibresignException || $exception instanceof InvalidArgumentException
+					? Http::STATUS_UNPROCESSABLE_ENTITY
+					: Http::STATUS_INTERNAL_SERVER_ERROR,
 			);
 		}
 	}
@@ -336,7 +344,7 @@ class AdminController extends AEnvironmentAwareOCSController {
 	/**
 	 * Get custom background image
 	 *
-	 * @return FileDisplayResponse<Http::STATUS_OK, array{}>
+	 * @return FileDisplayResponse<Http::STATUS_OK, array{Content-Disposition: 'attachment; filename="background.png"', Content-Type: 'image/png'}>
 	 *
 	 * 200: Image returned
 	 */
@@ -346,14 +354,17 @@ class AdminController extends AEnvironmentAwareOCSController {
 	public function signatureBackgroundGet(): FileDisplayResponse {
 		$file = $this->signatureBackgroundService->getImage();
 
-		$response = new FileDisplayResponse($file);
+		$response = new FileDisplayResponse($file, Http::STATUS_OK, [
+			'Content-Disposition' => 'attachment; filename="background.png"',
+			'Content-Type' => 'image/png',
+		]);
+		// The constructor always sets Content-Disposition to "inline" using the
+		// file name, so the attachment disposition must be set again afterwards.
+		$response->addHeader('Content-Disposition', 'attachment; filename="background.png"');
 		$csp = new ContentSecurityPolicy();
 		$csp->allowInlineStyle();
 		$response->setContentSecurityPolicy($csp);
 		$response->cacheFor(3600);
-		$response->addHeader('Content-Type', 'image/png');
-		$response->addHeader('Content-Disposition', 'attachment; filename="background.png"');
-		$response->addHeader('Content-Type', 'image/png');
 		return $response;
 	}
 

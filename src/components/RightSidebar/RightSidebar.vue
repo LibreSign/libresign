@@ -3,7 +3,8 @@
   - SPDX-License-Identifier: AGPL-3.0-or-later
 -->
 <template>
-	<NcAppSidebar v-if="hasVisibleTab"
+	<NcAppSidebar
+		v-if="hasVisibleTab"
 		ref="rightAppSidebar"
 		v-model:open="opened"
 		v-model:active="sidebarStore.activeTab"
@@ -11,12 +12,14 @@
 		:subtitle="subTitle"
 		@update:active="handleUpdateActive"
 		@close="closeSidebar">
-		<NcAppSidebarTab v-if="showSign"
+		<NcAppSidebarTab
+			v-if="showSign"
 			id="sign-tab"
 			:name="fileName">
 			<SignTab />
 		</NcAppSidebarTab>
-		<NcAppSidebarTab v-if="showRequestSignatureTab"
+		<NcAppSidebarTab
+			v-if="showRequestSignatureTab"
 			id="request-signature-tab"
 			:name="fileName">
 			<RequestSignatureTab />

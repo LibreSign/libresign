@@ -11,6 +11,7 @@ namespace OCA\Libresign\Handler;
 
 use OCA\Libresign\Db\File;
 use OCA\Libresign\Enum\DocMdpLevel;
+use OCA\Libresign\Vendor\LibreSign\PdfSignatureValidator\Parser\PdfSignatureInventoryReader;
 use OCP\IL10N;
 
 class DocMdpHandler {
@@ -74,6 +75,11 @@ class DocMdpHandler {
 	/**
 	 * Extract DocMDP permission level from PDF
 	 *
+	 * The level comes from the certification signature the document uses,
+	 * found by following the PDF structure. A signature dictionary that nothing
+	 * points to does not count. When the structure cannot be read, the level
+	 * comes from the text checks below.
+	 *
 	 * Validates ISO 32000-1 compliance:
 	 * - 12.8.2.2.1: Only ONE DocMDP signature allowed
 	 * - 12.8.2.2.1: DocMDP must be FIRST certifying signature
@@ -86,6 +92,13 @@ class DocMdpHandler {
 	private function extractDocMdpLevel($pdfResource): DocMdpLevel {
 		rewind($pdfResource);
 		$content = stream_get_contents($pdfResource);
+
+		$inventory = (new PdfSignatureInventoryReader())->readFromString($content);
+		if ($inventory->isConclusive) {
+			return $inventory->docMdpPermission === null
+				? DocMdpLevel::NOT_CERTIFIED
+				: DocMdpLevel::from($inventory->docMdpPermission->value);
+		}
 
 		$isoStatus = $this->getIsoComplianceStatus($content);
 		if (!$this->isIsoCompliant($isoStatus) && !$this->isOnlySingleDocMdpViolation($isoStatus)) {
@@ -235,29 +248,32 @@ class DocMdpHandler {
 
 	private function detectModifications($pdfResource): array {
 		rewind($pdfResource);
-		$content = stream_get_contents($pdfResource);
+		$content = (string)stream_get_contents($pdfResource);
 		$fileSize = strlen($content);
 
-		preg_match_all(
-			'/ByteRange\s*\[\s*(?<offset1>\d+)\s+(?<length1>\d+)\s+(?<offset2>\d+)\s+(?<length2>\d+)\s*\]/',
-			$content,
-			$byteRanges,
-			PREG_SET_ORDER
-		);
-
-		if (empty($byteRanges)) {
-			return [
-				'modified' => false,
-				'revisionCount' => 0,
-				'details' => [],
-			];
+		$inventory = (new PdfSignatureInventoryReader())->readFromString($content);
+		$coveredEnds = [];
+		if ($inventory->isConclusive) {
+			foreach ($inventory->activeSignatures as $signature) {
+				$coveredEnds[] = $signature->signedRevisionEnd;
+			}
+		} else {
+			// Compatibility fallback for PDFs whose object graph cannot be parsed.
+			// These ranges must not authorize the strict validation-data exemption.
+			preg_match_all(
+				'/ByteRange\s*\[\s*(?<offset1>\d+)\s+(?<length1>\d+)\s+(?<offset2>\d+)\s+(?<length2>\d+)\s*\]/',
+				$content,
+				$byteRanges,
+				PREG_SET_ORDER
+			);
+			foreach ($byteRanges as $range) {
+				$coveredEnds[] = (int)$range['offset2'] + (int)$range['length2'];
+			}
 		}
 
 		$modifications = [];
-		foreach ($byteRanges as $index => $range) {
-			$coveredEnd = (int)$range['offset2'] + (int)$range['length2'];
+		foreach ($coveredEnds as $index => $coveredEnd) {
 			$hasModifications = $coveredEnd < $fileSize;
-
 			$modifications[] = [
 				'signatureIndex' => $index,
 				'modified' => $hasModifications,
@@ -267,11 +283,9 @@ class DocMdpHandler {
 			];
 		}
 
-		$isModified = array_reduce($modifications, fn ($carry, $item) => $carry || $item['modified'], false);
-
 		return [
-			'modified' => $isModified,
-			'revisionCount' => count($byteRanges),
+			'modified' => array_reduce($modifications, fn ($carry, $item) => $carry || $item['modified'], false),
+			'revisionCount' => count($coveredEnds),
 			'details' => $modifications,
 		];
 	}
@@ -298,6 +312,15 @@ class DocMdpHandler {
 				true,
 				File::MODIFICATION_ALLOWED,
 				$this->l10n->t('Document was modified after signing')
+			);
+		}
+
+		if ($this->hasOnlyValidationDataUpdatesFromInventory($pdfResource)) {
+			// TRANSLATORS Validation result for a certified PDF where, after signing, only long-term validation data (DSS: certificates, CRLs, OCSP responses) or document timestamps were added. DocMDP (document modification policy) permits this at every level.
+			return $this->buildValidationResult(
+				true,
+				File::MODIFICATION_ALLOWED,
+				$this->l10n->t('Only validation data or document timestamps were added after signing (allowed by DocMDP)')
 			);
 		}
 
@@ -417,6 +440,28 @@ class DocMdpHandler {
 		}
 
 		return 'unknown';
+	}
+
+	/**
+	 * Only the active certification signature can define the signed revision.
+	 * An inconclusive inventory cannot grant the validation-data exemption.
+	 */
+	private function hasOnlyValidationDataUpdatesFromInventory($pdfResource): bool {
+		rewind($pdfResource);
+		$content = (string)stream_get_contents($pdfResource);
+		$inventory = (new PdfSignatureInventoryReader())->readFromString($content);
+		if (!$inventory->isConclusive || $inventory->docMdpPermission === null) {
+			return false;
+		}
+		foreach ($inventory->activeSignatures as $signature) {
+			if ($signature->isCertifying) {
+				return (new \OCA\Libresign\Vendor\LibreSign\PdfSignatureValidator\Validation\DocMdp\DocMdpValidationDataInspector())->hasOnlyValidationDataUpdates(
+					$content,
+					$signature->signedRevisionEnd,
+				);
+			}
+		}
+		return false;
 	}
 
 	/**

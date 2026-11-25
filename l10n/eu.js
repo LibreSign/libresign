@@ -406,7 +406,6 @@ OC.L10N.register(
     "Sign »%s«" : "Sinatu »%s«",
     "LibreSign: There is a file for you to sign" : "LibreSign: fitxategi bat dago zuk sinatzeko",
     "LibreSign: Code to sign file" : "LibreSign: fitxategia sinatzeko kodea",
-    "No signature was requested to %s" : "Ez da %s(e)rako sinadura eskatu",
     "Underline" : "Azpimarratu",
     "User" : "Erabiltzailea",
     "Choose the file to request signatures." : "Aukeratu fitxategia sinadurak eskatzeko.",
@@ -428,7 +427,6 @@ OC.L10N.register(
     "Full name of the main company or main user of this instance" : "Instantzia honetako enpresa nagusiaren edo erabiltzaile nagusiaren izena",
     "Invalid URL" : "URL baliogabea",
     "Name is mandatory" : "Izena nahitaezkoa da",
-    "Sign the document." : "Sinatu dokumentua.",
-    "{value} days" : "{value} egun"
+    "Sign the document." : "Sinatu dokumentua."
 },
 "nplurals=2; plural=(n != 1);");

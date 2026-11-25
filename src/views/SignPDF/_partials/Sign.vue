@@ -9,31 +9,37 @@
 		</div>
 		<div v-if="!loading" class="button-wrapper">
 			<!-- TRANSLATORS Heading for a reviewer signing a submitted document to record organizational approval. -->
-			<NcNoteCard v-if="showApprovalGuidance"
+			<NcNoteCard
+				v-if="showApprovalGuidance"
 				:heading="t('libresign', 'Document approval')"
 				type="info">
 				<!-- TRANSLATORS Explanation for a reviewer signing a submitted document to record approval. The review procedure is set by the organization. -->
 				{{ t('libresign', 'Review the identification document uploaded by the signer according to the procedure defined by your organization. Signing records your approval. Once all required identification documents are approved, the signer can continue the signing process, subject to other requirements.') }}
 			</NcNoteCard>
-			<NcCheckboxRadioSwitch v-if="signatureElementsStore.emailSigner && hasSignatures && hasVisibleSignatureField"
+			<NcCheckboxRadioSwitch
+				v-if="signatureElementsStore.emailSigner && hasSignatures && hasVisibleSignatureField"
 				v-model="rememberSignature">
 				<!-- TRANSLATORS Opt-in to remember an external email signer's visible signature after confirmed signing. -->
 				{{ t('libresign', 'Save my signature for future documents') }}
 			</NcCheckboxRadioSwitch>
-			<NcNoteCard v-if="requiresDeviceGeolocation"
+			<NcNoteCard
+				v-if="requiresDeviceGeolocation"
 				type="info">
 				{{ geolocationRequiredBannerText }}
 			</NcNoteCard>
-			<NcNoteCard v-if="geolocationFailureMessage"
+			<NcNoteCard
+				v-if="geolocationFailureMessage"
 				type="error">
 				<p>{{ geolocationFailureMessage }}</p>
 				<div class="geolocation-failure-actions">
-					<NcButton :disabled="loading || collectingGeolocation"
+					<NcButton
+						:disabled="loading || collectingGeolocation"
 						@click="dismissGeolocationFailure">
 						<!-- TRANSLATORS Button that closes the location-required failure state without signing. -->
 						{{ t('libresign', 'Cancel') }}
 					</NcButton>
-					<NcButton class="geolocation-retry"
+					<NcButton
+						class="geolocation-retry"
 						variant="primary"
 						:disabled="loading || collectingGeolocation"
 						@click="retryGeolocationCollection">
@@ -42,14 +48,17 @@
 					</NcButton>
 				</div>
 			</NcNoteCard>
-			<NcNoteCard v-for="(error, index) in signStore.errors"
+			<NcNoteCard
+				v-for="(error, index) in signStore.errors"
 				:key="index"
 				:heading="error.title || ''"
 				type="error">
-				<NcRichText :text="error.message"
+				<NcRichText
+					:text="error.message"
 					:use-markdown="true" />
 			</NcNoteCard>
-			<NcNoteCard v-if="!isApprovalRoute && !hasVisibleSignatureField && !hasBlockingSignError"
+			<NcNoteCard
+				v-if="!isApprovalRoute && !hasVisibleSignatureField && !hasBlockingSignError"
 				:heading="t('libresign', 'No visible signature is required')"
 				type="info">
 				<p>
@@ -62,7 +71,8 @@
 					<!-- TRANSLATORS Warning shown when the signer has not created any reusable signature yet. -->
 					{{ t('libresign', 'You do not have any signature defined.') }}
 				</p>
-				<NcButton v-if="canUseSavedSignature"
+				<NcButton
+					v-if="canUseSavedSignature"
 					:wide="true"
 					:disabled="loading"
 					variant="primary"
@@ -70,7 +80,8 @@
 					<!-- TRANSLATORS Button label for a signer identified by email to reuse the signature saved while signing an earlier document. -->
 					{{ t('libresign', 'Use my saved signature') }}
 				</NcButton>
-				<NcButton :wide="true"
+				<NcButton
+					:wide="true"
 					:disabled="loading"
 					variant="primary"
 					@click="openModal('createSignature')">
@@ -83,7 +94,8 @@
 					<!-- TRANSLATORS Warning shown when the signer must upload a certificate before signing the document. -->
 					{{ t('libresign', 'You need to upload your certificate to sign the document.') }}
 				</p>
-				<NcButton :wide="true"
+				<NcButton
+					:wide="true"
 					:disabled="loading"
 					variant="primary"
 					@click="openModal('uploadCertificate')">
@@ -95,7 +107,8 @@
 				<p>
 					{{ passwordSetupInstructionText }}
 				</p>
-				<NcButton :wide="true"
+				<NcButton
+					:wide="true"
 					:disabled="loading"
 					variant="primary"
 					@click="openModal('createPassword')">
@@ -110,14 +123,16 @@
 					<!-- TRANSLATORS Shown after a non-retriable certificate validation failure. "Signing is blocked" means the signer cannot continue now and must resolve the certificate issue first. -->
 					{{ t('libresign', 'Signing is blocked until the certificate validation issue is resolved.') }}
 				</p>
-				<NcButton :wide="true"
+				<NcButton
+					:wide="true"
 					:disabled="loading"
 					@click="clearBlockingSignError">
 					<!-- TRANSLATORS Button label that retries the signing flow after clearing a blocking certificate-validation error. -->
 					{{ t('libresign', 'Try signing again') }}
 				</NcButton>
 			</div>
-			<NcButton v-else-if="ableToSign"
+			<NcButton
+				v-else-if="ableToSign"
 				:wide="true"
 				:disabled="loading"
 				variant="primary"
@@ -144,17 +159,20 @@
 					@signed="onExternalSigned" />
 			</div>
 		</div>
-		<NcDialog v-if="signMethodsStore.modal.clickToSign"
+		<NcDialog
+			v-if="signMethodsStore.modal.clickToSign"
 			:no-close="loading"
 			:name="signDocumentDialogTitle"
 			size="small"
 			dialog-classes="libresign-dialog"
 			@closing="signMethodsStore.closeModal('clickToSign')">
-			<NcNoteCard v-for="(error, index) in signStore.errors"
+			<NcNoteCard
+				v-for="(error, index) in signStore.errors"
 				:key="index"
 				:heading="error.title || ''"
 				type="error">
-				<NcRichText :text="error.message"
+				<NcRichText
+					:text="error.message"
 					:use-markdown="true" />
 			</NcNoteCard>
 
@@ -163,12 +181,14 @@
 			</p>
 
 			<template #actions>
-				<NcButton :disabled="loading"
+				<NcButton
+					:disabled="loading"
 					@click="signMethodsStore.closeModal('clickToSign')">
 					<!-- TRANSLATORS Dialog action button that closes signing confirmation without signing. -->
 					{{ t('libresign', 'Cancel') }}
 				</NcButton>
-				<NcButton variant="primary"
+				<NcButton
+					variant="primary"
 					:disabled="loading"
 					@click="signWithClick">
 					<template #icon>
@@ -178,17 +198,20 @@
 				</NcButton>
 			</template>
 		</NcDialog>
-		<NcDialog v-if="signMethodsStore.modal.password"
+		<NcDialog
+			v-if="signMethodsStore.modal.password"
 			:no-close="loading"
 			:name="signDocumentDialogTitle"
 			size="small"
 			dialog-classes="libresign-dialog"
 			@closing="onCloseConfirmPassword">
-			<NcNoteCard v-for="(error, index) in signStore.errors"
+			<NcNoteCard
+				v-for="(error, index) in signStore.errors"
 				:key="index"
 				:heading="error.title || ''"
 				type="error">
-				<NcRichText :text="error.message"
+				<NcRichText
+					:text="error.message"
 					:use-markdown="true" />
 			</NcNoteCard>
 
@@ -197,7 +220,8 @@
 			</p>
 
 			<form @submit.prevent="signWithPassword()">
-				<NcPasswordField v-model="signPassword"
+				<NcPasswordField
+					v-model="signPassword"
 					:label="signaturePasswordLabel"
 					type="password" />
 			</form>
@@ -205,10 +229,12 @@
 				<!-- TRANSLATORS Link text that opens the password recovery or management flow for the signing password. -->
 				{{ t('libresign', 'Forgot password?') }}
 			</a>
-			<ManagePassword v-if="showManagePassword"
+			<ManagePassword
+				v-if="showManagePassword"
 				@certificate:uploaded="onSignatureFileCreated" />
 			<template #actions>
-				<NcButton :disabled="signPassword.length < 3 || loading"
+				<NcButton
+					:disabled="signPassword.length < 3 || loading"
 					type="submit"
 					variant="primary"
 					@click="signWithPassword()">
@@ -219,7 +245,8 @@
 				</NcButton>
 			</template>
 		</NcDialog>
-		<Draw v-if="signMethodsStore.modal.createSignature"
+		<Draw
+			v-if="signMethodsStore.modal.createSignature"
 			:draw-editor="true"
 			:text-editor="true"
 			:file-editor="true"
@@ -232,23 +259,27 @@
 			:useModal="true"
 			:errors="signStore.errors"
 			@certificate:uploaded="onSignatureFileCreated" />
-		<ModalVerificationCode v-if="signMethodsStore.modal.token"
+		<ModalVerificationCode
+			v-if="signMethodsStore.modal.token"
 			mode="token"
 			:phone-number="user.settings.phoneNumber"
 			@change="signWithTokenCode"
 			@update:phone="val => emit('update:phone', val)"
 			@close="signMethodsStore.closeModal('token')" />
-		<ModalVerificationCode v-if="signMethodsStore.modal.emailToken"
+		<ModalVerificationCode
+			v-if="signMethodsStore.modal.emailToken"
 			mode="email"
 			:approval-context="isApprovalRoute"
 			@change="signWithEmailToken"
 			@close="signMethodsStore.closeModal('emailToken')" />
-		<ModalVerificationCode v-if="showSavedSignatureCode"
+		<ModalVerificationCode
+			v-if="showSavedSignatureCode"
 			mode="email"
 			purpose="savedSignature"
 			@unlocked="showSavedSignatureCode = false"
 			@close="showSavedSignatureCode = false" />
-		<NcDialog v-if="showGeolocationPrivacyDialog"
+		<NcDialog
+			v-if="showGeolocationPrivacyDialog"
 			:no-close="collectingGeolocation"
 			:name="geolocationPrivacyDialogTitle"
 			size="small"
@@ -258,12 +289,14 @@
 				{{ geolocationPrivacyDialogBody }}
 			</p>
 			<template #actions>
-				<NcButton :disabled="collectingGeolocation"
+				<NcButton
+					:disabled="collectingGeolocation"
 					@click="cancelGeolocationPrivacyDialog">
 					<!-- TRANSLATORS Dialog action that cancels device location collection and aborts signing. -->
 					{{ t('libresign', 'Cancel') }}
 				</NcButton>
-				<NcButton variant="primary"
+				<NcButton
+					variant="primary"
 					:disabled="collectingGeolocation"
 					@click="confirmGeolocationPrivacyDialog">
 					<template #icon>
@@ -449,7 +482,7 @@ defineOptions({
 
 const emit = defineEmits<{
 	(e: 'update:phone', value: string): void
-	(e: 'signing-started', payload: { signRequestUuid: string; async: boolean }): void
+	(e: 'signing-started', payload: { signRequestUuid: string, async: boolean }): void
 	(e: 'signed', payload: Record<string, unknown> & { signRequestUuid: string }): void
 }>()
 
@@ -638,8 +671,7 @@ const signRequestUuid = computed(() => {
 const currentSignerGeolocationRequirement = computed(() =>
 	resolveFrozenGeolocationRequirement(signStore.document, {
 		signRequestUuid: signRequestUuid.value || routeSignRequestUuid.value,
-	}),
-)
+	}))
 const requiresDeviceGeolocation = computed(() => isGeolocationRequired(currentSignerGeolocationRequirement.value))
 // TRANSLATORS Early notice shown on the signing screen when device-reported location is mandatory.
 const geolocationRequiredBannerText = t('libresign', 'Device-reported location is required to sign this document.')
@@ -829,8 +861,7 @@ async function signWithPassword() {
 async function signWithTokenCode(token: string) {
 	const tokenMethods: TokenMethodKey[] = ['smsToken', 'whatsappToken', 'signalToken', 'telegramToken', 'xmppToken']
 	const activeMethod = tokenMethods.find((method) =>
-		Object.hasOwn(signMethodsStore.settings, method),
-	)
+		Object.hasOwn(signMethodsStore.settings, method))
 
 	if (!activeMethod) {
 		throw new Error('No active token method found')

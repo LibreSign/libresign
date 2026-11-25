@@ -30,7 +30,7 @@ use OCP\IUserSession;
 use Psr\Log\LoggerInterface;
 
 /**
- * @psalm-import-type LibresignFile from \OCA\Libresign\ResponseDefinitions
+ * @psalm-import-type LibresignIdDocFile from \OCA\Libresign\ResponseDefinitions
  * @psalm-import-type LibresignIdDocs from \OCA\Libresign\ResponseDefinitions
  * @psalm-import-type LibresignIdDocsApprovalListResponse from \OCA\Libresign\ResponseDefinitions
  * @psalm-import-type LibresignIdDocsListResponse from \OCA\Libresign\ResponseDefinitions

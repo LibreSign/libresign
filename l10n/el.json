@@ -1250,6 +1250,7 @@
     "DocMDP" : "DocMDP",
     "Control which PDF changes remain allowed after signing and help readers detect disallowed modifications." : "Έλεγχος του ποιες αλλαγές στο PDF παραμένουν επιτρεπτές μετά την υπογραφή και βοήθεια προς τους αναγνώστες στον εντοπισμό μη επιτρεπόμενων τροποποιήσεων.",
     "{value} seconds" : "{value} δευτερόλεπτα",
+    "_%n day_::_%n days_" : ["%n ημέρα","%n ημέρες"],
     "Identification documents flow" : "Ροή εγγράφων ταυτοποίησης",
     "Control whether signers must submit identification documents for approval." : "Έλεγχος του εάν οι υπογράφοντες πρέπει να υποβάλουν έγγραφα ταυτοποίησης προς έγκριση.",
     "Identification factors" : "Παράγοντες ταυτοποίησης",
@@ -1315,7 +1316,6 @@
     "Invalid id-doc request" : "Μη έγκυρο αίτημα εγγράφου ταυτοποίησης (id-doc)",
     "Notification sent with success." : "Η ειδοποίηση στάλθηκε με επιτυχία.",
     "From: %s • Date: %s" : "Από: %s • Ημερομηνία: %s",
-    "Failure on generate certificate" : "Αποτυχία κατά τη δημιουργία πιστοποιητικού",
     "Cannot read file" : "Δεν είναι δυνατή η ανάγνωση του αρχείου",
     "visible element" : "ορατό στοιχείο",
     "You are not allowed to request signing" : "Δεν επιτρέπεται να ζητήσετε υπογραφή",
@@ -1323,7 +1323,6 @@
     "Changes have been made in a file that you have to sign. Access the link below:" : "Έχουν γίνει αλλαγές σε ένα αρχείο που πρέπει να υπογράψετε. Προσπελάστε τον παρακάτω σύνδεσμο:",
     "LibreSign: A file has been signed" : "LibreSign: Ένα αρχείο έχει υπογραφεί",
     "Changes have been made in a file that you have to sign." : "Έχουν γίνει αλλαγές σε ένα αρχείο που πρέπει να υπογράψετε.",
-    "Parameter '%s' should be betweeen %s and %s." : "Η παράμετρος '%s' πρέπει να είναι μεταξύ %s και %s.",
     "You cannot request signature for this document, please contact your administrator" : "Δεν μπορείτε να ζητήσετε υπογραφή για αυτό το έγγραφο, παρακαλώ επικοινωνήστε με τον διαχειριστή σας",
     "Link expired." : "Ο σύνδεσμος έληξε.",
     "LibreSign: Changes into a file for you to sign" : "LibreSign: Αλλαγές σε ένα αρχείο για να υπογράψετε",
@@ -1332,7 +1331,6 @@
     "LibreSign: There is a file for you to sign" : "LibreSign: Υπάρχει ένα αρχείο για να υπογράψετε",
     "View signed file »%s«" : "Προβολή υπογεγραμμένου αρχείου »%s«",
     "LibreSign: Code to sign file" : "LibreSign: Κωδικός για υπογραφή αρχείου",
-    "No signature was requested to %s" : "Δεν ζητήθηκε υπογραφή από τον/την %s",
     "Date when the signer sent the request to sign (without time, in their local time zone)." : "Ημερομηνία που ο υπογράφων έστειλε το αίτημα υπογραφής (χωρίς ώρα, στην τοπική ζώνη ώρας τους).",
     "Date and time when the signer sent the request to sign (in their local time zone)." : "Ημερομηνία και ώρα που ο υπογράφων έστειλε το αίτημα υπογραφής (στην τοπική ζώνη ώρας τους).",
     "Time zone of signer when sent the request to sign (in their local time zone)." : "Ζώνη ώρας του υπογράφοντα όταν στάλθηκε το αίτημα υπογραφής (στην τοπική ζώνη ώρας τους).",
@@ -1427,14 +1425,9 @@
     "Make validation URL acessible only by authenticated users" : "Κάντε το URL επικύρωσης προσβάσιμο μόνο από πιστοποιημένους χρήστες",
     "{method} is not configured. Please contact your administrator." : "Το {method} δεν έχει διαμορφωθεί. Παρακαλούμε επικοινωνήστε με τον διαχειριστή σας.",
     "Sign the document." : "Υπογραφή του εγγράφου.",
-    "Failed to remove file(s) from envelope" : "Αποτυχία αφαίρεσης αρχείου/ων από τον φάκελο",
     "Maximum validity (seconds)" : "Μέγιστη διάρκεια ισχύος (δευτερόλεπτα)",
     "Leave empty to disable expiration." : "Αφήστε το κενό για απενεργοποίηση της λήξης.",
     "Renewal interval (seconds)" : "Διάστημα ανανέωσης (δευτερόλεπτα)",
-    "Leave empty to disable renewal." : "Αφήστε το κενό για απενεργοποίηση της ανανέωσης.",
-    "{value} days" : "{value} ημέρες",
-    "{count} enabled factors" : "{count} ενεργοποιημένοι παράγοντες",
-    "{count} denied requester groups" : "{count} αποκλεισμένες ομάδες αιτούντων",
-    "{count} authorized requester groups" : "{count} εξουσιοδοτημένες ομάδες αιτούντων"
+    "Leave empty to disable renewal." : "Αφήστε το κενό για απενεργοποίηση της ανανέωσης."
 },"pluralForm" :"nplurals=2; plural=(n != 1);"
 }

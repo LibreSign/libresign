@@ -41,7 +41,7 @@ type SignersVm = {
 	sortableSigners?: SignerRecord[]
 	isOrderedNumeric: boolean
 	canReorder: boolean
-	onDragEnd: (evt: { oldIndex: number; newIndex: number }) => void
+	onDragEnd: (evt: { oldIndex: number, newIndex: number }) => void
 }
 
 type SignersWrapper = VueWrapper<SignersVm>

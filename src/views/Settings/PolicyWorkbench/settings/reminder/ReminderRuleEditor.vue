@@ -5,35 +5,40 @@
 
 <template>
 	<div class="reminder-editor">
-		<NcCheckboxRadioSwitch type="switch"
+		<NcCheckboxRadioSwitch
+			type="switch"
 			:model-value="isEnabled"
 			@update:modelValue="onToggleEnabled">
 			<span>{{ enableAutomaticRemindersLabel }}</span>
 		</NcCheckboxRadioSwitch>
 
 		<div v-if="isEnabled" class="reminder-editor__fields">
-			<NcTextField :model-value="String(value.days_before)"
+			<NcTextField
+				:model-value="String(value.days_before)"
 				:label="firstReminderAfterLabel"
 				type="number"
 				:min="1"
 				:step="1"
 				@update:modelValue="onDaysBeforeChange" />
 
-			<NcTextField :model-value="String(value.days_between)"
+			<NcTextField
+				:model-value="String(value.days_between)"
 				:label="daysBetweenRemindersLabel"
 				type="number"
 				:min="1"
 				:step="1"
 				@update:modelValue="onDaysBetweenChange" />
 
-			<NcTextField :model-value="String(value.max)"
+			<NcTextField
+				:model-value="String(value.max)"
 				:label="maxRemindersPerSignerLabel"
 				type="number"
 				:min="1"
 				:step="1"
 				@update:modelValue="onMaxChange" />
 
-			<NcDateTimePickerNative :model-value="sendTimerDate"
+			<NcDateTimePickerNative
+				:model-value="sendTimerDate"
 				:label="sendTimeLabel"
 				type="time"
 				@update:modelValue="onSendTimerChange" />

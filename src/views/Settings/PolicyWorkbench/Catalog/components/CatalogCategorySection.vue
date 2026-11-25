@@ -68,7 +68,11 @@
 					</div>
 
 					<div class="policy-workbench__setting-footer">
-						<NcButton variant="secondary" class="policy-workbench__manage-button" :aria-label="configureSettingAriaLabel" @click.stop="handleOpenFromAction(summary.key, $event)">
+						<NcButton
+							variant="secondary"
+							class="policy-workbench__manage-button"
+							:aria-label="configureSettingAriaLabel"
+							@click.stop="handleOpenFromAction(summary.key, $event)">
 							{{ configureButtonLabel }}
 						</NcButton>
 					</div>
@@ -106,7 +110,11 @@
 						<span class="policy-workbench__settings-row-stat policy-workbench__settings-row-stat--count"><strong>{{ resolveOverridesStatLabel(summary.key) }}:</strong> {{ formatOverrideSummary(summary.groupCount, summary.userCount, summary.key, summary.everyoneCount) }}</span>
 					</div>
 
-					<NcButton variant="secondary" class="policy-workbench__manage-button" :aria-label="configureSettingAriaLabel" @click.stop="handleOpenFromAction(summary.key, $event)">
+					<NcButton
+						variant="secondary"
+						class="policy-workbench__manage-button"
+						:aria-label="configureSettingAriaLabel"
+						@click.stop="handleOpenFromAction(summary.key, $event)">
 						{{ configureButtonLabel }}
 					</NcButton>
 				</article>

@@ -1511,6 +1511,7 @@
     "{value} seconds" : "{value} seconds",
     "Signer certificate validity" : "Signer certificate validity",
     "Define the default validity, in days, for signer certificates created by LibreSign. This setting does not control how long a signing request remains available." : "Define the default validity, in days, for signer certificates created by LibreSign. This setting does not control how long a signing request remains available.",
+    "_%n day_::_%n days_" : ["%n day","%n days"],
     "Identification documents flow" : "Identification documents flow",
     "Control whether signers must submit identification documents for approval." : "Control whether signers must submit identification documents for approval.",
     "Identification factors" : "Identification factors",
@@ -1589,7 +1590,6 @@
     "Notification sent with success." : "Notification sent with success.",
     "From: %s • Date: %s" : "From: %s • Date: %s",
     "The configured footer template is not supported. Ask an administrator to review the footer template." : "The configured footer template is not supported. Ask an administrator to review the footer template.",
-    "Failure on generate certificate" : "Failure on generate certificate",
     "Cannot read file" : "Cannot read file",
     "visible element" : "visible element",
     "You are not allowed to request signing" : "You are not allowed to request signing",
@@ -1597,7 +1597,6 @@
     "Changes have been made in a file that you have to sign. Access the link below:" : "Changes have been made in a file that you have to sign. Access the link below:",
     "LibreSign: A file has been signed" : "LibreSign: A file has been signed",
     "Changes have been made in a file that you have to sign." : "Changes have been made in a file that you have to sign.",
-    "Parameter '%s' should be betweeen %s and %s." : "Parameter '%s' should be betweeen %s and %s.",
     "You cannot request signature for this document, please contact your administrator" : "You cannot request signature for this document, please contact your administrator",
     "Link expired." : "Link expired.",
     "LibreSign: Changes into a file for you to sign" : "LibreSign: Changes into a file for you to sign",
@@ -1606,7 +1605,6 @@
     "LibreSign: There is a file for you to sign" : "LibreSign: There is a file for you to sign",
     "View signed file »%s«" : "View signed file »%s«",
     "LibreSign: Code to sign file" : "LibreSign: Code to sign file",
-    "No signature was requested to %s" : "No signature was requested to %s",
     "The configured signature stamp template is not supported. Ask an administrator to review the signature template." : "The configured signature stamp template is not supported. Ask an administrator to review the signature template.",
     "Date when the signer sent the request to sign (without time, in their local time zone)." : "Date when the signer sent the request to sign (without time, in their local time zone).",
     "Date and time when the signer sent the request to sign (in their local time zone)." : "Date and time when the signer sent the request to sign (in their local time zone).",
@@ -1702,15 +1700,10 @@
     "Make validation URL acessible only by authenticated users" : "Make validation URL acessible only by authenticated users",
     "{method} is not configured. Please contact your administrator." : "{method} is not configured. Please contact your administrator.",
     "Sign the document." : "Sign the document.",
-    "Failed to remove file(s) from envelope" : "Failed to remove file(s) from envelope",
     "Renew signer access after (seconds)" : "Renew signer access after (seconds)",
     "Maximum validity (seconds)" : "Maximum validity (seconds)",
     "Leave empty to disable expiration." : "Leave empty to disable expiration.",
     "Renewal interval (seconds)" : "Renewal interval (seconds)",
-    "Leave empty to disable renewal." : "Leave empty to disable renewal.",
-    "{value} days" : "{value} days",
-    "{count} enabled factors" : "{count} enabled factors",
-    "{count} denied requester groups" : "{count} denied requester groups",
-    "{count} authorized requester groups" : "{count} authorized requester groups"
+    "Leave empty to disable renewal." : "Leave empty to disable renewal."
 },"pluralForm" :"nplurals=2; plural=(n != 1);"
 }

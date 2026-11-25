@@ -183,8 +183,12 @@ describe('AppFilesTab', () => {
 
 	it('refreshes signed metadata and the Files list after direct signing succeeds', async () => {
 		vi.mocked(loadState).mockImplementation((_app, key, fallback) => {
-			if (key === 'certificate_ok' || key === 'can_request_sign') { return true }
-			if (key === 'effective_policies') { return { policies: { identify_methods: { effectiveValue: { factors: [{ name: 'account', enabled: true, signatureMethods: { clickToSign: { enabled: true } } }] } } } } }
+			if (key === 'certificate_ok' || key === 'can_request_sign') {
+				return true
+			}
+			if (key === 'effective_policies') {
+				return { policies: { identify_methods: { effectiveValue: { factors: [{ name: 'account', enabled: true, signatureMethods: { clickToSign: { enabled: true } } }] } } } }
+			}
 			return fallback
 		})
 		spawnDialogMock.mockResolvedValueOnce(true)
@@ -204,7 +208,9 @@ describe('AppFilesTab', () => {
 
 	it('does not add the account to another PDF if selection changes during policy loading', async () => {
 		let releasePolicy: (() => void) | undefined
-		const pendingPolicy = new Promise<void>((resolve) => { releasePolicy = resolve })
+		const pendingPolicy = new Promise<void>((resolve) => {
+			releasePolicy = resolve
+		})
 		vi.spyOn(usePoliciesStore(), 'fetchEffectivePolicies').mockReturnValue(pendingPolicy)
 		vi.spyOn(filesStore, 'getFile').mockReturnValue({ id: -456, nodeId: 456, signers: [] } as ReturnType<typeof filesStore.getFile>)
 		window.OCA = { Libresign: { pendingSelfSignNodeId: 456 } }
@@ -244,9 +250,7 @@ describe('AppFilesTab', () => {
 			expect(addSelfMock).not.toHaveBeenCalled()
 			await wrapper.vm.preparePendingSelfSign(456)
 			expect(addSelfMock).toHaveBeenCalledOnce()
-			expect(addSelfMock).toHaveBeenCalledExactlyOnceWith(
-				expect.anything(), expect.anything(), { readyToSign: true },
-			)
+			expect(addSelfMock).toHaveBeenCalledExactlyOnceWith(expect.anything(), expect.anything(), { readyToSign: true })
 			expect(window.OCA.Libresign.pendingSelfSignNodeId).toBeUndefined()
 			await wrapper.vm.preparePendingSelfSign(456)
 			expect(addSelfMock).toHaveBeenCalledOnce()
@@ -456,7 +460,7 @@ describe('AppFilesTab', () => {
 			})
 			getClientMock.mockReturnValue({ stat: mockStat } as Partial<import('webdav').WebDAVClient> as import('webdav').WebDAVClient)
 			type NavView = import('@nextcloud/files').View
-			type NavActive = { id: string; name: string; getContents: () => void; icon: string; params: { dir?: string } }
+			type NavActive = { id: string, name: string, getContents: () => void, icon: string, params: { dir?: string } }
 			type PartialNav = Partial<import('@nextcloud/files').Navigation> & { active?: Partial<NavActive> }
 			getNavigationMock.mockReturnValue({
 				active: { params: { dir: '/Documents' } },

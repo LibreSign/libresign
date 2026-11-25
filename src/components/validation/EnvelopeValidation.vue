@@ -74,7 +74,11 @@
 							</NcActionButton>
 						</template>
 						<template #extra-actions>
-							<NcButton v-if="isTouchDevice && file.uuid" variant="tertiary" :aria-label="t('libresign', 'View PDF')" @click.stop="viewFile(file)">
+							<NcButton
+								v-if="isTouchDevice && file.uuid"
+								variant="tertiary"
+								:aria-label="t('libresign', 'View PDF')"
+								@click.stop="viewFile(file)">
 								<template #icon>
 									<NcIconSvgWrapper :path="mdiEye" :size="20" />
 								</template>
@@ -112,7 +116,12 @@
 					<li v-for="(signer, signerIndex) in section.participants" :key="`${section.role}-${signerIndex}`">
 						<NcListItem :name="getName(signer)" :active="isParticipantOpen(section.role, signerIndex)" @click="toggleParticipantDetail(section.role, signerIndex)">
 							<template #icon>
-								<NcAvatar disable-menu :is-no-user="!signer.userId" :size="44" :user="signer.userId ? signer.userId : getName(signer)" :display-name="getName(signer)" />
+								<NcAvatar
+									disable-menu
+									:is-no-user="!signer.userId"
+									:size="44"
+									:user="signer.userId ? signer.userId : getName(signer)"
+									:display-name="getName(signer)" />
 							</template>
 							<template #subname>
 								<span class="signer-progress" data-test="envelope-signer-summary">
@@ -153,7 +162,11 @@
 										{{ dateFromSqlAnsi(signer.rejection.rejectedAt) }}
 									</template>
 								</NcListItem>
-								<NcListItem v-if="signer.rejection.comment" class="detail-item" compact data-test="envelope-signer-rejection-comment">
+								<NcListItem
+									v-if="signer.rejection.comment"
+									class="detail-item"
+									compact
+									data-test="envelope-signer-rejection-comment">
 									<template #name>
 										<!-- TRANSLATORS Label before the reason the signer wrote when refusing to sign the document. -->
 										<strong>{{ t('libresign', 'Rejection comment:') }}</strong>

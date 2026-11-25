@@ -256,7 +256,7 @@ final class SignFileControllerTest extends ApiTestCase {
 				'signPassword' => ''
 			])
 			->withPath('/api/v1/account/signature')
-			->expectStatus(401);
+			->expectStatus(422);
 
 		$this->assertRequest();
 	}
@@ -373,7 +373,7 @@ final class SignFileControllerTest extends ApiTestCase {
 				'Authorization' => 'Basic ' . base64_encode('username:password')
 			])
 			->withPath('/api/v1/sign/file_id/171')
-			->expectStatus(401);
+			->expectStatus(422);
 
 		$this->assertRequest();
 	}

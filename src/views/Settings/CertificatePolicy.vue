@@ -6,7 +6,8 @@
 <template>
 	<div>
 		<fieldset class="settings-section__row">
-			<NcTextField v-model="OID"
+			<NcTextField
+				v-model="OID"
 				:label="t('libresign', 'Certificate Policy OID')"
 				:placeholder="t('libresign', 'Certificate Policy OID')"
 				:spellcheck="false"
@@ -16,7 +17,8 @@
 				@update:modelValue="saveOID" />
 		</fieldset>
 		<fieldset class="settings-section__row">
-			<NcButton id="signature-background"
+			<NcButton
+				id="signature-background"
 				:variant="CPS ? 'secondary' : 'error'"
 				:aria-label="t('libresign', 'Upload Certification Practice Statement (CPS) PDF')"
 				:disabled="loading || disabled"
@@ -26,7 +28,8 @@
 				</template>
 				{{ t('libresign', 'Upload Certification Practice Statement (CPS) PDF') }}
 			</NcButton>
-			<NcButton v-if="CPS"
+			<NcButton
+				v-if="CPS"
 				variant="tertiary"
 				:aria-label="t('libresign', 'Remove')"
 				:disabled="loading || disabled"
@@ -35,22 +38,26 @@
 					<NcIconSvgWrapper :path="mdiDelete" :size="20" />
 				</template>
 			</NcButton>
-			<NcButton v-if="CPS"
+			<NcButton
+				v-if="CPS"
 				variant="tertiary"
 				:disabled="loading || disabled"
 				@click="view">
 				{{ t('libresign', 'View') }}
 			</NcButton>
-			<NcLoadingIcon v-if="loading"
+			<NcLoadingIcon
+				v-if="loading"
 				class="settings-section__loading-icon"
 				:size="20" />
-			<input ref="input"
+			<input
+				ref="input"
 				:accept="acceptMime"
 				type="file"
 				@change="onUploadCsp">
 		</fieldset>
 		<div class="settings-section__row">
-			<NcNoteCard v-if="errorMessage"
+			<NcNoteCard
+				v-if="errorMessage"
 				type="error"
 				:show-alert="true">
 				<p>{{ errorMessage }}</p>

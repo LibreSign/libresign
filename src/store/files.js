@@ -663,10 +663,7 @@ const _filesStore = defineStore('files', () => {
 
 	async function removeFilesFromEnvelope(fileIds) {
 		const deletePromises = fileIds.map(id =>
-			axios.delete(
-				generateOcsUrl('/apps/libresign/api/v1/file/file_id/{fileId}', { fileId: id }),
-			),
-		)
+			axios.delete(generateOcsUrl('/apps/libresign/api/v1/file/file_id/{fileId}', { fileId: id })))
 
 		return await Promise.all(deletePromises)
 			.then(() => {
@@ -1217,8 +1214,7 @@ const _filesStore = defineStore('files', () => {
 				return files.value
 			}
 			if (!filter.force_fetch && !requestDetails) {
-				return Object.fromEntries(
-					Object.entries(files.value).filter(([, value]) => {
+				return Object.fromEntries(Object.entries(files.value).filter(([, value]) => {
 						if (filter.signer_uuid) {
 							// return true when found signer by signer_uuid
 							return value.signers?.filter((signer) => {
@@ -1227,8 +1223,7 @@ const _filesStore = defineStore('files', () => {
 							}).length > 0
 						}
 						return false
-					}),
-				)
+					}))
 			}
 		}
 		loading.value = true
@@ -1323,9 +1318,7 @@ const _filesStore = defineStore('files', () => {
 		const rawPolicyOverrides = policy?.overrides && typeof policy.overrides === 'object' && !Array.isArray(policy.overrides)
 			? policy.overrides
 			: {}
-		const policyOverrides = Object.fromEntries(
-			Object.entries(rawPolicyOverrides).filter(([key]) => key !== 'signature_flow' && key !== 'add_footer'),
-		)
+		const policyOverrides = Object.fromEntries(Object.entries(rawPolicyOverrides).filter(([key]) => key !== 'signature_flow' && key !== 'add_footer'))
 		const requestedSignatureFlow = rawPolicyOverrides.signature_flow ?? selectedFile?.signatureFlow ?? null
 		if (canUseSignatureFlowOverride && (requestedSignatureFlow === 'none' || requestedSignatureFlow === 'parallel' || requestedSignatureFlow === 'ordered_numeric')) {
 			policyOverrides.signature_flow = requestedSignatureFlow

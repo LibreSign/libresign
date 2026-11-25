@@ -147,7 +147,9 @@ describe('FileListFilterChips.vue', () => {
 		expect(wrapper.find('ul').exists()).toBe(true)
 
 		// Clear chips — use callback to replace (not merge) the chips object
-		filtersStore.$patch((state: typeof filtersStore.$state) => { state.chips = {} })
+		filtersStore.$patch((state: typeof filtersStore.$state) => {
+			state.chips = {}
+		})
 		await wrapper.vm.$nextTick()
 
 		expect(wrapper.find('ul').exists()).toBe(false)

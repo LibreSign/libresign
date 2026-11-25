@@ -6,7 +6,8 @@
 <template>
 	<NcAppNavigation>
 		<template #list>
-			<NcAppNavigationItem v-if="canRequestSign"
+			<NcAppNavigationItem
+				v-if="canRequestSign"
 				id="request-files"
 				:to="{name: 'requestFiles'}"
 				:name="t('libresign', 'Request')"
@@ -15,7 +16,8 @@
 					<NcIconSvgWrapper :path="mdiFileSign" :size="20" />
 				</template>
 			</NcAppNavigationItem>
-			<NcAppNavigationItem id="fileslist"
+			<NcAppNavigationItem
+				id="fileslist"
 				:to="{ name: 'fileslist' }"
 				:name="t('libresign', 'Files')"
 				@click="unselectFile">
@@ -24,7 +26,8 @@
 				</template>
 			</NcAppNavigationItem>
 			<!-- TRANSLATORS "Validate" here is a technical process: checking the cryptographic integrity of the signatures, the certificate chain and revocation status. It does NOT mean approving or authorizing something. Choose a word in your language that conveys "to check" or "to verify", not "to approve" or "to authorize". -->
-			<NcAppNavigationItem id="validation"
+			<NcAppNavigationItem
+				id="validation"
 				:to="{name: 'validation'}"
 				:name="t('libresign', 'Validate')"
 				@click="unselectFile">
@@ -33,7 +36,8 @@
 				</template>
 			</NcAppNavigationItem>
 
-			<NcAppNavigationItem v-if="config.identificationDocumentsFlow && config.isApprover"
+			<NcAppNavigationItem
+				v-if="config.identificationDocumentsFlow && config.isApprover"
 				:to="{name: 'DocsIdDocsValidation'}"
 				:name="t('libresign', 'Documents Validation')">
 				<template #icon>
@@ -41,7 +45,8 @@
 				</template>
 			</NcAppNavigationItem>
 
-			<NcAppNavigationItem v-if="isAdmin"
+			<NcAppNavigationItem
+				v-if="isAdmin"
 				:to="{name: 'CrlManagement'}"
 				:name="t('libresign', 'CRL Management')"
 				@click="unselectFile">

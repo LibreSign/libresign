@@ -534,7 +534,6 @@ OC.L10N.register(
     "Invalid URL" : "Virheellinen URL",
     "Format: https://example.com/tsa" : "Muoto: https://example.com/tsa",
     "Name is mandatory" : "Nimi on pakollinen",
-    "Sign the document." : "Allekirjoita asiakirja.",
-    "{value} days" : "{value} päivää"
+    "Sign the document." : "Allekirjoita asiakirja."
 },
 "nplurals=2; plural=(n != 1);");

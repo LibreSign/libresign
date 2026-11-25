@@ -91,6 +91,7 @@ OC.L10N.register(
     "Last 7 days" : "saith diwrnodau cynt",
     "Last 30 days" : "30 diwrnoday cynt",
     "Other" : "Arall",
+    "_%n day_::_%n days_" : ["%n diwrnod","%n ddiwrnod","%n diwrnod","%n diwrnod"],
     "User" : "Defnyddwyr",
     "Add new" : "Ychwanegu newydd",
     "on" : "ar",

@@ -1590,7 +1590,6 @@
     "Notification sent with success." : "Bildirim gönderildi.",
     "From: %s • Date: %s" : "Gönderen: %s • Tarih: %s",
     "The configured footer template is not supported. Ask an administrator to review the footer template." : "Yapılandırılmış alt bilgi kalıbı desteklenmiyor. Bir yöneticiden alt bilgi kalıbını gözden geçirmesini isteyin.",
-    "Failure on generate certificate" : "Sertifika oluşturulurken sorun çıktı",
     "Cannot read file" : "Dosya okunamadı",
     "visible element" : "görülebilir bileşen",
     "You are not allowed to request signing" : "İmzalama isteğinde bulunma izniniz yok",
@@ -1598,7 +1597,6 @@
     "Changes have been made in a file that you have to sign. Access the link below:" : "İmzalamanız gereken bir dosyada değişiklikler yapıldı. Şu bağlantıdan erişebilirsiniz:",
     "LibreSign: A file has been signed" : "LibreSign: Bir dosya imzalandı",
     "Changes have been made in a file that you have to sign." : "İmzalamanız gereken bir dosyada değişiklikler yapıldı.",
-    "Parameter '%s' should be betweeen %s and %s." : "'%s' parametresinin değeri %s ile %s arasında olmalıdır.",
     "You cannot request signature for this document, please contact your administrator" : "Bu belge için imzalama isteğinde bulunamazsınız, lütfen sistem yöneticiniz ile görüşün",
     "Link expired." : "Bağlantının süresi dolmuş.",
     "LibreSign: Changes into a file for you to sign" : "LibreSign: Dosyada imzalayacağınız değişiklikler var",
@@ -1607,7 +1605,6 @@
     "LibreSign: There is a file for you to sign" : "LibreSign: İmzalamanız gereken bir dosya var",
     "View signed file »%s«" : "İmzalanan dosyayı görüntüleyin »%s«",
     "LibreSign: Code to sign file" : "LibreSign: Dosyayı imzalama kodu",
-    "No signature was requested to %s" : "%s için imza istenmemiş",
     "The configured signature stamp template is not supported. Ask an administrator to review the signature template." : "Yapılandırılmış imza damgası kalıbı desteklenmiyor. Bir yöneticiden imza kalıbını incelemesini isteyin.",
     "Date when the signer sent the request to sign (without time, in their local time zone)." : "İmzalayanın imzalama isteğini gönderdiği tarih (saat olmadan, kendi yerel saat diliminde).",
     "Date and time when the signer sent the request to sign (in their local time zone)." : "İmzalayanın isteği imzalanmak üzere gönderdiği tarih ve saat (kendi yerel saat diliminde).",
@@ -1703,15 +1700,10 @@
     "Make validation URL acessible only by authenticated users" : "Doğrulama adresine yalnızca kimliği doğrulanmış kullanıcılar erişebilsin",
     "{method} is not configured. Please contact your administrator." : "{method} yapılandırılmamış. Lütfen yöneticiniz ile görüşün.",
     "Sign the document." : "Belgeyi imzala.",
-    "Failed to remove file(s) from envelope" : "Dosyalar zarftan çıkarılamadı",
     "Renew signer access after (seconds)" : "İmzalayan erişimi şu kadar sonra yenilensin (saniye)",
     "Maximum validity (seconds)" : "En uzun geçerlilik (saniye)",
     "Leave empty to disable expiration." : "Geçerlilik süresinin kullanılmaması için boş bırakın.",
     "Renewal interval (seconds)" : "Yenileme sıklığı (saniye)",
-    "Leave empty to disable renewal." : "Yenilemenin kullanılması için boş bırakın.",
-    "{value} days" : "{value} gün",
-    "{count} enabled factors" : "{count} belirleyicileri açtı",
-    "{count} denied requester groups" : "{count} reddedilmiş istekte bulunan grubu",
-    "{count} authorized requester groups" : "{count} izin verilmiş istekte bulunan grubu"
+    "Leave empty to disable renewal." : "Yenilemenin kullanılması için boş bırakın."
 },"pluralForm" :"nplurals=2; plural=(n > 1);"
 }

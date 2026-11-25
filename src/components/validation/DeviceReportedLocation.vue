@@ -4,7 +4,8 @@
 -->
 <template>
 	<template v-if="hasContent">
-		<NcListItem class="extra"
+		<NcListItem
+			class="extra"
 			compact
 			role="button"
 			:aria-expanded="open ? 'true' : 'false'"
@@ -14,21 +15,25 @@
 				<strong>{{ deviceReportedLocationLabel }}</strong>
 			</template>
 			<template #extra-actions>
-				<NcButton variant="tertiary"
+				<NcButton
+					variant="tertiary"
 					:aria-label="toggleAriaLabel"
 					@click.stop="open = !open">
 					<template #icon>
-						<NcIconSvgWrapper v-if="open"
+						<NcIconSvgWrapper
+							v-if="open"
 							:path="mdiUnfoldLessHorizontal"
 							:size="20" />
-						<NcIconSvgWrapper v-else
+						<NcIconSvgWrapper
+							v-else
 							:path="mdiUnfoldMoreHorizontal"
 							:size="20" />
 					</template>
 				</NcButton>
 			</template>
 		</NcListItem>
-		<div v-if="open"
+		<div
+			v-if="open"
 			class="device-reported-location-wrapper"
 			role="region"
 			:aria-label="deviceReportedLocationDetailsAriaLabel">
@@ -44,13 +49,15 @@
 						<dt>{{ t('libresign', 'Longitude:') }}</dt>
 						<dd>{{ longitude }}</dd>
 					</div>
-					<div v-if="accuracy"
+					<div
+						v-if="accuracy"
 						class="device-reported-location-field">
 						<!-- TRANSLATORS Label for the approximate accuracy radius of device-reported coordinates. -->
 						<dt>{{ t('libresign', 'Accuracy:') }}</dt>
 						<dd>{{ accuracy }}</dd>
 					</div>
-					<div v-if="collectedAt"
+					<div
+						v-if="collectedAt"
 						class="device-reported-location-field">
 						<!-- TRANSLATORS Label for the time when the signer device reported its location. -->
 						<dt>{{ t('libresign', 'Collected at:') }}</dt>
@@ -58,7 +65,8 @@
 					</div>
 				</dl>
 				<div class="device-reported-location-actions">
-					<NcButton variant="tertiary"
+					<NcButton
+						variant="tertiary"
 						:aria-label="copyCoordinatesAriaLabel"
 						@click="copyCoordinates">
 						<template #icon>
@@ -155,8 +163,7 @@ const toggleAriaLabel = computed(() =>
 		// TRANSLATORS ARIA label for button action that hides device-reported location details.
 		? t('libresign', 'Collapse device-reported location details')
 		// TRANSLATORS ARIA label for button action that reveals device-reported location details.
-		: t('libresign', 'Expand device-reported location details'),
-)
+		: t('libresign', 'Expand device-reported location details'))
 
 async function copyCoordinates() {
 	const text = coordinatesText.value

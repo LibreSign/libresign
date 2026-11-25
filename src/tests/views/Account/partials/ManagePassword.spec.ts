@@ -58,8 +58,12 @@ describe('ManagePassword', () => {
 
 	it('initializes signature file state from config without forcing remount behavior', () => {
 		loadStateMock.mockImplementation((_app: string, key: string, fallback: unknown) => {
-			if (key === 'certificate_engine') { return 'openssl' }
-			if (key === 'config') { return { hasSignatureFile: true } }
+			if (key === 'certificate_engine') {
+				return 'openssl'
+			}
+			if (key === 'config') {
+				return { hasSignatureFile: true }
+			}
 			return fallback
 		})
 		hasSignatureFileMock.mockReturnValue(true)
@@ -82,8 +86,12 @@ describe('ManagePassword', () => {
 
 	it('registers icon wrapper and exposes mdi icon paths used in template', async () => {
 		loadStateMock.mockImplementation((_app: string, key: string, fallback: unknown) => {
-			if (key === 'certificate_engine') { return 'openssl' }
-			if (key === 'config') { return { hasSignatureFile: true } }
+			if (key === 'certificate_engine') {
+				return 'openssl'
+			}
+			if (key === 'config') {
+				return { hasSignatureFile: true }
+			}
 			return fallback
 		})
 		hasSignatureFileMock.mockReturnValue(true)
@@ -115,8 +123,12 @@ describe('ManagePassword', () => {
 
 	it('calls UploadCertificate triggerUpload through ref safely', () => {
 		loadStateMock.mockImplementation((_app: string, key: string, fallback: unknown) => {
-			if (key === 'certificate_engine') { return 'openssl' }
-			if (key === 'config') { return { hasSignatureFile: true } }
+			if (key === 'certificate_engine') {
+				return 'openssl'
+			}
+			if (key === 'config') {
+				return { hasSignatureFile: true }
+			}
 			return fallback
 		})
 		hasSignatureFileMock.mockReturnValue(true)

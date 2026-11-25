@@ -4,9 +4,11 @@
 -->
 <template>
 	<!-- TRANSLATORS Browser title for the LibreSign file list. Translate it as one complete phrase. -->
-	<NcAppContent :page-heading="t('libresign', 'Files')"
+	<NcAppContent
+		:page-heading="t('libresign', 'Files')"
 		:page-title="t('libresign', 'Files - LibreSign')">
-		<div class="files-list__dropzone"
+		<div
+			class="files-list__dropzone"
 			@dragenter="onDragEnter"
 			@dragover="onDragOver"
 			@dragleave="onDragLeave"
@@ -22,7 +24,8 @@
 
 				<!-- Current folder breadcrumbs -->
 				<NcBreadcrumbs class="files-list__breadcrumbs">
-					<NcBreadcrumb v-model:open="isMenuOpen"
+					<NcBreadcrumb
+						v-model:open="isMenuOpen"
 						:name="t('libresign', 'Files')"
 						:title="t('libresign', 'Files')"
 						:force-icon-text="true"
@@ -31,7 +34,8 @@
 						:disable-drop="true"
 						force-menu>
 						<template #icon>
-							<NcIconSvgWrapper :size="20"
+							<NcIconSvgWrapper
+								:size="20"
 								:svg="viewIcon" />
 						</template>
 						<template #menu-icon>
@@ -48,14 +52,16 @@
 					</NcBreadcrumb>
 				</NcBreadcrumbs>
 
-				<NcLoadingIcon v-if="isRefreshing"
+				<NcLoadingIcon
+					v-if="isRefreshing"
 					class="files-list__refresh-icon"
 					:name="t('libresign', 'File list is reloading')" />
 
 				<!-- Filters that can be applied to the file list -->
 				<FileListFilters />
 
-				<NcButton :aria-label="gridViewButtonLabel"
+				<NcButton
+					:aria-label="gridViewButtonLabel"
 					:title="gridViewButtonLabel"
 					class="files-list__header-grid-button"
 					variant="tertiary"
@@ -66,7 +72,8 @@
 					</template>
 				</NcButton>
 			</div>
-			<FilesListVirtual :nodes="dirContentsSorted"
+			<FilesListVirtual
+				:nodes="dirContentsSorted"
 				:loading="loading">
 				<template #empty>
 					<NcLoadingIcon

@@ -7,7 +7,7 @@ import { describe, expect, it, vi, beforeEach, afterEach } from 'vitest'
 import type { MockedFunction } from 'vitest'
 import { generateOCSResponse } from '../test-helpers'
 
-type AxiosGet = (url: string, config?: { params?: { currentStatus?: number; timeout?: number }; timeout?: number }) => Promise<{ data: unknown }>
+type AxiosGet = (url: string, config?: { params?: { currentStatus?: number, timeout?: number }, timeout?: number }) => Promise<{ data: unknown }>
 type GenerateOcsUrl = typeof import('@nextcloud/router').generateOcsUrl
 
 let getMock: MockedFunction<AxiosGet>
@@ -278,9 +278,9 @@ describe('longPolling services', () => {
 			const onUpdate = vi.fn()
 
 			getMock
-				.mockResolvedValueOnce(generateOCSResponse<{ status: number; message: string }>({ payload: { status: 2, message: 'Processing' } }))
-				.mockResolvedValueOnce(generateOCSResponse<{ status: number; message: string }>({ payload: { status: 5, message: 'Ready' } }))
-				.mockResolvedValueOnce(generateOCSResponse<{ status: number; message: string }>({ payload: { status: 3, message: 'Done' } }))
+				.mockResolvedValueOnce(generateOCSResponse<{ status: number, message: string }>({ payload: { status: 2, message: 'Processing' } }))
+				.mockResolvedValueOnce(generateOCSResponse<{ status: number, message: string }>({ payload: { status: 5, message: 'Ready' } }))
+				.mockResolvedValueOnce(generateOCSResponse<{ status: number, message: string }>({ payload: { status: 3, message: 'Done' } }))
 
 			const { startLongPolling } = await import('../../services/longPolling.js')
 

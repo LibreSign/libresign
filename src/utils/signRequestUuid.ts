@@ -234,9 +234,7 @@ export function getSigningRouteUuid(
 	return isNonEmptyString(fallbackUuid) ? fallbackUuid : null
 }
 
-function getSoleSignableSignRequestUuid(
-	document: DocumentLike | null | undefined,
-): string | null {
+function getSoleSignableSignRequestUuid(document: DocumentLike | null | undefined): string | null {
 	if (!Array.isArray(document?.signers)) {
 		return null
 	}

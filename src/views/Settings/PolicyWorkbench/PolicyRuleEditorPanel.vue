@@ -14,18 +14,22 @@
 			</div>
 
 			<div v-if="editorDraft.scope !== 'system'" class="policy-workbench__field">
-				<label v-if="!hideTargetSelector" class="policy-workbench__label">
+				<label v-if="!hideTargetSelector" :for="targetInputId" class="policy-workbench__label">
 					{{ targetScopeLabel }}
 				</label>
+				<!-- OCS filters by account/group ID as well as display name. Keep its results and keep the dropdown inside the dialog. -->
 				<NcSelectUsers
 					v-if="!hideTargetSelector"
 					:model-value="selectedTargetOptions"
 					:options="availableTargets"
-					:aria-label="targetScopeLabel"
+					:input-id="targetInputId"
+					label-outside
+					:filterable="false"
 					:placeholder="targetScopeSearchPlaceholder"
 					:loading="loadingTargets"
 					:multiple="true"
 					:keep-open="true"
+					:append-to-body="false"
 					:disabled="saveStatus === 'saving'"
 					@search="$emit('search-targets', $event)"
 					@update:modelValue="$emit('update-targets', $event)" />
@@ -68,28 +72,46 @@
 			</NcNoteCard>
 
 			<div v-if="showInlineActions !== false" class="policy-workbench__editor-actions" :class="{ 'policy-workbench__editor-actions--sticky-mobile': stickyActions }">
-				<NcButton v-if="showBackButton" variant="tertiary" :aria-label="goBackToRuleTypeSelectionLabel" :disabled="saveStatus === 'saving'" @click="$emit('back')">
+				<NcButton
+					v-if="showBackButton"
+					variant="tertiary"
+					:aria-label="goBackToRuleTypeSelectionLabel"
+					:disabled="saveStatus === 'saving'"
+					@click="$emit('back')">
 					<!-- TRANSLATORS Secondary button label that returns to the previous step in the policy rule creation flow. -->
 					{{ t('libresign', '← Back') }}
 				</NcButton>
-				<NcButton variant="primary" :aria-label="savePolicyRuleActionLabel" :loading="saveStatus === 'saving'" :disabled="!canSaveDraft" @click="$emit('save')">
+				<NcButton
+					variant="primary"
+					:aria-label="savePolicyRuleActionLabel"
+					:loading="saveStatus === 'saving'"
+					:disabled="!canSaveDraft"
+					@click="$emit('save')">
 					{{ savePolicyRuleActionText }}
 				</NcButton>
-				<NcButton variant="secondary" :aria-label="cancelEditingLabel" :disabled="saveStatus === 'saving'" @click="$emit('cancel')">
+				<NcButton
+					variant="secondary"
+					:aria-label="cancelEditingLabel"
+					:disabled="saveStatus === 'saving'"
+					@click="$emit('cancel')">
 					<!-- TRANSLATORS Secondary button label that closes the editor without saving pending changes. -->
 					{{ t('libresign', 'Cancel') }}
 				</NcButton>
 			</div>
 		</div>
 
-		<div v-if="saveStatus === 'saving'" class="policy-workbench__saving-overlay" aria-live="polite" aria-busy="true">
+		<div
+			v-if="saveStatus === 'saving'"
+			class="policy-workbench__saving-overlay"
+			aria-live="polite"
+			aria-busy="true">
 			<div class="policy-workbench__saving-spinner" aria-hidden="true" />
 		</div>
 	</section>
 </template>
 
 <script setup lang="ts">
-import { computed } from 'vue'
+import { computed, useId } from 'vue'
 import { t } from '@nextcloud/l10n'
 import type { EffectivePolicyValue } from '../../../types/index'
 
@@ -156,6 +178,8 @@ defineEmits<{
 	(e: 'save'): void
 	(e: 'cancel'): void
 }>()
+
+const targetInputId = useId()
 
 const targetScopeLabel = computed(() => {
 	if (props.editorDraft.scope === 'group') {

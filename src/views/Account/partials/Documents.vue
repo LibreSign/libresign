@@ -16,7 +16,8 @@
 			</NcNoteCard>
 
 			<div class="documents-list">
-				<div v-for="(doc, index) in list"
+				<div
+					v-for="(doc, index) in list"
 					:key="`doc-${index}-${doc.nodeId}-${doc.file_type?.key ?? 'unknown'}`"
 					class="document-card">
 					<div class="document-header">
@@ -28,7 +29,8 @@
 						</div>
 					</div>
 					<div class="document-actions">
-						<NcButton v-if="doc.status === -1 && isAuthenticatedUser && doc.file_type?.key"
+						<NcButton
+							v-if="doc.status === -1 && isAuthenticatedUser && doc.file_type?.key"
 							variant="tertiary"
 							:aria-label="t('libresign', 'Choose from Files')"
 							@click="toggleFilePicker(doc.file_type.key)">
@@ -38,7 +40,8 @@
 							<!-- TRANSLATORS Button label to pick an existing identification document from Nextcloud Files. -->
 							{{ t('libresign', 'Choose from Files') }}
 						</NcButton>
-						<NcButton v-if="doc.status === -1 && doc.file_type?.key"
+						<NcButton
+							v-if="doc.status === -1 && doc.file_type?.key"
 							variant="tertiary"
 							:aria-label="t('libresign', 'Upload file')"
 							@click="inputFile(doc.file_type.key)">
@@ -48,7 +51,8 @@
 							<!-- TRANSLATORS Button label to upload identification document from local device. -->
 							{{ t('libresign', 'Upload file') }}
 						</NcButton>
-						<NcButton v-if="doc.status !== -1"
+						<NcButton
+							v-if="doc.status !== -1"
 							variant="tertiary"
 							:aria-label="t('libresign', 'Delete file')"
 							@click="deleteFile(doc)">

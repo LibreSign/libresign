@@ -2390,7 +2390,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "*/*": string;
+                    "application/pkix-crl": string;
                 };
             };
             /** @description Failed to generate CRL */
@@ -2528,8 +2528,22 @@ export interface operations {
                     };
                 };
             };
-            /** @description Failure to create PFX file */
+            /** @description Current user is not logged in */
             401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        ocs: {
+                            meta: components["schemas"]["OCSMeta"];
+                            data: unknown;
+                        };
+                    };
+                };
+            };
+            /** @description Invalid data to create the PFX file */
+            422: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -2539,10 +2553,19 @@ export interface operations {
                             meta: components["schemas"]["OCSMeta"];
                             data: components["schemas"]["MessageResponse"];
                         };
-                    } | {
+                    };
+                };
+            };
+            /** @description Failure to create PFX file */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
                         ocs: {
                             meta: components["schemas"]["OCSMeta"];
-                            data: unknown;
+                            data: components["schemas"]["MessageResponse"];
                         };
                     };
                 };
@@ -5153,7 +5176,7 @@ export interface operations {
                     "application/json": {
                         ocs: {
                             meta: components["schemas"]["OCSMeta"];
-                            data: components["schemas"]["MessageResponse"];
+                            data: components["schemas"]["MessageResponse"] | components["schemas"]["ActionErrorResponse"];
                         };
                     };
                 };
@@ -5241,7 +5264,7 @@ export interface operations {
                     "application/json": {
                         ocs: {
                             meta: components["schemas"]["OCSMeta"];
-                            data: components["schemas"]["MessageResponse"];
+                            data: components["schemas"]["MessageResponse"] | components["schemas"]["ActionErrorResponse"];
                         };
                     };
                 };
@@ -5281,18 +5304,13 @@ export interface operations {
                     };
                 };
             };
-            /** @description Failed */
+            /** @description Current user is not logged in */
             401: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
                     "application/json": {
-                        ocs: {
-                            meta: components["schemas"]["OCSMeta"];
-                            data: components["schemas"]["MessageResponse"];
-                        };
-                    } | {
                         ocs: {
                             meta: components["schemas"]["OCSMeta"];
                             data: unknown;
@@ -5309,7 +5327,21 @@ export interface operations {
                     "application/json": {
                         ocs: {
                             meta: components["schemas"]["OCSMeta"];
-                            data: components["schemas"]["ActionErrorResponse"];
+                            data: components["schemas"]["MessageResponse"] | components["schemas"]["ActionErrorResponse"];
+                        };
+                    };
+                };
+            };
+            /** @description Unexpected failure */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        ocs: {
+                            meta: components["schemas"]["OCSMeta"];
+                            data: components["schemas"]["MessageResponse"];
                         };
                     };
                 };
@@ -6046,6 +6078,20 @@ export interface operations {
                         ocs: {
                             meta: components["schemas"]["OCSMeta"];
                             data: unknown;
+                        };
+                    };
+                };
+            };
+            /** @description User is not allowed to request signatures */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        ocs: {
+                            meta: components["schemas"]["OCSMeta"];
+                            data: components["schemas"]["ActionErrorResponse"];
                         };
                     };
                 };
@@ -7577,18 +7623,13 @@ export interface operations {
                     };
                 };
             };
-            /** @description Failed */
+            /** @description Current user is not logged in */
             401: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
                     "application/json": {
-                        ocs: {
-                            meta: components["schemas"]["OCSMeta"];
-                            data: components["schemas"]["MessageResponse"];
-                        };
-                    } | {
                         ocs: {
                             meta: components["schemas"]["OCSMeta"];
                             data: unknown;
@@ -7605,7 +7646,7 @@ export interface operations {
                     "application/json": {
                         ocs: {
                             meta: components["schemas"]["OCSMeta"];
-                            data: components["schemas"]["ActionErrorResponse"];
+                            data: components["schemas"]["MessageResponse"] | components["schemas"]["ActionErrorResponse"];
                         };
                     };
                 };
@@ -7720,18 +7761,13 @@ export interface operations {
                     };
                 };
             };
-            /** @description Failed */
+            /** @description Current user is not logged in */
             401: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
                     "application/json": {
-                        ocs: {
-                            meta: components["schemas"]["OCSMeta"];
-                            data: components["schemas"]["MessageResponse"];
-                        };
-                    } | {
                         ocs: {
                             meta: components["schemas"]["OCSMeta"];
                             data: unknown;
@@ -7748,7 +7784,21 @@ export interface operations {
                     "application/json": {
                         ocs: {
                             meta: components["schemas"]["OCSMeta"];
-                            data: components["schemas"]["ActionErrorResponse"];
+                            data: components["schemas"]["MessageResponse"] | components["schemas"]["ActionErrorResponse"];
+                        };
+                    };
+                };
+            };
+            /** @description Unexpected failure */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        ocs: {
+                            meta: components["schemas"]["OCSMeta"];
+                            data: components["schemas"]["MessageResponse"];
                         };
                     };
                 };

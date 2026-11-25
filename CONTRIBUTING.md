@@ -66,6 +66,11 @@ AI-assisted contributions are welcome. You may use AI for any part of the contri
 
 When updating your branch with changes from `main`, rebasing is preferred when practical because it avoids unnecessary merge commits and keeps the pull request history easier to review.
 
+### Vendored Composer dependencies
+
+Maintainers updating the `3rdparty` submodule should follow the
+[dependency update procedure in the Developer Manual](https://docs.libresign.coop/main/developer_manual/dependency-updates.html).
+
 ### Translation
 
 For contributing translations and writing translator context hints in code,

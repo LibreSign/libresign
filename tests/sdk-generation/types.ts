@@ -15,12 +15,14 @@ const signer: SignerDetail = {
 }
 // @ts-expect-error allOf requires inherited fields
 const badSigner: SignerDetail = { me: true, visibleElements: [] }
-const request: RequestSignatureRequestSignatureRequest = { callback: null }
-// @ts-expect-error callback must be a string or null
-const badRequest: RequestSignatureRequestSignatureRequest = { callback: 2 }
+const request: RequestSignatureRequestSignatureRequest = { status: null }
+// @ts-expect-error status must be a number or null
+const badRequest: RequestSignatureRequestSignatureRequest = { status: 'pending' }
 // @ts-expect-error status is a finite numeric enum
 const badStatus: SignerDetail['status'] = 99
-function account(response: AccountMe200Response): string { return response.ocs.data.account.uid }
+function account(response: AccountMe200Response): string {
+	return response.ocs.data.account.uid
+}
 void [file1, file2, badFile, signer, badSigner, request, badRequest, badStatus, account]
 
 // @ts-expect-error the generated request has no upload parameter

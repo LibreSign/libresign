@@ -884,6 +884,7 @@ OC.L10N.register(
     "Other" : "Otro",
     "custom" : "personalizado",
     "default" : "predeterminado",
+    "_%n day_::_%n days_" : ["%n día","%n días","%n días"],
     "Identification factors" : "Factores de identificación",
     "Ways to identify a person who will sign a document." : "Formas de identificar una persona que firmará un documento.",
     "This information will appear on the validation page" : "Esta información aparecerá en la página de validación",
@@ -905,7 +906,6 @@ OC.L10N.register(
     "Invalid id-doc request" : "Solicitud de id-doc no válida",
     "Notification sent with success." : "Notificación envíada con éxito.",
     "From: %s • Date: %s" : "De: %s • Fecha: %s",
-    "Failure on generate certificate" : "Fallo en la generación del certificado",
     "Cannot read file" : "No se puede leer archivo",
     "visible element" : "elemento visible",
     "You are not allowed to request signing" : "Usted no está autorizado a solicitar la firma",
@@ -913,7 +913,6 @@ OC.L10N.register(
     "Changes have been made in a file that you have to sign. Access the link below:" : "Se han realizado cambios en un archivo que tiene que firmar. Acceda al siguiente enlace:",
     "LibreSign: A file has been signed" : "LibreSign: Un archivo ha sido firmado",
     "Changes have been made in a file that you have to sign." : "Se han realizado cambios en un archivo que debe firmar.",
-    "Parameter '%s' should be betweeen %s and %s." : "El parámetro '%s' debe estar entre %s y %s.",
     "You cannot request signature for this document, please contact your administrator" : "No puede solicitar firmas para este documento, por favor contacta con tu administrador",
     "Link expired." : "El enlace expiró.",
     "LibreSign: Changes into a file for you to sign" : "LIbreSign: Cambios en un archivo que debe firmar",
@@ -922,7 +921,6 @@ OC.L10N.register(
     "LibreSign: There is a file for you to sign" : "LibreSign: Hay un archivo que debe firmar",
     "View signed file »%s«" : "Ver archivo firmado »%s«",
     "LibreSign: Code to sign file" : "LibreSign: Código para firmar el archivo",
-    "No signature was requested to %s" : "No se solicitó ninguna firma para %s",
     "Date when the signer sent the request to sign (without time, in their local time zone)." : "Fecha en la cual el firmante envió la solicitud para firmar (sin hora, en su zona horaria local).",
     "Date and time when the signer sent the request to sign (in their local time zone)." : "Fecha y hora en la cual el firmante envió la solicitud para firmar (en su zona horaria local).",
     "Time zone of signer when sent the request to sign (in their local time zone)." : "Zona horaria del firmante que envió la solicitud para firmar (en su zona horaria local).",
@@ -1015,7 +1013,6 @@ OC.L10N.register(
     "Timestamp Authority (TSA) settings for digitally signing documents." : "Configuración de la Autoridad de Marca de Tiempo (TSA) para la firma digital de documentos.",
     "Make validation URL acessible only by authenticated users" : "Hacer que la URL de validación solo sea accesible a usuarios autenticados",
     "{method} is not configured. Please contact your administrator." : "{method} no está configurado. Contacta con tu administrador.",
-    "Sign the document." : "Firma el documento.",
-    "Failed to remove file(s) from envelope" : "Error al eliminar archivo(s) del sobre"
+    "Sign the document." : "Firma el documento."
 },
 "nplurals=3; plural=n == 1 ? 0 : n != 0 && n % 1000000 == 0 ? 1 : 2;");

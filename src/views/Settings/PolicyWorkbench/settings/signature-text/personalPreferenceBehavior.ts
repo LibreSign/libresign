@@ -114,15 +114,11 @@ export const signatureStampPersonalPreferenceBehavior: RealPolicyPersonalPrefere
 		const saveOperations: Promise<unknown>[] = []
 
 		if (normalizedValue.signatureStampValue !== getCurrentSignatureStampPreferenceValue(context)) {
-			saveOperations.push(
-				context.saveUserPreference(SIGNATURE_STAMP_POLICY_KEY, normalizedValue.signatureStampValue),
-			)
+			saveOperations.push(context.saveUserPreference(SIGNATURE_STAMP_POLICY_KEY, normalizedValue.signatureStampValue))
 		}
 
 		if (normalizedValue.collectMetadataEnabled !== getCurrentCollectMetadataPreferenceValue(context)) {
-			saveOperations.push(
-				context.saveUserPreference(COLLECT_METADATA_POLICY_KEY, normalizedValue.collectMetadataEnabled),
-			)
+			saveOperations.push(context.saveUserPreference(COLLECT_METADATA_POLICY_KEY, normalizedValue.collectMetadataEnabled))
 		}
 
 		if (saveOperations.length === 0) {

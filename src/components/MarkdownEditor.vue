@@ -22,14 +22,16 @@
 				@apply-heading="applyHeading" />
 			<span class="markdown-editor__toolbar-separator" aria-hidden="true" />
 			<!-- Group 2: inline emphasis -->
-			<NcButton variant="tertiary"
+			<NcButton
+				variant="tertiary"
 				:aria-label="boldLabel"
 				@click="applyBold">
 				<template #icon>
 					<NcIconSvgWrapper :path="mdiFormatBold" :size="18" />
 				</template>
 			</NcButton>
-			<NcButton variant="tertiary"
+			<NcButton
+				variant="tertiary"
 				:aria-label="italicLabel"
 				@click="applyItalic">
 				<template #icon>
@@ -38,21 +40,24 @@
 			</NcButton>
 			<span class="markdown-editor__toolbar-separator" aria-hidden="true" />
 			<!-- Group 3: block elements -->
-			<NcButton variant="tertiary"
+			<NcButton
+				variant="tertiary"
 				:aria-label="unorderedListLabel"
 				@click="applyUnorderedList">
 				<template #icon>
 					<NcIconSvgWrapper :path="mdiFormatListBulleted" :size="18" />
 				</template>
 			</NcButton>
-			<NcButton variant="tertiary"
+			<NcButton
+				variant="tertiary"
 				:aria-label="orderedListLabel"
 				@click="applyOrderedList">
 				<template #icon>
 					<NcIconSvgWrapper :path="mdiFormatListNumbered" :size="18" />
 				</template>
 			</NcButton>
-			<NcButton variant="tertiary"
+			<NcButton
+				variant="tertiary"
 				:aria-label="blockquoteLabel"
 				@click="applyBlockquote">
 				<template #icon>
@@ -61,21 +66,24 @@
 			</NcButton>
 			<span class="markdown-editor__toolbar-separator" aria-hidden="true" />
 			<!-- Group 4: code and link -->
-			<NcButton variant="tertiary"
+			<NcButton
+				variant="tertiary"
 				:aria-label="inlineCodeLabel"
 				@click="applyCode">
 				<template #icon>
 					<NcIconSvgWrapper :path="mdiCodeTags" :size="18" />
 				</template>
 			</NcButton>
-			<NcButton variant="tertiary"
+			<NcButton
+				variant="tertiary"
 				:aria-label="codeBlockLabel"
 				@click="applyCodeBlock">
 				<template #icon>
 					<NcIconSvgWrapper :path="mdiCodeBraces" :size="18" />
 				</template>
 			</NcButton>
-			<NcButton variant="tertiary"
+			<NcButton
+				variant="tertiary"
 				:aria-label="linkLabel"
 				@click="applyLink">
 				<template #icon>
@@ -84,7 +92,8 @@
 			</NcButton>
 			<span class="markdown-editor__toolbar-separator" aria-hidden="true" />
 			<!-- Group 5: separators -->
-			<NcButton variant="tertiary"
+			<NcButton
+				variant="tertiary"
 				:aria-label="horizontalRuleLabel"
 				@click="applyHorizontalRule">
 				<template #icon>
@@ -93,7 +102,8 @@
 			</NcButton>
 			<span class="markdown-editor__toolbar-separator" aria-hidden="true" />
 			<!-- Group 6: history -->
-			<NcButton variant="tertiary"
+			<NcButton
+				variant="tertiary"
 				:aria-label="undoLabel"
 				:disabled="!canUndo"
 				@click="undoAction">
@@ -101,7 +111,8 @@
 					<NcIconSvgWrapper :path="mdiUndo" :size="18" />
 				</template>
 			</NcButton>
-			<NcButton variant="tertiary"
+			<NcButton
+				variant="tertiary"
 				:aria-label="redoLabel"
 				:disabled="!canRedo"
 				@click="redoAction">
@@ -253,7 +264,7 @@ const toggleLinePrefix = (view: EditorView, prefix: string) => {
 	const { from, to } = state.selection.main
 	const fromLine = state.doc.lineAt(from)
 	const toLine = state.doc.lineAt(to)
-	const changes: { from: number; to: number; insert: string }[] = []
+	const changes: { from: number, to: number, insert: string }[] = []
 
 	// Detect if ALL selected lines already have the prefix – if so, remove it
 	let allHavePrefix = true
@@ -283,7 +294,7 @@ const applyOrderedListToLines = (view: EditorView) => {
 	const { from, to } = state.selection.main
 	const fromLine = state.doc.lineAt(from)
 	const toLine = state.doc.lineAt(to)
-	const changes: { from: number; to: number; insert: string }[] = []
+	const changes: { from: number, to: number, insert: string }[] = []
 
 	// Detect if ALL selected lines already start with `N. ` pattern
 	const orderedListRe = /^\d+\. /
@@ -347,7 +358,7 @@ const clearHeadingFromLine = (view: EditorView) => {
 	const fromLine = state.doc.lineAt(from)
 	const toLine = state.doc.lineAt(to)
 	const headingRe = /^(#{1,6}) /
-	const changes: { from: number; to: number; insert: string }[] = []
+	const changes: { from: number, to: number, insert: string }[] = []
 
 	for (let lineNo = fromLine.number; lineNo <= toLine.number; lineNo++) {
 		const line = state.doc.line(lineNo)

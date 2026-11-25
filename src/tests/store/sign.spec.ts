@@ -689,9 +689,7 @@ describe('useSignStore', () => {
 				},
 			})
 
-			await expect(
-				store.submitSignature({}, 'uuid-123'),
-			).rejects.toMatchObject({
+			await expect(store.submitSignature({}, 'uuid-123')).rejects.toMatchObject({
 				type: 'missingCertification',
 			})
 		})
