@@ -12,7 +12,7 @@ use OCA\Libresign\Db\FileMapper;
 use OCA\Libresign\Service\Signing\SyntheticCscSigningOperation;
 
 /** Assemble a validated publication from server-owned state and an immutable PDF. */
-final class PublicationPreparer {
+final class PublicationPreparer implements PublicationPreparation {
 	public function __construct(
 		private SessionStore $sessions,
 		private SyntheticCscSigningOperation $signing,

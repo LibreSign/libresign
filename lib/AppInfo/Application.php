@@ -28,6 +28,12 @@ use OCA\Libresign\Middleware\GlobalInjectionMiddleware;
 use OCA\Libresign\Middleware\InjectionMiddleware;
 use OCA\Libresign\Notification\Notifier;
 use OCA\Libresign\Search\FileSearchProvider;
+use OCA\Libresign\Service\Signing\External\PublicationCommitter;
+use OCA\Libresign\Service\Signing\External\PublicationEvents;
+use OCA\Libresign\Service\Signing\External\PublicationNotifications;
+use OCA\Libresign\Service\Signing\External\PublicationPreparer;
+use OCA\Libresign\Service\Signing\External\PublicationPreparation;
+use OCA\Libresign\Service\Signing\External\PublicationTransaction;
 use OCA\Libresign\Service\Notification\NotificationEventRouter;
 use OCA\Libresign\Service\Notification\NotificationModuleCatalog;
 use OCP\AppFramework\App;
@@ -59,6 +65,9 @@ class Application extends App implements IBootstrap {
 		$context->registerMiddleWare(GlobalInjectionMiddleware::class, true);
 		$context->registerMiddleWare(InjectionMiddleware::class);
 		$context->registerCapability(Capabilities::class);
+		$context->registerServiceAlias(PublicationPreparation::class, PublicationPreparer::class);
+		$context->registerServiceAlias(PublicationTransaction::class, PublicationCommitter::class);
+		$context->registerServiceAlias(PublicationNotifications::class, PublicationEvents::class);
 
 		$context->registerNotifierService(Notifier::class);
 

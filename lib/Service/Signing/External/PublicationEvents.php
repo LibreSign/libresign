@@ -20,7 +20,7 @@ use OCP\Files\File as NextcloudFile;
 use Psr\Log\LoggerInterface;
 
 /** Best-effort side effects, never executed before the signing transaction commits. */
-final class PublicationEvents {
+final class PublicationEvents implements PublicationNotifications {
 	public function __construct(
 		private FileStatusService $fileStatuses,
 		private SignRequestMapper $signRequests,

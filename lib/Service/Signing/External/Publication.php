@@ -17,9 +17,9 @@ namespace OCA\Libresign\Service\Signing\External;
  */
 final class Publication {
 	public function __construct(
-		private PublicationPreparer $preparer,
-		private PublicationCommitter $committer,
-		private PublicationEvents $events,
+		private PublicationPreparation $preparer,
+		private PublicationTransaction $committer,
+		private PublicationNotifications $events,
 	) {
 	}
 

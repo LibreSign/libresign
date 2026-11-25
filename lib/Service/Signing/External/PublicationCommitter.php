@@ -28,7 +28,7 @@ use OCP\IDBConnection;
  * Commit the signed request, document pointer, next-signer state and durable
  * CSC session completion in one database transaction.
  */
-final class PublicationCommitter {
+final class PublicationCommitter implements PublicationTransaction {
 	use TTransactional;
 
 	public function __construct(
