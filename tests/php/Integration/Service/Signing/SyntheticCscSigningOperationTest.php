@@ -30,7 +30,10 @@ use OCA\Libresign\Service\Signature\PdfSignatureValidationService;
 use OCA\Libresign\Service\Signing\External\AuthorizedRequest;
 use OCA\Libresign\Service\Signing\ExternalIntegrationRecord;
 use OCA\Libresign\Service\Signing\ExternalIntegrationStore;
+use OCA\Libresign\Service\Signing\External\ImmutableArtifactStore;
 use OCA\Libresign\Service\Signing\External\Publication;
+use OCA\Libresign\Service\Signing\External\PublicationCommitter;
+use OCA\Libresign\Service\Signing\External\PublicationEvents;
 use OCA\Libresign\Service\Signing\External\SessionStore;
 use OCA\Libresign\Service\Signing\Provider\Drivers\Csc\CscDriver;
 use OCA\Libresign\Service\Signing\Provider\Drivers\Csc\CscIntegration;
@@ -239,19 +242,17 @@ final class SyntheticCscSigningOperationTest extends \OCA\Libresign\Tests\Integr
 
 	private function publisher(): Publication {
 		return new Publication(
-			$this->db, $this->sessions, $this->workflow,
-			Server::get(FileMapper::class),
-			Server::get(SignRequestMapper::class),
-			Server::get(FolderService::class),
-			Server::get(FileStatusService::class),
-			Server::get(SigningWorkflowStatusResolver::class),
-			Server::get(SequentialSigningService::class),
-			Server::get(NotificationDeliveryMapper::class),
-			Server::get(SignedEventFactory::class),
-			Server::get(IEventDispatcher::class),
-			Server::get(NativeWebhookEventPublisher::class),
-			Server::get(IUserSession::class),
-			Server::get(LoggerInterface::class),
+			$this->sessions, $this->workflow,
+			Server::get(FileMapper::class), Server::get(FolderService::class),
+			new ImmutableArtifactStore(Server::get(IUserSession::class)),
+			new PublicationCommitter($this->db, $this->sessions, Server::get(FileMapper::class),
+				Server::get(SignRequestMapper::class), Server::get(FileStatusService::class),
+				Server::get(SigningWorkflowStatusResolver::class), Server::get(SequentialSigningService::class),
+				Server::get(NotificationDeliveryMapper::class)),
+			new PublicationEvents(Server::get(FileStatusService::class),
+				Server::get(SignRequestMapper::class), Server::get(SequentialSigningService::class),
+				Server::get(SignedEventFactory::class), Server::get(IEventDispatcher::class),
+				Server::get(NativeWebhookEventPublisher::class), Server::get(LoggerInterface::class)),
 		);
 	}
 
