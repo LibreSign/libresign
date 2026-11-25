@@ -8,20 +8,13 @@ declare(strict_types=1);
 
 namespace OCA\Libresign\Service\Signing\External;
 
-use OCA\Libresign\Service\Signing\SyntheticCscSigningOperation;
-use OCA\Libresign\Service\Signing\ExternalIntegrationRecord;
-use OCA\Libresign\Service\Signing\External\LaboratoryFactory;
-use OCA\Libresign\Service\Signing\External\Publication;
-use OCA\Libresign\Service\Signing\External\SessionStore;
-use OCA\Libresign\Service\Signing\External\CredentialSelection;
-use OCA\Libresign\Service\Signing\External\Authorization;
-use OCA\Libresign\Service\Signing\External\AuthorizedRequest;
-use OCA\Libresign\Service\Signing\External\SessionState;
 use OCA\Libresign\Db\File as LibreSignFile;
 use OCA\Libresign\Db\FileMapper;
 use OCA\Libresign\Service\FolderService;
 use OCA\Libresign\Service\IdentifyMethodService;
+use OCA\Libresign\Service\Signing\ExternalIntegrationRecord;
 use OCA\Libresign\Service\Signing\Provider\Drivers\Csc\CscIntegration;
+use OCA\Libresign\Service\Signing\SyntheticCscSigningOperation;
 use OCA\Libresign\Vendor\SignerPHP\PdfSigner\Application\DTO\PdfContentDto;
 use OCA\Libresign\Vendor\SignerPHP\PdfSigner\Application\DTO\SignatureActorDto;
 use OCA\Libresign\Vendor\SignerPHP\PdfSigner\Application\DTO\SignatureMetadataDto;

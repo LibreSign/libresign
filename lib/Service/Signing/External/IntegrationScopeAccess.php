@@ -8,9 +8,9 @@ declare(strict_types=1);
 
 namespace OCA\Libresign\Service\Signing\External;
 
+use OCA\Libresign\Service\Policy\PolicyService;
 use OCA\Libresign\Service\Signing\ExternalIntegrationRecord;
 use OCA\Libresign\Service\Signing\ExternalIntegrationStore;
-use OCA\Libresign\Service\Policy\PolicyService;
 use OCP\Group\ISubAdmin;
 use OCP\IGroupManager;
 use OCP\IUser;

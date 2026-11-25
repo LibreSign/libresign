@@ -8,7 +8,6 @@ declare(strict_types=1);
 
 namespace OCA\Libresign\Service\Signing\External;
 
-use OCA\Libresign\Service\Signing\External\AuthorizedRequest;
 use OCA\Libresign\Db\FileMapper;
 use OCA\Libresign\Db\SignRequestMapper;
 use OCA\Libresign\Exception\ExternalSigningAccessDeniedException;

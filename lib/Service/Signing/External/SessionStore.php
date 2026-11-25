@@ -8,12 +8,10 @@ declare(strict_types=1);
 
 namespace OCA\Libresign\Service\Signing\External;
 
-use OCA\Libresign\Service\Signing\ExternalIntegrationRecord;
-use OCA\Libresign\Service\Signing\ExternalIntegrationStore;
-use OCA\Libresign\Service\Signing\External\PreparedStateCodec;
-use OCA\Libresign\Service\Signing\External\SessionState;
 use OCA\Libresign\Service\ExperimentalFeaturesService;
 use OCA\Libresign\Service\Signature\PreparedExternalOperation;
+use OCA\Libresign\Service\Signing\ExternalIntegrationRecord;
+use OCA\Libresign\Service\Signing\ExternalIntegrationStore;
 use OCP\AppFramework\Db\TTransactional;
 use OCP\DB\QueryBuilder\IQueryBuilder;
 use OCP\IDBConnection;
