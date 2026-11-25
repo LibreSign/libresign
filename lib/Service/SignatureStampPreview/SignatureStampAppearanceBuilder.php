@@ -65,7 +65,7 @@ class SignatureStampAppearanceBuilder {
 				$nameY = $nameStartY;
 				$estimatedCharWidth = $nameFontSize * 0.52;
 				foreach ($nameLines as $nameLine) {
-					$lineWidth = strlen($nameLine) * $estimatedCharWidth;
+					$lineWidth = mb_strlen($nameLine, 'UTF-8') * $estimatedCharWidth;
 					$nameX = max($leftPadding, ($leftHalfW - $lineWidth) / 2.0);
 					$escaped = $this->escapePdfText($nameLine);
 					$stream .= "BT\n";
@@ -105,6 +105,7 @@ class SignatureStampAppearanceBuilder {
 						'Type' => '/Font',
 						'Subtype' => '/Type1',
 						'BaseFont' => '/Helvetica',
+						'Encoding' => '/WinAnsiEncoding',
 					],
 				],
 			],
@@ -115,14 +116,17 @@ class SignatureStampAppearanceBuilder {
 	 * @return string[]
 	 */
 	public function wrapTextForPdf(string $line, float $availableWidth, float $fontSize): array {
-		$trimmed = trim($line);
+		$trimmed = \Normalizer::normalize(trim($line));
+		if ($trimmed === false) {
+			throw new \InvalidArgumentException('Signature stamp contains invalid UTF-8.');
+		}
 		if ($trimmed === '') {
 			return [''];
 		}
 
 		$estimatedCharWidth = max(1.0, $fontSize * 0.52);
 		$maxChars = max(1, (int)floor($availableWidth / $estimatedCharWidth));
-		if (strlen($trimmed) <= $maxChars) {
+		if (mb_strlen($trimmed, 'UTF-8') <= $maxChars) {
 			return [$trimmed];
 		}
 
@@ -134,7 +138,7 @@ class SignatureStampAppearanceBuilder {
 			}
 
 			$candidate = $current === '' ? $word : $current . ' ' . $word;
-			if (strlen($candidate) <= $maxChars) {
+			if (mb_strlen($candidate, 'UTF-8') <= $maxChars) {
 				$current = $candidate;
 				continue;
 			}
@@ -144,9 +148,9 @@ class SignatureStampAppearanceBuilder {
 				$current = '';
 			}
 
-			while (strlen($word) > $maxChars) {
-				$result[] = substr($word, 0, $maxChars);
-				$word = substr($word, $maxChars);
+			while (mb_strlen($word, 'UTF-8') > $maxChars) {
+				$result[] = mb_substr($word, 0, $maxChars, 'UTF-8');
+				$word = mb_substr($word, $maxChars, null, 'UTF-8');
 			}
 
 			$current = $word;
@@ -160,10 +164,17 @@ class SignatureStampAppearanceBuilder {
 	}
 
 	public function escapePdfText(string $value): string {
-		$value = str_replace('\\', '\\\\', $value);
-		$value = str_replace('(', '\\(', $value);
-		$value = str_replace(')', '\\)', $value);
+		$encoded = mb_convert_encoding($value, 'Windows-1252', 'UTF-8');
+		if (mb_convert_encoding($encoded, 'UTF-8', 'Windows-1252') !== $value) {
+			throw new \InvalidArgumentException(
+				'Signature stamp contains characters that cannot be represented by WinAnsiEncoding.',
+			);
+		}
 
-		return $value;
+		$encoded = str_replace('\\', '\\\\', $encoded);
+		$encoded = str_replace('(', '\\(', $encoded);
+		$encoded = str_replace(')', '\\)', $encoded);
+
+		return $encoded;
 	}
 }

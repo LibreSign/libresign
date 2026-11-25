@@ -127,7 +127,7 @@ class SignatureStampPreviewNativeService {
 		$objects = [
 			1 => '<< /Type /Catalog /Pages 2 0 R >>',
 			2 => '<< /Type /Pages /Kids [3 0 R] /Count 1 >>',
-			4 => '<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>',
+			4 => '<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica /Encoding /WinAnsiEncoding >>',
 		];
 
 		if ($backgroundJpeg !== null) {
