@@ -45,8 +45,11 @@ final class PublicationCommitter {
 
 	/** @return array{file:FileEntity,activated:list<SignRequest>,previousStatus:int} */
 	public function commit(PublicationContext $context): array {
-		return $this->atomic(function () use ($context): array {
-			$request = $context->authorized->signRequest;
+		$previousStatus = $context->file->getStatus();
+		// Never expose an uncommitted SIGNED state through a cached request entity.
+		$signedRequest = clone $context->authorized->signRequest;
+		$committed = $this->atomic(function () use ($context, $previousStatus, $signedRequest): array {
+			$request = $signedRequest;
 			$requestId = (int)$request->getId();
 			$fileId = (int)$context->file->getId();
 			$locked = $this->files->getByIdForUpdate($fileId);
@@ -66,9 +69,16 @@ final class PublicationCommitter {
 			return [
 				'file' => $locked,
 				'activated' => $activated,
-				'previousStatus' => $context->file->getStatus(),
+				'previousStatus' => $previousStatus,
+				'signedAt' => $now,
 			];
 		}, $this->db);
+		$request = $context->authorized->signRequest;
+		$request->setSigned($committed['signedAt']);
+		$request->setSignedHash($context->signedHash);
+		$request->setStatusEnum(SignRequestStatus::SIGNED);
+		unset($committed['signedAt']);
+		return $committed;
 	}
 
 	private function assertCurrentSource(FileEntity $locked, PublicationContext $context): void {
