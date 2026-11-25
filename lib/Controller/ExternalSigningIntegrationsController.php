@@ -286,7 +286,7 @@ final class ExternalSigningIntegrationsController extends AEnvironmentAwareOCSCo
 		});
 	}
 
-	/** @return null|DataResponse<Http::STATUS_UNAUTHORIZED|Http::STATUS_FORBIDDEN|Http::STATUS_NOT_FOUND, LibresignErrorResponse, array{}> */
+	/** @return null|DataResponse<Http::STATUS_UNAUTHORIZED|Http::STATUS_FORBIDDEN|Http::STATUS_NOT_FOUND|Http::STATUS_BAD_REQUEST, LibresignErrorResponse, array{}> */
 	private function authorizeScope(string $scopeType, string $scopeId): ?DataResponse {
 		if (($denied = $this->authorize()) !== null) {
 			return $denied;
@@ -307,6 +307,7 @@ final class ExternalSigningIntegrationsController extends AEnvironmentAwareOCSCo
 		}
 	}
 
+	/** @return null|DataResponse<Http::STATUS_UNAUTHORIZED|Http::STATUS_FORBIDDEN|Http::STATUS_NOT_FOUND, LibresignErrorResponse, array{}> */
 	private function authorize(): ?DataResponse {
 		$user = $this->userSession->getUser();
 		if ($user === null) {
