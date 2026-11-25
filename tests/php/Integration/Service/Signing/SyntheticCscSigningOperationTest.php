@@ -444,14 +444,14 @@ final class SyntheticCscSigningOperationTest extends \OCA\Libresign\Tests\Integr
 		$requestId = (int)$request->signRequest->getId();
 		$qb = $this->db->getQueryBuilder();
 		$qb->update('libresign_sign_request')
-			->set('metadata', $qb->createNamedParameter('{invalid-json'))
+			->set('metadata', $qb->createNamedParameter('[{"unexpected":"array"}]'))
 			->where($qb->expr()->eq('id', $qb->createNamedParameter($requestId)))
 			->executeStatement();
 		try {
 			$this->publisher()->publish($request, (string)$session['id'], $pem);
-			self::fail('Invalid metadata must reject publication before commit');
-		} catch (\JsonException) {
-			// The signer row was claimed inside the aborted transaction.
+			self::fail('Unexpected metadata shape must reject publication before commit');
+		} catch (\DomainException $e) {
+			self::assertStringContainsString('Malformed signer metadata', $e->getMessage());
 		}
 		$stored = Server::get(SignRequestMapper::class)->getById($requestId);
 		self::assertSame(SignRequestStatus::ABLE_TO_SIGN, $stored->getStatusEnum());
