@@ -365,16 +365,16 @@
         },
         {
             "name": "guzzlehttp/psr7",
-            "version": "3.5.1",
+            "version": "3.6.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/guzzle/psr7.git",
-                "reference": "ef2058cc884d864affa6ef7cd23a68d45e015c2f"
+                "reference": "1fa0f8319c046b7dec80030460254283d851388e"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/guzzle/psr7/zipball/ef2058cc884d864affa6ef7cd23a68d45e015c2f",
-                "reference": "ef2058cc884d864affa6ef7cd23a68d45e015c2f",
+                "url": "https://api.github.com/repos/guzzle/psr7/zipball/1fa0f8319c046b7dec80030460254283d851388e",
+                "reference": "1fa0f8319c046b7dec80030460254283d851388e",
                 "shasum": ""
             },
             "require": {
@@ -466,7 +466,7 @@
             ],
             "support": {
                 "issues": "https://github.com/guzzle/psr7/issues",
-                "source": "https://github.com/guzzle/psr7/tree/3.5.1"
+                "source": "https://github.com/guzzle/psr7/tree/3.6.0"
             },
             "funding": [
                 {
@@ -482,7 +482,7 @@
                     "type": "tidelift"
                 }
             ],
-            "time": "2026-11-19T20:35:18+00:00"
+            "time": "2026-11-22T00:00:35+00:00"
         },
         {
             "name": "mikey179/vfsstream",
