@@ -11,7 +11,7 @@ namespace OCA\Libresign\Controller;
 use OCA\Libresign\AppInfo\Application;
 use OCA\Libresign\Exception\ExternalSigningAccessDeniedException;
 use OCA\Libresign\ResponseDefinitions;
-use OCA\Libresign\Service\Signing\ExternalSigningWorkflowService;
+use OCA\Libresign\Service\Signing\External\Workflow;
 use OCP\AppFramework\Http;
 use OCP\AppFramework\Http\Attribute\AnonRateLimit;
 use OCP\AppFramework\Http\Attribute\ApiRoute;
@@ -42,7 +42,7 @@ final class ExternalSigningWorkflowController extends AEnvironmentAwareOCSContro
 	public function __construct(
 		IRequest $request,
 		private IUserSession $userSession,
-		private ExternalSigningWorkflowService $workflow,
+		private Workflow $workflow,
 		private LoggerInterface $logger,
 	) {
 		parent::__construct(Application::APP_ID, $request);

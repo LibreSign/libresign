@@ -6,8 +6,10 @@ declare(strict_types=1);
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
 
-namespace OCA\Libresign\Service\Signing;
+namespace OCA\Libresign\Service\Signing\External;
 
+use OCA\Libresign\Service\Signing\SyntheticCscSigningOperation;
+use OCA\Libresign\Service\Signing\ExternalIntegrationRecord;
 use OCA\Libresign\Service\Signing\External\LaboratoryFactory;
 use OCA\Libresign\Service\Signing\External\Publication;
 use OCA\Libresign\Service\Signing\External\SessionStore;
@@ -39,7 +41,7 @@ use OCP\Files\File as NextcloudFile;
  * A fresh authorization check precedes remote discovery, start, continuation
  * or status lookup. A session ID is not an access token.
  */
-final class ExternalSigningWorkflowService {
+final class Workflow {
 	private const MAX_INPUT_BYTES = 25 * 1024 * 1024;
 
 	public function __construct(
@@ -51,7 +53,7 @@ final class ExternalSigningWorkflowService {
 		private Publication $publisher,
 		private FileMapper $files,
 		private FolderService $folders,
-		private ExternalSigningIntegrationScopeAccess $scopeAccess,
+		private IntegrationScopeAccess $scopeAccess,
 	) {
 	}
 

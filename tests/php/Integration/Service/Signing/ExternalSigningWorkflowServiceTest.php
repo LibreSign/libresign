@@ -33,11 +33,11 @@ use OCA\Libresign\Service\Signing\ExternalIntegrationAvailability;
 use OCA\Libresign\Service\Signing\ExternalIntegrationStore;
 use OCA\Libresign\Service\Signing\External\Authorization;
 use OCA\Libresign\Service\Signing\External\CredentialSelection;
-use OCA\Libresign\Service\Signing\ExternalSigningIntegrationScopeAccess;
+use OCA\Libresign\Service\Signing\External\IntegrationScopeAccess;
 use OCA\Libresign\Service\Signing\External\LaboratoryFactory;
 use OCA\Libresign\Service\Signing\External\Publication;
 use OCA\Libresign\Service\Signing\External\SessionStore;
-use OCA\Libresign\Service\Signing\ExternalSigningWorkflowService;
+use OCA\Libresign\Service\Signing\External\Workflow;
 use OCA\Libresign\Service\Signing\Provider\Drivers\Csc\CscDriver;
 use OCA\Libresign\Service\Signing\SyntheticCscSigningOperation;
 use OCA\Libresign\Service\Validation\SignerValidator;
@@ -79,7 +79,7 @@ final class ExternalSigningWorkflowServiceTest extends \OCA\Libresign\Tests\Inte
 	private IDBConnection $db;
 	private ExternalIntegrationStore $integrations;
 	private SessionStore $sessions;
-	private ExternalSigningWorkflowService $service;
+	private Workflow $service;
 	private PdfSignatureValidationService $validation;
 	private SignRequest $request;
 	private FileEntity $file;
@@ -178,10 +178,10 @@ final class ExternalSigningWorkflowServiceTest extends \OCA\Libresign\Tests\Inte
 			Server::get(NativeWebhookEventPublisher::class), Server::get(IUserSession::class),
 			Server::get(LoggerInterface::class),
 		);
-		$this->service = new ExternalSigningWorkflowService(
+		$this->service = new Workflow(
 			$authorization, $laboratories, $selection, $this->sessions, $crypto, $publisher,
 			Server::get(FileMapper::class), Server::get(FolderService::class),
-			new ExternalSigningIntegrationScopeAccess(
+			new IntegrationScopeAccess(
 				$this->allowPolicyForWorkflowTest(),
 				Server::get(IGroupManager::class),
 				Server::get(IUserManager::class), Server::get(IUserSession::class),

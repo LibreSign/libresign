@@ -15,7 +15,7 @@ use OCA\Libresign\Service\ExperimentalFeaturesService;
 use OCA\Libresign\Service\Signing\ExternalIntegrationAdministration;
 use OCA\Libresign\Service\Signing\ExternalIntegrationRecord;
 use OCA\Libresign\Service\Signing\ExternalIntegrationStore;
-use OCA\Libresign\Service\Signing\ExternalSigningIntegrationScopeAccess;
+use OCA\Libresign\Service\Signing\External\IntegrationScopeAccess;
 use OCA\Libresign\Service\Signing\Provider\ExternalSigningDriverCatalog;
 use OCP\AppFramework\Http;
 use OCP\AppFramework\Http\Attribute\ApiRoute;
@@ -45,7 +45,7 @@ final class ExternalSigningIntegrationsController extends AEnvironmentAwareOCSCo
 		private ExperimentalFeaturesService $experimentalFeatures,
 		private ExternalSigningDriverCatalog $catalog,
 		private ExternalIntegrationAdministration $administration,
-		private ExternalSigningIntegrationScopeAccess $scopeAccess,
+		private IntegrationScopeAccess $scopeAccess,
 		private LoggerInterface $logger,
 	) {
 		parent::__construct(Application::APP_ID, $request);

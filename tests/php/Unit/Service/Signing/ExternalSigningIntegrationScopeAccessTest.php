@@ -12,7 +12,7 @@ use OCA\Libresign\Service\Policy\Model\PolicyLayer;
 use OCA\Libresign\Service\Policy\Model\ResolvedPolicy;
 use OCA\Libresign\Service\Policy\PolicyService;
 use OCA\Libresign\Service\Signing\ExternalIntegrationRecord;
-use OCA\Libresign\Service\Signing\ExternalSigningIntegrationScopeAccess;
+use OCA\Libresign\Service\Signing\External\IntegrationScopeAccess;
 use OCP\Group\ISubAdmin;
 use OCP\IGroup;
 use OCP\IGroupManager;
@@ -27,7 +27,7 @@ final class ExternalSigningIntegrationScopeAccessTest extends TestCase {
 	private IUserManager $users;
 	private IUserSession $session;
 	private ISubAdmin $subAdmin;
-	private ExternalSigningIntegrationScopeAccess $access;
+	private IntegrationScopeAccess $access;
 
 	protected function setUp(): void {
 		$this->policies = $this->createMock(PolicyService::class);
@@ -35,7 +35,7 @@ final class ExternalSigningIntegrationScopeAccessTest extends TestCase {
 		$this->users = $this->createMock(IUserManager::class);
 		$this->session = $this->createMock(IUserSession::class);
 		$this->subAdmin = $this->createMock(ISubAdmin::class);
-		$this->access = new ExternalSigningIntegrationScopeAccess(
+		$this->access = new IntegrationScopeAccess(
 			$this->policies, $this->groups, $this->users, $this->session, $this->subAdmin,
 		);
 	}

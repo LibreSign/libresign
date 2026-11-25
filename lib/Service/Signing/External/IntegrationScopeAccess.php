@@ -6,8 +6,10 @@ declare(strict_types=1);
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
 
-namespace OCA\Libresign\Service\Signing;
+namespace OCA\Libresign\Service\Signing\External;
 
+use OCA\Libresign\Service\Signing\ExternalIntegrationRecord;
+use OCA\Libresign\Service\Signing\ExternalIntegrationStore;
 use OCA\Libresign\Service\Policy\PolicyService;
 use OCP\Group\ISubAdmin;
 use OCP\IGroupManager;
@@ -22,7 +24,7 @@ use OCP\IUserSession;
  * Secrets never become policy values. Only records owned by the selected
  * policy scope can be managed by that scope's delegated administrators.
  */
-final class ExternalSigningIntegrationScopeAccess {
+final class IntegrationScopeAccess {
 	private const POLICY_KEY = 'external_signing_enabled';
 
 	public function __construct(

@@ -15,7 +15,7 @@ use OCA\Libresign\Service\Signing\ExternalIntegrationAdministration;
 use OCA\Libresign\Service\Signing\ExternalIntegrationFieldValidator;
 use OCA\Libresign\Service\Signing\ExternalIntegrationSecrets;
 use OCA\Libresign\Service\Signing\ExternalIntegrationStore;
-use OCA\Libresign\Service\Signing\ExternalSigningIntegrationScopeAccess;
+use OCA\Libresign\Service\Signing\External\IntegrationScopeAccess;
 use OCA\Libresign\Service\Signing\Provider\Drivers\Csc\CscDriver;
 use OCA\Libresign\Service\Signing\Provider\ExternalSigningDriverCatalog;
 use OCP\AppFramework\Http;
@@ -62,7 +62,7 @@ final class ExternalSigningIntegrationsControllerTest extends TestCase {
 			$this->features,
 			new ExternalSigningDriverCatalog($this->features, new CscDriver($l10n)),
 			new ExternalIntegrationAdministration($store, new ExternalIntegrationFieldValidator()),
-			new ExternalSigningIntegrationScopeAccess(
+			new IntegrationScopeAccess(
 				$this->createMock(PolicyService::class),
 				$this->groups, $this->createMock(IUserManager::class),
 				$this->session, $this->createMock(ISubAdmin::class),
