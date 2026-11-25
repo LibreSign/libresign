@@ -10,12 +10,6 @@ namespace OCA\Libresign\Service\Signing;
 
 use OCA\Libresign\Service\ExperimentalFeaturesService;
 use OCA\Libresign\Service\Signature\PreparedExternalOperation;
-use OCA\Libresign\Vendor\SignerPHP\PdfSigner\Application\DTO\ExternalSigningPayload;
-use OCA\Libresign\Vendor\SignerPHP\PdfSigner\Application\DTO\HashAlgorithm;
-use OCA\Libresign\Vendor\SignerPHP\PdfSigner\Application\DTO\PreparedExternalSignature;
-use OCA\Libresign\Vendor\SignerPHP\PdfSigner\Application\DTO\SignatureAlgorithm;
-use OCA\Libresign\Vendor\SignerPHP\PdfSigner\Application\DTO\SignatureEncoding;
-use OCA\Libresign\Vendor\SignerPHP\PdfSigner\Application\DTO\SigningInputType;
 use OCP\DB\QueryBuilder\IQueryBuilder;
 use OCP\IDBConnection;
 use OCP\Security\ICrypto;
@@ -37,9 +31,7 @@ final class ExternalSigningSessionStore {
 	private const PRIVATE_TABLE = 'libresign_ext_sign_private';
 	private const AUDIT_TABLE = 'libresign_ext_sign_audit';
 	private const ATTEMPT_TABLE = 'libresign_ext_sign_attempt';
-	private const FORMAT = 1;
 	// Fail closed instead of accidentally overflowing MySQL TEXT or exhausting memory.
-	private const MAX_PREPARED_JSON = 8 * 1024 * 1024;
 	private const MAX_SECRET_JSON = 64 * 1024;
 
 	public function __construct(
@@ -82,7 +74,7 @@ final class ExternalSigningSessionStore {
 			throw new \DomainException('Prepared payload does not match authoritative document');
 		}
 		$certificateHash = $this->certificateFingerprint($certificatePem);
-		$encrypted = $this->protectPrepared($prepared);
+		$encrypted = $this->protect(ExternalSigningPreparedStateCodec::encode($prepared));
 		$id = bin2hex(random_bytes(16));
 		$attemptKey = hash('sha256', $signRequestId . ':' . strlen($actorId) . ':' . $actorId . ':' . $attemptId);
 		$slot = self::signerSlot($signRequestId, $actorId);
@@ -104,7 +96,7 @@ final class ExternalSigningSessionStore {
 				'certificate_sha256' => $qb->createNamedParameter($certificateHash),
 				'document_revision' => $qb->createNamedParameter($documentRevision),
 				'document_sha256' => $qb->createNamedParameter($documentHash),
-				'payload_version' => $qb->createNamedParameter(self::FORMAT, IQueryBuilder::PARAM_INT),
+				'payload_version' => $qb->createNamedParameter(ExternalSigningPreparedStateCodec::FORMAT, IQueryBuilder::PARAM_INT),
 				'prepared_enc' => $qb->createNamedParameter($encrypted),
 				'status' => $qb->createNamedParameter(ExternalSigningSessionState::PREPARING->value),
 				'revision' => $qb->createNamedParameter(1, IQueryBuilder::PARAM_INT),
@@ -700,60 +692,11 @@ final class ExternalSigningSessionStore {
 		return hash('sha256', $der);
 	}
 
-	private function protectPrepared(PreparedExternalOperation $prepared): string {
-		$payload = $prepared->upstream->payload;
-		$data = [
-			'version' => self::FORMAT,
-			'inputBase64' => $payload->inputBase64,
-			'inputType' => $payload->inputType->value,
-			'digestAlgorithm' => $payload->digestAlgorithm->value,
-			'signatureAlgorithm' => $payload->signatureAlgorithm->value,
-			'signatureEncoding' => $payload->signatureEncoding->value,
-			'state' => $prepared->upstream->state,
-			'preparationInputSha256' => $prepared->preparationInputSha256,
-		];
-		$json = json_encode($data, JSON_THROW_ON_ERROR);
-		if (strlen($json) > self::MAX_PREPARED_JSON) {
-			throw new \InvalidArgumentException('Prepared signing state exceeds safe storage limit');
-		}
-		return $this->protect($json);
-	}
-
 	private function restorePrepared(string $encrypted): PreparedExternalOperation {
 		try {
-			$json = $this->unprotect($encrypted);
-			if (strlen($json) > self::MAX_PREPARED_JSON) {
-				throw new \UnexpectedValueException('Oversized prepared state');
-			}
-			$data = json_decode($json, true, 16, JSON_THROW_ON_ERROR);
-			if (!is_array($data) || array_keys($data) !== [
-				'version', 'inputBase64', 'inputType', 'digestAlgorithm',
-				'signatureAlgorithm', 'signatureEncoding', 'state', 'preparationInputSha256',
-			] || $data['version'] !== self::FORMAT) {
-				throw new \UnexpectedValueException('Unsupported prepared state schema');
-			}
-			foreach (array_slice($data, 1) as $value) {
-				if (!is_string($value)) {
-					throw new \UnexpectedValueException('Invalid prepared state field');
-				}
-			}
-			if (!preg_match('/^[a-f0-9]{64}$/D', $data['preparationInputSha256'])
-				|| $data['state'] === '' || !is_string(base64_decode($data['inputBase64'], true))) {
-				throw new \UnexpectedValueException('Invalid prepared state');
-			}
-			$payload = new ExternalSigningPayload(
-				$data['inputBase64'],
-				SigningInputType::from($data['inputType']),
-				HashAlgorithm::from($data['digestAlgorithm']),
-				SignatureAlgorithm::from($data['signatureAlgorithm']),
-				SignatureEncoding::from($data['signatureEncoding']),
-			);
-			return new PreparedExternalOperation(
-				new PreparedExternalSignature($payload, $data['state']),
-				$data['preparationInputSha256'],
-			);
+			return ExternalSigningPreparedStateCodec::decode($this->unprotect($encrypted));
 		} catch (\Throwable) {
-			// Do not allow malformed persisted content or crypto errors to leak.
+			// The API never exposes decryption or stored-format details.
 			throw new \UnexpectedValueException('Prepared signing session cannot be restored');
 		}
 	}
