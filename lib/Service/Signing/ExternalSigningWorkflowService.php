@@ -150,6 +150,10 @@ final class ExternalSigningWorkflowService {
 	): array {
 		$actor = $this->authorization->authorize($signRequestUuid, $method, $identity, $token);
 		$session = $this->sessions->getForSignRequest($sessionId, $actor->signRequest->getId(), $actor->actorId);
+		// Recheck policy scope before returning even a pending or uncertain
+		// state; revocation must not leave a status-only access path open.
+		$lab = $this->laboratories->resolve((string)$session['integrationId']);
+		$this->assertCanUseIntegration($lab['record'], $actor, $method, $identity);
 		if (in_array($session['status'], [
 			ExternalSigningSessionState::SIGNING_PENDING->value,
 			ExternalSigningSessionState::UNCERTAIN->value,
@@ -159,8 +163,6 @@ final class ExternalSigningWorkflowService {
 		], true)) {
 			return ['session' => $session, 'retryAllowed' => false, 'publication' => null];
 		}
-		$lab = $this->laboratories->resolve((string)$session['integrationId']);
-		$this->assertCanUseIntegration($lab['record'], $actor, $method, $identity);
 		if ($lab['record']->revision !== (int)$session['integrationRevision']) {
 			throw new \DomainException('External signing integration changed during signing');
 		}

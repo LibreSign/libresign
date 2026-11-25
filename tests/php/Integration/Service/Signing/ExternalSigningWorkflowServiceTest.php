@@ -87,6 +87,7 @@ final class ExternalSigningWorkflowServiceTest extends \OCA\Libresign\Tests\Inte
 	private string $integrationId;
 	private int $submitted = 0;
 	private bool $timeout = false;
+	private bool $policyAllowed = true;
 	private string $certificatePem;
 	private \OpenSSLAsymmetricKey $privateKey;
 
@@ -192,8 +193,8 @@ final class ExternalSigningWorkflowServiceTest extends \OCA\Libresign\Tests\Inte
 	/** The signing laboratory tests exercise the CSC lifecycle, not the policy resolver. */
 	private function allowPolicyForWorkflowTest(): PolicyService {
 		$policy = $this->createMock(PolicyService::class);
-		$policy->method('resolveForUserId')->willReturn(
-			(new ResolvedPolicy())->setEffectiveValue(true),
+		$policy->method('resolveForUserId')->willReturnCallback(
+			fn (): ResolvedPolicy => (new ResolvedPolicy())->setEffectiveValue($this->policyAllowed),
 		);
 		return $policy;
 	}
@@ -376,6 +377,29 @@ final class ExternalSigningWorkflowServiceTest extends \OCA\Libresign\Tests\Inte
 			(string)$started->getData()['session']['id']);
 		self::assertSame(Http::STATUS_ACCEPTED, $again->getStatus());
 		self::assertSame(1, $this->submitted);
+	}
+
+	/**
+	 * Revoking a provider policy must be enforced even for sessions whose
+	 * remote result is uncertain, without submitting the private key again.
+	 */
+	public function testRevokedPolicyDeniesUncertainSessionContinuationWithoutResubmission(): void {
+		$started = $this->service->start($this->uuid(), 'email', self::EMAIL,
+			self::TOKEN, $this->integrationId, self::CREDENTIAL, 'revoked-policy', 'pdf-basic');
+		$this->timeout = true;
+		$result = $this->service->continue($this->uuid(), 'email', self::EMAIL,
+			self::TOKEN, (string)$started['id']);
+		self::assertSame('uncertain', $result['session']['status']);
+		self::assertSame(1, $this->submitted);
+
+		$this->policyAllowed = false;
+		$this->expectException(\DomainException::class);
+		try {
+			$this->service->continue($this->uuid(), 'email', self::EMAIL,
+				self::TOKEN, (string)$started['id']);
+		} finally {
+			self::assertSame(1, $this->submitted, 'Revoked access must never retry the remote signature');
+		}
 	}
 
 	public function testAuthorizedGuestCanDiscoverPrepareContinueAndPublishSyntheticPdf(): void {
