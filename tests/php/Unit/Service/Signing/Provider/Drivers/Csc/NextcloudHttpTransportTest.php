@@ -8,14 +8,14 @@ declare(strict_types=1);
 
 namespace OCA\Libresign\Tests\Unit\Service\Signing\Provider\Drivers\Csc;
 
-use OCA\Libresign\Service\Signing\Provider\Drivers\Csc\NextcloudCscHttpClient;
+use OCA\Libresign\Service\Signing\Provider\Drivers\Csc\NextcloudHttpTransport;
 use OCP\Http\Client\IClient;
 use OCP\Http\Client\IClientService;
 use OCP\Http\Client\IResponse;
 use OCP\IConfig;
 use PHPUnit\Framework\TestCase;
 
-final class NextcloudCscHttpClientTest extends TestCase {
+final class NextcloudHttpTransportTest extends TestCase {
 	public function testUsesSsrfSafeNextcloudOptionsAndNeverRedirects(): void {
 		$response = $this->createMock(IResponse::class);
 		$response->method('getBody')->willReturn('{"specs":"1.0.4.0"}');
@@ -33,7 +33,7 @@ final class NextcloudCscHttpClientTest extends TestCase {
 		)->willReturn($response);
 		$service = $this->createMock(IClientService::class);
 		$service->method('newClient')->willReturn($client);
-		$received = (new NextcloudCscHttpClient($service, $this->config()))->request(
+		$received = (new NextcloudHttpTransport($service, $this->config()))->request(
 			'POST', 'https://csc.example.org/csc/v1/info', ['Authorization: Bearer synthetic-token'], '{}',
 		);
 		$this->assertSame(200, $received->statusCode);
@@ -46,7 +46,7 @@ final class NextcloudCscHttpClientTest extends TestCase {
 		$client->method('getResponseFromThrowable')->willThrowException(new \RuntimeException('leaked-secret'));
 		$service = $this->createMock(IClientService::class);
 		$service->method('newClient')->willReturn($client);
-		$received = (new NextcloudCscHttpClient($service, $this->config()))->request('POST', 'https://csc.example.org', [], '{}');
+		$received = (new NextcloudHttpTransport($service, $this->config()))->request('POST', 'https://csc.example.org', [], '{}');
 		$this->assertSame(0, $received->statusCode);
 		$this->assertSame('CSC transport failed.', $received->transportError);
 		$this->assertStringNotContainsString('leaked-secret', $received->transportError);
@@ -60,7 +60,7 @@ final class NextcloudCscHttpClientTest extends TestCase {
 		$client->expects($this->once())->method('post')->willReturn($response);
 		$service = $this->createMock(IClientService::class);
 		$service->method('newClient')->willReturn($client);
-		$result = (new NextcloudCscHttpClient($service, $this->config()))->request('POST', 'https://csc.example.org');
+		$result = (new NextcloudHttpTransport($service, $this->config()))->request('POST', 'https://csc.example.org');
 		$this->assertSame(0, $result->statusCode);
 		$this->assertSame('CSC transport failed.', $result->transportError);
 		$this->assertStringNotContainsString('private-token', $result->transportError);
@@ -70,7 +70,7 @@ final class NextcloudCscHttpClientTest extends TestCase {
 		$service = $this->createMock(IClientService::class);
 		$service->expects($this->never())->method('newClient');
 		$this->expectException(\InvalidArgumentException::class);
-		(new NextcloudCscHttpClient($service, $this->config()))->request('POST', 'https://csc.example.org', [], '', 10, true);
+		(new NextcloudHttpTransport($service, $this->config()))->request('POST', 'https://csc.example.org', [], '', 10, true);
 	}
 
 	public function testDoesNotRetryHttp503(): void {
@@ -81,7 +81,31 @@ final class NextcloudCscHttpClientTest extends TestCase {
 		$client->expects($this->once())->method('post')->willReturn($response);
 		$service = $this->createMock(IClientService::class);
 		$service->method('newClient')->willReturn($client);
-		$this->assertSame(503, (new NextcloudCscHttpClient($service, $this->config()))->request('POST', 'https://csc.example.org')->statusCode);
+		$this->assertSame(503, (new NextcloudHttpTransport($service, $this->config()))->request('POST', 'https://csc.example.org')->statusCode);
+	}
+
+
+	public function testRejectsInvalidHeadersBeforeNetwork(): void {
+		$service = $this->createMock(IClientService::class);
+		$service->expects($this->never())->method('newClient');
+		$this->expectException(\InvalidArgumentException::class);
+		(new NextcloudHttpTransport($service, $this->config()))->request(
+			'POST', 'https://csc.example.org', ["Authorization: Bearer secret\r\nX-Extra: injected"],
+		);
+	}
+
+	public function testReturnsHttpErrorResponseFromTransportExceptionWithoutRetry(): void {
+		$response = $this->createMock(IResponse::class);
+		$response->method('getStatusCode')->willReturn(503);
+		$response->method('getBody')->willReturn('temporarily unavailable');
+		$client = $this->createMock(IClient::class);
+		$client->expects($this->once())->method('post')->willThrowException(new \RuntimeException('upstream error'));
+		$client->expects($this->once())->method('getResponseFromThrowable')->willReturn($response);
+		$service = $this->createMock(IClientService::class);
+		$service->method('newClient')->willReturn($client);
+		$result = (new NextcloudHttpTransport($service, $this->config()))->request('POST', 'https://csc.example.org');
+		$this->assertSame(503, $result->statusCode);
+		$this->assertSame('temporarily unavailable', $result->body);
 	}
 
 	private function config(): IConfig {

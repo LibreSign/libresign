@@ -61,7 +61,7 @@ final class CscIntegration implements RemoteCertificateDiscoveryInterface, Remot
 			throw new \InvalidArgumentException('Invalid CSC access token.');
 		}
 
-		return new self(new CscClient(new NextcloudCscHttpClient($clientService, $systemConfig), $baseUrl, $accessToken), false);
+		return new self(new CscClient(new NextcloudHttpTransport($clientService, $systemConfig), $baseUrl, $accessToken), false);
 	}
 
 	/**

@@ -10,14 +10,16 @@ namespace OCA\Libresign\Service\Signing\Provider\Drivers\Csc;
 
 use OCA\Libresign\Vendor\SignerPHP\PdfSigner\Infrastructure\Native\Contract\HttpClientInterface;
 use OCA\Libresign\Vendor\SignerPHP\PdfSigner\Infrastructure\Native\ValueObject\HttpResponse;
+use OCP\Http\Client\IClient;
 use OCP\Http\Client\IClientService;
+use OCP\Http\Client\IResponse;
 use OCP\IConfig;
 
 /**
  * Thin adaptation of Nextcloud's SSRF-aware HTTP client to SignerPHP's
  * existing HTTP contract. No CSC serialization, retry or redirect logic.
  */
-final class NextcloudCscHttpClient implements HttpClientInterface {
+final class NextcloudHttpTransport implements HttpClientInterface {
 	public function __construct(
 		private readonly IClientService $clientService,
 		private readonly IConfig $systemConfig,
@@ -34,31 +36,47 @@ final class NextcloudCscHttpClient implements HttpClientInterface {
 		int $timeoutSeconds = 10,
 		bool $followRedirects = false,
 	): HttpResponse {
+		$this->assertSafeRequest($method, $timeoutSeconds, $followRedirects);
+		$client = $this->clientService->newClient();
+		$response = $this->send($client, $url, $body, $timeoutSeconds, self::parseHeaders($headers));
+
+		return $this->toResponse($response);
+	}
+
+	private function assertSafeRequest(string $method, int $timeoutSeconds, bool $followRedirects): void {
 		if (strtoupper($method) !== 'POST' || $followRedirects || $timeoutSeconds < 1) {
 			throw new \InvalidArgumentException('CSC transport only supports non-redirecting POST requests.');
 		}
-		// Recheck for each request: a global Nextcloud configuration change
-		// must not silently disable local-host/DNS-rebinding protection.
+		// The global settings can override request-level SSRF restrictions.
 		if ($this->systemConfig->getSystemValueBool('allow_local_remote_servers', false)
 			|| !$this->systemConfig->getSystemValueBool('dns_pinning', true)) {
 			throw new \LogicException('CSC transport requires local-address blocking and DNS pinning.');
 		}
-		$httpHeaders = [];
+	}
+
+	/** @param array<int, string> $headers
+	 * @return array<string, string>
+	 */
+	private static function parseHeaders(array $headers): array {
+		$parsed = [];
 		foreach ($headers as $header) {
-			if (!is_string($header) || !str_contains($header, ':')
-				|| preg_match('/[\r\n]/', $header)) {
+			if (!is_string($header) || !str_contains($header, ':') || preg_match('/[\r\n]/', $header)) {
 				throw new \InvalidArgumentException('Invalid CSC HTTP header.');
 			}
 			[$name, $value] = explode(':', $header, 2);
-			if (!preg_match('/^[A-Za-z0-9-]+$/', $name)) {
+			if (!preg_match('/^[A-Za-z0-9-]+$/D', $name)) {
 				throw new \InvalidArgumentException('Invalid CSC HTTP header name.');
 			}
-			$httpHeaders[$name] = ltrim($value);
+			$parsed[$name] = ltrim($value);
 		}
-		$client = $this->clientService->newClient();
+		return $parsed;
+	}
+
+	/** @param array<string, string> $headers */
+	private function send(IClient $client, string $url, string $body, int $timeoutSeconds, array $headers): ?IResponse {
 		try {
-			$response = $client->post($url, [
-				'headers' => $httpHeaders,
+			return $client->post($url, [
+				'headers' => $headers,
 				'body' => $body,
 				'timeout' => $timeoutSeconds,
 				'connect_timeout' => $timeoutSeconds,
@@ -69,25 +87,27 @@ final class NextcloudCscHttpClient implements HttpClientInterface {
 			]);
 		} catch (\Throwable $e) {
 			try {
-				$response = $client->getResponseFromThrowable($e);
+				return $client->getResponseFromThrowable($e);
 			} catch (\Throwable) {
-				// Never propagate URLs, authorization headers or token-bearing
-				// exception messages from a transport implementation.
-				return new HttpResponse(0, '', 'CSC transport failed.');
+				// No raw transport diagnostics may escape with credentials.
+				return null;
 			}
+		}
+	}
+
+	private function toResponse(?IResponse $response): HttpResponse {
+		if ($response === null) {
+			return new HttpResponse(0, '', 'CSC transport failed.');
 		}
 		try {
 			$statusCode = $response->getStatusCode();
-			$responseBody = $response->getBody();
+			$body = $response->getBody();
 		} catch (\Throwable) {
-			// A response accessor may fail after an HTTP request was submitted.
-			// Its exception can contain URLs, headers or credentials.
 			return new HttpResponse(0, '', 'CSC transport failed.');
 		}
-		if (!is_string($responseBody)) {
+		if (!is_string($body)) {
 			return new HttpResponse($statusCode, '', 'CSC response body is not a string.');
 		}
-
-		return new HttpResponse($statusCode, $responseBody);
+		return new HttpResponse($statusCode, $body);
 	}
 }
