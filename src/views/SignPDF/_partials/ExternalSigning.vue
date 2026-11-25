@@ -5,6 +5,7 @@
 <template>
 	<section class="external-signing" aria-labelledby="external-signing-title">
 		<h3 id="external-signing-title">
+			<!-- TRANSLATORS Title of the experimental external CSC signing panel, which uses synthetic test credentials. -->
 			{{ t('libresign', 'External signing (experimental)') }}
 		</h3>
 		<NcNoteCard type="info">
@@ -13,12 +14,15 @@
 		</NcNoteCard>
 		<template v-if="!identityAuthorized">
 			<div v-if="accountUid && emailMethod === 'email'" class="external-signing__field">
+				<!-- TRANSLATORS Label for choosing how the signer proves their identity before external credential discovery. -->
 				<label for="external-signing-method">{{ t('libresign', 'Verification method') }}</label>
 				<select id="external-signing-method" v-model="identityMethod" :disabled="busy">
 					<option value="account">
+						<!-- TRANSLATORS Option to verify the signer using their signed-in Nextcloud account. -->
 						{{ t('libresign', 'Nextcloud account') }}
 					</option>
 					<option value="email">
+						<!-- TRANSLATORS Option to verify the invited signer using a code delivered to their email address. -->
 						{{ t('libresign', 'Email verification') }}
 					</option>
 				</select>
@@ -28,10 +32,11 @@
 					v-model="emailAddress"
 					:disabled="busy"
 					type="email"
-					:label="t('libresign', 'Email used for this signature request')" />
+					:label="emailAddressLabel" />
 				<NcButton
 					:disabled="busy || !emailMatchesRequest"
 					@click="requestCode">
+					<!-- TRANSLATORS Button that requests the email verification code needed before discovering signing providers. -->
 					{{ t('libresign', 'Send verification code') }}
 				</NcButton>
 				<NcTextField
@@ -39,21 +44,24 @@
 					:disabled="busy"
 					type="text"
 					autocomplete="one-time-code"
-					:label="t('libresign', 'Verification code')" />
+					:label="verificationCodeLabel" />
 			</template>
 			<NcButton
 				variant="primary"
 				:disabled="busy || !mayAuthorize"
 				@click="loadIntegrations">
+				<!-- TRANSLATORS Button to list signing providers eligible for this document and signer. -->
 				{{ t('libresign', 'Find available signing providers') }}
 			</NcButton>
 		</template>
 		<template v-else>
 			<NcNoteCard v-if="integrations.length === 0 && !session" type="info">
+				<!-- TRANSLATORS Message when no external provider is permitted for the current signing request. -->
 				{{ t('libresign', 'No external signing providers are available for this request.') }}
 			</NcNoteCard>
 			<template v-if="!session">
 				<div v-if="integrations.length > 0" class="external-signing__field">
+					<!-- TRANSLATORS Label for selecting an external signature provider. -->
 					<label for="external-signing-integration">{{ t('libresign', 'Signing provider') }}</label>
 					<select
 						id="external-signing-integration"
@@ -61,6 +69,7 @@
 						:disabled="busy"
 						@change="loadCredentials">
 						<option value="">
+							<!-- TRANSLATORS Placeholder option prompting the signer to select a provider. -->
 							{{ t('libresign', 'Choose a provider') }}
 						</option>
 						<option v-for="integration in integrations" :key="integration.id" :value="integration.id">
@@ -69,9 +78,11 @@
 					</select>
 				</div>
 				<div v-if="credentials.length > 0" class="external-signing__field">
+					<!-- TRANSLATORS Label for selecting a remote signing credential/certificate, not uploading a local file. -->
 					<label for="external-signing-credential">{{ t('libresign', 'Signing certificate') }}</label>
 					<select id="external-signing-credential" v-model="selectedCredentialId" :disabled="busy">
 						<option value="">
+							<!-- TRANSLATORS Placeholder option prompting the signer to choose an eligible remote certificate. -->
 							{{ t('libresign', 'Choose a certificate') }}
 						</option>
 						<option v-for="credential in credentials" :key="credential.id" :value="credential.id">
@@ -79,6 +90,7 @@
 						</option>
 					</select>
 					<div v-if="selectedCredential" class="external-signing__details">
+						<!-- TRANSLATORS Caption before the expiration date of the selected remote signing certificate. -->
 						<p>{{ t('libresign', 'Certificate valid until') }}: {{ selectedCredential.validTo }}</p>
 						<p>{{ selectedCredential.signatureAlgorithm }} / {{ selectedCredential.digestAlgorithm }}</p>
 						<p class="external-signing__fingerprint">
@@ -87,6 +99,7 @@
 					</div>
 				</div>
 				<div v-if="selectedCredential" class="external-signing__field">
+					<!-- TRANSLATORS Label for choosing the PDF/PAdES signature profile. -->
 					<label for="external-signing-profile">{{ t('libresign', 'PDF signature format') }}</label>
 					<select id="external-signing-profile" v-model="selectedProfile" :disabled="busy">
 						<option v-for="profile in supportedProfiles" :key="profile" :value="profile">
@@ -99,18 +112,22 @@
 					variant="primary"
 					:disabled="busy || mustRefreshBeforeContinue || !supportedProfiles.includes(selectedProfile)"
 					@click="startSigning">
+					<!-- TRANSLATORS Button to prepare the document for remote signing; this does not yet submit a signature. -->
 					{{ t('libresign', 'Prepare external signature') }}
 				</NcButton>
 			</template>
 			<div v-if="mustRefreshBeforeContinue && !session" class="external-signing__status">
 				<NcNoteCard type="warning">
+					<!-- TRANSLATORS Warning to refresh an uncertain session before starting another preparation attempt. -->
 					{{ t('libresign', 'Check the signing session before another preparation attempt.') }}
 				</NcNoteCard>
 				<NcButton :disabled="busy" @click="refreshSession">
+					<!-- TRANSLATORS Button to refresh the current remote signing session status without resubmitting a signature. -->
 					{{ t('libresign', 'Check signing status') }}
 				</NcButton>
 			</div>
 			<div v-if="session" class="external-signing__status" role="status">
+				<!-- TRANSLATORS Label preceding the current remote signing session state. -->
 				<p>{{ t('libresign', 'Signing status') }}: <strong>{{ statusMessage }}</strong></p>
 				<NcNoteCard v-if="requiresReconciliation" type="warning">
 					<!-- TRANSLATORS An unknown external signing outcome must not be submitted again. -->
@@ -121,9 +138,11 @@
 					variant="primary"
 					:disabled="busy || mustRefreshBeforeContinue"
 					@click="continueSigning">
+					<!-- TRANSLATORS Button to continue an already prepared remote signing session. -->
 					{{ t('libresign', 'Continue external signing') }}
 				</NcButton>
 				<NcButton :disabled="busy" @click="refreshSession">
+					<!-- TRANSLATORS Button to refresh the current remote signing session status without resubmitting a signature. -->
 					{{ t('libresign', 'Check signing status') }}
 				</NcButton>
 			</div>
@@ -175,6 +194,11 @@ const emit = defineEmits<{
 	(e: 'signed', payload: { signRequestUuid: string }): void
 }>()
 
+// TRANSLATORS Label for the email address bound to the invitation; it must match the signer being verified.
+const emailAddressLabel = t('libresign', 'Email used for this signature request')
+// TRANSLATORS Label for the one-time code received by email before accessing external signing providers.
+const verificationCodeLabel = t('libresign', 'Verification code')
+
 const signStore = useSignStore()
 const accountUid = getCurrentUser()?.uid ?? ''
 const identityMethod = ref<'email' | 'account'>(accountUid ? 'account' : 'email')
@@ -207,17 +231,29 @@ const requiresReconciliation = computed(() => session.value !== null && external
 const statusMessage = computed(() => {
 	const state = session.value?.status
 	switch (state) {
+	// TRANSLATORS Signing-session state: the document is being prepared, before remote signature submission.
 	case 'preparing': return t('libresign', 'Preparing the document')
+	// TRANSLATORS Signing-session state: the prepared document is ready for a provider signature.
 	case 'ready_to_sign': return t('libresign', 'Ready for the remote signature')
+	// TRANSLATORS Signing-session state: waiting for the remote provider to authorize the signature.
 	case 'authorization_pending': return t('libresign', 'Waiting for provider authorization')
+	// TRANSLATORS Signing-session state: the remote signature operation was submitted but has not finished.
 	case 'signing_pending': return t('libresign', 'Signature operation pending')
+	// TRANSLATORS Signing-session state: a remote signature was received and the PDF is being validated.
 	case 'signature_received': return t('libresign', 'Signature received, validating document')
+	// TRANSLATORS Signing-session state: the validated signed PDF is being published in LibreSign.
 	case 'completing': return t('libresign', 'Finalizing the signed document')
+	// TRANSLATORS Signing-session state: the signed document was finalized successfully.
 	case 'completed': return t('libresign', 'Document signed successfully')
+	// TRANSLATORS Signing-session state: the provider may have signed, so automatic resubmission is prohibited.
 	case 'uncertain': return t('libresign', 'Signature result uncertain')
+	// TRANSLATORS Signing-session state: the remote signature operation was rejected.
 	case 'rejected': return t('libresign', 'Signature rejected')
+	// TRANSLATORS Signing-session state: the remote signing session is no longer valid.
 	case 'expired': return t('libresign', 'Signature session expired')
+	// TRANSLATORS Signing-session state: the remote signature operation failed.
 	case 'failed': return t('libresign', 'Signature failed')
+	// TRANSLATORS Fallback state when the remote signing session status is unknown.
 	default: return t('libresign', 'Signing status unavailable')
 	}
 })
@@ -273,6 +309,7 @@ async function execute<T>(callback: () => Promise<T>, onSuccess: (value: T) => v
 		if (current === requestGeneration) {
 			// Error responses are deliberately not rendered verbatim: provider
 			// responses can contain untrusted diagnostics and signer secrets.
+			// TRANSLATORS Generic security-conscious error: provider diagnostics are hidden and a possibly submitted signature must not be retried blindly.
 			errorMessage.value = t('libresign', 'External signing is unavailable or authorization has expired. Check the request and try again if no signing operation is pending.')
 		}
 	} finally {

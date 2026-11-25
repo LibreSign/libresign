@@ -150,6 +150,7 @@
 			</div>
 			<div v-if="externalSigningUiAllowed" class="external-signing-option">
 				<NcButton :disabled="loading" @click="showExternalSigning = !showExternalSigning">
+					<!-- TRANSLATORS Button opening the experimental CSC remote-signing option, not the regular signing flow. -->
 					{{ t('libresign', 'External signing (experimental)') }}
 				</NcButton>
 				<ExternalSigning v-if="showExternalSigning"
