@@ -88,17 +88,22 @@ final class ExternalIntegrationStoreTest extends \OCA\Libresign\Tests\Integratio
 
 	public function testScopedIntegrationsArePersistedAndPaginatedWithoutCrossClientLeakage(): void {
 		$system = $this->createTracked('csc', 'Global', [], [], 'system', '');
-		$alpha = $this->createTracked('csc', 'Client A', [], [], 'group', 'client-a');
-		$beta = $this->createTracked('csc', 'Client B', [], [], 'group', 'client-b');
-		$personal = $this->createTracked('csc', 'Personal', [], [], 'user', 'alice');
+		// Use isolated synthetic scope IDs: another test run or pre-existing
+		// connection may already belong to a commonly named group.
+		$scopeA = 'client-a-' . $system->id;
+		$scopeB = 'client-b-' . $system->id;
+		$scopeUser = 'alice-' . $system->id;
+		$alpha = $this->createTracked('csc', 'Client A', [], [], 'group', $scopeA);
+		$beta = $this->createTracked('csc', 'Client B', [], [], 'group', $scopeB);
+		$personal = $this->createTracked('csc', 'Personal', [], [], 'user', $scopeUser);
 
 		$this->assertSame('group', $this->store->get($alpha->id)->scopeType);
-		$this->assertSame('client-a', $this->store->get($alpha->id)->scopeId);
-		$this->assertSame(['scopeType' => 'group', 'scopeId' => 'client-a'],
+		$this->assertSame($scopeA, $this->store->get($alpha->id)->scopeId);
+		$this->assertSame(['scopeType' => 'group', 'scopeId' => $scopeA],
 			array_intersect_key($this->store->get($alpha->id)->jsonSerialize(), ['scopeType' => true, 'scopeId' => true]));
-		$this->assertSame([$alpha->id], array_column($this->store->listPage(0, 50, 'group', 'client-a')['items'], 'id'));
-		$this->assertSame([$beta->id], array_column($this->store->listPage(0, 50, 'group', 'client-b')['items'], 'id'));
-		$this->assertSame([$personal->id], array_column($this->store->listPage(0, 50, 'user', 'alice')['items'], 'id'));
+		$this->assertSame([$alpha->id], array_column($this->store->listPage(0, 50, 'group', $scopeA)['items'], 'id'));
+		$this->assertSame([$beta->id], array_column($this->store->listPage(0, 50, 'group', $scopeB)['items'], 'id'));
+		$this->assertSame([$personal->id], array_column($this->store->listPage(0, 50, 'user', $scopeUser)['items'], 'id'));
 		$this->assertContains($system->id, array_column($this->store->listPage(0, 50, 'system', '')['items'], 'id'));
 	}
 
