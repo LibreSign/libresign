@@ -103,16 +103,9 @@ final class ExternalSigningWorkflowService {
 		$this->assertCanUseIntegration($lab['record'], $actor, $method, $identity);
 		$selection = $this->selection->discoverSynthetic($signRequestUuid, $method, $identity,
 			$token, $integrationId, $lab['laboratory']);
-		$chosen = null;
-		foreach ($selection['credentials'] as $item) {
-			if ($item['id'] === $credentialId) {
-				$chosen = $item;
-				break;
-			}
-		}
-		if ($chosen === null || !in_array($profile, $chosen['profiles'], true)) {
-			throw new \DomainException('Selected CSC credential or PDF profile is not eligible');
-		}
+		$chosen = ExternalSigningCredentialSelectionService::requireEligibleCredential(
+			$selection['credentials'], $credentialId, $profile,
+		);
 		$certificate = $this->certificate($lab['laboratory'], $credentialId,
 			(string)$chosen['certificateSha256']);
 		$source = $this->source($actor->file);

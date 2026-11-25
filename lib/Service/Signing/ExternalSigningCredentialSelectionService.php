@@ -22,6 +22,31 @@ use OCA\Libresign\Service\Signing\Provider\Drivers\Csc\CscIntegration;
  * No method accepts a client-provided actor ID, certificate or preparation.
  */
 final class ExternalSigningCredentialSelectionService {
+	/**
+	 * Resolve a server-discovered credential and its permitted PDF profile.
+	 *
+	 * Keep this pure: the caller must authorize and refresh discovery first.
+	 * No database, HTTP client or signer identity is required to test this
+	 * decision. Never accept a client-submitted list of eligible credentials.
+	 *
+	 * @param list<array<string, mixed>> $choices
+	 * @return array<string, mixed>
+	 */
+	public static function requireEligibleCredential(array $choices, string $credentialId, string $profile): array {
+		foreach ($choices as $choice) {
+			if (($choice['id'] ?? null) !== $credentialId) {
+				continue;
+			}
+			if (is_array($choice['profiles'] ?? null)
+				&& in_array($profile, $choice['profiles'], true)
+				&& is_string($choice['certificateSha256'] ?? null)) {
+				return $choice;
+			}
+			break;
+		}
+		throw new \DomainException('Selected CSC credential or PDF profile is not eligible');
+	}
+
 	public function __construct(
 		private ExternalSigningAuthorizationService $authorization,
 		private ExternalIntegrationStore $integrations,
