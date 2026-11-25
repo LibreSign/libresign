@@ -902,7 +902,6 @@
     "Invalid id-doc request" : "Solicitação id-doc inválida",
     "Notification sent with success." : "Notificação enviada com sucesso.",
     "From: %s • Date: %s" : "De: %s • Data: %s",
-    "Failure on generate certificate" : "Falha ao gerar certificado",
     "Cannot read file" : "Não é possível ler o ficheiro",
     "visible element" : "elemento visível",
     "You are not allowed to request signing" : "Você não tem permissão para solicitar assinaturas",
@@ -916,7 +915,6 @@
     "LibreSign: There is a file for you to sign" : "LibreSign: Há um documento para assinar",
     "View signed file »%s«" : "Ver arquivo assinado »%s«",
     "LibreSign: Code to sign file" : "LibreSign: Código para assinar arquivo",
-    "No signature was requested to %s" : "Não foram solicitadas assinaturas para %s",
     "Date when the signer sent the request to sign (without time, in their local time zone)." : "Data em que o signatário enviou a solicitação de assinatura (sem hora, no fuso horário local dele).",
     "Date and time when the signer sent the request to sign (in their local time zone)." : "Data e hora em que o signatário enviou a solicitação de assinatura (no fuso horário local dele).",
     "Time zone of signer when sent the request to sign (in their local time zone)." : "Fuso horário do signatário quando enviou a solicitação de assinatura (no fuso horário local dele).",
@@ -1004,7 +1002,6 @@
     "Timestamp Authority (TSA) settings for digitally signing documents." : "Configurações da Autoridade de Marca Temporal (TSA) para assinatura digital de documentos.",
     "Make validation URL acessible only by authenticated users" : "Tornar o URL de validação acessível apenas para usuários autenticados",
     "{method} is not configured. Please contact your administrator." : "{method} não está configurado. Por favor, entre em contato com a sua administração.",
-    "Sign the document." : "Assinar o documento.",
-    "Failed to remove file(s) from envelope" : "Falha ao remover arquivo(s) do envelope"
+    "Sign the document." : "Assinar o documento."
 },"pluralForm" :"nplurals=3; plural=(n == 0 || n == 1) ? 0 : n != 0 && n % 1000000 == 0 ? 1 : 2;"
 }

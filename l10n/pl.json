@@ -379,7 +379,6 @@
     "Sign »%s«" : "Podpisz »%s«",
     "LibreSign: There is a file for you to sign" : "LibreSign: Jest plik do podpisania",
     "LibreSign: Code to sign file" : "LibreSign: Kod do podpisania pliku",
-    "No signature was requested to %s" : "Nie zażądano podpisu do %s",
     "Underline" : "Podkreślenie",
     "User" : "Użytkownik",
     "Choose the file to request signatures." : "Wybierz plik, aby poprosić o podpisy.",
