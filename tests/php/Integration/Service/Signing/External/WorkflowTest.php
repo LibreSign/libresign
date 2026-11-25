@@ -36,6 +36,7 @@ use OCA\Libresign\Service\Signing\External\CredentialSelection;
 use OCA\Libresign\Service\Signing\External\IntegrationScopeAccess;
 use OCA\Libresign\Service\Signing\External\LaboratoryFactory;
 use OCA\Libresign\Service\Signing\External\Publication;
+use OCA\Libresign\Service\Signing\External\PublicationCommitter;
 use OCA\Libresign\Service\Signing\External\ImmutableArtifactStore;
 use OCA\Libresign\Service\Signing\External\PublicationEvents;
 use OCA\Libresign\Service\Signing\External\SessionStore;
@@ -172,12 +173,13 @@ final class WorkflowTest extends \OCA\Libresign\Tests\Integration\TestCase {
 		$pdfSigning = new ExternalPdfSigningService($this->validation, new DocMdpHandler($l10n));
 		$crypto = new SyntheticCscSigningOperation($pdfSigning, $this->sessions);
 		$publisher = new Publication(
-			$this->db, $this->sessions, $crypto,
-			Server::get(FileMapper::class), Server::get(SignRequestMapper::class),
-			Server::get(FolderService::class), Server::get(FileStatusService::class),
-			Server::get(SigningWorkflowStatusResolver::class), Server::get(SequentialSigningService::class),
-			Server::get(\OCA\Libresign\Db\NotificationDeliveryMapper::class),
+			$this->sessions, $crypto, Server::get(FileMapper::class), Server::get(FolderService::class),
 			new ImmutableArtifactStore(Server::get(IUserSession::class)),
+			new PublicationCommitter($this->db, $this->sessions,
+				Server::get(FileMapper::class), Server::get(SignRequestMapper::class),
+				Server::get(FileStatusService::class), Server::get(SigningWorkflowStatusResolver::class),
+				Server::get(SequentialSigningService::class),
+				Server::get(\OCA\Libresign\Db\NotificationDeliveryMapper::class)),
 			new PublicationEvents(Server::get(FileStatusService::class), Server::get(SignRequestMapper::class),
 				Server::get(SequentialSigningService::class), Server::get(SignedEventFactory::class),
 				Server::get(IEventDispatcher::class), Server::get(NativeWebhookEventPublisher::class),

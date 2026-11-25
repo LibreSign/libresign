@@ -8,22 +8,10 @@ declare(strict_types=1);
 
 namespace OCA\Libresign\Service\Signing\External;
 
-use DateTime;
-use DateTimeZone;
 use OCA\Libresign\Db\FileMapper;
-use OCA\Libresign\Db\NotificationDeliveryMapper;
-use OCA\Libresign\Db\SignRequestMapper;
-use OCA\Libresign\Enum\FileStatus;
-use OCA\Libresign\Enum\SignRequestStatus;
-use OCA\Libresign\Service\File\SigningWorkflowStatusResolver;
-use OCA\Libresign\Service\FileStatusService;
 use OCA\Libresign\Service\FolderService;
-use OCA\Libresign\Service\SequentialSigningService;
 use OCA\Libresign\Service\Signing\SyntheticCscSigningOperation;
-use OCP\AppFramework\Db\TTransactional;
-use OCP\DB\QueryBuilder\IQueryBuilder;
 use OCP\Files\File as NextcloudFile;
-use OCP\IDBConnection;
 
 /**
  * Reconcile the synthetic CSC PDF with the actual LibreSign workflow.
@@ -42,19 +30,13 @@ use OCP\IDBConnection;
  * discovery, never a browser-supplied parameter. No private key is used.
  */
 final class Publication {
-	use TTransactional;
 	public function __construct(
-		private IDBConnection $db,
 		private SessionStore $sessions,
 		private SyntheticCscSigningOperation $signing,
 		private FileMapper $files,
-		private SignRequestMapper $signRequests,
 		private FolderService $folders,
-		private FileStatusService $fileStatuses,
-		private SigningWorkflowStatusResolver $statusResolver,
-		private SequentialSigningService $sequential,
-		private NotificationDeliveryMapper $notificationDeliveries,
 		private ImmutableArtifactStore $artifacts,
+		private PublicationCommitter $committer,
 		private PublicationEvents $events,
 	) {
 	}
@@ -109,59 +91,14 @@ final class Publication {
 			throw new \DomainException('PDF source changed before CSC publication');
 		}
 
-		$previousStatus = $file->getStatus();
-		$activated = [];
-		$locked = null;
-		$this->atomic(function () use ($fileId, $file, $source, $sourceRevision, $requestId, $request, $hash, $output, $sessionId, $authorized, $session, $pdfBytes, $expectedCertificatePem, &$locked, &$activated): void {
-			$locked = $this->files->getByIdForUpdate($fileId);
-			if ($locked->getSignedNodeId() !== $file->getSignedNodeId()
-				|| $locked->getStatus() === FileStatus::SIGNED->value
-				|| $locked->getNodeId() !== $file->getNodeId()) {
-				throw new \DomainException('Document revision or workflow changed during publication');
-			}
-			if ($source->getEtag() !== $sourceRevision) {
-				throw new \DomainException('Document changed during CSC publication');
-			}
-			$now = new DateTime('now', new DateTimeZone('UTC'));
-			$qb = $this->db->getQueryBuilder();
-			$claimed = $qb->update('libresign_sign_request')
-				->set('signed', $qb->createNamedParameter($now, IQueryBuilder::PARAM_DATETIME_MUTABLE))
-				->set('signed_hash', $qb->createNamedParameter($hash))
-				->set('status', $qb->createNamedParameter(SignRequestStatus::SIGNED->value, IQueryBuilder::PARAM_INT))
-				->where($qb->expr()->eq('id', $qb->createNamedParameter($requestId, IQueryBuilder::PARAM_INT)))
-				->andWhere($qb->expr()->eq('file_id', $qb->createNamedParameter($fileId, IQueryBuilder::PARAM_INT)))
-				->andWhere($qb->expr()->eq('status', $qb->createNamedParameter(SignRequestStatus::ABLE_TO_SIGN->value, IQueryBuilder::PARAM_INT)))
-				->andWhere($qb->expr()->isNull('signed'))
-				->andWhere($qb->expr()->isNull('signed_hash'))
-				->executeStatement();
-			if ($claimed !== 1) {
-				throw new \DomainException('Signing request already completed or changed concurrently');
-			}
-			$this->storeSignerCertificate($requestId, $expectedCertificatePem, $sessionId);
-			$request->setSigned($now);
-			$request->setSignedHash($hash);
-			$request->setStatusEnum(SignRequestStatus::SIGNED);
-			$locked->setSignedNodeId($output->getId());
-			$locked->setSignedHash($hash);
-			$signers = $this->signRequests->getByFileId($fileId);
-			foreach ($signers as $index => $signer) {
-				if ($signer->getId() === $requestId) {
-					$signers[$index] = $request;
-				}
-			}
-			$newStatus = $this->statusResolver->resolve($locked, $signers);
-			if ($newStatus !== null) {
-				$locked->setStatus($newStatus->value);
-			}
-			$this->fileStatuses->updateForQueuedJob($locked);
-			$this->notificationDeliveries->cancelPendingInvitations($requestId);
-			$this->sequential->setFile($locked);
-			$activated = $this->sequential->activateNextOrder($fileId, $request->getSigningOrder());
-			$this->sessions->markCompleted($sessionId, $authorized->actorId,
-				(int)$session['revision'], $sourceRevision, $pdfBytes, $expectedCertificatePem);
-		}, $this->db);
-
-		$this->events->dispatch($locked, $request, $output, $previousStatus, $activated);
+		$context = new PublicationContext(
+			$authorized, $session, $file, $source, $sourceRevision, $pdfBytes,
+			$output, $hash, $expectedCertificatePem, $sessionId,
+		);
+		$committed = $this->committer->commit($context);
+		$this->events->dispatch(
+			$committed['file'], $request, $output, $committed['previousStatus'], $committed['activated'],
+		);
 		return [
 			'status' => 'completed',
 			'sessionId' => $sessionId,
@@ -170,30 +107,5 @@ final class Publication {
 		];
 	}
 
-	/** Preserve all concurrent signer metadata, never overwrite its JSON. */
-	private function storeSignerCertificate(int $requestId, string $pem, string $sessionId): void {
-		$certificate = @openssl_x509_parse($pem);
-		if (!is_array($certificate)) {
-			throw new \DomainException('Invalid CSC signing certificate');
-		}
-		$qb = $this->db->getQueryBuilder();
-		$raw = $qb->select('metadata')->from('libresign_sign_request')
-			->where($qb->expr()->eq('id', $qb->createNamedParameter($requestId, IQueryBuilder::PARAM_INT)))
-			->executeQuery()->fetchOne();
-		$metadata = $raw === null || $raw === false || $raw === '' ? [] : json_decode((string)$raw, true, 64, JSON_THROW_ON_ERROR);
-		if (!is_array($metadata) || array_is_list($metadata) && $metadata !== []) {
-			throw new \DomainException('Malformed signer metadata');
-		}
-		$metadata['certificate_info'] = [
-			'serialNumberHex' => $certificate['serialNumberHex'] ?? '',
-			'subject' => $certificate['subject'] ?? [],
-			'hash' => openssl_x509_fingerprint($pem, 'sha256'),
-		];
-		$metadata['external_signing'] = ['sessionId' => $sessionId, 'driver' => 'csc-v1', 'laboratory' => true];
-		$qb = $this->db->getQueryBuilder();
-		$qb->update('libresign_sign_request')
-			->set('metadata', $qb->createNamedParameter(json_encode($metadata, JSON_THROW_ON_ERROR)))
-			->where($qb->expr()->eq('id', $qb->createNamedParameter($requestId, IQueryBuilder::PARAM_INT)))
-			->executeStatement();
-	}
+
 }
