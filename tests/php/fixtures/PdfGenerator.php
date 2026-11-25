@@ -64,13 +64,17 @@ class PdfGenerator {
 	 * @param array<int, string> $extraObjects Object bodies by object number, from 6 up.
 	 */
 	public static function createPdfWithStandaloneDocMdpSignature(int $pValue, string $catalogExtra = '', array $extraObjects = []): string {
+		return self::createPdfWithStandaloneSignature($pValue, $catalogExtra, $extraObjects);
+	}
+
+	private static function createPdfWithStandaloneSignature(?int $pValue, string $catalogExtra = '', array $extraObjects = []): string {
 		$placeholder = '0000000000 0000000000 0000000000 0000000000';
 		$objects = [
 			1 => "<< /Type /Catalog /Pages 2 0 R $catalogExtra >>",
 			2 => '<< /Type /Pages /Kids [3 0 R] /Count 1 >>',
 			3 => '<< /Type /Page /Parent 2 0 R /MediaBox [0 0 612 792] >>',
 			5 => "<< /Type /Sig /Filter /Adobe.PPKLite /SubFilter /adbe.pkcs7.detached /ByteRange [$placeholder] /Contents <" . str_repeat('0', 64) . '>'
-				. " /Reference [<< /Type /SigRef /TransformMethod /DocMDP /TransformParams << /Type /TransformParams /P $pValue /V /1.2 >> >>] >>",
+				. ($pValue === null ? '' : " /Reference [<< /Type /SigRef /TransformMethod /DocMDP /TransformParams << /Type /TransformParams /P $pValue /V /1.2 >> >>]") . ' >>',
 		] + $extraObjects;
 		ksort($objects);
 
@@ -92,6 +96,45 @@ class PdfGenerator {
 		$contentsEnd = strpos($pdf, '>', $contentsStart) + 1;
 		$byteRange = sprintf('%010d %010d %010d %010d', 0, $contentsStart, $contentsEnd, strlen($pdf) - $contentsEnd);
 		return str_replace($placeholder, $byteRange, $pdf);
+	}
+
+	/**
+	 * Start with an orphaned approval signature, then append a real incremental
+	 * revision. The orphan's range ends at the first EOF; an optional active
+	 * certification covers the entire final file.
+	 */
+	public static function createPdfWithEarlierOrphanedSignature(bool $withActiveCertification): string {
+		$pdf = self::createPdfWithStandaloneSignature(null);
+		$previousXref = (int)substr($pdf, strrpos($pdf, "startxref\n") + strlen("startxref\n"));
+		$placeholder = '0000000000 0000000000 0000000000 0000000000';
+		$objects = $withActiveCertification
+			? [
+				1 => '<< /Type /Catalog /Pages 2 0 R /Perms << /DocMDP 6 0 R >> >>',
+				6 => "<< /Type /Sig /Filter /Adobe.PPKLite /SubFilter /adbe.pkcs7.detached /ByteRange [$placeholder] /Contents <"
+					. str_repeat('0', 64) . '> /Reference [<< /Type /SigRef /TransformMethod /DocMDP /TransformParams << /Type /TransformParams /P 1 /V /1.2 >> >>] >>',
+			]
+			: [6 => '<< /Producer (Generator) >>'];
+		$offsets = [];
+		foreach ($objects as $number => $body) {
+			$offsets[$number] = strlen($pdf);
+			$pdf .= "$number 0 obj\n$body\nendobj\n";
+		}
+		$xrefOffset = strlen($pdf);
+		$pdf .= "xref\n0 1\n0000000000 65535 f \n";
+		foreach ($offsets as $number => $offset) {
+			$pdf .= "$number 1\n" . sprintf("%010d 00000 n \n", $offset);
+		}
+		$info = $withActiveCertification ? '' : ' /Info 6 0 R';
+		$pdf .= "trailer\n<< /Size 7 /Root 1 0 R /Prev $previousXref$info >>\nstartxref\n$xrefOffset\n%%EOF\n";
+
+		if ($withActiveCertification) {
+			$contentsStart = strpos($pdf, '/Contents <', $offsets[6]) + strlen('/Contents ');
+			$contentsEnd = strpos($pdf, '>', $contentsStart) + 1;
+			$byteRange = sprintf('%010d %010d %010d %010d', 0, $contentsStart, $contentsEnd, strlen($pdf) - $contentsEnd);
+			$pdf = str_replace($placeholder, $byteRange, $pdf);
+		}
+
+		return $pdf;
 	}
 
 	public static function createPdfWithFormFieldModification(int $pValue): string {

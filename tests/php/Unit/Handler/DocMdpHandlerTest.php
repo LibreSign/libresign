@@ -390,10 +390,43 @@ final class DocMdpHandlerTest extends TestCase {
 		$this->assertSame($expectedAllowed, $allowed);
 		$expectedLevel = $expectedAllowed ? DocMdpLevel::NOT_CERTIFIED : DocMdpLevel::CERTIFIED_NO_CHANGES_ALLOWED;
 		$this->assertSame($expectedLevel->value, $data['docmdp']['level']);
-		$this->assertSame($expectedAllowed ? 0 : 1, $data['modifications']['revisionCount']);
-		if ($expectedAllowed) {
-			$this->assertFalse($data['modifications']['modified']);
-		}
+	}
+
+	public function testOrphanedSignatureWithLaterRevisionIsNotReportedAsModification(): void {
+		$pdf = PdfGenerator::createPdfWithEarlierOrphanedSignature(false);
+		$resource = PdfGenerator::createResourceFromContent($pdf);
+		$data = $this->handler->extractDocMdpData($resource);
+		fclose($resource);
+
+		$this->assertSame(DocMdpLevel::NOT_CERTIFIED->value, $data['docmdp']['level']);
+		$this->assertSame([
+			'modified' => false,
+			'revisionCount' => 0,
+			'details' => [],
+		], $data['modifications']);
+		$this->assertArrayNotHasKey('modification_validation', $data);
+	}
+
+	public function testActiveCertificationIgnoresEarlierOrphanedSignature(): void {
+		$pdf = PdfGenerator::createPdfWithEarlierOrphanedSignature(true);
+		$resource = PdfGenerator::createResourceFromContent($pdf);
+		$data = $this->handler->extractDocMdpData($resource);
+		fclose($resource);
+
+		$this->assertSame(DocMdpLevel::CERTIFIED_NO_CHANGES_ALLOWED->value, $data['docmdp']['level']);
+		$this->assertSame([
+			'modified' => false,
+			'revisionCount' => 1,
+			'details' => [[
+				'signatureIndex' => 0,
+				'modified' => false,
+				'coveredBytes' => strlen($pdf),
+				'totalBytes' => strlen($pdf),
+				'extraBytes' => 0,
+			]],
+		], $data['modifications']);
+		$this->assertTrue($data['modification_validation']['valid']);
+		$this->assertSame(File::MODIFICATION_UNMODIFIED, $data['modification_validation']['status']);
 	}
 
 	public function testRealJSignPdfWithDocMdpLevel1(): void {
