@@ -40,58 +40,141 @@ class SignatureStampAppearanceBuilder {
 
 		$descFontSize = $templateFontSize
 			?? (float)($textData['templateFontSize'] ?? $this->signatureTextService->getTemplateFontSize());
-		$padding = max(2.0, $descFontSize * 0.15);
+		$descLineHeight = $descFontSize * 1.0;
+		$leftPadding = max(2.0, $descFontSize * 0.15);
+
 		$isDescriptionOnly = $renderMode === SignerElementsService::RENDER_MODE_DESCRIPTION_ONLY;
-		$columnWidth = $isDescriptionOnly ? (float)$width : $width / 2.0;
-		$textWidth = $columnWidth - 2 * $padding;
-		$blocks = [];
+		$textStartX = $isDescriptionOnly ? $leftPadding : ((float)$width / 2.0) + $leftPadding;
+		$availableWidth = $isDescriptionOnly ? (float)$width : (float)$width / 2.0;
 
-		if ($textWidth > 0 && $height > 0) {
-			if ($renderMode === SignerElementsService::RENDER_MODE_SIGNAME_AND_DESCRIPTION) {
-				$commonName = (string)($context['SignerCommonName'] ?? '');
-				if ($commonName === '') {
-					$commonName = $fallbackCommonName ?? '';
+		$stream = '';
+
+		if ($renderMode === SignerElementsService::RENDER_MODE_SIGNAME_AND_DESCRIPTION) {
+			$commonName = !empty($context['SignerCommonName'])
+				? (string)$context['SignerCommonName']
+				: ($fallbackCommonName ?? '');
+
+			if ($commonName !== '') {
+				$nameFontSize = $signatureFontSize ?? $this->signatureTextService->getSignatureFontSize();
+				$leftHalfW = (float)$width / 2.0;
+				$nameLines = $this->wrapTextForPdf($commonName, $leftHalfW - $leftPadding * 2, $nameFontSize);
+				$nameLineCount = count($nameLines);
+				$totalNameHeight = $nameLineCount * $nameFontSize * 1.0;
+				$nameStartY = ((float)$height + $totalNameHeight) / 2.0 - $nameFontSize;
+				$nameStartY = max(0.0, $nameStartY);
+				$nameY = $nameStartY;
+				$estimatedCharWidth = $nameFontSize * 0.52;
+				foreach ($nameLines as $nameLine) {
+					$lineWidth = mb_strlen($nameLine, 'UTF-8') * $estimatedCharWidth;
+					$nameX = max($leftPadding, ($leftHalfW - $lineWidth) / 2.0);
+					$escaped = $this->escapePdfText($nameLine);
+					$stream .= "BT\n";
+					$stream .= sprintf("/F1 %.2F Tf\n", $nameFontSize);
+					$stream .= "0 0 0 rg\n";
+					$stream .= sprintf("%.2F %.2F Td\n", $nameX, $nameY);
+					$stream .= sprintf("(%s) Tj\n", $escaped);
+					$stream .= "ET\n";
+					$nameY -= $nameFontSize * 1.0;
 				}
-				if ($commonName !== '') {
-					$blocks[] = new \OCA\Libresign\Vendor\LibreSign\XObjectTemplate\Dto\PlainTextBlock(
-						$commonName,
-						$padding,
-						0.0,
-						$textWidth,
-						(float)$height,
-						$signatureFontSize ?? $this->signatureTextService->getSignatureFontSize(),
-						'center',
-						'center',
-					);
-				}
-			}
-			if ($height > 2 && $parsed !== '') {
-				$blocks[] = new \OCA\Libresign\Vendor\LibreSign\XObjectTemplate\Dto\PlainTextBlock(
-					$parsed,
-					($isDescriptionOnly ? 0.0 : $columnWidth) + $padding,
-					2.0,
-					$textWidth,
-					$height - 2.0,
-					$descFontSize,
-				);
 			}
 		}
 
-		if ($blocks === []) {
-			return new SignatureAppearanceXObjectDto(stream: '', resources: []);
+		$currentY = (float)$height - $descFontSize - 2.0;
+		foreach (explode(PHP_EOL, $parsed) as $line) {
+			$wrappedLines = $this->wrapTextForPdf($line, $availableWidth, $descFontSize);
+			foreach ($wrappedLines as $wrappedLine) {
+				if ($currentY < 0) {
+					break 2;
+				}
+				$escaped = $this->escapePdfText($wrappedLine);
+				$stream .= "BT\n";
+				$stream .= sprintf("/F1 %.2F Tf\n", $descFontSize);
+				$stream .= "0 0 0 rg\n";
+				$stream .= sprintf("%.2F %.2F Td\n", $textStartX, $currentY);
+				$stream .= sprintf("(%s) Tj\n", $escaped);
+				$stream .= "ET\n";
+				$currentY -= $descLineHeight;
+			}
 		}
-
-		$compiler = new \OCA\Libresign\Vendor\LibreSign\XObjectTemplate\PlainTextCompiler(
-			(new \OCA\Libresign\Vendor\LibreSign\XObjectTemplate\Pdf\TemplateDocumentBuilder())->withUnicodeFontFiles([
-				dirname(__DIR__, 3) . '/3rdparty/composer/mpdf/mpdf/ttfonts/DejaVuSansCondensed.ttf',
-			]),
-		);
-		$result = $compiler->compile($blocks, (float)$width, (float)$height);
 
 		return new SignatureAppearanceXObjectDto(
-			stream: $result->contentStream,
-			resources: $result->resources,
-			resourcesBuilder: (new \OCA\Libresign\Vendor\LibreSign\XObjectTemplate\Pdf\SignerPhpCoreXObjectResourceBuilder())->resourcesBuilder(),
+			stream: $stream,
+			resources: [
+				'Font' => [
+					'F1' => [
+						'Type' => '/Font',
+						'Subtype' => '/Type1',
+						'BaseFont' => '/Helvetica',
+						'Encoding' => '/WinAnsiEncoding',
+					],
+				],
+			],
 		);
+	}
+
+	/**
+	 * @return string[]
+	 */
+	public function wrapTextForPdf(string $line, float $availableWidth, float $fontSize): array {
+		$trimmed = \Normalizer::normalize(trim($line));
+		if ($trimmed === false) {
+			throw new \InvalidArgumentException('Signature stamp contains invalid UTF-8.');
+		}
+		if ($trimmed === '') {
+			return [''];
+		}
+
+		$estimatedCharWidth = max(1.0, $fontSize * 0.52);
+		$maxChars = max(1, (int)floor($availableWidth / $estimatedCharWidth));
+		if (mb_strlen($trimmed, 'UTF-8') <= $maxChars) {
+			return [$trimmed];
+		}
+
+		$result = [];
+		$current = '';
+		foreach (preg_split('/\s+/', $trimmed) ?: [] as $word) {
+			if ($word === '') {
+				continue;
+			}
+
+			$candidate = $current === '' ? $word : $current . ' ' . $word;
+			if (mb_strlen($candidate, 'UTF-8') <= $maxChars) {
+				$current = $candidate;
+				continue;
+			}
+
+			if ($current !== '') {
+				$result[] = $current;
+				$current = '';
+			}
+
+			while (mb_strlen($word, 'UTF-8') > $maxChars) {
+				$result[] = mb_substr($word, 0, $maxChars, 'UTF-8');
+				$word = mb_substr($word, $maxChars, null, 'UTF-8');
+			}
+
+			$current = $word;
+		}
+
+		if ($current !== '') {
+			$result[] = $current;
+		}
+
+		return $result;
+	}
+
+	public function escapePdfText(string $value): string {
+		$encoded = mb_convert_encoding($value, 'Windows-1252', 'UTF-8');
+		if (mb_convert_encoding($encoded, 'UTF-8', 'Windows-1252') !== $value) {
+			throw new \InvalidArgumentException(
+				'Signature stamp contains characters that cannot be represented by WinAnsiEncoding.',
+			);
+		}
+
+		$encoded = str_replace('\\', '\\\\', $encoded);
+		$encoded = str_replace('(', '\\(', $encoded);
+		$encoded = str_replace(')', '\\)', $encoded);
+
+		return $encoded;
 	}
 }

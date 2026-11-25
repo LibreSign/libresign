@@ -278,4 +278,14 @@ class PhpNativeHandler extends Pkcs12Handler {
 		);
 	}
 
+	/**
+	 * @return string[]
+	 */
+	private function wrapTextForPdf(string $line, float $availableWidth, float $fontSize): array {
+		return $this->signatureStampAppearanceBuilder->wrapTextForPdf($line, $availableWidth, $fontSize);
+	}
+
+	private function escapePdfText(string $value): string {
+		return $this->signatureStampAppearanceBuilder->escapePdfText($value);
+	}
 }
