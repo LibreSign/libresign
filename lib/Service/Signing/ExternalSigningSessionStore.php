@@ -10,6 +10,7 @@ namespace OCA\Libresign\Service\Signing;
 
 use OCA\Libresign\Service\ExperimentalFeaturesService;
 use OCA\Libresign\Service\Signature\PreparedExternalOperation;
+use OCP\AppFramework\Db\TTransactional;
 use OCP\DB\QueryBuilder\IQueryBuilder;
 use OCP\IDBConnection;
 use OCP\Security\ICrypto;
@@ -27,6 +28,7 @@ use OCP\Security\ICrypto;
  * deliberately no method to return SIGNING_PENDING/UNCERTAIN to READY_TO_SIGN.
  */
 final class ExternalSigningSessionStore {
+	use TTransactional;
 	private const TABLE = 'libresign_ext_sign_session';
 	private const PRIVATE_TABLE = 'libresign_ext_sign_private';
 	private const AUDIT_TABLE = 'libresign_ext_sign_audit';
@@ -79,42 +81,43 @@ final class ExternalSigningSessionStore {
 		$attemptKey = hash('sha256', $signRequestId . ':' . strlen($actorId) . ':' . $actorId . ':' . $attemptId);
 		$slot = self::signerSlot($signRequestId, $actorId);
 		$now = $this->now();
-		$this->db->beginTransaction();
 		try {
-			$this->integrations->lockIntegrationRow($integration->id, $integration->revision);
-			$this->assertIntegration($integration->id, $integration->revision);
-			$qb = $this->db->getQueryBuilder();
-			$qb->insert(self::TABLE)->values([
-				'public_id' => $qb->createNamedParameter($id),
-				'attempt_key' => $qb->createNamedParameter($attemptKey),
-				'signer_slot' => $qb->createNamedParameter($slot),
-				'actor_id' => $qb->createNamedParameter($actorId),
-				'sign_request_id' => $qb->createNamedParameter($signRequestId, IQueryBuilder::PARAM_INT),
-				'integration_id' => $qb->createNamedParameter($integration->id),
-				'integration_revision' => $qb->createNamedParameter($integration->revision, IQueryBuilder::PARAM_INT),
-				'credential_id' => $qb->createNamedParameter($credentialId),
-				'certificate_sha256' => $qb->createNamedParameter($certificateHash),
-				'document_revision' => $qb->createNamedParameter($documentRevision),
-				'document_sha256' => $qb->createNamedParameter($documentHash),
-				'payload_version' => $qb->createNamedParameter(ExternalSigningPreparedStateCodec::FORMAT, IQueryBuilder::PARAM_INT),
-				'prepared_enc' => $qb->createNamedParameter($encrypted),
-				'status' => $qb->createNamedParameter(ExternalSigningSessionState::PREPARING->value),
-				'revision' => $qb->createNamedParameter(1, IQueryBuilder::PARAM_INT),
-				'expires_at' => $qb->createNamedParameter(\DateTime::createFromImmutable($expiresAt), IQueryBuilder::PARAM_DATETIME_MUTABLE),
-				'created_at' => $qb->createNamedParameter($now, IQueryBuilder::PARAM_DATETIME_MUTABLE),
-				'updated_at' => $qb->createNamedParameter($now, IQueryBuilder::PARAM_DATETIME_MUTABLE),
-			])->executeStatement();
-			$qb = $this->db->getQueryBuilder();
-			$qb->insert(self::PRIVATE_TABLE)->values([
-				'session_id' => $qb->createNamedParameter($id),
-				'secrets_enc' => $qb->createNamedParameter(''),
-			])->executeStatement();
-			$this->audit($id, $actorId, 'created');
-			$this->db->commit();
+			$this->atomic(function () use ($integration, $id, $attemptKey, $slot, $actorId, $signRequestId, $credentialId, $certificateHash, $documentRevision, $documentHash, $encrypted, $expiresAt, $now): void {
+				$this->integrations->lockIntegrationRow($integration->id, $integration->revision);
+				$this->assertIntegration($integration->id, $integration->revision);
+				$qb = $this->db->getQueryBuilder();
+				$qb->insert(self::TABLE)->values([
+					'public_id' => $qb->createNamedParameter($id),
+					'attempt_key' => $qb->createNamedParameter($attemptKey),
+					'signer_slot' => $qb->createNamedParameter($slot),
+					'actor_id' => $qb->createNamedParameter($actorId),
+					'sign_request_id' => $qb->createNamedParameter($signRequestId, IQueryBuilder::PARAM_INT),
+					'integration_id' => $qb->createNamedParameter($integration->id),
+					'integration_revision' => $qb->createNamedParameter($integration->revision, IQueryBuilder::PARAM_INT),
+					'credential_id' => $qb->createNamedParameter($credentialId),
+					'certificate_sha256' => $qb->createNamedParameter($certificateHash),
+					'document_revision' => $qb->createNamedParameter($documentRevision),
+					'document_sha256' => $qb->createNamedParameter($documentHash),
+					'payload_version' => $qb->createNamedParameter(ExternalSigningPreparedStateCodec::FORMAT, IQueryBuilder::PARAM_INT),
+					'prepared_enc' => $qb->createNamedParameter($encrypted),
+					'status' => $qb->createNamedParameter(ExternalSigningSessionState::PREPARING->value),
+					'revision' => $qb->createNamedParameter(1, IQueryBuilder::PARAM_INT),
+					'expires_at' => $qb->createNamedParameter(\DateTime::createFromImmutable($expiresAt), IQueryBuilder::PARAM_DATETIME_MUTABLE),
+					'created_at' => $qb->createNamedParameter($now, IQueryBuilder::PARAM_DATETIME_MUTABLE),
+					'updated_at' => $qb->createNamedParameter($now, IQueryBuilder::PARAM_DATETIME_MUTABLE),
+				])->executeStatement();
+				$qb = $this->db->getQueryBuilder();
+				$qb->insert(self::PRIVATE_TABLE)->values([
+					'session_id' => $qb->createNamedParameter($id),
+					'secrets_enc' => $qb->createNamedParameter(''),
+				])->executeStatement();
+				$this->audit($id, $actorId, 'created');
+			}, $this->db);
 		} catch (\OCP\DB\Exception $e) {
-			$this->db->rollBack();
-			// A unique conflict is an idempotent replay ONLY for the same attempt.
-			// Any other database error must remain observable, never swallowed.
+			// Only uniqueness conflicts permit idempotent recovery.
+			if ($e->getReason() !== \OCP\DB\Exception::REASON_UNIQUE_CONSTRAINT_VIOLATION) {
+				throw $e;
+			}
 			$existing = $this->findBySlot($slot, $actorId);
 			if ($existing !== null) {
 				if (!hash_equals((string)$existing['attempt_key'], $attemptKey)) {
@@ -133,9 +136,6 @@ final class ExternalSigningSessionStore {
 			if ($this->findBySignRequestId($signRequestId) !== null) {
 				throw new \DomainException('Another signing actor already occupies this SignRequest', 0, $e);
 			}
-			throw $e;
-		} catch (\Throwable $e) {
-			$this->db->rollBack();
 			throw $e;
 		}
 		return $this->get($id, $actorId);
