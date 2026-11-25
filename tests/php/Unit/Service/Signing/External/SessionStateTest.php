@@ -6,13 +6,13 @@ declare(strict_types=1);
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
 
-namespace OCA\Libresign\Tests\Unit\Service\Signing;
+namespace OCA\Libresign\Tests\Unit\Service\Signing\External;
 
 use OCA\Libresign\Service\Signing\External\SessionState;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 
-final class ExternalSigningSessionStateTest extends TestCase {
+final class SessionStateTest extends TestCase {
 	/** @return array<string, array{string, string, bool}> */
 	public static function transitions(): array {
 		return [

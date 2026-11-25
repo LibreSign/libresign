@@ -6,7 +6,7 @@ declare(strict_types=1);
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
 
-namespace OCA\Libresign\Tests\Unit\Service\Signing;
+namespace OCA\Libresign\Tests\Unit\Service\Signing\External;
 
 use OCA\Libresign\Service\Signing\External\CredentialSelection;
 use PHPUnit\Framework\Attributes\DataProvider;
@@ -16,7 +16,7 @@ use PHPUnit\Framework\TestCase;
  * Exercise credential/profile decisions without creating a fake Nextcloud
  * identity, persistence layer or CSC HTTP client.
  */
-final class ExternalSigningCredentialSelectionServiceTest extends TestCase {
+final class CredentialSelectionTest extends TestCase {
 	/** @return list<array<string, mixed>> */
 	private static function credentials(): array {
 		return [

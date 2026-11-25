@@ -6,7 +6,7 @@ declare(strict_types=1);
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
 
-namespace OCA\Libresign\Tests\Integration\Service\Signing;
+namespace OCA\Libresign\Tests\Integration\Service\Signing\External;
 
 use OCA\Libresign\Controller\ExternalSigningWorkflowController;
 use OCA\Libresign\Db\File as FileEntity;
@@ -70,7 +70,7 @@ use Psr\Log\LoggerInterface;
  * published SignRequest. The OCP HTTP client is deterministic and never
  * contacts a real CSC provider, but SignerPHP signs actual prepared digests.
  */
-final class ExternalSigningWorkflowServiceTest extends \OCA\Libresign\Tests\Integration\TestCase {
+final class WorkflowTest extends \OCA\Libresign\Tests\Integration\TestCase {
 	private const URL = 'https://synthetic-csc.example.org';
 	private const EMAIL = 'authorized@example.org';
 	private const TOKEN = 'verified-synthetic-code';

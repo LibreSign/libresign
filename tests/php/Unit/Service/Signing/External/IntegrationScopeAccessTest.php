@@ -6,7 +6,7 @@ declare(strict_types=1);
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
 
-namespace OCA\Libresign\Tests\Unit\Service\Signing;
+namespace OCA\Libresign\Tests\Unit\Service\Signing\External;
 
 use OCA\Libresign\Service\Policy\Model\PolicyLayer;
 use OCA\Libresign\Service\Policy\Model\ResolvedPolicy;
@@ -21,7 +21,7 @@ use OCP\IUserManager;
 use OCP\IUserSession;
 use PHPUnit\Framework\TestCase;
 
-final class ExternalSigningIntegrationScopeAccessTest extends TestCase {
+final class IntegrationScopeAccessTest extends TestCase {
 	private PolicyService $policies;
 	private IGroupManager $groups;
 	private IUserManager $users;

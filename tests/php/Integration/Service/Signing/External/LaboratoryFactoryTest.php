@@ -6,7 +6,7 @@ declare(strict_types=1);
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
 
-namespace OCA\Libresign\Tests\Integration\Service\Signing;
+namespace OCA\Libresign\Tests\Integration\Service\Signing\External;
 
 use OCA\Libresign\Service\ExperimentalFeaturesService;
 use OCA\Libresign\Service\Signing\ExternalIntegrationAvailability;
@@ -20,7 +20,7 @@ use OCP\IDBConnection;
 use OCP\Server;
 
 /** @group DB */
-final class ExternalSigningLaboratoryFactoryTest extends \OCA\Libresign\Tests\Integration\TestCase {
+final class LaboratoryFactoryTest extends \OCA\Libresign\Tests\Integration\TestCase {
 	private const ENDPOINT = 'https://synthetic-csc.example.org';
 	private const HASH = 'abc123abc123abc123abc123abc123abc123abc123abc123abc123abc123abcd';
 

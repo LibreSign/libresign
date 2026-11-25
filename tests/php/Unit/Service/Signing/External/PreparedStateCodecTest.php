@@ -6,7 +6,7 @@ declare(strict_types=1);
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
 
-namespace OCA\Libresign\Tests\Unit\Service\Signing;
+namespace OCA\Libresign\Tests\Unit\Service\Signing\External;
 
 use OCA\Libresign\Service\Signature\PreparedExternalOperation;
 use OCA\Libresign\Service\Signing\External\PreparedStateCodec;
@@ -22,7 +22,7 @@ use PHPUnit\Framework\TestCase;
 /**
  * Pure unit tests: no database, Nextcloud server or mocked infrastructure.
  */
-final class ExternalSigningPreparedStateCodecTest extends TestCase {
+final class PreparedStateCodecTest extends TestCase {
 	/** @return array<string, int|string> */
 	private static function validData(): array {
 		return [

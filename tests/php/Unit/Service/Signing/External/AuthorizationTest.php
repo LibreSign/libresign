@@ -6,7 +6,7 @@ declare(strict_types=1);
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
 
-namespace OCA\Libresign\Tests\Unit\Service\Signing;
+namespace OCA\Libresign\Tests\Unit\Service\Signing\External;
 
 use OCA\Libresign\Db\File;
 use OCA\Libresign\Db\FileMapper;
@@ -25,7 +25,7 @@ use OCA\Libresign\Tests\Unit\TestCase;
 use OCP\IUser;
 use OCP\IUserSession;
 
-final class ExternalSigningAuthorizationServiceTest extends TestCase {
+final class AuthorizationTest extends TestCase {
 	private const REQUEST_UUID = 'e5a47a8c-7f34-4b8e-9ceb-282e454e61f1';
 	private const GUEST_EMAIL = 'external@example.org';
 

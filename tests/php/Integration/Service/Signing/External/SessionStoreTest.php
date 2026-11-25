@@ -6,7 +6,7 @@ declare(strict_types=1);
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
 
-namespace OCA\Libresign\Tests\Integration\Service\Signing;
+namespace OCA\Libresign\Tests\Integration\Service\Signing\External;
 
 use OCA\Libresign\Service\ExperimentalFeaturesService;
 use OCA\Libresign\Service\Signature\PreparedExternalOperation;
@@ -31,7 +31,7 @@ use OCP\Server;
  * Every inserted session and integration is individually tracked and cleaned;
  * no shared signing, workflow or provider state is modified.
  */
-final class ExternalSigningSessionStoreTest extends \OCA\Libresign\Tests\Integration\TestCase {
+final class SessionStoreTest extends \OCA\Libresign\Tests\Integration\TestCase {
 	private IDBConnection $db;
 	private ExternalIntegrationStore $integrations;
 	private SessionStore $sessions;

@@ -6,7 +6,7 @@ declare(strict_types=1);
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
 
-namespace OCA\Libresign\Tests\Integration\Service\Signing;
+namespace OCA\Libresign\Tests\Integration\Service\Signing\External;
 
 use OCA\Libresign\Db\File;
 use OCA\Libresign\Db\FileMapper;
@@ -35,7 +35,7 @@ use OCP\IL10N;
 use OCP\IUserSession;
 use OCP\Server;
 
-final class ExternalSigningCredentialSelectionServiceTest extends TestCase {
+final class CredentialSelectionTest extends TestCase {
 	private const REQUEST_UUID = 'dc37db93-4fc7-40a1-8f7c-d94fe3be790e';
 	private const LAB_URL = 'http://127.0.0.1:15432';
 	private const EMAIL = 'synthetic@example.org';
@@ -134,8 +134,8 @@ final class ExternalSigningCredentialSelectionServiceTest extends TestCase {
 			public function request(string $method, string $url, array $headers = [], string $body = '',
 				int $timeoutSeconds = 10, bool $followRedirects = false): HttpResponse {
 				$this->calls++;
-				ExternalSigningCredentialSelectionServiceTest::assertSame('POST', $method);
-				ExternalSigningCredentialSelectionServiceTest::assertFalse($followRedirects);
+				CredentialSelectionTest::assertSame('POST', $method);
+				CredentialSelectionTest::assertFalse($followRedirects);
 				$path = (string)parse_url($url, PHP_URL_PATH);
 				$payload = match ($path) {
 					'/csc/v1/info' => ['specs' => '1.0.4.0'],
