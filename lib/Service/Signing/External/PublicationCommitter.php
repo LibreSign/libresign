@@ -44,6 +44,7 @@ final class PublicationCommitter implements PublicationTransaction {
 	}
 
 	/** @return array{file:FileEntity,activated:list<SignRequest>,previousStatus:int} */
+	#[\Override]
 	public function commit(PublicationContext $context): array {
 		$previousStatus = $context->file->getStatus();
 		// Never expose an uncommitted SIGNED state through a cached request entity.

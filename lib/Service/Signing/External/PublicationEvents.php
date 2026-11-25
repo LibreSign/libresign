@@ -33,6 +33,7 @@ final class PublicationEvents implements PublicationNotifications {
 	}
 
 	/** @param list<SignRequest> $activated */
+	#[\Override]
 	public function dispatch(
 		FileEntity $file,
 		SignRequest $request,
