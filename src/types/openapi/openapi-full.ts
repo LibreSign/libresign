@@ -3632,7 +3632,7 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
-            /** @description Registered experimental driver definitions */
+            /** @description Registered external signing driver definitions */
             200: {
                 headers: {
                     [name: string]: unknown;
@@ -3679,7 +3679,7 @@ export interface operations {
                     };
                 };
             };
-            /** @description Experimental features disabled */
+            /** @description External signing is not enabled */
             404: {
                 headers: {
                     [name: string]: unknown;
@@ -3779,7 +3779,7 @@ export interface operations {
                     };
                 };
             };
-            /** @description Experimental features disabled */
+            /** @description External signing is not enabled */
             404: {
                 headers: {
                     [name: string]: unknown;
@@ -3928,7 +3928,7 @@ export interface operations {
                     };
                 };
             };
-            /** @description Experimental features disabled */
+            /** @description External signing is not enabled */
             404: {
                 headers: {
                     [name: string]: unknown;
@@ -4049,7 +4049,7 @@ export interface operations {
                     };
                 };
             };
-            /** @description Integration not found or experimental features disabled */
+            /** @description Integration not found or external signing not enabled */
             404: {
                 headers: {
                     [name: string]: unknown;
@@ -4173,7 +4173,7 @@ export interface operations {
                     };
                 };
             };
-            /** @description Integration not found or experimental features disabled */
+            /** @description Integration not found or external signing not enabled */
             404: {
                 headers: {
                     [name: string]: unknown;
@@ -4323,7 +4323,7 @@ export interface operations {
                     };
                 };
             };
-            /** @description Integration not found or experimental features disabled */
+            /** @description Integration not found or external signing not enabled */
             404: {
                 headers: {
                     [name: string]: unknown;
@@ -4454,7 +4454,7 @@ export interface operations {
                     };
                 };
             };
-            /** @description Integration not found or experimental features disabled */
+            /** @description Integration not found or external signing not enabled */
             404: {
                 headers: {
                     [name: string]: unknown;
@@ -4585,7 +4585,7 @@ export interface operations {
                     };
                 };
             };
-            /** @description Integration not found or experimental features disabled */
+            /** @description Integration not found or external signing not enabled */
             404: {
                 headers: {
                     [name: string]: unknown;

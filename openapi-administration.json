@@ -4527,7 +4527,7 @@
         },
         {
             "name": "external_signing_workflow",
-            "description": "Provider-neutral, signer-facing, experimental external signing API. Signing tokens arrive in POST bodies, never URLs, redirects or query params. Anonymous requests require a verified bound signer code; account signers require Nextcloud CSRF protection in addition to account identity. Session IDs confer no access without independently revalidated identity."
+            "description": "Provider-neutral, signer-facing external signing API. Signing tokens arrive in POST bodies, never URLs, redirects or query params. Anonymous requests require a verified bound signer code; account signers require Nextcloud CSRF protection in addition to account identity. Session IDs confer no access without independently revalidated identity."
         }
     ]
 }

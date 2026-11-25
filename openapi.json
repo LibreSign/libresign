@@ -5930,7 +5930,7 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "Registered experimental driver definitions",
+                        "description": "Registered external signing driver definitions",
                         "content": {
                             "application/json": {
                                 "schema": {
@@ -6045,7 +6045,7 @@
                         }
                     },
                     "404": {
-                        "description": "Experimental features disabled",
+                        "description": "External signing is not enabled",
                         "content": {
                             "application/json": {
                                 "schema": {
@@ -6272,7 +6272,7 @@
                         }
                     },
                     "404": {
-                        "description": "Experimental features disabled",
+                        "description": "External signing is not enabled",
                         "content": {
                             "application/json": {
                                 "schema": {
@@ -6598,7 +6598,7 @@
                         }
                     },
                     "404": {
-                        "description": "Experimental features disabled",
+                        "description": "External signing is not enabled",
                         "content": {
                             "application/json": {
                                 "schema": {
@@ -6885,7 +6885,7 @@
                         }
                     },
                     "404": {
-                        "description": "Integration not found or experimental features disabled",
+                        "description": "Integration not found or external signing not enabled",
                         "content": {
                             "application/json": {
                                 "schema": {
@@ -7215,7 +7215,7 @@
                         }
                     },
                     "404": {
-                        "description": "Integration not found or experimental features disabled",
+                        "description": "Integration not found or external signing not enabled",
                         "content": {
                             "application/json": {
                                 "schema": {
@@ -7510,7 +7510,7 @@
                         }
                     },
                     "404": {
-                        "description": "Integration not found or experimental features disabled",
+                        "description": "Integration not found or external signing not enabled",
                         "content": {
                             "application/json": {
                                 "schema": {
@@ -7817,7 +7817,7 @@
                         }
                     },
                     "404": {
-                        "description": "Integration not found or experimental features disabled",
+                        "description": "Integration not found or external signing not enabled",
                         "content": {
                             "application/json": {
                                 "schema": {
@@ -8124,7 +8124,7 @@
                         }
                     },
                     "404": {
-                        "description": "Integration not found or experimental features disabled",
+                        "description": "Integration not found or external signing not enabled",
                         "content": {
                             "application/json": {
                                 "schema": {
@@ -18701,7 +18701,7 @@
         },
         {
             "name": "external_signing_workflow",
-            "description": "Provider-neutral, signer-facing, experimental external signing API. Signing tokens arrive in POST bodies, never URLs, redirects or query params. Anonymous requests require a verified bound signer code; account signers require Nextcloud CSRF protection in addition to account identity. Session IDs confer no access without independently revalidated identity."
+            "description": "Provider-neutral, signer-facing external signing API. Signing tokens arrive in POST bodies, never URLs, redirects or query params. Anonymous requests require a verified bound signer code; account signers require Nextcloud CSRF protection in addition to account identity. Session IDs confer no access without independently revalidated identity."
         }
     ]
 }
