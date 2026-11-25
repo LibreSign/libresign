@@ -9,6 +9,7 @@ declare(strict_types=1);
 namespace OCA\Libresign\Service\Signing;
 
 use OCA\Libresign\Exception\ExternalIntegrationConflictException;
+use OCP\AppFramework\Db\TTransactional;
 use OCP\DB\QueryBuilder\IQueryBuilder;
 use OCP\IDBConnection;
 
@@ -19,6 +20,7 @@ use OCP\IDBConnection;
  * credentials, and retains its identity and lifecycle metadata for auditing.
  */
 final class ExternalIntegrationStore {
+	use TTransactional;
 	private const TABLE = 'libresign_signing_integration';
 	private const MAX_CONFIGURATION_BYTES = 32768;
 
@@ -146,8 +148,7 @@ final class ExternalIntegrationStore {
 			throw new \InvalidArgumentException('Invalid integration revision');
 		}
 		$this->validateName($name);
-		$this->db->beginTransaction();
-		try {
+		$this->atomic(function () use ($publicId, $expectedRevision, $name, $validatedConfiguration, $validatedSecretChanges, $replaceAllSecrets): void {
 			$this->lockIntegrationRow($publicId, $expectedRevision);
 			$this->assertNoUnresolvedSigningSessions($publicId);
 			$configJson = $this->encodeConfiguration($validatedConfiguration);
@@ -175,11 +176,7 @@ final class ExternalIntegrationStore {
 			if ($changed !== 1) {
 				throw new ExternalIntegrationConflictException();
 			}
-			$this->db->commit();
-		} catch (\Throwable $e) {
-			$this->db->rollBack();
-			throw $e;
-		}
+		}, $this->db);
 		return $this->get($publicId);
 	}
 
@@ -201,8 +198,7 @@ final class ExternalIntegrationStore {
 		if ($expectedRevision < 1) {
 			throw new \InvalidArgumentException('Invalid integration revision');
 		}
-		$this->db->beginTransaction();
-		try {
+		$this->atomic(function () use ($publicId, $expectedRevision, $enabled, $delete): void {
 			$this->lockIntegrationRow($publicId, $expectedRevision);
 			// Even enabling an already-enabled integration increments its revision.
 			// Any administrative lifecycle change would invalidate pinned sessions.
@@ -224,11 +220,7 @@ final class ExternalIntegrationStore {
 			if ($changed !== 1) {
 				throw new ExternalIntegrationConflictException();
 			}
-			$this->db->commit();
-		} catch (\Throwable $e) {
-			$this->db->rollBack();
-			throw $e;
-		}
+		}, $this->db);
 	}
 
 	/**
