@@ -348,7 +348,7 @@ final class ExternalSigningWorkflowServiceTest extends \OCA\Libresign\Tests\Inte
 		$controller = $this->controller();
 		$response = $controller->availability($this->uuid(), 'email', self::EMAIL,
 			'', $this->integrationId);
-		self::assertSame(Http::STATUS_CONFLICT, $response->getStatus());
+		self::assertSame(Http::STATUS_FORBIDDEN, $response->getStatus());
 		self::assertArrayNotHasKey('credentials', $response->getData());
 		self::assertSame(0, $this->submitted);
 	}

@@ -153,7 +153,7 @@ final class ExternalSigningAuthorizationServiceTest extends TestCase {
 		$this->signerValidator->expects($this->once())->method('validateCredentials')
 			->willThrowException(new \DomainException('Invalid verification code'));
 		$this->expectException(\DomainException::class);
-		$this->expectExceptionMessage('Invalid verification code');
+		$this->expectExceptionMessage('External signing authorization denied');
 		$this->authorization->authorize(self::REQUEST_UUID, 'email', self::GUEST_EMAIL, 'invalid');
 	}
 

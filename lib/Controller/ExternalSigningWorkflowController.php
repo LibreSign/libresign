@@ -9,6 +9,7 @@ declare(strict_types=1);
 namespace OCA\Libresign\Controller;
 
 use OCA\Libresign\AppInfo\Application;
+use OCA\Libresign\Exception\ExternalSigningAccessDeniedException;
 use OCA\Libresign\ResponseDefinitions;
 use OCA\Libresign\Service\Signing\ExternalSigningWorkflowService;
 use OCP\AppFramework\Http;
@@ -226,6 +227,8 @@ final class ExternalSigningWorkflowController extends AEnvironmentAwareOCSContro
 			return new DataResponse(['error' => 'External signing request not found'], Http::STATUS_NOT_FOUND);
 		} catch (\InvalidArgumentException) {
 			return new DataResponse(['error' => 'Invalid external signing request'], Http::STATUS_BAD_REQUEST);
+		} catch (ExternalSigningAccessDeniedException) {
+			return new DataResponse(['error' => 'External signing authorization required'], Http::STATUS_FORBIDDEN);
 		} catch (\DomainException) {
 			return new DataResponse(['error' => 'External signing request unavailable or conflicted'], Http::STATUS_CONFLICT);
 		} catch (\Throwable $e) {

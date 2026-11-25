@@ -10,6 +10,7 @@ namespace OCA\Libresign\Service\Signing;
 
 use OCA\Libresign\Db\FileMapper;
 use OCA\Libresign\Db\SignRequestMapper;
+use OCA\Libresign\Exception\ExternalSigningAccessDeniedException;
 use OCA\Libresign\Service\ExperimentalFeaturesService;
 use OCA\Libresign\Service\IdentifyMethodService;
 use OCA\Libresign\Service\Validation\SignerValidator;
@@ -65,9 +66,13 @@ final class ExternalSigningAuthorizationService {
 		$this->signingRequestValidator->fileCanBeSigned($file);
 		$this->assertBoundIdentity($signRequestId, $identificationMethod, $identifyValue);
 		$this->assertVerifiedIdentity($currentUser, $identificationMethod, $identifyValue, $signingToken);
-		$this->signerValidator->validateCredentials(
-			$signRequest, $identificationMethod, $identifyValue, $signingToken,
-		);
+		try {
+			$this->signerValidator->validateCredentials(
+				$signRequest, $identificationMethod, $identifyValue, $signingToken,
+			);
+		} catch (\DomainException $e) {
+			throw new ExternalSigningAccessDeniedException('External signing authorization denied', 0, $e);
+		}
 
 		return new AuthorizedExternalSigningRequest($file, $signRequest, 'sign-request:' . $signRequestId);
 	}
@@ -89,18 +94,18 @@ final class ExternalSigningAuthorizationService {
 				return;
 			}
 		}
-		throw new \DomainException('External signing identity is not authorized');
+		throw new ExternalSigningAccessDeniedException('External signing identity is not authorized');
 	}
 
 	private function assertVerifiedIdentity(?IUser $user, string $method, string $identity, string $token): void {
 		if ($method === IdentifyMethodService::IDENTIFY_ACCOUNT) {
 			if (!$user instanceof IUser || !hash_equals($user->getUID(), $identity)) {
-				throw new \DomainException('External signing account identity is not authorized');
+				throw new ExternalSigningAccessDeniedException('External signing account identity is not authorized');
 			}
 			return;
 		}
 		if ($method === IdentifyMethodService::IDENTIFY_CLICK_TO_SIGN || $token === '') {
-			throw new \DomainException('External signing requires verified signer authorization');
+			throw new ExternalSigningAccessDeniedException('External signing requires verified signer authorization');
 		}
 	}
 }
