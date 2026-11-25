@@ -317,8 +317,7 @@ final class ExternalSigningSessionStore {
 			throw new \DomainException('Cryptographic operation already reserved or not authorized');
 		}
 		$operationId = bin2hex(random_bytes(16));
-		$this->db->beginTransaction();
-		try {
+		$this->atomic(function () use ($row, $expectedRevision, $actorId, $id, $operationId): void {
 			$this->assertRevisionAndBump($row, $expectedRevision, $actorId, ExternalSigningSessionState::SIGNING_PENDING);
 			$qb = $this->db->getQueryBuilder();
 			$qb->insert(self::ATTEMPT_TABLE)->values([
@@ -329,11 +328,7 @@ final class ExternalSigningSessionStore {
 				'updated_at' => $qb->createNamedParameter($this->now(), IQueryBuilder::PARAM_DATETIME_MUTABLE),
 			])->executeStatement();
 			$this->audit($id, $actorId, 'signing_reserved');
-			$this->db->commit();
-		} catch (\Throwable $e) {
-			$this->db->rollBack();
-			throw $e;
-		}
+		}, $this->db);
 		return $this->get($id, $actorId);
 	}
 
@@ -384,16 +379,11 @@ final class ExternalSigningSessionStore {
 			throw new \DomainException('No pending external signature');
 		}
 		$encrypted = $this->protect(base64_encode($signature));
-		$this->db->beginTransaction();
-		try {
+		$this->atomic(function () use ($row, $expectedRevision, $actorId, $id, $encrypted): void {
 			$this->assertRevisionAndBump($row, $expectedRevision, $actorId, ExternalSigningSessionState::SIGNATURE_RECEIVED, $encrypted);
 			$this->updateAttempt($id, 'received');
 			$this->audit($id, $actorId, 'signature_received');
-			$this->db->commit();
-		} catch (\Throwable $e) {
-			$this->db->rollBack();
-			throw $e;
-		}
+		}, $this->db);
 		return $this->get($id, $actorId);
 	}
 
@@ -471,8 +461,7 @@ final class ExternalSigningSessionStore {
 			|| (new \DateTimeImmutable((string)$row['expires_at']))->getTimestamp() <= time()) {
 			throw new \DomainException('Expired or terminal signing session cannot change');
 		}
-		$this->db->beginTransaction();
-		try {
+		$this->atomic(function () use ($row, $expectedRevision, $actorId, $id, $json): void {
 			$this->assertRevisionAndBump($row, $expectedRevision, $actorId);
 			$qb = $this->db->getQueryBuilder();
 			$updated = $qb->update(self::PRIVATE_TABLE)
@@ -483,11 +472,7 @@ final class ExternalSigningSessionStore {
 				throw new \RuntimeException('Private session storage unavailable');
 			}
 			$this->audit($id, $actorId, 'continuation_updated');
-			$this->db->commit();
-		} catch (\Throwable $e) {
-			$this->db->rollBack();
-			throw $e;
-		}
+		}, $this->db);
 		return $this->get($id, $actorId);
 	}
 
@@ -561,8 +546,7 @@ final class ExternalSigningSessionStore {
 		ExternalSigningSessionState $next,
 		?string $encryptedSignature = null,
 	): array {
-		$this->db->beginTransaction();
-		try {
+		$this->atomic(function () use ($row, $expectedRevision, $actorId, $next, $encryptedSignature): void {
 			$this->assertRevisionAndBump($row, $expectedRevision, $actorId, $next, $encryptedSignature);
 			if (in_array($next, [
 				ExternalSigningSessionState::COMPLETED,
@@ -585,11 +569,7 @@ final class ExternalSigningSessionStore {
 				$this->updateAttempt((string)$row['public_id'], 'uncertain');
 			}
 			$this->audit((string)$row['public_id'], $actorId, $next->value);
-			$this->db->commit();
-		} catch (\Throwable $e) {
-			$this->db->rollBack();
-			throw $e;
-		}
+		}, $this->db);
 		return $this->get((string)$row['public_id'], $actorId);
 	}
 
