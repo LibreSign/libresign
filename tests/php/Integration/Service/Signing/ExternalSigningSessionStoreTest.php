@@ -13,7 +13,7 @@ use OCA\Libresign\Service\Signature\PreparedExternalOperation;
 use OCA\Libresign\Service\Signing\ExternalIntegrationRecord;
 use OCA\Libresign\Service\Signing\ExternalIntegrationStore;
 use OCA\Libresign\Service\Signing\External\SessionState;
-use OCA\Libresign\Service\Signing\ExternalSigningSessionStore;
+use OCA\Libresign\Service\Signing\External\SessionStore;
 use OCA\Libresign\Vendor\SignerPHP\PdfSigner\Application\DTO\ExternalSigningPayload;
 use OCA\Libresign\Vendor\SignerPHP\PdfSigner\Application\DTO\HashAlgorithm;
 use OCA\Libresign\Vendor\SignerPHP\PdfSigner\Application\DTO\PreparedExternalSignature;
@@ -34,7 +34,7 @@ use OCP\Server;
 final class ExternalSigningSessionStoreTest extends \OCA\Libresign\Tests\Integration\TestCase {
 	private IDBConnection $db;
 	private ExternalIntegrationStore $integrations;
-	private ExternalSigningSessionStore $sessions;
+	private SessionStore $sessions;
 	private bool $enabled = true;
 	/** @var list<string> */
 	private array $createdIntegrations = [];
@@ -49,7 +49,7 @@ final class ExternalSigningSessionStoreTest extends \OCA\Libresign\Tests\Integra
 		$this->integrations = Server::get(ExternalIntegrationStore::class);
 		$features = $this->createMock(ExperimentalFeaturesService::class);
 		$features->method('isEnabled')->willReturnCallback(fn (): bool => $this->enabled);
-		$this->sessions = new ExternalSigningSessionStore(
+		$this->sessions = new SessionStore(
 			$this->db,
 			Server::get(ICrypto::class),
 			$features,
@@ -162,7 +162,7 @@ final class ExternalSigningSessionStoreTest extends \OCA\Libresign\Tests\Integra
 		$this->assertStringNotContainsString('synthetic-opaque-state', json_encode($row, JSON_THROW_ON_ERROR));
 		$this->assertStringNotContainsString('synthetic-source-pdf', json_encode($row, JSON_THROW_ON_ERROR));
 
-		$second = new ExternalSigningSessionStore(
+		$second = new SessionStore(
 			$this->db, Server::get(ICrypto::class),
 			new ExperimentalFeaturesService($this->createEnabledAppConfig()),
 			$this->integrations,
@@ -198,7 +198,7 @@ require $argv[1] . '/lib/base.php';
 $gate = new class(\OCP\Server::get(\OCP\IAppConfig::class)) extends \OCA\Libresign\Service\ExperimentalFeaturesService {
 	public function isEnabled(): bool { return true; }
 };
-$store = new \OCA\Libresign\Service\Signing\ExternalSigningSessionStore(
+$store = new \OCA\Libresign\Service\Signing\External\SessionStore(
 	\OCP\Server::get(\OCP\IDBConnection::class),
 	\OCP\Server::get(\OCP\Security\ICrypto::class),
 	$gate,
@@ -245,7 +245,7 @@ require $argv[1] . '/lib/base.php';
 $gate = new class(\OCP\Server::get(\OCP\IAppConfig::class)) extends \OCA\Libresign\Service\ExperimentalFeaturesService {
 	public function isEnabled(): bool { return true; }
 };
-$store = new \OCA\Libresign\Service\Signing\ExternalSigningSessionStore(
+$store = new \OCA\Libresign\Service\Signing\External\SessionStore(
 	\OCP\Server::get(\OCP\IDBConnection::class),
 	\OCP\Server::get(\OCP\Security\ICrypto::class),
 	$gate,
@@ -390,7 +390,7 @@ require $argv[1] . '/lib/base.php';
 $gate = new class(\OCP\Server::get(\OCP\IAppConfig::class)) extends \OCA\Libresign\Service\ExperimentalFeaturesService {
 	public function isEnabled(): bool { return true; }
 };
-$store = new \OCA\Libresign\Service\Signing\ExternalSigningSessionStore(
+$store = new \OCA\Libresign\Service\Signing\External\SessionStore(
 	\OCP\Server::get(\OCP\IDBConnection::class),
 	\OCP\Server::get(\OCP\Security\ICrypto::class),
 	$gate,
@@ -633,7 +633,7 @@ PHP);
 		$row = $this->advance($row, SessionState::READY_TO_SIGN);
 		$row = $this->claim($row);
 		$row = $this->advance($row, SessionState::UNCERTAIN);
-		$second = new ExternalSigningSessionStore(
+		$second = new SessionStore(
 			$this->db, Server::get(ICrypto::class),
 			new ExperimentalFeaturesService($this->createEnabledAppConfig()),
 			$this->integrations,

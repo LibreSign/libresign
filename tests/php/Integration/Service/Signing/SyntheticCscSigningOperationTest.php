@@ -30,8 +30,8 @@ use OCA\Libresign\Service\Signature\PdfSignatureValidationService;
 use OCA\Libresign\Service\Signing\External\AuthorizedRequest;
 use OCA\Libresign\Service\Signing\ExternalIntegrationRecord;
 use OCA\Libresign\Service\Signing\ExternalIntegrationStore;
-use OCA\Libresign\Service\Signing\ExternalSigningPublicationService;
-use OCA\Libresign\Service\Signing\ExternalSigningSessionStore;
+use OCA\Libresign\Service\Signing\External\Publication;
+use OCA\Libresign\Service\Signing\External\SessionStore;
 use OCA\Libresign\Service\Signing\Provider\Drivers\Csc\CscDriver;
 use OCA\Libresign\Service\Signing\Provider\Drivers\Csc\CscIntegration;
 use OCA\Libresign\Service\Signing\SyntheticCscSigningOperation;
@@ -72,7 +72,7 @@ final class SyntheticCscSigningOperationTest extends \OCA\Libresign\Tests\Integr
 
 	private IDBConnection $db;
 	private ExternalIntegrationStore $integrations;
-	private ExternalSigningSessionStore $sessions;
+	private SessionStore $sessions;
 	private SyntheticCscSigningOperation $workflow;
 	private ExternalPdfSigningService $pdfSigning;
 	private PdfSignatureValidationService $signatureValidation;
@@ -89,7 +89,7 @@ final class SyntheticCscSigningOperationTest extends \OCA\Libresign\Tests\Integr
 		$this->integrations = Server::get(ExternalIntegrationStore::class);
 		$features = $this->createMock(ExperimentalFeaturesService::class);
 		$features->method('isEnabled')->willReturnCallback(fn (): bool => $this->featureEnabled);
-		$this->sessions = new ExternalSigningSessionStore($this->db, Server::get(ICrypto::class),
+		$this->sessions = new SessionStore($this->db, Server::get(ICrypto::class),
 			$features, $this->integrations);
 		$l10n = Server::get(IFactory::class)->get('libresign');
 		$this->signatureValidation = new PdfSignatureValidationService(
@@ -237,8 +237,8 @@ final class SyntheticCscSigningOperationTest extends \OCA\Libresign\Tests\Integr
 		return $session;
 	}
 
-	private function publisher(): ExternalSigningPublicationService {
-		return new ExternalSigningPublicationService(
+	private function publisher(): Publication {
+		return new Publication(
 			$this->db, $this->sessions, $this->workflow,
 			Server::get(FileMapper::class),
 			Server::get(SignRequestMapper::class),

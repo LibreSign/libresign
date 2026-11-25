@@ -6,8 +6,10 @@ declare(strict_types=1);
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
 
-namespace OCA\Libresign\Service\Signing;
+namespace OCA\Libresign\Service\Signing\External;
 
+use OCA\Libresign\Service\Signing\ExternalIntegrationRecord;
+use OCA\Libresign\Service\Signing\ExternalIntegrationStore;
 use OCA\Libresign\Service\Signing\External\PreparedStateCodec;
 use OCA\Libresign\Service\Signing\External\SessionState;
 use OCA\Libresign\Service\ExperimentalFeaturesService;
@@ -29,7 +31,7 @@ use OCP\Security\ICrypto;
  * A crash in that window is indeterminate: it must never be replayed. There is
  * deliberately no method to return SIGNING_PENDING/UNCERTAIN to READY_TO_SIGN.
  */
-final class ExternalSigningSessionStore {
+final class SessionStore {
 	use TTransactional;
 	private const TABLE = 'libresign_ext_sign_session';
 	private const PRIVATE_TABLE = 'libresign_ext_sign_private';

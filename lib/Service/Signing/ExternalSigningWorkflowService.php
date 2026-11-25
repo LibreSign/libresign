@@ -8,6 +8,9 @@ declare(strict_types=1);
 
 namespace OCA\Libresign\Service\Signing;
 
+use OCA\Libresign\Service\Signing\External\LaboratoryFactory;
+use OCA\Libresign\Service\Signing\External\Publication;
+use OCA\Libresign\Service\Signing\External\SessionStore;
 use OCA\Libresign\Service\Signing\External\CredentialSelection;
 use OCA\Libresign\Service\Signing\External\Authorization;
 use OCA\Libresign\Service\Signing\External\AuthorizedRequest;
@@ -41,11 +44,11 @@ final class ExternalSigningWorkflowService {
 
 	public function __construct(
 		private Authorization $authorization,
-		private ExternalSigningLaboratoryFactory $laboratories,
+		private LaboratoryFactory $laboratories,
 		private CredentialSelection $selection,
-		private ExternalSigningSessionStore $sessions,
+		private SessionStore $sessions,
 		private SyntheticCscSigningOperation $crypto,
-		private ExternalSigningPublicationService $publisher,
+		private Publication $publisher,
 		private FileMapper $files,
 		private FolderService $folders,
 		private ExternalSigningIntegrationScopeAccess $scopeAccess,

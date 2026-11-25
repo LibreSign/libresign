@@ -6,8 +6,11 @@ declare(strict_types=1);
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
 
-namespace OCA\Libresign\Service\Signing;
+namespace OCA\Libresign\Service\Signing\External;
 
+use OCA\Libresign\Service\Signing\ExternalIntegrationAvailability;
+use OCA\Libresign\Service\Signing\ExternalIntegrationRecord;
+use OCA\Libresign\Service\Signing\ExternalIntegrationStore;
 use OCA\Libresign\Service\Signing\Provider\Drivers\Csc\CscDriver;
 use OCA\Libresign\Service\Signing\Provider\Drivers\Csc\CscIntegration;
 use OCP\Http\Client\IClientService;
@@ -22,7 +25,7 @@ use OCP\IConfig;
  * administrator token or other integration secrets disable synthetic use.
  * There is deliberately no personal credential signing factory here.
  */
-final class ExternalSigningLaboratoryFactory {
+final class LaboratoryFactory {
 	public function __construct(
 		private ExternalIntegrationStore $store,
 		private ExternalIntegrationAvailability $availability,

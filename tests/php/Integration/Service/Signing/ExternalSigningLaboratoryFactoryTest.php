@@ -12,7 +12,7 @@ use OCA\Libresign\Service\ExperimentalFeaturesService;
 use OCA\Libresign\Service\Signing\ExternalIntegrationAvailability;
 use OCA\Libresign\Service\Signing\ExternalIntegrationRecord;
 use OCA\Libresign\Service\Signing\ExternalIntegrationStore;
-use OCA\Libresign\Service\Signing\ExternalSigningLaboratoryFactory;
+use OCA\Libresign\Service\Signing\External\LaboratoryFactory;
 use OCA\Libresign\Service\Signing\Provider\Drivers\Csc\CscDriver;
 use OCP\Http\Client\IClientService;
 use OCP\IConfig;
@@ -51,7 +51,7 @@ final class ExternalSigningLaboratoryFactoryTest extends \OCA\Libresign\Tests\In
 		}
 	}
 
-	private function factory(): ExternalSigningLaboratoryFactory {
+	private function factory(): LaboratoryFactory {
 		$gate = $this->createMock(ExperimentalFeaturesService::class);
 		$gate->method('isEnabled')->willReturnCallback(fn (): bool => $this->enabled);
 		$config = $this->createMock(IConfig::class);
@@ -63,7 +63,7 @@ final class ExternalSigningLaboratoryFactoryTest extends \OCA\Libresign\Tests\In
 		});
 		$client = $this->createMock(IClientService::class);
 		$client->expects($this->never())->method('newClient');
-		return new ExternalSigningLaboratoryFactory($this->store,
+		return new LaboratoryFactory($this->store,
 			new ExternalIntegrationAvailability($gate), Server::get(CscDriver::class),
 			$client, $config);
 	}

@@ -34,9 +34,9 @@ use OCA\Libresign\Service\Signing\ExternalIntegrationStore;
 use OCA\Libresign\Service\Signing\External\Authorization;
 use OCA\Libresign\Service\Signing\External\CredentialSelection;
 use OCA\Libresign\Service\Signing\ExternalSigningIntegrationScopeAccess;
-use OCA\Libresign\Service\Signing\ExternalSigningLaboratoryFactory;
-use OCA\Libresign\Service\Signing\ExternalSigningPublicationService;
-use OCA\Libresign\Service\Signing\ExternalSigningSessionStore;
+use OCA\Libresign\Service\Signing\External\LaboratoryFactory;
+use OCA\Libresign\Service\Signing\External\Publication;
+use OCA\Libresign\Service\Signing\External\SessionStore;
 use OCA\Libresign\Service\Signing\ExternalSigningWorkflowService;
 use OCA\Libresign\Service\Signing\Provider\Drivers\Csc\CscDriver;
 use OCA\Libresign\Service\Signing\SyntheticCscSigningOperation;
@@ -78,7 +78,7 @@ final class ExternalSigningWorkflowServiceTest extends \OCA\Libresign\Tests\Inte
 
 	private IDBConnection $db;
 	private ExternalIntegrationStore $integrations;
-	private ExternalSigningSessionStore $sessions;
+	private SessionStore $sessions;
 	private ExternalSigningWorkflowService $service;
 	private PdfSignatureValidationService $validation;
 	private SignRequest $request;
@@ -125,7 +125,7 @@ final class ExternalSigningWorkflowServiceTest extends \OCA\Libresign\Tests\Inte
 
 		$features = $this->createMock(ExperimentalFeaturesService::class);
 		$features->method('isEnabled')->willReturn(true);
-		$this->sessions = new ExternalSigningSessionStore($this->db, Server::get(ICrypto::class),
+		$this->sessions = new SessionStore($this->db, Server::get(ICrypto::class),
 			$features, $this->integrations);
 		$methods = $this->createMock(IdentifyMethodService::class);
 		$identity = new IdentifyMethod();
@@ -157,7 +157,7 @@ final class ExternalSigningWorkflowServiceTest extends \OCA\Libresign\Tests\Inte
 		$client->method('post')->willReturnCallback($this->respondToCsc(...));
 		$clientService = $this->createMock(IClientService::class);
 		$clientService->method('newClient')->willReturn($client);
-		$laboratories = new ExternalSigningLaboratoryFactory(
+		$laboratories = new LaboratoryFactory(
 			$this->integrations, $availability, Server::get(CscDriver::class),
 			$clientService, $config,
 		);
@@ -168,7 +168,7 @@ final class ExternalSigningWorkflowServiceTest extends \OCA\Libresign\Tests\Inte
 			$this->getMockAppConfigWithReset(), $l10n, Server::get(LoggerInterface::class));
 		$pdfSigning = new ExternalPdfSigningService($this->validation, new DocMdpHandler($l10n));
 		$crypto = new SyntheticCscSigningOperation($pdfSigning, $this->sessions);
-		$publisher = new ExternalSigningPublicationService(
+		$publisher = new Publication(
 			$this->db, $this->sessions, $crypto,
 			Server::get(FileMapper::class), Server::get(SignRequestMapper::class),
 			Server::get(FolderService::class), Server::get(FileStatusService::class),

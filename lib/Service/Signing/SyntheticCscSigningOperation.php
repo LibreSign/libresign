@@ -8,6 +8,7 @@ declare(strict_types=1);
 
 namespace OCA\Libresign\Service\Signing;
 
+use OCA\Libresign\Service\Signing\External\SessionStore;
 use OCA\Libresign\Service\Signing\External\SessionState;
 use OCA\Libresign\Service\Signature\ExternalPdfSigningService;
 use OCA\Libresign\Service\Signing\Provider\Drivers\Csc\CscCredentialEligibility;
@@ -37,7 +38,7 @@ use OCA\Libresign\Vendor\SignerPHP\PdfSigner\RemoteSigning\DTO\RemoteCertificate
 final class SyntheticCscSigningOperation {
 	public function __construct(
 		private ExternalPdfSigningService $pdfSigning,
-		private ExternalSigningSessionStore $sessions,
+		private SessionStore $sessions,
 	) {
 	}
 

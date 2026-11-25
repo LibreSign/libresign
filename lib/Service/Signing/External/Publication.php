@@ -6,8 +6,9 @@ declare(strict_types=1);
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
 
-namespace OCA\Libresign\Service\Signing;
+namespace OCA\Libresign\Service\Signing\External;
 
+use OCA\Libresign\Service\Signing\SyntheticCscSigningOperation;
 use OCA\Libresign\Service\Signing\External\AuthorizedRequest;
 use OCA\Libresign\Service\Signing\External\SessionState;
 use DateTime;
@@ -47,11 +48,11 @@ use Psr\Log\LoggerInterface;
  * calling this service, and the certificate PEM MUST come from trusted CSC
  * discovery, never a browser-supplied parameter. No private key is used.
  */
-final class ExternalSigningPublicationService {
+final class Publication {
 	use TTransactional;
 	public function __construct(
 		private IDBConnection $db,
-		private ExternalSigningSessionStore $sessions,
+		private SessionStore $sessions,
 		private SyntheticCscSigningOperation $signing,
 		private FileMapper $files,
 		private SignRequestMapper $signRequests,
