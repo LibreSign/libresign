@@ -8,22 +8,11 @@ declare(strict_types=1);
 
 namespace OCA\Libresign\Service\Signing\External;
 
-use OCA\Libresign\Db\File as LibreSignFile;
-use OCA\Libresign\Db\FileMapper;
-use OCA\Libresign\Service\FolderService;
 use OCA\Libresign\Service\IdentifyMethodService;
 use OCA\Libresign\Service\Signing\ExternalIntegrationRecord;
 use OCA\Libresign\Service\Signing\Provider\Drivers\Csc\CscIntegration;
 use OCA\Libresign\Service\Signing\SyntheticCscSigningOperation;
-use OCA\Libresign\Vendor\SignerPHP\PdfSigner\Application\DTO\PdfContentDto;
-use OCA\Libresign\Vendor\SignerPHP\PdfSigner\Application\DTO\SignatureActorDto;
-use OCA\Libresign\Vendor\SignerPHP\PdfSigner\Application\DTO\SignatureMetadataDto;
-use OCA\Libresign\Vendor\SignerPHP\PdfSigner\Application\DTO\SignatureProfile;
-use OCA\Libresign\Vendor\SignerPHP\PdfSigner\Application\DTO\SigningCertificateDto;
-use OCA\Libresign\Vendor\SignerPHP\PdfSigner\Application\DTO\SigningContextDto;
-use OCA\Libresign\Vendor\SignerPHP\PdfSigner\Application\DTO\SigningOptionsDto;
 use OCA\Libresign\Vendor\SignerPHP\PdfSigner\RemoteSigning\DTO\RemoteCertificate;
-use OCP\Files\File as NextcloudFile;
 
 /**
  * Provider-neutral execution surface for the explicitly pinned synthetic
@@ -35,8 +24,6 @@ use OCP\Files\File as NextcloudFile;
  * or status lookup. A session ID is not an access token.
  */
 final class Workflow {
-	private const MAX_INPUT_BYTES = 25 * 1024 * 1024;
-
 	public function __construct(
 		private Authorization $authorization,
 		private LaboratoryFactory $laboratories,
@@ -44,8 +31,7 @@ final class Workflow {
 		private SessionStore $sessions,
 		private SyntheticCscSigningOperation $crypto,
 		private Publication $publisher,
-		private FileMapper $files,
-		private FolderService $folders,
+		private DocumentSource $documents,
 		private IntegrationScopeAccess $scopeAccess,
 	) {
 	}
@@ -110,24 +96,9 @@ final class Workflow {
 		);
 		$certificate = $this->certificate($lab['laboratory'], $credentialId,
 			(string)$chosen['certificateSha256']);
-		$source = $this->source($actor->file);
-		$signerName = trim((string)$actor->signRequest->getDisplayName());
-		if ($signerName === '') {
-			$signerName = 'Synthetic CSC signer';
-		}
-		$context = new SigningContextDto(
-			new PdfContentDto($source['pdf']),
-			new SigningOptionsDto(
-				metadata: new SignatureMetadataDto(actor: new SignatureActorDto(name: mb_substr($signerName, 0, 128))),
-				signatureProfile: match ($profile) {
-					'pdf-basic' => SignatureProfile::PdfBasic,
-					'pades-baseline-b' => SignatureProfile::PadesBaselineB,
-					default => throw new \DomainException('Unsupported external signing PDF profile'),
-				},
-				useDefaultAppearance: false,
-			),
-			new SigningCertificateDto($certificate->certificate->certificatePem),
-		);
+		$source = $this->documents->get($actor->file);
+		$context = ContextFactory::create($source['pdf'], (string)$actor->signRequest->getDisplayName(),
+			$profile, $certificate->certificate->certificatePem);
 		// The signing helper and the persisted session both independently
 		// check certificate, integration revision and exact PDF input.
 		return $this->crypto->prepare($lab['laboratory'], $lab['record'], $credentialId, $context,
@@ -170,7 +141,7 @@ final class Workflow {
 		}
 		$certificate = $this->certificate($lab['laboratory'], (string)$session['credentialId'],
 			(string)$session['certificateSha256']);
-		$source = $this->source($actor->file);
+		$source = $this->documents->get($actor->file);
 		$signaturePem = $certificate->certificate->certificatePem;
 		if (in_array($session['status'], [
 			SessionState::PREPARING->value,
@@ -238,28 +209,6 @@ final class Workflow {
 		if (!$this->canUseIntegration($record, $actor, $method, $identity)) {
 			throw new \DomainException('External signing integration is not permitted for this policy scope');
 		}
-	}
-
-	/**
-	 * @return array{pdf:string, revision:string}
-	 */
-	private function source(LibreSignFile $file): array {
-		$sourceNodeId = $file->getSignedNodeId() ?: $file->getNodeId();
-		if ($sourceNodeId === null || $sourceNodeId < 1) {
-			throw new \DomainException('Authoritative source PDF is unavailable');
-		}
-		$uid = $this->files->getStorageUserIdByUuid($file->getUuid());
-		$node = $this->folders->getReadableNodeById($uid, $sourceNodeId);
-		if (!$node instanceof NextcloudFile) {
-			throw new \DomainException('Authoritative source document cannot be read');
-		}
-		$pdf = $node->getContent();
-		$revision = $node->getEtag();
-		if ($revision === '' || strlen($revision) > 128 || strlen($pdf) > self::MAX_INPUT_BYTES
-			|| !str_starts_with($pdf, '%PDF-')) {
-			throw new \DomainException('Authoritative PDF source or revision is invalid');
-		}
-		return ['pdf' => $pdf, 'revision' => $revision];
 	}
 
 	private function certificate(CscIntegration $lab, string $credentialId, string $fingerprint): RemoteCertificate {

@@ -37,6 +37,7 @@ use OCA\Libresign\Service\Signing\External\IntegrationScopeAccess;
 use OCA\Libresign\Service\Signing\External\LaboratoryFactory;
 use OCA\Libresign\Service\Signing\External\Publication;
 use OCA\Libresign\Service\Signing\External\SessionStore;
+use OCA\Libresign\Service\Signing\External\DocumentSource;
 use OCA\Libresign\Service\Signing\External\Workflow;
 use OCA\Libresign\Service\Signing\Provider\Drivers\Csc\CscDriver;
 use OCA\Libresign\Service\Signing\SyntheticCscSigningOperation;
@@ -180,7 +181,7 @@ final class WorkflowTest extends \OCA\Libresign\Tests\Integration\TestCase {
 		);
 		$this->service = new Workflow(
 			$authorization, $laboratories, $selection, $this->sessions, $crypto, $publisher,
-			Server::get(FileMapper::class), Server::get(FolderService::class),
+			new DocumentSource(Server::get(FileMapper::class), Server::get(FolderService::class)),
 			new IntegrationScopeAccess(
 				$this->allowPolicyForWorkflowTest(),
 				Server::get(IGroupManager::class),
