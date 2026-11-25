@@ -51,14 +51,7 @@ final class ExternalSigningAuthorizationService {
 		string $identifyValue,
 		#[\SensitiveParameter] string $signingToken = '',
 	): AuthorizedExternalSigningRequest {
-		if (!$this->experimentalFeatures->isEnabled()) {
-			throw new \DomainException('Experimental external signing is disabled');
-		}
-		if (strlen($signRequestUuid) > 64 || strlen($identificationMethod) > 64
-			|| strlen($identifyValue) > 255 || strlen($signingToken) > 16384
-			|| $identificationMethod === '' || $identifyValue === '') {
-			throw new \InvalidArgumentException('Invalid external signing authorization context');
-		}
+		$this->assertValidContext($signRequestUuid, $identificationMethod, $identifyValue, $signingToken);
 		$currentUser = $this->userSession->getUser();
 		$this->signerValidator->validateSigner($signRequestUuid, $currentUser);
 		$signRequest = $this->signRequests->getByUuid($signRequestUuid);
@@ -70,38 +63,44 @@ final class ExternalSigningAuthorizationService {
 		}
 		$file = $this->files->getById($fileId);
 		$this->signingRequestValidator->fileCanBeSigned($file);
-
-		// Do not rely on SignerValidator's fallback from a requested method
-		// to the first available factor. For external credential discovery,
-		// the method AND its exact bound identity must match independently.
-		$matched = false;
-		$methods = $this->identificationMethods->getIdentifyMethodsFromSignRequestId($signRequestId);
-		foreach ($methods[$identificationMethod] ?? [] as $method) {
-			$entity = $method->getEntity();
-			if (hash_equals($identifyValue, $entity->getIdentifierValue())) {
-				$matched = true;
-				break;
-			}
-		}
-		if (!$matched) {
-			throw new \DomainException('External signing identity is not authorized');
-		}
-		if ($identificationMethod === IdentifyMethodService::IDENTIFY_ACCOUNT) {
-			if (!$currentUser instanceof IUser || !hash_equals($currentUser->getUID(), $identifyValue)) {
-				throw new \DomainException('External signing account identity is not authorized');
-			}
-		} elseif ($identificationMethod === IdentifyMethodService::IDENTIFY_CLICK_TO_SIGN || $signingToken === '') {
-			// A link-only or Click to Sign flow is insufficient proof for
-			// revealing remote credentials to a guest or another signer.
-			throw new \DomainException('External signing requires verified signer authorization');
-		}
-
+		$this->assertBoundIdentity($signRequestId, $identificationMethod, $identifyValue);
+		$this->assertVerifiedIdentity($currentUser, $identificationMethod, $identifyValue, $signingToken);
 		$this->signerValidator->validateCredentials(
 			$signRequest, $identificationMethod, $identifyValue, $signingToken,
 		);
-		// The ID represents the signing participant, not their login method.
-		// A guest who later logs in must not create another session for the
-		// same SignRequest. The database enforces this independently.
+
 		return new AuthorizedExternalSigningRequest($file, $signRequest, 'sign-request:' . $signRequestId);
+	}
+
+	private function assertValidContext(string $uuid, string $method, string $identity, string $token): void {
+		if (!$this->experimentalFeatures->isEnabled()) {
+			throw new \DomainException('Experimental external signing is disabled');
+		}
+		if (strlen($uuid) > 64 || strlen($method) > 64 || strlen($identity) > 255
+			|| strlen($token) > 16384 || $method === '' || $identity === '') {
+			throw new \InvalidArgumentException('Invalid external signing authorization context');
+		}
+	}
+
+	private function assertBoundIdentity(int $signRequestId, string $method, string $identity): void {
+		$methods = $this->identificationMethods->getIdentifyMethodsFromSignRequestId($signRequestId);
+		foreach ($methods[$method] ?? [] as $candidate) {
+			if (hash_equals($identity, $candidate->getEntity()->getIdentifierValue())) {
+				return;
+			}
+		}
+		throw new \DomainException('External signing identity is not authorized');
+	}
+
+	private function assertVerifiedIdentity(?IUser $user, string $method, string $identity, string $token): void {
+		if ($method === IdentifyMethodService::IDENTIFY_ACCOUNT) {
+			if (!$user instanceof IUser || !hash_equals($user->getUID(), $identity)) {
+				throw new \DomainException('External signing account identity is not authorized');
+			}
+			return;
+		}
+		if ($method === IdentifyMethodService::IDENTIFY_CLICK_TO_SIGN || $token === '') {
+			throw new \DomainException('External signing requires verified signer authorization');
+		}
 	}
 }

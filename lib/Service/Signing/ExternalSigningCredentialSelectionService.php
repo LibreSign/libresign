@@ -74,6 +74,21 @@ final class ExternalSigningCredentialSelectionService {
 		// integration, so an unauthorized guest cannot enumerate providers.
 		$this->authorization->authorize($signRequestUuid, $identificationMethod, $identifyValue, $signingToken);
 		$integration = $this->integrations->get($integrationId);
+		$this->assertEligibleIntegration($integration);
+		$laboratory->assertSyntheticLaboratory($integration->configuration['baseUrl']);
+		$choices = $this->listEligibleCredentials($laboratory);
+		return [
+			'integration' => [
+				'id' => $integration->id,
+				'name' => $integration->name,
+				'driverId' => $integration->driverId,
+			],
+			'credentials' => $choices,
+			'syntheticOnly' => true,
+			'personalSignerAuthorization' => false,
+		];
+	}
+	private function assertEligibleIntegration(ExternalIntegrationRecord $integration): void {
 		$driver = $this->cscDriver->metadata();
 		if ($integration->driverId !== CscDriver::ID
 			|| !$this->availability->canStartSigning($integration, ($driver['available'] ?? false) === true)
@@ -82,7 +97,10 @@ final class ExternalSigningCredentialSelectionService {
 			|| !is_string($integration->configuration['baseUrl'])) {
 			throw new \DomainException('External signing integration is not eligible');
 		}
-		$laboratory->assertSyntheticLaboratory($integration->configuration['baseUrl']);
+	}
+
+	/** @return list<array<string, mixed>> */
+	private function listEligibleCredentials(CscIntegration $laboratory): array {
 		$remote = $laboratory->certificates();
 		if (count($remote) > 32) {
 			throw new \DomainException('CSC laboratory returned too many credentials');
@@ -99,21 +117,11 @@ final class ExternalSigningCredentialSelectionService {
 			try {
 				$details = $eligibility->describe($certificate);
 			} catch (\DomainException) {
-				// Ineligible certificates are not exposed. A selected credential
-				// must still be checked again before preparation and signHash.
 				continue;
 			}
 			$choices[] = ['id' => $id, ...$details];
 		}
-		return [
-			'integration' => [
-				'id' => $integration->id,
-				'name' => $integration->name,
-				'driverId' => $integration->driverId,
-			],
-			'credentials' => $choices,
-			'syntheticOnly' => true,
-			'personalSignerAuthorization' => false,
-		];
+		return $choices;
 	}
+
 }
