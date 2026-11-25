@@ -8,6 +8,8 @@ declare(strict_types=1);
 
 namespace OCA\Libresign\Service\Signing;
 
+use OCA\Libresign\Service\Signing\External\PreparedStateCodec;
+use OCA\Libresign\Service\Signing\External\SessionState;
 use OCA\Libresign\Service\ExperimentalFeaturesService;
 use OCA\Libresign\Service\Signature\PreparedExternalOperation;
 use OCP\AppFramework\Db\TTransactional;
@@ -76,7 +78,7 @@ final class ExternalSigningSessionStore {
 			throw new \DomainException('Prepared payload does not match authoritative document');
 		}
 		$certificateHash = $this->certificateFingerprint($certificatePem);
-		$encrypted = $this->protect(ExternalSigningPreparedStateCodec::encode($prepared));
+		$encrypted = $this->protect(PreparedStateCodec::encode($prepared));
 		$id = bin2hex(random_bytes(16));
 		$attemptKey = hash('sha256', $signRequestId . ':' . strlen($actorId) . ':' . $actorId . ':' . $attemptId);
 		$slot = self::signerSlot($signRequestId, $actorId);
@@ -98,9 +100,9 @@ final class ExternalSigningSessionStore {
 					'certificate_sha256' => $qb->createNamedParameter($certificateHash),
 					'document_revision' => $qb->createNamedParameter($documentRevision),
 					'document_sha256' => $qb->createNamedParameter($documentHash),
-					'payload_version' => $qb->createNamedParameter(ExternalSigningPreparedStateCodec::FORMAT, IQueryBuilder::PARAM_INT),
+					'payload_version' => $qb->createNamedParameter(PreparedStateCodec::FORMAT, IQueryBuilder::PARAM_INT),
 					'prepared_enc' => $qb->createNamedParameter($encrypted),
-					'status' => $qb->createNamedParameter(ExternalSigningSessionState::PREPARING->value),
+					'status' => $qb->createNamedParameter(SessionState::PREPARING->value),
 					'revision' => $qb->createNamedParameter(1, IQueryBuilder::PARAM_INT),
 					'expires_at' => $qb->createNamedParameter(\DateTime::createFromImmutable($expiresAt), IQueryBuilder::PARAM_DATETIME_MUTABLE),
 					'created_at' => $qb->createNamedParameter($now, IQueryBuilder::PARAM_DATETIME_MUTABLE),
@@ -238,13 +240,13 @@ final class ExternalSigningSessionStore {
 		$row = $this->load($id, $actorId);
 		$this->assertContext($row, $documentRevision, $currentPdfBytes, $expectedCertificatePem);
 		if (in_array($row['status'], [
-			ExternalSigningSessionState::SIGNING_PENDING->value,
-			ExternalSigningSessionState::UNCERTAIN->value,
-			ExternalSigningSessionState::COMPLETING->value,
-			ExternalSigningSessionState::COMPLETED->value,
-			ExternalSigningSessionState::REJECTED->value,
-			ExternalSigningSessionState::EXPIRED->value,
-			ExternalSigningSessionState::FAILED->value,
+			SessionState::SIGNING_PENDING->value,
+			SessionState::UNCERTAIN->value,
+			SessionState::COMPLETING->value,
+			SessionState::COMPLETED->value,
+			SessionState::REJECTED->value,
+			SessionState::EXPIRED->value,
+			SessionState::FAILED->value,
 		], true)) {
 			throw new \DomainException('Signing session is terminal');
 		}
@@ -259,7 +261,7 @@ final class ExternalSigningSessionStore {
 		$this->assertFeatureEnabled();
 		$row = $this->load($id, $actorId);
 		$this->assertContext($row, $documentRevision, $currentPdfBytes, $expectedCertificatePem);
-		if (!in_array($row['status'], [ExternalSigningSessionState::SIGNATURE_RECEIVED->value, ExternalSigningSessionState::COMPLETING->value], true)) {
+		if (!in_array($row['status'], [SessionState::SIGNATURE_RECEIVED->value, SessionState::COMPLETING->value], true)) {
 			throw new \DomainException('Completion preparation unavailable');
 		}
 		return $this->restorePrepared((string)$row['prepared_enc']);
@@ -275,7 +277,7 @@ final class ExternalSigningSessionStore {
 		string $id,
 		string $actorId,
 		int $expectedRevision,
-		ExternalSigningSessionState $next,
+		SessionState $next,
 		string $documentRevision,
 		#[\SensitiveParameter] string $currentPdfBytes,
 		string $expectedCertificatePem,
@@ -283,18 +285,18 @@ final class ExternalSigningSessionStore {
 		$this->assertFeatureEnabled();
 		$row = $this->load($id, $actorId);
 		$this->assertContext($row, $documentRevision, $currentPdfBytes, $expectedCertificatePem);
-		$previous = ExternalSigningSessionState::from((string)$row['status']);
+		$previous = SessionState::from((string)$row['status']);
 		if (!$previous->allows($next)) {
 			throw new \DomainException('Invalid external signing session transition');
 		}
 		// A submitted operation can only be resolved by explicit, authenticated
 		// reconciliation; a network timeout is never proof of failure.
-		if (in_array($previous, [ExternalSigningSessionState::SIGNING_PENDING, ExternalSigningSessionState::UNCERTAIN], true)
-			&& in_array($next, [ExternalSigningSessionState::FAILED, ExternalSigningSessionState::REJECTED], true)) {
+		if (in_array($previous, [SessionState::SIGNING_PENDING, SessionState::UNCERTAIN], true)
+			&& in_array($next, [SessionState::FAILED, SessionState::REJECTED], true)) {
 			throw new \DomainException('Submitted operation requires explicit reconciliation');
 		}
 		// Transitions with protected side effects have dedicated atomic APIs.
-		if (in_array($next, [ExternalSigningSessionState::SIGNING_PENDING, ExternalSigningSessionState::SIGNATURE_RECEIVED, ExternalSigningSessionState::COMPLETING, ExternalSigningSessionState::COMPLETED], true)) {
+		if (in_array($next, [SessionState::SIGNING_PENDING, SessionState::SIGNATURE_RECEIVED, SessionState::COMPLETING, SessionState::COMPLETED], true)) {
 			throw new \DomainException('Use the protected signing result or completion API');
 		}
 		return $this->cas($row, $actorId, $expectedRevision, $next);
@@ -313,12 +315,12 @@ final class ExternalSigningSessionStore {
 		$this->assertFeatureEnabled();
 		$row = $this->load($id, $actorId);
 		$this->assertContext($row, $documentRevision, $currentPdfBytes, $expectedCertificatePem);
-		if ($row['status'] !== ExternalSigningSessionState::READY_TO_SIGN->value) {
+		if ($row['status'] !== SessionState::READY_TO_SIGN->value) {
 			throw new \DomainException('Cryptographic operation already reserved or not authorized');
 		}
 		$operationId = bin2hex(random_bytes(16));
 		$this->atomic(function () use ($row, $expectedRevision, $actorId, $id, $operationId): void {
-			$this->assertRevisionAndBump($row, $expectedRevision, $actorId, ExternalSigningSessionState::SIGNING_PENDING);
+			$this->assertRevisionAndBump($row, $expectedRevision, $actorId, SessionState::SIGNING_PENDING);
 			$qb = $this->db->getQueryBuilder();
 			$qb->insert(self::ATTEMPT_TABLE)->values([
 				'session_id' => $qb->createNamedParameter($id),
@@ -345,10 +347,10 @@ final class ExternalSigningSessionStore {
 		$this->assertFeatureEnabled();
 		$row = $this->load($id, $actorId);
 		$this->assertContext($row, $documentRevision, $currentPdfBytes, $expectedCertificatePem);
-		if ($row['status'] !== ExternalSigningSessionState::SIGNATURE_RECEIVED->value) {
+		if ($row['status'] !== SessionState::SIGNATURE_RECEIVED->value) {
 			throw new \DomainException('Publication cannot be reserved again');
 		}
-		return $this->cas($row, $actorId, $expectedRevision, ExternalSigningSessionState::COMPLETING);
+		return $this->cas($row, $actorId, $expectedRevision, SessionState::COMPLETING);
 	}
 
 	/**
@@ -374,13 +376,13 @@ final class ExternalSigningSessionStore {
 		}
 		$row = $this->load($id, $actorId);
 		$this->assertContext($row, $documentRevision, $currentPdfBytes, $expectedCertificatePem);
-		$state = ExternalSigningSessionState::from((string)$row['status']);
-		if (!in_array($state, [ExternalSigningSessionState::SIGNING_PENDING, ExternalSigningSessionState::UNCERTAIN], true)) {
+		$state = SessionState::from((string)$row['status']);
+		if (!in_array($state, [SessionState::SIGNING_PENDING, SessionState::UNCERTAIN], true)) {
 			throw new \DomainException('No pending external signature');
 		}
 		$encrypted = $this->protect(base64_encode($signature));
 		$this->atomic(function () use ($row, $expectedRevision, $actorId, $id, $encrypted): void {
-			$this->assertRevisionAndBump($row, $expectedRevision, $actorId, ExternalSigningSessionState::SIGNATURE_RECEIVED, $encrypted);
+			$this->assertRevisionAndBump($row, $expectedRevision, $actorId, SessionState::SIGNATURE_RECEIVED, $encrypted);
 			$this->updateAttempt($id, 'received');
 			$this->audit($id, $actorId, 'signature_received');
 		}, $this->db);
@@ -405,14 +407,14 @@ final class ExternalSigningSessionStore {
 	): array {
 		$this->assertFeatureEnabled();
 		$row = $this->load($id, $actorId);
-		if ($row['status'] === ExternalSigningSessionState::COMPLETED->value) {
+		if ($row['status'] === SessionState::COMPLETED->value) {
 			return $this->metadata($row);
 		}
 		$this->assertContext($row, $documentRevision, $currentPdfBytes, $expectedCertificatePem);
-		if ($row['status'] !== ExternalSigningSessionState::COMPLETING->value) {
+		if ($row['status'] !== SessionState::COMPLETING->value) {
 			throw new \DomainException('Publication has not been reserved');
 		}
-		return $this->cas($row, $actorId, $expectedRevision, ExternalSigningSessionState::COMPLETED);
+		return $this->cas($row, $actorId, $expectedRevision, SessionState::COMPLETED);
 	}
 
 	/** A signature is accessible only to the original server-authorized actor. */
@@ -420,8 +422,8 @@ final class ExternalSigningSessionStore {
 		$this->assertFeatureEnabled();
 		$row = $this->load($id, $actorId);
 		if (!in_array($row['status'], [
-			ExternalSigningSessionState::SIGNATURE_RECEIVED->value,
-			ExternalSigningSessionState::COMPLETING->value,
+			SessionState::SIGNATURE_RECEIVED->value,
+			SessionState::COMPLETING->value,
 		], true) || !is_string($row['signature_enc']) || $row['signature_enc'] === '') {
 			throw new \DomainException('No authenticated external signature available');
 		}
@@ -516,16 +518,16 @@ final class ExternalSigningSessionStore {
 		if (time() < (new \DateTimeImmutable((string)$row['expires_at']))->getTimestamp()) {
 			throw new \DomainException('Session has not expired');
 		}
-		$state = ExternalSigningSessionState::from((string)$row['status']);
+		$state = SessionState::from((string)$row['status']);
 		// Once a private-key submission or document publication starts,
 		// expiry is not proof that the side effect did not happen.
 		// Neither state may be reopened or silently retried.
-		if (in_array($state, [ExternalSigningSessionState::UNCERTAIN, ExternalSigningSessionState::COMPLETING], true)) {
+		if (in_array($state, [SessionState::UNCERTAIN, SessionState::COMPLETING], true)) {
 			return $this->metadata($row);
 		}
-		$next = $state === ExternalSigningSessionState::SIGNING_PENDING
-			? ExternalSigningSessionState::UNCERTAIN
-			: ExternalSigningSessionState::EXPIRED;
+		$next = $state === SessionState::SIGNING_PENDING
+			? SessionState::UNCERTAIN
+			: SessionState::EXPIRED;
 		if (!$state->allows($next)) {
 			throw new \DomainException('Cannot expire terminal session');
 		}
@@ -543,16 +545,16 @@ final class ExternalSigningSessionStore {
 		array $row,
 		string $actorId,
 		int $expectedRevision,
-		ExternalSigningSessionState $next,
+		SessionState $next,
 		?string $encryptedSignature = null,
 	): array {
 		$this->atomic(function () use ($row, $expectedRevision, $actorId, $next, $encryptedSignature): void {
 			$this->assertRevisionAndBump($row, $expectedRevision, $actorId, $next, $encryptedSignature);
 			if (in_array($next, [
-				ExternalSigningSessionState::COMPLETED,
-				ExternalSigningSessionState::REJECTED,
-				ExternalSigningSessionState::EXPIRED,
-				ExternalSigningSessionState::FAILED,
+				SessionState::COMPLETED,
+				SessionState::REJECTED,
+				SessionState::EXPIRED,
+				SessionState::FAILED,
 			], true)) {
 				$purge = $this->db->getQueryBuilder();
 				$purge->update(self::TABLE)
@@ -565,7 +567,7 @@ final class ExternalSigningSessionStore {
 					->where($qb->expr()->eq('session_id', $qb->createNamedParameter((string)$row['public_id'])))
 					->executeStatement();
 			}
-			if ($next === ExternalSigningSessionState::UNCERTAIN) {
+			if ($next === SessionState::UNCERTAIN) {
 				$this->updateAttempt((string)$row['public_id'], 'uncertain');
 			}
 			$this->audit((string)$row['public_id'], $actorId, $next->value);
@@ -590,7 +592,7 @@ final class ExternalSigningSessionStore {
 		array $row,
 		int $expectedRevision,
 		string $actorId,
-		?ExternalSigningSessionState $next = null,
+		?SessionState $next = null,
 		?string $encryptedSignature = null,
 	): void {
 		if ($expectedRevision < 1 || (int)$row['revision'] !== $expectedRevision) {
@@ -674,7 +676,7 @@ final class ExternalSigningSessionStore {
 
 	private function restorePrepared(string $encrypted): PreparedExternalOperation {
 		try {
-			return ExternalSigningPreparedStateCodec::decode($this->unprotect($encrypted));
+			return PreparedStateCodec::decode($this->unprotect($encrypted));
 		} catch (\Throwable) {
 			// The API never exposes decryption or stored-format details.
 			throw new \UnexpectedValueException('Prepared signing session cannot be restored');

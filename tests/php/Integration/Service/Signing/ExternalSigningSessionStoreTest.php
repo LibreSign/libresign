@@ -12,7 +12,7 @@ use OCA\Libresign\Service\ExperimentalFeaturesService;
 use OCA\Libresign\Service\Signature\PreparedExternalOperation;
 use OCA\Libresign\Service\Signing\ExternalIntegrationRecord;
 use OCA\Libresign\Service\Signing\ExternalIntegrationStore;
-use OCA\Libresign\Service\Signing\ExternalSigningSessionState;
+use OCA\Libresign\Service\Signing\External\SessionState;
 use OCA\Libresign\Service\Signing\ExternalSigningSessionStore;
 use OCA\Libresign\Vendor\SignerPHP\PdfSigner\Application\DTO\ExternalSigningPayload;
 use OCA\Libresign\Vendor\SignerPHP\PdfSigner\Application\DTO\HashAlgorithm;
@@ -144,7 +144,7 @@ final class ExternalSigningSessionStoreTest extends \OCA\Libresign\Tests\Integra
 			'file-123-etag-456', 'synthetic-source-pdf', $this->certificate);
 	}
 
-	private function advance(array $row, ExternalSigningSessionState $state, string $pdf = 'synthetic-source-pdf'): array {
+	private function advance(array $row, SessionState $state, string $pdf = 'synthetic-source-pdf'): array {
 		return $this->sessions->advance(
 			(string)$row['id'], 'synthetic-user', (int)$row['revision'], $state,
 			'file-123-etag-456', $pdf, $this->certificate,
@@ -229,7 +229,7 @@ PHP);
 	 */
 	public function testConcurrentPhpProcessesHaveOnlyOneSigningClaim(): void {
 		$row = $this->create();
-		$row = $this->advance($row, ExternalSigningSessionState::READY_TO_SIGN);
+		$row = $this->advance($row, SessionState::READY_TO_SIGN);
 		$script = tempnam(sys_get_temp_dir(), 'ls-concurrent-');
 		$certificateFile = tempnam(sys_get_temp_dir(), 'ls-cert-');
 		self::assertIsString($script);
@@ -312,7 +312,7 @@ PHP);
 
 	public function testAtMostOneSubmissionClaimAndUnknownOutcomeNeverRetries(): void {
 		$row = $this->create();
-		$row = $this->advance($row, ExternalSigningSessionState::READY_TO_SIGN);
+		$row = $this->advance($row, SessionState::READY_TO_SIGN);
 		$stale = $row;
 		$row = $this->claim($row);
 		try {
@@ -321,14 +321,14 @@ PHP);
 		} catch (\DomainException|\RuntimeException) {
 			$this->assertSame('signing_pending', $this->sessions->get((string)$row['id'], 'synthetic-user')['status']);
 		}
-		$row = $this->advance($row, ExternalSigningSessionState::UNCERTAIN);
+		$row = $this->advance($row, SessionState::UNCERTAIN);
 		$this->expectException(\DomainException::class);
-		$this->advance($row, ExternalSigningSessionState::READY_TO_SIGN);
+		$this->advance($row, SessionState::READY_TO_SIGN);
 	}
 
 	public function testDuplicateCompletionReservationRejectedAndCompletionIdempotent(): void {
 		$row = $this->create();
-		$row = $this->advance($row, ExternalSigningSessionState::READY_TO_SIGN);
+		$row = $this->advance($row, SessionState::READY_TO_SIGN);
 		$row = $this->claim($row);
 		$row = $this->sessions->receiveSignature((string)$row['id'], 'synthetic-user', (int)$row['revision'],
 			'synthetic-raw-rsa-signature', 'file-123-etag-456', 'synthetic-source-pdf', $this->certificate);
@@ -520,14 +520,14 @@ PHP);
 
 	public function testGenericTransitionCannotClaimSigningWithoutDurableLedger(): void {
 		$row = $this->create();
-		$row = $this->advance($row, ExternalSigningSessionState::READY_TO_SIGN);
+		$row = $this->advance($row, SessionState::READY_TO_SIGN);
 		$this->expectException(\DomainException::class);
-		$this->advance($row, ExternalSigningSessionState::SIGNING_PENDING);
+		$this->advance($row, SessionState::SIGNING_PENDING);
 	}
 
 	public function testClaimWritesOneDurableLedgerAndBlocksPreparedResubmission(): void {
 		$row = $this->create();
-		$row = $this->advance($row, ExternalSigningSessionState::READY_TO_SIGN);
+		$row = $this->advance($row, SessionState::READY_TO_SIGN);
 		$row = $this->claim($row);
 		$qb = $this->db->getQueryBuilder();
 		$count = $qb->select($qb->createFunction('COUNT(*)'))->from('libresign_ext_sign_attempt')
@@ -540,15 +540,15 @@ PHP);
 
 	public function testSubmittedOperationCannotBeMarkedFailedByGenericTransition(): void {
 		$row = $this->create();
-		$row = $this->advance($row, ExternalSigningSessionState::READY_TO_SIGN);
+		$row = $this->advance($row, SessionState::READY_TO_SIGN);
 		$row = $this->claim($row);
 		$this->expectException(\DomainException::class);
-		$this->advance($row, ExternalSigningSessionState::FAILED);
+		$this->advance($row, SessionState::FAILED);
 	}
 
 	public function testDuplicateProviderCallbackDoesNotChangeSession(): void {
 		$row = $this->create();
-		$row = $this->advance($row, ExternalSigningSessionState::READY_TO_SIGN);
+		$row = $this->advance($row, SessionState::READY_TO_SIGN);
 		$row = $this->claim($row);
 		$pending = $row;
 		$row = $this->sessions->receiveSignature((string)$row['id'], 'synthetic-user', (int)$row['revision'],
@@ -630,9 +630,9 @@ PHP);
 
 	public function testUncertainSessionCanBeFoundAfterReloadWithoutReplayingSigning(): void {
 		$row = $this->create();
-		$row = $this->advance($row, ExternalSigningSessionState::READY_TO_SIGN);
+		$row = $this->advance($row, SessionState::READY_TO_SIGN);
 		$row = $this->claim($row);
-		$row = $this->advance($row, ExternalSigningSessionState::UNCERTAIN);
+		$row = $this->advance($row, SessionState::UNCERTAIN);
 		$second = new ExternalSigningSessionStore(
 			$this->db, Server::get(ICrypto::class),
 			new ExperimentalFeaturesService($this->createEnabledAppConfig()),
@@ -697,9 +697,9 @@ PHP);
 	public function testIntegrationCannotBeDeletedOrReconfiguredWithUncertainSession(): void {
 		$integration = $this->integration();
 		$row = $this->create($integration);
-		$row = $this->advance($row, ExternalSigningSessionState::READY_TO_SIGN);
+		$row = $this->advance($row, SessionState::READY_TO_SIGN);
 		$row = $this->claim($row);
-		$row = $this->advance($row, ExternalSigningSessionState::UNCERTAIN);
+		$row = $this->advance($row, SessionState::UNCERTAIN);
 		foreach (['update', 'delete'] as $action) {
 			try {
 				if ($action === 'update') {
@@ -718,7 +718,7 @@ PHP);
 	public function testIntegrationCanBeReconfiguredAfterSessionIsRejected(): void {
 		$integration = $this->integration();
 		$row = $this->create($integration);
-		$this->advance($row, ExternalSigningSessionState::REJECTED);
+		$this->advance($row, SessionState::REJECTED);
 		$updated = $this->integrations->update($integration->id, $integration->revision,
 			'Updated CSC', ['serviceUrl' => 'https://updated.example.org']);
 		self::assertSame($integration->revision + 1, $updated->revision);
@@ -734,7 +734,7 @@ PHP);
 			->executeQuery()->fetchOne();
 		$this->assertStringNotContainsString('synthetic-sensitive-value', $stored);
 		$this->assertSame(['sad' => 'synthetic-sensitive-value'], $this->sessions->readContinuation((string)$row['id'], 'synthetic-user'));
-		$row = $this->advance($row, ExternalSigningSessionState::REJECTED);
+		$row = $this->advance($row, SessionState::REJECTED);
 		$this->assertSame('rejected', $row['status']);
 		$this->expectException(\DomainException::class);
 		$this->sessions->readContinuation((string)$row['id'], 'synthetic-user');
@@ -764,7 +764,7 @@ PHP);
 
 	public function testExpiredSentOperationBecomesUncertainNotRetryable(): void {
 		$row = $this->create();
-		$row = $this->advance($row, ExternalSigningSessionState::READY_TO_SIGN);
+		$row = $this->advance($row, SessionState::READY_TO_SIGN);
 		$row = $this->claim($row);
 		$qb = $this->db->getQueryBuilder();
 		$qb->update('libresign_ext_sign_session')
@@ -773,7 +773,7 @@ PHP);
 			->executeStatement();
 		$row = $this->sessions->expire((string)$row['id'], 'synthetic-user', (int)$row['revision']);
 		$this->assertSame('uncertain', $row['status']);
-		$this->assertFalse(ExternalSigningSessionState::UNCERTAIN->allows(ExternalSigningSessionState::SIGNING_PENDING));
+		$this->assertFalse(SessionState::UNCERTAIN->allows(SessionState::SIGNING_PENDING));
 	}
 
 	public function testDisabledFeatureCannotCreateOrAdvance(): void {

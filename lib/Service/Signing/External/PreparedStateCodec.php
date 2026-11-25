@@ -6,7 +6,7 @@ declare(strict_types=1);
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
 
-namespace OCA\Libresign\Service\Signing;
+namespace OCA\Libresign\Service\Signing\External;
 
 use OCA\Libresign\Service\Signature\PreparedExternalOperation;
 use OCA\Libresign\Vendor\SignerPHP\PdfSigner\Application\DTO\ExternalSigningPayload;
@@ -23,7 +23,7 @@ use OCA\Libresign\Vendor\SignerPHP\PdfSigner\Application\DTO\SigningInputType;
  * ciphertext boundary and transaction. Pure serialization can be tested
  * without a Nextcloud runtime, database, or cryptographic service mock.
  */
-final class ExternalSigningPreparedStateCodec {
+final class PreparedStateCodec {
 	public const FORMAT = 1;
 	private const MAX_JSON_BYTES = 8 * 1024 * 1024;
 

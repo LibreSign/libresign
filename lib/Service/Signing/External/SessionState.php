@@ -6,7 +6,7 @@ declare(strict_types=1);
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
 
-namespace OCA\Libresign\Service\Signing;
+namespace OCA\Libresign\Service\Signing\External;
 
 /**
  * Persistent, deliberately non-retryable external private-key operation.
@@ -15,7 +15,7 @@ namespace OCA\Libresign\Service\Signing;
  * NEVER returns the session to READY_TO_SIGN. In particular, an expired lease
  * is not evidence that the private-key operation was not performed.
  */
-enum ExternalSigningSessionState: string {
+enum SessionState: string {
 	case PREPARING = 'preparing';
 	case INTERACTION_REQUIRED = 'interaction_required';
 	case AUTHORIZATION_PENDING = 'authorization_pending';

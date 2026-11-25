@@ -8,6 +8,7 @@ declare(strict_types=1);
 
 namespace OCA\Libresign\Service\Signing;
 
+use OCA\Libresign\Service\Signing\External\AuthorizedRequest;
 use OCA\Libresign\Db\FileMapper;
 use OCA\Libresign\Db\SignRequestMapper;
 use OCA\Libresign\Exception\ExternalSigningAccessDeniedException;
@@ -51,7 +52,7 @@ final class ExternalSigningAuthorizationService {
 		string $identificationMethod,
 		string $identifyValue,
 		#[\SensitiveParameter] string $signingToken = '',
-	): AuthorizedExternalSigningRequest {
+	): AuthorizedRequest {
 		$this->assertValidContext($signRequestUuid, $identificationMethod, $identifyValue, $signingToken);
 		$currentUser = $this->userSession->getUser();
 		$this->signerValidator->validateSigner($signRequestUuid, $currentUser);
@@ -74,7 +75,7 @@ final class ExternalSigningAuthorizationService {
 			throw new ExternalSigningAccessDeniedException('External signing authorization denied', 0, $e);
 		}
 
-		return new AuthorizedExternalSigningRequest($file, $signRequest, 'sign-request:' . $signRequestId);
+		return new AuthorizedRequest($file, $signRequest, 'sign-request:' . $signRequestId);
 	}
 
 	private function assertValidContext(string $uuid, string $method, string $identity, string $token): void {

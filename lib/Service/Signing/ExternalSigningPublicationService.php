@@ -8,6 +8,8 @@ declare(strict_types=1);
 
 namespace OCA\Libresign\Service\Signing;
 
+use OCA\Libresign\Service\Signing\External\AuthorizedRequest;
+use OCA\Libresign\Service\Signing\External\SessionState;
 use DateTime;
 use DateTimeZone;
 use OCA\Libresign\Db\FileMapper;
@@ -41,7 +43,7 @@ use Psr\Log\LoggerInterface;
  * dispatch occurs only after commit, following LibreSign's existing best-
  * effort delivery model (which does not promise exactly-once webhooks).
  *
- * The caller MUST obtain AuthorizedExternalSigningRequest immediately before
+ * The caller MUST obtain AuthorizedRequest immediately before
  * calling this service, and the certificate PEM MUST come from trusted CSC
  * discovery, never a browser-supplied parameter. No private key is used.
  */
@@ -73,7 +75,7 @@ final class ExternalSigningPublicationService {
 	 * @return array{status:string,sessionId:string,signedNodeId:int,signedHash:string}
 	 */
 	public function publish(
-		AuthorizedExternalSigningRequest $authorized,
+		AuthorizedRequest $authorized,
 		string $sessionId,
 		string $expectedCertificatePem,
 	): array {
@@ -85,7 +87,7 @@ final class ExternalSigningPublicationService {
 			throw new \DomainException('CSC signing request context is invalid');
 		}
 		$session = $this->sessions->getForSignRequest($sessionId, $requestId, $authorized->actorId);
-		if ($session['status'] !== ExternalSigningSessionState::COMPLETING->value) {
+		if ($session['status'] !== SessionState::COMPLETING->value) {
 			throw new \DomainException('CSC signature has not reserved publication');
 		}
 

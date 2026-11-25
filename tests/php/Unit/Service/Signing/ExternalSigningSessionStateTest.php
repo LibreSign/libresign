@@ -8,7 +8,7 @@ declare(strict_types=1);
 
 namespace OCA\Libresign\Tests\Unit\Service\Signing;
 
-use OCA\Libresign\Service\Signing\ExternalSigningSessionState;
+use OCA\Libresign\Service\Signing\External\SessionState;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 
@@ -39,6 +39,6 @@ final class ExternalSigningSessionStateTest extends TestCase {
 
 	#[DataProvider('transitions')]
 	public function testExplicitTransitionMatrix(string $from, string $to, bool $allowed): void {
-		$this->assertSame($allowed, ExternalSigningSessionState::from($from)->allows(ExternalSigningSessionState::from($to)));
+		$this->assertSame($allowed, SessionState::from($from)->allows(SessionState::from($to)));
 	}
 }

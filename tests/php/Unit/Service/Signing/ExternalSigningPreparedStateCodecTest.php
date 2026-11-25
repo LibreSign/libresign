@@ -9,7 +9,7 @@ declare(strict_types=1);
 namespace OCA\Libresign\Tests\Unit\Service\Signing;
 
 use OCA\Libresign\Service\Signature\PreparedExternalOperation;
-use OCA\Libresign\Service\Signing\ExternalSigningPreparedStateCodec;
+use OCA\Libresign\Service\Signing\External\PreparedStateCodec;
 use OCA\Libresign\Vendor\SignerPHP\PdfSigner\Application\DTO\ExternalSigningPayload;
 use OCA\Libresign\Vendor\SignerPHP\PdfSigner\Application\DTO\HashAlgorithm;
 use OCA\Libresign\Vendor\SignerPHP\PdfSigner\Application\DTO\PreparedExternalSignature;
@@ -26,7 +26,7 @@ final class ExternalSigningPreparedStateCodecTest extends TestCase {
 	/** @return array<string, int|string> */
 	private static function validData(): array {
 		return [
-			'version' => ExternalSigningPreparedStateCodec::FORMAT,
+			'version' => PreparedStateCodec::FORMAT,
 			'inputBase64' => base64_encode('synthetic-digest'),
 			'inputType' => SigningInputType::Digest->value,
 			'digestAlgorithm' => HashAlgorithm::Sha256->value,
@@ -53,9 +53,9 @@ final class ExternalSigningPreparedStateCodecTest extends TestCase {
 			(string)$data['preparationInputSha256'],
 		);
 
-		$json = ExternalSigningPreparedStateCodec::encode($prepared);
+		$json = PreparedStateCodec::encode($prepared);
 		self::assertSame($data, json_decode($json, true, 16, JSON_THROW_ON_ERROR));
-		$restored = ExternalSigningPreparedStateCodec::decode($json);
+		$restored = PreparedStateCodec::decode($json);
 		self::assertEquals($prepared, $restored);
 	}
 
@@ -89,12 +89,12 @@ final class ExternalSigningPreparedStateCodecTest extends TestCase {
 	public function testUntrustedStoredStateIsRejectedWithoutLeakingItsContents(string $json): void {
 		$this->expectException(\UnexpectedValueException::class);
 		$this->expectExceptionMessage('Prepared signing session cannot be restored');
-		ExternalSigningPreparedStateCodec::decode($json);
+		PreparedStateCodec::decode($json);
 	}
 
 	public function testDecodingRejectsOversizedStateBeforeParsing(): void {
 		$this->expectException(\UnexpectedValueException::class);
-		ExternalSigningPreparedStateCodec::decode(str_repeat('x', 8 * 1024 * 1024 + 1));
+		PreparedStateCodec::decode(str_repeat('x', 8 * 1024 * 1024 + 1));
 	}
 
 	public function testEncodingRejectsOversizedOpaquePreparation(): void {
@@ -113,6 +113,6 @@ final class ExternalSigningPreparedStateCodecTest extends TestCase {
 			(string)$valid['preparationInputSha256'],
 		);
 		$this->expectException(\InvalidArgumentException::class);
-		ExternalSigningPreparedStateCodec::encode($prepared);
+		PreparedStateCodec::encode($prepared);
 	}
 }

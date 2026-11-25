@@ -27,7 +27,7 @@ use OCA\Libresign\Service\SequentialSigningService;
 use OCA\Libresign\Service\Signature\Exception\ExternalSigningException;
 use OCA\Libresign\Service\Signature\ExternalPdfSigningService;
 use OCA\Libresign\Service\Signature\PdfSignatureValidationService;
-use OCA\Libresign\Service\Signing\AuthorizedExternalSigningRequest;
+use OCA\Libresign\Service\Signing\External\AuthorizedRequest;
 use OCA\Libresign\Service\Signing\ExternalIntegrationRecord;
 use OCA\Libresign\Service\Signing\ExternalIntegrationStore;
 use OCA\Libresign\Service\Signing\ExternalSigningPublicationService;
@@ -256,7 +256,7 @@ final class SyntheticCscSigningOperationTest extends \OCA\Libresign\Tests\Integr
 	}
 
 	/**
-	 * @return array{AuthorizedExternalSigningRequest, \OCP\Files\File, string}
+	 * @return array{AuthorizedRequest, \OCP\Files\File, string}
 	 */
 	private function persistRequestPdf(string $contents): array {
 		$username = 'csc-owner-' . bin2hex(random_bytes(5));
@@ -284,7 +284,7 @@ final class SyntheticCscSigningOperationTest extends \OCA\Libresign\Tests\Integr
 		$method->setIdentifierValue($username);
 		$method->setMandatory(1);
 		Server::get(IdentifyMethodMapper::class)->insert($method);
-		return [new AuthorizedExternalSigningRequest($file, $request,
+		return [new AuthorizedRequest($file, $request,
 			'sign-request:' . $request->getId()), $node, $node->getEtag()];
 	}
 
@@ -293,7 +293,7 @@ final class SyntheticCscSigningOperationTest extends \OCA\Libresign\Tests\Integr
 		CscIntegration $laboratory,
 		ExternalIntegrationRecord $integration,
 		SigningContextDto $context,
-		AuthorizedExternalSigningRequest $request,
+		AuthorizedRequest $request,
 		string $etag,
 	): array {
 		$session = $this->workflow->prepare($laboratory, $integration, 'synthetic-credential', $context,

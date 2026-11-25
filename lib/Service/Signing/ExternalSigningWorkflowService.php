@@ -8,6 +8,8 @@ declare(strict_types=1);
 
 namespace OCA\Libresign\Service\Signing;
 
+use OCA\Libresign\Service\Signing\External\AuthorizedRequest;
+use OCA\Libresign\Service\Signing\External\SessionState;
 use OCA\Libresign\Db\File as LibreSignFile;
 use OCA\Libresign\Db\FileMapper;
 use OCA\Libresign\Service\FolderService;
@@ -155,11 +157,11 @@ final class ExternalSigningWorkflowService {
 		$lab = $this->laboratories->resolve((string)$session['integrationId']);
 		$this->assertCanUseIntegration($lab['record'], $actor, $method, $identity);
 		if (in_array($session['status'], [
-			ExternalSigningSessionState::SIGNING_PENDING->value,
-			ExternalSigningSessionState::UNCERTAIN->value,
-			ExternalSigningSessionState::REJECTED->value,
-			ExternalSigningSessionState::EXPIRED->value,
-			ExternalSigningSessionState::FAILED->value,
+			SessionState::SIGNING_PENDING->value,
+			SessionState::UNCERTAIN->value,
+			SessionState::REJECTED->value,
+			SessionState::EXPIRED->value,
+			SessionState::FAILED->value,
 		], true)) {
 			return ['session' => $session, 'retryAllowed' => false, 'publication' => null];
 		}
@@ -171,8 +173,8 @@ final class ExternalSigningWorkflowService {
 		$source = $this->source($actor->file);
 		$signaturePem = $certificate->certificate->certificatePem;
 		if (in_array($session['status'], [
-			ExternalSigningSessionState::PREPARING->value,
-			ExternalSigningSessionState::READY_TO_SIGN->value,
+			SessionState::PREPARING->value,
+			SessionState::READY_TO_SIGN->value,
 		], true)) {
 			try {
 				$this->crypto->sign($lab['laboratory'], $lab['record'], $sessionId,
@@ -187,10 +189,10 @@ final class ExternalSigningWorkflowService {
 				}
 				throw $e;
 			}
-		} elseif ($session['status'] === ExternalSigningSessionState::SIGNATURE_RECEIVED->value) {
+		} elseif ($session['status'] === SessionState::SIGNATURE_RECEIVED->value) {
 			$this->crypto->completeAndReserve($sessionId, $actor->signRequest->getId(),
 				$actor->actorId, $source['revision'], $source['pdf'], $signaturePem);
-		} elseif ($session['status'] !== ExternalSigningSessionState::COMPLETING->value) {
+		} elseif ($session['status'] !== SessionState::COMPLETING->value) {
 			throw new \DomainException('External signing session has no continuation operation');
 		}
 		// Revalidate the current signer identity/approval immediately before
@@ -219,7 +221,7 @@ final class ExternalSigningWorkflowService {
 
 	private function canUseIntegration(
 		ExternalIntegrationRecord $record,
-		AuthorizedExternalSigningRequest $actor,
+		AuthorizedRequest $actor,
 		string $method,
 		string $identity,
 	): bool {
@@ -229,7 +231,7 @@ final class ExternalSigningWorkflowService {
 
 	private function assertCanUseIntegration(
 		ExternalIntegrationRecord $record,
-		AuthorizedExternalSigningRequest $actor,
+		AuthorizedRequest $actor,
 		string $method,
 		string $identity,
 	): void {

@@ -8,6 +8,7 @@ declare(strict_types=1);
 
 namespace OCA\Libresign\Service\Signing;
 
+use OCA\Libresign\Service\Signing\External\SessionState;
 use OCA\Libresign\Service\Signature\ExternalPdfSigningService;
 use OCA\Libresign\Service\Signing\Provider\Drivers\Csc\CscCredentialEligibility;
 use OCA\Libresign\Service\Signing\Provider\Drivers\Csc\CscDriver;
@@ -96,11 +97,11 @@ final class SyntheticCscSigningOperation {
 		$prepared = $this->sessions->resume($sessionId, $actorId, $documentRevision, $currentPdfBytes, $certificatePem);
 		$this->assertSupportedPayload($prepared->upstream->payload);
 
-		if ($session['status'] === ExternalSigningSessionState::PREPARING->value) {
+		if ($session['status'] === SessionState::PREPARING->value) {
 			$session = $this->sessions->advance($sessionId, $actorId, (int)$session['revision'],
-				ExternalSigningSessionState::READY_TO_SIGN, $documentRevision, $currentPdfBytes, $certificatePem);
+				SessionState::READY_TO_SIGN, $documentRevision, $currentPdfBytes, $certificatePem);
 		}
-		if ($session['status'] !== ExternalSigningSessionState::READY_TO_SIGN->value) {
+		if ($session['status'] !== SessionState::READY_TO_SIGN->value) {
 			throw new \DomainException('CSC session is not available for a new signing submission');
 		}
 
@@ -113,7 +114,7 @@ final class SyntheticCscSigningOperation {
 			// reusing this write-ahead reservation in the first lab workflow.
 			try {
 				$this->sessions->advance($sessionId, $actorId, (int)$session['revision'],
-					ExternalSigningSessionState::UNCERTAIN, $documentRevision, $currentPdfBytes, $certificatePem);
+					SessionState::UNCERTAIN, $documentRevision, $currentPdfBytes, $certificatePem);
 			} catch (\Throwable) {
 				// A lost state update leaves SIGNING_PENDING, which also forbids
 				// resubmission. Never hide the original provider exception.
@@ -143,7 +144,7 @@ final class SyntheticCscSigningOperation {
 		string $expectedCertificatePem,
 	): array {
 		$metadata = $this->sessions->getForSignRequest($sessionId, $signRequestId, $actorId);
-		if ($metadata['status'] !== ExternalSigningSessionState::SIGNATURE_RECEIVED->value) {
+		if ($metadata['status'] !== SessionState::SIGNATURE_RECEIVED->value) {
 			throw new \DomainException('Publication already reserved or signing result unavailable');
 		}
 		$prepared = $this->sessions->preparedForCompletion($sessionId, $actorId,
@@ -174,7 +175,7 @@ final class SyntheticCscSigningOperation {
 		string $expectedCertificatePem,
 	): string {
 		$metadata = $this->sessions->getForSignRequest($sessionId, $signRequestId, $actorId);
-		if ($metadata['status'] !== ExternalSigningSessionState::COMPLETING->value) {
+		if ($metadata['status'] !== SessionState::COMPLETING->value) {
 			throw new \DomainException('No reserved CSC publication to reconcile');
 		}
 		$prepared = $this->sessions->preparedForCompletion($sessionId, $actorId,
