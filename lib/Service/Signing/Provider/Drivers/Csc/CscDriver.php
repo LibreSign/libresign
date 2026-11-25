@@ -14,7 +14,7 @@ use OCA\Libresign\Vendor\SignerPHP\PdfSigner\RemoteSigning\Contract\RemoteSignat
 use OCP\IL10N;
 
 /**
- * Administrative metadata for the experimental CSC v1 adapter.
+ * Administrative metadata for the CSC v1 adapter.
  *
  * No configured integration, credential, token or signing session is created here.
  *

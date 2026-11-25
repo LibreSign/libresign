@@ -43,10 +43,10 @@ final class ExternalSigningDriversController extends AEnvironmentAwareOCSControl
 	 *
 	 * @return DataResponse<Http::STATUS_OK, LibresignExternalSigningDriversResponse, array{}>|DataResponse<Http::STATUS_UNAUTHORIZED, LibresignErrorResponse, array{}>|DataResponse<Http::STATUS_FORBIDDEN, LibresignErrorResponse, array{}>|DataResponse<Http::STATUS_NOT_FOUND, LibresignErrorResponse, array{}>
 	 *
-	 * 200: Registered experimental driver definitions
+	 * 200: Registered external signing driver definitions
 	 * 401: Authentication required
 	 * 403: System administrator required
-	 * 404: Experimental features disabled
+	 * 404: External signing is not enabled
 	 */
 	#[NoAdminRequired]
 	#[OpenAPI(tags: ['system'])]

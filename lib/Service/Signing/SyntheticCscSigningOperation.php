@@ -22,7 +22,7 @@ use OCA\Libresign\Vendor\SignerPHP\PdfSigner\Application\DTO\SigningInputType;
 use OCA\Libresign\Vendor\SignerPHP\PdfSigner\RemoteSigning\DTO\RemoteCertificate;
 
 /**
- * Internal cryptographic half of the experimental CSC v1 workflow.
+ * Internal cryptographic half of the synthetic CSC v1 workflow.
  *
  * Only a dedicated, configured synthetic CSC laboratory is accepted. No
  * administrator-controlled CSC token proves the signer's key authorization.

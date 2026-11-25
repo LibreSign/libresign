@@ -19,7 +19,7 @@ use OCP\IUser;
 use OCP\IUserSession;
 
 /**
- * Signer authorization boundary for experimental external signing.
+ * Signer authorization boundary for external signing.
  *
  * A guest's invitation UUID is NOT evidence of signer consent. Guests must
  * prove a specific bound identification method with their signing token;
@@ -79,7 +79,7 @@ final class Authorization {
 
 	private function assertValidContext(string $uuid, string $method, string $identity, string $token): void {
 		if (!$this->experimentalFeatures->isEnabled()) {
-			throw new \DomainException('Experimental external signing is disabled');
+			throw new \DomainException('External signing is not enabled');
 		}
 		if (strlen($uuid) > 64 || strlen($method) > 64 || strlen($identity) > 255
 			|| strlen($token) > 16384 || $method === '' || $identity === '') {

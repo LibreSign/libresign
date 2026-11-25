@@ -89,7 +89,7 @@ final class ExternalIntegrationAdministration {
 
 	/**
 	 * Enabling is administrative state only; it never overrides the global
-	 * experimental gate or makes an unavailable driver operational.
+	 * feature gate or makes an unavailable driver operational.
 	 *
 	 * @param array<string, mixed> $driver Trusted declarative catalog entry.
 	 */

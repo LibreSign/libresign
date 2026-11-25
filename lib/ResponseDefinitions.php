@@ -1014,7 +1014,7 @@ namespace OCA\Libresign;
  *     version: string,
  * }
  *
- * Experimental, provider-neutral external signing contracts
+ * Provider-neutral external signing contracts
  *
  * @psalm-type LibresignExternalSigningSession = array{
  *     id: string,

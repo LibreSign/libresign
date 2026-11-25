@@ -700,7 +700,7 @@ final class SessionStore {
 
 	private function assertFeatureEnabled(): void {
 		if (!$this->features->isEnabled()) {
-			throw new \DomainException('Experimental signing features are disabled');
+			throw new \DomainException('External signing is not enabled');
 		}
 	}
 

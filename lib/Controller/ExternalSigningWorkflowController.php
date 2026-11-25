@@ -26,7 +26,7 @@ use OCP\IUserSession;
 use Psr\Log\LoggerInterface;
 
 /**
- * Provider-neutral, signer-facing, experimental external signing API.
+ * Provider-neutral, signer-facing external signing API.
  *
  * Signing tokens arrive in POST bodies, never URLs, redirects or query params.
  * Anonymous requests require a verified bound signer code; account signers

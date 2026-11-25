@@ -69,7 +69,7 @@ final class ExternalSigningDriversControllerTest extends TestCase {
 		$this->assertSame(['error' => 'Forbidden'], $response->getData());
 	}
 
-	public function testDisabledFlagHidesExperimentalCatalogFromAdmin(): void {
+	public function testDisabledFlagHidesDriverCatalogFromAdmin(): void {
 		$this->authenticatedUser(true);
 		$this->feature->method('isEnabled')->willReturn(false);
 

@@ -67,7 +67,7 @@ final class ExternalSigningIntegrationsController extends AEnvironmentAwareOCSCo
 	 * 400: Invalid pagination
 	 * 401: Authentication required
 	 * 403: Administrator not delegated for this connection scope
-	 * 404: Experimental features disabled
+	 * 404: External signing is not enabled
 	 * 409: Integration conflict
 	 * 500: Internal error
 	 */
@@ -109,7 +109,7 @@ final class ExternalSigningIntegrationsController extends AEnvironmentAwareOCSCo
 	 * 400: Invalid driver or configuration
 	 * 401: Authentication required
 	 * 403: Administrator not delegated for this connection scope
-	 * 404: Experimental features disabled
+	 * 404: External signing is not enabled
 	 * 409: Integration conflict
 	 * 500: Internal error
 	 */
@@ -138,7 +138,7 @@ final class ExternalSigningIntegrationsController extends AEnvironmentAwareOCSCo
 	 * 400: Invalid integration request
 	 * 401: Authentication required
 	 * 403: Administrator not delegated for this connection scope
-	 * 404: Integration not found or experimental features disabled
+	 * 404: Integration not found or external signing not enabled
 	 * 409: Integration conflict
 	 * 500: Internal error
 	 */
@@ -170,7 +170,7 @@ final class ExternalSigningIntegrationsController extends AEnvironmentAwareOCSCo
 	 * 400: Invalid configuration or revision
 	 * 401: Authentication required
 	 * 403: Administrator not delegated for this connection scope
-	 * 404: Integration not found or experimental features disabled
+	 * 404: Integration not found or external signing not enabled
 	 * 409: Stale revision
 	 * 500: Internal error
 	 */
@@ -203,7 +203,7 @@ final class ExternalSigningIntegrationsController extends AEnvironmentAwareOCSCo
 	 * 400: Invalid revision
 	 * 401: Authentication required
 	 * 403: Administrator not delegated for this connection scope
-	 * 404: Integration not found or experimental features disabled
+	 * 404: Integration not found or external signing not enabled
 	 * 409: Stale revision or driver unavailable
 	 * 500: Internal error
 	 */
@@ -225,7 +225,7 @@ final class ExternalSigningIntegrationsController extends AEnvironmentAwareOCSCo
 	 * 400: Invalid revision
 	 * 401: Authentication required
 	 * 403: Administrator not delegated for this connection scope
-	 * 404: Integration not found or experimental features disabled
+	 * 404: Integration not found or external signing not enabled
 	 * 409: Stale revision
 	 * 500: Internal error
 	 */
@@ -247,7 +247,7 @@ final class ExternalSigningIntegrationsController extends AEnvironmentAwareOCSCo
 	 * 400: Invalid revision
 	 * 401: Authentication required
 	 * 403: Administrator not delegated for this connection scope
-	 * 404: Integration not found or experimental features disabled
+	 * 404: Integration not found or external signing not enabled
 	 * 409: Stale revision
 	 * 500: Internal error
 	 */
