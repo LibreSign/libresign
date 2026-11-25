@@ -102,7 +102,7 @@ final class WorkflowTest extends \OCA\Libresign\Tests\Integration\TestCase {
 		$certificate = $this->syntheticCertificate();
 		$this->certificatePem = $certificate[0];
 		$this->privateKey = $certificate[1];
-		$pdf = file_get_contents(dirname(__DIR__, 3) . '/fixtures/pdfs/small_valid.pdf');
+		$pdf = file_get_contents(dirname(__DIR__, 4) . '/fixtures/pdfs/small_valid.pdf');
 		self::assertIsString($pdf);
 		$user = $this->createAccount('csc-api-' . bin2hex(random_bytes(5)), 'temporary-password');
 		$this->source = Server::get(IRootFolder::class)->getUserFolder($user->getUID())

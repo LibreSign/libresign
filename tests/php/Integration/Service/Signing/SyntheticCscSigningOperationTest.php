@@ -426,6 +426,54 @@ final class SyntheticCscSigningOperationTest extends \OCA\Libresign\Tests\Integr
 		self::assertSame(1, $submissions);
 	}
 
+	/**
+	 * A failure after claiming the signer row must roll back every database
+	 * update. The already-validated artifact can then be reused safely.
+	 */
+	public function testMetadataFailureRollsBackAndReconcilesWithoutAnotherSignature(): void {
+		[$pem, $key] = $this->certificate();
+		$pdf = $this->pdf();
+		[$request, $source, $etag] = $this->persistRequestPdf($pdf);
+		$submissions = 0;
+		$lab = $this->laboratory($pem, $key, $submissions);
+		$integration = $this->integration();
+		$session = $this->prepareForPersistedRequest($lab, $integration,
+			$this->context($pdf, $pem), $request, $etag);
+		$this->workflow->sign($lab, $integration, (string)$session['id'],
+			$request->signRequest->getId(), $request->actorId, $etag, $pdf);
+		$requestId = (int)$request->signRequest->getId();
+		$qb = $this->db->getQueryBuilder();
+		$qb->update('libresign_sign_request')
+			->set('metadata', $qb->createNamedParameter('{invalid-json'))
+			->where($qb->expr()->eq('id', $qb->createNamedParameter($requestId)))
+			->executeStatement();
+		try {
+			$this->publisher()->publish($request, (string)$session['id'], $pem);
+			self::fail('Invalid metadata must reject publication before commit');
+		} catch (\JsonException) {
+			// The signer row was claimed inside the aborted transaction.
+		}
+		$stored = Server::get(SignRequestMapper::class)->getById($requestId);
+		self::assertSame(SignRequestStatus::ABLE_TO_SIGN, $stored->getStatusEnum());
+		self::assertNull($stored->getSigned());
+		self::assertNull($stored->getSignedHash());
+		self::assertNull(Server::get(FileMapper::class)->getById($request->file->getId())->getSignedNodeId());
+		self::assertSame('completing', $this->sessions->getForSignRequest((string)$session['id'],
+			$requestId, $request->actorId)['status']);
+		self::assertSame(1, $submissions);
+
+		$qb = $this->db->getQueryBuilder();
+		$qb->update('libresign_sign_request')
+			->set('metadata', $qb->createNamedParameter('{}'))
+			->where($qb->expr()->eq('id', $qb->createNamedParameter($requestId)))
+			->executeStatement();
+		$published = $this->publisher()->publish($request, (string)$session['id'], $pem);
+		self::assertSame('completed', $published['status']);
+		self::assertSame(SignRequestStatus::SIGNED,
+			Server::get(SignRequestMapper::class)->getById($requestId)->getStatusEnum());
+		self::assertSame(1, $submissions);
+	}
+
 	public function testPublicationPreservesOriginalAndPriorSignedPdfRevision(): void {
 		[$priorPem, $priorKey] = $this->certificate();
 		$previous = $this->makePreviouslySignedPdf($this->pdf(), $priorPem, $priorKey);

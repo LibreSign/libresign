@@ -207,9 +207,9 @@ $store = new \OCA\Libresign\Service\Signing\External\SessionStore(
 $prepared = $store->resume($argv[2], 'synthetic-user', 'file-123-etag-456', 'synthetic-source-pdf', file_get_contents($argv[3]));
 echo hash('sha256', $prepared->upstream->state);
 PHP);
-			$root = dirname(__DIR__, 5);
+			$root = dirname(__DIR__, 8);
 			$command = implode(' ', array_map('escapeshellarg', [
-				PHP_BINARY, $script, dirname($root, 2), (string)$row['id'], $certificateFile,
+				PHP_BINARY, $script, $root, (string)$row['id'], $certificateFile,
 			]));
 			$output = [];
 			$exitCode = -1;
@@ -265,7 +265,7 @@ try {
 }
 PHP);
 			$command = implode(' ', array_map('escapeshellarg', [
-				PHP_BINARY, $script, dirname(dirname(__DIR__, 5), 2), (string)$row['id'], $certificateFile,
+				PHP_BINARY, $script, dirname(__DIR__, 8), (string)$row['id'], $certificateFile,
 			]));
 			for ($n = 0; $n < 2; $n++) {
 				$descriptor = [
@@ -351,7 +351,7 @@ PHP);
 	}
 
 	public function testRealSignerPhpPreparedPdfPersistsExactly(): void {
-		$pdf = file_get_contents(dirname(__DIR__, 3) . '/fixtures/pdfs/small_valid.pdf');
+		$pdf = file_get_contents(dirname(__DIR__, 4) . '/fixtures/pdfs/small_valid.pdf');
 		$this->assertIsString($pdf);
 		$upstream = \OCA\Libresign\Vendor\SignerPHP\PdfSigner\Presentation\Signer::externalSigner()
 			->withPdfContent($pdf)
@@ -426,7 +426,7 @@ try {
 }
 PHP);
 			$command = implode(' ', array_map('escapeshellarg', [PHP_BINARY, $script,
-				dirname(dirname(__DIR__, 5), 2), $integration->id, $certFile]));
+				dirname(__DIR__, 8), $integration->id, $certFile]));
 			for ($n = 0; $n < 2; $n++) {
 				$p = proc_open($command, [0 => ['pipe', 'r'], 1 => ['pipe', 'w'], 2 => ['pipe', 'w']], $pipes);
 				self::assertIsResource($p);
@@ -660,7 +660,7 @@ PHP);
 			$this->sessions->findForSignRequest(12345, 'synthetic-user');
 			self::fail('Feature-disabled discovery must be rejected');
 		} catch (\DomainException $e) {
-			self::assertStringContainsString('disabled', $e->getMessage());
+			self::assertStringContainsString('not enabled', $e->getMessage());
 		}
 		$this->expectException(\DomainException::class);
 		$this->sessions->getForSignRequest((string)$row['id'], 12345, 'synthetic-user');
