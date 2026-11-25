@@ -10,10 +10,10 @@ namespace OCA\Libresign\Tests\Integration\Service\Signing\External;
 
 use OCA\Libresign\Service\ExperimentalFeaturesService;
 use OCA\Libresign\Service\Signature\PreparedExternalOperation;
-use OCA\Libresign\Service\Signing\ExternalIntegrationRecord;
-use OCA\Libresign\Service\Signing\ExternalIntegrationStore;
 use OCA\Libresign\Service\Signing\External\SessionState;
 use OCA\Libresign\Service\Signing\External\SessionStore;
+use OCA\Libresign\Service\Signing\ExternalIntegrationRecord;
+use OCA\Libresign\Service\Signing\ExternalIntegrationStore;
 use OCA\Libresign\Vendor\SignerPHP\PdfSigner\Application\DTO\ExternalSigningPayload;
 use OCA\Libresign\Vendor\SignerPHP\PdfSigner\Application\DTO\HashAlgorithm;
 use OCA\Libresign\Vendor\SignerPHP\PdfSigner\Application\DTO\PreparedExternalSignature;

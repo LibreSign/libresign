@@ -9,10 +9,10 @@ declare(strict_types=1);
 namespace OCA\Libresign\Tests\Integration\Service\Signing\External;
 
 use OCA\Libresign\Service\ExperimentalFeaturesService;
+use OCA\Libresign\Service\Signing\External\LaboratoryFactory;
 use OCA\Libresign\Service\Signing\ExternalIntegrationAvailability;
 use OCA\Libresign\Service\Signing\ExternalIntegrationRecord;
 use OCA\Libresign\Service\Signing\ExternalIntegrationStore;
-use OCA\Libresign\Service\Signing\External\LaboratoryFactory;
 use OCA\Libresign\Service\Signing\Provider\Drivers\Csc\CscDriver;
 use OCP\Http\Client\IClientService;
 use OCP\IConfig;

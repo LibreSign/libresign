@@ -8,9 +8,9 @@ declare(strict_types=1);
 
 namespace OCA\Libresign\Service\Signing;
 
-use OCA\Libresign\Service\Signing\External\SessionStore;
-use OCA\Libresign\Service\Signing\External\SessionState;
 use OCA\Libresign\Service\Signature\ExternalPdfSigningService;
+use OCA\Libresign\Service\Signing\External\SessionState;
+use OCA\Libresign\Service\Signing\External\SessionStore;
 use OCA\Libresign\Service\Signing\Provider\Drivers\Csc\CscCredentialEligibility;
 use OCA\Libresign\Service\Signing\Provider\Drivers\Csc\CscDriver;
 use OCA\Libresign\Service\Signing\Provider\Drivers\Csc\CscIntegration;

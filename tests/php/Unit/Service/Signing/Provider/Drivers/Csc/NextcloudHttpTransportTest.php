@@ -84,7 +84,6 @@ final class NextcloudHttpTransportTest extends TestCase {
 		$this->assertSame(503, (new NextcloudHttpTransport($service, $this->config()))->request('POST', 'https://csc.example.org')->statusCode);
 	}
 
-
 	public function testRejectsInvalidHeadersBeforeNetwork(): void {
 		$service = $this->createMock(IClientService::class);
 		$service->expects($this->never())->method('newClient');
