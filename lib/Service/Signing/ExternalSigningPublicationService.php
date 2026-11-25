@@ -119,53 +119,53 @@ final class ExternalSigningPublicationService {
 		$previousStatus = $file->getStatus();
 		$activated = [];
 		$locked = null;
-		$this->atomic(function () use ($fileId, $file, $source, $sourceRevision, $requestId, $request, $hash, $output, $sessionId, $authorized, $session, $pdfBytes, &$locked, &$activated): void {
-				$locked = $this->files->getByIdForUpdate($fileId);
-				if ($locked->getSignedNodeId() !== $file->getSignedNodeId()
-					|| $locked->getStatus() === FileStatus::SIGNED->value
-					|| $locked->getNodeId() !== $file->getNodeId()) {
-					throw new \DomainException('Document revision or workflow changed during publication');
+		$this->atomic(function () use ($fileId, $file, $source, $sourceRevision, $requestId, $request, $hash, $output, $sessionId, $authorized, $session, $pdfBytes, $expectedCertificatePem, &$locked, &$activated): void {
+			$locked = $this->files->getByIdForUpdate($fileId);
+			if ($locked->getSignedNodeId() !== $file->getSignedNodeId()
+				|| $locked->getStatus() === FileStatus::SIGNED->value
+				|| $locked->getNodeId() !== $file->getNodeId()) {
+				throw new \DomainException('Document revision or workflow changed during publication');
+			}
+			if ($source->getEtag() !== $sourceRevision) {
+				throw new \DomainException('Document changed during CSC publication');
+			}
+			$now = new DateTime('now', new DateTimeZone('UTC'));
+			$qb = $this->db->getQueryBuilder();
+			$claimed = $qb->update('libresign_sign_request')
+				->set('signed', $qb->createNamedParameter($now, IQueryBuilder::PARAM_DATETIME_MUTABLE))
+				->set('signed_hash', $qb->createNamedParameter($hash))
+				->set('status', $qb->createNamedParameter(SignRequestStatus::SIGNED->value, IQueryBuilder::PARAM_INT))
+				->where($qb->expr()->eq('id', $qb->createNamedParameter($requestId, IQueryBuilder::PARAM_INT)))
+				->andWhere($qb->expr()->eq('file_id', $qb->createNamedParameter($fileId, IQueryBuilder::PARAM_INT)))
+				->andWhere($qb->expr()->eq('status', $qb->createNamedParameter(SignRequestStatus::ABLE_TO_SIGN->value, IQueryBuilder::PARAM_INT)))
+				->andWhere($qb->expr()->isNull('signed'))
+				->andWhere($qb->expr()->isNull('signed_hash'))
+				->executeStatement();
+			if ($claimed !== 1) {
+				throw new \DomainException('Signing request already completed or changed concurrently');
+			}
+			$this->storeSignerCertificate($requestId, $expectedCertificatePem, $sessionId);
+			$request->setSigned($now);
+			$request->setSignedHash($hash);
+			$request->setStatusEnum(SignRequestStatus::SIGNED);
+			$locked->setSignedNodeId($output->getId());
+			$locked->setSignedHash($hash);
+			$signers = $this->signRequests->getByFileId($fileId);
+			foreach ($signers as $index => $signer) {
+				if ($signer->getId() === $requestId) {
+					$signers[$index] = $request;
 				}
-				if ($source->getEtag() !== $sourceRevision) {
-					throw new \DomainException('Document changed during CSC publication');
-				}
-				$now = new DateTime('now', new DateTimeZone('UTC'));
-				$qb = $this->db->getQueryBuilder();
-				$claimed = $qb->update('libresign_sign_request')
-					->set('signed', $qb->createNamedParameter($now, IQueryBuilder::PARAM_DATETIME_MUTABLE))
-					->set('signed_hash', $qb->createNamedParameter($hash))
-					->set('status', $qb->createNamedParameter(SignRequestStatus::SIGNED->value, IQueryBuilder::PARAM_INT))
-					->where($qb->expr()->eq('id', $qb->createNamedParameter($requestId, IQueryBuilder::PARAM_INT)))
-					->andWhere($qb->expr()->eq('file_id', $qb->createNamedParameter($fileId, IQueryBuilder::PARAM_INT)))
-					->andWhere($qb->expr()->eq('status', $qb->createNamedParameter(SignRequestStatus::ABLE_TO_SIGN->value, IQueryBuilder::PARAM_INT)))
-					->andWhere($qb->expr()->isNull('signed'))
-					->andWhere($qb->expr()->isNull('signed_hash'))
-					->executeStatement();
-				if ($claimed !== 1) {
-					throw new \DomainException('Signing request already completed or changed concurrently');
-				}
-				$this->storeSignerCertificate($requestId, $expectedCertificatePem, $sessionId);
-				$request->setSigned($now);
-				$request->setSignedHash($hash);
-				$request->setStatusEnum(SignRequestStatus::SIGNED);
-				$locked->setSignedNodeId($output->getId());
-				$locked->setSignedHash($hash);
-				$signers = $this->signRequests->getByFileId($fileId);
-				foreach ($signers as $index => $signer) {
-					if ($signer->getId() === $requestId) {
-						$signers[$index] = $request;
-					}
-				}
-				$newStatus = $this->statusResolver->resolve($locked, $signers);
-				if ($newStatus !== null) {
-					$locked->setStatus($newStatus->value);
-				}
-				$this->fileStatuses->updateForQueuedJob($locked);
-				$this->notificationDeliveries->cancelPendingInvitations($requestId);
-				$this->sequential->setFile($locked);
-				$activated = $this->sequential->activateNextOrder($fileId, $request->getSigningOrder());
-				$this->sessions->markCompleted($sessionId, $authorized->actorId,
-					(int)$session['revision'], $sourceRevision, $pdfBytes, $expectedCertificatePem);
+			}
+			$newStatus = $this->statusResolver->resolve($locked, $signers);
+			if ($newStatus !== null) {
+				$locked->setStatus($newStatus->value);
+			}
+			$this->fileStatuses->updateForQueuedJob($locked);
+			$this->notificationDeliveries->cancelPendingInvitations($requestId);
+			$this->sequential->setFile($locked);
+			$activated = $this->sequential->activateNextOrder($fileId, $request->getSigningOrder());
+			$this->sessions->markCompleted($sessionId, $authorized->actorId,
+				(int)$session['revision'], $sourceRevision, $pdfBytes, $expectedCertificatePem);
 		}, $this->db);
 
 		try {
