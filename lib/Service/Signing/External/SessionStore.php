@@ -36,7 +36,6 @@ final class SessionStore {
 	private const AUDIT_TABLE = 'libresign_ext_sign_audit';
 	private const ATTEMPT_TABLE = 'libresign_ext_sign_attempt';
 	// Fail closed instead of accidentally overflowing MySQL TEXT or exhausting memory.
-	private const MAX_SECRET_JSON = 64 * 1024;
 
 	public function __construct(
 		private IDBConnection $db,
@@ -448,16 +447,7 @@ final class SessionStore {
 		#[\SensitiveParameter] array $secrets,
 	): array {
 		$this->assertFeatureEnabled();
-		foreach ($secrets as $key => $value) {
-			if (!is_string($key) || preg_match('/^[a-zA-Z][a-zA-Z0-9_]{0,63}$/D', $key) !== 1
-				|| !is_string($value) || $value === '' || strlen($value) > 16384) {
-				throw new \InvalidArgumentException('Invalid private continuation data');
-			}
-		}
-		$json = json_encode((object)$secrets, JSON_THROW_ON_ERROR);
-		if (strlen($json) > self::MAX_SECRET_JSON) {
-			throw new \InvalidArgumentException('Continuation data exceeds size limit');
-		}
+		$json = ContinuationCodec::encode($secrets);
 		$row = $this->load($id, $actorId);
 		if (in_array($row['status'], ['completed', 'rejected', 'expired', 'failed'], true)
 			|| (new \DateTimeImmutable((string)$row['expires_at']))->getTimestamp() <= time()) {
@@ -495,16 +485,7 @@ final class SessionStore {
 		if ($cipher === '') {
 			return [];
 		}
-		$value = json_decode($this->unprotect($cipher), true, 16, JSON_THROW_ON_ERROR);
-		if (!is_array($value) || ($value !== [] && array_is_list($value))) {
-			throw new \UnexpectedValueException('Invalid continuation data shape');
-		}
-		foreach ($value as $key => $entry) {
-			if (!is_string($key) || !is_string($entry)) {
-				throw new \UnexpectedValueException('Invalid continuation data');
-			}
-		}
-		return $value;
+		return ContinuationCodec::decode($this->unprotect($cipher));
 	}
 
 	/**
