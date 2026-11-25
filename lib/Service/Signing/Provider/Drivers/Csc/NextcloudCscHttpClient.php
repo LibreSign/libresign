@@ -8,10 +8,10 @@ declare(strict_types=1);
 
 namespace OCA\Libresign\Service\Signing\Provider\Drivers\Csc;
 
+use OCA\Libresign\Vendor\SignerPHP\PdfSigner\Infrastructure\Native\Contract\HttpClientInterface;
+use OCA\Libresign\Vendor\SignerPHP\PdfSigner\Infrastructure\Native\ValueObject\HttpResponse;
 use OCP\Http\Client\IClientService;
 use OCP\IConfig;
-use SignerPHP\PdfSigner\Infrastructure\Native\Contract\HttpClientInterface;
-use SignerPHP\PdfSigner\Infrastructure\Native\ValueObject\HttpResponse;
 
 /**
  * Thin adaptation of Nextcloud's SSRF-aware HTTP client to SignerPHP's

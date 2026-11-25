@@ -10,15 +10,15 @@ namespace OCA\Libresign\Service\Signing;
 
 use OCA\Libresign\Service\ExperimentalFeaturesService;
 use OCA\Libresign\Service\Signature\PreparedExternalOperation;
+use OCA\Libresign\Vendor\SignerPHP\PdfSigner\Application\DTO\ExternalSigningPayload;
+use OCA\Libresign\Vendor\SignerPHP\PdfSigner\Application\DTO\HashAlgorithm;
+use OCA\Libresign\Vendor\SignerPHP\PdfSigner\Application\DTO\PreparedExternalSignature;
+use OCA\Libresign\Vendor\SignerPHP\PdfSigner\Application\DTO\SignatureAlgorithm;
+use OCA\Libresign\Vendor\SignerPHP\PdfSigner\Application\DTO\SignatureEncoding;
+use OCA\Libresign\Vendor\SignerPHP\PdfSigner\Application\DTO\SigningInputType;
 use OCP\DB\QueryBuilder\IQueryBuilder;
 use OCP\IDBConnection;
 use OCP\Security\ICrypto;
-use SignerPHP\PdfSigner\Application\DTO\ExternalSigningPayload;
-use SignerPHP\PdfSigner\Application\DTO\HashAlgorithm;
-use SignerPHP\PdfSigner\Application\DTO\PreparedExternalSignature;
-use SignerPHP\PdfSigner\Application\DTO\SignatureAlgorithm;
-use SignerPHP\PdfSigner\Application\DTO\SignatureEncoding;
-use SignerPHP\PdfSigner\Application\DTO\SigningInputType;
 
 /**
  * Durable, server-authoritative signing state, not a public API or a provider.

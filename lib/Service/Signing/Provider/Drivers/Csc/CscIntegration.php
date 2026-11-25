@@ -8,17 +8,17 @@ declare(strict_types=1);
 
 namespace OCA\Libresign\Service\Signing\Provider\Drivers\Csc;
 
+use OCA\Libresign\Vendor\SignerPHP\PdfSigner\Application\DTO\ExternalSigningPayload;
+use OCA\Libresign\Vendor\SignerPHP\PdfSigner\Application\DTO\SignatureValue;
+use OCA\Libresign\Vendor\SignerPHP\PdfSigner\Infrastructure\Native\Contract\HttpClientInterface;
+use OCA\Libresign\Vendor\SignerPHP\PdfSigner\Infrastructure\Remote\Csc\CscCertificateDiscovery;
+use OCA\Libresign\Vendor\SignerPHP\PdfSigner\Infrastructure\Remote\Csc\CscClient;
+use OCA\Libresign\Vendor\SignerPHP\PdfSigner\Infrastructure\Remote\Csc\CscSignatureProvider;
+use OCA\Libresign\Vendor\SignerPHP\PdfSigner\RemoteSigning\Contract\RemoteCertificateDiscoveryInterface;
+use OCA\Libresign\Vendor\SignerPHP\PdfSigner\RemoteSigning\Contract\RemoteSignatureProviderInterface;
+use OCA\Libresign\Vendor\SignerPHP\PdfSigner\RemoteSigning\DTO\RemoteCertificate;
 use OCP\Http\Client\IClientService;
 use OCP\IConfig;
-use SignerPHP\PdfSigner\Application\DTO\ExternalSigningPayload;
-use SignerPHP\PdfSigner\Application\DTO\SignatureValue;
-use SignerPHP\PdfSigner\Infrastructure\Native\Contract\HttpClientInterface;
-use SignerPHP\PdfSigner\Infrastructure\Remote\Csc\CscCertificateDiscovery;
-use SignerPHP\PdfSigner\Infrastructure\Remote\Csc\CscClient;
-use SignerPHP\PdfSigner\Infrastructure\Remote\Csc\CscSignatureProvider;
-use SignerPHP\PdfSigner\RemoteSigning\Contract\RemoteCertificateDiscoveryInterface;
-use SignerPHP\PdfSigner\RemoteSigning\Contract\RemoteSignatureProviderInterface;
-use SignerPHP\PdfSigner\RemoteSigning\DTO\RemoteCertificate;
 
 /**
  * A transient CSC adapter: integration-instance persistence belongs to #9596;

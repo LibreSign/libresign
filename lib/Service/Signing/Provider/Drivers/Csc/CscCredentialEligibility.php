@@ -8,7 +8,7 @@ declare(strict_types=1);
 
 namespace OCA\Libresign\Service\Signing\Provider\Drivers\Csc;
 
-use SignerPHP\PdfSigner\RemoteSigning\DTO\RemoteCertificate;
+use OCA\Libresign\Vendor\SignerPHP\PdfSigner\RemoteSigning\DTO\RemoteCertificate;
 
 /**
  * Check the public certificate properties needed for the CSC v1 subset.

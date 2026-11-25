@@ -12,12 +12,12 @@ use OCA\Libresign\Service\Signature\ExternalPdfSigningService;
 use OCA\Libresign\Service\Signing\Provider\Drivers\Csc\CscCredentialEligibility;
 use OCA\Libresign\Service\Signing\Provider\Drivers\Csc\CscDriver;
 use OCA\Libresign\Service\Signing\Provider\Drivers\Csc\CscIntegration;
-use SignerPHP\PdfSigner\Application\DTO\HashAlgorithm;
-use SignerPHP\PdfSigner\Application\DTO\SignatureAlgorithm;
-use SignerPHP\PdfSigner\Application\DTO\SignatureEncoding;
-use SignerPHP\PdfSigner\Application\DTO\SigningContextDto;
-use SignerPHP\PdfSigner\Application\DTO\SigningInputType;
-use SignerPHP\PdfSigner\RemoteSigning\DTO\RemoteCertificate;
+use OCA\Libresign\Vendor\SignerPHP\PdfSigner\Application\DTO\HashAlgorithm;
+use OCA\Libresign\Vendor\SignerPHP\PdfSigner\Application\DTO\SignatureAlgorithm;
+use OCA\Libresign\Vendor\SignerPHP\PdfSigner\Application\DTO\SignatureEncoding;
+use OCA\Libresign\Vendor\SignerPHP\PdfSigner\Application\DTO\SigningContextDto;
+use OCA\Libresign\Vendor\SignerPHP\PdfSigner\Application\DTO\SigningInputType;
+use OCA\Libresign\Vendor\SignerPHP\PdfSigner\RemoteSigning\DTO\RemoteCertificate;
 
 /**
  * Internal cryptographic half of the experimental CSC v1 workflow.
@@ -221,7 +221,7 @@ final class SyntheticCscSigningOperation {
 		}
 	}
 
-	private function assertSupportedPayload(\SignerPHP\PdfSigner\Application\DTO\ExternalSigningPayload $payload): void {
+	private function assertSupportedPayload(\OCA\Libresign\Vendor\SignerPHP\PdfSigner\Application\DTO\ExternalSigningPayload $payload): void {
 		if ($payload->inputType !== SigningInputType::Digest
 			|| $payload->digestAlgorithm !== HashAlgorithm::Sha256
 			|| $payload->signatureAlgorithm !== SignatureAlgorithm::RsaPkcs1V15

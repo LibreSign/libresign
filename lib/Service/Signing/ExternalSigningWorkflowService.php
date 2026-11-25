@@ -13,15 +13,15 @@ use OCA\Libresign\Db\FileMapper;
 use OCA\Libresign\Service\FolderService;
 use OCA\Libresign\Service\IdentifyMethodService;
 use OCA\Libresign\Service\Signing\Provider\Drivers\Csc\CscIntegration;
+use OCA\Libresign\Vendor\SignerPHP\PdfSigner\Application\DTO\PdfContentDto;
+use OCA\Libresign\Vendor\SignerPHP\PdfSigner\Application\DTO\SignatureActorDto;
+use OCA\Libresign\Vendor\SignerPHP\PdfSigner\Application\DTO\SignatureMetadataDto;
+use OCA\Libresign\Vendor\SignerPHP\PdfSigner\Application\DTO\SignatureProfile;
+use OCA\Libresign\Vendor\SignerPHP\PdfSigner\Application\DTO\SigningCertificateDto;
+use OCA\Libresign\Vendor\SignerPHP\PdfSigner\Application\DTO\SigningContextDto;
+use OCA\Libresign\Vendor\SignerPHP\PdfSigner\Application\DTO\SigningOptionsDto;
+use OCA\Libresign\Vendor\SignerPHP\PdfSigner\RemoteSigning\DTO\RemoteCertificate;
 use OCP\Files\File as NextcloudFile;
-use SignerPHP\PdfSigner\Application\DTO\PdfContentDto;
-use SignerPHP\PdfSigner\Application\DTO\SignatureActorDto;
-use SignerPHP\PdfSigner\Application\DTO\SignatureMetadataDto;
-use SignerPHP\PdfSigner\Application\DTO\SignatureProfile;
-use SignerPHP\PdfSigner\Application\DTO\SigningCertificateDto;
-use SignerPHP\PdfSigner\Application\DTO\SigningContextDto;
-use SignerPHP\PdfSigner\Application\DTO\SigningOptionsDto;
-use SignerPHP\PdfSigner\RemoteSigning\DTO\RemoteCertificate;
 
 /**
  * Provider-neutral execution surface for the explicitly pinned synthetic
