@@ -64,6 +64,12 @@ async function authorize(wrapper: ReturnType<typeof mountSigner>) {
 }
 
 describe('external signing within the existing signer UI', () => {
+	it('uses a neutral signing title without a development-status label', () => {
+		const wrapper = mountSigner()
+		expect(wrapper.text()).toContain('External signing')
+		expect(wrapper.text()).not.toMatch(/experimental/i)
+		wrapper.unmount()
+	})
 	beforeEach(() => {
 		vi.clearAllMocks()
 		vi.mocked(axios.post).mockResolvedValue({ data: {} })

@@ -5,8 +5,8 @@
 <template>
 	<section class="external-signing" aria-labelledby="external-signing-title">
 		<h3 id="external-signing-title">
-			<!-- TRANSLATORS Title of the experimental external CSC signing panel, which uses synthetic test credentials. -->
-			{{ t('libresign', 'External signing (experimental)') }}
+			<!-- TRANSLATORS Title of the external CSC signing panel for authorized signing requests. -->
+			{{ t('libresign', 'External signing') }}
 		</h3>
 		<NcNoteCard type="info">
 			<!-- TRANSLATORS The CSC v1 integration is limited to synthetic credentials used for testing. -->
@@ -18,12 +18,12 @@
 				<label for="external-signing-method">{{ t('libresign', 'Verification method') }}</label>
 				<select id="external-signing-method" v-model="identityMethod" :disabled="busy">
 					<option value="account">
-						<!-- TRANSLATORS Option to verify the signer using their signed-in Nextcloud account. -->
-						{{ t('libresign', 'Nextcloud account') }}
+						<!-- TRANSLATORS Option to verify the signer using their currently signed-in account. -->
+						{{ t('libresign', 'Use my account') }}
 					</option>
 					<option value="email">
-						<!-- TRANSLATORS Option to verify the invited signer using a code delivered to their email address. -->
-						{{ t('libresign', 'Email verification') }}
+						<!-- TRANSLATORS Option to verify the invited signer using an email confirmation code. -->
+						{{ t('libresign', 'Verify by email') }}
 					</option>
 				</select>
 			</div>

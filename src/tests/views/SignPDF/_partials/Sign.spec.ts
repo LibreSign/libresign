@@ -192,7 +192,7 @@ describe('Sign.vue approval labels and signing methods', () => {
 	it.each([
 		{ approval: false, available: true },
 		{ approval: true, available: false },
-	])('keeps experimental external signing out of approval workflows (approval: $approval)', async ({ approval, available }) => {
+	])('keeps external signing out of approval workflows (approval: $approval)', async ({ approval, available }) => {
 		setActivePinia(createPinia())
 		const signStore = useSignStore()
 		const signMethodsStore = useSignMethodsStore()
@@ -229,7 +229,7 @@ describe('Sign.vue approval labels and signing methods', () => {
 			} },
 		})
 		await flushPromises()
-		const externalButton = wrapper.findAll('button').find(button => button.text().includes('External signing (experimental)'))
+		const externalButton = wrapper.findAll('button').find(button => button.text().includes('External signing'))
 		expect(Boolean(externalButton)).toBe(available)
 		if (externalButton) {
 			await externalButton.trigger('click')
