@@ -53,7 +53,7 @@ SH);
 	 */
 	private function runScript(string $name, int $specExit = 0, int $npmExit = 0): array {
 		$composer = json_decode(
-			(string)file_get_contents(dirname(__DIR__, 3) . '/composer.json'),
+			(string)file_get_contents(dirname(__DIR__, 4) . '/composer.json'),
 			true,
 			512,
 			JSON_THROW_ON_ERROR,

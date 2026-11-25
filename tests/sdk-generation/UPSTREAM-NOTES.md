@@ -226,7 +226,7 @@ in LibreSign. Candidates, each needing its cause confirmed first:
   middleware 422 (`ActionErrorResponse`), it has no `try` block; and `nodeId` is
   nullable in `DetailedFile`, `ValidatedFile` and `ValidatedChildFile` like the
   database column. Guarded by
-  `tests/php/openapi/OpenApiErrorBodyContractTest.php`. The 422 documentation of
+  `tests/php/openapi/tests/OpenApiErrorBodyContractTest.php`. The 422 documentation of
   `request-signature`, `deleteFile` and `deleteSignatureRequest` was checked and
   is correct: `#[RequireManager]` rejects a user without permission with an
   `{action, errors}` 422 before the method runs. `SignFileController::signByFileId`
@@ -257,11 +257,11 @@ in LibreSign. Candidates, each needing its cause confirmed first:
   `IdDocsController` and `AccountController`), the frontend alias in
   `src/views/Documents/IdDocsValidation.vue` and its spec follow, the three
   contracts and the TypeScript types were regenerated, and
-  `tests/php/openapi/OpenApiIdDocSchemaTest.php` guards the name;
+  `tests/php/openapi/tests/OpenApiIdDocSchemaTest.php` guards the name;
 - the `*/*` media types (E5): done where the type is fixed in the code. The CRL
   now declares `application/pkix-crl` (`CrlController.php`) and the admin
   background `image/png` (`AdminController.php`), with
-  `tests/php/openapi/OpenApiBinaryMediaTypesTest.php`. Thumbnails and the
+  `tests/php/openapi/tests/OpenApiBinaryMediaTypesTest.php`. Thumbnails and the
   signature element preview keep `*/*` because their media type depends on the
   previewed file (`Content-Type: string` is accurate).
 - **Go/No-Go**: see the handoff in [REPORT.md](REPORT.md). It must be re-run

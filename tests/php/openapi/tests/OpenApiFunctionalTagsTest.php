@@ -13,7 +13,7 @@ use PHPUnit\Framework\TestCase;
 
 class OpenApiFunctionalTagsTest extends TestCase {
 	private static function root(): string {
-		return dirname(__DIR__, 3);
+		return dirname(__DIR__, 4);
 	}
 
 	/**

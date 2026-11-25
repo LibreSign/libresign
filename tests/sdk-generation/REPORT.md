@@ -174,7 +174,7 @@ LibreSign annotations that did not match the data were corrected:
   a null `nodeId`; only the type predicate of its file filter changed, not its
   behavior.
 
-`tests/php/openapi/OpenApiErrorBodyContractTest.php` guards these and the other
+`tests/php/openapi/tests/OpenApiErrorBodyContractTest.php` guards these and the other
 422 unions. A review of this branch caught an earlier mistaken narrowing: the
 422 of `request-signature` (POST, PATCH), `removeSigner`, `deleteFile` and
 `deleteSignatureRequest` can also be an `{action, errors}` body, because
