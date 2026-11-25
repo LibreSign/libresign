@@ -5,7 +5,7 @@
 
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { createPinia, setActivePinia } from 'pinia'
-import { mount } from '@vue/test-utils'
+import { flushPromises, mount } from '@vue/test-utils'
 
 vi.mock('@nextcloud/vue/components/NcAppContent', () => ({
 	default: { name: 'NcAppContent', template: '<div><slot /></div>' },
@@ -16,7 +16,7 @@ vi.mock('@nextcloud/initial-state', () => ({
 }))
 
 vi.mock('@nextcloud/router', () => ({
-	generateOcsUrl: vi.fn((path) => `/ocs/v2.php/apps/libresign${path}`),
+	generateOcsUrl: vi.fn((path) => `/ocs/v2.php${path}`),
 	generateUrl: vi.fn((path) => `/apps/libresign${path}`),
 }))
 
@@ -48,6 +48,7 @@ vi.mock('vue-router', () => ({
 vi.mock('../../../components/PdfEditor/PdfEditor.vue', () => ({
 	default: {
 		name: 'PdfEditor',
+		props: ['files', 'fileNames'],
 		template: '<div data-test="pdf-editor" />',
 	},
 }))
@@ -158,47 +159,91 @@ describe('SignPDF.vue', () => {
 		expect(signStore.document!.files).toEqual(envelopeFiles)
 	})
 
-	it('requests detailed envelope files so child files carry a PDF url', async () => {
+	it.each([
+		{ nodeType: 'file', fileCount: 1 },
+		{ nodeType: 'envelope', fileCount: 2 },
+	])('loads all PDFs for $nodeType with $fileCount file(s)', async ({ nodeType, fileCount }) => {
 		const SignPDF = (await import('../../../views/SignPDF/SignPDF.vue')).default
 		const { loadState } = await import('@nextcloud/initial-state')
 		const axios = (await import('@nextcloud/axios')).default
+		const { useFilesStore } = await import('../../../store/files.js')
 		const { useSignStore } = await import('../../../store/sign.js')
+		const filesStore = useFilesStore()
 		const signStore = useSignStore()
 
-		signStore.document = createSignDocument({
-			nodeType: 'envelope',
-			files: [],
+		const signer = { me: true, signRequestId: 44, displayName: 'Admin', email: 'admin@email.tld' }
+		const childFiles = Array.from({ length: fileCount }, (_, index) => ({
+			id: 300 + index,
+			name: `contract-${index + 1}`,
+			metadata: { extension: 'pdf' },
+			signers: [{ ...signer, signRequestId: 500 + index }],
+		}))
+		const pdfUrls = childFiles.map((_, index) => `/apps/libresign/pdf/sign-request-uuid-${index + 1}`)
+		// file/list only adds each child's PDF url to the detailed payload.
+		const detailedChildFiles = childFiles.map((file, index) => ({ ...file, url: pdfUrls[index] }))
+
+		const signDocument = nodeType === 'envelope'
+			? createSignDocument({
+				id: 244,
+				nodeId: 244,
+				nodeType: 'envelope',
+				name: 'Envelope',
+				status: 1,
+				signers: [signer],
+				files: [],
+			})
+			: createSignDocument({
+				id: 300,
+				nodeId: 300,
+				nodeType: 'file',
+				name: childFiles[0].name,
+				status: 1,
+				signers: [signer],
+				files: [{ ...childFiles[0], file: pdfUrls[0] }],
+			})
+
+		vi.mocked(filesStore.fetchFileDetail).mockResolvedValue(signDocument)
+		// Fresh page load: no PDFs or envelope files preloaded in the initial state.
+		vi.mocked(loadState).mockImplementation((app, key, defaultValue) => defaultValue)
+		vi.mocked(axios.get).mockImplementation(async (url) => {
+			const details = new URL(String(url), 'http://localhost').searchParams.get('details')
+			return { data: { ocs: { data: { data: details === 'true' ? detailedChildFiles : childFiles } } } }
 		})
+		const fetchMock = vi.fn().mockResolvedValue({
+			headers: {
+				get: vi.fn(() => 'application/pdf'),
+			},
+			blob: vi.fn(async () => new Blob(['pdf'], { type: 'application/pdf' })),
+		})
+		vi.stubGlobal('fetch', fetchMock)
+
+		mockRoute.name = 'SignPDF'
+		mockRoute.params = { uuid: 'sign-uuid-123' }
+		mockRoute.path = '/f/sign/sign-uuid-123/pdf'
 
 		const wrapper = mount(SignPDF, {
 			global: {
 				stubs: {
 					TopBar: true,
-					PdfEditor: true,
 					NcNoteCard: true,
 					NcButton: true,
 				},
 				mocks: {
-					$route: { name: 'TestRoute', params: { uuid: 'uuid-123' }, query: {} },
+					$route: { name: 'SignPDF', params: { uuid: 'sign-uuid-123' }, query: {} },
 				},
 			},
 		})
+		await flushPromises()
 
-		// No envelope files in the initial state, as on /f/sign after a full page load.
-		vi.mocked(loadState).mockImplementation((app, key, defaultValue) => defaultValue)
-		const childFiles = [
-			{ id: 245, name: 'file1', url: '/apps/libresign/pdf/child-uuid-1', metadata: { extension: 'pdf' } },
-		]
-		vi.mocked(axios.get).mockResolvedValue({ data: { ocs: { data: { data: childFiles } } } })
-
-		const files = await wrapper.vm.fetchEnvelopeFiles(244)
-
-		expect(files).toEqual(childFiles)
-		const requested = vi.mocked(axios.get).mock.calls
-			.map(([url]) => new URL(String(url), 'http://localhost'))
-			.find((url) => url.searchParams.get('parentFileId') === '244')
-		expect(requested?.pathname).toBe('/ocs/v2.php/apps/libresign/api/v1/file/list')
-		expect(requested?.searchParams.get('details')).toBe('true')
+		expect(fetchMock).toHaveBeenCalledTimes(fileCount)
+		for (const pdfUrl of pdfUrls) {
+			expect(fetchMock).toHaveBeenCalledWith(pdfUrl)
+		}
+		const pdfEditor = wrapper.findComponent({ name: 'PdfEditor' })
+		expect(pdfEditor.exists()).toBe(true)
+		expect(pdfEditor.props('files')).toHaveLength(fileCount)
+		expect(pdfEditor.props('fileNames')).toEqual(childFiles.map((file) => `${file.name}.pdf`))
+		expect(signStore.errors).toEqual([])
 	})
 
 	it('normalizes envelope visible elements when loading child files', async () => {
