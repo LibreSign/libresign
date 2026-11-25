@@ -15,20 +15,15 @@ use OCA\Libresign\Db\NotificationDeliveryMapper;
 use OCA\Libresign\Db\SignRequestMapper;
 use OCA\Libresign\Enum\FileStatus;
 use OCA\Libresign\Enum\SignRequestStatus;
-use OCA\Libresign\Events\SignedEventFactory;
 use OCA\Libresign\Service\File\SigningWorkflowStatusResolver;
 use OCA\Libresign\Service\FileStatusService;
 use OCA\Libresign\Service\FolderService;
 use OCA\Libresign\Service\SequentialSigningService;
 use OCA\Libresign\Service\Signing\SyntheticCscSigningOperation;
-use OCA\Libresign\Service\Webhook\NativeWebhookEventPublisher;
 use OCP\AppFramework\Db\TTransactional;
 use OCP\DB\QueryBuilder\IQueryBuilder;
-use OCP\EventDispatcher\IEventDispatcher;
 use OCP\Files\File as NextcloudFile;
 use OCP\IDBConnection;
-use OCP\IUserSession;
-use Psr\Log\LoggerInterface;
 
 /**
  * Reconcile the synthetic CSC PDF with the actual LibreSign workflow.
@@ -59,11 +54,8 @@ final class Publication {
 		private SigningWorkflowStatusResolver $statusResolver,
 		private SequentialSigningService $sequential,
 		private NotificationDeliveryMapper $notificationDeliveries,
-		private SignedEventFactory $signedEventFactory,
-		private IEventDispatcher $dispatcher,
-		private NativeWebhookEventPublisher $webhooks,
-		private IUserSession $userSession,
-		private LoggerInterface $logger,
+		private ImmutableArtifactStore $artifacts,
+		private PublicationEvents $events,
 	) {
 	}
 
@@ -112,7 +104,7 @@ final class Publication {
 			$sourceRevision, $pdfBytes, $expectedCertificatePem,
 		);
 		$hash = hash('sha256', $validatedPdf);
-		$output = $this->ensureImmutableOutput($source, $sessionId, $fileId, $requestId, $validatedPdf, $hash);
+		$output = $this->artifacts->ensure($source, $sessionId, $fileId, $requestId, $validatedPdf, $hash);
 		if ($source->getEtag() !== $sourceRevision || !hash_equals(hash('sha256', $pdfBytes), hash('sha256', $source->getContent()))) {
 			throw new \DomainException('PDF source changed before CSC publication');
 		}
@@ -169,65 +161,13 @@ final class Publication {
 				(int)$session['revision'], $sourceRevision, $pdfBytes, $expectedCertificatePem);
 		}, $this->db);
 
-		try {
-			$this->fileStatuses->onQueuedJobCommitted($locked);
-			$this->signRequests->invalidateEntityCache($request);
-			$this->sequential->notifyActivatedSigners($activated);
-			$this->dispatcher->dispatchTyped($this->signedEventFactory->make(
-				$request, $locked, $output,
-			));
-			$this->webhooks->signerSigned($locked, $request);
-			$this->webhooks->requestCompleted($locked, $previousStatus);
-		} catch (\Throwable $e) {
-			$this->logger->error('CSC signing committed but a post-commit event failed', [
-				'exception' => $e, 'signRequestId' => $requestId,
-			]);
-		}
+		$this->events->dispatch($locked, $request, $output, $previousStatus, $activated);
 		return [
 			'status' => 'completed',
 			'sessionId' => $sessionId,
 			'signedNodeId' => $output->getId(),
 			'signedHash' => $hash,
 		];
-	}
-
-	private function ensureImmutableOutput(
-		NextcloudFile $source,
-		string $sessionId,
-		int $fileId,
-		int $requestId,
-		#[\SensitiveParameter] string $content,
-		string $hash,
-	): NextcloudFile {
-		if (preg_match('/^[a-f0-9]{32}$/D', $sessionId) !== 1) {
-			throw new \DomainException('Invalid CSC publication session identifier');
-		}
-		$name = substr(pathinfo($source->getName(), PATHINFO_FILENAME), 0, 80);
-		$filename = $name . '_signed_' . $fileId . '_' . $requestId . '_' . substr($sessionId, 0, 12) . '.pdf';
-		$folder = $source->getParent();
-		if ($folder->nodeExists($filename)) {
-			$existing = $folder->get($filename);
-			if (!$existing instanceof NextcloudFile || !hash_equals($hash, hash('sha256', $existing->getContent()))) {
-				throw new \DomainException('Existing CSC publication artifact does not match the validated PDF');
-			}
-			return $existing;
-		}
-		$owner = $source->getOwner();
-		$currentUser = $this->userSession->getUser();
-		if ($currentUser?->getUID() !== $owner->getUID()) {
-			$this->userSession->setVolatileActiveUser($owner);
-		}
-		try {
-			$created = $folder->newFile($filename, $content);
-		} finally {
-			if ($currentUser?->getUID() !== $owner->getUID()) {
-				$this->userSession->setVolatileActiveUser($currentUser);
-			}
-		}
-		if (!hash_equals($hash, hash('sha256', $created->getContent()))) {
-			throw new \DomainException('New CSC publication artifact failed integrity verification');
-		}
-		return $created;
 	}
 
 	/** Preserve all concurrent signer metadata, never overwrite its JSON. */

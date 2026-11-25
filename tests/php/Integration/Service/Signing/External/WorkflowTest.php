@@ -36,6 +36,8 @@ use OCA\Libresign\Service\Signing\External\CredentialSelection;
 use OCA\Libresign\Service\Signing\External\IntegrationScopeAccess;
 use OCA\Libresign\Service\Signing\External\LaboratoryFactory;
 use OCA\Libresign\Service\Signing\External\Publication;
+use OCA\Libresign\Service\Signing\External\ImmutableArtifactStore;
+use OCA\Libresign\Service\Signing\External\PublicationEvents;
 use OCA\Libresign\Service\Signing\External\SessionStore;
 use OCA\Libresign\Service\Signing\External\DocumentSource;
 use OCA\Libresign\Service\Signing\External\Workflow;
@@ -175,9 +177,11 @@ final class WorkflowTest extends \OCA\Libresign\Tests\Integration\TestCase {
 			Server::get(FolderService::class), Server::get(FileStatusService::class),
 			Server::get(SigningWorkflowStatusResolver::class), Server::get(SequentialSigningService::class),
 			Server::get(\OCA\Libresign\Db\NotificationDeliveryMapper::class),
-			Server::get(SignedEventFactory::class), Server::get(IEventDispatcher::class),
-			Server::get(NativeWebhookEventPublisher::class), Server::get(IUserSession::class),
-			Server::get(LoggerInterface::class),
+			new ImmutableArtifactStore(Server::get(IUserSession::class)),
+			new PublicationEvents(Server::get(FileStatusService::class), Server::get(SignRequestMapper::class),
+				Server::get(SequentialSigningService::class), Server::get(SignedEventFactory::class),
+				Server::get(IEventDispatcher::class), Server::get(NativeWebhookEventPublisher::class),
+				Server::get(LoggerInterface::class)),
 		);
 		$this->service = new Workflow(
 			$authorization, $laboratories, $selection, $this->sessions, $crypto, $publisher,
