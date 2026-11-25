@@ -31,6 +31,7 @@ use OCA\Libresign\Service\Signing\External\AuthorizedRequest;
 use OCA\Libresign\Service\Signing\ExternalIntegrationRecord;
 use OCA\Libresign\Service\Signing\ExternalIntegrationStore;
 use OCA\Libresign\Service\Signing\External\ImmutableArtifactStore;
+use OCA\Libresign\Service\Signing\External\DocumentSource;
 use OCA\Libresign\Service\Signing\External\Publication;
 use OCA\Libresign\Service\Signing\External\PublicationCommitter;
 use OCA\Libresign\Service\Signing\External\PublicationEvents;
@@ -244,6 +245,7 @@ final class SyntheticCscSigningOperationTest extends \OCA\Libresign\Tests\Integr
 		return new Publication(
 			$this->sessions, $this->workflow,
 			Server::get(FileMapper::class), Server::get(FolderService::class),
+			new DocumentSource(Server::get(FileMapper::class), Server::get(FolderService::class)),
 			new ImmutableArtifactStore(Server::get(IUserSession::class)),
 			new PublicationCommitter($this->db, $this->sessions, Server::get(FileMapper::class),
 				Server::get(SignRequestMapper::class), Server::get(FileStatusService::class),

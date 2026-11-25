@@ -97,12 +97,12 @@ final class Workflow {
 		$certificate = $this->certificate($lab['laboratory'], $credentialId,
 			(string)$chosen['certificateSha256']);
 		$source = $this->documents->get($actor->file);
-		$context = ContextFactory::create($source['pdf'], (string)$actor->signRequest->getDisplayName(),
+		$context = ContextFactory::create($source->pdf, (string)$actor->signRequest->getDisplayName(),
 			$profile, $certificate->certificate->certificatePem);
 		// The signing helper and the persisted session both independently
 		// check certificate, integration revision and exact PDF input.
 		return $this->crypto->prepare($lab['laboratory'], $lab['record'], $credentialId, $context,
-			$actor->actorId, $actor->signRequest->getId(), $attemptId, $source['revision'],
+			$actor->actorId, $actor->signRequest->getId(), $attemptId, $source->revision,
 			new \DateTimeImmutable('+15 minutes'));
 	}
 
@@ -149,7 +149,7 @@ final class Workflow {
 		], true)) {
 			try {
 				$this->crypto->sign($lab['laboratory'], $lab['record'], $sessionId,
-					$actor->signRequest->getId(), $actor->actorId, $source['revision'], $source['pdf']);
+					$actor->signRequest->getId(), $actor->actorId, $source->revision, $source->pdf);
 			} catch (\DomainException $e) {
 				// Any operation whose remote result is indeterminate stays
 				// non-retryable. Surface its stored state, not an HTTP retry.
@@ -162,7 +162,7 @@ final class Workflow {
 			}
 		} elseif ($session['status'] === SessionState::SIGNATURE_RECEIVED->value) {
 			$this->crypto->completeAndReserve($sessionId, $actor->signRequest->getId(),
-				$actor->actorId, $source['revision'], $source['pdf'], $signaturePem);
+				$actor->actorId, $source->revision, $source->pdf, $signaturePem);
 		} elseif ($session['status'] !== SessionState::COMPLETING->value) {
 			throw new \DomainException('External signing session has no continuation operation');
 		}

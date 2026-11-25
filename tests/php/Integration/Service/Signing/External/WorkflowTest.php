@@ -174,6 +174,7 @@ final class WorkflowTest extends \OCA\Libresign\Tests\Integration\TestCase {
 		$crypto = new SyntheticCscSigningOperation($pdfSigning, $this->sessions);
 		$publisher = new Publication(
 			$this->sessions, $crypto, Server::get(FileMapper::class), Server::get(FolderService::class),
+			new DocumentSource(Server::get(FileMapper::class), Server::get(FolderService::class)),
 			new ImmutableArtifactStore(Server::get(IUserSession::class)),
 			new PublicationCommitter($this->db, $this->sessions,
 				Server::get(FileMapper::class), Server::get(SignRequestMapper::class),

@@ -23,8 +23,7 @@ final class DocumentSource {
 	) {
 	}
 
-	/** @return array{pdf:string, revision:string} */
-	public function get(LibreSignFile $file): array {
+	public function get(LibreSignFile $file): DocumentRevision {
 		$sourceNodeId = $file->getSignedNodeId() ?: $file->getNodeId();
 		if ($sourceNodeId === null || $sourceNodeId < 1) {
 			throw new \DomainException('Authoritative source PDF is unavailable');
@@ -40,6 +39,6 @@ final class DocumentSource {
 			|| !str_starts_with($pdf, '%PDF-')) {
 			throw new \DomainException('Authoritative PDF source or revision is invalid');
 		}
-		return ['pdf' => $pdf, 'revision' => $revision];
+		return new DocumentRevision($node, $pdf, $revision);
 	}
 }

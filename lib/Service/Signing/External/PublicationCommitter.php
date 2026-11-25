@@ -63,8 +63,8 @@ final class PublicationCommitter {
 			$activated = $this->advanceSigners($locked, $request, $context);
 			$this->sessions->markCompleted(
 				$context->sessionId, $context->authorized->actorId,
-				(int)$context->session['revision'], $context->sourceRevision,
-				$context->sourcePdf, $context->certificatePem,
+				$context->sessionRevision, $context->document->revision,
+				$context->document->pdf, $context->certificatePem,
 			);
 			return [
 				'file' => $locked,
@@ -87,7 +87,7 @@ final class PublicationCommitter {
 			|| $locked->getNodeId() !== $context->file->getNodeId()) {
 			throw new \DomainException('Document revision or workflow changed during publication');
 		}
-		if ($context->source->getEtag() !== $context->sourceRevision) {
+		if ($context->document->node->getEtag() !== $context->document->revision) {
 			throw new \DomainException('Document changed during CSC publication');
 		}
 	}

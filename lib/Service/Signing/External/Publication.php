@@ -9,9 +9,7 @@ declare(strict_types=1);
 namespace OCA\Libresign\Service\Signing\External;
 
 use OCA\Libresign\Db\FileMapper;
-use OCA\Libresign\Service\FolderService;
 use OCA\Libresign\Service\Signing\SyntheticCscSigningOperation;
-use OCP\Files\File as NextcloudFile;
 
 /**
  * Reconcile the synthetic CSC PDF with the actual LibreSign workflow.
@@ -34,7 +32,7 @@ final class Publication {
 		private SessionStore $sessions,
 		private SyntheticCscSigningOperation $signing,
 		private FileMapper $files,
-		private FolderService $folders,
+		private DocumentSource $documents,
 		private ImmutableArtifactStore $artifacts,
 		private PublicationCommitter $committer,
 		private PublicationEvents $events,
@@ -67,32 +65,17 @@ final class Publication {
 		// Resolve the source exclusively from current LibreSign storage. Never
 		// accept a source PDF, document revision or resulting PDF from the UI.
 		$file = $this->files->getById($fileId);
-		$sourceNodeId = $file->getSignedNodeId() ?: $file->getNodeId();
-		if ($sourceNodeId === null || $sourceNodeId < 1) {
-			throw new \DomainException('Authoritative PDF source is missing');
-		}
-		$storageUid = $this->files->getStorageUserIdByUuid($file->getUuid());
-		$source = $this->folders->getReadableNodeById($storageUid, $sourceNodeId);
-		if (!$source instanceof NextcloudFile) {
-			throw new \DomainException('Authoritative PDF source cannot be read');
-		}
-		$sourceRevision = $source->getEtag();
-		$pdfBytes = $source->getContent();
-		if ($sourceRevision === '' || !str_starts_with($pdfBytes, '%PDF-')) {
-			throw new \DomainException('Authoritative PDF source is invalid');
-		}
+		$document = $this->documents->get($file);
 		$validatedPdf = $this->signing->reconstructForReconciliation(
 			$sessionId, $requestId, $authorized->actorId,
-			$sourceRevision, $pdfBytes, $expectedCertificatePem,
+			$document->revision, $document->pdf, $expectedCertificatePem,
 		);
 		$hash = hash('sha256', $validatedPdf);
-		$output = $this->artifacts->ensure($source, $sessionId, $fileId, $requestId, $validatedPdf, $hash);
-		if ($source->getEtag() !== $sourceRevision || !hash_equals(hash('sha256', $pdfBytes), hash('sha256', $source->getContent()))) {
-			throw new \DomainException('PDF source changed before CSC publication');
-		}
+		$output = $this->artifacts->ensure($document->node, $sessionId, $fileId, $requestId, $validatedPdf, $hash);
+		$document->assertUnchanged();
 
 		$context = new PublicationContext(
-			$authorized, $session, $file, $source, $sourceRevision, $pdfBytes,
+			$authorized, (int)$session['revision'], $file, $document,
 			$output, $hash, $expectedCertificatePem, $sessionId,
 		);
 		$committed = $this->committer->commit($context);
