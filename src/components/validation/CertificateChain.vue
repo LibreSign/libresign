@@ -86,6 +86,8 @@ import NcListItem from '@nextcloud/vue/components/NcListItem'
 import Moment from '@nextcloud/moment'
 import { ref } from 'vue'
 
+import type { CertificateChainEntry } from '../../types/index'
+
 import {
 	mdiUnfoldLessHorizontal,
 	mdiUnfoldMoreHorizontal,
@@ -96,7 +98,7 @@ defineOptions({
 })
 
 defineProps<{
-	chain: Array<Record<string, any>>
+	chain: CertificateChainEntry[]
 }>()
 
 const chainOpen = ref(false)

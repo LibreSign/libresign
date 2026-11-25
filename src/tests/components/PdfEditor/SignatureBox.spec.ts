@@ -21,7 +21,8 @@ const createSigner = (overrides: Partial<SignerSummaryRecord> = {}): SignerSumma
 	...overrides,
 })
 
-const usernameToColorMock = vi.fn((_seed: string) => ({ r: 10, g: 20, b: 30 }))
+const usernameToColorMock = vi.fn<(seed: string) => { r: number, g: number, b: number }>()
+usernameToColorMock.mockReturnValue({ r: 10, g: 20, b: 30 })
 
 vi.mock('@nextcloud/l10n', () => globalThis.mockNextcloudL10n({
 	t: (_app: string, text: string, vars?: Record<string, string | number>) => interpolateL10n(text, vars),

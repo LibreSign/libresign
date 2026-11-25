@@ -28,6 +28,10 @@ export const useSidebarStore = defineStore('sidebar', () => {
 		showSidebar()
 	}
 
+	const hideSidebar = () => {
+		show.value = false
+	}
+
 	const setActiveTab = (id) => {
 		activeTab.value = id ?? ''
 		if (id) {
@@ -35,10 +39,6 @@ export const useSidebarStore = defineStore('sidebar', () => {
 		} else {
 			hideSidebar()
 		}
-	}
-
-	const hideSidebar = () => {
-		show.value = false
 	}
 
 	const handleRouteChange = (routeName) => {

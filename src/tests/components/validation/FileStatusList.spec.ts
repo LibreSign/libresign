@@ -89,7 +89,7 @@ vi.mock('@nextcloud/files', () => ({
 }))
 vi.mock('@nextcloud/moment', () => ({
 	default: vi.fn((date) => ({
-		format: vi.fn((fmt) => `Formatted Date: ${date}`),
+		format: vi.fn(() => `Formatted Date: ${date}`),
 	})),
 }))
 vi.mock('@nextcloud/axios', () => ({
@@ -110,7 +110,7 @@ vi.mock('../../../utils/fileStatus.js', () => ({
 		}
 		return labels[String(status)] ?? 'Unknown'
 	}),
-	getStatusIcon: vi.fn((status: number) => 'mdiFileStatus'),
+	getStatusIcon: vi.fn(() => 'mdiFileStatus'),
 }))
 
 vi.mock('../../../constants.js', () => ({
@@ -357,8 +357,7 @@ describe('FileStatusList', () => {
 		it('calls getStatusIcon utility function', () => {
 			wrapper = createWrapper()
 
-			const icon = wrapper.vm.getStatusIcon(FILE_STATUS.SIGNED)
-
+			expect(wrapper.vm.getStatusIcon(FILE_STATUS.SIGNED)).toBe('mdiFileStatus')
 			expect(fileStatus.getStatusIcon).toHaveBeenCalledWith(FILE_STATUS.SIGNED)
 		})
 

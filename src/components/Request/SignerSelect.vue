@@ -192,8 +192,8 @@ watch(() => props.method, () => {
 
 function injectIcons(items: IdentifyAccountRecord[]): IdentifyAccountRecord[] {
 	return items.map((item) => {
-		const { iconName: _iconName, ...itemWithoutIconName } = item
-		const iconName = getIconName(item.iconName)
+		const { iconName: currentIconName, ...itemWithoutIconName } = item
+		const iconName = getIconName(currentIconName)
 		return {
 			...itemWithoutIconName,
 			...(iconName ? { iconName } : {}),

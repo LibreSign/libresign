@@ -84,27 +84,9 @@ const headingText = (level) => {
 	return t('libresign', 'Heading {level}', { level })
 }
 
-const clearHeading = () => {
-	emit('clear-heading')
-	closeMenu()
-}
-
-const applyHeading = (level) => {
-	emit('apply-heading', level)
-	closeMenu()
-}
-
 const closeMenu = () => {
 	isOpen.value = false
 	menuStyle.value = {}
-}
-
-const toggleMenu = async () => {
-	isOpen.value = !isOpen.value
-	if (isOpen.value) {
-		await nextTick()
-		updateMenuPosition()
-	}
 }
 
 const updateMenuPosition = () => {
@@ -123,6 +105,24 @@ const updateMenuPosition = () => {
 		top: `${top}px`,
 		left: `${left}px`,
 		visibility: 'visible',
+	}
+}
+
+const clearHeading = () => {
+	emit('clear-heading')
+	closeMenu()
+}
+
+const applyHeading = (level) => {
+	emit('apply-heading', level)
+	closeMenu()
+}
+
+const toggleMenu = async () => {
+	isOpen.value = !isOpen.value
+	if (isOpen.value) {
+		await nextTick()
+		updateMenuPosition()
 	}
 }
 

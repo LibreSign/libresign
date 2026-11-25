@@ -114,8 +114,8 @@ export function normalizeVisibleElementList(elements: unknown): VisibleElementRe
 }
 
 export function normalizeFileForVisibleElements(file: NormalizableFile): NormalizedVisibleElementsFile {
-	const normalizedId = typeof file.id === 'number' ? file.id : toFiniteNumber(file.id)
-	const { id: _ignoredId, file: rawFile, metadata, signers, visibleElements, files, ...rest } = file
+	const { id: rawId, file: rawFile, metadata, signers, visibleElements, files, ...rest } = file
+	const normalizedId = typeof rawId === 'number' ? rawId : toFiniteNumber(rawId)
 	const normalizedFile = rawFile === undefined
 		? undefined
 		: typeof rawFile === 'string'

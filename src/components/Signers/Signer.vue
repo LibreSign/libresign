@@ -97,8 +97,6 @@ const props = withDefaults(defineProps<{
 const emit = defineEmits<{
 	(event: 'select', signer: SignerViewModel): void
 }>()
-type FilesStoreContract = ReturnType<typeof useFilesStore>
-type SelectedFile = ReturnType<FilesStoreContract['getFile']>
 type SignerViewModel = {
 	signed?: string | null | boolean | unknown[]
 	identifyMethods?: Array<{ method: string }>
@@ -111,7 +109,9 @@ type SignerViewModel = {
 
 const filesStore = useFilesStore()
 const policiesStore = usePoliciesStore()
-const listItem = ref<any | null>(null)
+type ListItemRef = { $refs?: { actions?: { closeMenu?: () => void } } } | null
+
+const listItem = ref<ListItemRef>(null)
 
 const canRequestSign = loadState('libresign', 'can_request_sign', false)
 const methods = computed<IdentifyMethodPolicyEntry[]>(() => {

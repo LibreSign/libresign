@@ -15,7 +15,6 @@
 </template>
 
 <script setup lang="ts">
-import { t } from '@nextcloud/l10n'
 import { ref } from 'vue'
 
 defineOptions({

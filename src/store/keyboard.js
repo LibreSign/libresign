@@ -5,24 +5,6 @@
 import { defineStore } from 'pinia'
 import { ref } from 'vue'
 
-/**
- * Observe various events and save the current
- * special keys states. Useful for checking the
- * current status of a key when executing a method.
- *
- * @param {...unknown} args - Pinia store factory arguments
- */
-export const useKeyboardStore = function(...args) {
-	const keyboardStore = _keyboardStore(...args)
-	if (!_initialized) {
-		window.addEventListener('keydown', keyboardStore.onEvent)
-		window.addEventListener('keyup', keyboardStore.onEvent)
-		window.addEventListener('mousemove', keyboardStore.onEvent)
-		_initialized = true
-	}
-	return keyboardStore
-}
-
 const _keyboardStore = defineStore('keyboard', () => {
 	const altKey = ref(false)
 	const ctrlKey = ref(false)
@@ -49,3 +31,21 @@ const _keyboardStore = defineStore('keyboard', () => {
 })
 
 let _initialized = false
+
+/**
+ * Observe various events and save the current
+ * special keys states. Useful for checking the
+ * current status of a key when executing a method.
+ *
+ * @param {...unknown} args - Pinia store factory arguments
+ */
+export const useKeyboardStore = function(...args) {
+	const keyboardStore = _keyboardStore(...args)
+	if (!_initialized) {
+		window.addEventListener('keydown', keyboardStore.onEvent)
+		window.addEventListener('keyup', keyboardStore.onEvent)
+		window.addEventListener('mousemove', keyboardStore.onEvent)
+		_initialized = true
+	}
+	return keyboardStore
+}

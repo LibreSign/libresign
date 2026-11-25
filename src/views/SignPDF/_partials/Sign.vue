@@ -366,7 +366,6 @@ import {
 	getCurrentUserSignRequestIds,
 	hasVisibleElementsForCurrentUser,
 	getVisibleElementsFromDocument,
-	idsMatch,
 } from '../../../services/visibleElementsService'
 import type {
 	SignResult,
@@ -503,7 +502,6 @@ type SignMethodsSettings = Partial<Record<SignMethodKey, SignatureMethodSetting>
 type SignatureProfile = LibreSignUserElement
 
 type SignDocument = NonNullable<ReturnType<typeof useSignStore>['document']>
-type SignDocumentFile = NonNullable<SignDocument['files']>[number]
 
 type SignSubmissionError = {
 	type?: string
@@ -629,7 +627,6 @@ const user = ref<UserInfo>({
 })
 const signPassword = ref('')
 const showManagePassword = ref(false)
-const isModal = window.self !== window.top
 const showGeolocationPrivacyDialog = ref(false)
 const collectingGeolocation = ref(false)
 const geolocationFailureReason = ref<GeolocationCollectionFailureReason | null>(null)
@@ -709,6 +706,10 @@ const elements = computed(() => {
 })
 
 const hasSignatures = computed(() => elements.value.length > 0)
+const canCreateSignature = computed(() => {
+	const capabilities = getCapabilities() as LibresignCapabilities
+	return capabilities.libresign?.config['sign-elements']['can-create-signature'] === true
+})
 const needCreateSignature = computed(() => {
 	if (!canCreateSignature.value || hasSignatures.value) {
 		return false
@@ -720,10 +721,6 @@ const rememberSignature = ref(false)
 const canUseSavedSignature = computed(() => needCreateSignature.value && Boolean(signatureElementsStore.emailSigner))
 const hasVisibleSignatureField = computed(() => hasVisibleElementsForCurrentUser(visibleElementsDocument.value))
 const needIdentificationDocuments = computed(() => identificationDocumentStore.showDocumentsComponent())
-const canCreateSignature = computed(() => {
-	const capabilities = getCapabilities() as LibresignCapabilities
-	return capabilities.libresign?.config['sign-elements']['can-create-signature'] === true
-})
 const ableToSign = computed(() => signStore.ableToSign)
 const hasBlockingSignError = computed(() => signStore.errors.some((error) => Number(error?.code) === NON_RETRIABLE_SIGN_ERROR_CODE))
 
@@ -819,54 +816,6 @@ async function useSavedSignature() {
 		// TRANSLATORS Error shown when the signature saved while signing an earlier document cannot be reused.
 		showError(message || t('libresign', 'Unable to use the saved signature'))
 	}
-}
-
-async function signWithClick() {
-	await submitSignature({ method: 'clickToSign' })
-}
-
-async function signWithPassword() {
-	await submitSignature({
-		method: 'password',
-		token: signPassword.value,
-	})
-}
-
-async function signWithTokenCode(token: string) {
-	const tokenMethods: TokenMethodKey[] = ['smsToken', 'whatsappToken', 'signalToken', 'telegramToken', 'xmppToken']
-	const activeMethod = tokenMethods.find((method) =>
-		Object.hasOwn(signMethodsStore.settings, method))
-
-	if (!activeMethod) {
-		throw new Error('No active token method found')
-	}
-
-	const signatureMethodData = getSignatureMethodSetting(signMethodsStore.settings, activeMethod)
-	if (!signatureMethodData) {
-		throw new Error('No active token method settings found')
-	}
-	const identifyMethod = signatureMethodData.identifyMethod
-	if (!identifyMethod) {
-		throw new Error('No identify method found for active token method')
-	}
-
-	await submitSignature({
-		method: identifyMethod,
-		modalCode: 'token',
-		token,
-	})
-}
-
-async function signWithEmailToken() {
-	const identifyMethod = getSignatureMethodSetting(signMethodsStore.settings, 'emailToken')?.identifyMethod
-	if (!identifyMethod) {
-		throw new Error('No identify method found for email token')
-	}
-	await submitSignature({
-		method: identifyMethod,
-		modalCode: 'emailToken',
-		token: signMethodsStore.settings.emailToken?.token,
-	})
 }
 
 const submitSignature = async (methodConfig: SignatureMethodConfig = {}) => {
@@ -971,6 +920,54 @@ const submitSignature = async (methodConfig: SignatureMethodConfig = {}) => {
 	} finally {
 		loading.value = false
 	}
+}
+
+async function signWithClick() {
+	await submitSignature({ method: 'clickToSign' })
+}
+
+async function signWithPassword() {
+	await submitSignature({
+		method: 'password',
+		token: signPassword.value,
+	})
+}
+
+async function signWithTokenCode(token: string) {
+	const tokenMethods: TokenMethodKey[] = ['smsToken', 'whatsappToken', 'signalToken', 'telegramToken', 'xmppToken']
+	const activeMethod = tokenMethods.find((method) =>
+		Object.hasOwn(signMethodsStore.settings, method))
+
+	if (!activeMethod) {
+		throw new Error('No active token method found')
+	}
+
+	const signatureMethodData = getSignatureMethodSetting(signMethodsStore.settings, activeMethod)
+	if (!signatureMethodData) {
+		throw new Error('No active token method settings found')
+	}
+	const identifyMethod = signatureMethodData.identifyMethod
+	if (!identifyMethod) {
+		throw new Error('No identify method found for active token method')
+	}
+
+	await submitSignature({
+		method: identifyMethod,
+		modalCode: 'token',
+		token,
+	})
+}
+
+async function signWithEmailToken() {
+	const identifyMethod = getSignatureMethodSetting(signMethodsStore.settings, 'emailToken')?.identifyMethod
+	if (!identifyMethod) {
+		throw new Error('No identify method found for email token')
+	}
+	await submitSignature({
+		method: identifyMethod,
+		modalCode: 'emailToken',
+		token: signMethodsStore.settings.emailToken?.token,
+	})
 }
 
 function cancelGeolocationPrivacyDialog() {

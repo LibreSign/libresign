@@ -6,7 +6,6 @@
 import { describe, expect, it, beforeEach, afterEach, vi } from 'vitest'
 import { setActivePinia, createPinia } from 'pinia'
 import { useSignStore } from '../../store/sign.js'
-import { useFilesStore } from '../../store/files.js'
 
 vi.mock('@nextcloud/axios', () => ({
 	default: {

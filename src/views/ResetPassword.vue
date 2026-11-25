@@ -66,9 +66,14 @@ const emit = defineEmits<{
 
 const signMethodsStore = useSignMethodsStore()
 
-const currentPasswordField = ref<any | null>(null)
-const newPasswordField = ref<any | null>(null)
-const repeatPasswordField = ref<any | null>(null)
+type PasswordFieldRef = {
+	focus?: () => void
+	$el?: { querySelector?: (selector: string) => { focus?: () => void } | null } | null
+} | null
+
+const currentPasswordField = ref<PasswordFieldRef>(null)
+const newPasswordField = ref<PasswordFieldRef>(null)
+const repeatPasswordField = ref<PasswordFieldRef>(null)
 
 const newPassword = ref('')
 const currentPassword = ref('')
@@ -86,7 +91,7 @@ function resetForm() {
 }
 
 function getFieldRef(fieldRefName: string) {
-	const refs: Record<string, any> = {
+	const refs: Record<string, PasswordFieldRef> = {
 		currentPasswordField: currentPasswordField.value,
 		newPasswordField: newPasswordField.value,
 		repeatPasswordField: repeatPasswordField.value,
@@ -147,9 +152,11 @@ async function send() {
 		showSuccess(data.ocs.data.message)
 		onClose()
 		emit('close', true)
-	} catch ({ response }: any) {
-		if (response?.data?.ocs?.data?.message) {
-			showError(response.data.ocs.data.message)
+	} catch (error: unknown) {
+		const failure = error as { response?: { data?: { ocs?: { data?: { message?: string } } } } }
+		const message = failure.response?.data?.ocs?.data?.message
+		if (message) {
+			showError(message)
 		} else {
 			showError(t('libresign', 'Error creating new password, please contact the administrator'))
 		}
