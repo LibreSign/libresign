@@ -6,7 +6,7 @@ declare(strict_types=1);
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
 
-namespace OCA\Libresign\Service\Signing;
+namespace OCA\Libresign\Service\Signing\External;
 
 use OCA\Libresign\Service\Signing\External\AuthorizedRequest;
 use OCA\Libresign\Db\FileMapper;
@@ -35,7 +35,7 @@ use OCP\IUserSession;
  * recovery or publication. API endpoints must not accept an actorId from
  * client input and should map denied access to a nondisclosing response.
  */
-final class ExternalSigningAuthorizationService {
+final class Authorization {
 	public function __construct(
 		private ExperimentalFeaturesService $experimentalFeatures,
 		private SignRequestMapper $signRequests,

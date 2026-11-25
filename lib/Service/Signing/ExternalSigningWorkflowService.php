@@ -8,6 +8,8 @@ declare(strict_types=1);
 
 namespace OCA\Libresign\Service\Signing;
 
+use OCA\Libresign\Service\Signing\External\CredentialSelection;
+use OCA\Libresign\Service\Signing\External\Authorization;
 use OCA\Libresign\Service\Signing\External\AuthorizedRequest;
 use OCA\Libresign\Service\Signing\External\SessionState;
 use OCA\Libresign\Db\File as LibreSignFile;
@@ -38,9 +40,9 @@ final class ExternalSigningWorkflowService {
 	private const MAX_INPUT_BYTES = 25 * 1024 * 1024;
 
 	public function __construct(
-		private ExternalSigningAuthorizationService $authorization,
+		private Authorization $authorization,
 		private ExternalSigningLaboratoryFactory $laboratories,
-		private ExternalSigningCredentialSelectionService $selection,
+		private CredentialSelection $selection,
 		private ExternalSigningSessionStore $sessions,
 		private SyntheticCscSigningOperation $crypto,
 		private ExternalSigningPublicationService $publisher,
@@ -105,7 +107,7 @@ final class ExternalSigningWorkflowService {
 		$this->assertCanUseIntegration($lab['record'], $actor, $method, $identity);
 		$selection = $this->selection->discoverSynthetic($signRequestUuid, $method, $identity,
 			$token, $integrationId, $lab['laboratory']);
-		$chosen = ExternalSigningCredentialSelectionService::requireEligibleCredential(
+		$chosen = CredentialSelection::requireEligibleCredential(
 			$selection['credentials'], $credentialId, $profile,
 		);
 		$certificate = $this->certificate($lab['laboratory'], $credentialId,

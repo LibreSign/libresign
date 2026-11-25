@@ -18,7 +18,7 @@ use OCA\Libresign\Enum\SignRequestStatus;
 use OCA\Libresign\Service\ExperimentalFeaturesService;
 use OCA\Libresign\Service\IdentifyMethod\IIdentifyMethod;
 use OCA\Libresign\Service\IdentifyMethodService;
-use OCA\Libresign\Service\Signing\ExternalSigningAuthorizationService;
+use OCA\Libresign\Service\Signing\External\Authorization;
 use OCA\Libresign\Service\Validation\SignerValidator;
 use OCA\Libresign\Service\Validation\SigningRequestValidator;
 use OCA\Libresign\Tests\Unit\TestCase;
@@ -29,7 +29,7 @@ final class ExternalSigningAuthorizationServiceTest extends TestCase {
 	private const REQUEST_UUID = 'e5a47a8c-7f34-4b8e-9ceb-282e454e61f1';
 	private const GUEST_EMAIL = 'external@example.org';
 
-	private ExternalSigningAuthorizationService $authorization;
+	private Authorization $authorization;
 	private SignerValidator $signerValidator;
 	private SignRequest $signRequest;
 	private File $file;
@@ -66,7 +66,7 @@ final class ExternalSigningAuthorizationServiceTest extends TestCase {
 		);
 		$userSession = $this->createMock(IUserSession::class);
 		$userSession->method('getUser')->willReturnCallback(fn (): ?IUser => $this->currentUser);
-		$this->authorization = new ExternalSigningAuthorizationService(
+		$this->authorization = new Authorization(
 			$features, $requests, $files, $this->signerValidator, $workflow,
 			$identification, $userSession,
 		);

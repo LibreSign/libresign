@@ -6,8 +6,11 @@ declare(strict_types=1);
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
 
-namespace OCA\Libresign\Service\Signing;
+namespace OCA\Libresign\Service\Signing\External;
 
+use OCA\Libresign\Service\Signing\ExternalIntegrationAvailability;
+use OCA\Libresign\Service\Signing\ExternalIntegrationRecord;
+use OCA\Libresign\Service\Signing\ExternalIntegrationStore;
 use OCA\Libresign\Service\Signing\Provider\Drivers\Csc\CscCredentialEligibility;
 use OCA\Libresign\Service\Signing\Provider\Drivers\Csc\CscDriver;
 use OCA\Libresign\Service\Signing\Provider\Drivers\Csc\CscIntegration;
@@ -21,7 +24,7 @@ use OCA\Libresign\Service\Signing\Provider\Drivers\Csc\CscIntegration;
  *
  * No method accepts a client-provided actor ID, certificate or preparation.
  */
-final class ExternalSigningCredentialSelectionService {
+final class CredentialSelection {
 	/**
 	 * Resolve a server-discovered credential and its permitted PDF profile.
 	 *
@@ -48,7 +51,7 @@ final class ExternalSigningCredentialSelectionService {
 	}
 
 	public function __construct(
-		private ExternalSigningAuthorizationService $authorization,
+		private Authorization $authorization,
 		private ExternalIntegrationStore $integrations,
 		private ExternalIntegrationAvailability $availability,
 		private CscDriver $cscDriver,

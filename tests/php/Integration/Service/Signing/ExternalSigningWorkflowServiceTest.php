@@ -31,8 +31,8 @@ use OCA\Libresign\Service\Signature\ExternalPdfSigningService;
 use OCA\Libresign\Service\Signature\PdfSignatureValidationService;
 use OCA\Libresign\Service\Signing\ExternalIntegrationAvailability;
 use OCA\Libresign\Service\Signing\ExternalIntegrationStore;
-use OCA\Libresign\Service\Signing\ExternalSigningAuthorizationService;
-use OCA\Libresign\Service\Signing\ExternalSigningCredentialSelectionService;
+use OCA\Libresign\Service\Signing\External\Authorization;
+use OCA\Libresign\Service\Signing\External\CredentialSelection;
 use OCA\Libresign\Service\Signing\ExternalSigningIntegrationScopeAccess;
 use OCA\Libresign\Service\Signing\ExternalSigningLaboratoryFactory;
 use OCA\Libresign\Service\Signing\ExternalSigningPublicationService;
@@ -136,7 +136,7 @@ final class ExternalSigningWorkflowServiceTest extends \OCA\Libresign\Tests\Inte
 		$methods->method('getIdentifyMethodsFromSignRequestId')->willReturn(['email' => [$method]]);
 		$userSession = $this->createMock(IUserSession::class);
 		$userSession->method('getUser')->willReturn(null);
-		$authorization = new ExternalSigningAuthorizationService(
+		$authorization = new Authorization(
 			$features, Server::get(SignRequestMapper::class), Server::get(FileMapper::class),
 			$this->createMock(SignerValidator::class),
 			$this->createMock(SigningRequestValidator::class),
@@ -161,7 +161,7 @@ final class ExternalSigningWorkflowServiceTest extends \OCA\Libresign\Tests\Inte
 			$this->integrations, $availability, Server::get(CscDriver::class),
 			$clientService, $config,
 		);
-		$selection = new ExternalSigningCredentialSelectionService($authorization,
+		$selection = new CredentialSelection($authorization,
 			$this->integrations, $availability, Server::get(CscDriver::class));
 		$l10n = Server::get(IFactory::class)->get('libresign');
 		$this->validation = new PdfSignatureValidationService(

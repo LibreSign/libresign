@@ -20,8 +20,8 @@ use OCA\Libresign\Service\IdentifyMethodService;
 use OCA\Libresign\Service\Signing\ExternalIntegrationAvailability;
 use OCA\Libresign\Service\Signing\ExternalIntegrationRecord;
 use OCA\Libresign\Service\Signing\ExternalIntegrationStore;
-use OCA\Libresign\Service\Signing\ExternalSigningAuthorizationService;
-use OCA\Libresign\Service\Signing\ExternalSigningCredentialSelectionService;
+use OCA\Libresign\Service\Signing\External\Authorization;
+use OCA\Libresign\Service\Signing\External\CredentialSelection;
 use OCA\Libresign\Service\Signing\Provider\Drivers\Csc\CscDriver;
 use OCA\Libresign\Service\Signing\Provider\Drivers\Csc\CscIntegration;
 use OCA\Libresign\Service\Validation\SignerValidator;
@@ -40,7 +40,7 @@ final class ExternalSigningCredentialSelectionServiceTest extends TestCase {
 	private const LAB_URL = 'http://127.0.0.1:15432';
 	private const EMAIL = 'synthetic@example.org';
 
-	private ExternalSigningCredentialSelectionService $selection;
+	private CredentialSelection $selection;
 	private ExternalIntegrationRecord $record;
 	private ExternalIntegrationStore $store;
 	private SignerValidator $validator;
@@ -73,7 +73,7 @@ final class ExternalSigningCredentialSelectionServiceTest extends TestCase {
 		$methods->method('getIdentifyMethodsFromSignRequestId')->willReturn(['email' => [$method]]);
 		$session = $this->createMock(IUserSession::class);
 		$session->method('getUser')->willReturn(null);
-		$authorization = new ExternalSigningAuthorizationService($gate, $requests, $files,
+		$authorization = new Authorization($gate, $requests, $files,
 			$this->validator, $this->createMock(SigningRequestValidator::class), $methods, $session);
 		$this->store = Server::get(ExternalIntegrationStore::class);
 		$created = $this->store->create(CscDriver::ID, 'Synthetic CSC provider',
@@ -81,7 +81,7 @@ final class ExternalSigningCredentialSelectionServiceTest extends TestCase {
 		$this->record = $this->store->setEnabled($created->id, $created->revision, true);
 		$l10n = $this->createMock(IL10N::class);
 		$l10n->method('t')->willReturnCallback(static fn (string $value): string => $value);
-		$this->selection = new ExternalSigningCredentialSelectionService($authorization, $this->store,
+		$this->selection = new CredentialSelection($authorization, $this->store,
 			new ExternalIntegrationAvailability($gate), new CscDriver($l10n));
 	}
 

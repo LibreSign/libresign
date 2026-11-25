@@ -8,7 +8,7 @@ declare(strict_types=1);
 
 namespace OCA\Libresign\Tests\Unit\Service\Signing;
 
-use OCA\Libresign\Service\Signing\ExternalSigningCredentialSelectionService;
+use OCA\Libresign\Service\Signing\External\CredentialSelection;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 
@@ -34,7 +34,7 @@ final class ExternalSigningCredentialSelectionServiceTest extends TestCase {
 	}
 
 	public function testSelectsTheExactEligibleCredentialAndProfile(): void {
-		$choice = ExternalSigningCredentialSelectionService::requireEligibleCredential(
+		$choice = CredentialSelection::requireEligibleCredential(
 			self::credentials(), 'credential-b', 'pades-baseline-b',
 		);
 		self::assertSame('credential-b', $choice['id']);
@@ -64,6 +64,6 @@ final class ExternalSigningCredentialSelectionServiceTest extends TestCase {
 	): void {
 		$this->expectException(\DomainException::class);
 		$this->expectExceptionMessage('Selected CSC credential or PDF profile is not eligible');
-		ExternalSigningCredentialSelectionService::requireEligibleCredential($choices, $credentialId, $profile);
+		CredentialSelection::requireEligibleCredential($choices, $credentialId, $profile);
 	}
 }
