@@ -10,8 +10,8 @@ namespace OCA\Libresign\Tests\Unit\Service\Signing\Provider\Drivers\Csc;
 
 use OCA\Libresign\Service\Signing\Provider\Drivers\Csc\CscCredentialEligibility;
 use OCA\Libresign\Tests\Unit\TestCase;
-use SignerPHP\PdfSigner\Application\DTO\SigningCertificateDto;
-use SignerPHP\PdfSigner\RemoteSigning\DTO\RemoteCertificate;
+use OCA\Libresign\Vendor\SignerPHP\PdfSigner\Application\DTO\SigningCertificateDto;
+use OCA\Libresign\Vendor\SignerPHP\PdfSigner\RemoteSigning\DTO\RemoteCertificate;
 
 final class CscCredentialEligibilityTest extends TestCase {
 	/** @return RemoteCertificate */

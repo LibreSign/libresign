@@ -9,10 +9,10 @@ declare(strict_types=1);
 namespace OCA\Libresign\Tests\Integration\Service\Signing\Provider\Drivers\Csc;
 
 use OCA\Libresign\Service\Signing\Provider\Drivers\Csc\CscIntegration;
+use OCA\Libresign\Vendor\SignerPHP\PdfSigner\Infrastructure\Native\Service\CurlHttpClient;
+use OCA\Libresign\Vendor\SignerPHP\PdfSigner\Presentation\Signer;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
-use SignerPHP\PdfSigner\Infrastructure\Native\Service\CurlHttpClient;
-use SignerPHP\PdfSigner\Presentation\Signer;
 
 /** Opt-in only. CSC_LAB_SYNTHETIC_ONLY=1 and loopback Certomancer CSC Dummy. */
 final class CscCertomancerLabTest extends TestCase {

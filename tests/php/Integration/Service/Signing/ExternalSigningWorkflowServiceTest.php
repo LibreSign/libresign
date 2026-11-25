@@ -43,6 +43,7 @@ use OCA\Libresign\Service\Signing\SyntheticCscSigningOperation;
 use OCA\Libresign\Service\Validation\SignerValidator;
 use OCA\Libresign\Service\Validation\SigningRequestValidator;
 use OCA\Libresign\Service\Webhook\NativeWebhookEventPublisher;
+use OCA\Libresign\Vendor\SignerPHP\PdfSigner\Infrastructure\Remote\Csc\CscCertificateDiscovery;
 use OCP\AppFramework\Http;
 use OCP\EventDispatcher\IEventDispatcher;
 use OCP\Files\IRootFolder;
@@ -61,7 +62,6 @@ use OCP\L10N\IFactory;
 use OCP\Security\ICrypto;
 use OCP\Server;
 use Psr\Log\LoggerInterface;
-use SignerPHP\PdfSigner\Infrastructure\Remote\Csc\CscCertificateDiscovery;
 
 /**
  * @group DB

@@ -27,13 +27,13 @@ use OCA\Libresign\Service\Signing\Provider\Drivers\Csc\CscIntegration;
 use OCA\Libresign\Service\Validation\SignerValidator;
 use OCA\Libresign\Service\Validation\SigningRequestValidator;
 use OCA\Libresign\Tests\Integration\TestCase;
+use OCA\Libresign\Vendor\SignerPHP\PdfSigner\Infrastructure\Native\Contract\HttpClientInterface;
+use OCA\Libresign\Vendor\SignerPHP\PdfSigner\Infrastructure\Native\ValueObject\HttpResponse;
+use OCA\Libresign\Vendor\SignerPHP\PdfSigner\Infrastructure\Remote\Csc\CscCertificateDiscovery;
 use OCP\IDBConnection;
 use OCP\IL10N;
 use OCP\IUserSession;
 use OCP\Server;
-use SignerPHP\PdfSigner\Infrastructure\Native\Contract\HttpClientInterface;
-use SignerPHP\PdfSigner\Infrastructure\Native\ValueObject\HttpResponse;
-use SignerPHP\PdfSigner\Infrastructure\Remote\Csc\CscCertificateDiscovery;
 
 final class ExternalSigningCredentialSelectionServiceTest extends TestCase {
 	private const REQUEST_UUID = 'dc37db93-4fc7-40a1-8f7c-d94fe3be790e';

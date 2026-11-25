@@ -11,9 +11,9 @@ namespace OCA\Libresign\Tests\Integration\Service\Signing\Provider\Drivers\Csc;
 use donatj\MockWebServer\MockWebServer;
 use donatj\MockWebServer\Response;
 use OCA\Libresign\Service\Signing\Provider\Drivers\Csc\CscIntegration;
+use OCA\Libresign\Vendor\SignerPHP\PdfSigner\Domain\Exception\SignerException;
+use OCA\Libresign\Vendor\SignerPHP\PdfSigner\Infrastructure\Native\Service\CurlHttpClient;
 use PHPUnit\Framework\TestCase;
-use SignerPHP\PdfSigner\Domain\Exception\SignerException;
-use SignerPHP\PdfSigner\Infrastructure\Native\Service\CurlHttpClient;
 
 /** A disposable, localhost-only mock HTTP server without Nextcloud persistence. */
 final class CscHttpContractTest extends TestCase {

@@ -14,15 +14,15 @@ use OCA\Libresign\Service\Signing\ExternalIntegrationRecord;
 use OCA\Libresign\Service\Signing\ExternalIntegrationStore;
 use OCA\Libresign\Service\Signing\ExternalSigningSessionState;
 use OCA\Libresign\Service\Signing\ExternalSigningSessionStore;
+use OCA\Libresign\Vendor\SignerPHP\PdfSigner\Application\DTO\ExternalSigningPayload;
+use OCA\Libresign\Vendor\SignerPHP\PdfSigner\Application\DTO\HashAlgorithm;
+use OCA\Libresign\Vendor\SignerPHP\PdfSigner\Application\DTO\PreparedExternalSignature;
+use OCA\Libresign\Vendor\SignerPHP\PdfSigner\Application\DTO\SignatureAlgorithm;
+use OCA\Libresign\Vendor\SignerPHP\PdfSigner\Application\DTO\SignatureEncoding;
+use OCA\Libresign\Vendor\SignerPHP\PdfSigner\Application\DTO\SigningInputType;
 use OCP\IDBConnection;
 use OCP\Security\ICrypto;
 use OCP\Server;
-use SignerPHP\PdfSigner\Application\DTO\ExternalSigningPayload;
-use SignerPHP\PdfSigner\Application\DTO\HashAlgorithm;
-use SignerPHP\PdfSigner\Application\DTO\PreparedExternalSignature;
-use SignerPHP\PdfSigner\Application\DTO\SignatureAlgorithm;
-use SignerPHP\PdfSigner\Application\DTO\SignatureEncoding;
-use SignerPHP\PdfSigner\Application\DTO\SigningInputType;
 
 /**
  * @group DB
@@ -353,7 +353,7 @@ PHP);
 	public function testRealSignerPhpPreparedPdfPersistsExactly(): void {
 		$pdf = file_get_contents(dirname(__DIR__, 3) . '/fixtures/pdfs/small_valid.pdf');
 		$this->assertIsString($pdf);
-		$upstream = \SignerPHP\PdfSigner\Presentation\Signer::externalSigner()
+		$upstream = \OCA\Libresign\Vendor\SignerPHP\PdfSigner\Presentation\Signer::externalSigner()
 			->withPdfContent($pdf)
 			->withCertificate($this->certificate)
 			->withoutDefaultAppearance()
@@ -401,13 +401,13 @@ $integration = $integrations->get($argv[2]);
 $cert = file_get_contents($argv[3]);
 $pdf = 'parallel-source-pdf';
 $prepared = new \OCA\Libresign\Service\Signature\PreparedExternalOperation(
-	new \SignerPHP\PdfSigner\Application\DTO\PreparedExternalSignature(
-		new \SignerPHP\PdfSigner\Application\DTO\ExternalSigningPayload(
+	new \OCA\Libresign\Vendor\SignerPHP\PdfSigner\Application\DTO\PreparedExternalSignature(
+		new \OCA\Libresign\Vendor\SignerPHP\PdfSigner\Application\DTO\ExternalSigningPayload(
 			base64_encode(hash('sha256', 'signed-attributes:' . $pdf, true)),
-			\SignerPHP\PdfSigner\Application\DTO\SigningInputType::Digest,
-			\SignerPHP\PdfSigner\Application\DTO\HashAlgorithm::Sha256,
-			\SignerPHP\PdfSigner\Application\DTO\SignatureAlgorithm::RsaPkcs1V15,
-			\SignerPHP\PdfSigner\Application\DTO\SignatureEncoding::RsaPkcs1,
+			\OCA\Libresign\Vendor\SignerPHP\PdfSigner\Application\DTO\SigningInputType::Digest,
+			\OCA\Libresign\Vendor\SignerPHP\PdfSigner\Application\DTO\HashAlgorithm::Sha256,
+			\OCA\Libresign\Vendor\SignerPHP\PdfSigner\Application\DTO\SignatureAlgorithm::RsaPkcs1V15,
+			\OCA\Libresign\Vendor\SignerPHP\PdfSigner\Application\DTO\SignatureEncoding::RsaPkcs1,
 		),
 		'{"unsignedPdf":"synthetic-opaque-state","schemaVersion":1}',
 	),

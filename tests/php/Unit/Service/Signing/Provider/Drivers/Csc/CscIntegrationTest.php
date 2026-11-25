@@ -9,24 +9,24 @@ declare(strict_types=1);
 namespace OCA\Libresign\Tests\Unit\Service\Signing\Provider\Drivers\Csc;
 
 use OCA\Libresign\Service\Signing\Provider\Drivers\Csc\CscIntegration;
+use OCA\Libresign\Vendor\SignerPHP\PdfSigner\Application\DTO\ExternalSigningPayload;
+use OCA\Libresign\Vendor\SignerPHP\PdfSigner\Application\DTO\HashAlgorithm;
+use OCA\Libresign\Vendor\SignerPHP\PdfSigner\Application\DTO\SignatureAlgorithm;
+use OCA\Libresign\Vendor\SignerPHP\PdfSigner\Application\DTO\SignatureEncoding;
+use OCA\Libresign\Vendor\SignerPHP\PdfSigner\Application\DTO\SigningCertificateDto;
+use OCA\Libresign\Vendor\SignerPHP\PdfSigner\Application\DTO\SigningInputType;
+use OCA\Libresign\Vendor\SignerPHP\PdfSigner\Domain\Exception\RemoteSigningOutcomeUnknownException;
+use OCA\Libresign\Vendor\SignerPHP\PdfSigner\Domain\Exception\SignerException;
+use OCA\Libresign\Vendor\SignerPHP\PdfSigner\Infrastructure\Native\Contract\HttpClientInterface;
+use OCA\Libresign\Vendor\SignerPHP\PdfSigner\Infrastructure\Native\ValueObject\HttpResponse;
+use OCA\Libresign\Vendor\SignerPHP\PdfSigner\Infrastructure\Remote\Csc\CscCertificateDiscovery;
+use OCA\Libresign\Vendor\SignerPHP\PdfSigner\RemoteSigning\DTO\RemoteCertificate;
 use OCP\Http\Client\IClient;
 use OCP\Http\Client\IClientService;
 use OCP\Http\Client\IResponse;
 use OCP\IConfig;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
-use SignerPHP\PdfSigner\Application\DTO\ExternalSigningPayload;
-use SignerPHP\PdfSigner\Application\DTO\HashAlgorithm;
-use SignerPHP\PdfSigner\Application\DTO\SignatureAlgorithm;
-use SignerPHP\PdfSigner\Application\DTO\SignatureEncoding;
-use SignerPHP\PdfSigner\Application\DTO\SigningCertificateDto;
-use SignerPHP\PdfSigner\Application\DTO\SigningInputType;
-use SignerPHP\PdfSigner\Domain\Exception\RemoteSigningOutcomeUnknownException;
-use SignerPHP\PdfSigner\Domain\Exception\SignerException;
-use SignerPHP\PdfSigner\Infrastructure\Native\Contract\HttpClientInterface;
-use SignerPHP\PdfSigner\Infrastructure\Native\ValueObject\HttpResponse;
-use SignerPHP\PdfSigner\Infrastructure\Remote\Csc\CscCertificateDiscovery;
-use SignerPHP\PdfSigner\RemoteSigning\DTO\RemoteCertificate;
 
 final class CscIntegrationTest extends TestCase {
 	#[DataProvider('unsafeUrls')]
