@@ -766,6 +766,13 @@ const currentSigningRecipient = computed(() => {
 		?? signers.find(candidate => candidate.me === true)
 })
 const boundSignerIdentities = computed(() => currentSigningRecipient.value?.identifyMethods ?? [])
+const supportedExternalIdentityMethods = new Set(['email', 'sms', 'whatsapp', 'whatsappbusiness', 'signal', 'telegram', 'xmpp'])
+const hasBoundSigningIdentity = computed(() => {
+	const currentUid = getCurrentUser()?.uid ?? ''
+	return boundSignerIdentities.value.some(candidate => candidate.method === 'account'
+		? Boolean(currentUid) && candidate.value === currentUid
+		: supportedExternalIdentityMethods.has(candidate.method))
+})
 const requestedSigningMode = computed(() => requestedSigningMethod(currentSigningRecipient.value?.metadata?.signingMethodRequirement))
 const externalSigningUiAllowed = computed(() => !isApprovalRoute.value
 	&& ableToSign.value && Boolean(signRequestUuid.value)
@@ -774,8 +781,7 @@ const externalSigningUiAllowed = computed(() => !isApprovalRoute.value
 	&& !hasVisibleSignatureField.value
 	&& !hasBlockingSignError.value
 	&& requestedSigningMode.value !== 'libresign'
-	&& (Boolean(getCurrentUser()) || boundSignerIdentities.value.some(candidate => candidate.method !== 'account')
-		|| signMethodsStore.settings.emailToken?.identifyMethod === 'email'))
+	&& hasBoundSigningIdentity.value)
 const externalSigningActive = computed(() => externalSigningUiAllowed.value
 	&& (requestedSigningMode.value === 'external_certificate' || showExternalSigning.value))
 

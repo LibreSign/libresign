@@ -39,10 +39,6 @@
 			aria-live="polite">
 			{{ busyMessage }}
 		</p>
-		<NcNoteCard v-if="identityAuthorized && syntheticOnly" type="warning">
-			<!-- TRANSLATORS Notice that the currently configured CSC provider supplies test certificates, not a personal production identity. -->
-			{{ t('libresign', 'Test only: this service uses sample certificates, not your personal digital identity.') }}
-		</NcNoteCard>
 		<template v-if="!identityAuthorized">
 			<NcRadioGroup
 				v-if="identityChoices.length > 1"
@@ -68,29 +64,48 @@
 				{{ t('libresign', 'No supported identity check is available for this signing request. Contact the sender.') }}
 			</NcNoteCard>
 			<template v-if="identityChoices.length > 0 && identityMethod === 'email'">
-				<NcTextField
-					v-model="emailAddress"
-					:disabled="busy"
-					type="email"
-					:label="emailAddressLabel" />
-				<NcButton
-					v-if="!codeRequested"
-					:disabled="busy || !emailMatchesRequest"
-					@click="requestCode">
-					<!-- TRANSLATORS Button that requests the email verification code needed before discovering signing providers. -->
-					{{ t('libresign', 'Email me a code') }}
-				</NcButton>
-				<p v-if="codeRequested" class="external-signing__help" role="status">
-					<!-- TRANSLATORS The signer should look for the one-time verification code in their email inbox. -->
-					{{ t('libresign', 'Check your email for the code. Enter it below to continue, or request another code.') }}
-				</p>
-				<NcTextField
-					v-if="codeRequested"
-					v-model="verificationCode"
-					:disabled="busy"
-					type="text"
-					autocomplete="one-time-code"
-					:label="verificationCodeLabel" />
+				<template v-if="!codeRequested">
+					<p v-if="emailIsBound" class="external-signing__help">
+						<!-- TRANSLATORS Explains where the signing-request email code will be sent. -->
+						{{ t('libresign', 'We will send a code to') }} <strong>{{ selectedIdentity?.value }}</strong>.
+					</p>
+					<NcTextField
+						v-else
+						v-model="emailAddress"
+						:disabled="busy"
+						type="email"
+						:label="emailAddressLabel" />
+					<NcButton :disabled="busy || !emailMatchesRequest" @click="requestCode">
+						<!-- TRANSLATORS Button that requests the email verification code needed before discovering signing providers. -->
+						{{ t('libresign', 'Email me a code') }}
+					</NcButton>
+				</template>
+				<template v-else>
+					<p class="external-signing__help" role="status">
+						<!-- TRANSLATORS Confirm the exact address that received the code before showing its entry field. -->
+						{{ t('libresign', 'Code sent to') }} <strong>{{ emailAddress }}</strong>.
+					</p>
+					<p v-if="emailIsBound" class="external-signing__help">
+						<!-- TRANSLATORS A recipient cannot change the email that the requester selected for this signature request. -->
+						{{ t('libresign', 'Wrong email address? Ask the sender to update the request.') }}
+					</p>
+					<NcTextField
+						v-model="verificationCode"
+						:disabled="busy"
+						type="text"
+						autocomplete="one-time-code"
+						:label="verificationCodeLabel" />
+					<div class="external-signing__secondary-actions">
+						<NcButton :disabled="busy" @click="requestCode">
+							<!-- TRANSLATORS Request a fresh email verification code if the earlier message did not arrive. -->
+							{{ t('libresign', 'Send another code') }}
+						</NcButton>
+						<NcButton v-if="canChangeEmail" :disabled="busy" @click="changeEmail">
+							<!-- TRANSLATORS Let a signer correct a typed email address; the original invitation remains authoritative. -->
+							{{ t('libresign', 'Change email') }}
+						</NcButton>
+					</div>
+				</template>
 			</template>
 			<template v-else-if="identityChoices.length > 0 && identityMethod !== 'account'">
 				<NcButton v-if="!codeRequested" :disabled="busy" @click="requestCode">
@@ -106,6 +121,7 @@
 					:label="verificationCodeLabel" />
 			</template>
 			<NcButton
+				v-if="identityChoices.length > 0 && (identityMethod === 'account' || codeRequested)"
 				variant="primary"
 				:disabled="busy || !mayAuthorize"
 				@click="loadIntegrations">
@@ -261,6 +277,10 @@
 						<p>{{ t('libresign', 'Recommended: PAdES B-B. Basic: PDF Basic.') }}</p>
 					</details>
 				</details>
+				<NcNoteCard v-if="syntheticOnly && selectedCredential" type="warning">
+					<!-- TRANSLATORS Caution only for a CSC laboratory credential: it must not be mistaken for a person's real certificate. -->
+					{{ t('libresign', 'This service uses sample certificates. The signature does not verify your personal identity.') }}
+				</NcNoteCard>
 				<NcButton
 					v-if="selectedCredential"
 					variant="primary"
@@ -354,12 +374,12 @@ const props = withDefaults(defineProps<{
 	emailMethod?: string
 	boundEmailHash?: string
 	existingEmailCode?: string
-	boundIdentities?: Array<{ method: string, value: string, requirement?: string }> | null
+	boundIdentities?: Array<{ method: string, value: string, requirement?: string }>
 }>(), {
 	emailMethod: '',
 	boundEmailHash: '',
 	existingEmailCode: '',
-	boundIdentities: null,
+	boundIdentities: () => [],
 })
 
 const emit = defineEmits<{
@@ -389,10 +409,7 @@ const identityLabels: Record<string, string> = {
 	xmpp: t('libresign', 'Use a code sent by XMPP'),
 }
 const identityChoices = computed<IdentityChoice[]>(() => {
-	const bound = props.boundIdentities ?? [
-		...(accountUid ? [{ method: 'account', value: accountUid }] : []),
-		...(props.emailMethod === 'email' ? [{ method: 'email', value: '' }] : []),
-	]
+	const bound = props.boundIdentities
 	return bound.filter(candidate => candidate.method === 'account'
 		? Boolean(accountUid) && candidate.value === accountUid
 		: Boolean(signMethodByIdentity[candidate.method]))
@@ -435,6 +452,8 @@ let requestGeneration = 0
 let attemptId = ''
 
 const selectedIdentity = computed(() => identityChoices.value.find(choice => choice.method === identityMethod.value))
+const emailIsBound = computed(() => Boolean(selectedIdentity.value?.value))
+const canChangeEmail = computed(() => !emailIsBound.value && !props.existingEmailCode)
 const emailMatchesRequest = computed(() => identityMethod.value === 'email'
 	&& /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(emailAddress.value.trim())
 	&& (!props.boundEmailHash || md5(emailAddress.value.trim().toLowerCase()) === props.boundEmailHash)
@@ -504,7 +523,7 @@ function authorizedIdentity(): ExternalSigningIdentity {
 		uuid: props.signRequestUuid,
 		method: identityMethod.value,
 		identifyValue: identityMethod.value === 'email'
-? emailAddress.value.trim()
+			? (selectedIdentity.value?.value || emailAddress.value.trim())
 			: (identityMethod.value === 'account' ? accountUid : selectedIdentity.value?.value ?? ''),
 		token: identityMethod.value === 'account' ? '' : verificationCode.value.trim(),
 	}
@@ -529,10 +548,22 @@ function resetSigningContext() {
 	attemptId = ''
 }
 
-watch([() => props.signRequestUuid, () => props.emailMethod, () => props.boundEmailHash, identityMethod, emailAddress], () => {
+watch(() => props.boundIdentities, identities => {
+	const email = identities.find(choice => choice.method === 'email')?.value ?? ''
+	if (emailAddress.value !== email) {
+		emailAddress.value = email
+	}
+})
+watch([() => props.signRequestUuid, () => props.emailMethod, () => props.boundEmailHash, () => props.boundIdentities, emailAddress], () => {
 	resetSigningContext()
 	codeRequested.value = false
 	verificationCode.value = ''
+})
+watch(identityMethod, method => {
+	resetSigningContext()
+	const existingEmailCode = method === 'email' && emailMatchesRequest.value ? props.existingEmailCode : ''
+	verificationCode.value = existingEmailCode
+	codeRequested.value = existingEmailCode !== ''
 })
 watch(() => props.existingEmailCode, code => {
 	if (identityMethod.value === 'email' && code) {
@@ -578,7 +609,7 @@ async function execute<T>(action: SigningAction, callback: () => Promise<T>, onS
 			default:
 				// Do not confuse a failed lookup with a remotely submitted signature.
 				if (action === 'code') {
-					errorMessage.value = t('libresign', 'We could not send the email code. Check your connection and try again.')
+					errorMessage.value = t('libresign', 'We could not send your verification code. Check your connection and try again.')
 				} else if (action === 'providers' || action === 'credentials') {
 					errorMessage.value = t('libresign', 'Could not load signing services. Check your connection and try again.')
 				} else if (action === 'prepare') {
@@ -611,8 +642,20 @@ async function requestCode() {
 			identifyMethod: selectedIdentity.value!.method,
 			signMethod: selectedIdentity.value!.signMethod,
 		}),
-		() => { codeRequested.value = true },
+		() => {
+			verificationCode.value = ''
+			codeRequested.value = true
+		},
 	)
+}
+
+function changeEmail() {
+	if (busy.value || !canChangeEmail.value || identityMethod.value !== 'email') {
+		return
+	}
+	resetSigningContext()
+	codeRequested.value = false
+	verificationCode.value = ''
 }
 
 async function loadIntegrations() {
@@ -798,6 +841,12 @@ async function refreshSession() {
 	display: flex;
 	flex-direction: column;
 	gap: 12px;
+}
+
+.external-signing__secondary-actions {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 8px;
 }
 
 .external-signing__details {

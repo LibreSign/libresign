@@ -202,7 +202,8 @@ describe('Sign.vue approval labels and signing methods', () => {
 				{ me: true, signRequestId: 50, status: SIGN_REQUEST_STATUS.ABLE_TO_SIGN, sign_request_uuid: 'another-request',
 					metadata: { signingMethodRequirement: 'libresign' } },
 				{ me: true, signRequestId: 51, status: SIGN_REQUEST_STATUS.ABLE_TO_SIGN, sign_request_uuid: uuid,
-					metadata: { signingMethodRequirement: 'external_certificate' } },
+					metadata: { signingMethodRequirement: 'external_certificate' },
+					identifyMethods: [{ method: 'email', value: 'guest@example.org', requirement: 'required' }] },
 			],
 			visibleElements: [], settings: { canSign: true, isApprover: false,
 				signatureMethods: { emailToken: { label: 'Email', identifyMethod: 'email' as const, needCode: true, hasConfirmCode: true, blurredEmail: 'g***@example.org', hashOfEmail: 'test-hash' } } },
@@ -220,10 +221,11 @@ describe('Sign.vue approval labels and signing methods', () => {
 	})
 
 	it.each([
-		{ approval: false, available: true, requirement: 'signer_choice' },
-		{ approval: false, available: false, requirement: undefined },
-		{ approval: true, available: false, requirement: 'signer_choice' },
-	] as const)('requires explicit sender choice (approval: $approval, requirement: $requirement)', async ({ approval, available, requirement }) => {
+		{ approval: false, available: true, requirement: 'signer_choice', boundIdentity: true },
+		{ approval: false, available: false, requirement: undefined, boundIdentity: true },
+		{ approval: true, available: false, requirement: 'signer_choice', boundIdentity: true },
+		{ approval: false, available: false, requirement: 'signer_choice', boundIdentity: false },
+	] as const)('requires an explicit sender choice and signer identity (approval: $approval, requirement: $requirement, bound: $boundIdentity)', async ({ approval, available, requirement, boundIdentity }) => {
 		setActivePinia(createPinia())
 		const signStore = useSignStore()
 		const signMethodsStore = useSignMethodsStore()
@@ -239,7 +241,10 @@ describe('Sign.vue approval labels and signing methods', () => {
 			nodeId: 75,
 			nodeType: 'file',
 			uuid: 'file-uuid',
-			signers: [{ me: true, signRequestId: 51, status: SIGN_REQUEST_STATUS.ABLE_TO_SIGN, sign_request_uuid: uuid, ...(requirement ? { metadata: { signingMethodRequirement: requirement } } : {}) }],
+			signers: [{ me: true, signRequestId: 51, status: SIGN_REQUEST_STATUS.ABLE_TO_SIGN, sign_request_uuid: uuid,
+				...(requirement ? { metadata: { signingMethodRequirement: requirement } } : {}),
+				identifyMethods: boundIdentity ? [{ method: 'email', value: 'guest@example.org', requirement: 'required' }] : [],
+			}],
 			visibleElements: [],
 			settings: { canSign: true, isApprover: approval, signatureMethods: methods },
 		}
