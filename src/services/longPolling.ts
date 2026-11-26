@@ -32,6 +32,15 @@ export const waitForFileStatusChange = async (fileId: number, currentStatus: num
 	return response.data.ocs.data
 }
 
+const isTerminalStatus = (status: number): boolean => {
+	const TERMINAL_STATUSES = [3, 4, 1]
+	return TERMINAL_STATUSES.includes(status)
+}
+
+const sleep = (ms: number): Promise<void> => {
+	return new Promise(resolve => setTimeout(resolve, ms))
+}
+
 export const createLongPolling = (options: LongPollingOptions = {}) => {
 	return (
 		fileId: number,
@@ -102,13 +111,4 @@ export const startLongPolling = (
 	options: LongPollingOptions = {},
 ): (() => void) => {
 	return createLongPolling(options)(fileId, initialStatus, onUpdate, shouldStop, onError)
-}
-
-const isTerminalStatus = (status: number): boolean => {
-	const TERMINAL_STATUSES = [3, 4, 1]
-	return TERMINAL_STATUSES.includes(status)
-}
-
-const sleep = (ms: number): Promise<void> => {
-	return new Promise(resolve => setTimeout(resolve, ms))
 }

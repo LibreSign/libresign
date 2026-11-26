@@ -449,7 +449,6 @@ const selectedTargetOptions = computed(() => {
 
 const {
 	scopeCreateDisabledReason,
-	allowedCreateScopes,
 	hasCreatableScope,
 	createRuleDisabledReason,
 	createScopeOptions,

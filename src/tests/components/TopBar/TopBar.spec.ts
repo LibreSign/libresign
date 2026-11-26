@@ -152,8 +152,6 @@ describe('TopBar', () => {
 		it('is reactive when body style changes', async () => {
 			wrapper = createWrapper()
 
-			const style1 = wrapper.vm.topBarStyle
-
 			// Simulate document change (in real scenario)
 			const style2 = wrapper.vm.topBarStyle
 

@@ -31,7 +31,7 @@ vi.mock('@nextcloud/initial-state', () => ({
 
 vi.mock('@nextcloud/l10n', () => ({
 	t: (_app: string, text: string) => text,
-	n: (_app: string, singular: string, _plural: string, _count: number) => singular,
+	n: (...args: [string, string, string, number]) => args[1],
 }))
 
 vi.mock('@nextcloud/files', () => ({

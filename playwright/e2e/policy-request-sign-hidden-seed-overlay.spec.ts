@@ -25,6 +25,11 @@ import {
 	setSystemPolicyEntry,
 } from '../support/policy-api'
 
+const ADMIN_USER = process.env.NEXTCLOUD_ADMIN_USER ?? 'admin'
+const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || process.env.NEXTCLOUD_ADMIN_PASSWORD || 'admin'
+const GROUP_ADMIN = 'policy-request-sign-overlay-admin'
+const GROUP_ADMIN_PASSWORD = '123456'
+
 const test = base.extend<{
 	adminRequestContext: APIRequestContext
 	groupAdminRequestContext: APIRequestContext
@@ -49,10 +54,6 @@ const test = base.extend<{
 
 test.describe.configure({ mode: 'serial', retries: 0, timeout: 120000 })
 
-const ADMIN_USER = process.env.NEXTCLOUD_ADMIN_USER ?? 'admin'
-const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || process.env.NEXTCLOUD_ADMIN_PASSWORD || 'admin'
-const GROUP_ADMIN = 'policy-request-sign-overlay-admin'
-const GROUP_ADMIN_PASSWORD = '123456'
 const BOARD_GROUP = 'policy-request-sign-overlay-board'
 const COMPANY_GROUP = 'policy-request-sign-overlay-company'
 const POLICY_KEY = 'groups_request_sign'

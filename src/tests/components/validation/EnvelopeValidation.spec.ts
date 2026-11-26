@@ -121,7 +121,7 @@ vi.mock('@nextcloud/l10n', () => globalThis.mockNextcloudL10n({
 }))
 vi.mock('@nextcloud/moment', () => ({
 	default: vi.fn((date) => ({
-		format: vi.fn((fmt) => `Formatted: ${date}`),
+		format: vi.fn(() => `Formatted: ${date}`),
 	})),
 }))
 vi.mock('../../../utils/fileStatus.js', () => ({

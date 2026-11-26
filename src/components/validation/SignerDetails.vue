@@ -321,14 +321,12 @@ import { computed, ref } from 'vue'
 import {
 	mdiAlert,
 	mdiAlertCircle,
-	mdiAlertCircleOutline,
 	mdiCancel,
 	mdiCheck,
 	mdiCheckCircle,
 	mdiCloseCircle,
 	mdiHelpCircle,
 	mdiInformationOutline,
-	mdiKey,
 	mdiShieldAlert,
 	mdiShieldCheck,
 	mdiShieldOff,
@@ -348,7 +346,7 @@ import type { DeviceReportedLocation as DeviceReportedLocationData } from '../..
 import type { SignerIpGeolocationEvidence } from '../../helpers/signerIpGeolocation'
 import { getSignerStatusLabel, isSignedSigner } from '../../utils/signerStatusPresentation.ts'
 import type { DocumentModificationState } from '../../services/validationDocument'
-import type { SignerDetailRecord, VisibleElementRecord } from '../../types'
+import type { CertificateChainEntry, SignerDetailRecord, VisibleElementRecord } from '../../types'
 
 type ValidationState = {
 	id?: number
@@ -419,7 +417,7 @@ type SignerModel = {
 	timestamp?: SignerTimestamp
 	signatureTypeSN?: string
 	hash?: string
-	chain?: Record<string, unknown>[]
+	chain?: CertificateChainEntry[]
 }
 
 type CrlStatusMeta = {

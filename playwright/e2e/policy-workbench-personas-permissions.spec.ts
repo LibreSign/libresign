@@ -17,6 +17,9 @@ import {
 	policyRequest,
 } from '../support/policy-api'
 
+const ADMIN_USER = process.env.NEXTCLOUD_ADMIN_USER ?? 'admin'
+const ADMIN_PASSWORD = process.env.NEXTCLOUD_ADMIN_PASSWORD ?? 'admin'
+
 const test = base.extend<{
 	adminRequestContext: APIRequestContext
 }>({
@@ -29,8 +32,6 @@ const test = base.extend<{
 
 test.describe.configure({ retries: 0, timeout: 90000 })
 
-const ADMIN_USER = process.env.NEXTCLOUD_ADMIN_USER ?? 'admin'
-const ADMIN_PASSWORD = process.env.NEXTCLOUD_ADMIN_PASSWORD ?? 'admin'
 const DEFAULT_TEST_PASSWORD = '123456'
 
 const GROUP_ID = 'policy-e2e-group'

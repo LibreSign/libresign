@@ -260,14 +260,17 @@ async function generateCertificate() {
 		certificate.value = data.ocs.data.data
 		afterCertificateGenerated()
 		configureCheckStore.checkSetup()
-	} catch (caughtError: any) {
-		const response = caughtError?.response
-		if (response?.data?.ocs?.data?.message?.length > 0) {
+	} catch (caughtError: unknown) {
+		const response = (caughtError as {
+			response?: { data?: { ocs?: { data?: { message?: string } } }, length?: number }
+		}).response
+		const responseMessage = response?.data?.ocs?.data?.message
+		if (responseMessage && responseMessage.length > 0) {
 			// TRANSLATORS Error prefix for certificate generation failure; backend detail is appended after newline.
-			showError(t('libresign', 'Could not generate certificate.') + '\n' + response.data.ocs.data.message)
+			showError(t('libresign', 'Could not generate certificate.') + '\n' + responseMessage)
 		} else if (response?.length) {
 			// TRANSLATORS Error prefix for certificate generation failure with raw response content appended.
-			showError(t('libresign', 'Could not generate certificate.') + '\n' + response)
+			showError(t('libresign', 'Could not generate certificate.') + '\n' + String(response))
 		} else {
 			// TRANSLATORS Generic certificate generation failure message when no details are available.
 			showError(t('libresign', 'Could not generate certificate.'))

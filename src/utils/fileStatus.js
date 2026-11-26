@@ -108,7 +108,7 @@ export function getStatusSvgInline(status) {
 			return svg
 		}
 		return svg.replace('<path ', `<path fill="${color}" `)
-	} catch (e) {
+	} catch {
 		return ''
 	}
 }

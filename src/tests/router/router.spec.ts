@@ -6,7 +6,6 @@
 import { describe, expect, it, beforeAll, beforeEach, vi, afterEach } from 'vitest'
 import type { MockedFunction } from 'vitest'
 import type {
-	NavigationGuardNext,
 	RouteLocationNormalized,
 	RouteRecordNormalized,
 	Router,

@@ -16,15 +16,6 @@ interface CertificationOption {
 }
 
 /**
- * Return custom options details from ID
- *
- * @param id identification of custom option
- */
-export function selectCustonOption(id: string): Option<CertificationOption> {
-	return Option.from(options.find(item => item.id === id))
-}
-
-/**
  * More informations: https://www.ietf.org/rfc/rfc5280.txt
  */
 export const options: CertificationOption[] = [
@@ -81,3 +72,12 @@ export const options: CertificationOption[] = [
 		helperText: t('libresign', 'Name of an organizational unit'),
 	},
 ]
+
+/**
+ * Return custom options details from ID
+ *
+ * @param id identification of custom option
+ */
+export function selectCustonOption(id: string): Option<CertificationOption> {
+	return Option.from(options.find(item => item.id === id))
+}

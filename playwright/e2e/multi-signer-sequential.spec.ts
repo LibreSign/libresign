@@ -35,7 +35,7 @@ const test = base.extend<{
 	adminContext: APIRequestContext
 	originalConfigSnapshot: OriginalConfigSnapshot
 }>({
-	adminContext: async ({ request: _request }, use) => {
+	adminContext: async ({}, use) => {
 		const ctx = await makeAdminContext()
 		await use(ctx)
 		await ctx.dispose()

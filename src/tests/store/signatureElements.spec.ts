@@ -383,7 +383,8 @@ describe('signatureElements store - signature business rules', () => {
 				},
 			})
 
-			const store = useSignatureElementsStore()
+			// Instantiating the store is what triggers the initial fetch.
+			useSignatureElementsStore()
 
 			expect(axiosMock).toHaveBeenCalledWith(expect.objectContaining({
 					method: 'get',

@@ -137,6 +137,21 @@ export type IdentifyMethodsEffectivePolicyValue = {
 	can_create_account?: boolean
 }
 export type ProgressPayload = ApiComponents['schemas']['ProgressPayload']
+/**
+ * One certificate of a signer's trust chain, as reported by the validation
+ * endpoint. Only the fields rendered by the certificate chain view are
+ * described; the backend may send more.
+ */
+export type CertificateChainEntry = {
+	subject?: { CN?: string }
+	issuer?: { CN?: string }
+	name?: string
+	displayName?: string
+	serialNumber?: string | number
+	serialNumberHex?: string
+	validFrom_time_t?: number
+	validTo_time_t?: number
+}
 export type FileDetailRecord = ApiComponents['schemas']['DetailedFile']
 export type ValidationFileRecord = ApiComponents['schemas']['ValidatedFile']
 export type FileSummaryRecord = ApiComponents['schemas']['FileSummary']

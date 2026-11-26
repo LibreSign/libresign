@@ -42,6 +42,9 @@ import {
 	type SystemPolicySnapshot,
 } from '../support/policy-api'
 
+const ADMIN_USER = process.env.NEXTCLOUD_ADMIN_USER ?? 'admin'
+const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || process.env.NEXTCLOUD_ADMIN_PASSWORD || 'admin'
+
 const test = base.extend<{
 	adminRequestContext: APIRequestContext
 }>({
@@ -56,9 +59,6 @@ const test = base.extend<{
 })
 
 test.describe.configure({ mode: 'serial', retries: 0, timeout: 90000 })
-
-const ADMIN_USER = process.env.NEXTCLOUD_ADMIN_USER ?? 'admin'
-const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || process.env.NEXTCLOUD_ADMIN_PASSWORD || 'admin'
 
 const TEST_NAMESPACE = randomBytes(6).toString('hex')
 const GROUP_1 = `policy-sidebar-group-1-${TEST_NAMESPACE}`
@@ -148,7 +148,7 @@ test.afterAll(async () => {
 })
 
 test.describe('Policies menu sidebar visibility', () => {
-	test('instance admin sees Policies menu in sidebar', async ({ page, adminRequestContext }) => {
+	test('instance admin sees Policies menu in sidebar', async ({ page }) => {
 		// Test instance admin
 		await login(page.request, ADMIN_USER, ADMIN_PASSWORD)
 		await page.goto('./apps/libresign/f/preferences')

@@ -64,7 +64,7 @@
 							:id="`${certificate.id}-${index}`"
 							v-model="certificate.value[index]"
 							:placeholder="t('libresign', 'Item {index}', {index: index + 1})"
-							@update:modelValue="validateArray(certificate.id)" />
+							@update:modelValue="validateArray()" />
 						<!-- TRANSLATORS Accessible label for the button that removes one value from a multi-value certificate field. -->
 						<NcButton
 							v-if="certificate.value.length > 1"
@@ -215,7 +215,7 @@ function updateCertificateValue(certificate: CertificateOption, value: string | 
 	validate(certificate.id)
 }
 
-function validateArray(_id: string) {
+function validateArray() {
 	emitCertificateList()
 }
 
@@ -223,7 +223,7 @@ function addArrayEntry(id: string) {
 	const certificate = certificateList.value.find((cert: CertificateOption) => cert.id === id)
 	if (certificate && Array.isArray(certificate.value) && certificate.value.length < MAX_ARRAY_ITEMS) {
 		certificate.value.push('')
-		validateArray(id)
+		validateArray()
 	}
 }
 
@@ -231,7 +231,7 @@ function removeArrayEntry(id: string, index: number) {
 	const certificate = certificateList.value.find((cert: CertificateOption) => cert.id === id)
 	if (certificate && Array.isArray(certificate.value) && certificate.value.length > 1) {
 		certificate.value.splice(index, 1)
-		validateArray(id)
+		validateArray()
 	}
 }
 
