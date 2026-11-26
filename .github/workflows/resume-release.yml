@@ -31,7 +31,7 @@ jobs:
     steps:
       - id: context
         name: Resolve release resume context
-        uses: LibreCodeCoop/release-tool/actions/resume-context@51355769089a6796c23d6c966108afbdaf858c32 # v0.12.0
+        uses: LibreCodeCoop/release-tool/actions/resume-context@63ceba979644c97b7781f3e7b4496c68d0ebddb3 # v0.12.1
         with:
           pull-request-number: ${{ inputs.pull_request_number }}
           github-token: ${{ secrets.GITHUB_TOKEN }}
