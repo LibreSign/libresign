@@ -11,60 +11,19 @@ namespace OCA\Libresign\Tests\Integration\Service\Signing\External;
 use OCA\Libresign\Controller\ExternalSigningWorkflowController;
 use OCA\Libresign\Db\File as FileEntity;
 use OCA\Libresign\Db\FileMapper;
-use OCA\Libresign\Db\IdentifyMethod;
 use OCA\Libresign\Db\SignRequest;
 use OCA\Libresign\Db\SignRequestMapper;
-use OCA\Libresign\Enum\FileStatus;
 use OCA\Libresign\Enum\SignRequestStatus;
-use OCA\Libresign\Events\SignedEventFactory;
-use OCA\Libresign\Handler\DocMdpHandler;
-use OCA\Libresign\Service\ExperimentalFeaturesService;
-use OCA\Libresign\Service\File\SigningWorkflowStatusResolver;
-use OCA\Libresign\Service\FileStatusService;
-use OCA\Libresign\Service\FolderService;
-use OCA\Libresign\Service\IdentifyMethod\IIdentifyMethod;
-use OCA\Libresign\Service\IdentifyMethodService;
-use OCA\Libresign\Service\Policy\Model\ResolvedPolicy;
-use OCA\Libresign\Service\Policy\PolicyService;
-use OCA\Libresign\Service\SequentialSigningService;
-use OCA\Libresign\Service\Signature\ExternalPdfSigningService;
 use OCA\Libresign\Service\Signature\PdfSignatureValidationService;
-use OCA\Libresign\Service\Signing\External\Authorization;
-use OCA\Libresign\Service\Signing\External\CredentialSelection;
-use OCA\Libresign\Service\Signing\External\DocumentSource;
-use OCA\Libresign\Service\Signing\External\ImmutableArtifactStore;
-use OCA\Libresign\Service\Signing\External\IntegrationScopeAccess;
-use OCA\Libresign\Service\Signing\External\LaboratoryFactory;
-use OCA\Libresign\Service\Signing\External\Publication;
-use OCA\Libresign\Service\Signing\External\PublicationCommitter;
-use OCA\Libresign\Service\Signing\External\PublicationEvents;
-use OCA\Libresign\Service\Signing\External\PublicationPreparer;
-use OCA\Libresign\Service\Signing\External\SessionStore;
 use OCA\Libresign\Service\Signing\External\Workflow;
-use OCA\Libresign\Service\Signing\ExternalIntegrationAvailability;
-use OCA\Libresign\Service\Signing\ExternalIntegrationStore;
-use OCA\Libresign\Service\Signing\Provider\Drivers\Csc\CscDriver;
-use OCA\Libresign\Service\Signing\SyntheticCscSigningOperation;
-use OCA\Libresign\Service\Validation\SignerValidator;
-use OCA\Libresign\Service\Validation\SigningRequestValidator;
-use OCA\Libresign\Service\Webhook\NativeWebhookEventPublisher;
-use OCA\Libresign\Vendor\SignerPHP\PdfSigner\Infrastructure\Remote\Csc\CscCertificateDiscovery;
+use OCA\Libresign\Tests\Integration\Service\Signing\External\Fixtures\SigningRequestFixture;
+use OCA\Libresign\Tests\Integration\Service\Signing\External\Fixtures\SyntheticCscResponder;
+use OCA\Libresign\Tests\Integration\Service\Signing\External\Fixtures\WorkflowServices;
 use OCP\AppFramework\Http;
-use OCP\EventDispatcher\IEventDispatcher;
-use OCP\Files\IRootFolder;
-use OCP\Group\ISubAdmin;
-use OCP\Http\Client\IClient;
-use OCP\Http\Client\IClientService;
-use OCP\Http\Client\IResponse;
-use OCP\IConfig;
-use OCP\IDBConnection;
-use OCP\IGroupManager;
 use OCP\IRequest;
+use OCP\IDBConnection;
 use OCP\IUser;
-use OCP\IUserManager;
 use OCP\IUserSession;
-use OCP\L10N\IFactory;
-use OCP\Security\ICrypto;
 use OCP\Server;
 use Psr\Log\LoggerInterface;
 
@@ -76,231 +35,43 @@ use Psr\Log\LoggerInterface;
  * contacts a real CSC provider, but SignerPHP signs actual prepared digests.
  */
 final class WorkflowTest extends \OCA\Libresign\Tests\Integration\TestCase {
-	private const URL = 'https://synthetic-csc.example.org';
 	private const EMAIL = 'authorized@example.org';
 	private const TOKEN = 'verified-synthetic-code';
-	private const CREDENTIAL = 'synthetic-lab-key';
+	private const CREDENTIAL = SyntheticCscResponder::CREDENTIAL;
 
-	private IDBConnection $db;
-	private ExternalIntegrationStore $integrations;
-	private SessionStore $sessions;
 	private Workflow $service;
 	private PdfSignatureValidationService $validation;
 	private SignRequest $request;
 	private FileEntity $file;
-	private \OCP\Files\File $source;
 	private string $integrationId;
-	private int $submitted = 0;
-	private bool $timeout = false;
 	private bool $policyAllowed = true;
-	private string $certificatePem;
-	private \OpenSSLAsymmetricKey $privateKey;
+	private SyntheticCscResponder $csc;
+	private WorkflowServices $wiring;
 
 	#[\Override]
 	public function setUp(): void {
 		parent::setUp();
-		$this->db = Server::get(IDBConnection::class);
-		$certificate = $this->syntheticCertificate();
-		$this->certificatePem = $certificate[0];
-		$this->privateKey = $certificate[1];
-		$pdf = file_get_contents(dirname(__DIR__, 4) . '/fixtures/pdfs/small_valid.pdf');
-		self::assertIsString($pdf);
-		$user = $this->createAccount('csc-api-' . bin2hex(random_bytes(5)), 'temporary-password');
-		$this->source = Server::get(IRootFolder::class)->getUserFolder($user->getUID())
-			->newFile('source.pdf', $pdf);
-		$this->file = new FileEntity();
-		$this->file->setUuid(bin2hex(random_bytes(16)));
-		$this->file->setName('source.pdf');
-		$this->file->setNodeId($this->source->getId());
-		$this->file->setUserId($user->getUID());
-		$this->file->setStatus(FileStatus::ABLE_TO_SIGN->value);
-		$this->file->setCreatedAt(new \DateTime('now', new \DateTimeZone('UTC')));
-		$this->file = Server::get(FileMapper::class)->insert($this->file);
-		$this->request = new SignRequest();
-		$this->request->setUuid(bin2hex(random_bytes(16)));
-		$this->request->setFileId($this->file->getId());
-		$this->request->setStatusEnum(SignRequestStatus::ABLE_TO_SIGN);
-		$this->request->setDisplayName('Synthetic authorized signer');
-		$this->request->setCreatedAt(new \DateTime('now', new \DateTimeZone('UTC')));
-		$this->request = Server::get(SignRequestMapper::class)->insert($this->request);
-		$this->integrations = Server::get(ExternalIntegrationStore::class);
-		$created = $this->integrations->create(CscDriver::ID, 'Laboratory only', ['baseUrl' => self::URL], []);
-		$record = $this->integrations->setEnabled($created->id, $created->revision, true);
-		$this->integrationId = $record->id;
-
-		$features = $this->createMock(ExperimentalFeaturesService::class);
-		$features->method('isEnabled')->willReturn(true);
-		$this->sessions = new SessionStore($this->db, Server::get(ICrypto::class),
-			$features, $this->integrations);
-		$methods = $this->createMock(IdentifyMethodService::class);
-		$identity = new IdentifyMethod();
-		$identity->setIdentifierKey('email');
-		$identity->setIdentifierValue(self::EMAIL);
-		$method = $this->createMock(IIdentifyMethod::class);
-		$method->method('getEntity')->willReturn($identity);
-		$methods->method('getIdentifyMethodsFromSignRequestId')->willReturn(['email' => [$method]]);
-		$userSession = $this->createMock(IUserSession::class);
-		$userSession->method('getUser')->willReturn(null);
-		$authorization = new Authorization(
-			$features, Server::get(SignRequestMapper::class), Server::get(FileMapper::class),
-			$this->createMock(SignerValidator::class),
-			$this->createMock(SigningRequestValidator::class),
-			$methods, $userSession,
-		);
-		$availability = new ExternalIntegrationAvailability($features);
-		$config = $this->createMock(IConfig::class);
-		$config->method('getSystemValueBool')->willReturnCallback(static fn (string $name, bool $default = false): bool => $default);
-		$fingerprint = openssl_x509_fingerprint($this->certificatePem, 'sha256');
-		self::assertIsString($fingerprint);
-		$config->method('getSystemValueString')->willReturnCallback(
-			static fn (string $name, string $default = ''): string => match ($name) {
-				'libresign_csc_synthetic_lab_url' => self::URL,
-				'libresign_csc_synthetic_lab_certificate_sha256' => $fingerprint,
-				default => $default,
-			});
-		$client = $this->createMock(IClient::class);
-		$client->method('post')->willReturnCallback($this->respondToCsc(...));
-		$clientService = $this->createMock(IClientService::class);
-		$clientService->method('newClient')->willReturn($client);
-		$laboratories = new LaboratoryFactory(
-			$this->integrations, $availability, Server::get(CscDriver::class),
-			$clientService, $config,
-		);
-		$selection = new CredentialSelection($authorization,
-			$this->integrations, $availability, Server::get(CscDriver::class));
-		$l10n = Server::get(IFactory::class)->get('libresign');
-		$this->validation = new PdfSignatureValidationService(
-			$this->getMockAppConfigWithReset(), $l10n, Server::get(LoggerInterface::class));
-		$pdfSigning = new ExternalPdfSigningService($this->validation, new DocMdpHandler($l10n));
-		$crypto = new SyntheticCscSigningOperation($pdfSigning, $this->sessions);
-		$publisher = new Publication(
-			new PublicationPreparer($this->sessions, $crypto, Server::get(FileMapper::class),
-				new DocumentSource(Server::get(FileMapper::class), Server::get(FolderService::class)),
-				new ImmutableArtifactStore(Server::get(IUserSession::class))),
-			new PublicationCommitter($this->db, $this->sessions,
-				Server::get(FileMapper::class), Server::get(SignRequestMapper::class),
-				Server::get(FileStatusService::class), Server::get(SigningWorkflowStatusResolver::class),
-				Server::get(SequentialSigningService::class),
-				Server::get(\OCA\Libresign\Db\NotificationDeliveryMapper::class)),
-			new PublicationEvents(Server::get(FileStatusService::class), Server::get(SignRequestMapper::class),
-				Server::get(SequentialSigningService::class), Server::get(SignedEventFactory::class),
-				Server::get(IEventDispatcher::class), Server::get(NativeWebhookEventPublisher::class),
-				Server::get(LoggerInterface::class)),
-		);
-		$this->service = new Workflow(
-			$authorization, $laboratories, $selection, $this->sessions, $crypto, $publisher,
-			new DocumentSource(Server::get(FileMapper::class), Server::get(FolderService::class)),
-			new IntegrationScopeAccess(
-				$this->allowPolicyForWorkflowTest(),
-				Server::get(IGroupManager::class),
-				Server::get(IUserManager::class), Server::get(IUserSession::class),
-				Server::get(ISubAdmin::class),
-			),
-		);
-	}
-
-	/** The signing laboratory tests exercise the CSC lifecycle, not the policy resolver. */
-	private function allowPolicyForWorkflowTest(): PolicyService {
-		$policy = $this->createMock(PolicyService::class);
-		$policy->method('resolveForUserId')->willReturnCallback(
-			fn (): ResolvedPolicy => (new ResolvedPolicy())->setEffectiveValue($this->policyAllowed),
-		);
-		return $policy;
+		$mock = fn (string $class) => $this->createMock($class);
+		$this->csc = new SyntheticCscResponder($mock);
+		$document = SigningRequestFixture::create($this);
+		$this->file = $document->file;
+		$this->request = $document->request;
+		$this->wiring = WorkflowServices::create($mock, Server::get(IDBConnection::class),
+			$this->csc, self::EMAIL, fn (): bool => $this->policyAllowed);
+		$this->service = $this->wiring->workflow;
+		$this->validation = $this->wiring->validation;
+		$this->integrationId = $this->wiring->integrationId;
 	}
 
 	#[\Override]
 	public function tearDown(): void {
 		try {
-			$qb = $this->db->getQueryBuilder();
-			$qb->delete('libresign_ext_sign_private')->where($qb->expr()->in('session_id',
-				$qb->createNamedParameter($this->createdSessionIds(), \OCP\DB\QueryBuilder\IQueryBuilder::PARAM_STR_ARRAY)))
-				->executeStatement();
-			$qb = $this->db->getQueryBuilder();
-			$qb->delete('libresign_ext_sign_attempt')->where($qb->expr()->in('session_id',
-				$qb->createNamedParameter($this->createdSessionIds(), \OCP\DB\QueryBuilder\IQueryBuilder::PARAM_STR_ARRAY)))
-				->executeStatement();
-			$qb = $this->db->getQueryBuilder();
-			$qb->delete('libresign_ext_sign_audit')->where($qb->expr()->in('session_id',
-				$qb->createNamedParameter($this->createdSessionIds(), \OCP\DB\QueryBuilder\IQueryBuilder::PARAM_STR_ARRAY)))
-				->executeStatement();
-			$qb = $this->db->getQueryBuilder();
-			$qb->delete('libresign_ext_sign_session')->where($qb->expr()->eq('sign_request_id',
-				$qb->createNamedParameter($this->request->getId())))
-				->executeStatement();
-			$qb = $this->db->getQueryBuilder();
-			$qb->delete('libresign_signing_integration')->where($qb->expr()->eq('public_id',
-				$qb->createNamedParameter($this->integrationId)))
-				->executeStatement();
+			if (isset($this->wiring, $this->request)) {
+				$this->wiring->cleanup($this->request->getId());
+			}
 		} finally {
 			parent::tearDown();
 		}
-	}
-
-	/** @return list<string> */
-	private function createdSessionIds(): array {
-		$qb = $this->db->getQueryBuilder();
-		$ids = $qb->select('public_id')->from('libresign_ext_sign_session')
-			->where($qb->expr()->eq('sign_request_id', $qb->createNamedParameter($this->request->getId())))
-			->executeQuery()->fetchFirstColumn();
-		return array_map(strval(...), $ids);
-	}
-
-	/** @return array{string, \OpenSSLAsymmetricKey} */
-	private function syntheticCertificate(): array {
-		$key = openssl_pkey_new(['private_key_type' => OPENSSL_KEYTYPE_RSA, 'private_key_bits' => 2048]);
-		self::assertInstanceOf(\OpenSSLAsymmetricKey::class, $key);
-		$config = tempnam(sys_get_temp_dir(), 'csc-ocs-cert-');
-		self::assertIsString($config);
-		try {
-			file_put_contents($config, "[req]\ndistinguished_name = dn\n[dn]\n[v3_signer]\nbasicConstraints = critical,CA:FALSE\nkeyUsage = critical,digitalSignature,nonRepudiation\n");
-			$csr = openssl_csr_new(['commonName' => 'Synthetic CSC laboratory signer'], $key);
-			self::assertNotFalse($csr);
-			$cert = openssl_csr_sign($csr, null, $key, 1, [
-				'config' => $config, 'x509_extensions' => 'v3_signer', 'digest_alg' => 'sha256',
-			]);
-			self::assertNotFalse($cert);
-			self::assertTrue(openssl_x509_export($cert, $pem));
-			return [$pem, $key];
-		} finally {
-			@unlink($config);
-		}
-	}
-
-	/** @param array<string, mixed> $options */
-	private function respondToCsc(string $url, array $options): IResponse {
-		self::assertFalse($options['allow_redirects']);
-		self::assertArrayNotHasKey('Authorization', $options['headers']);
-		$operation = substr((string)parse_url($url, PHP_URL_PATH), strlen('/csc/v1/'));
-		$body = json_decode((string)$options['body'], true, flags: JSON_THROW_ON_ERROR);
-		$der = base64_decode((string)preg_replace('/-----[^-]+-----|\s+/', '', $this->certificatePem), true);
-		self::assertIsString($der);
-		$payload = match ($operation) {
-			'info' => ['specs' => '1.0.4.0'],
-			'credentials/list' => ['credentialIDs' => [self::CREDENTIAL]],
-			'credentials/info' => [
-				'key' => ['status' => 'enabled', 'algo' => [CscCertificateDiscovery::SHA256_RSA_OID]],
-				'cert' => ['certificates' => [base64_encode($der)]],
-			],
-			'credentials/authorize' => ['SAD' => 'synthetic-bound-operation'],
-			'signatures/signHash' => $this->signHash($body),
-			default => throw new \LogicException('Unexpected CSC request ' . $operation),
-		};
-		$response = $this->createMock(IResponse::class);
-		$response->method('getStatusCode')->willReturn($this->timeout && $operation === 'signatures/signHash' ? 503 : 200);
-		$response->method('getBody')->willReturn(json_encode($payload, JSON_THROW_ON_ERROR));
-		return $response;
-	}
-
-	/** @param array<string, mixed> $body @return array<string, mixed> */
-	private function signHash(array $body): array {
-		$this->submitted++;
-		self::assertSame('synthetic-bound-operation', $body['SAD']);
-		$hash = base64_decode($body['hash'][0], true);
-		self::assertIsString($hash);
-		self::assertSame(32, strlen($hash));
-		self::assertTrue(openssl_private_encrypt(hex2bin('3031300d060960864801650304020105000420') . $hash,
-			$signature, $this->privateKey, OPENSSL_PKCS1_PADDING));
-		return ['signatures' => [base64_encode($signature)]];
 	}
 
 	private function uuid(): string {
@@ -337,7 +108,7 @@ final class WorkflowTest extends \OCA\Libresign\Tests\Integration\TestCase {
 			(string)$started->getData()['session']['id']);
 		self::assertSame(Http::STATUS_OK, $completed->getStatus());
 		self::assertSame('completed', $completed->getData()['session']['status']);
-		self::assertSame(1, $this->submitted);
+		self::assertSame(1, $this->csc->submissions());
 		self::assertSame(SignRequestStatus::SIGNED,
 			Server::get(SignRequestMapper::class)->getById($this->request->getId())->getStatusEnum());
 	}
@@ -359,7 +130,7 @@ final class WorkflowTest extends \OCA\Libresign\Tests\Integration\TestCase {
 			'', $this->integrationId);
 		self::assertSame(Http::STATUS_FORBIDDEN, $response->getStatus());
 		self::assertArrayNotHasKey('credentials', $response->getData());
-		self::assertSame(0, $this->submitted);
+		self::assertSame(0, $this->csc->submissions());
 	}
 
 	public function testAuthenticatedApiRequiresCsrfBeforeSignerOrProviderWork(): void {
@@ -368,7 +139,7 @@ final class WorkflowTest extends \OCA\Libresign\Tests\Integration\TestCase {
 			self::TOKEN, $this->integrationId);
 		self::assertSame(Http::STATUS_FORBIDDEN, $response->getStatus());
 		self::assertArrayNotHasKey('credentials', $response->getData());
-		self::assertSame(0, $this->submitted);
+		self::assertSame(0, $this->csc->submissions());
 	}
 
 	public function testUnknownRemoteOutcomeIsAcceptedNotRetriedByPublicController(): void {
@@ -376,7 +147,7 @@ final class WorkflowTest extends \OCA\Libresign\Tests\Integration\TestCase {
 		$started = $controller->start($this->uuid(), 'email', self::EMAIL, self::TOKEN,
 			$this->integrationId, self::CREDENTIAL, 'uncertain', 'pdf-basic');
 		self::assertSame(Http::STATUS_OK, $started->getStatus());
-		$this->timeout = true;
+		$this->csc->simulateUnknownSigningOutcome();
 		$first = $controller->continue($this->uuid(), 'email', self::EMAIL, self::TOKEN,
 			(string)$started->getData()['session']['id']);
 		self::assertSame(Http::STATUS_ACCEPTED, $first->getStatus());
@@ -385,7 +156,7 @@ final class WorkflowTest extends \OCA\Libresign\Tests\Integration\TestCase {
 		$again = $controller->continue($this->uuid(), 'email', self::EMAIL, self::TOKEN,
 			(string)$started->getData()['session']['id']);
 		self::assertSame(Http::STATUS_ACCEPTED, $again->getStatus());
-		self::assertSame(1, $this->submitted);
+		self::assertSame(1, $this->csc->submissions());
 	}
 
 	/**
@@ -395,11 +166,11 @@ final class WorkflowTest extends \OCA\Libresign\Tests\Integration\TestCase {
 	public function testRevokedPolicyDeniesUncertainSessionContinuationWithoutResubmission(): void {
 		$started = $this->service->start($this->uuid(), 'email', self::EMAIL,
 			self::TOKEN, $this->integrationId, self::CREDENTIAL, 'revoked-policy', 'pdf-basic');
-		$this->timeout = true;
+		$this->csc->simulateUnknownSigningOutcome();
 		$result = $this->service->continue($this->uuid(), 'email', self::EMAIL,
 			self::TOKEN, (string)$started['id']);
 		self::assertSame('uncertain', $result['session']['status']);
-		self::assertSame(1, $this->submitted);
+		self::assertSame(1, $this->csc->submissions());
 
 		$this->policyAllowed = false;
 		$this->expectException(\DomainException::class);
@@ -407,7 +178,7 @@ final class WorkflowTest extends \OCA\Libresign\Tests\Integration\TestCase {
 			$this->service->continue($this->uuid(), 'email', self::EMAIL,
 				self::TOKEN, (string)$started['id']);
 		} finally {
-			self::assertSame(1, $this->submitted, 'Revoked access must never retry the remote signature');
+			self::assertSame(1, $this->csc->submissions(), 'Revoked access must never retry the remote signature');
 		}
 	}
 
@@ -431,7 +202,7 @@ final class WorkflowTest extends \OCA\Libresign\Tests\Integration\TestCase {
 			self::TOKEN, (string)$started['id']);
 		self::assertSame('completed', $result['session']['status']);
 		self::assertSame('completed', $result['publication']['status']);
-		self::assertSame(1, $this->submitted);
+		self::assertSame(1, $this->csc->submissions());
 		$storedFile = Server::get(FileMapper::class)->getById($this->file->getId());
 		self::assertSame($result['publication']['signedNodeId'], $storedFile->getSignedNodeId());
 		self::assertSame($result['publication']['signedHash'], $storedFile->getSignedHash());
@@ -445,20 +216,70 @@ final class WorkflowTest extends \OCA\Libresign\Tests\Integration\TestCase {
 		self::assertTrue($validations[0]['signatureValidation']['isValid']);
 	}
 
+	/**
+	 * A received and reserved signature must publish without re-contacting CSC.
+	 * The raw hash signature has already been submitted exactly once.
+	 */
+	public function testReservedPublicationSurvivesCscDiscoveryOutage(): void {
+		$started = $this->service->start($this->uuid(), 'email', self::EMAIL,
+			self::TOKEN, $this->integrationId, self::CREDENTIAL, 'recover-without-csc', 'pdf-basic');
+		$lab = $this->wiring->laboratories->resolve($this->integrationId);
+		$source = $this->wiring->documents->get($this->file);
+		$this->wiring->operation->sign($lab['laboratory'], $lab['record'], (string)$started['id'],
+			$this->request->getId(), 'sign-request:' . $this->request->getId(),
+			$source->revision, $source->pdf);
+		self::assertSame('completing', $this->service->status(
+			$this->uuid(), 'email', self::EMAIL, self::TOKEN)['status']);
+		self::assertSame(1, $this->csc->submissions());
+
+		$this->csc->makeDiscoveryUnavailable();
+		$result = $this->service->continue($this->uuid(), 'email', self::EMAIL,
+			self::TOKEN, (string)$started['id']);
+		self::assertSame('completed', $result['session']['status']);
+		self::assertSame(1, $this->csc->submissions(), 'Publication must never resubmit signHash');
+		$published = Server::get(FileMapper::class)->getById($this->file->getId());
+		$validations = $this->validation->validateFromString(
+			Server::get(\OCA\Libresign\Service\FolderService::class)->getReadableNodeById(
+				$this->file->getUserId(), $published->getSignedNodeId())->getContent());
+		self::assertCount(1, $validations);
+		self::assertTrue($validations[0]['signatureValidation']['isValid']);
+	}
+
+	public function testRevokedPolicyStillBlocksReservedPublicationDuringProviderOutage(): void {
+		$started = $this->service->start($this->uuid(), 'email', self::EMAIL,
+			self::TOKEN, $this->integrationId, self::CREDENTIAL, 'revoke-before-publishing', 'pdf-basic');
+		$lab = $this->wiring->laboratories->resolve($this->integrationId);
+		$source = $this->wiring->documents->get($this->file);
+		$this->wiring->operation->sign($lab['laboratory'], $lab['record'], (string)$started['id'],
+			$this->request->getId(), 'sign-request:' . $this->request->getId(),
+			$source->revision, $source->pdf);
+		$this->csc->makeDiscoveryUnavailable();
+		$this->policyAllowed = false;
+		$this->expectException(\DomainException::class);
+		try {
+			$this->service->continue($this->uuid(), 'email', self::EMAIL,
+				self::TOKEN, (string)$started['id']);
+		} finally {
+			self::assertSame(1, $this->csc->submissions());
+			self::assertSame(SignRequestStatus::ABLE_TO_SIGN,
+				Server::get(SignRequestMapper::class)->getById($this->request->getId())->getStatusEnum());
+		}
+	}
+
 	public function testUnknownRemoteOutcomeCannotAutomaticallyResubmitAcrossNewRequests(): void {
 		$started = $this->service->start($this->uuid(), 'email', self::EMAIL,
 			self::TOKEN, $this->integrationId, self::CREDENTIAL, 'uncertain-attempt', 'pdf-basic');
-		$this->timeout = true;
+		$this->csc->simulateUnknownSigningOutcome();
 		$result = $this->service->continue($this->uuid(), 'email', self::EMAIL,
 			self::TOKEN, (string)$started['id']);
 		self::assertSame('uncertain', $result['session']['status']);
 		self::assertFalse($result['retryAllowed']);
 		self::assertNull($result['publication']);
-		self::assertSame(1, $this->submitted);
+		self::assertSame(1, $this->csc->submissions());
 		$again = $this->service->continue($this->uuid(), 'email', self::EMAIL,
 			self::TOKEN, (string)$started['id']);
 		self::assertSame('uncertain', $again['session']['status']);
-		self::assertSame(1, $this->submitted);
+		self::assertSame(1, $this->csc->submissions());
 		self::assertSame(SignRequestStatus::ABLE_TO_SIGN,
 			Server::get(SignRequestMapper::class)->getById($this->request->getId())->getStatusEnum());
 	}
@@ -469,7 +290,7 @@ final class WorkflowTest extends \OCA\Libresign\Tests\Integration\TestCase {
 			$this->service->start($this->uuid(), 'email', self::EMAIL,
 				self::TOKEN, $this->integrationId, 'forged-credential', 'attempt', 'pdf-basic');
 		} finally {
-			self::assertSame(0, $this->submitted);
+			self::assertSame(0, $this->csc->submissions());
 			self::assertNull($this->service->status($this->uuid(), 'email', self::EMAIL, self::TOKEN));
 		}
 	}
