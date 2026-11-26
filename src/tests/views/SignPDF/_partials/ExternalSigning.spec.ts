@@ -108,7 +108,6 @@ describe('external signing within the existing signer UI', () => {
 			: { integrations, integration: null, credentials: [], syntheticOnly: true, personalSignerAuthorization: false, session: null })
 		const wrapper = mountSigner()
 		await authorize(wrapper)
-		await wrapper.find('#external-signing-integration').setValue('lab')
 		await flushPromises()
 		expect(wrapper.text()).toContain('Test connection')
 		expect(wrapper.find('details').attributes('open')).toBeUndefined()
@@ -147,9 +146,23 @@ describe('external signing within the existing signer UI', () => {
 		await authorize(wrapper)
 		expect(discoverExternalSigning).toHaveBeenCalledTimes(2)
 		expect(vi.mocked(discoverExternalSigning).mock.calls[1][1]).toBe('lab')
-		expect((wrapper.find('#external-signing-integration').element as HTMLSelectElement).value).toBe('lab')
-		expect((wrapper.find('#external-signing-credential').element as HTMLSelectElement).value).toBe('synthetic-cert')
+		expect(wrapper.find('#external-signing-integration').exists()).toBe(false)
+		expect(wrapper.find('#external-signing-credential').exists()).toBe(false)
+		expect(wrapper.text()).toContain('Digital signature provider: Synthetic provider')
+		expect(wrapper.text()).toContain('Digital certificate: Laboratory certificate')
 		expect((wrapper.find('#external-signing-profile').element as HTMLSelectElement).value).toBe('pades-baseline-b')
+		wrapper.unmount()
+	})
+
+	it('keeps the provider selector when multiple authorized providers exist', async () => {
+		vi.mocked(discoverExternalSigning).mockResolvedValue({
+			integrations: multipleIntegrations, integration: null, credentials: [], syntheticOnly: true,
+			personalSignerAuthorization: false, session: null,
+		})
+		const wrapper = mountSigner()
+		await authorize(wrapper)
+		expect(wrapper.find('#external-signing-integration').exists()).toBe(true)
+		expect(wrapper.find('#external-signing-credential').exists()).toBe(false)
 		wrapper.unmount()
 	})
 
@@ -162,10 +175,8 @@ describe('external signing within the existing signer UI', () => {
 		vi.mocked(continueExternalSigning).mockResolvedValue({ session: { ...baseSession, status: 'uncertain' }, retryAllowed: false, publication: null })
 		const wrapper = mountSigner()
 		await authorize(wrapper)
-		await wrapper.find('#external-signing-integration').setValue('lab')
 		await flushPromises()
 		expect(wrapper.text()).toContain('Laboratory certificate')
-		await wrapper.find('#external-signing-credential').setValue('synthetic-cert')
 		await clickButton(wrapper, 'Prepare signature')
 		expect(startExternalSigning).toHaveBeenCalledExactlyOnceWith(
 			{ uuid: 'request-one', method: 'email', identifyValue: 'guest@example.org', token: '123456' },
@@ -192,9 +203,7 @@ describe('external signing within the existing signer UI', () => {
 		vi.mocked(statusExternalSigning).mockResolvedValueOnce(null)
 		const wrapper = mountSigner()
 		await authorize(wrapper)
-		await wrapper.find('#external-signing-integration').setValue('lab')
 		await flushPromises()
-		await wrapper.find('#external-signing-credential').setValue('synthetic-cert')
 		await clickButton(wrapper, 'Prepare signature')
 		expect(startExternalSigning).toHaveBeenCalledTimes(1)
 		expect(wrapper.text()).toContain('Check the signing session before another preparation attempt.')

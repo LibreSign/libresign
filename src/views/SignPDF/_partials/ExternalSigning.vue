@@ -78,7 +78,11 @@
 				{{ t('libresign', 'No external signing providers are available for this request.') }}
 			</NcNoteCard>
 			<template v-if="!session">
-				<div v-if="integrations.length > 0" class="external-signing__field">
+				<div v-if="integrations.length === 1 && selectedIntegrationId" class="external-signing__field">
+					<!-- TRANSLATORS The only authorized provider was already selected; there is no choice to make. -->
+					<p>{{ t('libresign', 'Digital signature provider') }}: <strong>{{ integrations[0].name }}</strong></p>
+				</div>
+				<div v-else-if="integrations.length > 0" class="external-signing__field">
 					<!-- TRANSLATORS Label for selecting an external signature provider. -->
 					<label for="external-signing-integration">{{ t('libresign', 'Digital signature provider') }}</label>
 					<select
@@ -96,17 +100,23 @@
 					</select>
 				</div>
 				<div v-if="credentials.length > 0" class="external-signing__field">
-					<!-- TRANSLATORS Label for selecting a remote signing credential/certificate, not uploading a local file. -->
-					<label for="external-signing-credential">{{ t('libresign', 'Digital certificate') }}</label>
-					<select id="external-signing-credential" v-model="selectedCredentialId" :disabled="busy">
-						<option value="">
-							<!-- TRANSLATORS Placeholder option prompting the signer to choose an eligible remote certificate. -->
-							{{ t('libresign', 'Choose a certificate') }}
-						</option>
-						<option v-for="credential in credentials" :key="credential.id" :value="credential.id">
-							{{ credential.subject }} — {{ credential.validTo }}
-						</option>
-					</select>
+					<template v-if="credentials.length === 1 && selectedCredential">
+						<!-- TRANSLATORS The only eligible certificate was already selected. -->
+						<p>{{ t('libresign', 'Digital certificate') }}: <strong>{{ selectedCredential.subject }}</strong></p>
+					</template>
+					<template v-else>
+						<!-- TRANSLATORS Label for selecting a remote signing credential/certificate, not uploading a local file. -->
+						<label for="external-signing-credential">{{ t('libresign', 'Digital certificate') }}</label>
+						<select id="external-signing-credential" v-model="selectedCredentialId" :disabled="busy">
+							<option value="">
+								<!-- TRANSLATORS Placeholder option prompting the signer to choose an eligible remote certificate. -->
+								{{ t('libresign', 'Choose a certificate') }}
+							</option>
+							<option v-for="credential in credentials" :key="credential.id" :value="credential.id">
+								{{ credential.subject }} — {{ credential.validTo }}
+							</option>
+						</select>
+					</template>
 					<div v-if="selectedCredential" class="external-signing__details">
 						<!-- TRANSLATORS Caption before the expiration date of the selected remote signing certificate. -->
 						<p>{{ t('libresign', 'Valid until') }}: {{ formatCertificateExpiry(selectedCredential.validTo) }}</p>
