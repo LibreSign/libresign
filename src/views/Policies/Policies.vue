@@ -13,12 +13,12 @@
 
 <script setup lang="ts">
 import NcAppContent from '@nextcloud/vue/components/NcAppContent'
-
 import RealPolicyWorkbench from '../Settings/PolicyWorkbench/Catalog/Catalog.vue'
 
 defineOptions({
 	name: 'Policies',
 })
+
 </script>
 
 <style scoped lang="scss">

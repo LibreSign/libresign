@@ -237,6 +237,7 @@ import {
 } from '@mdi/js'
 import { computed, nextTick, onBeforeUnmount, onMounted, reactive, ref, shallowRef, useId, watch, watchPostEffect } from 'vue'
 import { t } from '@nextcloud/l10n'
+import { fetchExternalSigningDrivers } from '../../../../services/externalSigningAdmin'
 
 import NcButton from '@nextcloud/vue/components/NcButton'
 import NcDialog from '@nextcloud/vue/components/NcDialog'
@@ -281,8 +282,16 @@ defineOptions({
 })
 
 const policiesStore = usePoliciesStore()
+const externalSigningPolicyVisible = ref(false)
+void fetchExternalSigningDrivers().then(drivers => {
+		externalSigningPolicyVisible.value = drivers.length > 0
+	}).catch(() => {
+		externalSigningPolicyVisible.value = false
+	})
 const userConfigStore = useUserConfigStore()
 const state = reactive(createRealPolicyWorkbenchState())
+const visibleSettingsForCatalog = computed(() => state.visibleSettingSummaries.filter(summary =>
+	summary.key !== 'external_signing_enabled' || externalSigningPolicyVisible.value))
 const isSmallViewport = ref(false)
 const saveStatus = ref<PolicyWorkbenchSaveStatus>('idle')
 const saveFeedbackTimeout = ref<number | null>(null)
@@ -359,7 +368,7 @@ const {
 	catalogViewButtonLabel,
 	catalogCollapseButtonLabel,
 } = useCatalogPresentation({
-	visibleSettingSummaries: computed(() => state.visibleSettingSummaries),
+	visibleSettingSummaries: visibleSettingsForCatalog,
 	settingsFilter: catalogState.settingsFilter,
 	catalogLayout: catalogState.catalogLayout,
 	isCatalogCollapsed: catalogState.isCatalogCollapsed,
@@ -436,7 +445,11 @@ const activeEditorProps = computed<Record<string, unknown>>(() => {
 	const baseEditorProps = state.activeDefinition.editorProps ?? {}
 	const activePolicy = policiesStore.getPolicy(state.activeDefinition.key)
 
-	return state.activeDefinition.resolveEditorProps?.(activePolicy, baseEditorProps) ?? baseEditorProps
+    const resolved = state.activeDefinition.resolveEditorProps?.(activePolicy, baseEditorProps) ?? baseEditorProps
+    if (state.activeDefinition.key === 'external_signing_enabled') {
+        return { ...resolved, scopeTargetIds: state.editorDraft?.targetIds ?? [] }
+    }
+    return resolved
 })
 
 const selectedTargetOptions = computed(() => {

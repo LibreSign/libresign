@@ -10,6 +10,7 @@ import { defaultUserFolderRealDefinition } from './default-user-folder/realDefin
 import { docMdpRealDefinition } from './docmdp/realDefinition'
 import { emailSignerSignatureRealDefinition } from './email-signer-signature/realDefinition'
 import { envelopeRealDefinition } from './envelope/realDefinition'
+import { externalSigningRealDefinition } from './external-signing/realDefinition'
 import {
 	expiryInDaysRealDefinition,
 	maximumValidityRealDefinition,
@@ -46,6 +47,7 @@ export const realDefinitions = {
 	// 2. How signing works
 	signature_flow: { ...signatureFlowRealDefinition, category: 'how-signing-works' },
 	envelope_enabled: { ...envelopeRealDefinition, category: 'how-signing-works' },
+	external_signing_enabled: { ...externalSigningRealDefinition, category: 'how-signing-works' },
 	rejection_enabled: { ...signatureRejectionRealDefinition, category: 'how-signing-works' },
 
 	// 3. What the signer sees
