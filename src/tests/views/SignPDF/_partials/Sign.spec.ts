@@ -198,8 +198,12 @@ describe('Sign.vue approval labels and signing methods', () => {
 			id: 75, name: 'Required certificate.pdf', description: '',
 			status: FILE_STATUS.ABLE_TO_SIGN, statusText: 'Ready to sign',
 			url: '/apps/libresign/p/pdf/example', nodeId: 75, nodeType: 'file', uuid: 'file-uuid',
-			signers: [{ me: true, signRequestId: 51, sign_request_uuid: uuid,
-				metadata: { signingMethodRequirement: 'external_certificate' } }],
+			signers: [
+				{ me: true, signRequestId: 50, status: SIGN_REQUEST_STATUS.ABLE_TO_SIGN, sign_request_uuid: 'another-request',
+					metadata: { signingMethodRequirement: 'libresign' } },
+				{ me: true, signRequestId: 51, status: SIGN_REQUEST_STATUS.ABLE_TO_SIGN, sign_request_uuid: uuid,
+					metadata: { signingMethodRequirement: 'external_certificate' } },
+			],
 			visibleElements: [], settings: { canSign: true, isApprover: false,
 				signatureMethods: { emailToken: { label: 'Email', identifyMethod: 'email' as const, needCode: true, hasConfirmCode: true, blurredEmail: 'g***@example.org', hashOfEmail: 'test-hash' } } },
 		}
@@ -210,7 +214,7 @@ describe('Sign.vue approval labels and signing methods', () => {
 		currentRoute.path = `/f/sign/${uuid}/pdf`
 		wrapper = mount(Sign, { global: { stubs: { ExternalSigning: true, CreatePassword: true, UploadCertificate: true } } })
 		await flushPromises()
-		expect(wrapper.find('section.external-signing').exists()).toBe(true)
+		expect(wrapper.find('section.external-signing, external-signing-stub').exists()).toBe(true)
 		expect(wrapper.find('input[name="signing-path"]').exists()).toBe(false)
 		expect(wrapper.findAll('button').some(button => button.text().trim() === 'Sign')).toBe(false)
 	})
@@ -259,11 +263,11 @@ describe('Sign.vue approval labels and signing methods', () => {
 		const signingPathOptions = wrapper.findAll('input[type="radio"][name="signing-path"]')
 		expect(signingPathOptions).toHaveLength(available ? 2 : 0)
 		if (available) {
-			expect(wrapper.find('section.external-signing').exists()).toBe(false)
+			expect(wrapper.find('section.external-signing, external-signing-stub').exists()).toBe(false)
 			await wrapper.find('input[value="external"][name="signing-path"]').setValue()
-			expect(wrapper.find('section.external-signing').exists()).toBe(true)
+			expect(wrapper.find('section.external-signing, external-signing-stub').exists()).toBe(true)
 			await wrapper.find('input[value="libresign"][name="signing-path"]').setValue()
-			expect(wrapper.find('section.external-signing').exists()).toBe(false)
+			expect(wrapper.find('section.external-signing, external-signing-stub').exists()).toBe(false)
 		}
 	})
 })

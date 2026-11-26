@@ -354,12 +354,12 @@ const props = withDefaults(defineProps<{
 	emailMethod?: string
 	boundEmailHash?: string
 	existingEmailCode?: string
-	boundIdentities?: Array<{ method: string, value: string, requirement?: string }>
+	boundIdentities?: Array<{ method: string, value: string, requirement?: string }> | null
 }>(), {
 	emailMethod: '',
 	boundEmailHash: '',
 	existingEmailCode: '',
-	boundIdentities: () => [],
+	boundIdentities: null,
 })
 
 const emit = defineEmits<{
@@ -368,10 +368,6 @@ const emit = defineEmits<{
 
 // TRANSLATORS Label for the email address bound to the invitation; it must match the signer being verified.
 const emailAddressLabel = t('libresign', 'Email address that received the request')
-// TRANSLATORS Label for the one-time code received by email before accessing external signing providers.
-const verificationCodeLabel = computed(() => identityMethod.value === 'email'
-	? t('libresign', 'Code from your email')
-	: t('libresign', 'Verification code'))
 
 const MAX_VISIBLE_CHOICES = 5
 const signStore = useSignStore()
@@ -393,9 +389,7 @@ const identityLabels: Record<string, string> = {
 	xmpp: t('libresign', 'Use a code sent by XMPP'),
 }
 const identityChoices = computed<IdentityChoice[]>(() => {
-	const bound = props.boundIdentities.length > 0
-? props.boundIdentities
-: [
+	const bound = props.boundIdentities ?? [
 		...(accountUid ? [{ method: 'account', value: accountUid }] : []),
 		...(props.emailMethod === 'email' ? [{ method: 'email', value: '' }] : []),
 	]
@@ -411,6 +405,10 @@ const identityChoices = computed<IdentityChoice[]>(() => {
 		}))
 })
 const identityMethod = ref<string>(accountUid ? 'account' : 'email')
+// TRANSLATORS Label for the one-time code received by email before accessing external signing providers.
+const verificationCodeLabel = computed(() => identityMethod.value === 'email'
+	? t('libresign', 'Code from your email')
+	: t('libresign', 'Verification code'))
 const emailAddress = ref(identityChoices.value.find(choice => choice.method === 'email')?.value ?? '')
 const verificationCode = ref(props.existingEmailCode)
 const codeRequested = ref(props.existingEmailCode !== '')

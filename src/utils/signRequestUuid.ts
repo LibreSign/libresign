@@ -190,6 +190,12 @@ export function getSigningRouteUuid(
 	fallbackUuid: string | null = null,
 	routeUuid: string | null = null,
 ): string | null {
+	// Explicit routes must select their own signer before any cached `me` flag.
+	if (isNonEmptyString(routeUuid) && routeMatchesSignRequest(document, routeUuid)) {
+		const routedSigner = document?.signers?.find(signer => signer.sign_request_uuid === routeUuid)
+		return isObserverParticipant(routedSigner) ? null : routeUuid
+	}
+
 	const currentSigner = getCurrentSigner(document)
 	if (isObserverParticipant(currentSigner)) {
 		return null

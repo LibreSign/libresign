@@ -76,6 +76,14 @@ describe('external signing within the existing signer UI', () => {
 		wrapper.unmount()
 	})
 
+	it('does not invent fallback verification methods for an explicitly empty signer policy', () => {
+		const wrapper = mountSigner({ boundIdentities: [] })
+		expect(wrapper.findAll('input[name="external-signing-identity"]')).toHaveLength(0)
+		expect(wrapper.text()).toContain('No supported identity check is available')
+		expect(wrapper.findAll('button').some(button => button.text().includes('Email me a code'))).toBe(false)
+		wrapper.unmount()
+	})
+
 	it('shows only the email identity when the signed-in account is not a bound identity', async () => {
 		vi.mocked(getCurrentUser).mockReturnValueOnce({ uid: 'signed-in-user' } as ReturnType<typeof getCurrentUser>)
 		const wrapper = mountSigner({ boundIdentities: [{ method: 'email', value: 'guest@example.org', requirement: 'required' }] })

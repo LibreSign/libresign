@@ -760,8 +760,11 @@ const canCreateSignature = computed(() => {
 const ableToSign = computed(() => signStore.ableToSign)
 const hasBlockingSignError = computed(() => signStore.errors.some((error) => Number(error?.code) === NON_RETRIABLE_SIGN_ERROR_CODE))
 const showExternalSigning = ref(false)
-const currentSigningRecipient = computed(() => signStore.document?.signers?.find(candidate => candidate.me === true
-	|| candidate.sign_request_uuid === signRequestUuid.value))
+const currentSigningRecipient = computed(() => {
+	const signers = signStore.document?.signers ?? []
+	return signers.find(candidate => candidate.sign_request_uuid === signRequestUuid.value)
+		?? signers.find(candidate => candidate.me === true)
+})
 const boundSignerIdentities = computed(() => currentSigningRecipient.value?.identifyMethods ?? [])
 const requestedSigningMode = computed(() => requestedSigningMethod(currentSigningRecipient.value?.metadata?.signingMethodRequirement))
 const externalSigningUiAllowed = computed(() => !isApprovalRoute.value
