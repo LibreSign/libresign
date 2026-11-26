@@ -67,10 +67,12 @@
 				<template v-if="!codeRequested">
 					<p v-if="emailIsBound" class="external-signing__help">
 						<!-- TRANSLATORS Explains where the signing-request email code will be sent. -->
-						{{ t('libresign', 'We will send a code to') }} <strong>{{ selectedIdentity?.value }}</strong>.
+						{{ t('libresign', 'We will send a code to') }}
+						<strong>{{ maskedEmail }}</strong>.
+						<!-- TRANSLATORS Ask the signer to confirm the address before the backend sends a verification code. -->
+						{{ t('libresign', 'Confirm your email address below.') }}
 					</p>
 					<NcTextField
-						v-else
 						v-model="emailAddress"
 						:disabled="busy"
 						type="email"
@@ -83,12 +85,19 @@
 				<template v-else>
 					<p class="external-signing__help" role="status">
 						<!-- TRANSLATORS Confirm the exact address that received the code before showing its entry field. -->
-						{{ t('libresign', 'Code sent to') }} <strong>{{ emailAddress }}</strong>.
+						{{ t('libresign', 'Code sent to') }}
+						<strong>{{ maskedEmail || t('libresign', 'your verified email') }}</strong>.
 					</p>
 					<p v-if="emailIsBound" class="external-signing__help">
 						<!-- TRANSLATORS A recipient cannot change the email that the requester selected for this signature request. -->
 						{{ t('libresign', 'Wrong email address? Ask the sender to update the request.') }}
 					</p>
+					<NcTextField
+						v-if="!emailMatchesRequest"
+						v-model="emailAddress"
+						:disabled="busy"
+						type="email"
+						:label="emailAddressLabel" />
 					<NcTextField
 						v-model="verificationCode"
 						:disabled="busy"
@@ -96,7 +105,7 @@
 						autocomplete="one-time-code"
 						:label="verificationCodeLabel" />
 					<div class="external-signing__secondary-actions">
-						<NcButton :disabled="busy" @click="requestCode">
+						<NcButton :disabled="busy || !emailMatchesRequest" @click="requestCode">
 							<!-- TRANSLATORS Request a fresh email verification code if the earlier message did not arrive. -->
 							{{ t('libresign', 'Send another code') }}
 						</NcButton>
@@ -374,7 +383,7 @@ const props = withDefaults(defineProps<{
 	emailMethod?: string
 	boundEmailHash?: string
 	existingEmailCode?: string
-	boundIdentities?: Array<{ method: string, value: string, requirement?: string }>
+	boundIdentities?: Array<{ method: string, value: string, maskedValue?: string, hashOfEmail?: string, requirement?: string }>
 }>(), {
 	emailMethod: '',
 	boundEmailHash: '',
@@ -392,7 +401,7 @@ const emailAddressLabel = t('libresign', 'Email address that received the reques
 const MAX_VISIBLE_CHOICES = 5
 const signStore = useSignStore()
 const accountUid = getCurrentUser()?.uid ?? ''
-type IdentityChoice = { method: string, value: string, label: string, signMethod: string }
+type IdentityChoice = { method: string, value: string, maskedValue?: string, hashOfEmail?: string, label: string, signMethod: string }
 const signMethodByIdentity: Record<string, string> = {
 	email: 'emailToken', sms: 'smsToken', whatsapp: 'whatsappToken',
 	whatsappbusiness: 'whatsappToken', signal: 'signalToken',
@@ -417,6 +426,8 @@ const identityChoices = computed<IdentityChoice[]>(() => {
 		.map(candidate => ({
 			method: candidate.method,
 			value: candidate.value,
+			maskedValue: candidate.maskedValue,
+			hashOfEmail: candidate.hashOfEmail,
 			label: identityLabels[candidate.method] ?? candidate.method,
 			signMethod: signMethodByIdentity[candidate.method] ?? '',
 		}))
@@ -426,7 +437,7 @@ const identityMethod = ref<string>(accountUid ? 'account' : 'email')
 const verificationCodeLabel = computed(() => identityMethod.value === 'email'
 	? t('libresign', 'Code from your email')
 	: t('libresign', 'Verification code'))
-const emailAddress = ref(identityChoices.value.find(choice => choice.method === 'email')?.value ?? '')
+const emailAddress = ref('')
 const verificationCode = ref(props.existingEmailCode)
 const codeRequested = ref(props.existingEmailCode !== '')
 watch(identityChoices, choices => {
@@ -452,12 +463,13 @@ let requestGeneration = 0
 let attemptId = ''
 
 const selectedIdentity = computed(() => identityChoices.value.find(choice => choice.method === identityMethod.value))
-const emailIsBound = computed(() => Boolean(selectedIdentity.value?.value))
+const maskedEmail = computed(() => selectedIdentity.value?.maskedValue ?? '')
+const emailIsBound = computed(() => maskedEmail.value.length > 0)
 const canChangeEmail = computed(() => !emailIsBound.value && !props.existingEmailCode)
 const emailMatchesRequest = computed(() => identityMethod.value === 'email'
 	&& /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(emailAddress.value.trim())
-	&& (!props.boundEmailHash || md5(emailAddress.value.trim().toLowerCase()) === props.boundEmailHash)
-	&& (!selectedIdentity.value?.value || emailAddress.value.trim().toLowerCase() === selectedIdentity.value.value.toLowerCase()))
+	&& Boolean(selectedIdentity.value?.hashOfEmail || props.boundEmailHash)
+	&& md5(emailAddress.value.trim().toLowerCase()) === (selectedIdentity.value?.hashOfEmail || props.boundEmailHash))
 const mayAuthorize = computed(() => props.signRequestUuid.length > 0 && Boolean(selectedIdentity.value)
 	&& (identityMethod.value === 'account'
 		? accountUid.length > 0
@@ -549,19 +561,20 @@ function resetSigningContext() {
 }
 
 watch(() => props.boundIdentities, identities => {
-	const email = identities.find(choice => choice.method === 'email')?.value ?? ''
+	// A public invitation never supplies the raw recipient email.
+	const email = ''
 	if (emailAddress.value !== email) {
 		emailAddress.value = email
 	}
 })
-watch([() => props.signRequestUuid, () => props.emailMethod, () => props.boundEmailHash, () => props.boundIdentities, emailAddress], () => {
+watch([() => props.signRequestUuid, () => props.emailMethod, () => props.boundEmailHash, () => props.boundIdentities], () => {
 	resetSigningContext()
 	codeRequested.value = false
 	verificationCode.value = ''
 })
 watch(identityMethod, method => {
 	resetSigningContext()
-	const existingEmailCode = method === 'email' && emailMatchesRequest.value ? props.existingEmailCode : ''
+	const existingEmailCode = method === 'email' ? props.existingEmailCode : ''
 	verificationCode.value = existingEmailCode
 	codeRequested.value = existingEmailCode !== ''
 })
@@ -571,6 +584,7 @@ watch(() => props.existingEmailCode, code => {
 		codeRequested.value = true
 	}
 }, { immediate: true, flush: 'post' })
+watch(emailAddress, () => resetSigningContext())
 watch(verificationCode, () => resetSigningContext())
 onBeforeUnmount(() => {
 	requestGeneration++

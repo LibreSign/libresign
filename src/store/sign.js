@@ -26,7 +26,7 @@ import { isIdDocApprovalContext } from '../utils/signRequestUuid.ts'
  * 	email?: string
  * 	sign_request_uuid?: string | null
  * 	metadata?: { signingMethodRequirement?: 'libresign' | 'external_certificate' | 'signer_choice', deviceGeolocationRequirement?: string, geolocation?: { device?: import('../helpers/signerGeolocation').DeviceReportedLocation } }
- * 	identifyMethods?: Array<{ method: string, value: string, requirement?: string }>
+ * 	identifyMethods?: Array<{ method: string, value: string, maskedValue?: string, hashOfEmail?: string, requirement?: string }>
  * 	me?: boolean
  * 	displayStatus?: string
  * 	status?: number

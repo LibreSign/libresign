@@ -46,7 +46,7 @@ const baseSession = { id: 'session-1', status: 'preparing', revision: 1, integra
 
 function mountSigner(extraProps: Record<string, unknown> = {}) {
 	return mount(ExternalSigning, {
-		props: { signRequestUuid: 'request-one', emailMethod: 'email', boundEmailHash: 'bound-hash', boundIdentities: [{ method: 'email', value: '' }], ...extraProps },
+		props: { signRequestUuid: 'request-one', emailMethod: 'email', boundEmailHash: 'bound-hash', boundIdentities: [{ method: 'email', value: '', maskedValue: 'g***@example.org', hashOfEmail: 'bound-hash' }], ...extraProps },
 		global: { stubs },
 	})
 }
@@ -70,7 +70,7 @@ describe('external signing within the existing signer UI', () => {
 		vi.mocked(getCurrentUser).mockReturnValueOnce({ uid: 'signed-in-user' } as ReturnType<typeof getCurrentUser>)
 		const wrapper = mountSigner({ boundIdentities: [
 			{ method: 'account', value: 'signed-in-user' },
-			{ method: 'email', value: 'guest@example.org' },
+			{ method: 'email', value: '', maskedValue: 'g***@example.org', hashOfEmail: 'bound-hash' },
 		] })
 		expect(wrapper.text()).toContain('Use my signed-in account')
 		expect(wrapper.text()).toContain('Use a code sent to my email')
@@ -96,9 +96,18 @@ describe('external signing within the existing signer UI', () => {
 		wrapper.unmount()
 	})
 
+	it('uses only the backend-masked email as display data before user input', () => {
+		const wrapper = mountSigner()
+		expect(wrapper.text()).toContain('g***@example.org')
+		expect(wrapper.text()).not.toContain('guest@example.org')
+		expect(wrapper.find('input[type="email"]').exists()).toBe(true)
+		expect(wrapper.find('input[autocomplete="one-time-code"]').exists()).toBe(false)
+		wrapper.unmount()
+	})
+
 	it('shows only the email identity when the signed-in account is not a bound identity', async () => {
 		vi.mocked(getCurrentUser).mockReturnValueOnce({ uid: 'signed-in-user' } as ReturnType<typeof getCurrentUser>)
-		const wrapper = mountSigner({ boundIdentities: [{ method: 'email', value: 'guest@example.org', requirement: 'required' }] })
+		const wrapper = mountSigner({ boundIdentities: [{ method: 'email', value: '', maskedValue: 'g***@example.org', hashOfEmail: 'bound-hash', requirement: 'required' }] })
 		expect(wrapper.findAll('input[name="external-signing-identity"]')).toHaveLength(0)
 		expect(wrapper.text()).toContain('Use a code sent to my email')
 		expect(wrapper.text()).not.toContain('Use my signed-in account')
@@ -107,12 +116,14 @@ describe('external signing within the existing signer UI', () => {
 
 	it('reuses an already verified LibreSign email code without a second request', async () => {
 		const wrapper = mountSigner({
-			boundIdentities: [{ method: 'email', value: 'guest@example.org' }],
+			boundIdentities: [{ method: 'email', value: '', maskedValue: 'g***@example.org', hashOfEmail: 'bound-hash' }],
 			existingEmailCode: '123456',
 		})
 		await flushPromises()
-		expect(wrapper.find('input[type="email"]').exists()).toBe(false)
-		expect(wrapper.text()).toContain('Code sent to guest@example.org')
+		expect(wrapper.text()).toContain('Code sent to g***@example.org')
+		expect(wrapper.text()).not.toContain('guest@example.org')
+		expect(wrapper.find('input[type="email"]').exists()).toBe(true)
+		await wrapper.find('input[type="email"]').setValue('guest@example.org')
 		expect((wrapper.find('input[autocomplete="one-time-code"]').element as HTMLInputElement).value).toBe('123456')
 		expect(wrapper.findAll('button').some(button => button.text().includes('Email me a code'))).toBe(false)
 		await clickButton(wrapper, 'Continue')
@@ -128,13 +139,14 @@ describe('external signing within the existing signer UI', () => {
 		const wrapper = mountSigner({
 			boundIdentities: [
 				{ method: 'account', value: 'signed-in-user' },
-				{ method: 'email', value: 'guest@example.org' },
+				{ method: 'email', value: '', maskedValue: 'g***@example.org', hashOfEmail: 'bound-hash' },
 			],
 			existingEmailCode: '123456',
 		})
 		expect(wrapper.find('input[autocomplete="one-time-code"]').exists()).toBe(false)
 		await wrapper.find('input[type="radio"][value="email"]').setValue()
 		await flushPromises()
+		await wrapper.find('input[type="email"]').setValue('guest@example.org')
 		expect((wrapper.find('input[autocomplete="one-time-code"]').element as HTMLInputElement).value).toBe('123456')
 		expect(wrapper.findAll('button').some(button => button.text().includes('Email me a code'))).toBe(false)
 		wrapper.unmount()
@@ -230,7 +242,7 @@ describe('external signing within the existing signer UI', () => {
 		wrapper.unmount()
 	})
 
-	it('shows only the send action before requesting a code and allows editing and resending after', async () => {
+	it('shows no code input until sending and allows requesting a fresh code afterward', async () => {
 		const wrapper = mountSigner()
 		expect(wrapper.find('input[autocomplete="one-time-code"]').exists()).toBe(false)
 		expect(wrapper.findAll('button').some(button => button.text().includes('Continue'))).toBe(false)
@@ -238,24 +250,23 @@ describe('external signing within the existing signer UI', () => {
 		await wrapper.find('input[type="email"]').setValue('guest@example.org')
 		await clickButton(wrapper, 'Email me a code')
 		expect(wrapper.find('input[autocomplete="one-time-code"]').exists()).toBe(true)
-		expect(wrapper.text()).toContain('guest@example.org')
+		expect(wrapper.text()).toContain('g***@example.org')
+		expect(wrapper.text()).not.toContain('guest@example.org')
 		expect(wrapper.find('input[type="email"]').exists()).toBe(false)
-		await clickButton(wrapper, 'Change email')
-		expect(wrapper.find('input[type="email"]').exists()).toBe(true)
-		expect(wrapper.find('input[autocomplete="one-time-code"]').exists()).toBe(false)
-		expect(wrapper.findAll('button').some(button => button.text().includes('Continue'))).toBe(false)
-		await clickButton(wrapper, 'Email me a code')
+		expect(wrapper.findAll('button').some(button => button.text().includes('Change email'))).toBe(false)
 		await wrapper.find('input[autocomplete="one-time-code"]').setValue('123456')
 		await clickButton(wrapper, 'Send another code')
 		expect((wrapper.find('input[autocomplete="one-time-code"]').element as HTMLInputElement).value).toBe('')
-		expect(axios.post).toHaveBeenCalledTimes(3)
+		expect(axios.post).toHaveBeenCalledTimes(2)
 		wrapper.unmount()
 	})
 
 	it('keeps a recipient-bound email fixed and points corrections to the sender', async () => {
-		const wrapper = mountSigner({ boundIdentities: [{ method: 'email', value: 'guest@example.org' }] })
-		expect(wrapper.text()).toContain('guest@example.org')
-		expect(wrapper.find('input[type="email"]').exists()).toBe(false)
+		const wrapper = mountSigner({ boundIdentities: [{ method: 'email', value: '', maskedValue: 'g***@example.org', hashOfEmail: 'bound-hash' }] })
+		expect(wrapper.text()).toContain('g***@example.org')
+		expect(wrapper.text()).not.toContain('guest@example.org')
+		expect(wrapper.find('input[type="email"]').exists()).toBe(true)
+		await wrapper.find('input[type="email"]').setValue('guest@example.org')
 		await clickButton(wrapper, 'Email me a code')
 		expect(wrapper.findAll('button').some(button => button.text().includes('Change email'))).toBe(false)
 		expect(wrapper.findAll('button').some(button => button.text().includes('Send another code'))).toBe(true)
@@ -268,7 +279,7 @@ describe('external signing within the existing signer UI', () => {
 		await wrapper.find('input[type="email"]').setValue('guest@example.org')
 		await clickButton(wrapper, 'Email me a code')
 		expect(wrapper.find('input[type="text"]').exists()).toBe(true)
-		expect(wrapper.text()).toContain('Code sent to guest@example.org')
+		expect(wrapper.text()).toContain('Code sent to g***@example.org')
 		wrapper.unmount()
 	})
 
