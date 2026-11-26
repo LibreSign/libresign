@@ -232,8 +232,14 @@ describe('Sign.vue approval labels and signing methods', () => {
 		const externalButton = wrapper.findAll('button').find(button => button.text().trim() === 'Sign with a digital certificate')
 		expect(Boolean(externalButton)).toBe(available)
 		if (externalButton) {
+			expect(externalButton.attributes('aria-expanded')).toBe('false')
 			await externalButton.trigger('click')
 			expect(wrapper.find('.external-signing-option').exists()).toBe(true)
+			expect(externalButton.attributes('aria-expanded')).toBe('true')
+			expect(externalButton.text()).toContain('Use another signing method')
+			await externalButton.trigger('click')
+			expect(externalButton.attributes('aria-expanded')).toBe('false')
+			expect(externalButton.text()).toContain('Sign with a digital certificate')
 		}
 	})
 })

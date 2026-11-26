@@ -149,11 +149,21 @@
 				</p>
 			</div>
 			<div v-if="externalSigningUiAllowed" class="external-signing-option">
-				<NcButton :disabled="loading" @click="showExternalSigning = !showExternalSigning">
-					<!-- TRANSLATORS Button for opening the cloud-provider digital certificate option, separate from the standard signing flow. -->
-					{{ t('libresign', 'Sign with a digital certificate') }}
+				<NcButton
+					:disabled="loading"
+					:aria-expanded="showExternalSigning"
+					@click="showExternalSigning = !showExternalSigning">
+					<template v-if="showExternalSigning">
+						<!-- TRANSLATORS Switch back to the other signing methods from digital certificate signing. -->
+						{{ t('libresign', 'Use another signing method') }}
+					</template>
+					<template v-else>
+						<!-- TRANSLATORS Open the certificate-signing option, distinct from ordinary electronic signing. -->
+						{{ t('libresign', 'Sign with a digital certificate') }}
+					</template>
 				</NcButton>
-				<ExternalSigning v-if="showExternalSigning"
+				<ExternalSigning
+					v-if="showExternalSigning"
 					:sign-request-uuid="signRequestUuid"
 					:email-method="signMethodsStore.settings.emailToken?.identifyMethod || ''"
 					:bound-email-hash="String(signMethodsStore.settings.emailToken?.hashOfEmail ?? '')"
