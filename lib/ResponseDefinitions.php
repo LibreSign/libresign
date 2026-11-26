@@ -1014,6 +1014,16 @@ namespace OCA\Libresign;
  *     version: string,
  * }
  *
+ * @psalm-type LibresignExternalIntegrationProbeResponse = array{
+ *     reachable: bool,
+ *     serviceName: string,
+ *     apiVersion: string,
+ *     protocol: string,
+ *     protocolCompatible: bool,
+ *     personalSigningReady: bool,
+ *     result: string,
+ * }
+ *
  * Provider-neutral external signing contracts
  *
  * @psalm-type LibresignExternalSigningSession = array{

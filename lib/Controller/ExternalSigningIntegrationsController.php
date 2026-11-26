@@ -16,11 +16,14 @@ use OCA\Libresign\Service\Signing\External\IntegrationScopeAccess;
 use OCA\Libresign\Service\Signing\ExternalIntegrationAdministration;
 use OCA\Libresign\Service\Signing\ExternalIntegrationRecord;
 use OCA\Libresign\Service\Signing\ExternalIntegrationStore;
+use OCA\Libresign\Service\Signing\Provider\Drivers\Csc\CscDriver;
+use OCA\Libresign\Service\Signing\Provider\Drivers\Csc\CscProviderProbe;
 use OCA\Libresign\Service\Signing\Provider\ExternalSigningDriverCatalog;
 use OCP\AppFramework\Http;
 use OCP\AppFramework\Http\Attribute\ApiRoute;
 use OCP\AppFramework\Http\Attribute\NoAdminRequired;
 use OCP\AppFramework\Http\Attribute\OpenAPI;
+use OCP\AppFramework\Http\Attribute\UserRateLimit;
 use OCP\AppFramework\Http\DataResponse;
 use OCP\IGroupManager;
 use OCP\IRequest;
@@ -36,6 +39,7 @@ use Psr\Log\LoggerInterface;
  * @psalm-import-type LibresignExternalIntegrationResponse from ResponseDefinitions
  * @psalm-import-type LibresignExternalIntegrationListResponse from ResponseDefinitions
  * @psalm-import-type LibresignExternalIntegrationDeletionResponse from ResponseDefinitions
+ * @psalm-import-type LibresignExternalIntegrationProbeResponse from ResponseDefinitions
  */
 final class ExternalSigningIntegrationsController extends AEnvironmentAwareOCSController {
 	public function __construct(
@@ -46,6 +50,7 @@ final class ExternalSigningIntegrationsController extends AEnvironmentAwareOCSCo
 		private ExternalSigningDriverCatalog $catalog,
 		private ExternalIntegrationAdministration $administration,
 		private IntegrationScopeAccess $scopeAccess,
+		private CscProviderProbe $providerProbe,
 		private LoggerInterface $logger,
 	) {
 		parent::__construct(Application::APP_ID, $request);
@@ -151,6 +156,44 @@ final class ExternalSigningIntegrationsController extends AEnvironmentAwareOCSCo
 		}
 
 		return $this->execute(fn (): array => $this->describe($id));
+	}
+
+	/**
+	 * Check the provider's publicly advertised CSC protocol, without
+	 * using or revealing configured tokens or signing on behalf of users.
+	 *
+	 * This administrative connectivity result never grants access to a
+	 * personal credential or replaces a signer-bound OAuth authorization.
+	 *
+	 * @param string $id Opaque configured integration identifier
+	 * @return DataResponse<Http::STATUS_OK, LibresignExternalIntegrationProbeResponse, array{}>|DataResponse<Http::STATUS_UNAUTHORIZED|Http::STATUS_FORBIDDEN|Http::STATUS_NOT_FOUND|Http::STATUS_BAD_REQUEST|Http::STATUS_CONFLICT|Http::STATUS_INTERNAL_SERVER_ERROR, LibresignErrorResponse, array{}>
+	 *
+	 * 200: Public CSC metadata and compatibility verdict
+	 * 400: Invalid configured integration
+	 * 401: Authentication required
+	 * 403: Administrator is not delegated for this scope
+	 * 404: Integration is unavailable or outside the administrator's scope
+	 * 409: Integration conflict
+	 * 500: Internal error
+	 */
+	#[NoAdminRequired]
+	#[UserRateLimit(limit: 8, period: 60)]
+	#[OpenAPI(tags: ['system'])]
+	#[ApiRoute(verb: 'POST', url: '/api/{apiVersion}/admin/signing/integrations/{id}/probe', requirements: ['apiVersion' => '(v1)'])]
+	public function probe(string $id): DataResponse {
+		if (($denied = $this->authorize()) !== null) {
+			return $denied;
+		}
+		return $this->execute(function () use ($id): array {
+			$record = $this->administration->get($id);
+			$this->assertCanManageRecord($record);
+			if ($record->driverId !== CscDriver::ID || !is_string($record->configuration['baseUrl'] ?? null)) {
+				throw new \InvalidArgumentException('Not a CSC signing integration');
+			}
+			/** @var LibresignExternalIntegrationProbeResponse $result */
+			$result = $this->providerProbe->inspect($record->configuration['baseUrl']);
+			return $result;
+		});
 	}
 
 	/**

@@ -15,11 +15,14 @@ use OCA\Libresign\Service\Policy\PolicyService;
 use OCA\Libresign\Service\Signing\External\IntegrationScopeAccess;
 use OCA\Libresign\Service\Signing\ExternalIntegrationAdministration;
 use OCA\Libresign\Service\Signing\Provider\Drivers\Csc\CscDriver;
+use OCA\Libresign\Service\Signing\Provider\Drivers\Csc\CscProviderProbe;
 use OCA\Libresign\Service\Signing\Provider\ExternalSigningDriverCatalog;
 use OCP\AppFramework\Http;
 use OCP\Group\ISubAdmin;
 use OCP\IDBConnection;
 use OCP\IGroup;
+use OCP\Http\Client\IClientService;
+use OCP\IConfig;
 use OCP\IGroupManager;
 use OCP\IL10N;
 use OCP\IRequest;
@@ -60,6 +63,7 @@ final class ExternalSigningIntegrationsControllerTest extends \OCA\Libresign\Tes
 				Server::get(IUserManager::class), $session,
 				Server::get(ISubAdmin::class),
 			),
+			new CscProviderProbe($this->createMock(IClientService::class), $this->createMock(IConfig::class)),
 			Server::get(\Psr\Log\LoggerInterface::class),
 		);
 	}
@@ -130,6 +134,7 @@ final class ExternalSigningIntegrationsControllerTest extends \OCA\Libresign\Tes
 			new IntegrationScopeAccess(
 				$policies, $groups, Server::get(IUserManager::class), $session, $subAdmin,
 			),
+			new CscProviderProbe($this->createMock(IClientService::class), $this->createMock(IConfig::class)),
 			Server::get(\Psr\Log\LoggerInterface::class),
 		);
 

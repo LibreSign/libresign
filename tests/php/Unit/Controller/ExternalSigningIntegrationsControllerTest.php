@@ -17,10 +17,13 @@ use OCA\Libresign\Service\Signing\ExternalIntegrationFieldValidator;
 use OCA\Libresign\Service\Signing\ExternalIntegrationSecrets;
 use OCA\Libresign\Service\Signing\ExternalIntegrationStore;
 use OCA\Libresign\Service\Signing\Provider\Drivers\Csc\CscDriver;
+use OCA\Libresign\Service\Signing\Provider\Drivers\Csc\CscProviderProbe;
 use OCA\Libresign\Service\Signing\Provider\ExternalSigningDriverCatalog;
 use OCP\AppFramework\Http;
 use OCP\Group\ISubAdmin;
 use OCP\IDBConnection;
+use OCP\Http\Client\IClientService;
+use OCP\IConfig;
 use OCP\IGroupManager;
 use OCP\IL10N;
 use OCP\IRequest;
@@ -67,6 +70,7 @@ final class ExternalSigningIntegrationsControllerTest extends TestCase {
 				$this->groups, $this->createMock(IUserManager::class),
 				$this->session, $this->createMock(ISubAdmin::class),
 			),
+			new CscProviderProbe($this->createMock(IClientService::class), $this->createMock(IConfig::class)),
 			$this->logger,
 		);
 	}
@@ -77,6 +81,7 @@ final class ExternalSigningIntegrationsControllerTest extends TestCase {
 			'list' => ['index'],
 			'create' => ['create'],
 			'read' => ['show'],
+			'probe' => ['probe'],
 			'update' => ['update'],
 			'enable' => ['enable'],
 			'disable' => ['disable'],
@@ -168,6 +173,7 @@ final class ExternalSigningIntegrationsControllerTest extends TestCase {
 			'index' => $this->controller->index(),
 			'create' => $this->controller->create('csc-v1', 'Test', ['baseUrl' => 'https://example.org']),
 			'show' => $this->controller->show('unknown'),
+			'probe' => $this->controller->probe('unknown'),
 			'update' => $this->controller->update('unknown', 1),
 			'enable' => $this->controller->enable('unknown', 1),
 			'disable' => $this->controller->disable('unknown', 1),
