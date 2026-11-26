@@ -65,7 +65,7 @@
 			</NcNoteCard>
 			<template v-if="identityChoices.length > 0 && identityMethod === 'email'">
 				<template v-if="!codeRequested">
-					<p v-if="emailIsBound" class="external-signing__help">
+					<p v-if="maskedEmail" class="external-signing__help">
 						<!-- TRANSLATORS Explains where the signing-request email code will be sent. -->
 						{{ t('libresign', 'We will send a code to') }}
 						<strong>{{ maskedEmail }}</strong>.
@@ -382,11 +382,13 @@ const props = withDefaults(defineProps<{
 	signRequestUuid: string
 	emailMethod?: string
 	boundEmailHash?: string
+	boundMaskedEmail?: string
 	existingEmailCode?: string
 	boundIdentities?: Array<{ method: string, value: string, maskedValue?: string, hashOfEmail?: string, requirement?: string }>
 }>(), {
 	emailMethod: '',
 	boundEmailHash: '',
+	boundMaskedEmail: '',
 	existingEmailCode: '',
 	boundIdentities: () => [],
 })
@@ -463,13 +465,21 @@ let requestGeneration = 0
 let attemptId = ''
 
 const selectedIdentity = computed(() => identityChoices.value.find(choice => choice.method === identityMethod.value))
-const maskedEmail = computed(() => selectedIdentity.value?.maskedValue ?? '')
-const emailIsBound = computed(() => maskedEmail.value.length > 0)
+// The native email token may also belong to an account identity. Only use
+// its confirmation data when it refers to the selected email factor.
+const nativeEmailMatchesIdentity = computed(() => props.emailMethod === 'email'
+	&& Boolean(props.boundEmailHash)
+	&& (!selectedIdentity.value?.hashOfEmail || selectedIdentity.value.hashOfEmail === props.boundEmailHash))
+const emailHash = computed(() => selectedIdentity.value?.hashOfEmail
+	|| (nativeEmailMatchesIdentity.value ? props.boundEmailHash : ''))
+const maskedEmail = computed(() => (nativeEmailMatchesIdentity.value ? props.boundMaskedEmail : '')
+	|| selectedIdentity.value?.maskedValue || '')
+const emailIsBound = computed(() => Boolean(emailHash.value))
 const canChangeEmail = computed(() => !emailIsBound.value && !props.existingEmailCode)
 const emailMatchesRequest = computed(() => identityMethod.value === 'email'
 	&& /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(emailAddress.value.trim())
-	&& Boolean(selectedIdentity.value?.hashOfEmail || props.boundEmailHash)
-	&& md5(emailAddress.value.trim().toLowerCase()) === (selectedIdentity.value?.hashOfEmail || props.boundEmailHash))
+	&& Boolean(emailHash.value)
+	&& md5(emailAddress.value.trim().toLowerCase()) === emailHash.value)
 const mayAuthorize = computed(() => props.signRequestUuid.length > 0 && Boolean(selectedIdentity.value)
 	&& (identityMethod.value === 'account'
 		? accountUid.length > 0
@@ -560,15 +570,9 @@ function resetSigningContext() {
 	attemptId = ''
 }
 
-watch(() => props.boundIdentities, identities => {
-	// A public invitation never supplies the raw recipient email.
-	const email = ''
-	if (emailAddress.value !== email) {
-		emailAddress.value = email
-	}
-})
 watch([() => props.signRequestUuid, () => props.emailMethod, () => props.boundEmailHash, () => props.boundIdentities], () => {
 	resetSigningContext()
+	emailAddress.value = ''
 	codeRequested.value = false
 	verificationCode.value = ''
 })

@@ -11,14 +11,17 @@ namespace OCA\Libresign\Service\Signing;
 use OCA\Libresign\Vendor\Wobeto\EmailBlur\Blur;
 
 /**
- * Remove recipient email addresses from the public signing page response.
+ * Remove recipient email addresses from public CSC signing responses.
  * The exact identity stays on the server for OTP and CSC authorization.
  */
 final class PublicSigningIdentityPresenter {
 	/** @param list<array<string, mixed>> $signers
 	 * @return list<array<string, mixed>>
 	 */
-	public static function redactSigners(array $signers): array {
+	public static function redactSigners(array $signers, RequestedSigningMethod $requestedMethod): array {
+		if (!$requestedMethod->allowsExternalCertificate()) {
+			return $signers;
+		}
 		foreach ($signers as &$signer) {
 			if (is_array($signer['identifyMethods'] ?? null)) {
 				foreach ($signer['identifyMethods'] as &$method) {
@@ -51,10 +54,13 @@ final class PublicSigningIdentityPresenter {
 	/** @param list<array<string, mixed>> $files
 	 * @return list<array<string, mixed>>
 	 */
-	public static function redactEnvelopeFiles(array $files): array {
+	public static function redactEnvelopeFiles(array $files, RequestedSigningMethod $requestedMethod): array {
+		if (!$requestedMethod->allowsExternalCertificate()) {
+			return $files;
+		}
 		foreach ($files as &$file) {
 			if (is_array($file['signers'] ?? null)) {
-				$file['signers'] = self::redactSigners($file['signers']);
+				$file['signers'] = self::redactSigners($file['signers'], $requestedMethod);
 			}
 		}
 		unset($file);
@@ -64,12 +70,15 @@ final class PublicSigningIdentityPresenter {
 	/** @param array<string, mixed> $response
 	 * @return array<string, mixed>
 	 */
-	public static function redactValidationResponse(array $response): array {
+	public static function redactValidationResponse(array $response, RequestedSigningMethod $requestedMethod): array {
+		if (!$requestedMethod->allowsExternalCertificate()) {
+			return $response;
+		}
 		if (is_array($response['signers'] ?? null)) {
-			$response['signers'] = self::redactSigners($response['signers']);
+			$response['signers'] = self::redactSigners($response['signers'], $requestedMethod);
 		}
 		if (is_array($response['files'] ?? null)) {
-			$response['files'] = self::redactEnvelopeFiles($response['files']);
+			$response['files'] = self::redactEnvelopeFiles($response['files'], $requestedMethod);
 		}
 		return $response;
 	}

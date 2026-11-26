@@ -9,9 +9,25 @@ declare(strict_types=1);
 namespace OCA\Libresign\Tests\Unit\Service\Signing;
 
 use OCA\Libresign\Service\Signing\PublicSigningIdentityPresenter;
+use OCA\Libresign\Service\Signing\RequestedSigningMethod;
 use OCA\Libresign\Tests\Unit\TestCase;
 
 final class PublicSigningIdentityPresenterTest extends TestCase {
+	public function testNativeSigningPreservesTheExistingSignerResponse(): void {
+		$signer = [
+			'email' => 'guest@example.org',
+			'identifyMethods' => [['method' => 'email', 'value' => 'guest@example.org']],
+		];
+		$response = [
+			'signers' => [$signer],
+			'files' => [['id' => 20, 'signers' => [$signer]]],
+		];
+
+		self::assertSame([$signer], PublicSigningIdentityPresenter::redactSigners([$signer], RequestedSigningMethod::LIBRESIGN));
+		self::assertSame($response['files'], PublicSigningIdentityPresenter::redactEnvelopeFiles($response['files'], RequestedSigningMethod::LIBRESIGN));
+		self::assertSame($response, PublicSigningIdentityPresenter::redactValidationResponse($response, RequestedSigningMethod::LIBRESIGN));
+	}
+
 	public function testPublicSigningNeverReturnsRecipientEmailInSignerFields(): void {
 		$email = 'guest@example.org';
 		$signers = [[
@@ -24,12 +40,13 @@ final class PublicSigningIdentityPresenterTest extends TestCase {
 			],
 		]];
 
-		$result = PublicSigningIdentityPresenter::redactSigners($signers);
+		$result = PublicSigningIdentityPresenter::redactSigners($signers, RequestedSigningMethod::EXTERNAL_CERTIFICATE);
 
 		self::assertSame('', $result[0]['identifyMethods'][0]['value']);
 		self::assertSame('required', $result[0]['identifyMethods'][0]['requirement']);
 		self::assertSame('+5521999999000', $result[0]['identifyMethods'][1]['value']);
-		self::assertStringContainsString('***', $result[0]['identifyMethods'][0]['maskedValue']);
+		self::assertSame('gue***@***.org', $result[0]['identifyMethods'][0]['maskedValue']);
+		self::assertSame(md5($email), $result[0]['identifyMethods'][0]['hashOfEmail']);
 		self::assertStringNotContainsString($email, json_encode($result, JSON_THROW_ON_ERROR));
 		self::assertSame($email, $signers[0]['identifyMethods'][0]['value']);
 	}
@@ -43,7 +60,7 @@ final class PublicSigningIdentityPresenterTest extends TestCase {
 			]],
 		]];
 
-		$result = PublicSigningIdentityPresenter::redactEnvelopeFiles($files);
+		$result = PublicSigningIdentityPresenter::redactEnvelopeFiles($files, RequestedSigningMethod::EXTERNAL_CERTIFICATE);
 
 		self::assertSame(20, $result[0]['id']);
 		self::assertStringNotContainsString('recipient@example.org', json_encode($result, JSON_THROW_ON_ERROR));
@@ -60,7 +77,7 @@ final class PublicSigningIdentityPresenterTest extends TestCase {
 			'files' => [['id' => 20, 'signers' => [$signer]]],
 		];
 
-		$result = PublicSigningIdentityPresenter::redactValidationResponse($response);
+		$result = PublicSigningIdentityPresenter::redactValidationResponse($response, RequestedSigningMethod::SIGNER_CHOICE);
 
 		self::assertSame('', $result['signers'][0]['identifyMethods'][0]['value']);
 		self::assertSame('', $result['files'][0]['signers'][0]['identifyMethods'][0]['value']);
@@ -74,6 +91,6 @@ final class PublicSigningIdentityPresenterTest extends TestCase {
 			'identifyMethods' => [['method' => 'account', 'value' => 'alice', 'requirement' => 'required']],
 		]];
 
-		self::assertSame($signers, PublicSigningIdentityPresenter::redactSigners($signers));
+		self::assertSame($signers, PublicSigningIdentityPresenter::redactSigners($signers, RequestedSigningMethod::EXTERNAL_CERTIFICATE));
 	}
 }

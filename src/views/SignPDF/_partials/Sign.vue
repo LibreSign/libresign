@@ -174,6 +174,7 @@
 				:sign-request-uuid="signRequestUuid"
 				:email-method="signMethodsStore.settings.emailToken?.identifyMethod || ''"
 				:bound-email-hash="String(signMethodsStore.settings.emailToken?.hashOfEmail ?? '')"
+				:bound-masked-email="signMethodsStore.blurredEmail()"
 				:existing-email-code="String(signMethodsStore.settings.emailToken?.token ?? '')"
 				:bound-identities="boundSignerIdentities"
 				@signed="onExternalSigned" />
