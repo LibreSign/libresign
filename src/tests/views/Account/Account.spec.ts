@@ -90,13 +90,13 @@ describe('Account.vue', () => {
 		})
 	}
 
-	it('renders the current user details and certificate section', async () => {
+	it('renders the current user details without the certificate controls', async () => {
 		const wrapper = createWrapper()
 		await flushPromises()
 
 		expect(wrapper.text()).toContain('Details')
-		expect(wrapper.text()).toContain('Certificate')
 		expect(wrapper.text()).toContain('Ada Lovelace')
+		expect(wrapper.text()).not.toContain('Certificate')
 	})
 
 	it('passes the current user to UserImage', async () => {
@@ -114,7 +114,7 @@ describe('Account.vue', () => {
 		const wrapper = createWrapper()
 		await flushPromises()
 
-		expect(wrapper.find('.manage-password-stub').exists()).toBe(true)
+		expect(wrapper.find('.manage-password-stub').exists()).toBe(false)
 		expect(wrapper.find('.signatures-stub').exists()).toBe(true)
 		expect(wrapper.find('.documents-stub').exists()).toBe(true)
 	})
@@ -128,7 +128,7 @@ describe('Account.vue', () => {
 		expect(wrapper.text()).toContain('Phone')
 		expect(wrapper.text()).toContain('+1234567890')
 		expect(wrapper.text()).toContain('Ada Lovelace')
-		expect(wrapper.find('.manage-password-stub').exists()).toBe(true)
+		expect(wrapper.find('.manage-password-stub').exists()).toBe(false)
 	})
 
 	it('shows a fallback when the email is missing', async () => {
@@ -170,7 +170,7 @@ describe('Account.vue', () => {
 		const values = wrapper.findAll('.user-contact dd').map((value) => value.text())
 		expect(values).toEqual(['Not provided', 'Not provided'])
 		expect(wrapper.text()).toContain('Details')
-		expect(wrapper.text()).toContain('Certificate')
+		expect(wrapper.text()).not.toContain('Certificate')
 		expect(wrapper.text()).not.toContain('undefined')
 		expect(wrapper.text()).not.toContain('null')
 		expect(wrapper.find('.user-contact-edit a').exists()).toBe(true)
@@ -184,7 +184,7 @@ describe('Account.vue', () => {
 		expect(wrapper.text()).toContain('Email and phone details could not be loaded.')
 		expect(wrapper.text()).not.toContain('Internal Server Error')
 		expect(wrapper.text()).not.toContain('/var/www/libresign')
-		expect(wrapper.find('.manage-password-stub').exists()).toBe(true)
+		expect(wrapper.find('.manage-password-stub').exists()).toBe(false)
 		expect(wrapper.find('.signatures-stub').exists()).toBe(true)
 		expect(wrapper.find('.documents-stub').exists()).toBe(true)
 		expect(wrapper.find('.user-contact-edit a').exists()).toBe(true)
