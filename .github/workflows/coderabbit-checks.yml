@@ -1,0 +1,30 @@
+# SPDX-FileCopyrightText: 2026 LibreCode coop and contributors
+# SPDX-License-Identifier: AGPL-3.0-or-later
+
+name: CodeRabbit check validation
+
+on:
+  pull_request:
+    paths:
+      - '.coderabbit/pre-merge-checks/**'
+      - 'scripts/check-coderabbit-checks.rb'
+      - 'scripts/tests/check-coderabbit-checks.test.rb'
+      - '.github/workflows/coderabbit-checks.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Validate configuration and coverage
+        run: |
+          ruby scripts/check-coderabbit-checks.rb
+          ruby scripts/tests/check-coderabbit-checks.test.rb
