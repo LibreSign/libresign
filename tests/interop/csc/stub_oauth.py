@@ -20,12 +20,13 @@ def authorize(scope, **extra):
     p={'response_type':'code','client_id':CLIENT_ID,'redirect_uri':REDIRECT,'scope':scope,'state':state, **extra}
     r=s.get(BASE+'/oauth2/authorize',params=p,allow_redirects=False,timeout=12)
     target=urllib.parse.urlparse(r.headers.get('Location',''))
-    assert target.scheme=='https' and target.netloc=='example.org' and target.path=='/csc-local-qa-return'
+    if target.scheme!='https' or target.netloc!='example.org' or target.path!='/csc-local-qa-return':
+        raise RuntimeError('OAuth stub redirect target did not match configured callback')
     query=urllib.parse.parse_qs(target.query)
     print('authorize scope',scope,'http',r.status_code,'redirect params',sorted(query.keys()))
     if r.status_code not in (302,303) or query.get('state')!=[state] or not query.get('code'):
         raise RuntimeError('Expected CSC test-stub OAuth callback, no codes logged')
-    token=s.post(BASE+'/oauth2/token',auth=(CLIENT_ID,CLIENT_SECRET),data={'grant_type':'authorization_code','code':query['code'][0],'client_id':CLIENT_ID,'redirect_uri':REDIRECT},timeout=12)
+    token=s.post(BASE+'/oauth2/token',auth=(CLIENT_ID,CLIENT_SECRET),data={'grant_type':'authorization_code','code':query['code'][0],'client_id':CLIENT_ID,'redirect_uri':REDIRECT},allow_redirects=False,timeout=12)
     print('token exchange scope',scope,'http',token.status_code, 'error', token.json().get('error') if not token.ok else 'none')
     token.raise_for_status()
     j=token.json()
@@ -33,13 +34,15 @@ def authorize(scope, **extra):
     return j['access_token']
 
 def post(endpoint,payload,service):
-    resp=s.post(BASE+'/csc/v1/'+endpoint,json=payload,headers={'Authorization':'Bearer '+service},timeout=12)
+    resp=s.post(BASE+'/csc/v1/'+endpoint,json=payload,headers={'Authorization':'Bearer '+service},allow_redirects=False,timeout=12)
     print('CSC',endpoint,'http',resp.status_code)
     if not resp.ok: print('CSC error fields:', sorted(resp.json().keys()))
     resp.raise_for_status()
     return resp.json()
 
-info=s.post(BASE+'/csc/v1/info',json={},timeout=12).json()
+infoResponse=s.post(BASE+'/csc/v1/info',json={},allow_redirects=False,timeout=12)
+infoResponse.raise_for_status()
+info=infoResponse.json()
 print('Provider name:',info.get('name'),'protocol:',info.get('specs'))
 service=authorize('service')
 items=post('credentials/list',{},service)
@@ -66,7 +69,7 @@ if sys.argv[1]=='certificate':
 digest=(OUT/'prepare-hash.bin').read_bytes()
 if len(digest) != 32: raise RuntimeError('Expected SHA-256 PDF signed-attributes hash')
 sad=authorize('credential',credentialID=credential,numSignatures=1,hash=base64.urlsafe_b64encode(digest).decode())
-sigResponse=post('signatures/signHash',{'credentialID':credential,'SAD':sad,'hash':[base64.b64encode(digest).decode()],'hashAlgo':'2.16.840.1.101.3.4.2.1','signAlgo':'1.2.840.113549.1.1.11'},service)
+sigResponse=post('signatures/signHash',{'credentialID':credential,'SAD':sad,'hash':[base64.b64encode(digest).decode()],'hashAlgo':'2.16.840.1.101.3.4.2.1','signAlgo':'1.2.840.113549.1.1.1'},service)
 signatures=sigResponse.get('signatures') or []
 if len(signatures)!=1:raise RuntimeError('Expected exactly one signature')
 signature=base64.b64decode(signatures[0])

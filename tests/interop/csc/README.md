@@ -37,7 +37,7 @@ php tests/interop/csc/stub_pdf.php complete
 pdfsig "$LIBRESIGN_CSC_INTEROP_DIR/provider-signed.pdf"
 ```
 
-The certificate step uses `credentials/list` and `credentials/info` to select the one compatible RSA-SHA256 credential. The PDF step prepares a PDF using SignerPHP. The second OAuth step requests a hash-bound SAD with scope `credential` and submits exactly one `signatures/signHash` operation. The final PHP step checks the returned signature against the prepared hash and certificate before embedding it. **No automatic retry of `signHash` is performed.**
+The certificate step uses `credentials/list` and `credentials/info` to select the one compatible RSA-SHA256 credential. The PDF step prepares a PDF using SignerPHP. The second OAuth step includes the exact CMS hash in its scope `credential` authorization request and submits exactly one `signatures/signHash` operation. **The public stub does not enforce the SAD-to-hash binding or real signer consent**: this proof verifies the resulting cryptographic signature against the PDF digest, not the security of a real provider's authorization. The final PHP step checks the returned signature against the prepared hash and certificate before embedding it. **No automatic retry of `signHash` is performed.**
 
 Inspect the output for a valid SHA-256 PDF signature covering the document and a test/untrusted issuer. Destroy the scratch directory after inspection:
 
@@ -48,8 +48,10 @@ unset LIBRESIGN_CSC_STUB_CLIENT_ID LIBRESIGN_CSC_STUB_CLIENT_SECRET
 
 ## Interoperability limits and follow-up
 
-This proof only covers CSC API **v1.0.4**, RSA PKCS#1 v1.5, SHA-256 and a synchronous `signHash` response. It does not cover CSC v2.2, ECDSA P-256, production OAuth registration, the mobile approval flow, token refresh, polling or a real signer-bound session. Cleverbase's acceptance environment requires a registered OAuth client and a test signer using the real app.
+This proof only covers CSC API **v1.0.4**, RSA PKCS#1 v1.5, SHA-256 and a synchronous `signHash` response. It does not cover CSC v2.2, ECDSA P-256, production OAuth registration, the mobile approval flow, token refresh, polling or a real signer-bound session. All requests with tokens or SAD use **no redirects** and enforce an exact OAuth callback; the CSC stub signs test hashes without authenticating a person or enforcing SAD hash restrictions. Cleverbase's acceptance environment requires a registered OAuth client and a test signer using the real app.
 
 Production readiness must additionally demonstrate server-owned, single-use OAuth state, exact redirect allowlisting, per-actor binding, encrypted access token/SAD retention and expiry, verified credential authorization for the **exact** document's CMS hash, failure/timeout reconciliation without blind signing retries, PDF/CMS validation, and native LibreSign publication on supported Nextcloud/DB versions.
+
+**Bundled-library limitation:** the currently integrated `CscSignatureProvider` performs `credentials/authorize` rather than the two browser-based `service` and `credential` OAuth authorizations required by Cleverbase. It also hardcodes the SHA256-with-RSA signature-algorithm OID, whereas Cleverbase documents RSA encryption (`1.2.840.113549.1.1.1`) for its CSC v1 `signHash`. Therefore, this interoperable proof intentionally calls the CSC OAuth/signHash protocol independently and then uses SignerPHP's external PDF signing engine; it is **not** a claim that the existing LibreSign `continue` endpoint can use Cleverbase personal credentials. That requires an explicit, signer-bound OAuth/callback implementation and provider-specific algorithm negotiation.
 
 No stub credential or fake provider response should be displayed to end users as if it were a real personal signing credential.
