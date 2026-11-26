@@ -394,13 +394,28 @@ async function loadIntegrations() {
 		return
 	}
 	const identity = authorizedIdentity()
-	await execute(() => discoverExternalSigning(identity), (result) => {
+	const generation = requestGeneration + 1
+	await execute(async () => {
+		const overview = await discoverExternalSigning(identity)
+		const providerId = !overview.session && overview.integrations.length === 1
+			? overview.integrations[0]?.id ?? ''
+			: ''
+		// Skip a second provider request if this signer context is obsolete.
+		const selection = providerId && generation === requestGeneration
+			? await discoverExternalSigning(identity, providerId)
+			: null
+		return { overview, providerId, selection }
+	}, ({ overview, providerId, selection }) => {
 		identityAuthorized.value = true
-		syntheticOnly.value = result.syntheticOnly
-		integrations.value = result.integrations
-		session.value = result.session
-		if (result.session) {
-			selectedIntegrationId.value = result.session.integrationId
+		integrations.value = overview.integrations
+		syntheticOnly.value = selection?.syntheticOnly ?? overview.syntheticOnly
+		session.value = selection?.session ?? overview.session
+		if (overview.session) {
+			selectedIntegrationId.value = overview.session.integrationId
+		} else if (selection && providerId) {
+			selectedIntegrationId.value = providerId
+			credentials.value = selection.credentials
+			selectedCredentialId.value = selection.credentials.length === 1 ? selection.credentials[0].id : ''
 		}
 	})
 }

@@ -41,6 +41,7 @@ const stubs = {
 
 const credentials = [{ id: 'synthetic-cert', subject: 'Laboratory certificate', validTo: '2099-01-01', signatureAlgorithm: 'rsa-pkcs1-v1_5', digestAlgorithm: 'sha256', certificateSha256: 'a'.repeat(64), profiles: ['pdf-basic', 'pades-baseline-b'] }]
 const integrations = [{ id: 'lab', name: 'Synthetic provider', driverId: 'csc-v1' }]
+const multipleIntegrations = [...integrations, { id: 'second', name: 'Second provider', driverId: 'csc-v1' }]
 const baseSession = { id: 'session-1', status: 'preparing', revision: 1, integrationId: 'lab', credentialId: 'synthetic-cert', certificateSha256: 'a'.repeat(64), expiresAt: '2099-01-01' }
 
 function mountSigner() {
@@ -124,6 +125,9 @@ describe('external signing within the existing signer UI', () => {
 	})
 
 	it('requests an existing LibreSign signer code, then lists authorized integrations', async () => {
+		vi.mocked(discoverExternalSigning).mockResolvedValue({
+			integrations: multipleIntegrations, integration: null, credentials: [], syntheticOnly: true, personalSignerAuthorization: false, session: null,
+		})
 		const wrapper = mountSigner()
 		await authorize(wrapper)
 		expect(axios.post).toHaveBeenCalledExactlyOnceWith('/code/request-one', { identifyMethod: 'email', signMethod: 'emailToken' })
@@ -132,6 +136,20 @@ describe('external signing within the existing signer UI', () => {
 		})
 		expect(wrapper.text()).toContain('Synthetic provider')
 		expect(wrapper.text()).not.toContain('Laboratory certificate')
+		wrapper.unmount()
+	})
+
+	it('automatically offers the only authorized provider and its one eligible certificate', async () => {
+		vi.mocked(discoverExternalSigning).mockImplementation(async (_identity, providerId) => providerId
+			? { integrations, integration: integrations[0], credentials, syntheticOnly: true, personalSignerAuthorization: false, session: null }
+			: { integrations, integration: null, credentials: [], syntheticOnly: true, personalSignerAuthorization: false, session: null })
+		const wrapper = mountSigner()
+		await authorize(wrapper)
+		expect(discoverExternalSigning).toHaveBeenCalledTimes(2)
+		expect(vi.mocked(discoverExternalSigning).mock.calls[1][1]).toBe('lab')
+		expect((wrapper.find('#external-signing-integration').element as HTMLSelectElement).value).toBe('lab')
+		expect((wrapper.find('#external-signing-credential').element as HTMLSelectElement).value).toBe('synthetic-cert')
+		expect((wrapper.find('#external-signing-profile').element as HTMLSelectElement).value).toBe('pades-baseline-b')
 		wrapper.unmount()
 	})
 
@@ -227,7 +245,7 @@ describe('external signing within the existing signer UI', () => {
 		let finishOld!: (data: Awaited<ReturnType<typeof discoverExternalSigning>>) => void
 		vi.mocked(discoverExternalSigning)
 			.mockImplementationOnce(() => new Promise(resolve => { finishOld = resolve }))
-			.mockResolvedValueOnce({ integrations, integration: null, credentials: [], syntheticOnly: true, personalSignerAuthorization: false, session: null })
+			.mockResolvedValueOnce({ integrations: multipleIntegrations, integration: null, credentials: [], syntheticOnly: true, personalSignerAuthorization: false, session: null })
 		const wrapper = mountSigner()
 		await wrapper.find('input[type="email"]').setValue('guest@example.org')
 		await clickButton(wrapper, 'Send verification code')
