@@ -18,11 +18,11 @@ enum RequestedSigningMethod: string {
 
 	public const METADATA_KEY = 'signingMethodRequirement';
 
-	/** Older requests without an explicit requirement retain their existing choices. */
+	/** A missing requirement never grants external signing by administrative enablement alone. */
 	public static function forRequest(SignRequest $request): self {
 		$metadata = $request->getMetadata() ?? [];
 		if (!array_key_exists(self::METADATA_KEY, $metadata)) {
-			return self::SIGNER_CHOICE;
+			return self::LIBRESIGN;
 		}
 		return self::fromInput($metadata[self::METADATA_KEY]);
 	}

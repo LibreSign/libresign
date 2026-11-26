@@ -57,6 +57,7 @@ final class CredentialSelectionTest extends TestCase {
 		$signRequest->setUuid(self::REQUEST_UUID);
 		$signRequest->setFileId(9877);
 		$signRequest->setStatus(SignRequestStatus::ABLE_TO_SIGN->value);
+		$signRequest->setMetadata(['signingMethodRequirement' => 'external_certificate']);
 		$file = new File();
 		$file->setId(9877);
 		$requests = $this->createMock(SignRequestMapper::class);

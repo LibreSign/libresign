@@ -30,8 +30,8 @@ final class RequestedSigningMethodTest extends TestCase {
 		self::assertSame($external, $mode->allowsExternalCertificate());
 	}
 
-	public function testLegacyRequestKeepsExistingSignerChoices(): void {
-		self::assertSame(RequestedSigningMethod::SIGNER_CHOICE, RequestedSigningMethod::forRequest(new SignRequest()));
+	public function testLegacyRequestDefaultsToLibreSignOnly(): void {
+		self::assertSame(RequestedSigningMethod::LIBRESIGN, RequestedSigningMethod::forRequest(new SignRequest()));
 	}
 
 	public function testMetadataWinsOverLegacyFallback(): void {

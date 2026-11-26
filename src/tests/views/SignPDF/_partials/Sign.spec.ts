@@ -216,9 +216,10 @@ describe('Sign.vue approval labels and signing methods', () => {
 	})
 
 	it.each([
-		{ approval: false, available: true },
-		{ approval: true, available: false },
-	])('keeps external signing out of approval workflows (approval: $approval)', async ({ approval, available }) => {
+		{ approval: false, available: true, requirement: 'signer_choice' },
+		{ approval: false, available: false, requirement: undefined },
+		{ approval: true, available: false, requirement: 'signer_choice' },
+	] as const)('requires explicit sender choice (approval: $approval, requirement: $requirement)', async ({ approval, available, requirement }) => {
 		setActivePinia(createPinia())
 		const signStore = useSignStore()
 		const signMethodsStore = useSignMethodsStore()
@@ -234,7 +235,7 @@ describe('Sign.vue approval labels and signing methods', () => {
 			nodeId: 75,
 			nodeType: 'file',
 			uuid: 'file-uuid',
-			signers: [{ me: true, signRequestId: 51, status: SIGN_REQUEST_STATUS.ABLE_TO_SIGN, sign_request_uuid: uuid }],
+			signers: [{ me: true, signRequestId: 51, status: SIGN_REQUEST_STATUS.ABLE_TO_SIGN, sign_request_uuid: uuid, ...(requirement ? { metadata: { signingMethodRequirement: requirement } } : {}) }],
 			visibleElements: [],
 			settings: { canSign: true, isApprover: approval, signatureMethods: methods },
 		}

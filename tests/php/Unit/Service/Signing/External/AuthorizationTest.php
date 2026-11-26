@@ -48,6 +48,7 @@ final class AuthorizationTest extends TestCase {
 		$this->signRequest->setUuid(self::REQUEST_UUID);
 		$this->signRequest->setFileId(45678);
 		$this->signRequest->setStatus(SignRequestStatus::ABLE_TO_SIGN->value);
+		$this->signRequest->setMetadata(['signingMethodRequirement' => 'external_certificate']);
 		$this->file = new File();
 		$this->file->setId(45678);
 		$this->file->setStatus(FileStatus::ABLE_TO_SIGN->value);
@@ -80,6 +81,21 @@ final class AuthorizationTest extends TestCase {
 		$method = $this->createMock(IIdentifyMethod::class);
 		$method->method('getEntity')->willReturn($entity);
 		$this->boundMethods = [$methodName => [$method]];
+	}
+
+	public function testLocalOnlyRequestCannotStartExternalCertificateSigning(): void {
+		$this->signRequest->setMetadata(['signingMethodRequirement' => 'libresign']);
+		$this->signerValidator->expects($this->never())->method('validateCredentials');
+		$this->expectException(\DomainException::class);
+		$this->expectExceptionMessage('External signing is not permitted');
+		$this->authorization->authorize(self::REQUEST_UUID, 'email', self::GUEST_EMAIL, 'verified-code');
+	}
+
+	public function testUnconfiguredRequestCannotUseExternalCertificate(): void {
+		$this->signRequest->setMetadata([]);
+		$this->signerValidator->expects($this->never())->method('validateCredentials');
+		$this->expectException(\DomainException::class);
+		$this->authorization->authorize(self::REQUEST_UUID, 'email', self::GUEST_EMAIL, 'verified-code');
 	}
 
 	public function testInvitedSignerWithVerifiedMethodAndTokenHasStableRequestIdentity(): void {

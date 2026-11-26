@@ -46,6 +46,7 @@ final readonly class SigningRequestFixture {
 		$request->setUuid(bin2hex(random_bytes(16)));
 		$request->setFileId($file->getId());
 		$request->setStatusEnum(SignRequestStatus::ABLE_TO_SIGN);
+		$request->setMetadata(['signingMethodRequirement' => 'external_certificate']);
 		$request->setDisplayName('Synthetic authorized signer');
 		$request->setCreatedAt(new \DateTime('now', new \DateTimeZone('UTC')));
 		$request = Server::get(SignRequestMapper::class)->insert($request);

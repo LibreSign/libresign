@@ -8,7 +8,7 @@ export type RequestedSigningMethod = 'libresign' | 'external_certificate' | 'sig
 export function requestedSigningMethod(value: unknown): RequestedSigningMethod {
 	return value === 'libresign' || value === 'external_certificate' || value === 'signer_choice'
 		? value
-		: 'signer_choice' // Existing requests have no explicit mode.
+		: 'libresign' // Administrator enablement alone cannot permit external signing.
 }
 
 export function canUseLibreSign(value: RequestedSigningMethod): boolean {
