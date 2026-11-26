@@ -26,6 +26,13 @@
 				{{ t('libresign', 'Step 3 of 3 — Complete signing') }}
 			</template>
 		</p>
+		<p
+			v-if="busy"
+			class="external-signing__busy"
+			role="status"
+			aria-live="polite">
+			{{ busyMessage }}
+		</p>
 		<NcNoteCard v-if="identityAuthorized && syntheticOnly" type="warning">
 			<!-- TRANSLATORS Notice that the currently configured CSC provider supplies test certificates, not a personal production identity. -->
 			{{ t('libresign', 'Test connection: this provider uses test certificates, not your personal digital identity.') }}
@@ -57,7 +64,12 @@
 					<!-- TRANSLATORS Button that requests the email verification code needed before discovering signing providers. -->
 					{{ t('libresign', 'Send verification code') }}
 				</NcButton>
+				<p v-if="codeRequested" class="external-signing__help" role="status">
+					<!-- TRANSLATORS The signer should look for the one-time verification code in their email inbox. -->
+					{{ t('libresign', 'Check your email for the verification code. You can request another code if needed.') }}
+				</p>
 				<NcTextField
+					v-if="codeRequested"
 					v-model="verificationCode"
 					:disabled="busy"
 					type="text"
@@ -99,6 +111,10 @@
 						</option>
 					</select>
 				</div>
+				<NcNoteCard v-if="selectedIntegrationId && credentialsLoaded && credentials.length === 0" type="info">
+					<!-- TRANSLATORS The provider has no eligible certificates for this signer; signing is unavailable. -->
+					{{ t('libresign', 'No eligible digital certificates are available from this provider. Choose another provider or contact the administrator.') }}
+				</NcNoteCard>
 				<div v-if="credentials.length > 0" class="external-signing__field">
 					<template v-if="credentials.length === 1 && selectedCredential">
 						<!-- TRANSLATORS The only eligible certificate was already selected. -->
@@ -167,9 +183,17 @@
 			<div v-if="session" class="external-signing__status" role="status">
 				<!-- TRANSLATORS Label preceding the current remote signing session state. -->
 				<p>{{ t('libresign', 'Signing status') }}: <strong>{{ statusMessage }}</strong></p>
-				<NcNoteCard v-if="requiresReconciliation" type="warning">
+				<NcNoteCard v-if="requiresReconciliation && session.status === 'uncertain'" type="warning">
 					<!-- TRANSLATORS An unknown external signing outcome must not be submitted again. -->
 					{{ t('libresign', 'The provider may already have signed. Another signature cannot be submitted automatically. Contact your administrator to reconcile this request.') }}
+				</NcNoteCard>
+				<NcNoteCard v-else-if="session.status === 'authorization_pending'" type="info">
+					<!-- TRANSLATORS The signer must finish approving the signature with the remote provider. -->
+					{{ t('libresign', 'Approval is pending with your digital signature provider. Complete the approval there, then check the signing status here.') }}
+				</NcNoteCard>
+				<NcNoteCard v-else-if="session.status === 'signing_pending'" type="info">
+					<!-- TRANSLATORS The remote provider is still processing the signature; a duplicate submission would be unsafe. -->
+					{{ t('libresign', 'Your provider is processing the signature. Check the status here; do not submit another signature.') }}
 				</NcNoteCard>
 				<NcButton
 					v-if="canContinue"
@@ -245,9 +269,12 @@ const verificationCode = ref('')
 const codeRequested = ref(false)
 const identityAuthorized = ref(false)
 const busy = ref(false)
+type SigningAction = 'code' | 'providers' | 'credentials' | 'prepare' | 'sign' | 'status'
+const busyAction = ref<SigningAction | null>(null)
 const errorMessage = ref('')
 const integrations = ref<ExternalSigningIntegration[]>([])
 const credentials = ref<ExternalSigningCredential[]>([])
+const credentialsLoaded = ref(false)
 const selectedIntegrationId = ref('')
 const selectedCredentialId = ref('')
 const selectedProfile = ref<'pdf-basic' | 'pades-baseline-b'>('pades-baseline-b')
@@ -267,6 +294,17 @@ const selectedCredential = computed(() => credentials.value.find(item => item.id
 const supportedProfiles = computed(() => (selectedCredential.value?.profiles ?? []).filter((profile): profile is 'pdf-basic' | 'pades-baseline-b' => profile === 'pdf-basic' || profile === 'pades-baseline-b'))
 const canContinue = computed(() => session.value !== null && mayContinueExternalSigning(session.value.status))
 const requiresReconciliation = computed(() => session.value !== null && externalSigningRequiresReconciliation(session.value.status))
+const busyMessage = computed(() => {
+	switch (busyAction.value) {
+	case 'code': return t('libresign', 'Sending verification code…')
+	case 'providers': return t('libresign', 'Finding available signing providers…')
+	case 'credentials': return t('libresign', 'Loading eligible digital certificates…')
+	case 'prepare': return t('libresign', 'Preparing your document for signing…')
+	case 'sign': return t('libresign', 'Checking the provider and completing your signature…')
+	case 'status': return t('libresign', 'Checking the current signing status…')
+	default: return ''
+	}
+})
 const formatCertificateExpiry = (value: string): string => {
 	const expiry = new Date(value)
 	return Number.isNaN(expiry.getTime())
@@ -321,9 +359,11 @@ function resetSigningContext() {
 	// A request for a previous SignRequest must not keep the next document
 	// blocked while its response is still outstanding.
 	busy.value = false
+	busyAction.value = null
 	identityAuthorized.value = false
 	integrations.value = []
 	credentials.value = []
+	credentialsLoaded.value = false
 	syntheticOnly.value = false
 	selectedIntegrationId.value = ''
 	selectedCredentialId.value = ''
@@ -343,12 +383,13 @@ onBeforeUnmount(() => {
 	requestGeneration++
 })
 
-async function execute<T>(callback: () => Promise<T>, onSuccess: (value: T) => void): Promise<void> {
+async function execute<T>(action: SigningAction, callback: () => Promise<T>, onSuccess: (value: T) => void): Promise<void> {
 	if (busy.value) {
 		return
 	}
 	const current = ++requestGeneration
 	busy.value = true
+	busyAction.value = action
 	errorMessage.value = ''
 	try {
 		const result = await callback()
@@ -373,8 +414,18 @@ async function execute<T>(callback: () => Promise<T>, onSuccess: (value: T) => v
 				errorMessage.value = t('libresign', 'Too many attempts. Please try again later.')
 				break
 			default:
-				// TRANSLATORS Generic security-conscious error: remote responses are hidden and an uncertain signature must not be retried blindly.
-				errorMessage.value = t('libresign', 'We could not confirm the signing result. Check the status before trying again.')
+				// Do not confuse a failed lookup with a remotely submitted signature.
+				if (action === 'code') {
+					errorMessage.value = t('libresign', 'Could not send the verification code. Check your connection and try again.')
+				} else if (action === 'providers' || action === 'credentials') {
+					errorMessage.value = t('libresign', 'Could not load signing options. Check your connection and try again.')
+				} else if (action === 'prepare') {
+					// TRANSLATORS Preparation may already have created a session, so a status check must precede another attempt.
+					errorMessage.value = t('libresign', 'We could not confirm preparation. Check the signing status before trying again.')
+				} else {
+					// TRANSLATORS A remote signature result cannot be assumed to have failed after a network error.
+					errorMessage.value = t('libresign', 'We could not confirm the signing result. Check the status before trying again.')
+				}
 			}
 		}
 	} finally {
@@ -382,6 +433,7 @@ async function execute<T>(callback: () => Promise<T>, onSuccess: (value: T) => v
 		// operation or replace its visible progress state.
 		if (current === requestGeneration) {
 			busy.value = false
+			busyAction.value = null
 		}
 	}
 }
@@ -391,6 +443,7 @@ async function requestCode() {
 		return
 	}
 	await execute(
+		'code',
 		() => axios.post(signStore.buildRequestCodeUrl(props.signRequestUuid), {
 			identifyMethod: props.emailMethod,
 			signMethod: 'emailToken',
@@ -405,7 +458,7 @@ async function loadIntegrations() {
 	}
 	const identity = authorizedIdentity()
 	const generation = requestGeneration + 1
-	await execute(async () => {
+	await execute('providers', async () => {
 		const overview = await discoverExternalSigning(identity)
 		const providerId = !overview.session && overview.integrations.length === 1
 			? overview.integrations[0]?.id ?? ''
@@ -425,6 +478,7 @@ async function loadIntegrations() {
 		} else if (selection && providerId) {
 			selectedIntegrationId.value = providerId
 			credentials.value = selection.credentials
+			credentialsLoaded.value = true
 			selectedCredentialId.value = selection.credentials.length === 1 ? selection.credentials[0].id : ''
 		}
 	})
@@ -432,15 +486,17 @@ async function loadIntegrations() {
 
 async function loadCredentials() {
 	credentials.value = []
+	credentialsLoaded.value = false
 	selectedCredentialId.value = ''
 	if (!selectedIntegrationId.value || !identityAuthorized.value || busy.value) {
 		return
 	}
 	const integrationId = selectedIntegrationId.value
 	const identity = authorizedIdentity()
-	await execute(() => discoverExternalSigning(identity, integrationId), (result) => {
+	await execute('credentials', () => discoverExternalSigning(identity, integrationId), (result) => {
 		if (integrationId === selectedIntegrationId.value) {
 			credentials.value = result.credentials
+			credentialsLoaded.value = true
 			syntheticOnly.value = result.syntheticOnly
 			selectedCredentialId.value = result.credentials.length === 1 ? result.credentials[0].id : ''
 			session.value = result.session
@@ -460,6 +516,7 @@ async function startSigning() {
 	// second attempt on a double click or an uncertain response.
 	attemptId ||= crypto.randomUUID()
 	await execute(
+		'prepare',
 		() => startExternalSigning(identity, integration, credential, attemptId, selectedProfile.value),
 		(result) => { session.value = result },
 	)
@@ -477,7 +534,7 @@ async function continueSigning() {
 	// A timed-out HTTP response does not imply a failed remote signature.
 	// Require an explicit server-side status read before offering continue.
 	mustRefreshBeforeContinue.value = true
-	await execute(() => continueExternalSigning(identity, sessionId), (result) => {
+	await execute('sign', () => continueExternalSigning(identity, sessionId), (result) => {
 		session.value = result.session
 		if (result.publication?.status === 'completed' && result.session.status === 'completed') {
 			emit('signed', { signRequestUuid: props.signRequestUuid })
@@ -491,7 +548,7 @@ async function refreshSession() {
 		return
 	}
 	const identity = authorizedIdentity()
-	await execute(() => statusExternalSigning(identity), (result) => {
+	await execute('status', () => statusExternalSigning(identity), (result) => {
 		session.value = result
 		mustRefreshBeforeContinue.value = false
 	})
@@ -542,9 +599,15 @@ async function refreshSession() {
 	margin: 3px 0;
 }
 
-.external-signing__intro {
+.external-signing__intro,
+.external-signing__help {
 	margin: 0;
 	color: var(--color-text-maxcontrast);
+}
+
+.external-signing__busy {
+	margin: 0;
+	color: var(--color-main-text);
 }
 
 .external-signing__step {

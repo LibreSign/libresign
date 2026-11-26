@@ -91,6 +91,71 @@ describe('external signing within the existing signer UI', () => {
 		vi.unstubAllGlobals()
 	})
 
+	it('describes pending authorization separately from an uncertain signature', async () => {
+		vi.mocked(discoverExternalSigning).mockResolvedValue({
+			integrations, integration: null, credentials: [], syntheticOnly: true,
+			personalSignerAuthorization: false, session: { ...baseSession, status: 'authorization_pending' },
+		})
+		const wrapper = mountSigner()
+		await authorize(wrapper)
+		expect(wrapper.text()).toContain('Approval is pending with your digital signature provider')
+		expect(wrapper.text()).not.toContain('Contact your administrator to reconcile')
+		wrapper.unmount()
+	})
+
+	it('reports failed provider discovery without implying that a signature was submitted', async () => {
+		vi.mocked(discoverExternalSigning).mockRejectedValue(new Error('offline'))
+		const wrapper = mountSigner()
+		await wrapper.find('input[type="email"]').setValue('guest@example.org')
+		await clickButton(wrapper, 'Send verification code')
+		await wrapper.find('input[type="text"]').setValue('123456')
+		await clickButton(wrapper, 'Continue to signing providers')
+		expect(wrapper.text()).toContain('Could not load signing options')
+		expect(wrapper.text()).not.toContain('could not confirm the signing result')
+		wrapper.unmount()
+	})
+
+	it('shows code entry only after requesting the verification email', async () => {
+		const wrapper = mountSigner()
+		expect(wrapper.find('input[type="text"]').exists()).toBe(false)
+		await wrapper.find('input[type="email"]').setValue('guest@example.org')
+		await clickButton(wrapper, 'Send verification code')
+		expect(wrapper.find('input[type="text"]').exists()).toBe(true)
+		expect(wrapper.text()).toContain('Check your email')
+		wrapper.unmount()
+	})
+
+	it('explains when an eligible provider has no certificates without offering signing', async () => {
+		vi.mocked(discoverExternalSigning).mockImplementation(async (_identity, integrationId) => ({
+			integrations,
+			integration: integrationId ? integrations[0] : null,
+			credentials: [], syntheticOnly: true, personalSignerAuthorization: false, session: null,
+		}))
+		const wrapper = mountSigner()
+		await authorize(wrapper)
+		expect(wrapper.text()).toContain('No eligible digital certificates')
+		expect(wrapper.findAll('button').some(button => button.text().includes('Prepare signature'))).toBe(false)
+		wrapper.unmount()
+	})
+
+	it('announces provider lookup progress without claiming an uncertain signing result', async () => {
+		let resolveDiscovery!: (value: Awaited<ReturnType<typeof discoverExternalSigning>>) => void
+		vi.mocked(discoverExternalSigning).mockImplementationOnce(() => new Promise(resolve => {
+			resolveDiscovery = resolve
+		}))
+		const wrapper = mountSigner()
+		await wrapper.find('input[type="email"]').setValue('guest@example.org')
+		await clickButton(wrapper, 'Send verification code')
+		await wrapper.find('input[type="text"]').setValue('123456')
+		const button = wrapper.findAll('button').find(item => item.text().includes('Continue to signing providers'))
+		await button!.trigger('click')
+		expect(wrapper.text()).toContain('Finding available signing providers')
+		resolveDiscovery({ integrations: multipleIntegrations, integration: null, credentials: [], syntheticOnly: true, personalSignerAuthorization: false, session: null })
+		await flushPromises()
+		expect(wrapper.text()).not.toContain('Finding available signing providers')
+		wrapper.unmount()
+	})
+
 	it('does not discover or expose providers before a guest supplies verified identity', async () => {
 		const wrapper = mountSigner()
 		expect(wrapper.text()).not.toContain('Synthetic provider')
