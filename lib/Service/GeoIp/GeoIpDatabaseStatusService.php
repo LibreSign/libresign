@@ -73,7 +73,10 @@ class GeoIpDatabaseStatusService {
 				$metadata = $reader->metadata();
 				$databaseType = $metadata->databaseType;
 				$payload['databaseType'] = $databaseType;
-				$payload['buildEpoch'] = $metadata->buildEpoch;
+				$buildEpoch = filter_var($metadata->buildEpoch, FILTER_VALIDATE_INT, ['options' => ['min_range' => 0]]);
+				if (is_int($buildEpoch)) {
+					$payload['buildEpoch'] = $buildEpoch;
+				}
 
 				if (!$this->isSupportedDatabaseType($databaseType)) {
 					$payload['status'] = GeoIpDatabaseStatus::UNSUPPORTED_DATABASE->value;

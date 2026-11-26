@@ -55,7 +55,7 @@ final class GeoIpDatabaseStatusServiceTest extends TestCase {
 		$this->assertSame(GeoIpDatabaseStatus::READY->value, $status['status']);
 		$this->assertSame($path, $status['path']);
 		$this->assertSame('GeoIP2-City', $status['databaseType'] ?? null);
-		$this->assertArrayHasKey('buildEpoch', $status);
+		$this->assertSame(1770245369, $status['buildEpoch'] ?? null);
 		$this->assertArrayHasKey('modifiedAt', $status);
 		$this->assertTrue($this->getService()->isReady());
 	}
