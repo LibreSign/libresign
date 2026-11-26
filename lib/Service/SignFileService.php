@@ -8,6 +8,8 @@ declare(strict_types=1);
 
 namespace OCA\Libresign\Service;
 
+use OCA\Libresign\Service\Signing\RequestedSigningMethod;
+
 use DateTime;
 use DateTimeInterface;
 use Exception;
@@ -452,6 +454,12 @@ class SignFileService {
 			throw new LibresignException('No sign requests found to process');
 		}
 
+		foreach ($signRequests as $item) {
+			if (!RequestedSigningMethod::forRequest($item['signRequest'])->allowsLibreSign()) {
+				throw new LibresignException('This signer must use an external digital certificate');
+			}
+		}
+
 		$this->executeSigningStrategy($signRequests);
 	}
 
@@ -484,6 +492,9 @@ class SignFileService {
 	}
 
 	public function signSingleFile(FileEntity $libreSignFile, SignRequestEntity $signRequest): void {
+		if (!RequestedSigningMethod::forRequest($signRequest)->allowsLibreSign()) {
+			throw new LibresignException('This signer must use an external digital certificate');
+		}
 		$previousState = $this->saveCachedState();
 		$this->resetCachedState();
 

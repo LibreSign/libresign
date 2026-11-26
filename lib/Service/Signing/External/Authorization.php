@@ -8,6 +8,8 @@ declare(strict_types=1);
 
 namespace OCA\Libresign\Service\Signing\External;
 
+use OCA\Libresign\Service\Signing\RequestedSigningMethod;
+
 use OCA\Libresign\Db\FileMapper;
 use OCA\Libresign\Db\SignRequestMapper;
 use OCA\Libresign\Exception\ExternalSigningAccessDeniedException;
@@ -56,6 +58,9 @@ final class Authorization {
 		$currentUser = $this->userSession->getUser();
 		$this->signerValidator->validateSigner($signRequestUuid, $currentUser);
 		$signRequest = $this->signRequests->getByUuid($signRequestUuid);
+		if (!RequestedSigningMethod::forRequest($signRequest)->allowsExternalCertificate()) {
+			throw new ExternalSigningAccessDeniedException('External signing is not permitted for this signer');
+		}
 		$signRequestId = $signRequest->getId();
 		$fileId = $signRequest->getFileId();
 		if ($signRequestId < 1 || $fileId === null || $fileId < 1 || $signRequest->hasCompletedSigning()

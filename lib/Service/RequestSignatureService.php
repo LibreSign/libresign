@@ -8,6 +8,8 @@ declare(strict_types=1);
 
 namespace OCA\Libresign\Service;
 
+use OCA\Libresign\Service\Signing\RequestedSigningMethod;
+
 use OCA\Libresign\Db\File as FileEntity;
 use OCA\Libresign\Db\FileElementMapper;
 use OCA\Libresign\Db\FileMapper;
@@ -604,6 +606,12 @@ class RequestSignatureService {
 		$return = [];
 		if (!empty($data['signers'])) {
 			$normalizedSigners = $this->signerValidator->normalizeRequestSigners($data['signers']);
+			// Validate all requirements before changing any signer or identity records.
+			foreach ($normalizedSigners as $signer) {
+				if (array_key_exists(RequestedSigningMethod::METADATA_KEY, $signer)) {
+					RequestedSigningMethod::fromInput($signer[RequestedSigningMethod::METADATA_KEY]);
+				}
+			}
 			$this->deleteIdentifyMethodIfNotExits($normalizedSigners, $file);
 			$this->identifyMethod->clearCache();
 
@@ -625,6 +633,9 @@ class RequestSignatureService {
 
 				// Absent key means "leave frozen requirement unchanged" on updates.
 				// Only default to false when creating a sign request that has no freeze yet.
+				$requesterSigningMethod = array_key_exists(RequestedSigningMethod::METADATA_KEY, $signer)
+					? RequestedSigningMethod::fromInput($signer[RequestedSigningMethod::METADATA_KEY])
+					: null;
 				$requesterRequiresGeolocation = null;
 				if (array_key_exists('deviceGeolocationRequired', $signer)) {
 					$requesterRequiresGeolocation = filter_var(
@@ -647,7 +658,14 @@ class RequestSignatureService {
 						fileStatus: $fileStatus,
 						signerStatus: $signerStatus,
 						participantRole: $participantRole,
-						afterPersist: function (SignRequestEntity $signRequest) use ($file, $requesterRequiresGeolocation): void {
+						afterPersist: function (SignRequestEntity $signRequest) use ($file, $requesterRequiresGeolocation, $requesterSigningMethod): void {
+							if ($requesterSigningMethod !== null) {
+								$metadata = $signRequest->getMetadata() ?? [];
+								$metadata[RequestedSigningMethod::METADATA_KEY] = $requesterSigningMethod->value;
+								$signRequest->setMetadata($metadata);
+							$this->signRequestMapper->update($signRequest);
+							}
+
 							$requiresGeolocation = $requesterRequiresGeolocation;
 							if ($requiresGeolocation === null) {
 								if ($this->signerGeolocationPolicyService->getFrozenRequirement($signRequest) !== null) {

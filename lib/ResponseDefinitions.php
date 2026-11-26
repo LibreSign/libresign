@@ -276,6 +276,7 @@ namespace OCA\Libresign;
  *     remote-address?: string,
  *     user-agent?: string,
  *     deviceGeolocationRequirement?: LibresignGeolocationRequirement,
+ *     signingMethodRequirement?: 'libresign'|'external_certificate'|'signer_choice',
  *     geolocation?: LibresignSignerGeolocation,
  *     notify?: list<LibresignNotify>,
  *     certificate_info?: LibresignSignerCertificateInfo,
