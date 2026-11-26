@@ -20,8 +20,8 @@ use OCA\Libresign\Tests\Integration\Service\Signing\External\Fixtures\SigningReq
 use OCA\Libresign\Tests\Integration\Service\Signing\External\Fixtures\SyntheticCscResponder;
 use OCA\Libresign\Tests\Integration\Service\Signing\External\Fixtures\WorkflowServices;
 use OCP\AppFramework\Http;
-use OCP\IRequest;
 use OCP\IDBConnection;
+use OCP\IRequest;
 use OCP\IUser;
 use OCP\IUserSession;
 use OCP\Server;

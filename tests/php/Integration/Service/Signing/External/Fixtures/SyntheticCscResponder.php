@@ -22,7 +22,9 @@ final class SyntheticCscResponder {
 	private bool $unknownSigningOutcome = false;
 	private bool $discoveryUnavailable = false;
 
-	public function __construct(private readonly \Closure $mock) {
+	public function __construct(
+		private readonly \Closure $mock,
+	) {
 		$key = openssl_pkey_new(['private_key_type' => OPENSSL_KEYTYPE_RSA, 'private_key_bits' => 2048]);
 		TestCase::assertInstanceOf(\OpenSSLAsymmetricKey::class, $key);
 		$config = tempnam(sys_get_temp_dir(), 'csc-ocs-cert-');
