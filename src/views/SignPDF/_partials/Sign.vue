@@ -150,8 +150,8 @@
 			</div>
 			<div v-if="externalSigningUiAllowed" class="external-signing-option">
 				<NcButton :disabled="loading" @click="showExternalSigning = !showExternalSigning">
-					<!-- TRANSLATORS Button opening the external signing option, separate from the standard signing flow. -->
-					{{ t('libresign', 'External signing') }}
+					<!-- TRANSLATORS Button for opening the cloud-provider digital certificate option, separate from the standard signing flow. -->
+					{{ t('libresign', 'Sign with a digital certificate') }}
 				</NcButton>
 				<ExternalSigning v-if="showExternalSigning"
 					:sign-request-uuid="signRequestUuid"

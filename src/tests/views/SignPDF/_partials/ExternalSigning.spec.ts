@@ -61,7 +61,7 @@ async function authorize(wrapper: ReturnType<typeof mountSigner>) {
 	await wrapper.find('input[type="email"]').setValue('guest@example.org')
 	await clickButton(wrapper, 'Send verification code')
 	await wrapper.find('input[type="text"]').setValue('123456')
-	await clickButton(wrapper, 'Find available signing providers')
+	await clickButton(wrapper, 'Continue to signing providers')
 }
 
 describe('external signing within the existing signer UI', () => {
@@ -75,7 +75,7 @@ describe('external signing within the existing signer UI', () => {
 
 	it('uses a neutral signing title without a development-status label', () => {
 		const wrapper = mountSigner()
-		expect(wrapper.text()).toContain('External signing')
+		expect(wrapper.text()).toContain('Sign with a digital certificate')
 		expect(wrapper.text()).not.toMatch(/experimental/i)
 		wrapper.unmount()
 	})
@@ -93,11 +93,33 @@ describe('external signing within the existing signer UI', () => {
 	it('does not discover or expose providers before a guest supplies verified identity', async () => {
 		const wrapper = mountSigner()
 		expect(wrapper.text()).not.toContain('Synthetic provider')
-		await clickButton(wrapper, 'Find available signing providers')
+		await clickButton(wrapper, 'Continue to signing providers')
 		expect(discoverExternalSigning).not.toHaveBeenCalled()
 		await wrapper.find('input[type="email"]').setValue('other@example.org')
 		await clickButton(wrapper, 'Send verification code')
 		expect(axios.post).not.toHaveBeenCalled()
+		wrapper.unmount()
+	})
+
+	it('keeps technical certificate details collapsed and selects PAdES B-B by default', async () => {
+		vi.mocked(discoverExternalSigning).mockImplementation(async (_identity, integrationId) => integrationId
+			? { integrations, integration: integrations[0], credentials, syntheticOnly: true, personalSignerAuthorization: false, session: null }
+			: { integrations, integration: null, credentials: [], syntheticOnly: true, personalSignerAuthorization: false, session: null })
+		const wrapper = mountSigner()
+		await authorize(wrapper)
+		await wrapper.find('#external-signing-integration').setValue('lab')
+		await flushPromises()
+		expect(wrapper.text()).toContain('Test connection')
+		expect(wrapper.find('details').attributes('open')).toBeUndefined()
+		expect(wrapper.find('.external-signing__technical-details').exists()).toBe(true)
+		expect(wrapper.find('#external-signing-profile').element).toBeInstanceOf(HTMLSelectElement)
+		expect((wrapper.find('#external-signing-profile').element as HTMLSelectElement).value).toBe('pades-baseline-b')
+		wrapper.unmount()
+	})
+
+	it('does not display the test-only notice before identity verification', () => {
+		const wrapper = mountSigner()
+		expect(wrapper.text()).not.toContain('Test connection')
 		wrapper.unmount()
 	})
 
@@ -126,17 +148,17 @@ describe('external signing within the existing signer UI', () => {
 		await flushPromises()
 		expect(wrapper.text()).toContain('Laboratory certificate')
 		await wrapper.find('#external-signing-credential').setValue('synthetic-cert')
-		await clickButton(wrapper, 'Prepare external signature')
+		await clickButton(wrapper, 'Prepare signature')
 		expect(startExternalSigning).toHaveBeenCalledExactlyOnceWith(
 			{ uuid: 'request-one', method: 'email', identifyValue: 'guest@example.org', token: '123456' },
 			'lab',
 'synthetic-cert',
 'stable-idempotency-attempt',
-'pdf-basic',
+'pades-baseline-b',
 		)
-		await clickButton(wrapper, 'Continue external signing')
+		await clickButton(wrapper, 'Sign document')
 		expect(wrapper.text()).toContain('Signature result uncertain')
-		expect(wrapper.text()).not.toContain('Continue external signing')
+		expect(wrapper.text()).not.toContain('Sign document')
 		expect(continueExternalSigning).toHaveBeenCalledTimes(1)
 		wrapper.unmount()
 	})
@@ -155,14 +177,14 @@ describe('external signing within the existing signer UI', () => {
 		await wrapper.find('#external-signing-integration').setValue('lab')
 		await flushPromises()
 		await wrapper.find('#external-signing-credential').setValue('synthetic-cert')
-		await clickButton(wrapper, 'Prepare external signature')
+		await clickButton(wrapper, 'Prepare signature')
 		expect(startExternalSigning).toHaveBeenCalledTimes(1)
 		expect(wrapper.text()).toContain('Check the signing session before another preparation attempt.')
-		const prepare = wrapper.findAll('button').find(button => button.text().includes('Prepare external signature'))
+		const prepare = wrapper.findAll('button').find(button => button.text().includes('Prepare signature'))
 		expect(prepare?.attributes('disabled')).toBeDefined()
 		await clickButton(wrapper, 'Check signing status')
 		expect(statusExternalSigning).toHaveBeenCalledTimes(1)
-		await clickButton(wrapper, 'Prepare external signature')
+		await clickButton(wrapper, 'Prepare signature')
 		expect(startExternalSigning).toHaveBeenCalledTimes(2)
 		expect(vi.mocked(startExternalSigning).mock.calls[0][3]).toBe('retry-safe-attempt')
 		expect(vi.mocked(startExternalSigning).mock.calls[1][3]).toBe('retry-safe-attempt')
@@ -196,7 +218,7 @@ describe('external signing within the existing signer UI', () => {
 		const signedCallback = vi.fn()
 		await wrapper.setProps({ onSigned: signedCallback })
 		await authorize(wrapper)
-		await clickButton(wrapper, 'Continue external signing')
+		await clickButton(wrapper, 'Sign document')
 		expect(signedCallback).toHaveBeenCalledWith({ signRequestUuid: 'request-one' })
 		wrapper.unmount()
 	})
@@ -210,13 +232,13 @@ describe('external signing within the existing signer UI', () => {
 		await wrapper.find('input[type="email"]').setValue('guest@example.org')
 		await clickButton(wrapper, 'Send verification code')
 		await wrapper.find('input[type="text"]').setValue('123456')
-		const button = wrapper.findAll('button').find(item => item.text().includes('Find available signing providers'))
+		const button = wrapper.findAll('button').find(item => item.text().includes('Continue to signing providers'))
 		await button!.trigger('click')
 		await wrapper.setProps({ signRequestUuid: 'request-two' })
 		await wrapper.find('input[type="email"]').setValue('guest@example.org')
 		await clickButton(wrapper, 'Send verification code')
 		await wrapper.find('input[type="text"]').setValue('654321')
-		await clickButton(wrapper, 'Find available signing providers')
+		await clickButton(wrapper, 'Continue to signing providers')
 		expect(discoverExternalSigning).toHaveBeenCalledTimes(2)
 		expect(vi.mocked(discoverExternalSigning).mock.calls[1][0]).toMatchObject({ uuid: 'request-two', token: '654321' })
 		finishOld({ integrations: [], integration: null, credentials: [], syntheticOnly: true, personalSignerAuthorization: false, session: null })
@@ -234,7 +256,7 @@ describe('external signing within the existing signer UI', () => {
 		await wrapper.find('input[type="email"]').setValue('guest@example.org')
 		await clickButton(wrapper, 'Send verification code')
 		await wrapper.find('input[type="text"]').setValue('123456')
-		const call = wrapper.findAll('button').find(item => item.text().includes('Find available signing providers'))
+		const call = wrapper.findAll('button').find(item => item.text().includes('Continue to signing providers'))
 		await call!.trigger('click')
 		await wrapper.setProps({ signRequestUuid: 'request-two' })
 		resolveRequest({ integrations, integration: null, credentials: [], syntheticOnly: true, personalSignerAuthorization: false, session: null })
@@ -256,7 +278,7 @@ describe('external signing within the existing signer UI', () => {
 		expect(wrapper.text()).toContain('Synthetic provider')
 		await wrapper.setProps(props)
 		expect(wrapper.text()).not.toContain('Synthetic provider')
-		expect(wrapper.text()).toContain('Find available signing providers')
+		expect(wrapper.text()).toContain('Continue to signing providers')
 		wrapper.unmount()
 	})
 
