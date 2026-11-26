@@ -139,10 +139,19 @@ final class Workflow {
 		if ($lab['record']->revision !== (int)$session['integrationRevision']) {
 			throw new \DomainException('External signing integration changed during signing');
 		}
-		$certificate = $this->certificate($lab['laboratory'], (string)$session['credentialId'],
-			(string)$session['certificateSha256']);
+		$signaturePem = in_array($session['status'], [
+			SessionState::SIGNATURE_RECEIVED->value,
+			SessionState::COMPLETING->value,
+		], true)
+			? $this->sessions->certificateForCompletion($sessionId, $actor->signRequest->getId(), $actor->actorId)
+			: null;
+		if ($signaturePem === null) {
+			// Only legacy sessions and pre-submission operations need live CSC discovery.
+			$certificate = $this->certificate($lab['laboratory'], (string)$session['credentialId'],
+				(string)$session['certificateSha256']);
+			$signaturePem = $certificate->certificate->certificatePem;
+		}
 		$source = $this->documents->get($actor->file);
-		$signaturePem = $certificate->certificate->certificatePem;
 		if (in_array($session['status'], [
 			SessionState::PREPARING->value,
 			SessionState::READY_TO_SIGN->value,

@@ -92,6 +92,37 @@ final class PreparedStateCodecTest extends TestCase {
 		PreparedStateCodec::decode($json);
 	}
 
+	public function testRecoveryCertificateIsStoredOnlyInVersionTwoAndDoesNotChangePreparedOperation(): void {
+		$data = self::validData();
+		$prepared = new PreparedExternalOperation(
+			new PreparedExternalSignature(
+				new ExternalSigningPayload(
+					(string)$data['inputBase64'],
+					SigningInputType::Digest,
+					HashAlgorithm::Sha256,
+					SignatureAlgorithm::RsaPkcs1V15,
+					SignatureEncoding::RsaPkcs1,
+				),
+				(string)$data['state'],
+			),
+			(string)$data['preparationInputSha256'],
+		);
+		$pem = "-----BEGIN CERTIFICATE-----\nsynthetic-public-data\n-----END CERTIFICATE-----";
+		$encoded = PreparedStateCodec::encode($prepared, $pem);
+		$fields = json_decode($encoded, true, 16, JSON_THROW_ON_ERROR);
+		self::assertSame(PreparedStateCodec::RECOVERY_FORMAT, $fields['version']);
+		self::assertSame($pem, PreparedStateCodec::recoveryCertificate($encoded));
+		self::assertEquals($prepared, PreparedStateCodec::decode($encoded));
+		self::assertNull(PreparedStateCodec::recoveryCertificate(PreparedStateCodec::encode($prepared)));
+	}
+
+	public function testRecoveryFormatRejectsMissingOrMalformedCertificateField(): void {
+		$versionTwo = array_replace(self::validData(), ['version' => PreparedStateCodec::RECOVERY_FORMAT]);
+		$versionTwo['certificatePem'] = '';
+		$this->expectException(\UnexpectedValueException::class);
+		PreparedStateCodec::recoveryCertificate(json_encode($versionTwo, JSON_THROW_ON_ERROR));
+	}
+
 	public function testDecodingRejectsOversizedStateBeforeParsing(): void {
 		$this->expectException(\UnexpectedValueException::class);
 		PreparedStateCodec::decode(str_repeat('x', 8 * 1024 * 1024 + 1));

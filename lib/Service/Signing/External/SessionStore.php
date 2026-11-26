@@ -77,7 +77,7 @@ final class SessionStore {
 			throw new \DomainException('Prepared payload does not match authoritative document');
 		}
 		$certificateHash = $this->certificateFingerprint($certificatePem);
-		$encrypted = $this->protect(PreparedStateCodec::encode($prepared));
+		$encrypted = $this->protect(PreparedStateCodec::encode($prepared, $certificatePem));
 		$id = bin2hex(random_bytes(16));
 		$attemptKey = hash('sha256', $signRequestId . ':' . strlen($actorId) . ':' . $actorId . ':' . $attemptId);
 		$slot = self::signerSlot($signRequestId, $actorId);
@@ -99,7 +99,7 @@ final class SessionStore {
 					'certificate_sha256' => $qb->createNamedParameter($certificateHash),
 					'document_revision' => $qb->createNamedParameter($documentRevision),
 					'document_sha256' => $qb->createNamedParameter($documentHash),
-					'payload_version' => $qb->createNamedParameter(PreparedStateCodec::FORMAT, IQueryBuilder::PARAM_INT),
+					'payload_version' => $qb->createNamedParameter(PreparedStateCodec::RECOVERY_FORMAT, IQueryBuilder::PARAM_INT),
 					'prepared_enc' => $qb->createNamedParameter($encrypted),
 					'status' => $qb->createNamedParameter(SessionState::PREPARING->value),
 					'revision' => $qb->createNamedParameter(1, IQueryBuilder::PARAM_INT),
@@ -414,6 +414,37 @@ final class SessionStore {
 			throw new \DomainException('Publication has not been reserved');
 		}
 		return $this->cas($row, $actorId, $expectedRevision, SessionState::COMPLETED);
+	}
+
+	/**
+	 * Restore the preparation's pinned public certificate for an already
+	 * received signature. No CSC discovery or second signHash is permitted.
+	 *
+	 * Legacy version-1 sessions have no snapshot; callers may use the
+	 * original remote certificate lookup for those sessions only.
+	 */
+	public function certificateForCompletion(string $id, int $signRequestId, string $actorId): ?string {
+		$this->assertFeatureEnabled();
+		$row = $this->load($id, $actorId);
+		if ((int)$row['sign_request_id'] !== $signRequestId
+			|| !in_array($row['status'], [
+				SessionState::SIGNATURE_RECEIVED->value,
+				SessionState::COMPLETING->value,
+			], true)) {
+			throw new \DomainException('No received external signature available for recovery');
+		}
+		$this->assertIntegration((string)$row['integration_id'], (int)$row['integration_revision']);
+		try {
+			$pem = PreparedStateCodec::recoveryCertificate($this->unprotect((string)$row['prepared_enc']));
+			if ($pem !== null && !hash_equals(
+				(string)$row['certificate_sha256'], $this->certificateFingerprint($pem),
+			)) {
+				throw new \UnexpectedValueException('Stored certificate fingerprint changed');
+			}
+			return $pem;
+		} catch (\Throwable) {
+			throw new \UnexpectedValueException('Signing certificate recovery data is invalid');
+		}
 	}
 
 	/** A signature is accessible only to the original server-authorized actor. */

@@ -350,6 +350,63 @@ PHP);
 		$this->sessions->readSignature((string)$row['id'], 'synthetic-user');
 	}
 
+	public function testReceivedAndCompletingSessionsRecoverPinnedCertificateWithoutExposingIt(): void {
+		$row = $this->create();
+		self::assertArrayNotHasKey('certificatePem', $row);
+		$row = $this->advance($row, SessionState::READY_TO_SIGN);
+		$row = $this->claim($row);
+		$row = $this->sessions->receiveSignature((string)$row['id'], 'synthetic-user', (int)$row['revision'],
+			'synthetic-raw-rsa-signature', 'file-123-etag-456', 'synthetic-source-pdf', $this->certificate);
+		self::assertSame($this->certificate, $this->sessions->certificateForCompletion(
+			(string)$row['id'], 12345, 'synthetic-user'));
+		$row = $this->reserve($row);
+		self::assertSame($this->certificate, $this->sessions->certificateForCompletion(
+			(string)$row['id'], 12345, 'synthetic-user'));
+		self::assertArrayNotHasKey('certificatePem', $this->sessions->get((string)$row['id'], 'synthetic-user'));
+	}
+
+	public function testRecoveryCertificateIsDeniedForAnotherSignRequest(): void {
+		$row = $this->create();
+		$row = $this->advance($row, SessionState::READY_TO_SIGN);
+		$row = $this->claim($row);
+		$row = $this->sessions->receiveSignature((string)$row['id'], 'synthetic-user', (int)$row['revision'],
+			'synthetic-raw-rsa-signature', 'file-123-etag-456', 'synthetic-source-pdf', $this->certificate);
+		$this->expectException(\DomainException::class);
+		$this->sessions->certificateForCompletion((string)$row['id'], 12346, 'synthetic-user');
+	}
+
+	public function testLegacySessionWithoutPinnedCertificateUsesCompatibleFallback(): void {
+		$row = $this->create();
+		$row = $this->advance($row, SessionState::READY_TO_SIGN);
+		$row = $this->claim($row);
+		$row = $this->sessions->receiveSignature((string)$row['id'], 'synthetic-user', (int)$row['revision'],
+			'synthetic-raw-rsa-signature', 'file-123-etag-456', 'synthetic-source-pdf', $this->certificate);
+		$legacy = \OCA\Libresign\Service\Signing\External\PreparedStateCodec::encode(
+			$this->prepared('synthetic-source-pdf'));
+		$qb = $this->db->getQueryBuilder();
+		$qb->update('libresign_ext_sign_session')
+			->set('prepared_enc', $qb->createNamedParameter(Server::get(ICrypto::class)->encrypt($legacy)))
+			->set('payload_version', $qb->createNamedParameter(1, \OCP\DB\QueryBuilder\IQueryBuilder::PARAM_INT))
+			->where($qb->expr()->eq('public_id', $qb->createNamedParameter($row['id'])))
+			->executeStatement();
+		self::assertNull($this->sessions->certificateForCompletion((string)$row['id'], 12345, 'synthetic-user'));
+	}
+
+	public function testRecoveryCertificateRejectsFingerprintSubstitution(): void {
+		$row = $this->create();
+		$row = $this->advance($row, SessionState::READY_TO_SIGN);
+		$row = $this->claim($row);
+		$row = $this->sessions->receiveSignature((string)$row['id'], 'synthetic-user', (int)$row['revision'],
+			'synthetic-raw-rsa-signature', 'file-123-etag-456', 'synthetic-source-pdf', $this->certificate);
+		$qb = $this->db->getQueryBuilder();
+		$qb->update('libresign_ext_sign_session')
+			->set('certificate_sha256', $qb->createNamedParameter(str_repeat('0', 64)))
+			->where($qb->expr()->eq('public_id', $qb->createNamedParameter($row['id'])))
+			->executeStatement();
+		$this->expectException(\UnexpectedValueException::class);
+		$this->sessions->certificateForCompletion((string)$row['id'], 12345, 'synthetic-user');
+	}
+
 	public function testRealSignerPhpPreparedPdfPersistsExactly(): void {
 		$pdf = file_get_contents(dirname(__DIR__, 4) . '/fixtures/pdfs/small_valid.pdf');
 		$this->assertIsString($pdf);

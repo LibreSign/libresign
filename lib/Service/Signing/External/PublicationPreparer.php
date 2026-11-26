@@ -24,7 +24,7 @@ final class PublicationPreparer implements PublicationPreparation {
 
 	/**
 	 * Reconcile a previously submitted signature without calling signHash.
-	 * Authorization and certificate discovery must be performed by the caller.
+	 * Authorization and certificate binding must be verified by the caller.
 	 */
 	#[\Override]
 	public function prepare(
