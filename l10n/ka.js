@@ -28,6 +28,7 @@ OC.L10N.register(
     "Invalid user" : "Invalid user",
     "Email" : "Email",
     "Authentication required" : "Authentication required",
+    "User already exists" : "მომხმარებელი უკვე არსებობს",
     "Invalid password" : "Invalid password",
     "Name cannot be empty" : "Name cannot be empty",
     "Cancel" : "Cancel",
