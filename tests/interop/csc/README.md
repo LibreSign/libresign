@@ -1,3 +1,8 @@
+<!--
+ - SPDX-FileCopyrightText: 2026 LibreCode coop and contributors
+ - SPDX-License-Identifier: AGPL-3.0-or-later
+-->
+
 # CSC external-provider interoperability proof
 
 This is an **opt-in development test**, not an application runtime dependency and not a production signing provider. It exercises two OAuth 2.0 authorization-code legs on Cleverbase's documented public **service stub**, signs the **actual CMS signed-attributes digest** of a prepared PDF using a remote CSC key, and asks SignerPHP to assemble a PAdES B-B PDF.

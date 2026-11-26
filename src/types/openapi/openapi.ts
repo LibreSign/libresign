@@ -271,6 +271,26 @@ export type paths = {
         patch: operations["external_signing_integrations-update"];
         trace?: never;
     };
+    "/ocs/v2.php/apps/libresign/api/{apiVersion}/admin/signing/integrations/{id}/probe": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Check the provider's publicly advertised CSC protocol, without using or revealing configured tokens or signing on behalf of users.
+         * @description This administrative connectivity result never grants access to a personal credential or replaces a signer-bound OAuth authorization.
+         */
+        post: operations["external_signing_integrations-probe"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/ocs/v2.php/apps/libresign/api/{apiVersion}/admin/signing/integrations/{id}/enable": {
         parameters: {
             query?: never;
@@ -1453,6 +1473,15 @@ export type components = {
             items: components["schemas"]["ExternalIntegrationSummary"][];
             /** Format: int64 */
             nextCursor: number | null;
+        };
+        ExternalIntegrationProbeResponse: {
+            reachable: boolean;
+            serviceName: string;
+            apiVersion: string;
+            protocol: string;
+            protocolCompatible: boolean;
+            personalSigningReady: boolean;
+            result: string;
         };
         ExternalIntegrationResponse: components["schemas"]["ExternalIntegrationSummary"] & {
             secretFields: components["schemas"]["ExternalIntegrationSecretField"][];
@@ -3870,6 +3899,127 @@ export interface operations {
                 };
             };
             /** @description Stale revision */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        ocs: {
+                            meta: components["schemas"]["OCSMeta"];
+                            data: components["schemas"]["ErrorResponse"];
+                        };
+                    };
+                };
+            };
+            /** @description Internal error */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        ocs: {
+                            meta: components["schemas"]["OCSMeta"];
+                            data: components["schemas"]["ErrorResponse"];
+                        };
+                    };
+                };
+            };
+        };
+    };
+    "external_signing_integrations-probe": {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Required to be true for the API request to pass */
+                "OCS-APIRequest": boolean;
+            };
+            path: {
+                apiVersion: "v1";
+                /** @description Opaque configured integration identifier */
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Public CSC metadata and compatibility verdict */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        ocs: {
+                            meta: components["schemas"]["OCSMeta"];
+                            data: components["schemas"]["ExternalIntegrationProbeResponse"];
+                        };
+                    };
+                };
+            };
+            /** @description Invalid configured integration */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        ocs: {
+                            meta: components["schemas"]["OCSMeta"];
+                            data: components["schemas"]["ErrorResponse"];
+                        };
+                    };
+                };
+            };
+            /** @description Authentication required */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        ocs: {
+                            meta: components["schemas"]["OCSMeta"];
+                            data: components["schemas"]["ErrorResponse"];
+                        };
+                    } | {
+                        ocs: {
+                            meta: components["schemas"]["OCSMeta"];
+                            data: unknown;
+                        };
+                    };
+                };
+            };
+            /** @description Administrator is not delegated for this scope */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        ocs: {
+                            meta: components["schemas"]["OCSMeta"];
+                            data: components["schemas"]["ErrorResponse"];
+                        };
+                    };
+                };
+            };
+            /** @description Integration is unavailable or outside the administrator's scope */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        ocs: {
+                            meta: components["schemas"]["OCSMeta"];
+                            data: components["schemas"]["ErrorResponse"];
+                        };
+                    };
+                };
+            };
+            /** @description Integration conflict */
             409: {
                 headers: {
                     [name: string]: unknown;
