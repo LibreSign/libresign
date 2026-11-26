@@ -119,17 +119,15 @@ describe('ExternalSigningAdmin', () => {
 		await flushPromises()
 		const removeButton = wrapper.findAllComponents({ name: 'NcActionButton' }).find(button => button.text().includes('Remove'))
 		expect(removeButton).toBeDefined()
-		vi.stubGlobal('confirm', vi.fn().mockReturnValue(true))
-		try {
-			await removeButton!.find('button').trigger('click')
-			await flushPromises()
-			expect(remove).toHaveBeenCalledOnce()
-			expect(remove).toHaveBeenCalledWith(instance)
-			expect(document.body.querySelector('.external-signing-admin__dialog p[role="alert"]')?.textContent).toContain('unresolved signing sessions')
-			expect(wrapper.text()).not.toContain('Integration updated.')
-		} finally {
-			vi.unstubAllGlobals()
-		}
+		await removeButton!.find('button').trigger('click')
+		await flushPromises()
+		const confirmation = [...document.body.querySelectorAll('button')].find(button => button.textContent?.includes('Confirm removal'))
+		confirmation!.click()
+		await flushPromises()
+		expect(remove).toHaveBeenCalledOnce()
+		expect(remove).toHaveBeenCalledWith(instance)
+		expect(document.body.querySelector('.external-signing-admin__dialog p[role="alert"]')?.textContent).toContain('unresolved signing sessions')
+		expect(wrapper.text()).not.toContain('Integration updated.')
 	})
 
 	it('shows one accessible native action menu per integration and blocks unavailable drivers', async () => {
@@ -188,6 +186,70 @@ describe('ExternalSigningAdmin', () => {
 		await flushPromises()
 		expect(setEnabled).toHaveBeenCalledWith(instance, false)
 		expect(document.body.querySelector('.external-signing-admin__dialog p[role="status"]')?.textContent).toContain('Integration updated.')
+	})
+
+	it('requires an explicit in-dialog decision before removing an integration', async () => {
+		const instance = {
+			id: 'd'.repeat(32), driverId: 'csc-v1', name: 'Removal target', configuration: {},
+			enabled: false, configuredSecretFields: [], revision: 1, driverAvailable: false,
+		}
+		const remove = vi.fn().mockResolvedValue(undefined)
+		const wrapper = mountAdmin({ adapter: { ...adapter, list: async () => [instance], remove } })
+		await flushPromises()
+		await wrapper.find('.external-signing-admin__footer button').trigger('click')
+		await flushPromises()
+		await wrapper.findComponent({ name: 'NcActions' }).find('button').trigger('click')
+		await flushPromises()
+		const removalAction = wrapper.findAllComponents({ name: 'NcActionButton' }).find(action => action.text().includes('Remove'))
+		await removalAction!.find('button').trigger('click')
+		await flushPromises()
+		expect(remove).not.toHaveBeenCalled()
+		expect(document.body.textContent).toContain('Remove Removal target?')
+		const cancel = [...document.body.querySelectorAll('button')].find(button => button.textContent?.includes('Keep integration'))
+		cancel!.click()
+		await flushPromises()
+		expect(remove).not.toHaveBeenCalled()
+		expect(document.body.textContent).not.toContain('Remove Removal target?')
+		await removalAction!.find('button').trigger('click')
+		await flushPromises()
+		const confirm = [...document.body.querySelectorAll('button')].find(button => button.textContent?.includes('Confirm removal'))
+		confirm!.click()
+		await flushPromises()
+		expect(remove).toHaveBeenCalledWith(instance)
+	})
+
+	it('reports a refresh failure instead of false success after a mutation', async () => {
+		const instance = {
+			id: 'e'.repeat(32), driverId: 'csc-v1', name: 'Refresh target', configuration: {},
+			enabled: true, configuredSecretFields: [], revision: 2, driverAvailable: true,
+		}
+		const list = vi.fn().mockResolvedValueOnce([instance]).mockRejectedValueOnce(new Error('network'))
+		const setEnabled = vi.fn().mockResolvedValue(instance)
+		const wrapper = mountAdmin({ adapter: { ...adapter, list, setEnabled } })
+		await flushPromises()
+		await wrapper.find('.external-signing-admin__footer button').trigger('click')
+		await flushPromises()
+		await wrapper.findComponent({ name: 'NcActions' }).find('button').trigger('click')
+		await flushPromises()
+		const disable = wrapper.findAllComponents({ name: 'NcActionButton' }).find(action => action.text().includes('Disable'))
+		await disable!.find('button').trigger('click')
+		await flushPromises()
+		expect(setEnabled).toHaveBeenCalledOnce()
+		expect(wrapper.text()).not.toContain('Integration updated.')
+		expect(document.body.textContent).toContain('saved, but the connection list')
+	})
+
+	it('provides a clear add action and skips provider choice when only one driver exists', async () => {
+		const wrapper = mountAdmin({ adapter })
+		await flushPromises()
+		await wrapper.find('.external-signing-admin__footer button').trigger('click')
+		await flushPromises()
+		expect(document.body.querySelector('#external-signing-driver')).toBeNull()
+		const add = [...document.body.querySelectorAll('button')].find(button => button.textContent?.includes('Add integration'))
+		add!.click()
+		await flushPromises()
+		expect(document.body.querySelector('#external-signing-driver')).toBeNull()
+		expect(document.body.querySelector('form.external-signing-form')).not.toBeNull()
 	})
 
 	it('uses compact presentation without introducing policy semantics', async () => {

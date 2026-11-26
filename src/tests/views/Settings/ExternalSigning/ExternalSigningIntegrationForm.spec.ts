@@ -31,6 +31,14 @@ function createWrapper(save = vi.fn().mockResolvedValue(existing)) {
 }
 
 describe('ExternalSigningIntegrationForm', () => {
+	it('uses native Nextcloud text fields with stable labels for dynamic connection settings', () => {
+		const wrapper = createWrapper()
+		expect(wrapper.find('#external-signing-instance-name').exists()).toBe(true)
+		expect(wrapper.find('#external-signing-field-baseUrl').exists()).toBe(true)
+		expect(wrapper.find('#external-signing-field-accessToken').exists()).toBe(true)
+		wrapper.unmount()
+	})
+
 	it('does not display an existing token or submit a replacement during ordinary edits', async () => {
 		const save = vi.fn().mockResolvedValue(existing)
 		const wrapper = createWrapper(save)

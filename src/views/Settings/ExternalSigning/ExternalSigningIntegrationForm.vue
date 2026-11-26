@@ -7,30 +7,30 @@
 		<p v-if="!driver.available" role="status">
 			{{ t('libresign', 'The signing driver is unavailable. You can save configuration, but cannot enable signing yet.') }}
 		</p>
-		<label for="external-signing-instance-name">{{ t('libresign', 'Integration name') }}</label>
-		<input
+		<NcTextField
 			id="external-signing-instance-name"
 			v-model="draft.name"
+			:label="t('libresign', 'Integration name')"
 			:disabled="saving"
 			:aria-invalid="Boolean(errors.name)"
-			autocomplete="off">
+			autocomplete="off" />
 		<p v-if="errors.name" role="alert">
 			{{ t('libresign', 'This field is required.') }}
 		</p>
 		<div v-for="field in driver.fields" :key="field.key" class="external-signing-form__field">
-			<label :for="`external-signing-field-${field.key}`">{{ field.label }}</label>
 			<p v-if="field.secret && existing?.configuredSecretFields.includes(field.key)">
 				{{ t('libresign', 'Secret configured. Leave blank to keep it, or enter a replacement.') }}
 			</p>
-			<input
+			<NcTextField
 				:id="`external-signing-field-${field.key}`"
-				:value="field.secret ? draft.secretReplacements[field.key] ?? '' : draft.configuration[field.key] ?? ''"
+				:label="field.label"
+				:model-value="field.secret ? draft.secretReplacements[field.key] ?? '' : draft.configuration[field.key] ?? ''"
 				:type="field.secret ? 'password' : field.type"
 				:required="field.required && !(field.secret && existing?.configuredSecretFields.includes(field.key))"
 				:disabled="saving || Boolean(secretClears[field.key])"
 				:aria-invalid="Boolean(errors[field.key])"
 				:autocomplete="field.secret ? 'new-password' : 'off'"
-				@input="onFieldInput(field, $event)">
+				@update:modelValue="onFieldInput(field, $event)" />
 			<div
 				v-if="field.secret && existing?.configuredSecretFields.includes(field.key) && !field.required"
 				class="external-signing-form__secret-clear">
@@ -66,6 +66,7 @@
 import { reactive, ref } from 'vue'
 import { t } from '@nextcloud/l10n'
 import NcButton from '@nextcloud/vue/components/NcButton'
+import NcTextField from '@nextcloud/vue/components/NcTextField'
 import { validateExternalSigningDraft } from '../../../services/externalSigningAdmin'
 import { ExternalSigningAdminError } from '../../../services/externalSigningAdminOcs'
 import type { ExternalSigningDriver, ExternalSigningDraft, ExternalSigningField, ExternalSigningInstance } from '../../../services/externalSigningAdmin'
@@ -107,8 +108,8 @@ function getSaveButtonLabel(): string {
 	return t('libresign', 'Save')
 }
 
-function onFieldInput(field: ExternalSigningField, event: Event) {
-	const value = (event.target as HTMLInputElement).value
+function onFieldInput(field: ExternalSigningField, input: string | number) {
+	const value = String(input)
 	if (field.secret) {
 		draft.secretReplacements[field.key] = value
 		secretClears[field.key] = false
@@ -158,8 +159,6 @@ async function submit() {
 .external-signing-form { box-sizing: border-box; display: grid; grid-template-columns: minmax(0, 1fr); gap: 12px; width: 100%; min-width: 0; padding: 16px; }
 
 .external-signing-form__field { display: grid; gap: 6px; }
-
-.external-signing-form input { width: 100%; min-width: 0; padding: 8px; border: 1px solid var(--color-border-dark); border-radius: var(--border-radius); }
 
 .external-signing-form__actions { display: flex; gap: 8px; flex-wrap: wrap; }
 

@@ -53,7 +53,7 @@
 				</div>
 				<template v-else>
 					<p v-if="!instances.length" role="status">
-						{{ t('libresign', 'No integrations configured.') }}
+						{{ t('libresign', 'No integrations configured for this policy rule yet.') }}
 					</p>
 					<ul class="external-signing-admin__instances">
 						<li v-for="instance in instances" :key="instance.id">
@@ -75,7 +75,7 @@
 										</template>
 										{{ getToggleLabel(instance) }}
 									</NcActionButton>
-									<NcActionButton :close-after-click="true" :disabled="busy" @click="remove(instance)">
+									<NcActionButton :close-after-click="true" :disabled="busy" @click="requestRemoval(instance)">
 										<template #icon>
 											<NcIconSvgWrapper :path="mdiDelete" :size="20" />
 										</template>
@@ -85,12 +85,34 @@
 							</div>
 						</li>
 					</ul>
+					<div v-if="pendingRemoval" class="external-signing-admin__confirm" role="group" aria-labelledby="external-signing-remove-title">
+						<p id="external-signing-remove-title">
+							<!-- TRANSLATORS Confirmation prompt naming the exact external signing integration about to be removed. -->
+							<strong>{{ t('libresign', 'Remove {name}?', { name: pendingRemoval.name }) }}</strong>
+						</p>
+						<p>{{ t('libresign', 'This cannot be undone. Signing sessions in progress may prevent removal.') }}</p>
+						<div class="external-signing-admin__confirm-actions">
+							<NcButton variant="secondary" :disabled="busy" @click="pendingRemoval = null">
+								{{ t('libresign', 'Keep integration') }}
+							</NcButton>
+							<NcButton variant="error" :disabled="busy" @click="confirmRemoval">
+								{{ t('libresign', 'Confirm removal') }}
+							</NcButton>
+						</div>
+					</div>
 					<p v-if="operationError" role="alert">
 						{{ operationError }}
 					</p>
 					<p v-if="operationSuccess" role="status">
 						{{ operationSuccess }}
 					</p>
+					<NcButton
+						v-if="!creating && !selectedDriver"
+						variant="primary"
+						:disabled="busy"
+						@click="beginCreate">
+						{{ t('libresign', 'Add integration') }}
+					</NcButton>
 					<template v-if="selectedDriver">
 						<ExternalSigningIntegrationForm
 							:key="selectedInstance?.id ?? `new-${selectedDriver.id}`"
@@ -100,7 +122,7 @@
 							@saved="onSaved"
 							@cancel="resetForm" />
 					</template>
-					<template v-else>
+					<template v-else-if="creating">
 						<label for="external-signing-driver">{{ t('libresign', 'Provider type') }}</label>
 						<select id="external-signing-driver" v-model="selectedDriverId">
 							<option value="">
@@ -113,6 +135,9 @@
 								{{ driver.name }}{{ driver.available ? '' : ` — ${t('libresign', 'Unavailable')}` }}
 							</option>
 						</select>
+						<NcButton variant="secondary" :disabled="busy" @click="resetForm">
+							{{ t('libresign', 'Cancel') }}
+						</NcButton>
 					</template>
 				</template>
 				<a href="https://docs.libresign.coop/" target="_blank" rel="noopener noreferrer">
@@ -151,6 +176,10 @@ const operationError = ref('')
 const operationSuccess = ref('')
 const selectedDriverId = ref('')
 const selectedInstance = ref<ExternalSigningInstance | undefined>()
+const creating = ref(false)
+const pendingRemoval = ref<ExternalSigningInstance | null>(null)
+let loadGeneration = 0
+let editGeneration = 0
 const selectedDriver = computed(() => driverById(selectedDriverId.value))
 
 function driverById(id: string) {
@@ -211,10 +240,24 @@ function getToggleLabel(instance: ExternalSigningInstance): string {
 function resetForm() {
 	selectedInstance.value = undefined
 	selectedDriverId.value = ''
+	creating.value = false
+}
+function beginCreate() {
+	resetForm()
+	operationError.value = ''
+	operationSuccess.value = ''
+	creating.value = true
+	// A provider type should only be a choice when there are alternatives.
+	if (drivers.value.length === 1) {
+		selectedDriverId.value = drivers.value[0].id
+	}
 }
 function closeDialog() {
 	if (!busy.value) {
 		dialogOpen.value = false
+		loadGeneration++
+		editGeneration++
+		pendingRemoval.value = null
 		resetForm()
 	}
 }
@@ -222,40 +265,67 @@ async function edit(instance: ExternalSigningInstance) {
 	if (!props.adapter || busy.value) {
 		return
 	}
+	const current = ++editGeneration
 	busy.value = true
 	operationError.value = ''
 	operationSuccess.value = ''
 	try {
 		const detail = props.adapter.get ? await props.adapter.get(instance) : instance
-		selectedInstance.value = detail
-		selectedDriverId.value = detail.driverId
+		if (current === editGeneration && dialogOpen.value) {
+			selectedInstance.value = detail
+			selectedDriverId.value = detail.driverId
+			creating.value = false
+		}
 	} catch (error) {
-		operationError.value = administrationErrorMessage(error)
+		if (current === editGeneration && dialogOpen.value) {
+			operationError.value = administrationErrorMessage(error)
+		}
 	} finally {
-		busy.value = false
+		if (current === editGeneration) {
+			busy.value = false
+		}
 	}
 }
-async function load() {
+async function load(): Promise<boolean> {
 	if (!props.adapter) {
-		return
+		return false
 	}
+	const current = ++loadGeneration
 	loading.value = true
 	loadError.value = false
 	loadErrorMessage.value = ''
 	try {
-		instances.value = await props.adapter.list()
+		const result = await props.adapter.list()
+		if (current !== loadGeneration || !dialogOpen.value) {
+			return false
+		}
+		instances.value = result
+		return true
 	} catch (error) {
-		loadError.value = true
-		loadErrorMessage.value = administrationErrorMessage(error)
+		if (current === loadGeneration && dialogOpen.value) {
+			loadError.value = true
+			loadErrorMessage.value = administrationErrorMessage(error)
+		}
+		return false
 	} finally {
-		loading.value = false
+		if (current === loadGeneration) {
+			loading.value = false
+		}
+	}
+}
+function handleReloadResult(reloaded: boolean, savedMessage: string) {
+	if (reloaded) {
+		operationSuccess.value = savedMessage
+	} else if (dialogOpen.value) {
+		// TRANSLATORS The mutation succeeded but the refreshed list could not be retrieved.
+		loadErrorMessage.value = t('libresign', 'The change was saved, but the connection list could not be refreshed. Try again.')
 	}
 }
 async function onSaved(_instance: ExternalSigningInstance) {
 	resetForm()
-	await load()
+	const reloaded = await load()
 	// TRANSLATORS Status after an external signing integration was saved on the server.
-	operationSuccess.value = t('libresign', 'Integration saved.')
+	handleReloadResult(reloaded, t('libresign', 'Integration saved.'))
 }
 async function mutate(action: () => Promise<unknown>) {
 	if (busy.value) {
@@ -266,9 +336,9 @@ async function mutate(action: () => Promise<unknown>) {
 	operationSuccess.value = ''
 	try {
 		await action()
-		await load()
+		const reloaded = await load()
 		// TRANSLATORS Status after an external signing integration's administrative state changed.
-		operationSuccess.value = t('libresign', 'Integration updated.')
+		handleReloadResult(reloaded, t('libresign', 'Integration updated.'))
 	} catch (error) {
 		operationError.value = administrationErrorMessage(error)
 	} finally {
@@ -278,11 +348,21 @@ async function mutate(action: () => Promise<unknown>) {
 function toggle(instance: ExternalSigningInstance) {
 	void mutate(() => props.adapter!.setEnabled(instance, !instance.enabled))
 }
-function remove(instance: ExternalSigningInstance) {
-	// Refuse irreversible actions without an explicit human confirmation.
-	if (window.confirm(t('libresign', 'Remove this integration?'))) {
-		void mutate(() => props.adapter!.remove(instance))
+function requestRemoval(instance: ExternalSigningInstance) {
+	if (busy.value) {
+		return
 	}
+	pendingRemoval.value = instance
+	operationError.value = ''
+	operationSuccess.value = ''
+}
+function confirmRemoval() {
+	const target = pendingRemoval.value
+	if (!target || busy.value) {
+		return
+	}
+	pendingRemoval.value = null
+	void mutate(() => props.adapter!.remove(target))
 }
 watch(dialogOpen, isOpen => {
 	if (isOpen) {
@@ -305,11 +385,9 @@ void (props.catalogLoader ?? fetchExternalSigningDrivers)().then(data => {
 	min-width: 0;
 	min-height: 240px;
 	padding: 1.25rem;
-	border: 1px solid color-mix(in srgb, var(--color-primary-element) 14%, var(--color-border-maxcontrast));
-	border-radius: 20px;
-	background:
-		radial-gradient(circle at top right, color-mix(in srgb, var(--color-primary-element) 14%, transparent), transparent 45%),
-		linear-gradient(180deg, color-mix(in srgb, var(--color-main-background) 92%, white), var(--color-main-background));
+	border: 1px solid var(--color-border);
+	border-radius: var(--border-radius-large);
+	background: var(--color-main-background);
 	text-align: start;
 
 	&--embedded {
@@ -327,9 +405,8 @@ void (props.catalogLoader ?? fetchExternalSigningDrivers)().then(data => {
 	&--compact {
 		min-height: 0;
 		padding: 0.9rem 1rem;
-		border-radius: 14px;
-		border-color: color-mix(in srgb, var(--color-primary-element) 12%, var(--color-border-maxcontrast));
-		background: color-mix(in srgb, var(--color-main-background) 94%, white);
+		border-radius: var(--border-radius-large);
+		background: var(--color-main-background);
 
 		.external-signing-admin__entry {
 			flex-direction: row;
@@ -417,6 +494,15 @@ void (props.catalogLoader ?? fetchExternalSigningDrivers)().then(data => {
 			padding: 16px;
 			border: 1px solid var(--color-border);
 			border-radius: var(--border-radius-large);
+
+			> div:first-child {
+				min-width: 0;
+				overflow-wrap: anywhere;
+			}
+
+			p {
+				color: var(--color-text-maxcontrast);
+			}
 		}
 	}
 
@@ -424,6 +510,22 @@ void (props.catalogLoader ?? fetchExternalSigningDrivers)().then(data => {
 		display: flex;
 		align-items: center;
 		flex-shrink: 0;
+	}
+
+	&__confirm {
+		padding: 12px;
+		border: 1px solid var(--color-warning);
+		border-radius: var(--border-radius-large);
+
+		p {
+			margin: 0 0 8px;
+		}
+	}
+
+	&__confirm-actions {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 8px;
 	}
 }
 
