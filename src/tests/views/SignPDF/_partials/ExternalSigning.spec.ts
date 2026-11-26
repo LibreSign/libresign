@@ -71,6 +71,8 @@ describe('external signing within the existing signer UI', () => {
 		const wrapper = mountSigner()
 		expect(wrapper.text()).toContain('Use my signed-in account')
 		expect(wrapper.text()).toContain('Use a code sent to my email')
+		expect(wrapper.find('#external-signing-method').exists()).toBe(false)
+		expect(wrapper.findAll('input[type="radio"][name="external-signing-identity"]')).toHaveLength(2)
 		wrapper.unmount()
 	})
 
@@ -250,21 +252,104 @@ describe('external signing within the existing signer UI', () => {
 		expect(vi.mocked(discoverExternalSigning).mock.calls[1][1]).toBe('lab')
 		expect(wrapper.find('#external-signing-integration').exists()).toBe(false)
 		expect(wrapper.find('#external-signing-credential').exists()).toBe(false)
+		expect(wrapper.text()).toContain('Step 2 of 3 — Review your certificate')
 		expect(wrapper.text()).toContain('Signing service: Synthetic provider')
 		expect(wrapper.text()).toContain('Your certificate: Laboratory certificate')
 		expect((wrapper.find('#external-signing-profile').element as HTMLSelectElement).value).toBe('pades-baseline-b')
 		wrapper.unmount()
 	})
 
-	it('keeps the provider selector when multiple authorized providers exist', async () => {
-		vi.mocked(discoverExternalSigning).mockResolvedValue({
-			integrations: multipleIntegrations, integration: null, credentials: [], syntheticOnly: true,
+	it('shows two permitted services as accessible, individually selectable options', async () => {
+		vi.mocked(discoverExternalSigning).mockImplementation(async (_identity, integrationId) => ({
+			integrations: multipleIntegrations,
+			integration: integrationId ? multipleIntegrations.find(provider => provider.id === integrationId) ?? null : null,
+			credentials: integrationId ? credentials : [], syntheticOnly: true,
 			personalSignerAuthorization: false, session: null,
-		})
+		}))
 		const wrapper = mountSigner()
 		await authorize(wrapper)
-		expect(wrapper.find('#external-signing-integration').exists()).toBe(true)
+		expect(wrapper.find('#external-signing-integration').exists()).toBe(false)
+		expect(wrapper.findAll('input[type="radio"][name="external-signing-provider"]')).toHaveLength(2)
+		expect(wrapper.findAll('input[type="radio"][name="external-signing-provider"]').every(radio => !(radio.element as HTMLInputElement).checked)).toBe(true)
+		expect(wrapper.text()).toContain('Step 2 of 3 — Choose how to sign')
+		expect(wrapper.text()).toContain('Choose a signing service')
+		expect(wrapper.text()).not.toContain('Laboratory certificate')
+		await wrapper.find('input[type="radio"][value="second"]').setValue()
+		await flushPromises()
+		expect(discoverExternalSigning).toHaveBeenLastCalledWith(expect.objectContaining({ uuid: 'request-one' }), 'second')
+		expect(wrapper.text()).toContain('Laboratory certificate')
+		wrapper.unmount()
+	})
+
+	it('recovers after a temporary certificate lookup failure without forcing a new identity check', async () => {
+		vi.mocked(discoverExternalSigning)
+			.mockResolvedValueOnce({ integrations: multipleIntegrations, integration: null, credentials: [], syntheticOnly: true, personalSignerAuthorization: false, session: null })
+			.mockRejectedValueOnce(new Error('temporary service outage'))
+			.mockResolvedValueOnce({ integrations: multipleIntegrations, integration: multipleIntegrations[0], credentials, syntheticOnly: true, personalSignerAuthorization: false, session: null })
+		const wrapper = mountSigner()
+		await authorize(wrapper)
+		await wrapper.find('input[type="radio"][value="lab"]').setValue()
+		await flushPromises()
+		expect(wrapper.text()).toContain('Could not load signing services')
+		expect(wrapper.text()).toContain('Try loading certificates again')
+		expect(wrapper.text()).not.toContain('Laboratory certificate')
+		await clickButton(wrapper, 'Try loading certificates again')
+		expect(wrapper.text()).toContain('Laboratory certificate')
+		expect(wrapper.text()).not.toContain('Could not load signing services')
+		expect(discoverExternalSigning).toHaveBeenCalledTimes(3)
+		wrapper.unmount()
+	})
+
+	it('uses a compact select when more than five signing services are permitted', async () => {
+		const manyProviders = Array.from({ length: 6 }, (_, index) => ({ id: `provider-${index}`, name: `Signing service ${index + 1}`, driverId: 'csc-v1' }))
+		vi.mocked(discoverExternalSigning).mockImplementation(async (_identity, integrationId) => ({
+			integrations: manyProviders,
+			integration: integrationId ? manyProviders.find(provider => provider.id === integrationId) ?? null : null,
+			credentials: integrationId ? credentials : [], syntheticOnly: true, personalSignerAuthorization: false, session: null,
+		}))
+		const wrapper = mountSigner()
+		await authorize(wrapper)
+		expect(wrapper.findAll('input[type="radio"][name="external-signing-provider"]')).toHaveLength(0)
+		expect((wrapper.find('#external-signing-integration').element as HTMLSelectElement).value).toBe('')
+		await wrapper.find('#external-signing-integration').setValue('provider-4')
+		await flushPromises()
+		expect(discoverExternalSigning).toHaveBeenLastCalledWith(expect.objectContaining({ uuid: 'request-one' }), 'provider-4')
+		wrapper.unmount()
+	})
+
+	it('shows several certificates with expiry dates and requires an explicit certificate choice', async () => {
+		const severalCertificates = [credentials[0], { ...credentials[0], id: 'another-cert', subject: 'Second test certificate', validTo: '2030-10-03' }]
+		vi.mocked(discoverExternalSigning).mockImplementation(async (_identity, providerId) => ({
+			integrations,
+			integration: providerId ? integrations[0] : null,
+			credentials: providerId ? severalCertificates : [], syntheticOnly: true, personalSignerAuthorization: false, session: null,
+		}))
+		const wrapper = mountSigner()
+		await authorize(wrapper)
 		expect(wrapper.find('#external-signing-credential').exists()).toBe(false)
+		expect(wrapper.findAll('input[type="radio"][name="external-signing-certificate"]')).toHaveLength(2)
+		expect(wrapper.text()).toContain('Second test certificate')
+		expect(wrapper.text()).toContain('2030')
+		expect(wrapper.findAll('button').some(button => button.text().includes('Continue to sign'))).toBe(false)
+		await wrapper.find('input[type="radio"][value="another-cert"]').setValue()
+		await flushPromises()
+		expect(wrapper.findAll('button').some(button => button.text().includes('Continue to sign'))).toBe(true)
+		expect(wrapper.find('.external-signing__fingerprint').exists()).toBe(true)
+		wrapper.unmount()
+	})
+
+	it('uses a compact select when more than five certificates are available', async () => {
+		const manyCertificates = Array.from({ length: 6 }, (_, i) => ({ ...credentials[0], id: `cert-${i}`, subject: `Test certificate ${i + 1}` }))
+		vi.mocked(discoverExternalSigning).mockImplementation(async (_identity, providerId) => ({
+			integrations, integration: providerId ? integrations[0] : null,
+			credentials: providerId ? manyCertificates : [], syntheticOnly: true, personalSignerAuthorization: false, session: null,
+		}))
+		const wrapper = mountSigner()
+		await authorize(wrapper)
+		expect(wrapper.findAll('input[type="radio"][name="external-signing-certificate"]')).toHaveLength(0)
+		expect((wrapper.find('#external-signing-credential').element as HTMLSelectElement).value).toBe('')
+		await wrapper.find('#external-signing-credential').setValue('cert-2')
+		expect(wrapper.text()).toContain('Test certificate 3')
 		wrapper.unmount()
 	})
 

@@ -10,7 +10,7 @@
 		</h3>
 		<p class="external-signing__intro">
 			<!-- TRANSLATORS Short explanation for the signer about selecting a certificate issued by a signing provider. -->
-			{{ t('libresign', 'Confirm your identity, then choose how to sign. Your signing service may ask you to approve the signature.') }}
+			{{ t('libresign', 'Confirm your identity to continue. Your signing service may ask you to approve the signature.') }}
 		</p>
 		<p class="external-signing__step" role="status">
 			<template v-if="!identityAuthorized">
@@ -18,8 +18,14 @@
 				{{ t('libresign', 'Step 1 of 3 — Confirm your identity') }}
 			</template>
 			<template v-else-if="!session">
-				<!-- TRANSLATORS Second of three digital certificate signing steps: select a signing provider and certificate. -->
-				{{ t('libresign', 'Step 2 of 3 — Review your certificate') }}
+				<template v-if="integrations.length === 1 && credentials.length === 1 && selectedCredential">
+					<!-- TRANSLATORS Second signing step when the sole signing service and certificate were selected automatically. -->
+					{{ t('libresign', 'Step 2 of 3 — Review your certificate') }}
+				</template>
+				<template v-else>
+					<!-- TRANSLATORS Second signing step when there are multiple signing choices to make. -->
+					{{ t('libresign', 'Step 2 of 3 — Choose how to sign') }}
+				</template>
 			</template>
 			<template v-else>
 				<!-- TRANSLATORS Final digital certificate signing step: complete the signing request and check its result. -->
@@ -38,20 +44,30 @@
 			{{ t('libresign', 'Test only: this service uses sample certificates, not your personal digital identity.') }}
 		</NcNoteCard>
 		<template v-if="!identityAuthorized">
-			<div v-if="accountUid && emailMethod === 'email'" class="external-signing__field">
-				<!-- TRANSLATORS Label for choosing how the signer proves their identity before external credential discovery. -->
-				<label for="external-signing-method">{{ t('libresign', 'How would you like to confirm your identity?') }}</label>
-				<select id="external-signing-method" v-model="identityMethod" :disabled="busy">
-					<option value="account">
-						<!-- TRANSLATORS Option to verify the signer using their currently signed-in account. -->
-						{{ t('libresign', 'Use my signed-in account') }}
-					</option>
-					<option value="email">
-						<!-- TRANSLATORS Option to verify the invited signer using an email confirmation code. -->
-						{{ t('libresign', 'Use a code sent to my email') }}
-					</option>
-				</select>
-			</div>
+			<NcRadioGroup
+				v-if="accountUid && emailMethod === 'email'"
+				v-model="identityMethod"
+				:label="t('libresign', 'How would you like to confirm your identity?')"
+				class="external-signing__choices">
+				<NcCheckboxRadioSwitch
+					name="external-signing-identity"
+					value="account"
+					:disabled="busy"
+					class="external-signing__choice"
+					:class="{ 'external-signing__choice--selected': identityMethod === 'account' }">
+					<!-- TRANSLATORS Option to verify the signer using their currently signed-in account. -->
+					{{ t('libresign', 'Use my signed-in account') }}
+				</NcCheckboxRadioSwitch>
+				<NcCheckboxRadioSwitch
+					name="external-signing-identity"
+					value="email"
+					:disabled="busy"
+					class="external-signing__choice"
+					:class="{ 'external-signing__choice--selected': identityMethod === 'email' }">
+					<!-- TRANSLATORS Option to verify the invited signer using an email confirmation code. -->
+					{{ t('libresign', 'Use a code sent to my email') }}
+				</NcCheckboxRadioSwitch>
+			</NcRadioGroup>
 			<template v-if="identityMethod === 'email'">
 				<NcTextField
 					v-model="emailAddress"
@@ -94,9 +110,31 @@
 					<!-- TRANSLATORS The only authorized provider was already selected; there is no choice to make. -->
 					<p>{{ t('libresign', 'Signing service') }}: <strong>{{ integrations[0].name }}</strong></p>
 				</div>
-				<div v-else-if="integrations.length > 0" class="external-signing__field">
-					<!-- TRANSLATORS Label for selecting an external signature provider. -->
-					<label for="external-signing-integration">{{ t('libresign', 'Signing service') }}</label>
+				<NcRadioGroup
+					v-else-if="integrations.length > 1 && integrations.length <= MAX_VISIBLE_CHOICES"
+					:model-value="selectedIntegrationId"
+					:label="t('libresign', 'Choose a signing service')"
+					:description="t('libresign', 'Choose the service where your digital certificate is stored.')"
+					class="external-signing__choices"
+					@update:modelValue="chooseSigningService">
+					<NcCheckboxRadioSwitch
+						v-for="integration in integrations"
+						:key="integration.id"
+						name="external-signing-provider"
+						:value="integration.id"
+						:disabled="busy"
+						class="external-signing__choice"
+						:class="{ 'external-signing__choice--selected': selectedIntegrationId === integration.id }">
+						{{ integration.name }}
+					</NcCheckboxRadioSwitch>
+				</NcRadioGroup>
+				<div v-else-if="integrations.length > MAX_VISIBLE_CHOICES" class="external-signing__field">
+					<!-- TRANSLATORS Label for selecting an external signature provider from a long list. -->
+					<label for="external-signing-integration">{{ t('libresign', 'Choose a signing service') }}</label>
+					<!-- TRANSLATORS Explain the service choice when many providers require a compact dropdown. -->
+					<p class="external-signing__help">
+						{{ t('libresign', 'Choose the service where your digital certificate is stored.') }}
+					</p>
 					<select
 						id="external-signing-integration"
 						v-model="selectedIntegrationId"
@@ -104,13 +142,20 @@
 						@change="loadCredentials">
 						<option value="">
 							<!-- TRANSLATORS Placeholder option prompting the signer to select a provider. -->
-							{{ t('libresign', 'Choose a signing service') }}
+							{{ t('libresign', 'Select a service') }}
 						</option>
 						<option v-for="integration in integrations" :key="integration.id" :value="integration.id">
 							{{ integration.name }}
 						</option>
 					</select>
 				</div>
+				<NcButton
+					v-if="selectedIntegrationId && !credentialsLoaded && errorMessage"
+					:disabled="busy"
+					@click="loadCredentials">
+					<!-- TRANSLATORS Retry loading certificates when a signing service temporarily fails to respond. -->
+					{{ t('libresign', 'Try loading certificates again') }}
+				</NcButton>
 				<NcNoteCard v-if="selectedIntegrationId && credentialsLoaded && credentials.length === 0" type="info">
 					<!-- TRANSLATORS The provider has no eligible certificates for this signer; signing is unavailable. -->
 					{{ integrations.length > 1
@@ -122,22 +167,44 @@
 						<!-- TRANSLATORS The only eligible certificate was already selected. -->
 						<p>{{ t('libresign', 'Your certificate') }}: <strong>{{ selectedCredential.subject }}</strong></p>
 					</template>
+					<NcRadioGroup
+						v-else-if="credentials.length <= MAX_VISIBLE_CHOICES"
+						v-model="selectedCredentialId"
+						:label="t('libresign', 'Choose your certificate')"
+						class="external-signing__choices">
+						<NcCheckboxRadioSwitch
+							v-for="credential in credentials"
+							:key="credential.id"
+							name="external-signing-certificate"
+							:value="credential.id"
+							:disabled="busy"
+							class="external-signing__choice"
+							:class="{ 'external-signing__choice--selected': selectedCredentialId === credential.id }">
+							{{ credential.subject }}
+							<template #description>
+								<!-- TRANSLATORS Expiration date of a signer-selectable certificate. -->
+								{{ t('libresign', 'Expires {date}', { date: formatCertificateExpiry(credential.validTo) }) }}
+							</template>
+						</NcCheckboxRadioSwitch>
+					</NcRadioGroup>
 					<template v-else>
-						<!-- TRANSLATORS Label for selecting a remote signing credential/certificate, not uploading a local file. -->
-						<label for="external-signing-credential">{{ t('libresign', 'Your certificate') }}</label>
+						<!-- TRANSLATORS Label for selecting a remote signing credential from a long list. -->
+						<label for="external-signing-credential">{{ t('libresign', 'Choose your certificate') }}</label>
 						<select id="external-signing-credential" v-model="selectedCredentialId" :disabled="busy">
 							<option value="">
-								<!-- TRANSLATORS Placeholder option prompting the signer to choose an eligible remote certificate. -->
-								{{ t('libresign', 'Choose a certificate for this signature') }}
+								<!-- TRANSLATORS Placeholder prompting a signer to choose a remote certificate. -->
+								{{ t('libresign', 'Select a certificate') }}
 							</option>
 							<option v-for="credential in credentials" :key="credential.id" :value="credential.id">
-								{{ credential.subject }} — {{ credential.validTo }}
+								{{ credential.subject }} — {{ formatCertificateExpiry(credential.validTo) }}
 							</option>
 						</select>
 					</template>
 					<div v-if="selectedCredential" class="external-signing__details">
 						<!-- TRANSLATORS Caption before the expiration date of the selected remote signing certificate. -->
-						<p>{{ t('libresign', 'Certificate expires') }}: {{ formatCertificateExpiry(selectedCredential.validTo) }}</p>
+						<p v-if="credentials.length === 1 || credentials.length > MAX_VISIBLE_CHOICES">
+							{{ t('libresign', 'Certificate expires') }}: {{ formatCertificateExpiry(selectedCredential.validTo) }}
+						</p>
 						<details class="external-signing__technical-details">
 							<summary>
 								<!-- TRANSLATORS Expandable technical certificate information for advanced users. -->
@@ -251,6 +318,8 @@ import axios from '@nextcloud/axios'
 
 import NcButton from '@nextcloud/vue/components/NcButton'
 import NcNoteCard from '@nextcloud/vue/components/NcNoteCard'
+import NcRadioGroup from '@nextcloud/vue/components/NcRadioGroup'
+import NcCheckboxRadioSwitch from '@nextcloud/vue/components/NcCheckboxRadioSwitch'
 import NcTextField from '@nextcloud/vue/components/NcTextField'
 
 import md5 from 'blueimp-md5'
@@ -289,6 +358,7 @@ const emailAddressLabel = t('libresign', 'Email address that received the reques
 // TRANSLATORS Label for the one-time code received by email before accessing external signing providers.
 const verificationCodeLabel = t('libresign', 'Code from your email')
 
+const MAX_VISIBLE_CHOICES = 5
 const signStore = useSignStore()
 const accountUid = getCurrentUser()?.uid ?? ''
 const identityMethod = ref<'email' | 'account'>(accountUid ? 'account' : 'email')
@@ -512,11 +582,21 @@ async function loadIntegrations() {
 	})
 }
 
+function chooseSigningService(integrationId: string) {
+	if (!busy.value && integrations.value.some(item => item.id === integrationId)) {
+		selectedIntegrationId.value = integrationId
+		void loadCredentials()
+	}
+}
+
 async function loadCredentials() {
+	if (busy.value) {
+		return
+	}
 	credentials.value = []
 	credentialsLoaded.value = false
 	selectedCredentialId.value = ''
-	if (!selectedIntegrationId.value || !identityAuthorized.value || busy.value) {
+	if (!selectedIntegrationId.value || !identityAuthorized.value) {
 		return
 	}
 	const integrationId = selectedIntegrationId.value
@@ -610,6 +690,43 @@ async function refreshSession() {
 	border: 1px solid var(--color-border-dark);
 	border-radius: var(--border-radius);
 	padding: 6px;
+}
+
+.external-signing__choices {
+	min-width: 0;
+	margin: 0;
+	padding: 0;
+	border: 0;
+}
+
+.external-signing__choice {
+	box-sizing: border-box;
+	width: 100%;
+	min-width: 0;
+	min-height: 48px;
+	margin-block: 6px;
+	border: 1px solid var(--color-border-dark);
+	border-radius: var(--border-radius-large);
+	transition: border-color 0.15s ease;
+}
+
+.external-signing__choice--selected {
+	border-color: var(--color-primary-element);
+	background: var(--color-primary-element-light);
+}
+
+.external-signing__choice :deep(.checkbox-radio-switch__content) {
+	box-sizing: border-box;
+	width: 100%;
+	min-width: 0;
+	min-height: 48px;
+	padding: 10px 12px;
+	border-radius: var(--border-radius-large);
+	overflow-wrap: anywhere;
+}
+
+.external-signing__choice :deep(.checkbox-content__wrapper) {
+	min-width: 0;
 }
 
 .external-signing__status {
