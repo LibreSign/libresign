@@ -189,6 +189,32 @@ describe('Sign.vue approval labels and signing methods', () => {
 			{ documentId: 42 },
 		)
 	})
+	it('requires external certificate without offering local signing when the sender made it mandatory', async () => {
+		setActivePinia(createPinia())
+		const signStore = useSignStore()
+		const signMethodsStore = useSignMethodsStore()
+		const uuid = 'bound-sign-request'
+		signStore.document = {
+			id: 75, name: 'Required certificate.pdf', description: '',
+			status: FILE_STATUS.ABLE_TO_SIGN, statusText: 'Ready to sign',
+			url: '/apps/libresign/p/pdf/example', nodeId: 75, nodeType: 'file', uuid: 'file-uuid',
+			signers: [{ me: true, signRequestId: 51, sign_request_uuid: uuid,
+				metadata: { signingMethodRequirement: 'external_certificate' } }],
+			visibleElements: [], settings: { canSign: true, isApprover: false,
+				signatureMethods: { emailToken: { label: 'Email', identifyMethod: 'email' as const, needCode: true, hasConfirmCode: true, blurredEmail: 'g***@example.org', hashOfEmail: 'test-hash' } } },
+		}
+		signMethodsStore.settings = { emailToken: { label: 'Email', identifyMethod: 'email' as const, needCode: true, hasConfirmCode: true, blurredEmail: 'g***@example.org', hashOfEmail: 'test-hash' } }
+		currentRoute.name = 'SignPDF'
+		currentRoute.params.uuid = uuid
+		currentRoute.query = {}
+		currentRoute.path = `/f/sign/${uuid}/pdf`
+		wrapper = mount(Sign, { global: { stubs: { ExternalSigning: true, CreatePassword: true, UploadCertificate: true } } })
+		await flushPromises()
+		expect(wrapper.find('section.external-signing').exists()).toBe(true)
+		expect(wrapper.find('input[name="signing-path"]').exists()).toBe(false)
+		expect(wrapper.findAll('button').some(button => button.text().trim() === 'Sign')).toBe(false)
+	})
+
 	it.each([
 		{ approval: false, available: true },
 		{ approval: true, available: false },
@@ -229,17 +255,14 @@ describe('Sign.vue approval labels and signing methods', () => {
 			} },
 		})
 		await flushPromises()
-		const externalButton = wrapper.findAll('button').find(button => button.text().trim() === 'Sign with a digital certificate')
-		expect(Boolean(externalButton)).toBe(available)
-		if (externalButton) {
-			expect(externalButton.attributes('aria-expanded')).toBe('false')
-			await externalButton.trigger('click')
-			expect(wrapper.find('.external-signing-option').exists()).toBe(true)
-			expect(externalButton.attributes('aria-expanded')).toBe('true')
-			expect(externalButton.text()).toContain('Use another signing method')
-			await externalButton.trigger('click')
-			expect(externalButton.attributes('aria-expanded')).toBe('false')
-			expect(externalButton.text()).toContain('Sign with a digital certificate')
+		const signingPathOptions = wrapper.findAll('input[type="radio"][name="signing-path"]')
+		expect(signingPathOptions).toHaveLength(available ? 2 : 0)
+		if (available) {
+			expect(wrapper.find('section.external-signing').exists()).toBe(false)
+			await wrapper.find('input[value="external"][name="signing-path"]').setValue()
+			expect(wrapper.find('section.external-signing').exists()).toBe(true)
+			await wrapper.find('input[value="libresign"][name="signing-path"]').setValue()
+			expect(wrapper.find('section.external-signing').exists()).toBe(false)
 		}
 	})
 })

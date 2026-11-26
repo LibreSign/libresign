@@ -17,7 +17,7 @@ type Session = NonNullable<SessionResponse['session']>
 
 export type ExternalSigningIdentity = {
 	uuid: string
-	method: 'email' | 'account'
+	method: string
 	identifyValue: string
 	token: string
 }

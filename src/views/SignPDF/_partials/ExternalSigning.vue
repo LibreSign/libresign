@@ -45,36 +45,36 @@
 		</NcNoteCard>
 		<template v-if="!identityAuthorized">
 			<NcRadioGroup
-				v-if="accountUid && emailMethod === 'email'"
+				v-if="identityChoices.length > 1"
 				v-model="identityMethod"
 				:label="t('libresign', 'How would you like to confirm your identity?')"
 				class="external-signing__choices">
 				<NcCheckboxRadioSwitch
+					v-for="choice in identityChoices"
+					:key="choice.method"
 					name="external-signing-identity"
-					value="account"
+					:value="choice.method"
 					:disabled="busy"
 					class="external-signing__choice"
-					:class="{ 'external-signing__choice--selected': identityMethod === 'account' }">
-					<!-- TRANSLATORS Option to verify the signer using their currently signed-in account. -->
-					{{ t('libresign', 'Use my signed-in account') }}
-				</NcCheckboxRadioSwitch>
-				<NcCheckboxRadioSwitch
-					name="external-signing-identity"
-					value="email"
-					:disabled="busy"
-					class="external-signing__choice"
-					:class="{ 'external-signing__choice--selected': identityMethod === 'email' }">
-					<!-- TRANSLATORS Option to verify the invited signer using an email confirmation code. -->
-					{{ t('libresign', 'Use a code sent to my email') }}
+					:class="{ 'external-signing__choice--selected': identityMethod === choice.method }">
+					{{ choice.label }}
 				</NcCheckboxRadioSwitch>
 			</NcRadioGroup>
-			<template v-if="identityMethod === 'email'">
+			<p v-if="identityChoices.length === 1" class="external-signing__help">
+				{{ identityChoices[0].label }}
+			</p>
+			<NcNoteCard v-if="identityChoices.length === 0" type="warning">
+				<!-- TRANSLATORS No verification method bound to this request is currently supported by external signing. -->
+				{{ t('libresign', 'No supported identity check is available for this signing request. Contact the sender.') }}
+			</NcNoteCard>
+			<template v-if="identityChoices.length > 0 && identityMethod === 'email'">
 				<NcTextField
 					v-model="emailAddress"
 					:disabled="busy"
 					type="email"
 					:label="emailAddressLabel" />
 				<NcButton
+					v-if="!codeRequested"
 					:disabled="busy || !emailMatchesRequest"
 					@click="requestCode">
 					<!-- TRANSLATORS Button that requests the email verification code needed before discovering signing providers. -->
@@ -86,6 +86,19 @@
 				</p>
 				<NcTextField
 					v-if="codeRequested"
+					v-model="verificationCode"
+					:disabled="busy"
+					type="text"
+					autocomplete="one-time-code"
+					:label="verificationCodeLabel" />
+			</template>
+			<template v-else-if="identityChoices.length > 0 && identityMethod !== 'account'">
+				<NcButton v-if="!codeRequested" :disabled="busy" @click="requestCode">
+					<!-- TRANSLATORS Send an identity verification code through the configured SMS or messaging channel. -->
+					{{ t('libresign', 'Send me a verification code') }}
+				</NcButton>
+				<NcTextField
+					v-else
 					v-model="verificationCode"
 					:disabled="busy"
 					type="text"
@@ -225,8 +238,8 @@
 					<!-- TRANSLATORS Label for choosing between PDF Basic and PAdES signature formats. -->
 					<label for="external-signing-profile">{{ t('libresign', 'Signature format') }}</label>
 					<p class="external-signing__help">
-						<!-- TRANSLATORS Explain why a non-expert signer may safely keep the default PDF format. -->
-						{{ t('libresign', 'Both options keep your document as a PDF. Keep the recommended option unless you were asked to use another format.') }}
+						<!-- TRANSLATORS The default signature format is safe for most PDF viewers. -->
+						{{ t('libresign', 'Keep the recommended format unless the sender requested another one.') }}
 					</p>
 					<select id="external-signing-profile" v-model="selectedProfile" :disabled="busy">
 						<option v-for="profile in supportedProfiles" :key="profile" :value="profile">
@@ -248,10 +261,6 @@
 						<p>{{ t('libresign', 'Recommended: PAdES B-B. Basic: PDF Basic.') }}</p>
 					</details>
 				</details>
-				<p v-if="selectedCredential" class="external-signing__help">
-					<!-- TRANSLATORS Approval may take place in a separate provider application. -->
-					{{ t('libresign', 'Next, you may need to approve the signature with your signing service.') }}
-				</p>
 				<NcButton
 					v-if="selectedCredential"
 					variant="primary"
@@ -344,9 +353,13 @@ const props = withDefaults(defineProps<{
 	signRequestUuid: string
 	emailMethod?: string
 	boundEmailHash?: string
+	existingEmailCode?: string
+	boundIdentities?: Array<{ method: string, value: string, requirement?: string }>
 }>(), {
 	emailMethod: '',
 	boundEmailHash: '',
+	existingEmailCode: '',
+	boundIdentities: () => [],
 })
 
 const emit = defineEmits<{
@@ -356,15 +369,56 @@ const emit = defineEmits<{
 // TRANSLATORS Label for the email address bound to the invitation; it must match the signer being verified.
 const emailAddressLabel = t('libresign', 'Email address that received the request')
 // TRANSLATORS Label for the one-time code received by email before accessing external signing providers.
-const verificationCodeLabel = t('libresign', 'Code from your email')
+const verificationCodeLabel = computed(() => identityMethod.value === 'email'
+	? t('libresign', 'Code from your email')
+	: t('libresign', 'Verification code'))
 
 const MAX_VISIBLE_CHOICES = 5
 const signStore = useSignStore()
 const accountUid = getCurrentUser()?.uid ?? ''
-const identityMethod = ref<'email' | 'account'>(accountUid ? 'account' : 'email')
-const emailAddress = ref('')
-const verificationCode = ref('')
-const codeRequested = ref(false)
+type IdentityChoice = { method: string, value: string, label: string, signMethod: string }
+const signMethodByIdentity: Record<string, string> = {
+	email: 'emailToken', sms: 'smsToken', whatsapp: 'whatsappToken',
+	whatsappbusiness: 'whatsappToken', signal: 'signalToken',
+	telegram: 'telegramToken', xmpp: 'xmppToken',
+}
+const identityLabels: Record<string, string> = {
+	account: t('libresign', 'Use my signed-in account'),
+	email: t('libresign', 'Use a code sent to my email'),
+	sms: t('libresign', 'Use a code sent by SMS'),
+	whatsapp: t('libresign', 'Use a code sent by WhatsApp'),
+	whatsappbusiness: t('libresign', 'Use a code sent by WhatsApp'),
+	signal: t('libresign', 'Use a code sent by Signal'),
+	telegram: t('libresign', 'Use a code sent by Telegram'),
+	xmpp: t('libresign', 'Use a code sent by XMPP'),
+}
+const identityChoices = computed<IdentityChoice[]>(() => {
+	const bound = props.boundIdentities.length > 0
+? props.boundIdentities
+: [
+		...(accountUid ? [{ method: 'account', value: accountUid }] : []),
+		...(props.emailMethod === 'email' ? [{ method: 'email', value: '' }] : []),
+	]
+	return bound.filter(candidate => candidate.method === 'account'
+		? Boolean(accountUid) && candidate.value === accountUid
+		: Boolean(signMethodByIdentity[candidate.method]))
+		.filter((candidate, index, candidates) => candidates.findIndex(item => item.method === candidate.method) === index)
+		.map(candidate => ({
+			method: candidate.method,
+			value: candidate.value,
+			label: identityLabels[candidate.method] ?? candidate.method,
+			signMethod: signMethodByIdentity[candidate.method] ?? '',
+		}))
+})
+const identityMethod = ref<string>(accountUid ? 'account' : 'email')
+const emailAddress = ref(identityChoices.value.find(choice => choice.method === 'email')?.value ?? '')
+const verificationCode = ref(props.existingEmailCode)
+const codeRequested = ref(props.existingEmailCode !== '')
+watch(identityChoices, choices => {
+	if (!choices.some(choice => choice.method === identityMethod.value)) {
+		identityMethod.value = choices[0]?.method ?? ''
+	}
+}, { immediate: true })
 const identityAuthorized = ref(false)
 const busy = ref(false)
 type SigningAction = 'code' | 'providers' | 'credentials' | 'prepare' | 'sign' | 'status'
@@ -382,12 +436,16 @@ const mustRefreshBeforeContinue = ref(false)
 let requestGeneration = 0
 let attemptId = ''
 
-const emailMatchesRequest = computed(() => props.emailMethod === 'email'
+const selectedIdentity = computed(() => identityChoices.value.find(choice => choice.method === identityMethod.value))
+const emailMatchesRequest = computed(() => identityMethod.value === 'email'
 	&& /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(emailAddress.value.trim())
-	&& (!props.boundEmailHash || md5(emailAddress.value.trim().toLowerCase()) === props.boundEmailHash))
-const mayAuthorize = computed(() => props.signRequestUuid.length > 0 && (identityMethod.value === 'account'
-	? accountUid.length > 0
-	: emailMatchesRequest.value && codeRequested.value && verificationCode.value.trim().length > 0))
+	&& (!props.boundEmailHash || md5(emailAddress.value.trim().toLowerCase()) === props.boundEmailHash)
+	&& (!selectedIdentity.value?.value || emailAddress.value.trim().toLowerCase() === selectedIdentity.value.value.toLowerCase()))
+const mayAuthorize = computed(() => props.signRequestUuid.length > 0 && Boolean(selectedIdentity.value)
+	&& (identityMethod.value === 'account'
+		? accountUid.length > 0
+		: (identityMethod.value !== 'email' || emailMatchesRequest.value)
+			&& codeRequested.value && verificationCode.value.trim().length > 0))
 const selectedCredential = computed(() => credentials.value.find(item => item.id === selectedCredentialId.value))
 const supportedProfiles = computed(() => (selectedCredential.value?.profiles ?? []).filter((profile): profile is 'pdf-basic' | 'pades-baseline-b' => profile === 'pdf-basic' || profile === 'pades-baseline-b'))
 const canContinue = computed(() => session.value !== null && mayContinueExternalSigning(session.value.status))
@@ -447,7 +505,9 @@ function authorizedIdentity(): ExternalSigningIdentity {
 	return {
 		uuid: props.signRequestUuid,
 		method: identityMethod.value,
-		identifyValue: identityMethod.value === 'account' ? accountUid : emailAddress.value.trim(),
+		identifyValue: identityMethod.value === 'email'
+? emailAddress.value.trim()
+			: (identityMethod.value === 'account' ? accountUid : selectedIdentity.value?.value ?? ''),
 		token: identityMethod.value === 'account' ? '' : verificationCode.value.trim(),
 	}
 }
@@ -476,6 +536,12 @@ watch([() => props.signRequestUuid, () => props.emailMethod, () => props.boundEm
 	codeRequested.value = false
 	verificationCode.value = ''
 })
+watch(() => props.existingEmailCode, code => {
+	if (identityMethod.value === 'email' && code) {
+		verificationCode.value = code
+		codeRequested.value = true
+	}
+}, { immediate: true, flush: 'post' })
 watch(verificationCode, () => resetSigningContext())
 onBeforeUnmount(() => {
 	requestGeneration++
@@ -537,14 +603,15 @@ async function execute<T>(action: SigningAction, callback: () => Promise<T>, onS
 }
 
 async function requestCode() {
-	if (!emailMatchesRequest.value || busy.value) {
+	if (busy.value || !selectedIdentity.value || identityMethod.value === 'account'
+		|| (identityMethod.value === 'email' && !emailMatchesRequest.value)) {
 		return
 	}
 	await execute(
 		'code',
 		() => axios.post(signStore.buildRequestCodeUrl(props.signRequestUuid), {
-			identifyMethod: props.emailMethod,
-			signMethod: 'emailToken',
+			identifyMethod: selectedIdentity.value!.method,
+			signMethod: selectedIdentity.value!.signMethod,
 		}),
 		() => { codeRequested.value = true },
 	)

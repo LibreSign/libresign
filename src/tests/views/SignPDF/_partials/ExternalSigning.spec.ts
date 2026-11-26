@@ -44,9 +44,9 @@ const integrations = [{ id: 'lab', name: 'Synthetic provider', driverId: 'csc-v1
 const multipleIntegrations = [...integrations, { id: 'second', name: 'Second provider', driverId: 'csc-v1' }]
 const baseSession = { id: 'session-1', status: 'preparing', revision: 1, integrationId: 'lab', credentialId: 'synthetic-cert', certificateSha256: 'a'.repeat(64), expiresAt: '2099-01-01' }
 
-function mountSigner() {
+function mountSigner(extraProps: Record<string, unknown> = {}) {
 	return mount(ExternalSigning, {
-		props: { signRequestUuid: 'request-one', emailMethod: 'email', boundEmailHash: 'bound-hash' },
+		props: { signRequestUuid: 'request-one', emailMethod: 'email', boundEmailHash: 'bound-hash', ...extraProps },
 		global: { stubs },
 	})
 }
@@ -73,6 +73,56 @@ describe('external signing within the existing signer UI', () => {
 		expect(wrapper.text()).toContain('Use a code sent to my email')
 		expect(wrapper.find('#external-signing-method').exists()).toBe(false)
 		expect(wrapper.findAll('input[type="radio"][name="external-signing-identity"]')).toHaveLength(2)
+		wrapper.unmount()
+	})
+
+	it('shows only the email identity when the signed-in account is not a bound identity', async () => {
+		vi.mocked(getCurrentUser).mockReturnValueOnce({ uid: 'signed-in-user' } as ReturnType<typeof getCurrentUser>)
+		const wrapper = mountSigner({ boundIdentities: [{ method: 'email', value: 'guest@example.org', requirement: 'required' }] })
+		expect(wrapper.findAll('input[name="external-signing-identity"]')).toHaveLength(0)
+		expect(wrapper.text()).toContain('Use a code sent to my email')
+		expect(wrapper.text()).not.toContain('Use my signed-in account')
+		wrapper.unmount()
+	})
+
+	it('reuses an already verified LibreSign email code without a second request', async () => {
+		const wrapper = mountSigner({
+			boundIdentities: [{ method: 'email', value: 'guest@example.org' }],
+			existingEmailCode: '123456',
+		})
+		await flushPromises()
+		expect((wrapper.find('input[type="email"]').element as HTMLInputElement).value).toBe('guest@example.org')
+		expect((wrapper.find('input[autocomplete="one-time-code"]').element as HTMLInputElement).value).toBe('123456')
+		expect(wrapper.findAll('button').some(button => button.text().includes('Email me a code'))).toBe(false)
+		await clickButton(wrapper, 'Continue')
+		expect(axios.post).not.toHaveBeenCalled()
+		expect(discoverExternalSigning).toHaveBeenCalledWith({
+			uuid: 'request-one', method: 'email', identifyValue: 'guest@example.org', token: '123456',
+		})
+		wrapper.unmount()
+	})
+
+	it('does not show an email option for an account-only signer', async () => {
+		vi.mocked(getCurrentUser).mockReturnValueOnce({ uid: 'signed-in-user' } as ReturnType<typeof getCurrentUser>)
+		const wrapper = mountSigner({ boundIdentities: [{ method: 'account', value: 'signed-in-user' }] })
+		expect(wrapper.findAll('input[name="external-signing-identity"]')).toHaveLength(0)
+		expect(wrapper.text()).toContain('Use my signed-in account')
+		expect(wrapper.find('input[type="email"]').exists()).toBe(false)
+		wrapper.unmount()
+	})
+
+	it('uses the existing code-request endpoint for a WhatsApp-bound signer', async () => {
+		const wrapper = mountSigner({ boundIdentities: [{ method: 'whatsapp', value: '+5521999999999', requirement: 'required' }] })
+		expect(wrapper.findAll('input[name="external-signing-identity"]')).toHaveLength(0)
+		expect(wrapper.text()).toContain('Use a code sent by WhatsApp')
+		await clickButton(wrapper, 'Send me a verification code')
+		expect(axios.post).toHaveBeenCalledWith('/code/request-one', { identifyMethod: 'whatsapp', signMethod: 'whatsappToken' })
+		expect(wrapper.find('input[autocomplete="one-time-code"]').exists()).toBe(true)
+		await wrapper.find('input[autocomplete="one-time-code"]').setValue('946275')
+		await clickButton(wrapper, 'Continue')
+		expect(discoverExternalSigning).toHaveBeenCalledWith({
+			uuid: 'request-one', method: 'whatsapp', identifyValue: '+5521999999999', token: '946275',
+		})
 		wrapper.unmount()
 	})
 
