@@ -55,6 +55,42 @@
 				resize="none" />
 		</div>
 
+		<div
+			v-if="signerSelected && !isObserver && !disabled && (externalSigningAvailable || signingMethodRequirement !== 'libresign')"
+			class="identifySigner__signing-method">
+			<!-- TRANSLATORS Signing method requested for this recipient, independent of the identity check by email or SMS. -->
+			<NcRadioGroup v-model="signingMethodRequirement" :label="t('libresign', 'How should this person sign?')">
+				<NcCheckboxRadioSwitch name="requested-signing-method" value="libresign">
+					<!-- TRANSLATORS Use the existing LibreSign-managed signing process. -->
+					{{ t('libresign', 'Sign using LibreSign') }}
+				</NcCheckboxRadioSwitch>
+				<NcCheckboxRadioSwitch
+					v-if="externalSigningAvailable || signingMethodRequirement === 'external_certificate'"
+					name="requested-signing-method"
+					value="external_certificate"
+					:disabled="!externalSigningAvailable">
+					<!-- TRANSLATORS Require a certificate held by an external signing service. -->
+					{{ t('libresign', 'Require a digital certificate from a signing service') }}
+				</NcCheckboxRadioSwitch>
+				<NcCheckboxRadioSwitch
+					v-if="externalSigningAvailable || signingMethodRequirement === 'signer_choice'"
+					name="requested-signing-method"
+					value="signer_choice"
+					:disabled="!externalSigningAvailable">
+					<!-- TRANSLATORS Recipient may choose exactly one of two available signing paths. -->
+					{{ t('libresign', 'Let the signer choose one method') }}
+				</NcCheckboxRadioSwitch>
+			</NcRadioGroup>
+			<p class="identifySigner__signing-method-help">
+				<!-- TRANSLATORS The recipient cannot sign twice with both alternatives in the same request. -->
+				{{ t('libresign', 'Only one signature is needed. Identity checks are configured separately.') }}
+			</p>
+			<NcNoteCard v-if="!externalSigningAvailable" type="warning">
+				<!-- TRANSLATORS A saved requirement cannot be fulfilled while the external signing policy is disabled. -->
+				{{ t('libresign', 'Digital certificate services are currently unavailable. Choose LibreSign signing or ask an administrator.') }}
+			</NcNoteCard>
+		</div>
+
 		<div v-if="signerSelected && showGeolocationRequirementToggle && !disabled" class="geolocation-wrapper">
 			<NcCheckboxRadioSwitch
 				v-model="deviceGeolocationRequired"
@@ -72,7 +108,7 @@
 				</NcButton>
 				<NcButton
 					variant="primary"
-					:disabled="!signerSelected"
+					:disabled="!signerSelected || (!externalSigningAvailable && signingMethodRequirement !== 'libresign')"
 					@click="saveSigner">
 					{{ saveButtonText }}
 				</NcButton>
@@ -95,6 +131,7 @@ import NcButton from '@nextcloud/vue/components/NcButton'
 import NcCheckboxRadioSwitch from '@nextcloud/vue/components/NcCheckboxRadioSwitch'
 import NcIconSvgWrapper from '@nextcloud/vue/components/NcIconSvgWrapper'
 import NcNoteCard from '@nextcloud/vue/components/NcNoteCard'
+import NcRadioGroup from '@nextcloud/vue/components/NcRadioGroup'
 import NcTextArea from '@nextcloud/vue/components/NcTextArea'
 import NcTextField from '@nextcloud/vue/components/NcTextField'
 import { showError } from '@nextcloud/dialogs'
@@ -108,6 +145,7 @@ import { useFilesStore } from '../../store/files.js'
 import { usePoliciesStore } from '../../store/policies.ts'
 import { resolveSignerGeolocationMode } from '../../views/Settings/PolicyWorkbench/settings/signer-geolocation/model.ts'
 import { getSignRequestStatusText } from '../../utils/getSignRequestStatusText.ts'
+import { requestedSigningMethod, type RequestedSigningMethod } from '../../utils/requestedSigningMethod.ts'
 import { isObserverParticipant, PARTICIPANT_ROLE, type ParticipantRole } from '../../utils/participantRole.ts'
 import type { IdentifyAccountRecord } from '../../types'
 
@@ -176,6 +214,7 @@ type SignerToEdit = {
 	deviceGeolocationRequired?: boolean
 	metadata?: {
 		deviceGeolocationRequirement?: string
+		signingMethodRequirement?: RequestedSigningMethod
 	}
 }
 
@@ -215,6 +254,7 @@ const displayName = ref('')
 const description = ref('')
 const enableCustomMessage = ref(false)
 const deviceGeolocationRequired = ref(false)
+const signingMethodRequirement = ref<RequestedSigningMethod>('libresign')
 const identify = ref('')
 const identifyMethod = ref<IdentifyAccountRecord['method'] | undefined>()
 const acceptsEmailNotifications = ref<boolean | undefined>()
@@ -234,6 +274,7 @@ const signerGeolocationMode = computed(() => {
 		?? 'disabled'
 })
 const showGeolocationRequirementToggle = computed(() => signerGeolocationMode.value === 'optional')
+const externalSigningAvailable = computed(() => policiesStore.getEffectiveValue('external_signing_enabled') === true)
 
 const signerSelected = computed(() => identify.value.length > 0)
 const isNewSigner = computed(() => !props.signerToEdit || Object.keys(props.signerToEdit).length === 0)
@@ -265,6 +306,7 @@ function resetSelectedSignerState() {
 	description.value = ''
 	enableCustomMessage.value = false
 	deviceGeolocationRequired.value = false
+	signingMethodRequirement.value = 'libresign'
 	identify.value = ''
 	identifyMethod.value = undefined
 	acceptsEmailNotifications.value = undefined
@@ -380,6 +422,9 @@ async function saveSigner() {
 		description: description.value.trim(),
 		participantRole,
 		...(identifyMethod.value === 'email' ? { email: identify.value } : {}),
+		...(!isObserver.value && (externalSigningAvailable.value || signingMethodRequirement.value !== 'libresign')
+			? { signingMethodRequirement: signingMethodRequirement.value }
+			: {}),
 		// Persist the toggle whenever it is on, even if the checkbox was hidden
 		// after the user flipped it (for example when file metadata refreshes).
 		...(deviceGeolocationRequired.value || showGeolocationRequirementToggle.value
@@ -441,6 +486,9 @@ onBeforeMount(() => {
 	displayName.value = props.signerToEdit.displayName ?? ''
 	description.value = props.signerToEdit.description ?? ''
 	enableCustomMessage.value = !!props.signerToEdit.description
+	signingMethodRequirement.value = props.signerToEdit.metadata?.signingMethodRequirement
+		? requestedSigningMethod(props.signerToEdit.metadata.signingMethodRequirement)
+		: 'libresign'
 	deviceGeolocationRequired.value = props.signerToEdit.deviceGeolocationRequired === true
 		|| props.signerToEdit.metadata?.deviceGeolocationRequirement === 'required'
 	identify.value = getSignerToEditIdentify(props.signerToEdit)
@@ -460,6 +508,8 @@ defineExpose({
 	description,
 	enableCustomMessage,
 	deviceGeolocationRequired,
+	signingMethodRequirement,
+	externalSigningAvailable,
 	showGeolocationRequirementToggle,
 	identify,
 	identifyMethod,
@@ -513,6 +563,21 @@ defineExpose({
 
 		:deep(textarea) {
 			margin-block-start: 8px;
+		}
+	}
+
+	&__signing-method {
+		width: 100%;
+		margin-block: 16px;
+
+		:deep(fieldset) {
+			box-sizing: border-box;
+			width: 100%;
+		}
+
+		&-help {
+			color: var(--color-text-maxcontrast);
+			margin-block: 12px 0;
 		}
 	}
 

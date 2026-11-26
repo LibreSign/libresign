@@ -46,6 +46,7 @@ type SignerToEdit = {
 	deviceGeolocationRequired?: boolean
 	metadata?: {
 		deviceGeolocationRequirement?: string
+		signingMethodRequirement?: 'libresign' | 'external_certificate' | 'signer_choice'
 	}
 }
 
@@ -63,6 +64,8 @@ type IdentifySignerVm = {
 	description: string
 	enableCustomMessage: boolean
 	deviceGeolocationRequired: boolean
+	signingMethodRequirement: string
+	externalSigningAvailable: boolean
 	showGeolocationRequirementToggle: boolean
 	identify: string
 	identifyMethod?: IdentifyAccountRecord['method']
@@ -154,6 +157,29 @@ describe('IdentifySigner rules', () => {
 		}
 
 		wrapper = createWrapper()
+	})
+
+	describe('requester digital certificate requirement', () => {
+		it('does not offer external signing when administration disabled the capability', () => {
+			wrapper.vm.applySelectedSigner({ method: 'email', identify: 'guest@example.org', displayName: 'Guest' } as IdentifyAccountRecord)
+			expect(wrapper.vm.externalSigningAvailable).toBe(false)
+			expect(wrapper.find('.identifySigner__signing-method').exists()).toBe(false)
+		})
+
+		it('saves exactly one selected signing path per recipient', async () => {
+			wrapper.unmount()
+			policiesStore.getEffectiveValue.mockImplementation((key: string) => key === 'external_signing_enabled' ? true : { mode: 'disabled' })
+			wrapper = createWrapper()
+			wrapper.vm.applySelectedSigner({ method: 'email', identify: 'guest@example.org', displayName: 'Guest' } as IdentifyAccountRecord)
+			await wrapper.vm.$nextTick()
+			expect(wrapper.vm.signingMethodRequirement).toBe('libresign')
+			expect(wrapper.find('.identifySigner__signing-method').exists()).toBe(true)
+			wrapper.vm.signingMethodRequirement = 'external_certificate'
+			await wrapper.vm.saveSigner()
+			const saved = filesStore.saveOrUpdateSignatureRequest.mock.calls[0][0] as { signers: Array<Record<string, unknown>> }
+			expect(saved.signers.at(-1)?.signingMethodRequirement).toBe('external_certificate')
+			expect(saved.signers.at(-1)?.identifyMethods).toHaveLength(1)
+		})
 	})
 
 	describe('signer detection', () => {
