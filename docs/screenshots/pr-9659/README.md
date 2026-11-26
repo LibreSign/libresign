@@ -1,10 +1,18 @@
 <!-- SPDX-FileCopyrightText: 2026 LibreCode coop and contributors
 SPDX-License-Identifier: AGPL-3.0-or-later -->
 
-# CSC signer UI evidence — PR #9659
+# CSC signer UI review evidence
 
-Source: LibreSign/libresign PR #9659, code revision `c891c1bb3b8d4cff5da2c7c4ecb304035a9195b7`.
+Vue signer component source revision: `b98c2f2fc5ae6587ace675f60a2ab6908ada232f`, LibreSign/libresign PR #9659, 2026-11-25.
 
-These images show the **actual Vue signer component** rendered by Chromium in an isolated Vite preview using Nextcloud Vue CSS variables and synthetic account/CSC service adapters. The availability, credential, session and status data are mocked. They do **not** establish a complete Nextcloud signer transaction, OAuth authorization, production credential eligibility, or a cryptographically signed PDF.
+All images are fresh Chromium renders of that actual component in an isolated Vite preview. Styling uses Nextcloud Vue components, applicable CSS and Nextcloud 36-like variables. All user account, signing service, certificate, email code, session and progress data are **synthetic fixtures**. No real authentication, certificate issuer, remote CSC authorization or cryptographic signature was exercised by these screenshots.
 
-The 390×844 mobile image (`04`) is a true mobile-sized viewport. An eligible sole provider/certificate is automatically selected (`02`), whereas multiple providers still expose a choice (`08`). Pending/uncertain statuses are explicitly separate (`06`/`07`).
+- `01`: account identity step
+- `09`: email-code entry (no live email was sent)
+- `02`: sole eligible service and certificate automatically selected
+- `08`: multiple services remain selectable
+- `03`: advanced options contain friendly PDF format names; exact PAdES B-B and PDF Basic names remain in a further collapsed technical section
+- `04`: genuine 390x844 CSS viewport, not a stretched desktop screenshot
+- `05`–`07`: ready, waiting for user authorization and uncertain outcome, without claiming completion or resubmitting a signature
+
+Screenshots demonstrate visual UX states only, not end-to-end integration on an installed Nextcloud instance or with a production CSC provider.
