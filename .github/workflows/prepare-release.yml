@@ -87,7 +87,7 @@ jobs:
           git fetch --quiet origin "+refs/heads/main:refs/remotes/origin/main"
 
       - name: Prepare release
-        uses: LibreCodeCoop/release-tool/actions/prepare@51355769089a6796c23d6c966108afbdaf858c32 # v0.12.0
+        uses: LibreCodeCoop/release-tool/actions/prepare@63ceba979644c97b7781f3e7b4496c68d0ebddb3 # v0.12.1
         with:
           branch: ${{ inputs.branch }}
           ref: ${{ inputs.ref }}
