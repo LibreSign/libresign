@@ -39,10 +39,16 @@ describe('ExternalSigningIntegrationForm', () => {
 		wrapper.unmount()
 	})
 
+	it('explains that the connection name will be displayed to signers', () => {
+		const wrapper = createWrapper()
+		expect(wrapper.text()).toContain('Name shown to signers')
+		wrapper.unmount()
+	})
+
 	it('does not display an existing token or submit a replacement during ordinary edits', async () => {
 		const save = vi.fn().mockResolvedValue(existing)
 		const wrapper = createWrapper(save)
-		expect(wrapper.text()).toContain('Secret configured')
+		expect(wrapper.text()).toContain('Access information is already saved')
 		expect(wrapper.find<HTMLInputElement>('input[type="password"]').element.value).toBe('')
 		await wrapper.find('form').trigger('submit')
 		await flushPromises()
@@ -60,7 +66,7 @@ describe('ExternalSigningIntegrationForm', () => {
 		const wrapper = createWrapper(vi.fn().mockRejectedValue(new Error('synthetic conflict')))
 		await wrapper.find('form').trigger('submit')
 		await flushPromises()
-		expect(wrapper.text()).toContain('Could not save the integration')
+		expect(wrapper.text()).toContain('Could not save the signing service')
 		expect(wrapper.emitted('saved')).toBeUndefined()
 	})
 
@@ -80,7 +86,7 @@ describe('ExternalSigningIntegrationForm', () => {
 		const wrapper = createWrapper(vi.fn().mockRejectedValue(new ExternalSigningAdminError(409)))
 		await wrapper.find('form').trigger('submit')
 		await flushPromises()
-		expect(wrapper.text()).toContain('changed by another administrator')
+		expect(wrapper.text()).toContain('Another administrator changed this service')
 		expect(wrapper.emitted('saved')).toBeUndefined()
 	})
 })

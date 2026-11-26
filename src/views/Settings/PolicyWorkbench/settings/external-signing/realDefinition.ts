@@ -24,9 +24,9 @@ function resolveEnabled(value: EffectivePolicyValue): boolean | null {
 export const externalSigningRealDefinition: RealPolicySettingDefinition = {
 	key: 'external_signing_enabled',
 	// TRANSLATORS Policy card title for rules allowing accounts and groups to use external signature services.
-	title: t('libresign', 'External signing providers'),
+	title: t('libresign', 'Signing with a digital certificate'),
 	// TRANSLATORS Policy card description: scopes control external signing authorization, while connections are configured separately.
-	description: t('libresign', 'Manage who may use external signing providers, and configure the available integrations.'),
+	description: t('libresign', 'Choose who can sign with a digital certificate and manage the services they can use.'),
 	supportedScopes: ['system', 'group', 'user'],
 	groupAdminBehavior: {
 		allowGroupRuleCreationFromDescendantDelegation: true,

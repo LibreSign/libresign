@@ -8,20 +8,20 @@
 		class="external-signing-admin"
 		:class="{ 'external-signing-admin--compact': layout === 'compact', 'external-signing-admin--embedded': embedded }"
 		:aria-labelledby="embedded ? undefined : 'external-signing-admin-title'"
-		:aria-label="embedded ? t('libresign', 'External signing providers') : undefined"
+		:aria-label="embedded ? t('libresign', 'Digital signature services') : undefined"
 		data-cy="external-signing-admin">
 		<div class="external-signing-admin__entry">
 			<div v-if="!embedded" class="external-signing-admin__details">
 				<h3 id="external-signing-admin-title">
-					{{ t('libresign', 'External signing providers') }}
+					{{ t('libresign', 'Digital signature services') }}
 				</h3>
-				<p>{{ t('libresign', 'Manage CSC connections for this policy rule.') }}</p>
+				<p>{{ t('libresign', 'Choose which digital signature services people covered by this rule can use.') }}</p>
 				<p
 					v-if="!adapter"
 					id="external-signing-admin-unavailable"
 					class="external-signing-admin__status"
 					role="status">
-					{{ t('libresign', 'Integration management is not connected yet.') }}
+					{{ t('libresign', 'Signing service settings are not available right now.') }}
 				</p>
 			</div>
 			<div class="external-signing-admin__footer">
@@ -30,18 +30,18 @@
 					:disabled="!adapter"
 					:aria-describedby="!adapter ? 'external-signing-admin-unavailable' : undefined"
 					@click="dialogOpen = true">
-					{{ t('libresign', 'Configure integrations') }}
+					{{ t('libresign', 'Manage signing services') }}
 				</NcButton>
 			</div>
 		</div>
 		<NcDialog
 			v-if="adapter && dialogOpen"
-			:name="t('libresign', 'External signing providers')"
+			:name="t('libresign', 'Digital signature services')"
 			size="normal"
 			@closing="closeDialog">
 			<div class="external-signing-admin__dialog">
 				<p v-if="loading" role="status">
-					{{ t('libresign', 'Loading integrations…') }}
+					{{ t('libresign', 'Loading signing services…') }}
 				</p>
 				<div v-else-if="loadError">
 					<p role="alert">
@@ -53,7 +53,7 @@
 				</div>
 				<template v-else>
 					<p v-if="!instances.length" role="status">
-						{{ t('libresign', 'No integrations configured for this policy rule yet.') }}
+						{{ t('libresign', 'No signing services have been added for this rule.') }}
 					</p>
 					<ul class="external-signing-admin__instances">
 						<li v-for="instance in instances" :key="instance.id">
@@ -90,13 +90,13 @@
 							<!-- TRANSLATORS Confirmation prompt naming the exact external signing integration about to be removed. -->
 							<strong>{{ t('libresign', 'Remove {name}?', { name: pendingRemoval.name }) }}</strong>
 						</p>
-						<p>{{ t('libresign', 'This cannot be undone. Signing sessions in progress may prevent removal.') }}</p>
+						<p>{{ t('libresign', 'You cannot undo this action. An unfinished signature may prevent removal.') }}</p>
 						<div class="external-signing-admin__confirm-actions">
 							<NcButton variant="secondary" :disabled="busy" @click="pendingRemoval = null">
-								{{ t('libresign', 'Keep integration') }}
+								{{ t('libresign', 'Keep service') }}
 							</NcButton>
 							<NcButton variant="error" :disabled="busy" @click="confirmRemoval">
-								{{ t('libresign', 'Confirm removal') }}
+								{{ t('libresign', 'Remove service') }}
 							</NcButton>
 						</div>
 					</div>
@@ -111,7 +111,7 @@
 						variant="primary"
 						:disabled="busy"
 						@click="beginCreate">
-						{{ t('libresign', 'Add integration') }}
+						{{ t('libresign', 'Add signing service') }}
 					</NcButton>
 					<template v-if="selectedDriver">
 						<ExternalSigningIntegrationForm
@@ -123,10 +123,10 @@
 							@cancel="resetForm" />
 					</template>
 					<template v-else-if="creating">
-						<label for="external-signing-driver">{{ t('libresign', 'Provider type') }}</label>
+						<label for="external-signing-driver">{{ t('libresign', 'Signing service type') }}</label>
 						<select id="external-signing-driver" v-model="selectedDriverId">
 							<option value="">
-								{{ t('libresign', 'Select a provider') }}
+								{{ t('libresign', 'Choose a signing service') }}
 							</option>
 							<option
 								v-for="driver in drivers"
@@ -191,10 +191,10 @@ function isDriverAvailable(instance: ExternalSigningInstance): boolean {
 function getDriverStatusLabel(instance: ExternalSigningInstance): string {
 	if (isDriverAvailable(instance)) {
 		// TRANSLATORS The installed signing driver can be used for signing.
-		return t('libresign', 'Driver available')
+		return t('libresign', 'Connector installed')
 	}
 	// TRANSLATORS The installed signing driver is missing or not operational.
-	return t('libresign', 'Driver unavailable')
+	return t('libresign', 'Connector unavailable')
 }
 function getInstanceStatusLabel(instance: ExternalSigningInstance): string {
 	if (instance.enabled) {
@@ -209,17 +209,17 @@ function administrationErrorMessage(error: unknown): string {
 	switch (status) {
 	case 400:
 		// TRANSLATORS External signing configuration validation failed on the server.
-		return t('libresign', 'The server rejected this integration configuration.')
+		return t('libresign', 'The service settings could not be saved. Check the information and try again.')
 	case 401:
 	case 403:
 		// TRANSLATORS External signing administration is restricted to system administrators.
-		return t('libresign', 'You are not authorized to manage external signing integrations.')
+		return t('libresign', 'You do not have permission to manage signing services.')
 	case 404:
 		// TRANSLATORS The external signing integration or experimental feature is unavailable.
-		return t('libresign', 'The integration is unavailable. Refresh to check its status.')
+		return t('libresign', 'This signing service is unavailable. Refresh to check again.')
 	case 409:
 		// TRANSLATORS The integration was updated elsewhere or cannot change while remote signing sessions are unresolved.
-		return t('libresign', 'This integration was changed or has unresolved signing sessions. Refresh before trying again.')
+		return t('libresign', 'This service was changed elsewhere or has unfinished signatures. Refresh before trying again.')
 	default:
 		// TRANSLATORS An external signing administration operation failed.
 		return t('libresign', 'The operation could not be completed. Refresh and try again.')
@@ -318,14 +318,14 @@ function handleReloadResult(reloaded: boolean, savedMessage: string) {
 		operationSuccess.value = savedMessage
 	} else if (dialogOpen.value) {
 		// TRANSLATORS The mutation succeeded but the refreshed list could not be retrieved.
-		loadErrorMessage.value = t('libresign', 'The change was saved, but the connection list could not be refreshed. Try again.')
+		loadErrorMessage.value = t('libresign', 'The change was saved, but the service list could not be refreshed. Try again.')
 	}
 }
 async function onSaved(_instance: ExternalSigningInstance) {
 	resetForm()
 	const reloaded = await load()
 	// TRANSLATORS Status after an external signing integration was saved on the server.
-	handleReloadResult(reloaded, t('libresign', 'Integration saved.'))
+	handleReloadResult(reloaded, t('libresign', 'Signing service saved.'))
 }
 async function mutate(action: () => Promise<unknown>) {
 	if (busy.value) {
@@ -338,7 +338,7 @@ async function mutate(action: () => Promise<unknown>) {
 		await action()
 		const reloaded = await load()
 		// TRANSLATORS Status after an external signing integration's administrative state changed.
-		handleReloadResult(reloaded, t('libresign', 'Integration updated.'))
+		handleReloadResult(reloaded, t('libresign', 'Signing service updated.'))
 	} catch (error) {
 		operationError.value = administrationErrorMessage(error)
 	} finally {

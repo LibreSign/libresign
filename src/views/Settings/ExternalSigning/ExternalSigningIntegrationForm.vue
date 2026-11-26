@@ -5,12 +5,12 @@
 <template>
 	<form class="external-signing-form" :aria-busy="saving" @submit.prevent="submit">
 		<p v-if="!driver.available" role="status">
-			{{ t('libresign', 'The signing driver is unavailable. You can save configuration, but cannot enable signing yet.') }}
+			{{ t('libresign', 'This signing service is not available right now. You can save its settings, but cannot enable it yet.') }}
 		</p>
 		<NcTextField
 			id="external-signing-instance-name"
 			v-model="draft.name"
-			:label="t('libresign', 'Integration name')"
+			:label="t('libresign', 'Name shown to signers')"
 			:disabled="saving"
 			:aria-invalid="Boolean(errors.name)"
 			autocomplete="off" />
@@ -19,7 +19,7 @@
 		</p>
 		<div v-for="field in driver.fields" :key="field.key" class="external-signing-form__field">
 			<p v-if="field.secret && existing?.configuredSecretFields.includes(field.key)">
-				{{ t('libresign', 'Secret configured. Leave blank to keep it, or enter a replacement.') }}
+				{{ t('libresign', 'Access information is already saved. Leave this field blank to keep it, or enter a replacement.') }}
 			</p>
 			<NcTextField
 				:id="`external-signing-field-${field.key}`"
@@ -41,7 +41,7 @@
 					:disabled="saving"
 					@change="onSecretClear(field.key, $event)">
 				<label :for="`external-signing-clear-${field.key}`">
-					{{ t('libresign', 'Remove stored secret') }}
+					{{ t('libresign', 'Remove saved access information') }}
 				</label>
 			</div>
 			<p v-if="errors[field.key]" role="alert">
@@ -144,10 +144,10 @@ async function submit() {
 	} catch (error) {
 		if (error instanceof ExternalSigningAdminError && error.status === 409) {
 			// TRANSLATORS Another administrator changed the external integration while it was being edited.
-			saveError.value = t('libresign', 'This integration was changed by another administrator. Refresh before saving.')
+			saveError.value = t('libresign', 'Another administrator changed this service. Refresh before saving again.')
 		} else {
 			// TRANSLATORS Recoverable error when saving an external signing integration failed.
-			saveError.value = t('libresign', 'Could not save the integration. Review the configuration and try again.')
+			saveError.value = t('libresign', 'Could not save the signing service. Check the information and try again.')
 		}
 	} finally {
 		saving.value = false

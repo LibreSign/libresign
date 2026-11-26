@@ -80,7 +80,7 @@ describe('ExternalSigningAdmin', () => {
 		await flushPromises()
 
 		expect(wrapper.find('[data-cy="external-signing-admin"]').exists()).toBe(true)
-		expect(wrapper.text()).toContain('Integration management is not connected yet.')
+		expect(wrapper.text()).toContain('Signing service settings are not available right now.')
 		expect(wrapper.find('button').attributes('disabled')).toBeDefined()
 		await wrapper.find('button').trigger('click')
 		expect(wrapper.find('[role="dialog"]').exists()).toBe(false)
@@ -99,7 +99,7 @@ describe('ExternalSigningAdmin', () => {
 		expect(list).toHaveBeenCalledOnce()
 	})
 
-	it('reports unresolved signing sessions using the actual server conflict response', async () => {
+	it('reports unfinished signatures using the actual server conflict response', async () => {
 		const instance = {
 			id: 'a'.repeat(32),
 			driverId: 'csc-v1',
@@ -121,13 +121,13 @@ describe('ExternalSigningAdmin', () => {
 		expect(removeButton).toBeDefined()
 		await removeButton!.find('button').trigger('click')
 		await flushPromises()
-		const confirmation = [...document.body.querySelectorAll('button')].find(button => button.textContent?.includes('Confirm removal'))
+		const confirmation = [...document.body.querySelectorAll('button')].find(button => button.textContent?.includes('Remove service'))
 		confirmation!.click()
 		await flushPromises()
 		expect(remove).toHaveBeenCalledOnce()
 		expect(remove).toHaveBeenCalledWith(instance)
-		expect(document.body.querySelector('.external-signing-admin__dialog p[role="alert"]')?.textContent).toContain('unresolved signing sessions')
-		expect(wrapper.text()).not.toContain('Integration updated.')
+		expect(document.body.querySelector('.external-signing-admin__dialog p[role="alert"]')?.textContent).toContain('unfinished signatures')
+		expect(wrapper.text()).not.toContain('Signing service updated.')
 	})
 
 	it('shows one accessible native action menu per integration and blocks unavailable drivers', async () => {
@@ -185,7 +185,7 @@ describe('ExternalSigningAdmin', () => {
 		await disableButton!.find('button').trigger('click')
 		await flushPromises()
 		expect(setEnabled).toHaveBeenCalledWith(instance, false)
-		expect(document.body.querySelector('.external-signing-admin__dialog p[role="status"]')?.textContent).toContain('Integration updated.')
+		expect(document.body.querySelector('.external-signing-admin__dialog p[role="status"]')?.textContent).toContain('Signing service updated.')
 	})
 
 	it('requires an explicit in-dialog decision before removing an integration', async () => {
@@ -205,14 +205,14 @@ describe('ExternalSigningAdmin', () => {
 		await flushPromises()
 		expect(remove).not.toHaveBeenCalled()
 		expect(document.body.textContent).toContain('Remove Removal target?')
-		const cancel = [...document.body.querySelectorAll('button')].find(button => button.textContent?.includes('Keep integration'))
+		const cancel = [...document.body.querySelectorAll('button')].find(button => button.textContent?.includes('Keep service'))
 		cancel!.click()
 		await flushPromises()
 		expect(remove).not.toHaveBeenCalled()
 		expect(document.body.textContent).not.toContain('Remove Removal target?')
 		await removalAction!.find('button').trigger('click')
 		await flushPromises()
-		const confirm = [...document.body.querySelectorAll('button')].find(button => button.textContent?.includes('Confirm removal'))
+		const confirm = [...document.body.querySelectorAll('button')].find(button => button.textContent?.includes('Remove service'))
 		confirm!.click()
 		await flushPromises()
 		expect(remove).toHaveBeenCalledWith(instance)
@@ -235,8 +235,8 @@ describe('ExternalSigningAdmin', () => {
 		await disable!.find('button').trigger('click')
 		await flushPromises()
 		expect(setEnabled).toHaveBeenCalledOnce()
-		expect(wrapper.text()).not.toContain('Integration updated.')
-		expect(document.body.textContent).toContain('saved, but the connection list')
+		expect(wrapper.text()).not.toContain('Signing service updated.')
+		expect(document.body.textContent).toContain('saved, but the service list')
 	})
 
 	it('provides a clear add action and skips provider choice when only one driver exists', async () => {
@@ -245,11 +245,19 @@ describe('ExternalSigningAdmin', () => {
 		await wrapper.find('.external-signing-admin__footer button').trigger('click')
 		await flushPromises()
 		expect(document.body.querySelector('#external-signing-driver')).toBeNull()
-		const add = [...document.body.querySelectorAll('button')].find(button => button.textContent?.includes('Add integration'))
+		const add = [...document.body.querySelectorAll('button')].find(button => button.textContent?.includes('Add signing service'))
 		add!.click()
 		await flushPromises()
 		expect(document.body.querySelector('#external-signing-driver')).toBeNull()
 		expect(document.body.querySelector('form.external-signing-form')).not.toBeNull()
+	})
+
+	it('describes administration in terms of signing services rather than CSC connectors', async () => {
+		const wrapper = mountAdmin({ adapter })
+		await flushPromises()
+		expect(wrapper.text()).toContain('Digital signature services')
+		expect(wrapper.text()).toContain('Manage signing services')
+		expect(wrapper.text()).not.toContain('Manage CSC connections')
 	})
 
 	it('uses compact presentation without introducing policy semantics', async () => {
