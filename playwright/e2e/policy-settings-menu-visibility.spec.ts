@@ -41,6 +41,11 @@ import {
 	type SystemPolicySnapshot,
 } from '../support/policy-api'
 
+const ADMIN_USER = process.env.NEXTCLOUD_ADMIN_USER ?? 'admin'
+const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || process.env.NEXTCLOUD_ADMIN_PASSWORD || 'admin'
+const GROUP_ADMIN = 'policy-menu-visibility-admin'
+const GROUP_ADMIN_PASSWORD = '123456'
+
 // One serial block: a single browser session for the group admin
 // across both phases avoids repeated login overhead.
 const test = base.extend<{
@@ -67,12 +72,7 @@ const test = base.extend<{
 
 test.describe.configure({ mode: 'serial', retries: 0, timeout: 90000 })
 
-const ADMIN_USER = process.env.NEXTCLOUD_ADMIN_USER ?? 'admin'
-const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || process.env.NEXTCLOUD_ADMIN_PASSWORD || 'admin'
-const GROUP_ADMIN_PASSWORD = '123456'
-
 const GROUP_ID = 'policy-menu-visibility-group'
-const GROUP_ADMIN = 'policy-menu-visibility-admin'
 
 const POLICY_KEY = 'add_footer'
 const REQUEST_SIGN_GROUPS = JSON.stringify({ allowGroups: ['admin', GROUP_ID], denyGroups: [] })

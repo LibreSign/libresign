@@ -300,7 +300,7 @@ const canUploadFronUrl = computed(() => {
 	try {
 		new URL(pdfUrl.value)
 		return true
-	} catch (error) {
+	} catch {
 		return false
 	}
 })

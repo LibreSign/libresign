@@ -1,0 +1,104 @@
+<?php
+
+declare(strict_types=1);
+/**
+ * SPDX-FileCopyrightText: 2026 LibreCode coop and contributors
+ * SPDX-License-Identifier: AGPL-3.0-or-later
+ */
+
+namespace OCA\Libresign\Service\Signing;
+
+use OCA\Libresign\Exception\ExternalIntegrationSecretException;
+use OCP\Security\ICrypto;
+
+/**
+ * Encrypts integration credentials for storage in an application database table.
+ * Decrypted values remain internal to server-side services.
+ */
+final class ExternalIntegrationSecrets {
+	private const MAX_SECRET_JSON_BYTES = 16384;
+	public function __construct(
+		private ICrypto $crypto,
+	) {
+	}
+
+	/** @param array<string, string> $secrets */
+	public function encrypt(#[\SensitiveParameter] array $secrets): string {
+		if ($secrets === []) {
+			return '';
+		}
+		$this->assertSecretShape($secrets);
+		try {
+			$serialized = json_encode($secrets, JSON_THROW_ON_ERROR);
+		} catch (\JsonException) {
+			throw new \InvalidArgumentException('Invalid secret data');
+		}
+		if (strlen($serialized) > self::MAX_SECRET_JSON_BYTES) {
+			throw new \InvalidArgumentException('Secret configuration too large');
+		}
+		try {
+			return $this->crypto->encrypt($serialized);
+		} catch (\Exception) {
+			throw ExternalIntegrationSecretException::protectionFailed();
+		}
+	}
+
+	/** @return array<string, string> */
+	public function decrypt(#[\SensitiveParameter] string $ciphertext): array {
+		if ($ciphertext === '') {
+			return [];
+		}
+		try {
+			$payload = json_decode($this->crypto->decrypt($ciphertext), false, 512, JSON_THROW_ON_ERROR);
+			if (!$payload instanceof \stdClass) {
+				throw new \UnexpectedValueException('Unexpected secret payload');
+			}
+			$decoded = (array)$payload;
+			$this->assertSecretShape($decoded);
+			return $decoded;
+		} catch (\Exception) {
+			// Includes authentication failures, malformed JSON and invalid secret shape.
+			throw ExternalIntegrationSecretException::recoveryFailed();
+		}
+	}
+
+	/**
+	 * Omitted keys preserve existing ciphertext. Explicit null clears a key.
+	 *
+	 * @param array<string, string|null> $changes
+	 */
+	public function applyChanges(#[\SensitiveParameter] string $ciphertext, #[\SensitiveParameter] array $changes): string {
+		if ($changes === []) {
+			return $ciphertext;
+		}
+		// Reject malformed patches before reading any existing credential data.
+		foreach ($changes as $key => $value) {
+			if (!is_string($key) || $key === '' || strlen($key) > 128) {
+				throw new \InvalidArgumentException('Invalid secret field');
+			}
+			if ($value !== null && (!is_string($value) || $value === '' || strlen($value) > 8192)) {
+				throw new \InvalidArgumentException('Invalid secret replacement');
+			}
+		}
+
+		$secrets = $this->decrypt($ciphertext);
+		foreach ($changes as $key => $value) {
+			if ($value === null) {
+				unset($secrets[$key]);
+			} else {
+				$secrets[$key] = $value;
+			}
+		}
+		return $this->encrypt($secrets);
+	}
+
+	/** @param array<mixed, mixed> $secrets */
+	private function assertSecretShape(#[\SensitiveParameter] array $secrets): void {
+		foreach ($secrets as $key => $value) {
+			if (!is_string($key) || $key === '' || strlen($key) > 128
+				|| !is_string($value) || $value === '' || strlen($value) > 8192) {
+				throw new \InvalidArgumentException('Invalid secret data');
+			}
+		}
+	}
+}

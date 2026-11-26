@@ -12,6 +12,11 @@ import { useFilesStore } from '../../../store/files.js'
 import { useSidebarStore } from '../../../store/sidebar.js'
 import { useUserConfigStore } from '../../../store/userconfig.js'
 
+// Hoisted above the module mocks so the vue-router factory can resolve it.
+const routeMock = vi.hoisted(() => ({
+	query: {} as Record<string, string>,
+}))
+
 vi.mock('vue-router', () => ({
 	useRoute: vi.fn(() => routeMock),
 }))
@@ -135,10 +140,6 @@ vi.mock('../../../components/Request/RequestPicker.vue', () => ({
 		},
 	},
 }))
-
-const routeMock = {
-	query: {},
-}
 
 describe('FilesList.vue rendering rules', () => {
 	beforeEach(() => {

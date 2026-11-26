@@ -23,13 +23,13 @@ use OCA\Libresign\Service\SignatureStampPreview\SignatureStampAppearanceBuilder;
 use OCA\Libresign\Service\SignatureTextService;
 use OCA\Libresign\Service\SignerElementsService;
 use OCA\Libresign\Tests\Fixtures\PdfGenerator;
+use OCA\Libresign\Vendor\SignerPHP\PdfSigner\Application\DTO\CertificationLevel;
+use OCA\Libresign\Vendor\SignerPHP\PdfSigner\Application\DTO\HashAlgorithm;
+use OCA\Libresign\Vendor\SignerPHP\PdfSigner\Application\DTO\SignatureAppearanceDto;
+use OCA\Libresign\Vendor\SignerPHP\PdfSigner\Application\DTO\TimestampOptionsDto;
 use OCP\IAppConfig;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\MockObject\MockObject;
-use SignerPHP\PdfSigner\Application\DTO\CertificationLevel;
-use SignerPHP\PdfSigner\Application\DTO\HashAlgorithm;
-use SignerPHP\PdfSigner\Application\DTO\SignatureAppearanceDto;
-use SignerPHP\PdfSigner\Application\DTO\TimestampOptionsDto;
 
 final class PhpNativeHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	private IAppConfig $appConfig;
@@ -124,50 +124,6 @@ final class PhpNativeHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$this->expectExceptionMessage('Missing or invalid PageDimensions for page index 0.');
 
 		$this->callPrivateMethod($handler, 'resolvePageHeight', [], 0);
-	}
-
-	#[DataProvider('providerWrapTextForPdf')]
-	public function testWrapTextForPdf(string $line, float $availableWidth, float $fontSize, array $expected): void {
-		$handler = $this->getHandler();
-		$actual = $this->callPrivateMethod($handler, 'wrapTextForPdf', $line, $availableWidth, $fontSize);
-		$this->assertSame($expected, $actual);
-	}
-
-	public static function providerWrapTextForPdf(): array {
-		return [
-			'empty string returns single empty element' => [
-				'', 100.0, 10.0, [''],
-			],
-			'short text that fits in one line' => [
-				'hello', 100.0, 10.0, ['hello'],
-			],
-			'multiple words wrapped at word boundaries' => [
-				// fontSize=10 → estimatedCharWidth=5.2; availableWidth=20 → maxChars=3
-				// 'ab cd ef' → ['ab', 'cd', 'ef']
-				'ab cd ef', 20.0, 10.0, ['ab', 'cd', 'ef'],
-			],
-			'single long word is hard-split at maxChars' => [
-				// maxChars=floor(15/5.2)=2: 'abcdefgh' → ['ab','cd','ef','gh']
-				'abcdefgh', 15.0, 10.0, ['ab', 'cd', 'ef', 'gh'],
-			],
-		];
-	}
-
-	#[DataProvider('providerEscapePdfText')]
-	public function testEscapePdfText(string $input, string $expected): void {
-		$handler = $this->getHandler();
-		$actual = $this->callPrivateMethod($handler, 'escapePdfText', $input);
-		$this->assertSame($expected, $actual);
-	}
-
-	public static function providerEscapePdfText(): array {
-		return [
-			'plain text is unchanged' => ['hello world', 'hello world'],
-			'backslash is doubled' => ['back\\slash', 'back\\\\slash'],
-			'opening parenthesis is escaped' => ['open(paren', 'open\\(paren'],
-			'closing parenthesis is escaped' => ['close)paren', 'close\\)paren'],
-			'multiple special chars in one string' => ['a\\b(c)d', 'a\\\\b\\(c\\)d'],
-		];
 	}
 
 	#[DataProvider('providerHasExistingSignatures')]
@@ -378,8 +334,8 @@ final class PhpNativeHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		);
 
 		// Description text must begin at X = leftPadding = 2.00 (full width, not offset to right half)
-		$this->assertStringContainsString('2.00 38.00 Td', $xObject->stream);
-		$this->assertStringNotContainsString('52.00 ', $xObject->stream);
+		$this->assertMatchesRegularExpression('/1 0 0 1 2(?:\.0+)? 38(?:\.0+)? Tm/', $xObject->stream);
+		$this->assertDoesNotMatchRegularExpression('/1 0 0 1 52(?:\.0+)? /', $xObject->stream);
 	}
 
 	public function testBuildXObjectGraphicAndDescriptionPositionsTextAtRightHalf(): void {
@@ -390,9 +346,9 @@ final class PhpNativeHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		);
 
 		// Text must start at the right half (X = 52.00), not at leftPadding alone
-		$this->assertStringContainsString('52.00 38.00 Td', $xObject->stream);
-		// Ensure text is NOT starting at leftPadding only (would be \n2.00 ... in DESCRIPTION_ONLY)
-		$this->assertStringNotContainsString("\n2.00 38.00 Td", $xObject->stream);
+		$this->assertMatchesRegularExpression('/1 0 0 1 52(?:\.0+)? 38(?:\.0+)? Tm/', $xObject->stream);
+		// Ensure text is NOT starting at leftPadding only (would be X = 2.00 in DESCRIPTION_ONLY)
+		$this->assertDoesNotMatchRegularExpression('/1 0 0 1 2(?:\.0+)? 38(?:\.0+)? Tm/', $xObject->stream);
 	}
 
 	public function testBuildXObjectSignameAndDescriptionIncludesNameAndDescriptionBlocks(): void {
@@ -403,12 +359,12 @@ final class PhpNativeHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		);
 
 		// Name block uses the larger signature font (20.0)
-		$this->assertStringContainsString('/F1 20.00 Tf', $xObject->stream);
+		$this->assertMatchesRegularExpression('~/F1 20(?:\.0+)? Tf~', $xObject->stream);
 		$this->assertStringContainsString('(Test User) Tj', $xObject->stream);
 		// Description block uses the description font (10.0)
-		$this->assertStringContainsString('/F1 10.00 Tf', $xObject->stream);
+		$this->assertMatchesRegularExpression('~/F1 10(?:\.0+)? Tf~', $xObject->stream);
 		// Description text positioned on the right half (X = 200/2 + 2 = 102.0)
-		$this->assertStringContainsString('102.00 ', $xObject->stream);
+		$this->assertMatchesRegularExpression('/1 0 0 1 102(?:\.0+)? /', $xObject->stream);
 	}
 
 	/**
@@ -457,11 +413,11 @@ final class PhpNativeHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	 *
 	 * Layout math for width=200, height=80, fontSize=20, name="Al":
 	 *   leftHalfW      = 100.0
-	 *   lineWidth      = strlen("Al") * (20 * 0.52) = 2 * 10.4 = 20.8
-	 *   nameX          = max(2.0, (100 - 20.8) / 2) = 39.6  →  "39.60"
+	 *   lineWidth      = (667 + 222) / 1000 * 20 = 17.78
+	 *   nameX          = max(2.0, (100 - 17.78) / 2) = 41.11
 	 *   totalNameHeight = 1 * 20 * 1.0 = 20  (lineHeight factor = 1.0)
 	 *   nameStartY     = (80 + 20) / 2 - 20 = 30.0           →  "30.00"
-	 * Old (broken) code always used leftPadding=2.0  →  "2.00 30.00 Td"
+	 * Old (broken) code always used leftPadding=2.0  →  "2.00 30.00"
 	 */
 	public function testBuildXObjectSignameAndDescriptionCentersNameInLeftHalf(): void {
 		$handler = $this->getHandlerWithMode(SignerElementsService::RENDER_MODE_SIGNAME_AND_DESCRIPTION);
@@ -471,9 +427,9 @@ final class PhpNativeHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		);
 
 		// Centred position must appear
-		$this->assertStringContainsString('39.60 30.00 Td', $xObject->stream);
+		$this->assertMatchesRegularExpression('/1 0 0 1 41\.110* 30(?:\.0+)? Tm/', $xObject->stream);
 		// Old left-aligned position must NOT appear
-		$this->assertStringNotContainsString('2.00 30.00 Td', $xObject->stream);
+		$this->assertDoesNotMatchRegularExpression('/1 0 0 1 2(?:\.0+)? 30(?:\.0+)? Tm/', $xObject->stream);
 	}
 
 	public function testBuildXObjectSignameAndDescriptionWithEmptyNameOmitsNameBlock(): void {

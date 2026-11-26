@@ -55,12 +55,13 @@ function sleepUnlessCanceled(ms: number, signal: AbortSignal): Promise<void> {
 		return Promise.resolve()
 	}
 	return new Promise((resolve) => {
+		const pending: { timer?: ReturnType<typeof setTimeout> } = {}
 		const onDone = () => {
-			clearTimeout(timer)
+			clearTimeout(pending.timer)
 			signal.removeEventListener('abort', onDone)
 			resolve()
 		}
-		const timer = setTimeout(onDone, ms)
+		pending.timer = setTimeout(onDone, ms)
 		signal.addEventListener('abort', onDone, { once: true })
 	})
 }

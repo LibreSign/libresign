@@ -10,16 +10,8 @@ import type { VueWrapper } from '@vue/test-utils'
 import { createPinia, setActivePinia } from 'pinia'
 import EnvelopeFilesList from '../../../components/RightSidebar/EnvelopeFilesList.vue'
 import { useFilesStore } from '../../../store/files.js'
-import { FILE_STATUS, ENVELOPE_NAME_MIN_LENGTH, ENVELOPE_NAME_MAX_LENGTH } from '../../../constants.js'
+import { FILE_STATUS, ENVELOPE_NAME_MIN_LENGTH } from '../../../constants.js'
 import type { TranslationFunction, PluralTranslationFunction } from '../../test-types'
-
-const interpolateText = (text: string, vars?: Record<string, unknown>) => {
-	if (!vars) {
-		return text
-	}
-
-	return text.replace(/{(\w+)}/g, (_match: string, key: string) => String(vars[key]))
-}
 
 vi.mock('@nextcloud/axios')
 vi.mock('@nextcloud/l10n', () => globalThis.mockNextcloudL10n())

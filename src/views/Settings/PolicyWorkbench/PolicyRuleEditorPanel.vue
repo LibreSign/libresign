@@ -14,18 +14,22 @@
 			</div>
 
 			<div v-if="editorDraft.scope !== 'system'" class="policy-workbench__field">
-				<label v-if="!hideTargetSelector" class="policy-workbench__label">
+				<label v-if="!hideTargetSelector" :for="targetInputId" class="policy-workbench__label">
 					{{ targetScopeLabel }}
 				</label>
+				<!-- OCS filters by account/group ID as well as display name. Keep its results and keep the dropdown inside the dialog. -->
 				<NcSelectUsers
 					v-if="!hideTargetSelector"
 					:model-value="selectedTargetOptions"
 					:options="availableTargets"
-					:aria-label="targetScopeLabel"
+					:input-id="targetInputId"
+					label-outside
+					:filterable="false"
 					:placeholder="targetScopeSearchPlaceholder"
 					:loading="loadingTargets"
 					:multiple="true"
 					:keep-open="true"
+					:append-to-body="false"
 					:disabled="saveStatus === 'saving'"
 					@search="$emit('search-targets', $event)"
 					@update:modelValue="$emit('update-targets', $event)" />
@@ -107,7 +111,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed } from 'vue'
+import { computed, useId } from 'vue'
 import { t } from '@nextcloud/l10n'
 import type { EffectivePolicyValue } from '../../../types/index'
 
@@ -174,6 +178,8 @@ defineEmits<{
 	(e: 'save'): void
 	(e: 'cancel'): void
 }>()
+
+const targetInputId = useId()
 
 const targetScopeLabel = computed(() => {
 	if (props.editorDraft.scope === 'group') {

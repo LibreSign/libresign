@@ -621,9 +621,9 @@ OC.L10N.register(
     "Remove from CRL" : "從 CRL 移除",
     "Privilege Withdrawn" : "撤銷權力",
     "AA Compromise" : "AA 洩漏",
+    "Failed to load CRL entries" : "載入 CRL 條目失敗",
     "Filters ({count})" : "過濾器 ({count})",
     "Filters" : "過濾",
-    "Failed to load CRL entries" : "載入 CRL 條目失敗",
     "Root Certificate (CA)" : "根憑證 (CA)",
     "Intermediate Certificate (CA)" : "中繼憑證 (CA)",
     "Certificate revoked successfully" : "撤銷憑證成功",
@@ -956,7 +956,6 @@ OC.L10N.register(
     "Invalid id-doc request" : "無效的 id-doc 請求",
     "Notification sent with success." : "通知傳送成功。",
     "From: %s • Date: %s" : "從：%s • 日期：%s",
-    "Failure on generate certificate" : "產生憑證失敗",
     "Cannot read file" : "無法讀取檔案",
     "visible element" : "可見文件",
     "You are not allowed to request signing" : "您無權要求簽署",
@@ -964,7 +963,6 @@ OC.L10N.register(
     "Changes have been made in a file that you have to sign. Access the link below:" : "在您必須簽署的檔案中進行了更改。存取下方連結：",
     "LibreSign: A file has been signed" : "LibreSign：已簽署檔案",
     "Changes have been made in a file that you have to sign." : "一份需要您簽署的檔案進行了多處變更。",
-    "Parameter '%s' should be betweeen %s and %s." : "參數「%s」應於 %s 至 %s 間。",
     "You cannot request signature for this document, please contact your administrator" : "您無法為此文件請求簽署，請聯絡您的管理員",
     "Link expired." : "連結已過期。",
     "LibreSign: Changes into a file for you to sign" : "LibreSign：變更供您簽署的檔案",
@@ -973,7 +971,6 @@ OC.L10N.register(
     "LibreSign: There is a file for you to sign" : "LibreSign：這裡有一個需要您簽署的檔案",
     "View signed file »%s«" : "檢視已簽署的檔案 »%s«",
     "LibreSign: Code to sign file" : "LibreSign：簽署檔案的代碼",
-    "No signature was requested to %s" : "並未要求簽章 %s",
     "Date when the signer sent the request to sign (without time, in their local time zone)." : "簽署人傳送簽署請求的日期（不含時間，以其當地時區為準）。",
     "Date and time when the signer sent the request to sign (in their local time zone)." : "簽署人傳送簽署請求的日期與時間（以其當地時區為準）。",
     "Time zone of signer when sent the request to sign (in their local time zone)." : "簽署人傳送簽署請求的時區（以其當地時區為準）。",
@@ -1067,7 +1064,6 @@ OC.L10N.register(
     "Timestamp Authority (TSA) settings for digitally signing documents." : "數位簽署文件的時間戳認證機構 (TSA)",
     "Make validation URL acessible only by authenticated users" : "讓驗證 URL 僅可由經過身份驗證的使用者存取",
     "{method} is not configured. Please contact your administrator." : "未設定 {method}。請聯絡您的管理員。",
-    "Sign the document." : "簽署文件。",
-    "Failed to remove file(s) from envelope" : "從信封移除檔案失敗"
+    "Sign the document." : "簽署文件。"
 },
 "nplurals=1; plural=0;");

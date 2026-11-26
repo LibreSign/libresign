@@ -195,6 +195,8 @@ const v$ = {
 	}),
 }
 
+const isEqualEmail = computed(() => state.settings.accountHash === md5(email.value))
+
 const emailError = computed(() => {
 	if (email.value) {
 		if (v$.email.$error) {
@@ -222,8 +224,6 @@ const confirmPasswordError = computed(() => {
 	}
 	return ''
 })
-
-const isEqualEmail = computed(() => state.settings.accountHash === md5(email.value))
 
 const canSave = computed(() => {
 	return state.password.length > 0
@@ -255,8 +255,9 @@ async function createAccount() {
 		}
 		const url = router.value.resolve({ name: 'SignPDF' })
 		window.location.href = url.href
-	} catch (error: any) {
-		state.errorMessage = error.response.data.ocs.data.message
+	} catch (error: unknown) {
+		const failure = error as { response?: { data?: { ocs?: { data?: { message?: string } } } } }
+		state.errorMessage = failure.response?.data?.ocs?.data?.message ?? ''
 	}
 	state.loading = false
 }

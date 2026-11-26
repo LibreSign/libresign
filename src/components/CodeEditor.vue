@@ -24,7 +24,6 @@
 </template>
 
 <script setup lang="ts">
-import { t } from '@nextcloud/l10n'
 import { computed } from 'vue'
 import CodeMirror from 'vue-codemirror6'
 import { twig } from '@ssddanbrown/codemirror-lang-twig'

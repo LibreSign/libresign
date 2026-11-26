@@ -14793,5 +14793,10 @@
             }
         }
     },
-    "tags": []
+    "tags": [
+        {
+            "name": "external_signing_integrations",
+            "description": "Administrative OCS boundary for configured external signing integrations. Credentials are write-only. No provider communication or signing occurs here."
+        }
+    ]
 }

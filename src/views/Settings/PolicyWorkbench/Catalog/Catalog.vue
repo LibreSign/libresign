@@ -90,6 +90,7 @@
 		<NcDialog
 			v-if="state.activeDefinition"
 			:name="state.activeDefinition.title"
+			:additional-trap-elements="ruleDialogTrapElements"
 			size="full"
 			@closing="requestCloseSetting()">
 			<CatalogSettingDialogFrame
@@ -160,6 +161,7 @@
 
 		<NcDialog
 			v-if="showCreateScopeDialog || state.editorDraft"
+			:id="ruleDialogId"
 			:key="ruleDialogInstanceKey"
 			:name="ruleDialogTitle"
 			:size="ruleEditorDialogSize"
@@ -233,7 +235,7 @@ import {
 	mdiFilterVariant,
 	mdiPlus,
 } from '@mdi/js'
-import { computed, nextTick, onBeforeUnmount, onMounted, reactive, ref, watch } from 'vue'
+import { computed, nextTick, onBeforeUnmount, onMounted, reactive, ref, shallowRef, useId, watch, watchPostEffect } from 'vue'
 import { t } from '@nextcloud/l10n'
 
 import NcButton from '@nextcloud/vue/components/NcButton'
@@ -289,6 +291,19 @@ const pendingDiscardAction = ref<PendingDiscardActionKey | null>(null)
 const showCreateScopeDialog = ref(false)
 const selectedCreateScope = ref<CreateRuleScope | null>(null)
 const ruleDialogInstanceKey = ref(0)
+const ruleDialogIdPrefix = useId()
+const ruleDialogId = computed(() => `policy-rule-${ruleDialogIdPrefix}-${ruleDialogInstanceKey.value}`)
+// NcModal resolves selector strings when its focus-trap containers are updated,
+// before a newly opened or remounted rule dialog may exist in the DOM.
+// Register the actual element after Vue has patched the DOM. This keeps focus
+// inside the nested dialog until its own trap activates after the enter transition.
+const ruleDialogTrapElements = shallowRef<HTMLElement[]>([])
+watchPostEffect(() => {
+	const element = showCreateScopeDialog.value || state.editorDraft
+		? document.getElementById(ruleDialogId.value)
+		: null
+	ruleDialogTrapElements.value = element ? [element] : []
+})
 const isRemovingRule = ref(false)
 const removalFeedback = ref<string | null>(null)
 const removalFeedbackTimeout = ref<number | null>(null)
@@ -434,7 +449,6 @@ const selectedTargetOptions = computed(() => {
 
 const {
 	scopeCreateDisabledReason,
-	allowedCreateScopes,
 	hasCreatableScope,
 	createRuleDisabledReason,
 	createScopeOptions,

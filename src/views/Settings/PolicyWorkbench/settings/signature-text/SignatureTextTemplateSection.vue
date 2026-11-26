@@ -109,7 +109,7 @@ import CodeEditor from '../../../../../components/CodeEditor.vue'
 
 type DisplayMode = 'default' | 'graphic' | 'text' | 'description_only'
 
-const props = defineProps<{
+defineProps<{
 	id: string
 	renderMode: DisplayMode
 	template: string

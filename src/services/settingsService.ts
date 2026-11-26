@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
 
-import axios, { type AxiosResponse } from '@nextcloud/axios'
+import axios from '@nextcloud/axios'
 import { generateUrl } from '@nextcloud/router'
 
 interface SettingsData {

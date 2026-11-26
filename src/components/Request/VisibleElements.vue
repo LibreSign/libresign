@@ -261,16 +261,6 @@ function normalizeVisibleElementList(elements: unknown): VisibleElementRecord[] 
 		.filter((element): element is VisibleElementRecord => element !== null)
 }
 
-function isPdfObject(value: unknown): value is PdfObject {
-	const candidate = toRecord(value)
-	return candidate !== null
-		&& typeof candidate.pageNumber === 'number'
-		&& typeof candidate.x === 'number'
-		&& typeof candidate.y === 'number'
-		&& typeof candidate.width === 'number'
-		&& typeof candidate.height === 'number'
-}
-
 function toRecord(value: unknown): Record<string, unknown> | null {
 	return typeof value === 'object' && value !== null ? value as Record<string, unknown> : null
 }

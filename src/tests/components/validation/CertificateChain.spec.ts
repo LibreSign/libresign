@@ -39,7 +39,7 @@ vi.mock('@nextcloud/l10n', () => globalThis.mockNextcloudL10n())
 vi.mock('@nextcloud/moment', () => ({
 	default: {
 		unix: vi.fn((timestamp) => ({
-			format: vi.fn((fmt) => `Formatted: ${timestamp}`),
+			format: vi.fn(() => `Formatted: ${timestamp}`),
 		})),
 	},
 }))

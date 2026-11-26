@@ -6,7 +6,7 @@
 import { describe, expect, it, beforeEach, vi } from 'vitest'
 import { setActivePinia, createPinia } from 'pinia'
 import { useSignStore } from '../../store/sign.js'
-import { FILE_STATUS, SIGN_REQUEST_STATUS } from '../../constants.js'
+import { FILE_STATUS } from '../../constants.js'
 
 type SignStore = ReturnType<typeof useSignStore>
 type SignDocument = NonNullable<SignStore['document']>

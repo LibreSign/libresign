@@ -7,7 +7,6 @@ import { describe, expect, it, beforeEach, vi, afterEach } from 'vitest'
 import { mount } from '@vue/test-utils'
 import { setActivePinia, createPinia } from 'pinia'
 import Draw from '../../../components/Draw/Draw.vue'
-import { useSignatureElementsStore } from '../../../store/signatureElements.js'
 
 type MountGlobalOptions = NonNullable<Parameters<typeof mount>[1]>['global']
 

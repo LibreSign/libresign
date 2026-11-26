@@ -151,7 +151,6 @@ import { selectCustonOption } from '../../helpers/certification'
 import NcSettingsSection from '@nextcloud/vue/components/NcSettingsSection'
 import NcNoteCard from '@nextcloud/vue/components/NcNoteCard'
 import NcChip from '@nextcloud/vue/components/NcChip'
-import NcIconSvgWrapper from '@nextcloud/vue/components/NcIconSvgWrapper'
 import {
 	mdiAlertCircleOutline,
 	mdiCancel,

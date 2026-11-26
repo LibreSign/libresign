@@ -577,9 +577,9 @@ OC.L10N.register(
     "Remove from CRL" : "Retirar da CRL",
     "Privilege Withdrawn" : "Privilexio retirado",
     "AA Compromise" : "Compromiso da AA",
+    "Failed to load CRL entries" : "Produciuse un fallo ao cargar as entradas da CRL",
     "Filters ({count})" : "Filtros ({count})",
     "Filters" : "Filtros",
-    "Failed to load CRL entries" : "Produciuse un fallo ao cargar as entradas da CRL",
     "Root Certificate (CA)" : "Certificado raíz (AC)",
     "Intermediate Certificate (CA)" : "Certificado intermedio (AC)",
     "Certificate revoked successfully" : "O certificado foi revogado satisfactoriamente",
@@ -910,7 +910,6 @@ OC.L10N.register(
     "Invalid id-doc request" : "Solicitude de ID do documento incorrecta",
     "Notification sent with success." : "A notificación foi enviada satisfactoriamente",
     "From: %s • Date: %s" : "De: %s • Data: %s",
-    "Failure on generate certificate" : "Produciuse un fallo ao xerar o certificado",
     "Cannot read file" : "Non é posíbel ler o ficheiro",
     "visible element" : "elemento visíbel",
     "You are not allowed to request signing" : "Vde. non ten permiso para solicitar a sinatura",
@@ -918,7 +917,6 @@ OC.L10N.register(
     "Changes have been made in a file that you have to sign. Access the link below:" : "Fixéronse cambios nun ficheiro que ten que asinar. Acceda á seguinte ligazón:",
     "LibreSign: A file has been signed" : "LibreSign: Foi asinado un ficheiro",
     "Changes have been made in a file that you have to sign." : "Fixéronse cambios nun ficheiro que ten que asinar.",
-    "Parameter '%s' should be betweeen %s and %s." : "O parámetro «%s» debe estar entre %s e %s.",
     "You cannot request signature for this document, please contact your administrator" : "Non pode solicitar a sinatura deste documento, póñase en contacto coa administración desta instancia",
     "Link expired." : "A ligazón caducou.",
     "LibreSign: Changes into a file for you to sign" : "LibreSign: cambios nun ficheiro que ten que asinar",
@@ -927,7 +925,6 @@ OC.L10N.register(
     "LibreSign: There is a file for you to sign" : "LibreSign: hai un ficheiro que ten que asinar",
     "View signed file »%s«" : "Ver o ficheiro asinado «%s»",
     "LibreSign: Code to sign file" : "LibreSign: código para asinar o ficheiro",
-    "No signature was requested to %s" : "Non foi solicitada ningunha sinatura para %s",
     "Date when the signer sent the request to sign (without time, in their local time zone)." : "Data na que o asinante enviou a solicitude para asinar (sen hora, no seu fuso horario local).",
     "Date and time when the signer sent the request to sign (in their local time zone)." : "Data e hora na que o asinante enviou a solicitude para asinar (no seu fuso horario local).",
     "Time zone of signer when sent the request to sign (in their local time zone)." : "Fuso horario do asinante cando enviou a solicitude para asinar (no seu fuso horario local).",
@@ -1020,7 +1017,6 @@ OC.L10N.register(
     "Timestamp Authority (TSA) settings for digitally signing documents." : "Configuración da Autoridade de Datado Dixital (TSA polas siglas en inglés) para a sinatura dixital de documentos.",
     "Make validation URL acessible only by authenticated users" : "Facer que o URL de validación só sexa accesíbel aos usuarios autenticados",
     "{method} is not configured. Please contact your administrator." : "{method} non está configurado. Póñase en contacto coa administración do sitio.",
-    "Sign the document." : "Asinar o documento.",
-    "Failed to remove file(s) from envelope" : "Produciuse un fallo ao eliminar ficheiro(s) do sobre"
+    "Sign the document." : "Asinar o documento."
 },
 "nplurals=2; plural=(n != 1);");

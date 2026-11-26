@@ -54,7 +54,7 @@ type SignerVm = {
 
 type SignerWrapper = VueWrapper<SignerVm>
 
-const { t, n } = vi.hoisted(() => {
+const { t } = vi.hoisted(() => {
 	const t: TranslationFunction = (_app, text, vars) => {
 		if (vars) {
 			return text.replace(/{(\w+)}/g, (_m, key) => String(vars[key]))

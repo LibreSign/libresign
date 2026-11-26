@@ -893,7 +893,7 @@ describe('PdfEditor Component - Business Rules', () => {
 				pdfDocuments: [],
 			})
 
-			const result = await wrapper.vm.waitForPageRender?.(1, 0)
+			await wrapper.vm.waitForPageRender?.(1, 0)
 		})
 
 		it('resolves immediately when pdfElements is null', async () => {

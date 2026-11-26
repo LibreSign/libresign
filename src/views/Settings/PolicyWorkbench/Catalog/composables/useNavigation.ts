@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
 
-import { computed, nextTick, onBeforeUnmount, ref, watch } from 'vue'
+import { computed, onBeforeUnmount, ref, watch } from 'vue'
 import type { RealPolicySettingCategory } from '../../settings/realTypes'
 
 const BACK_TO_TOP_VISIBLE_AT_PX = 420

@@ -363,7 +363,18 @@ type ReasonOption = {
 	label: string
 }
 
-type CrlEntry = Record<string, any>
+type CrlEntry = {
+	serial_number: string
+	owner: string
+	certificate_type: string
+	status: string
+	engine: string
+	issued_at: string
+	valid_to: string | null
+	revoked_at: string | null
+	reason_code: number | null
+	comment: string | null
+}
 
 defineOptions({
 	name: 'CrlManagement',
@@ -450,14 +461,6 @@ const reasonCodeOptions: ReasonOption[] = [
 ]
 
 const hasActiveFilters = computed(() => !!(filters.serialNumber || filters.status || filters.owner))
-const filterActionLabel = computed(() => {
-	if (hasActiveFilters.value) {
-		// TRANSLATORS {count} is the number of active filters on the certificate revocation list.
-		return t('libresign', 'Filters ({count})', { count: activeFilterCount.value })
-	}
-	// TRANSLATORS Accessibility label for the button opening certificate revocation list filters.
-	return t('libresign', 'Filters')
-})
 const activeFilterCount = computed(() => {
 	let count = 0
 	if (filters.serialNumber) {
@@ -484,7 +487,7 @@ async function loadEntries(append = false) {
 	}
 
 	try {
-		const params: Record<string, any> = {
+		const params: Record<string, string | number | null> = {
 			page: page.value,
 			length: length.value,
 		}
@@ -518,8 +521,9 @@ async function loadEntries(append = false) {
 
 		total.value = data.total
 		hasMore.value = entries.value.length < total.value
-	} catch (error: any) {
-		logger.error('Failed to load CRL entries', { error, response: error.response })
+	} catch (error: unknown) {
+		const failure = error as { response?: { data?: { ocs?: { data?: { message?: string } } } } }
+		logger.error('Failed to load CRL entries', { error, response: failure.response })
 		// TRANSLATORS Error shown when CRL records cannot be fetched from server.
 		showError(t('libresign', 'Failed to load CRL entries'))
 	} finally {
@@ -527,6 +531,15 @@ async function loadEntries(append = false) {
 		loadingMore.value = false
 	}
 }
+
+const filterActionLabel = computed(() => {
+	if (hasActiveFilters.value) {
+		// TRANSLATORS {count} is the number of active filters on the certificate revocation list.
+		return t('libresign', 'Filters ({count})', { count: activeFilterCount.value })
+	}
+	// TRANSLATORS Accessibility label for the button opening certificate revocation list filters.
+	return t('libresign', 'Filters')
+})
 
 function onFilterChange() {
 	clearTimeout(filterTimeout)
@@ -588,7 +601,10 @@ function getReasonText(reasonCode: number | null | undefined) {
 	return reasonCodes[reasonCode] || t('libresign', 'Unknown')
 }
 
-function getCertificateTypeLabel(type: string) {
+function getCertificateTypeLabel(type: string | undefined) {
+	if (!type) {
+		return ''
+	}
 	const labels: Record<string, string> = {
 		root: t('libresign', 'Root Certificate (CA)'),
 		intermediate: t('libresign', 'Intermediate Certificate (CA)'),
@@ -689,10 +705,11 @@ async function confirmRevoke() {
 			// TRANSLATORS Error fallback shown when server does not provide a specific revoke failure reason.
 			showError(response.data.ocs.data.message || t('libresign', 'Failed to revoke certificate'))
 		}
-	} catch (error: any) {
+	} catch (error: unknown) {
 		logger.error('Failed to revoke certificate', { error })
 		// TRANSLATORS Error fallback shown when revocation request fails unexpectedly.
-		const message = error.response?.data?.ocs?.data?.message || t('libresign', 'An error occurred while revoking the certificate')
+		const failure = error as { response?: { data?: { ocs?: { data?: { message?: string } } } } }
+		const message = failure.response?.data?.ocs?.data?.message || t('libresign', 'An error occurred while revoking the certificate')
 		showError(message)
 	} finally {
 		revokeDialog.loading = false

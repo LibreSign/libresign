@@ -18,21 +18,21 @@ use OCA\Libresign\Service\SignatureBackgroundService;
 use OCA\Libresign\Service\SignatureStampPreview\SignatureStampAppearanceBuilder;
 use OCA\Libresign\Service\SignatureTextService;
 use OCA\Libresign\Service\SignerElementsService;
+use OCA\Libresign\Vendor\SignerPHP\PdfSigner\Application\DTO\CertificateCredentialsDto;
+use OCA\Libresign\Vendor\SignerPHP\PdfSigner\Application\DTO\CertificationLevel;
+use OCA\Libresign\Vendor\SignerPHP\PdfSigner\Application\DTO\PdfContentDto;
+use OCA\Libresign\Vendor\SignerPHP\PdfSigner\Application\DTO\SignatureActorDto;
+use OCA\Libresign\Vendor\SignerPHP\PdfSigner\Application\DTO\SignatureAppearanceDto;
+use OCA\Libresign\Vendor\SignerPHP\PdfSigner\Application\DTO\SignatureAppearanceXObjectDto;
+use OCA\Libresign\Vendor\SignerPHP\PdfSigner\Application\DTO\SignatureMetadataDto;
+use OCA\Libresign\Vendor\SignerPHP\PdfSigner\Application\DTO\SigningOptionsDto;
+use OCA\Libresign\Vendor\SignerPHP\PdfSigner\Application\DTO\SignPdfRequestDto;
+use OCA\Libresign\Vendor\SignerPHP\PdfSigner\Application\DTO\TimestampOptionsDto;
+use OCA\Libresign\Vendor\SignerPHP\PdfSigner\Application\Service\PdfSigningService;
+use OCA\Libresign\Vendor\SignerPHP\PdfSigner\Infrastructure\Legacy\OpenSslCertificateValidator;
+use OCA\Libresign\Vendor\SignerPHP\PdfSigner\Infrastructure\Native\NativePdfSigningEngine;
 use OCP\Files\File;
 use OCP\IAppConfig;
-use SignerPHP\PdfSigner\Application\DTO\CertificateCredentialsDto;
-use SignerPHP\PdfSigner\Application\DTO\CertificationLevel;
-use SignerPHP\PdfSigner\Application\DTO\PdfContentDto;
-use SignerPHP\PdfSigner\Application\DTO\SignatureActorDto;
-use SignerPHP\PdfSigner\Application\DTO\SignatureAppearanceDto;
-use SignerPHP\PdfSigner\Application\DTO\SignatureAppearanceXObjectDto;
-use SignerPHP\PdfSigner\Application\DTO\SignatureMetadataDto;
-use SignerPHP\PdfSigner\Application\DTO\SigningOptionsDto;
-use SignerPHP\PdfSigner\Application\DTO\SignPdfRequestDto;
-use SignerPHP\PdfSigner\Application\DTO\TimestampOptionsDto;
-use SignerPHP\PdfSigner\Application\Service\PdfSigningService;
-use SignerPHP\PdfSigner\Infrastructure\Legacy\OpenSslCertificateValidator;
-use SignerPHP\PdfSigner\Infrastructure\Native\NativePdfSigningEngine;
 
 class PhpNativeHandler extends Pkcs12Handler {
 	public function __construct(
@@ -278,14 +278,4 @@ class PhpNativeHandler extends Pkcs12Handler {
 		);
 	}
 
-	/**
-	 * @return string[]
-	 */
-	private function wrapTextForPdf(string $line, float $availableWidth, float $fontSize): array {
-		return $this->signatureStampAppearanceBuilder->wrapTextForPdf($line, $availableWidth, $fontSize);
-	}
-
-	private function escapePdfText(string $value): string {
-		return $this->signatureStampAppearanceBuilder->escapePdfText($value);
-	}
 }

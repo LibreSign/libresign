@@ -28,7 +28,7 @@ export const useFiltersStore = defineStore('filter', () => {
 	const filterStatusArray = computed(() => {
 		try {
 			return filter_status.value !== '' ? JSON.parse(filter_status.value) : []
-		} catch (e) {
+		} catch {
 			return []
 		}
 	})
