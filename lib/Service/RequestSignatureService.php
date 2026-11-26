@@ -8,8 +8,6 @@ declare(strict_types=1);
 
 namespace OCA\Libresign\Service;
 
-use OCA\Libresign\Service\Signing\RequestedSigningMethod;
-
 use OCA\Libresign\Db\File as FileEntity;
 use OCA\Libresign\Db\FileElementMapper;
 use OCA\Libresign\Db\FileMapper;
@@ -29,6 +27,7 @@ use OCA\Libresign\Service\File\Pdf\PdfMetadataExtractor;
 use OCA\Libresign\Service\IdentifyMethod\IIdentifyMethod;
 use OCA\Libresign\Service\Policy\FilePolicyApplier;
 use OCA\Libresign\Service\SignerGeolocation\SignerGeolocationPolicyService;
+use OCA\Libresign\Service\Signing\RequestedSigningMethod;
 use OCA\Libresign\Service\SignRequest\SignRequestService;
 use OCA\Libresign\Service\Validation\FileInputValidator;
 use OCA\Libresign\Service\Validation\SignerValidator;
@@ -663,7 +662,7 @@ class RequestSignatureService {
 								$metadata = $signRequest->getMetadata() ?? [];
 								$metadata[RequestedSigningMethod::METADATA_KEY] = $requesterSigningMethod->value;
 								$signRequest->setMetadata($metadata);
-							$this->signRequestMapper->update($signRequest);
+								$this->signRequestMapper->update($signRequest);
 							}
 
 							$requiresGeolocation = $requesterRequiresGeolocation;

@@ -3381,6 +3381,14 @@
                     "deviceGeolocationRequirement": {
                         "$ref": "#/components/schemas/GeolocationRequirement"
                     },
+                    "signingMethodRequirement": {
+                        "type": "string",
+                        "enum": [
+                            "libresign",
+                            "external_certificate",
+                            "signer_choice"
+                        ]
+                    },
                     "geolocation": {
                         "$ref": "#/components/schemas/SignerGeolocation"
                     },

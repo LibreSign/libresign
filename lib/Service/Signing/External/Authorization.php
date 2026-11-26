@@ -8,13 +8,12 @@ declare(strict_types=1);
 
 namespace OCA\Libresign\Service\Signing\External;
 
-use OCA\Libresign\Service\Signing\RequestedSigningMethod;
-
 use OCA\Libresign\Db\FileMapper;
 use OCA\Libresign\Db\SignRequestMapper;
 use OCA\Libresign\Exception\ExternalSigningAccessDeniedException;
 use OCA\Libresign\Service\ExperimentalFeaturesService;
 use OCA\Libresign\Service\IdentifyMethodService;
+use OCA\Libresign\Service\Signing\RequestedSigningMethod;
 use OCA\Libresign\Service\Validation\SignerValidator;
 use OCA\Libresign\Service\Validation\SigningRequestValidator;
 use OCP\IUser;

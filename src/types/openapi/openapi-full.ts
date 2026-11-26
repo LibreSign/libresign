@@ -2609,6 +2609,8 @@ export type components = {
             "remote-address"?: string;
             "user-agent"?: string;
             deviceGeolocationRequirement?: components["schemas"]["GeolocationRequirement"];
+            /** @enum {string} */
+            signingMethodRequirement?: "libresign" | "external_certificate" | "signer_choice";
             geolocation?: components["schemas"]["SignerGeolocation"];
             notify?: components["schemas"]["Notify"][];
             certificate_info?: components["schemas"]["SignerCertificateInfo"];

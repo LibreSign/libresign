@@ -8,8 +8,6 @@ declare(strict_types=1);
 
 namespace OCA\Libresign\Service;
 
-use OCA\Libresign\Service\Signing\RequestedSigningMethod;
-
 use DateTime;
 use DateTimeInterface;
 use Exception;
@@ -53,6 +51,7 @@ use OCA\Libresign\Service\Policy\Provider\CollectMetadata\CollectMetadataPolicy;
 use OCA\Libresign\Service\Policy\Provider\DocMdp\DocMdpPolicy;
 use OCA\Libresign\Service\Policy\Provider\Footer\FooterPolicy;
 use OCA\Libresign\Service\Policy\Provider\Footer\FooterPolicyValue;
+use OCA\Libresign\Service\Signing\RequestedSigningMethod;
 use OCA\Libresign\Service\SignRequest\SignRequestService;
 use OCA\Libresign\Service\SignRequest\StatusService;
 use OCA\Libresign\Service\Validation\IdentityDocumentValidator;
