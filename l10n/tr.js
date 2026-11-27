@@ -95,6 +95,7 @@ OC.L10N.register(
     "Multiple DocMDP signatures detected. The first certifying signature determines the document's permission level." : "Birden fazla DocMDP imzası bulundu. İlk onay imzası belgenin izin düzeyini belirler.",
     "Document has not been modified after signing" : "Belge imzalandıktan sonra değiştirilmemiş",
     "Document was modified after signing" : "Belge imzalandıktan sonra değiştirilmiş",
+    "Only validation data or document timestamps were added after signing (allowed by DocMDP)" : "İmzadan sonra yalnızca doğrulama verileri veya belge zaman damgaları eklendi (DocMDP tarafından izin verilen)",
     "Invalid: Document was modified after signing (DocMDP violation)" : "Geçersiz: Belge imzalandıktan sonra değiştirilmiş (DocMDP aykırılığı)",
     "Invalid: Document was modified after signing (DocMDP violation - no changes allowed)" : "Geçersiz: Belge imzalandıktan sonra değiştirilmiş (DocMDP aykırılığı - değişikliklere izin verilmiyor)",
     "Document form fields were modified (allowed by DocMDP P=2)" : "Belge form alanları değiştirilmiş (DocMDP P=2 tarafından izin veriliyor)",
