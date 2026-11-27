@@ -29,7 +29,7 @@ jobs:
     steps:
       - id: stable
         name: Resolve stable release line
-        uses: LibreCodeCoop/release-tool/actions/stable-select@51355769089a6796c23d6c966108afbdaf858c32 # v0.12.0
+        uses: LibreCodeCoop/release-tool/actions/stable-select@63ceba979644c97b7781f3e7b4496c68d0ebddb3 # v0.12.1
         with:
           github-token: ${{ github.token }}
 
