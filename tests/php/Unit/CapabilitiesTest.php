@@ -14,6 +14,7 @@ use OCA\Libresign\Service\Envelope\EnvelopeService;
 use OCA\Libresign\Service\Policy\Model\ResolvedPolicy;
 use OCA\Libresign\Service\Policy\PolicyService;
 use OCA\Libresign\Service\Policy\Provider\Confetti\ConfettiPolicy;
+use OCA\Libresign\Service\Policy\Provider\DrawInkColor\DrawInkColorPolicy;
 use OCA\Libresign\Service\SignatureTextService;
 use OCA\Libresign\Service\SignerElementsService;
 use OCP\App\IAppManager;
@@ -49,14 +50,20 @@ final class CapabilitiesTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		return $this->capabilities;
 	}
 
+	private function mockResolvedPolicies(bool $showConfetti = true, string $drawInkColor = '#000000'): void {
+		$values = [
+			ConfettiPolicy::KEY => $showConfetti,
+			DrawInkColorPolicy::KEY => $drawInkColor,
+		];
+		$this->policyService->method('resolve')
+			->willReturnCallback(fn (string $key): ResolvedPolicy => (new ResolvedPolicy())
+				->setPolicyKey($key)
+				->setEffectiveValue($values[$key]));
+	}
+
 	#[DataProvider('providerSignElementsIsAvailable')]
 	public function testSignElementsIsAvailable($isEnabled, $expected): void {
-		$resolved = (new ResolvedPolicy())
-			->setPolicyKey(ConfettiPolicy::KEY)
-			->setEffectiveValue(true);
-		$this->policyService->method('resolve')
-			->with(ConfettiPolicy::KEY)
-			->willReturn($resolved);
+		$this->mockResolvedPolicies();
 		$this->signerElementsService->method('isSignElementsAvailable')->willReturn($isEnabled);
 		$capabilities = $this->getClass()->getCapabilities();
 		$this->assertEquals($expected, $capabilities['libresign']['config']['sign-elements']['is-available']);
@@ -71,12 +78,7 @@ final class CapabilitiesTest extends \OCA\Libresign\Tests\Unit\TestCase {
 
 	#[DataProvider('providerShowConfetti')]
 	public function testShowConfetti(bool $configValue, bool $expected): void {
-		$resolved = (new ResolvedPolicy())
-			->setPolicyKey(ConfettiPolicy::KEY)
-			->setEffectiveValue($configValue);
-		$this->policyService->method('resolve')
-			->with(ConfettiPolicy::KEY)
-			->willReturn($resolved);
+		$this->mockResolvedPolicies(showConfetti: $configValue);
 		$capabilities = $this->getClass()->getCapabilities();
 		$this->assertEquals($expected, $capabilities['libresign']['config']['show-confetti']);
 	}
@@ -86,5 +88,11 @@ final class CapabilitiesTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			[true, true],
 			[false, false],
 		];
+	}
+
+	public function testDrawInkColor(): void {
+		$this->mockResolvedPolicies(drawInkColor: '#1f2a5a');
+		$capabilities = $this->getClass()->getCapabilities();
+		$this->assertSame('#1f2a5a', $capabilities['libresign']['config']['sign-elements']['draw-ink-color']);
 	}
 }

@@ -207,7 +207,8 @@
                                     "full-signature-width",
                                     "full-signature-height",
                                     "signature-width",
-                                    "signature-height"
+                                    "signature-height",
+                                    "draw-ink-color"
                                 ],
                                 "properties": {
                                     "is-available": {
@@ -231,6 +232,9 @@
                                     "signature-height": {
                                         "type": "number",
                                         "format": "double"
+                                    },
+                                    "draw-ink-color": {
+                                        "type": "string"
                                     }
                                 }
                             },

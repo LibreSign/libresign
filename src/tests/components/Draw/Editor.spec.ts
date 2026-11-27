@@ -107,6 +107,36 @@ describe('Editor.vue - Drawing Signature Editor', () => {
 		expect(wrapper.vm.color).toBe('#000000')
 	})
 
+	it('starts with the ink color configured by the administrator', async () => {
+		const { getCapabilities } = await import('@nextcloud/capabilities')
+		vi.mocked(getCapabilities).mockReturnValueOnce({
+			libresign: {
+				config: {
+					'sign-elements': {
+						'signature-width': 700,
+						'signature-height': 200,
+						'draw-ink-color': '#1f2a5a',
+					},
+				},
+			},
+		})
+		vi.resetModules()
+		const { default: FreshEditor } = await import('../../../components/Draw/Editor.vue')
+		const { default: FreshSignaturePad } = await import('signature_pad')
+		const wrapper = mount(FreshEditor, {
+			global: {
+				mocks: {
+					t,
+				},
+			},
+		})
+		await wrapper.vm.$nextTick()
+		await wrapper.vm.$nextTick()
+
+		expect(wrapper.vm.color).toBe('#1f2a5a')
+		expect(FreshSignaturePad).toHaveBeenCalledWith(expect.anything(), { penColor: '#1f2a5a' })
+	})
+
 	it('has predefined color palette', () => {
 		const wrapper = mount(Editor, {
 			global: {
