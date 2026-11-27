@@ -65,7 +65,7 @@ export function useCatalogState() {
 	}
 
 	function syncCatalogCollapsedFromSections() {
-		const allCollapsed = CATEGORY_ORDER.every(cat => categoryCollapsedState.value[cat])
+		const allCollapsed = CATEGORY_ORDER.every((cat) => categoryCollapsedState.value[cat])
 		if (allCollapsed !== isCatalogCollapsed.value) {
 			isCatalogCollapsed.value = allCollapsed
 			void userConfigStore.update(CATALOG_COLLAPSED_CONFIG_KEY, allCollapsed)

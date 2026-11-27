@@ -221,8 +221,8 @@ describe('FilesList.vue rendering rules', () => {
 
 		// FileListFilters must appear before the grid button in the DOM
 		const children = Array.from(header.element.children)
-		const filterIndex = children.findIndex(el => el.classList.contains('file-list-filters-stub'))
-		const gridIndex = children.findIndex(el => el.classList.contains('files-list__header-grid-button'))
+		const filterIndex = children.findIndex((el) => el.classList.contains('file-list-filters-stub'))
+		const gridIndex = children.findIndex((el) => el.classList.contains('files-list__header-grid-button'))
 		expect(filterIndex).toBeLessThan(gridIndex)
 	})
 

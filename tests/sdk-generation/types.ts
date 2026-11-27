@@ -9,9 +9,15 @@ const file2: NewFile = { nodeId: '9007199254740993' }
 // @ts-expect-error nodeId is not a boolean
 const badFile: NewFile = { nodeId: true }
 const signer: SignerDetail = {
-  signRequestId: 1, displayName: 'Example', signed: null,
-  displayStatus: 'signed', statusText: 'signed', description: null,
-  request_sign_date: '2026-01-01', me: true, visibleElements: [],
+  signRequestId: 1,
+  displayName: 'Example',
+  signed: null,
+  displayStatus: 'signed',
+  statusText: 'signed',
+  description: null,
+  request_sign_date: '2026-01-01',
+  me: true,
+  visibleElements: [],
 }
 // @ts-expect-error allOf requires inherited fields
 const badSigner: SignerDetail = { me: true, visibleElements: [] }

@@ -63,7 +63,7 @@ describe('Document Validation Flow Business Logic', () => {
 				],
 			}
 
-			const isValid = document.signatures.every(s => s.verified)
+			const isValid = document.signatures.every((s) => s.verified)
 			expect(isValid).toBe(true)
 		})
 
@@ -75,7 +75,7 @@ describe('Document Validation Flow Business Logic', () => {
 				],
 			}
 
-			const isValid = document.signatures.every(s => s.verified)
+			const isValid = document.signatures.every((s) => s.verified)
 			expect(isValid).toBe(false)
 		})
 
@@ -131,7 +131,7 @@ describe('Document Validation Flow Business Logic', () => {
 			const requiredSigners = ['alice', 'bob', 'charlie']
 			const actualSigners = ['alice', 'bob', 'charlie']
 
-			const allSigned = requiredSigners.every(req => actualSigners.includes(req))
+			const allSigned = requiredSigners.every((req) => actualSigners.includes(req))
 			expect(allSigned).toBe(true)
 		})
 
@@ -139,7 +139,7 @@ describe('Document Validation Flow Business Logic', () => {
 			const requiredSigners = ['alice', 'bob', 'charlie']
 			const actualSigners = ['alice', 'bob']
 
-			const allSigned = requiredSigners.every(req => actualSigners.includes(req))
+			const allSigned = requiredSigners.every((req) => actualSigners.includes(req))
 			expect(allSigned).toBe(false)
 		})
 

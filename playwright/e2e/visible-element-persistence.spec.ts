@@ -77,8 +77,7 @@ test('visible signature element persists and can be deleted', async ({ page }) =
 	await page.getByRole('textbox', { name: 'Signer name' }).fill('Admin Name')
 
 	// Save the signer first, then open the signature positions modal
-	const createRequestResponsePromise = page.waitForResponse(response =>
-		response.url().includes('/apps/libresign/api/v1/request-signature')
+	const createRequestResponsePromise = page.waitForResponse((response) => response.url().includes('/apps/libresign/api/v1/request-signature')
 		&& ['POST', 'PATCH'].includes(response.request().method()))
 	await page.getByRole('button', { name: 'Save' }).click()
 	const createRequestResponse = await createRequestResponsePromise

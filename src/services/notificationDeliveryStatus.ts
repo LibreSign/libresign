@@ -35,7 +35,7 @@ const SUBMIT_URL = '/apps/libresign/api/v1/notify/signer'
 
 export function newNotificationRequestId(): string {
 	const bytes = globalThis.crypto.getRandomValues(new Uint8Array(16))
-	return Array.from(bytes, byte => byte.toString(16).padStart(2, '0')).join('')
+	return Array.from(bytes, (byte) => byte.toString(16).padStart(2, '0')).join('')
 }
 
 export async function fetchNotificationStatus(query: NotificationStatusQuery, signal?: AbortSignal): Promise<NotificationStatus> {
@@ -54,7 +54,7 @@ function sleepUnlessCanceled(ms: number, signal: AbortSignal): Promise<void> {
 	if (signal.aborted) {
 		return Promise.resolve()
 	}
-	return new Promise(resolve => {
+	return new Promise((resolve) => {
 		const pending: { timer?: ReturnType<typeof setTimeout> } = {}
 		const onDone = () => {
 			clearTimeout(pending.timer)

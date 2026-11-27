@@ -219,7 +219,7 @@ export function buildFooterTemplateSourceOptions(
 
 	if (hasInheritedTemplate) {
 		const serializedInherited = toSerializedPolicyValue(inheritedConfig)
-		if (!options.some(option => option.policyValue === serializedInherited)) {
+		if (!options.some((option) => option.policyValue === serializedInherited)) {
 			options.push({
 				value: 'inherited',
 				label: labels.defaultTemplate,
@@ -242,6 +242,6 @@ export function resolveFooterPolicyPayloadForRequest(
 		return null
 	}
 
-	const selectedOption = options.find(option => option.value === selectedSource)
+	const selectedOption = options.find((option) => option.value === selectedSource)
 	return selectedOption?.policyValue ?? null
 }

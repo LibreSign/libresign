@@ -56,8 +56,7 @@ export const signatureRejectionRealDefinition: RealPolicySettingDefinition = {
 		return DEFAULT_SIGNATURE_REJECTION.enabled
 	},
 	summarizeValue: (value: EffectivePolicyValue) => summarizeSignatureRejectionDraftValue(value, t),
-	formatAllowOverride: (allowChildOverride: boolean) =>
-		allowChildOverride
+	formatAllowOverride: (allowChildOverride: boolean) => allowChildOverride
 			// TRANSLATORS Policy inheritance message indicating group and account levels may define their own signature rejection rule.
 			? t('libresign', 'Groups and accounts can set their own rule')
 			// TRANSLATORS Policy inheritance message indicating child scopes must use this signature rejection rule.

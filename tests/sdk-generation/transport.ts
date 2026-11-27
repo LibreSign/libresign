@@ -11,7 +11,7 @@ async function run() {
   let last!: InternalAxiosRequestConfig
   let status = 200
   let body: unknown = { ocs: { meta: { status: 'ok', statuscode: 200 }, data: { account: { uid: 'test', emailAddress: 'test@example.test', displayName: 'Test' }, settings: { canRequestSign: true, hasSignatureFile: false, phoneNumber: '' } } } }
-  const adapter: AxiosAdapter = async config => {
+  const adapter: AxiosAdapter = async (config) => {
     last = config
     const response = { data: body, status, statusText: String(status), headers: {}, config }
     if (config.validateStatus && !config.validateStatus(status)) {
@@ -107,7 +107,7 @@ async function run() {
   assert.equal(supplied.getUri(last), 'https://instance.test/installed/index.php/apps/libresign/certificate-policy.pdf')
   console.log('PASS: generated transport, root/subdirectory paths, independent basic/bearer auth, baseURL precedence, JSON, binary options and HTTP errors')
 }
-run().catch(error => {
+run().catch((error) => {
 	console.error(error)
 	process.exitCode = 1
 })

@@ -55,8 +55,7 @@ test('sign herself with click to sign', async ({ page }) => {
 	await expect(signButton).toBeVisible({ timeout: 15_000 })
 	await expect(page.getByText('No visible signature is required')).toBeVisible()
 	await signButton.click({ force: true })
-	const signResponsePromise = page.waitForResponse((response) =>
-		response.request().method() === 'POST'
+	const signResponsePromise = page.waitForResponse((response) => response.request().method() === 'POST'
 		&& response.url().includes('/apps/libresign/api/v1/sign/'))
 	await page.getByRole('dialog', { name: 'Sign document' }).getByRole('button', { name: 'Sign document' }).click()
 	const signResponse = await signResponsePromise

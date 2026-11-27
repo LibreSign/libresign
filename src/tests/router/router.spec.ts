@@ -116,7 +116,7 @@ describe('router business rules', () => {
 			displayName: 'Test User',
 		} as ReturnType<typeof getCurrentUser>)
 		loadState.mockReturnValue('')
-		generateUrl.mockImplementation(path => path)
+		generateUrl.mockImplementation((path) => path)
 		getRootUrl.mockReturnValue('')
 		isExternal.mockReturnValue(false)
 		selectAction.mockReturnValue(null)
@@ -212,8 +212,7 @@ describe('router business rules', () => {
 
 	describe('internal vs external route separation', () => {
 		it('internal routes do not start with /p/', () => {
-			const internalRoutes = getRoutes().filter((r: RouteRecordNormalized) =>
-				!r.path.startsWith('/p/'))
+			const internalRoutes = getRoutes().filter((r: RouteRecordNormalized) => !r.path.startsWith('/p/'))
 
 			expect(internalRoutes.length).toBeGreaterThan(0)
 			internalRoutes.forEach((route: RouteRecordNormalized) => {
@@ -222,8 +221,7 @@ describe('router business rules', () => {
 		})
 
 		it('all public routes start with /p/', () => {
-			const publicRoutes = getRoutes().filter((r: RouteRecordNormalized) =>
-				r.path.startsWith('/p/'))
+			const publicRoutes = getRoutes().filter((r: RouteRecordNormalized) => r.path.startsWith('/p/'))
 
 			expect(publicRoutes.length).toBeGreaterThan(0)
 			publicRoutes.forEach((route: RouteRecordNormalized) => {

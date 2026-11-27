@@ -234,7 +234,7 @@ async function pollFileProgress() {
 
 		if (allProcessed && errorCount > 0) {
 			stopPolling()
-			const firstError = fileErrors.find(file => file?.error?.message)?.error?.message
+			const firstError = fileErrors.find((file) => file?.error?.message)?.error?.message
 			// TRANSLATORS Fallback error used when one or more files failed and no specific message is available.
 			emit('error', firstError || t('libresign', 'Signing failed. Please try again.'))
 			return
@@ -290,15 +290,15 @@ function buildProgressFromValidation(doc: ValidationDocument | null | undefined)
 					&& typeof file.name === 'string'
 					&& typeof file.status === 'number'
 			})
-			.map(file => ({
+			.map((file) => ({
 				id: file.id,
 				name: file.name,
 				status: file.status,
 				statusText: getStatusMeta(file.status).label,
 			}))
 		const total = files.length
-		const signed = files.filter(file => file.status === 3).length
-		const inProgress = files.filter(file => file.status === 5).length
+		const signed = files.filter((file) => file.status === 3).length
+		const inProgress = files.filter((file) => file.status === 5).length
 		return {
 			total,
 			signed,
@@ -311,7 +311,7 @@ function buildProgressFromValidation(doc: ValidationDocument | null | undefined)
 	if (Array.isArray(doc.signers)) {
 		const signingParticipants = doc.signers.filter(isSigningParticipant)
 		const total = signingParticipants.length
-		const signed = signingParticipants.filter(signer => !!signer.signed).length
+		const signed = signingParticipants.filter((signer) => !!signer.signed).length
 		return {
 			total,
 			signed,
@@ -350,7 +350,7 @@ function getProgressState() {
 	const signed = currentProgress?.signed ?? 0
 	const inProgress = currentProgress?.inProgress ?? 0
 	const fileErrors = Array.isArray(currentProgress?.files)
-		? currentProgress.files.filter(file => file?.error)
+		? currentProgress.files.filter((file) => file?.error)
 		: []
 	const errorCount = currentProgress?.errors ?? fileErrors.length
 	const processedCount = signed + errorCount

@@ -55,7 +55,7 @@ const options = computed<EngineOption[]>(() => {
 
 const selectedOption = computed<EngineOption | null>({
 	get() {
-		return options.value.find(opt => opt.id === selectedEngineId.value) || null
+		return options.value.find((opt) => opt.id === selectedEngineId.value) || null
 	},
 	set(value) {
 		selectedEngineId.value = value?.id || 'none'

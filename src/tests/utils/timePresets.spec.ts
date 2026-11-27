@@ -14,7 +14,7 @@ describe('getTimePresets', () => {
 		})
 
 		it('each preset has id, label, start, end', () => {
-			getTimePresets().forEach(preset => {
+			getTimePresets().forEach((preset) => {
 				expect(preset).toHaveProperty('id')
 				expect(preset).toHaveProperty('label')
 				expect(preset).toHaveProperty('start')
@@ -23,12 +23,12 @@ describe('getTimePresets', () => {
 		})
 
 		it('returns presets with the expected ids in order', () => {
-			const ids = getTimePresets().map(p => p.id)
+			const ids = getTimePresets().map((p) => p.id)
 			expect(ids).toEqual(['today', 'last-7', 'last-30', 'this-year', 'last-year'])
 		})
 
 		it('each preset start is before its end', () => {
-			getTimePresets().forEach(preset => {
+			getTimePresets().forEach((preset) => {
 				expect(preset.start).toBeLessThan(preset.end)
 			})
 		})
@@ -36,7 +36,7 @@ describe('getTimePresets', () => {
 
 	describe('business rule: today preset should span the current day', () => {
 		it('start is midnight of today', () => {
-			const preset = getTimePresets().find(p => p.id === 'today')!
+			const preset = getTimePresets().find((p) => p.id === 'today')!
 			const d = new Date(preset.start)
 			expect(d.getHours()).toBe(0)
 			expect(d.getMinutes()).toBe(0)
@@ -44,7 +44,7 @@ describe('getTimePresets', () => {
 		})
 
 		it('end is 23:59:59.999 of today', () => {
-			const preset = getTimePresets().find(p => p.id === 'today')!
+			const preset = getTimePresets().find((p) => p.id === 'today')!
 			const d = new Date(preset.end)
 			expect(d.getHours()).toBe(23)
 			expect(d.getMinutes()).toBe(59)
@@ -56,21 +56,21 @@ describe('getTimePresets', () => {
 		const MS_PER_DAY = 24 * 60 * 60 * 1000
 
 		it('last-7 spans approximately 7 days', () => {
-			const preset = getTimePresets().find(p => p.id === 'last-7')!
+			const preset = getTimePresets().find((p) => p.id === 'last-7')!
 			const days = (preset.end - preset.start) / MS_PER_DAY
 			expect(days).toBeGreaterThanOrEqual(7)
 			expect(days).toBeLessThan(8)
 		})
 
 		it('last-30 spans approximately 30 days', () => {
-			const preset = getTimePresets().find(p => p.id === 'last-30')!
+			const preset = getTimePresets().find((p) => p.id === 'last-30')!
 			const days = (preset.end - preset.start) / MS_PER_DAY
 			expect(days).toBeGreaterThanOrEqual(30)
 			expect(days).toBeLessThan(31)
 		})
 
 		it('this-year starts on January 1st', () => {
-			const preset = getTimePresets().find(p => p.id === 'this-year')!
+			const preset = getTimePresets().find((p) => p.id === 'this-year')!
 			const d = new Date(preset.start)
 			expect(d.getMonth()).toBe(0)
 			expect(d.getDate()).toBe(1)
@@ -78,7 +78,7 @@ describe('getTimePresets', () => {
 		})
 
 		it('last-year starts on January 1st of the previous year', () => {
-			const preset = getTimePresets().find(p => p.id === 'last-year')!
+			const preset = getTimePresets().find((p) => p.id === 'last-year')!
 			const d = new Date(preset.start)
 			expect(d.getMonth()).toBe(0)
 			expect(d.getDate()).toBe(1)
@@ -107,7 +107,7 @@ describe('getTimePresets', () => {
 
 		it('always uses the fake current date, not a cached value', () => {
 			vi.setSystemTime(new Date('2026-06-15T12:00:00'))
-			const preset = getTimePresets().find(p => p.id === 'this-year')!
+			const preset = getTimePresets().find((p) => p.id === 'this-year')!
 			expect(new Date(preset.start).getFullYear()).toBe(2026)
 		})
 	})
@@ -140,7 +140,7 @@ describe('getTimePresetRange', () => {
 		})
 
 		it('range values match getTimePresets output', () => {
-			const preset = getTimePresets().find(p => p.id === 'last-7')!
+			const preset = getTimePresets().find((p) => p.id === 'last-7')!
 			const range = getTimePresetRange('last-7')!
 			expect(range.start).toBe(preset.start)
 			expect(range.end).toBe(preset.end)

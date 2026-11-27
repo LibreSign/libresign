@@ -101,7 +101,7 @@ export class SigningRequirementValidator {
 
 	needsIdentificationDocuments(errors: Array<{ code?: number, [key: string]: unknown }> = []): boolean {
 		const needsFromStore = !!this.identificationDocumentStore.needIdentificationDocument()
-		const hasError = errors.some(error => error.code === ACTION_CODES.SIGN_ID_DOC)
+		const hasError = errors.some((error) => error.code === ACTION_CODES.SIGN_ID_DOC)
 		const isWaitingApproval = !!(
 			this.identificationDocumentStore.enabled
 			&& this.identificationDocumentStore.waitingApproval

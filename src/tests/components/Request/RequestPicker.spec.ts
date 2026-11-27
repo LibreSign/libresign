@@ -193,8 +193,13 @@ describe('RequestPicker component rules', () => {
 			const withPolicy = mount(RequestPicker, {
 				props: { inline: true },
 				global: { stubs: {
-					NcActions: true, NcActionButton: true, NcButton: true, NcDialog: true,
-					NcLoadingIcon: true, NcNoteCard: true, NcTextField: true,
+					NcActions: true,
+					NcActionButton: true,
+					NcButton: true,
+					NcDialog: true,
+					NcLoadingIcon: true,
+					NcNoteCard: true,
+					NcTextField: true,
 					UploadProgress: true,
 				} },
 			})
@@ -816,7 +821,7 @@ describe('RequestPicker component rules', () => {
 		spawnDialogMock.mockResolvedValueOnce(true)
 		const createElement = vi.spyOn(document, 'createElement')
 		wrapper.vm.signPdfNow()
-		const input = createElement.mock.results.find(result => result.value?.type === 'file')!.value as HTMLInputElement
+		const input = createElement.mock.results.find((result) => result.value?.type === 'file')!.value as HTMLInputElement
 		Object.defineProperty(input, 'files', { value: { item: () => new File(['%PDF-'], 'signed.pdf', { type: 'application/pdf' }) } })
 		input.dispatchEvent(new Event('change'))
 		await flushPromises()
@@ -829,7 +834,7 @@ describe('RequestPicker component rules', () => {
 		it('opens file input with PDF filter', () => {
 			const createElementSpy = vi.spyOn(document, 'createElement')
 			wrapper.vm.uploadFile()
-			const fileInputResult = createElementSpy.mock.results.find(result => result.value?.type === 'file')
+			const fileInputResult = createElementSpy.mock.results.find((result) => result.value?.type === 'file')
 			const fileInput = fileInputResult?.value as HTMLInputElement | undefined
 			expect(fileInput).toBeDefined()
 			if (!fileInput) {
@@ -873,7 +878,7 @@ describe('RequestPicker component rules', () => {
 			}) as RequestPickerWrapper
 			const createElementSpy = vi.spyOn(document, 'createElement')
 			newWrapper.vm.uploadFile()
-			const fileInputResult = createElementSpy.mock.results.find(result => result.value?.type === 'file')
+			const fileInputResult = createElementSpy.mock.results.find((result) => result.value?.type === 'file')
 			const fileInput = fileInputResult?.value as HTMLInputElement | undefined
 			expect(fileInput).toBeDefined()
 			if (!fileInput) {
@@ -887,7 +892,7 @@ describe('RequestPicker component rules', () => {
 		it('disables multiple selection when envelope not enabled', () => {
 			const createElementSpy = vi.spyOn(document, 'createElement')
 			wrapper.vm.uploadFile()
-			const fileInputResult = createElementSpy.mock.results.find(result => result.value?.type === 'file')
+			const fileInputResult = createElementSpy.mock.results.find((result) => result.value?.type === 'file')
 			const fileInput = fileInputResult?.value as HTMLInputElement | undefined
 			expect(fileInput).toBeDefined()
 			if (!fileInput) {

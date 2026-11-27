@@ -374,7 +374,7 @@ describe('EnvelopeFilesList', () => {
 			const createElementSpy = vi.spyOn(document, 'createElement')
 			wrapper.vm.addFileToEnvelope()
 			const input = createElementSpy.mock.results
-				.find(result => result.value?.type === 'file')?.value as HTMLInputElement
+				.find((result) => result.value?.type === 'file')?.value as HTMLInputElement
 			expect(input).toBeDefined()
 			Object.defineProperty(input, 'files', {
 				value: [

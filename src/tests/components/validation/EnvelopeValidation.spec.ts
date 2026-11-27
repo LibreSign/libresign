@@ -558,7 +558,7 @@ describe('EnvelopeValidation', () => {
 	})
 
 	describe('RULE: the signer summary follows the backend display status', () => {
-		const summaries = (current: EnvelopeValidationWrapper) => current.findAll('[data-test="envelope-signer-summary"]').map(item => item.text())
+		const summaries = (current: EnvelopeValidationWrapper) => current.findAll('[data-test="envelope-signer-summary"]').map((item) => item.text())
 
 		it('keeps the signing progress for signers without a rejection', () => {
 			wrapper = createWrapper({

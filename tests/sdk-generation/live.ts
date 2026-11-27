@@ -70,7 +70,7 @@ export async function runLiveChecks(basePath: string, username: string, password
   return !failed
 }
 if (require.main === module) {
-  main().catch(error => {
+  main().catch((error) => {
     if (axios.isAxiosError(error)) {
       console.error('Live request failed with HTTP status', error.response?.status ?? 'unavailable', 'code', error.code ?? 'none')
     } else {

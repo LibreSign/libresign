@@ -115,7 +115,7 @@ test('sign herself with drawn signature', async ({ page }) => {
 	await expect(pdfPage).toBeVisible()
 	await expect(pageOverlay).toBeVisible()
 	page.off('pageerror', collectPdfPageError)
-	expect(pdfPageErrors.map(error => error.message)).toEqual([])
+	expect(pdfPageErrors.map((error) => error.message)).toEqual([])
 
 	await editSignerLink.click()
 
@@ -161,8 +161,7 @@ test('sign herself with drawn signature', async ({ page }) => {
 	await expect(page.getByRole('button', { name: 'Sign document' }).first()).toBeVisible({ timeout: 15_000 })
 
 	await clickSignDocumentButton(page)
-	const signResponsePromise = page.waitForResponse((response) =>
-		response.request().method() === 'POST'
+	const signResponsePromise = page.waitForResponse((response) => response.request().method() === 'POST'
 		&& response.url().includes('/apps/libresign/api/v1/sign/'))
 	await page.getByRole('dialog', { name: 'Sign document' }).getByRole('button', { name: 'Sign document' }).click()
 	const signResponse = await signResponsePromise

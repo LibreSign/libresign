@@ -151,8 +151,7 @@ const accuracyRadius = computed(() => {
 	return formatIpAccuracyRadius(value)
 })
 
-const toggleAriaLabel = computed(() =>
-	open.value
+const toggleAriaLabel = computed(() => open.value
 		// TRANSLATORS ARIA label for button action that hides IP-based location details.
 		? t('libresign', 'Collapse IP-based approximate location details')
 		// TRANSLATORS ARIA label for button action that reveals IP-based location details.

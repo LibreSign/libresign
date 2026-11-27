@@ -828,7 +828,7 @@ describe('PdfEditor Component - Business Rules', () => {
 
 		it('awaits page promise resolution', async () => {
 			let resolveSecondPage: ((value: object) => void) | undefined
-			const secondPagePromise = new Promise<object>(resolve => {
+			const secondPagePromise = new Promise<object>((resolve) => {
 				resolveSecondPage = resolve
 			})
 
@@ -859,7 +859,7 @@ describe('PdfEditor Component - Business Rules', () => {
 
 		it('waits for a pending page promise before resolving', async () => {
 			let resolveSecondPage: ((value: object) => void) | undefined
-			const secondPagePromise = new Promise<object>(resolve => {
+			const secondPagePromise = new Promise<object>((resolve) => {
 				resolveSecondPage = resolve
 			})
 
@@ -905,7 +905,7 @@ describe('PdfEditor Component - Business Rules', () => {
 	describe('RULE: addSigner awaits page render for multi-document envelopes', () => {
 		it('awaits second document page before adding element', async () => {
 			let resolveSecondPage: ((value: unknown) => void) | undefined
-			const secondPagePromise = new Promise(resolve => {
+			const secondPagePromise = new Promise((resolve) => {
 				resolveSecondPage = resolve
 			})
 

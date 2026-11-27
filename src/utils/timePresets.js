@@ -63,6 +63,6 @@ export function getTimePresetRange(presetId) {
 	if (!presetId) {
 		return null
 	}
-	const preset = getTimePresets().find(p => p.id === presetId)
+	const preset = getTimePresets().find((p) => p.id === presetId)
 	return preset ? { start: preset.start, end: preset.end } : null
 }

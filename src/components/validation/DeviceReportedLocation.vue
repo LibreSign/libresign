@@ -158,8 +158,7 @@ const coordinatesText = computed(() => formatDeviceReportedCoordinates(props.geo
 
 const hasContent = computed(() => latitude.value !== null && longitude.value !== null)
 
-const toggleAriaLabel = computed(() =>
-	open.value
+const toggleAriaLabel = computed(() => open.value
 		// TRANSLATORS ARIA label for button action that hides device-reported location details.
 		? t('libresign', 'Collapse device-reported location details')
 		// TRANSLATORS ARIA label for button action that reveals device-reported location details.

@@ -88,8 +88,7 @@ export const signingModeRealDefinition: RealPolicySettingDefinition = {
 		return t('libresign', 'Process in background · {type}', { type: workerTypeLabel })
 	},
 	// TRANSLATORS Message indicating this setting can only be configured at higher scope.
-	formatAllowOverride: () =>
-		t('libresign', 'Lower-level customization is disabled for this setting'),
+	formatAllowOverride: () => t('libresign', 'Lower-level customization is disabled for this setting'),
 }
 
 export const workerConfigRealDefinition: RealPolicySettingDefinition = {

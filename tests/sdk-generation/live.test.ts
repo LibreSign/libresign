@@ -11,13 +11,16 @@ for (const pdfStatus of [200, 404, 500]) {
   for (const authStatus of [200, 401, 403, 429]) {
     test(`PDF ${pdfStatus}, invalid credentials ${authStatus}`, async () => {
       let invalidAuthChecked = false
-      const instance = axios.create({ adapter: async config => {
+      const instance = axios.create({ adapter: async (config) => {
         const invalidAuth = config.auth?.password === 'deliberately-invalid-test-password'
         const pdf = config.url?.endsWith('.pdf')
         invalidAuthChecked ||= invalidAuth
         const status = invalidAuth ? authStatus : pdf ? pdfStatus : 200
         const response = {
-          config, status, statusText: String(status), headers: { 'content-type': 'application/pdf' },
+          config,
+          status,
+          statusText: String(status),
+          headers: { 'content-type': 'application/pdf' },
           data: pdf ? Buffer.from('%PDF-test') : { ocs: { meta: { statuscode: 200 }, data: { account: { uid: 'test' } } } },
         }
         if (status >= 400) {

@@ -1253,7 +1253,7 @@ describe('Validation.vue - Business Logic', () => {
 				wrapper.vm.handleSigningComplete(null)
 
 				// Wait for the async polling loop to run
-				await new Promise(resolve => setTimeout(resolve, 0))
+				await new Promise((resolve) => setTimeout(resolve, 0))
 
 				expect(mockAddConfetti).toHaveBeenCalledOnce()
 			})
@@ -1273,7 +1273,7 @@ describe('Validation.vue - Business Logic', () => {
 				})
 
 				wrapper.vm.handleSigningComplete(null)
-				await new Promise(resolve => setTimeout(resolve, 0))
+				await new Promise((resolve) => setTimeout(resolve, 0))
 
 				expect(mockAddConfetti).toHaveBeenCalledOnce()
 			})

@@ -113,17 +113,14 @@ const timestampAuthorityLabel = t('libresign', 'Timestamp Authority (TSA)')
 // TRANSLATORS ARIA label announced by screen readers for the collapsible region containing TSA technical details.
 const timestampAuthorityDetailsAriaLabel = t('libresign', 'Timestamp authority details')
 
-const authority = computed(() =>
-	props.timestamp?.cnHints?.commonName
+const authority = computed(() => props.timestamp?.cnHints?.commonName
 	|| props.timestamp?.authority
 	|| props.timestamp?.tsaName
 	|| '')
 
-const policy = computed(() =>
-	props.timestamp?.policyName || props.timestamp?.policy || '')
+const policy = computed(() => props.timestamp?.policyName || props.timestamp?.policy || '')
 
-const hashAlgorithm = computed(() =>
-	props.timestamp?.hashAlgorithm || props.timestamp?.hash || '')
+const hashAlgorithm = computed(() => props.timestamp?.hashAlgorithm || props.timestamp?.hash || '')
 
 const serialNumber = computed(() => {
 	const serial = props.timestamp?.serialNumber
@@ -133,15 +130,13 @@ const serialNumber = computed(() => {
 	return serial || ''
 })
 
-const hasContent = computed(() =>
-	!!(authority.value
-		|| props.timestamp?.genTime
-		|| policy.value
-		|| hashAlgorithm.value
-		|| serialNumber.value))
+const hasContent = computed(() => !!(authority.value
+	|| props.timestamp?.genTime
+	|| policy.value
+	|| hashAlgorithm.value
+	|| serialNumber.value))
 
-const toggleAriaLabel = computed(() =>
-	open.value
+const toggleAriaLabel = computed(() => open.value
 		// TRANSLATORS ARIA label for button action that hides TSA detail fields.
 		? t('libresign', 'Collapse timestamp authority details')
 		// TRANSLATORS ARIA label for button action that reveals TSA detail fields.

@@ -76,7 +76,7 @@ describe('TsaRuleEditor.vue', () => {
 
 		const options = wrapper.findAll('.select-stub')[HASH_ALGORITHM_SELECT].findAll('button')
 
-		expect(options.map(option => option.text())).toEqual(['SHA-256', 'SHA-384', 'SHA-512'])
+		expect(options.map((option) => option.text())).toEqual(['SHA-256', 'SHA-384', 'SHA-512'])
 	})
 
 	it('emits the chosen hash algorithm and keeps the rest of the payload', async () => {

@@ -298,11 +298,11 @@ test('unauthenticated signer can define a visible signature for an envelope with
 	await test.step('The signed PDF opens by UUID without using an Office handler', async () => {
 		const context = page.context()
 		const openedPopups: Page[] = []
-		page.on('popup', popup => {
+		page.on('popup', (popup) => {
 			openedPopups.push(popup)
 		})
 		const officeRequests: string[] = []
-		context.on('request', request => {
+		context.on('request', (request) => {
 			if (request.url().includes('/apps/eurooffice/')) {
 				officeRequests.push(request.url())
 			}
@@ -310,8 +310,7 @@ test('unauthenticated signer can define a visible signature for an envelope with
 
 		// CI installs files_pdfviewer so the native PDF handler must be used.
 		// A popup fallback would hide an integration regression in dialogs/Viewer.
-		const pdfResponse = context.waitForEvent('response', response =>
-			response.request().method() === 'GET'
+		const pdfResponse = context.waitForEvent('response', (response) => response.request().method() === 'GET'
 			&& response.url().includes('/apps/libresign/p/pdf/'))
 		await page.getByRole('button', { name: 'Show details' }).first().click()
 		await page.getByRole('button', { name: 'View document' }).first().click()
@@ -325,7 +324,7 @@ test('unauthenticated signer can define a visible signature for an envelope with
 		await expect(nativeViewer).toBeVisible({ timeout: 15_000 })
 		expect(openedPopups).toHaveLength(0)
 		await expect.poll(async () => {
-			const pdfFrame = page.frames().find(frame => frame.url().includes('/apps/files_pdfviewer/'))
+			const pdfFrame = page.frames().find((frame) => frame.url().includes('/apps/files_pdfviewer/'))
 			return pdfFrame?.evaluate(() => {
 				const pdf = (window as typeof window & {
 					PDFViewerApplication?: { pdfDocument?: { numPages?: number } }

@@ -182,7 +182,7 @@ const openedMenu = computed({
 	},
 })
 
-const visibleMenu = computed(() => enabledMenuActions.value.filter(action => visibleIf(action)))
+const visibleMenu = computed(() => enabledMenuActions.value.filter((action) => visibleIf(action)))
 const file = computed(() => filesStore.files[props.source.id])
 const boundariesElement = computed(() => document.querySelector('.app-content > .files-list')
 	|| document.querySelector('.app-content')

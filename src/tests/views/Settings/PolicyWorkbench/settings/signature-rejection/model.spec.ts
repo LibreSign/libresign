@@ -13,8 +13,7 @@ import {
 	summarizeSignatureRejectionDraftValue,
 } from '../../../../../../views/Settings/PolicyWorkbench/settings/signature-rejection/model'
 
-const tFn = (_app: string, text: string, vars?: Record<string, string>) =>
-	text.replace(/\{(\w+)\}/g, (_match, key: string) => vars?.[key] ?? `{${key}}`)
+const tFn = (_app: string, text: string, vars?: Record<string, string>) => text.replace(/\{(\w+)\}/g, (_match, key: string) => vars?.[key] ?? `{${key}}`)
 
 const configured = {
 	enabled: true,

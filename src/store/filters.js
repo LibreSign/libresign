@@ -57,7 +57,7 @@ export const useFiltersStore = defineStore('filter', () => {
 		}
 
 		if (event.id === 'status') {
-			const value = event.detail.length > 0 ? JSON.stringify(event.detail.map(item => item.id)) : ''
+			const value = event.detail.length > 0 ? JSON.stringify(event.detail.map((item) => item.id)) : ''
 			await axios.put(generateOcsUrl('/apps/libresign/api/v1/account/config/{key}', { key: 'files_list_filter_status' }), {
 				value,
 			})

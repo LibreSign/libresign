@@ -848,10 +848,10 @@ describe('Settings', () => {
 
 			expect(items).toHaveLength(3)
 
-			const hasAccount = items.some(i => i.props('name')?.includes('Account'))
-			const hasPreferences = items.some(i => i.props('name')?.includes('Preferences'))
-			const hasRate = items.some(i => i.props('name')?.includes('Rate'))
-			const hasAdmin = items.some(i => i.props('name')?.includes('Administration'))
+			const hasAccount = items.some((i) => i.props('name')?.includes('Account'))
+			const hasPreferences = items.some((i) => i.props('name')?.includes('Preferences'))
+			const hasRate = items.some((i) => i.props('name')?.includes('Rate'))
+			const hasAdmin = items.some((i) => i.props('name')?.includes('Administration'))
 
 			expect(hasAccount).toBe(true)
 			expect(hasPreferences).toBe(true)
@@ -865,11 +865,11 @@ describe('Settings', () => {
 
 			expect(items).toHaveLength(5)
 
-			const hasAccount = items.some(i => i.props('name')?.includes('Account'))
-			const hasPreferences = items.some(i => i.props('name')?.includes('Preferences'))
-			const hasPolicies = items.some(i => i.props('name')?.includes('Policies'))
-			const hasRate = items.some(i => i.props('name')?.includes('Rate'))
-			const hasAdmin = items.some(i => i.props('name')?.includes('Administration'))
+			const hasAccount = items.some((i) => i.props('name')?.includes('Account'))
+			const hasPreferences = items.some((i) => i.props('name')?.includes('Preferences'))
+			const hasPolicies = items.some((i) => i.props('name')?.includes('Policies'))
+			const hasRate = items.some((i) => i.props('name')?.includes('Rate'))
+			const hasAdmin = items.some((i) => i.props('name')?.includes('Administration'))
 
 			expect(hasAccount).toBe(true)
 			expect(hasPreferences).toBe(true)
@@ -890,11 +890,11 @@ describe('Settings', () => {
 
 			expect(items).toHaveLength(2)
 
-			const hasAccount = items.some(i => i.props('name')?.includes('Account'))
-			const hasPreferences = items.some(i => i.props('name')?.includes('Preferences'))
-			const hasPolicies = items.some(i => i.props('name')?.includes('Policies'))
-			const hasRate = items.some(i => i.props('name')?.includes('Rate'))
-			const hasAdmin = items.some(i => i.props('name')?.includes('Administration'))
+			const hasAccount = items.some((i) => i.props('name')?.includes('Account'))
+			const hasPreferences = items.some((i) => i.props('name')?.includes('Preferences'))
+			const hasPolicies = items.some((i) => i.props('name')?.includes('Policies'))
+			const hasRate = items.some((i) => i.props('name')?.includes('Rate'))
+			const hasAdmin = items.some((i) => i.props('name')?.includes('Administration'))
 
 			expect(hasAccount).toBe(true)
 			expect(hasPreferences).toBe(false)
@@ -914,8 +914,8 @@ describe('Settings', () => {
 
 			expect(items).toHaveLength(2)
 
-			const hasPreferences = items.some(i => i.props('name')?.includes('Preferences'))
-			const hasPolicies = items.some(i => i.props('name')?.includes('Policies'))
+			const hasPreferences = items.some((i) => i.props('name')?.includes('Preferences'))
+			const hasPolicies = items.some((i) => i.props('name')?.includes('Policies'))
 
 			expect(hasPreferences).toBe(false)
 			expect(hasPolicies).toBe(false)
@@ -935,8 +935,8 @@ describe('Settings', () => {
 
 			expect(items).toHaveLength(3)
 
-			const hasPolicies = items.some(i => i.props('name')?.includes('Policies'))
-			const hasAdmin = items.some(i => i.props('name')?.includes('Administration'))
+			const hasPolicies = items.some((i) => i.props('name')?.includes('Policies'))
+			const hasAdmin = items.some((i) => i.props('name')?.includes('Administration'))
 
 			expect(hasPolicies).toBe(true)
 			expect(hasAdmin).toBe(false)
@@ -948,7 +948,7 @@ describe('Settings', () => {
 			wrapper = createWrapper(true, false, false, {})
 			const items = getItems()
 
-			const hasPolicies = items.some(i => i.props('name')?.includes('Policies'))
+			const hasPolicies = items.some((i) => i.props('name')?.includes('Policies'))
 			expect(hasPolicies).toBe(true)
 		})
 

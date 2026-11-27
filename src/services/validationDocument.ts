@@ -134,7 +134,7 @@ function isSignerRejection(value: unknown): value is NonNullable<SignerDetailRec
 
 	return isString(value.rejectedAt)
 		&& isOptionalField(value, 'comment', isString)
-		&& isOptionalField(value, 'commentPrivate', fieldValue => typeof fieldValue === 'boolean')
+		&& isOptionalField(value, 'commentPrivate', (fieldValue) => typeof fieldValue === 'boolean')
 }
 
 function isValidationSignatureFlow(value: unknown): value is ValidationSignatureFlow {
@@ -154,7 +154,7 @@ function isValidationStatusInfo(value: unknown): value is ValidationStatusInfo {
 		return false
 	}
 
-	return isOptionalField(value, 'id', fieldValue => toInteger(fieldValue) !== null)
+	return isOptionalField(value, 'id', (fieldValue) => toInteger(fieldValue) !== null)
 		&& isOptionalField(value, 'label', isString)
 }
 
@@ -177,7 +177,7 @@ function isValidationModificationInfo(value: unknown): value is ValidationModifi
 	}
 
 	return isOptionalField(value, 'status', isModificationValidationStatus)
-		&& isOptionalField(value, 'valid', fieldValue => typeof fieldValue === 'boolean')
+		&& isOptionalField(value, 'valid', (fieldValue) => typeof fieldValue === 'boolean')
 }
 
 function isValidationMetadataDimension(value: unknown): value is ValidationMetadataDimension {
@@ -205,8 +205,8 @@ function isValidationMetadata(value: unknown): value is NonNullable<ValidationFi
 		return false
 	}
 
-	return isOptionalField(value, 'd', fieldValue => Array.isArray(fieldValue) && fieldValue.every(isValidationMetadataDimension))
-		&& isOptionalField(value, 'original_file_deleted', fieldValue => typeof fieldValue === 'boolean')
+	return isOptionalField(value, 'd', (fieldValue) => Array.isArray(fieldValue) && fieldValue.every(isValidationMetadataDimension))
+		&& isOptionalField(value, 'original_file_deleted', (fieldValue) => typeof fieldValue === 'boolean')
 		&& isOptionalField(value, 'pdfVersion', isString)
 		&& isOptionalField(value, 'status_changed_at', isString)
 }
@@ -221,7 +221,7 @@ function isValidationSettings(value: unknown): value is NonNullable<ValidationFi
 		&& typeof value.hasSignatureFile === 'boolean'
 		&& typeof value.needIdentificationDocuments === 'boolean'
 		&& typeof value.identificationDocumentsWaitingApproval === 'boolean'
-		&& isOptionalField(value, 'isApprover', fieldValue => typeof fieldValue === 'boolean')
+		&& isOptionalField(value, 'isApprover', (fieldValue) => typeof fieldValue === 'boolean')
 }
 
 function isSignerDetailRecord(value: unknown): value is ValidationSignerDetailRecord {
@@ -246,7 +246,7 @@ function isSignerDetailRecord(value: unknown): value is ValidationSignerDetailRe
 		&& isOptionalField(value, 'certificate_validation', isValidationStatusInfo)
 		&& isOptionalField(value, 'modification_validation', isValidationModificationInfo)
 		&& isOptionalField(value, 'crl_validation', isString)
-		&& isOptionalField(value, 'isLibreSignRootCA', fieldValue => typeof fieldValue === 'boolean')
+		&& isOptionalField(value, 'isLibreSignRootCA', (fieldValue) => typeof fieldValue === 'boolean')
 		&& isOptionalField(value, 'document_modification_state', isDocumentModificationState)
 }
 
@@ -265,7 +265,7 @@ function isCertificateSignerRecord(value: unknown): value is UnknownRecord {
 		&& isOptionalField(value, 'certificate_validation', isValidationStatusInfo)
 		&& isOptionalField(value, 'modification_validation', isValidationModificationInfo)
 		&& isOptionalField(value, 'crl_validation', isString)
-		&& isOptionalField(value, 'isLibreSignRootCA', fieldValue => typeof fieldValue === 'boolean')
+		&& isOptionalField(value, 'isLibreSignRootCA', (fieldValue) => typeof fieldValue === 'boolean')
 		&& isOptionalField(value, 'document_modification_state', isDocumentModificationState)
 }
 
@@ -312,7 +312,7 @@ function isChildSignerRecord(value: unknown): boolean {
 		&& isSignerDisplayStatus(value.displayStatus)
 		&& isOptionalField(value, 'rejection', isSignerRejection)
 		&& isString(value.statusText)
-		&& isOptionalField(value, 'visibleElements', fieldValue => Array.isArray(fieldValue))
+		&& isOptionalField(value, 'visibleElements', (fieldValue) => Array.isArray(fieldValue))
 }
 
 function isValidatedChildFileRecord(value: unknown): value is ValidatedChildFileRecord {
@@ -367,7 +367,7 @@ function isValidationDocumentRecord(data: unknown): data is ValidationFileRecord
 		return false
 	}
 
-	if (hasOwn(data, 'signers') && (!Array.isArray(data.signers) || !data.signers.every(signer => normalizeSignerDetail(signer) !== null))) {
+	if (hasOwn(data, 'signers') && (!Array.isArray(data.signers) || !data.signers.every((signer) => normalizeSignerDetail(signer) !== null))) {
 		return false
 	}
 
@@ -473,7 +473,7 @@ export function toValidationDocument(data: unknown): ValidationDocumentState | n
 		}
 	})
 
-	if (files.some(file => file === null)) {
+	if (files.some((file) => file === null)) {
 		return null
 	}
 	const normalizedFiles = files.filter((file): file is NonNullable<typeof file> => file !== null)
@@ -496,7 +496,7 @@ export function toValidationDocument(data: unknown): ValidationDocumentState | n
 
 	const signers = (Array.isArray(data.signers) ? data.signers : []).map(normalizeSignerDetail)
 
-	if (signers.some(signer => signer === null)) {
+	if (signers.some((signer) => signer === null)) {
 		return null
 	}
 	const normalizedSigners = signers.filter((signer): signer is NonNullable<typeof signer> => signer !== null)

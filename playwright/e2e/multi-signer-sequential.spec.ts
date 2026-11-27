@@ -207,8 +207,7 @@ test('request signatures from two signers in sequential order', async ({ page, a
 	}
 	await openInvitationAsExternalSigner(page, signLink)
 	await openSignDocument(page)
-	const firstSignResponsePromise = page.waitForResponse((response) =>
-		response.request().method() === 'POST'
+	const firstSignResponsePromise = page.waitForResponse((response) => response.request().method() === 'POST'
 		&& response.url().includes('/apps/libresign/api/v1/sign/'))
 	await page.getByRole('dialog', { name: 'Sign document' }).getByRole('button', { name: 'Sign document' }).click()
 	const firstSignResponse = await firstSignResponsePromise
@@ -243,8 +242,7 @@ test('request signatures from two signers in sequential order', async ({ page, a
 	}
 	await openInvitationAsExternalSigner(page, signLink02)
 	await openSignDocument(page)
-	const secondSignResponsePromise = page.waitForResponse((response) =>
-		response.request().method() === 'POST'
+	const secondSignResponsePromise = page.waitForResponse((response) => response.request().method() === 'POST'
 		&& response.url().includes('/apps/libresign/api/v1/sign/'))
 	await page.getByRole('dialog', { name: 'Sign document' }).getByRole('button', { name: 'Sign document' }).click()
 	const secondSignResponse = await secondSignResponsePromise

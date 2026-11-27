@@ -53,8 +53,7 @@ export const signatureFlowRealDefinition: RealPolicySettingDefinition = {
 			return t('libresign', 'Not configured')
 		}
 	},
-	formatAllowOverride: (allowChildOverride: boolean) =>
-		allowChildOverride
+	formatAllowOverride: (allowChildOverride: boolean) => allowChildOverride
 			// TRANSLATORS Policy inheritance message indicating group and user scopes may define a different value.
 			? t('libresign', 'Groups and accounts can set their own rule')
 			// TRANSLATORS Policy inheritance message indicating child scopes must use the value defined at the current scope.

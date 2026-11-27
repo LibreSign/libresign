@@ -148,8 +148,7 @@ test('sign document with email token as unauthenticated signer', async ({ page }
 	await expect(page.getByText('Step 3 of 3 - Signature')).toBeVisible()
 	await expect(page.getByText('Your identity has been')).toBeVisible()
 	await expect(page.getByText('You can now sign the document.')).toBeVisible()
-	const signResponsePromise = page.waitForResponse((response) =>
-		response.request().method() === 'POST'
+	const signResponsePromise = page.waitForResponse((response) => response.request().method() === 'POST'
 		&& response.url().includes('/apps/libresign/api/v1/sign/'))
 	await page.getByRole('dialog', { name: 'Signature confirmation' }).getByRole('button', { name: 'Sign document' }).click()
 	const signResponse = await signResponsePromise

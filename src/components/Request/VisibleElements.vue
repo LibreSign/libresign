@@ -417,8 +417,7 @@ function toVisibleElementsDocument(document: EditableRequestFile): DocumentLike 
 	}
 }
 
-const normalizeVisibleElements = (elements: VisibleElementRecord[]): VisibleElementRecord[] =>
-	elements.flatMap((element) => {
+const normalizeVisibleElements = (elements: VisibleElementRecord[]): VisibleElementRecord[] => elements.flatMap((element) => {
 		if (element.type !== 'signature') {
 			return []
 		}
@@ -596,7 +595,7 @@ const pdfFiles = computed<PdfInput[]>(() => visibleElementsFiles.value.flatMap((
 	const fileUrl = getFileUrl(file)
 	return fileUrl ? [fileUrl] : []
 }))
-const pdfFileNames = computed(() => documentFiles.value.map(file => `${file.name}.${file.metadata?.extension || 'pdf'}`))
+const pdfFileNames = computed(() => documentFiles.value.map((file) => `${file.name}.${file.metadata?.extension || 'pdf'}`))
 const documentNameWithExtension = computed(() => {
 	const currentDocument = document.value
 	if (!currentDocument.metadata?.extension) {
@@ -776,7 +775,7 @@ function closeModal() {
 
 function getPageHeightForFile(fileId: number, page: number) {
 	const filesToSearch = documentFilesForMapping.value
-	const fileInfo = filesToSearch.find(file => file.id === fileId)
+	const fileInfo = filesToSearch.find((file) => file.id === fileId)
 	return fileInfo?.metadata?.d?.[page - 1]?.h
 }
 
@@ -907,7 +906,7 @@ async function goToSign() {
 async function save() {
 	loading.value = true
 	await nextTick()
-	await new Promise<void>(resolve => requestAnimationFrame(() => resolve()))
+	await new Promise<void>((resolve) => requestAnimationFrame(() => resolve()))
 	const visibleElements = buildVisibleElements()
 
 	try {

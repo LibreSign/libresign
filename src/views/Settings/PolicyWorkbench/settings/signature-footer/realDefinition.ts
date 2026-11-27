@@ -131,8 +131,7 @@ export const signatureFooterRealDefinition: RealPolicySettingDefinition = {
 
 		return summary.join(' • ')
 	},
-	formatAllowOverride: (allowChildOverride: boolean) =>
-		allowChildOverride
+	formatAllowOverride: (allowChildOverride: boolean) => allowChildOverride
 			? allowChildOverrideSummary
 			: denyChildOverrideSummary,
 }

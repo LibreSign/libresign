@@ -106,7 +106,7 @@ describe('FileListFilterStatus.vue', () => {
 
 	it('all buttons are unpressed when no options are selected', () => {
 		const wrapper = mountComponent()
-		wrapper.findAll('.nc-button-stub').forEach(button => {
+		wrapper.findAll('.nc-button-stub').forEach((button) => {
 			expect(button.attributes('data-pressed')).toBe('false')
 		})
 	})

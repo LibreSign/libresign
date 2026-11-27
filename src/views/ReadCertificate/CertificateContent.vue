@@ -245,7 +245,7 @@ const crlValidationStatus = computed<StatusChip>(() => crlStatusMap.value[props.
 
 function orderList(data: CertificateMap = {}) {
 	const sorted: CertificateMap = {}
-	;['CN', 'OU', 'O'].forEach(element => {
+	;['CN', 'OU', 'O'].forEach((element) => {
 		if (data[element]) {
 			sorted[element] = data[element]
 		}
@@ -268,13 +268,13 @@ function getLabelFromId(id: string) {
 
 function camelCaseToTitleCase(text: string) {
 	if (text.includes(' ')) {
-		return text.replace(/^./, str => str.toUpperCase())
+		return text.replace(/^./, (str) => str.toUpperCase())
 	}
 
 	return text
 		.replace(/([A-Z]+)([A-Z][a-z])/g, '$1 $2')
 		.replace(/([a-z])([A-Z])/g, '$1 $2')
-		.replace(/^./, str => str.toUpperCase())
+		.replace(/^./, (str) => str.toUpperCase())
 		.trim()
 }
 

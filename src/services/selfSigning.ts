@@ -17,7 +17,7 @@ type StoredSigner = NonNullable<ReturnType<FilesStore['getFile']>['signers']>[nu
 
 export function isAccountIdentificationEnabled(value: EffectivePolicyValue): boolean {
 	return normalizeIdentifyMethodsPolicy(value)
-		.some(method => method.name === 'account' && method.enabled)
+		.some((method) => method.name === 'account' && method.enabled)
 }
 
 export function canIncludeCurrentAccount(
@@ -29,9 +29,8 @@ export function canIncludeCurrentAccount(
 		return false
 	}
 
-	return !(filesStore.getFile()?.signers ?? []).some(signer =>
-		isSigningParticipant(signer)
-		&& signer.identifyMethods?.some(method => method.method === 'account' && method.value === userId))
+	return !(filesStore.getFile()?.signers ?? []).some((signer) => isSigningParticipant(signer)
+		&& signer.identifyMethods?.some((method) => method.method === 'account' && method.value === userId))
 }
 
 export async function addCurrentAccountAsSigner(

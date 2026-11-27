@@ -443,13 +443,13 @@ function updateSigners() {
 		const normalizedEnvelopeFiles = envelopeFiles.value.map(normalizeFileForVisibleElements)
 		const fileIndexById = new Map(envelopeFiles.value.map((file: SignDocumentFile, index: number) => [String(file.id), index]))
 		const elements = aggregateVisibleElementsByFiles(normalizedEnvelopeFiles)
-			elements.forEach(element => {
+			elements.forEach((element) => {
 				const fileInfo = findFileById(normalizedEnvelopeFiles, element.fileId)
 				if (!fileInfo) {
 					return
 				}
 			const signers = getFileSigners(fileInfo)
-			const signer = signers.find(row => idsMatch(row.signRequestId, element.signRequestId))
+			const signer = signers.find((row) => idsMatch(row.signRequestId, element.signRequestId))
 				|| signers.find(isCurrentUserSigner)
 			if (!signer) {
 				return
@@ -470,10 +470,10 @@ function updateSigners() {
 	const currentSigner = signStore.document.signers?.find((signer: SignerDetailRecord) => signer.me)
 	const visibleElements = getVisibleElementsFromDocument(normalizeDocumentForVisibleElements(signStore.document))
 	const elementsForSigner = currentSigner
-		? visibleElements.filter(element => idsMatch(element.signRequestId, currentSigner.signRequestId))
+		? visibleElements.filter((element) => idsMatch(element.signRequestId, currentSigner.signRequestId))
 		: []
 	if (currentSigner && elementsForSigner.length > 0) {
-		elementsForSigner.forEach(element => {
+		elementsForSigner.forEach((element) => {
 			const signerRecord = createReadonlySignerObject(currentSigner)
 			const visibleElement = normalizeVisibleElementRecord(element)
 			if (!visibleElement) {

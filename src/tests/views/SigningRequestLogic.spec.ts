@@ -107,7 +107,7 @@ describe('Signing Request Creation Business Logic', () => {
 				{ id: 1, email: 'alice@example.com' },
 			]
 
-			const unique = [...new Set(signers.map(s => s.id))]
+			const unique = [...new Set(signers.map((s) => s.id))]
 			expect(unique.length).toBe(1)
 		})
 
@@ -119,7 +119,7 @@ describe('Signing Request Creation Business Logic', () => {
 			]
 
 			const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
-			const validEmails = emails.filter(e => emailRegex.test(e))
+			const validEmails = emails.filter((e) => emailRegex.test(e))
 
 			expect(validEmails.length).toBe(2)
 		})
@@ -156,12 +156,12 @@ describe('Signing Request Creation Business Logic', () => {
 				{ signer: 2, type: 'signature' },
 			]
 
-			const elementsPerSigner = signers.map(s => ({
+			const elementsPerSigner = signers.map((s) => ({
 				signer: s.id,
-				count: elements.filter(e => e.signer === s.id).length,
+				count: elements.filter((e) => e.signer === s.id).length,
 			}))
 
-			const allHaveSignatures = elementsPerSigner.every(e => e.count > 0)
+			const allHaveSignatures = elementsPerSigner.every((e) => e.count > 0)
 			expect(allHaveSignatures).toBe(true)
 		})
 
@@ -171,7 +171,7 @@ describe('Signing Request Creation Business Logic', () => {
 				{ signer: 1, type: 'initial', id: 'sig-2' },
 			]
 
-			const signer1Elements = elements.filter(e => e.signer === 1)
+			const signer1Elements = elements.filter((e) => e.signer === 1)
 			expect(signer1Elements.length).toBe(2)
 		})
 	})
@@ -208,7 +208,7 @@ describe('Signing Request Creation Business Logic', () => {
 				{ order: 4, name: 'Charlie' },
 			]
 
-			const orders = signers.map(s => s.order).sort((a, b) => a - b)
+			const orders = signers.map((s) => s.order).sort((a, b) => a - b)
 			const hasGap = orders.some((o, i) => i > 0 && o !== orders[i - 1] + 1)
 
 			expect(hasGap).toBe(true)
@@ -241,7 +241,7 @@ describe('Signing Request Creation Business Logic', () => {
 				{ signer: 2, type: 'signature' },
 			]
 
-			const allSigned = signers.every(s => elements.some(e => e.signer === s.id))
+			const allSigned = signers.every((s) => elements.some((e) => e.signer === s.id))
 			expect(allSigned).toBe(true)
 		})
 
@@ -255,7 +255,7 @@ describe('Signing Request Creation Business Logic', () => {
 				{ signer: 1, type: 'signature' },
 			]
 
-			const allSigned = signers.every(s => elements.some(e => e.signer === s.id))
+			const allSigned = signers.every((s) => elements.some((e) => e.signer === s.id))
 			expect(allSigned).toBe(false)
 		})
 	})

@@ -34,7 +34,7 @@ async function confirmSigningAndDownload(page: import('@playwright/test').Page, 
 		await dialog.getByText('Do not show this confirmation again', { exact: true }).click()
 		await expect(dialog.getByRole('checkbox', { name: 'Do not show this confirmation again' })).toBeChecked()
 	}
-	const responsePromise = page.waitForResponse(response => response.url().includes('/api/v1/sign/direct') && response.request().method() === 'POST')
+	const responsePromise = page.waitForResponse((response) => response.url().includes('/api/v1/sign/direct') && response.request().method() === 'POST')
 	const downloadPromise = page.waitForEvent('download')
 	await dialog.getByRole('button', { name: 'Sign now', exact: true }).click()
 	const response = await responsePromise
@@ -74,7 +74,7 @@ test('LibreSign keeps its request screen uncluttered and signs from the Files Re
 	await expect(page.getByRole('dialog', { name: 'Sign PDF now' })).toHaveCount(0)
 
 	await page.goto('./apps/libresign/f/preferences')
-	const restoreResponse = page.waitForResponse(response => response.url().includes('/account/config/skip_direct_sign_confirmation')
+	const restoreResponse = page.waitForResponse((response) => response.url().includes('/account/config/skip_direct_sign_confirmation')
 		&& response.request().method() === 'PUT')
 	await page.getByText('Confirm before signing a PDF immediately', { exact: true }).click()
 	expect((await restoreResponse).status()).toBe(200)
@@ -89,7 +89,7 @@ test('LibreSign offers PDF preparation instead of direct signing without calling
 	await enableDirectSigning(page)
 	await page.goto('./apps/libresign/f/filelist/sign')
 	const directCalls: string[] = []
-	page.on('request', request => {
+	page.on('request', (request) => {
 		if (request.url().includes('/api/v1/sign/direct')) {
 			directCalls.push(request.url())
 		}
@@ -140,7 +140,7 @@ test('Nextcloud Files can prepare signing from the direct-sign dialog without in
 	await page.getByRole('menu').last().getByRole('menuitem', { name: 'Open in LibreSign' }).click()
 	await expect(page.getByRole('button', { name: 'Sign PDF now' })).toBeVisible()
 	const directCalls: string[] = []
-	page.on('request', request => {
+	page.on('request', (request) => {
 		if (request.url().includes('/api/v1/sign/direct')) {
 			directCalls.push(request.url())
 		}

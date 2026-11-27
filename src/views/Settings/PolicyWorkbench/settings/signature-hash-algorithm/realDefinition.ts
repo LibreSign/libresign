@@ -45,8 +45,7 @@ export const signatureHashAlgorithmRealDefinition: RealPolicySettingDefinition =
 		return DEFAULT_HASH_ALGORITHM
 	},
 	summarizeValue: (value: EffectivePolicyValue) => normalizeHashAlgorithm(value),
-	formatAllowOverride: (allowChildOverride: boolean) =>
-		allowChildOverride
+	formatAllowOverride: (allowChildOverride: boolean) => allowChildOverride
 			// TRANSLATORS Policy inheritance message indicating group and user scopes may select a different hash algorithm.
 			? t('libresign', 'Groups and accounts can set their own rule')
 			// TRANSLATORS Policy inheritance message indicating child scopes must use the hash algorithm configured at this scope.

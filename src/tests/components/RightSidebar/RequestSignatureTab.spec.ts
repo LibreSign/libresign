@@ -1283,7 +1283,7 @@ describe('RequestSignatureTab - Critical Business Rules', () => {
 			const signer = filesStore.getFile()?.signers?.[0]
 			expect(signer).toBeDefined()
 			let resolveRequest!: (value: unknown) => void
-			const pending = new Promise(resolve => {
+			const pending = new Promise((resolve) => {
 				resolveRequest = resolve
 			})
 			vi.mocked(axios.post).mockImplementation(async () => pending as Awaited<ReturnType<typeof axios.post>>)
@@ -1398,8 +1398,8 @@ describe('RequestSignatureTab - Critical Business Rules', () => {
 			expect(card.text()).toContain('Some notifications may not have been sent')
 			expect(card.find('details').attributes('open')).toBeUndefined()
 			expect(card.find('summary').text()).toBe('View sending details')
-			expect(card.findAll('dt').map(element => element.text())).toEqual(['Email', 'Messaging service'])
-			expect(card.findAll('dd').map(element => element.text())).toEqual(['Sent for delivery', 'Not confirmed'])
+			expect(card.findAll('dt').map((element) => element.text())).toEqual(['Email', 'Messaging service'])
+			expect(card.findAll('dd').map((element) => element.text())).toEqual(['Sent for delivery', 'Not confirmed'])
 			expect(showWarning).not.toHaveBeenCalled()
 			expect(showSuccess).not.toHaveBeenCalled()
 		})

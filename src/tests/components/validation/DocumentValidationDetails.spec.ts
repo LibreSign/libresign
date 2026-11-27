@@ -698,7 +698,7 @@ describe('DocumentValidationDetails', () => {
 			wrapper = createWrapper({ document: { status, signers } })
 
 			const workflowCanceled = wrapper.findAllComponents({ name: 'SignerDetails' })
-				.map(signer => signer.props('workflowCanceled'))
+				.map((signer) => signer.props('workflowCanceled'))
 
 			expect(workflowCanceled).toEqual([canceled, canceled, canceled])
 		})

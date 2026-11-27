@@ -69,7 +69,7 @@ export function findTranslatorHintProblems(source) {
 export function checkTrackedSourceFiles() {
 	const files = execFileSync('git', ['ls-files', '-z', '--', 'src', 'lib', 'appinfo', 'tests', 'scripts'], { encoding: 'utf8' })
 		.split('\0')
-		.filter(path => /\.(?:vue|js|mjs|ts|php)$/.test(path) && !path.startsWith('src/types/openapi/') && !path.startsWith('scripts/tests/'))
+		.filter((path) => /\.(?:vue|js|mjs|ts|php)$/.test(path) && !path.startsWith('src/types/openapi/') && !path.startsWith('scripts/tests/'))
 	const errors = []
 	for (const file of files) {
 		const content = readFileSync(file, 'utf8')

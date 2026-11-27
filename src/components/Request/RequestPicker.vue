@@ -560,7 +560,7 @@ async function uploadUrl() {
 }
 
 async function handleFileChoose(nodes: FilePickerNode[] = []) {
-	const paths = nodes.map(node => node?.path).filter((path): path is string => Boolean(path))
+	const paths = nodes.map((node) => node?.path).filter((path): path is string => Boolean(path))
 	if (!paths.length) {
 		return
 	}

@@ -22,7 +22,7 @@ test('generated client works with the real @nextcloud/axios instance and its CSR
   const { default: nextcloudAxios } = await import('@nextcloud/axios')
   const seen: InternalAxiosRequestConfig[] = []
   let calls = 0
-  const adapter: AxiosAdapter = async config => {
+  const adapter: AxiosAdapter = async (config) => {
     seen.push(config)
     calls++
     const reply = (status: number, data: unknown) => {
