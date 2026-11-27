@@ -22,6 +22,7 @@ use OCA\Libresign\Service\Notification\MailPayload;
 use OCA\Libresign\Service\Notification\NotificationHistoryService;
 use OCA\Libresign\Service\Notification\NotificationMessage;
 use OCA\Libresign\Service\Notification\WhatsAppBusinessTemplateOptions;
+use OCA\Libresign\Service\SignedCopyAttachmentProvider;
 use OCA\Libresign\Service\TwofactorGatewayService;
 use OCP\App\IAppManager;
 use OCP\IAppConfig;
@@ -59,7 +60,7 @@ final class NotificationChannelsTest extends TestCase {
 			->with($request, 'synthetic@example.invalid', 'Review document');
 		$mail->expects($this->once())->method('notifySignDataUpdated')
 			->with($request, 'synthetic@example.invalid', 'Review document');
-		$channel = new MailChannel($mail);
+		$channel = new MailChannel($mail, $this->createMock(SignedCopyAttachmentProvider::class));
 		$channel->deliver(new NotificationMessage(
 			'business-event', 'sign_request', 'mail', $file, $request,
 			'synthetic@example.invalid', new MailPayload(firstNotification: true),
@@ -78,7 +79,7 @@ final class NotificationChannelsTest extends TestCase {
 			->method('notifySignedUser')
 			->with($request, 'owner@example.invalid', $file, 'Document owner');
 
-		$channel = new MailChannel($mail);
+		$channel = new MailChannel($mail, $this->createMock(SignedCopyAttachmentProvider::class));
 		$channel->deliver(new NotificationMessage(
 			'signed-event', 'file_signed', 'mail', $file, $request,
 			'owner@example.invalid', new MailPayload('Document owner'),
@@ -93,10 +94,30 @@ final class NotificationChannelsTest extends TestCase {
 			->method('notifyCanceledRequest')
 			->with($request, 'signer@example.invalid', $file);
 
-		$channel = new MailChannel($mail);
+		$channel = new MailChannel($mail, $this->createMock(SignedCopyAttachmentProvider::class));
 		$channel->deliver(new NotificationMessage(
 			'canceled-event', 'sign_request_canceled', 'mail', $file, $request,
 			'signer@example.invalid', new MailPayload(),
+		));
+	}
+
+	public function testMailChannelDeliversSignedCopyWithItsDocuments(): void {
+		$request = new SignRequest();
+		$file = $this->file();
+		$attachments = $this->createMock(SignedCopyAttachmentProvider::class);
+		$attachments->expects($this->once())
+			->method('load')
+			->with($file, [2, 3])
+			->willReturn(['first.pdf' => 'pdf']);
+		$mail = $this->createMock(MailService::class);
+		$mail->expects($this->once())
+			->method('notifySignedCopy')
+			->with($file, 'archive@example.invalid', '', ['first.pdf' => 'pdf']);
+
+		$channel = new MailChannel($mail, $attachments);
+		$channel->deliver(new NotificationMessage(
+			'signed_copy:synthetic-file', 'signed_copy', 'mail', $file, $request,
+			'archive@example.invalid', new MailPayload(documentIds: [2, 3]),
 		));
 	}
 

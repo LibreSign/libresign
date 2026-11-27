@@ -1121,6 +1121,88 @@ final class RequestSignatureServiceTest extends \OCA\Libresign\Tests\Unit\TestCa
 		$this->assertCount(1, $actual);
 	}
 
+	#[\PHPUnit\Framework\Attributes\DataProvider('providerAssociateToSignersStoresSendSignedCopy')]
+	public function testAssociateToSignersStoresSendSignedCopy(array $signerFields, array $storedMetadata, array $expectedMetadata, int $expectedUpdates): void {
+		$file = new \OCA\Libresign\Db\File();
+		$file->setId(77);
+
+		$data = [
+			'status' => 9,
+			'signers' => [[
+				'displayName' => 'John Doe',
+				'identifyMethods' => [
+					['method' => 'email', 'value' => 'john@example.com'],
+				],
+				...$signerFields,
+			]],
+		];
+
+		$this->signerValidator
+			->method('normalizeRequestSigners')
+			->willReturnCallback(static fn (array $signers): array => $signers);
+		$this->signRequestMapper
+			->method('getByFileId')
+			->willReturn([]);
+		$this->sequentialSigningService
+			->method('determineSigningOrder')
+			->willReturn(1);
+
+		$signRequest = new SignRequest();
+		$signRequest->setId(701);
+		$signRequest->setMetadata($storedMetadata);
+		$this->signRequestService
+			->method('createOrUpdateSignRequest')
+			->willReturnCallback(function (
+				array $identifyMethods,
+				string $displayName,
+				?string $description,
+				bool $notify,
+				int $fileId,
+				int $signingOrder = 0,
+				?int $fileStatus = null,
+				?int $signerStatus = null,
+				ParticipantRole $participantRole = ParticipantRole::SIGNER,
+				?callable $afterPersist = null,
+			) use ($signRequest): SignRequest {
+				if ($afterPersist !== null) {
+					$afterPersist($signRequest);
+				}
+				return $signRequest;
+			});
+
+		$this->signRequestMapper
+			->expects($this->exactly($expectedUpdates))
+			->method('update')
+			->with($signRequest);
+
+		self::invokePrivate($this->getService(), 'associateToSigners', [$data, $file]);
+
+		$this->assertSame($expectedMetadata, $signRequest->getMetadata());
+	}
+
+	public static function providerAssociateToSignersStoresSendSignedCopy(): array {
+		return [
+			'enabled flag is stored' => [
+				['sendSignedCopy' => true],
+				['notify' => []],
+				['notify' => [], 'sendSignedCopy' => true],
+				1,
+			],
+			'disabled flag removes the stored choice' => [
+				['sendSignedCopy' => false],
+				['sendSignedCopy' => true, 'notify' => []],
+				['notify' => []],
+				1,
+			],
+			'omitted flag keeps the stored choice' => [
+				[],
+				['sendSignedCopy' => true],
+				['sendSignedCopy' => true],
+				0,
+			],
+		];
+	}
+
 	#[\PHPUnit\Framework\Attributes\DataProvider('providerAssociateToSignersForwardsSignerDescription')]
 	public function testAssociateToSignersForwardsSignerDescription(array $signer, ?string $expectedDescription): void {
 		$file = new \OCA\Libresign\Db\File();

@@ -60,7 +60,7 @@ class RequestSignatureController extends AEnvironmentAwareOCSController {
 	 * For `nodeType=file`, `filesCount=1` and `files` contains the current file.
 	 * For `nodeType=envelope`, `files` contains envelope child files.
 	 *
-	 * @param list<LibresignNewSigner> $signers Collection of signers who must sign the document. Use identifyMethods as the canonical format. Other supported fields: displayName, description, notify, signingOrder, status, deviceGeolocationRequired
+	 * @param list<LibresignNewSigner> $signers Collection of signers who must sign the document. Use identifyMethods as the canonical format. Other supported fields: displayName, description, notify, signingOrder, status, deviceGeolocationRequired, sendSignedCopy
 	 * @param string $name The name of file to sign
 	 * @param LibresignFolderSettings $settings Settings to define how and where the file should be stored
 	 * @param LibresignNewFile $file File object. Supports nodeId (a non-negative integer or its canonical decimal string, as Nextcloud node ids can exceed a JavaScript number), url, base64 or path.

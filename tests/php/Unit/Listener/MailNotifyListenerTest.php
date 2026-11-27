@@ -24,6 +24,7 @@ use OCA\Libresign\Service\Notification\NotificationHistoryService;
 use OCA\Libresign\Service\Notification\NotificationMessage;
 use OCA\Libresign\Service\NotificationDeliveryService;
 use OCA\Libresign\Service\NotificationPreferenceResolver;
+use OCA\Libresign\Service\SignedCopyAttachmentProvider;
 use OCP\Files\File;
 use OCP\IUser;
 use OCP\IUserManager;
@@ -57,7 +58,7 @@ class MailNotifyListenerTest extends TestCase {
 
 		$this->listener = new MailNotifyListener(
 			$this->userManager,
-			new MailChannel($this->createMock(MailService::class)),
+			new MailChannel($this->createMock(MailService::class), $this->createMock(SignedCopyAttachmentProvider::class)),
 			$this->createMock(LoggerInterface::class),
 			$this->preferences,
 			$delivery,

@@ -64,6 +64,7 @@ import { isCurrentUserObserver, isSigningParticipant } from '../utils/participan
  * 	signed?: string | null | boolean | unknown[]
  * 	sign_request_uuid?: string | null
  * 	deviceGeolocationRequired?: boolean
+ * 	sendSignedCopy?: boolean
  * 	metadata?: {
  * 		deviceGeolocationRequirement?: string
  * 		geolocation?: Record<string, unknown>
@@ -1011,6 +1012,7 @@ const _filesStore = defineStore('files', () => {
 					...(typeof deviceGeolocationRequired === 'boolean'
 						? { deviceGeolocationRequired }
 						: {}),
+					...(typeof signer.sendSignedCopy === 'boolean' ? { sendSignedCopy: signer.sendSignedCopy } : {}),
 				}
 			})
 			.filter((signer) => signer && signer.identifyMethods?.length)

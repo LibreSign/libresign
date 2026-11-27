@@ -30,6 +30,7 @@ use OCA\Libresign\Service\FolderService;
 use OCA\Libresign\Service\IdentifyMethodService;
 use OCA\Libresign\Service\SignatureRejection\RejectionViewer;
 use OCA\Libresign\Service\SignatureRejection\SignatureRejectionVisibilityService;
+use OCA\Libresign\Service\SignedCopyMailService;
 use OCA\Libresign\Service\SignerGeolocation\SignerGeolocationMetadataValidator;
 use OCA\Libresign\Service\SignerGeolocation\SignerGeolocationPolicyService;
 use OCP\AppFramework\Db\DoesNotExistException;
@@ -506,6 +507,11 @@ class FileListService {
 		);
 		if ($geolocationMetadata !== []) {
 			$data['metadata'] = $geolocationMetadata;
+		}
+
+		if ($requesterUserId !== '' && $user?->getUID() === $requesterUserId
+			&& ($signer->getMetadata()[SignedCopyMailService::METADATA_KEY] ?? false) === true) {
+			$data['sendSignedCopy'] = true;
 		}
 
 		/** @var LibresignSignerDetail $data */

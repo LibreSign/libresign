@@ -634,6 +634,11 @@ class RequestSignatureService {
 					) ?? false;
 				}
 
+				// Absent key leaves the stored choice unchanged on updates.
+				$sendSignedCopy = array_key_exists('sendSignedCopy', $signer)
+					? (filter_var($signer['sendSignedCopy'], FILTER_VALIDATE_BOOLEAN, FILTER_NULL_ON_FAILURE) ?? false)
+					: null;
+
 				foreach ($signer['identifyMethods'] as $identifyMethod) {
 					$lastSignRequest = $this->signRequestService->createOrUpdateSignRequest(
 						identifyMethods: [
@@ -647,7 +652,10 @@ class RequestSignatureService {
 						fileStatus: $fileStatus,
 						signerStatus: $signerStatus,
 						participantRole: $participantRole,
-						afterPersist: function (SignRequestEntity $signRequest) use ($file, $requesterRequiresGeolocation): void {
+						afterPersist: function (SignRequestEntity $signRequest) use ($file, $requesterRequiresGeolocation, $sendSignedCopy): void {
+							if ($sendSignedCopy !== null) {
+								$this->persistSendSignedCopy($signRequest, $sendSignedCopy);
+							}
 							$requiresGeolocation = $requesterRequiresGeolocation;
 							if ($requiresGeolocation === null) {
 								if ($this->signerGeolocationPolicyService->getFrozenRequirement($signRequest) !== null) {
@@ -668,6 +676,17 @@ class RequestSignatureService {
 			}
 		}
 		return $return;
+	}
+
+	private function persistSendSignedCopy(SignRequestEntity $signRequest, bool $sendSignedCopy): void {
+		$metadata = $signRequest->getMetadata() ?? [];
+		if ($sendSignedCopy) {
+			$metadata[SignedCopyMailService::METADATA_KEY] = true;
+		} else {
+			unset($metadata[SignedCopyMailService::METADATA_KEY]);
+		}
+		$signRequest->setMetadata($metadata);
+		$this->signRequestMapper->update($signRequest);
 	}
 
 	private function saveVisibleElements(array $data, FileEntity $file): array {
