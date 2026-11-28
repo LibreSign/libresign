@@ -132,7 +132,7 @@ jobs:
           git fetch --quiet --unshallow --prune origin             "+refs/heads/${RELEASE_BRANCH}:refs/remotes/origin/${RELEASE_BRANCH}"             "+refs/tags/*:refs/tags/*"
 
       - name: Finalize merged release
-        uses: LibreCodeCoop/release-tool/actions/post-merge@51355769089a6796c23d6c966108afbdaf858c32 # v0.12.0
+        uses: LibreCodeCoop/release-tool/actions/post-merge@63ceba979644c97b7781f3e7b4496c68d0ebddb3 # v0.12.1
         with:
           pull-request-number: ${{ github.event.pull_request.number }}
           merger: ${{ github.event.pull_request.merged_by.login }}
