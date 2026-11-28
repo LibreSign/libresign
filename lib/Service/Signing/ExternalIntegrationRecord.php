@@ -21,6 +21,8 @@ final readonly class ExternalIntegrationRecord implements \JsonSerializable {
 		public int $revision,
 		public string $createdAt,
 		public string $updatedAt,
+		public string $scopeType = 'system',
+		public string $scopeId = '',
 	) {
 	}
 
@@ -35,6 +37,8 @@ final readonly class ExternalIntegrationRecord implements \JsonSerializable {
 	 *     revision: int,
 	 *     createdAt: string,
 	 *     updatedAt: string,
+	 *     scopeType: string,
+	 *     scopeId: string,
 	 * }
 	 */
 	#[\Override]
@@ -49,6 +53,8 @@ final readonly class ExternalIntegrationRecord implements \JsonSerializable {
 			'revision' => $this->revision,
 			'createdAt' => $this->createdAt,
 			'updatedAt' => $this->updatedAt,
+			'scopeType' => $this->scopeType,
+			'scopeId' => $this->scopeId,
 		];
 	}
 }

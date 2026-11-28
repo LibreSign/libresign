@@ -26,6 +26,8 @@ use OCA\Libresign\Service\FileService;
 use OCA\Libresign\Service\Policy\ValidationEffectivePolicyService;
 use OCA\Libresign\Service\RequestSignatureService;
 use OCA\Libresign\Service\SessionService;
+use OCA\Libresign\Service\Signing\PublicSigningIdentityPresenter;
+use OCA\Libresign\Service\Signing\RequestedSigningMethod;
 use OCA\Libresign\Service\Validation\FileInputValidator;
 use OCA\Libresign\Service\Validation\SigningRequestValidator;
 use OCP\AppFramework\Db\DoesNotExistException;
@@ -284,6 +286,9 @@ class FileController extends AEnvironmentAwareOCSController {
 
 			/** @var LibresignValidatedFileResponse $response */
 			$response = $this->validationEffectivePolicyService->appendEffectivePolicies($validatedFile);
+			if ($signRequest !== null) {
+				$response = PublicSigningIdentityPresenter::redactValidationResponse($response, RequestedSigningMethod::forRequest($signRequest));
+			}
 
 			return new DataResponse($response, Http::STATUS_OK);
 		} catch (LibresignException $e) {

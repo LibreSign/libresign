@@ -189,4 +189,90 @@ describe('Sign.vue approval labels and signing methods', () => {
 			{ documentId: 42 },
 		)
 	})
+	it('requires external certificate without offering local signing when the sender made it mandatory', async () => {
+		setActivePinia(createPinia())
+		const signStore = useSignStore()
+		const signMethodsStore = useSignMethodsStore()
+		const uuid = 'bound-sign-request'
+		signStore.document = {
+			id: 75, name: 'Required certificate.pdf', description: '',
+			status: FILE_STATUS.ABLE_TO_SIGN, statusText: 'Ready to sign',
+			url: '/apps/libresign/p/pdf/example', nodeId: 75, nodeType: 'file', uuid: 'file-uuid',
+			signers: [
+				{ me: true, signRequestId: 50, status: SIGN_REQUEST_STATUS.ABLE_TO_SIGN, sign_request_uuid: 'another-request',
+					metadata: { signingMethodRequirement: 'libresign' } },
+				{ me: true, signRequestId: 51, status: SIGN_REQUEST_STATUS.ABLE_TO_SIGN, sign_request_uuid: uuid,
+					metadata: { signingMethodRequirement: 'external_certificate' },
+					identifyMethods: [{ method: 'email', value: 'guest@example.org', requirement: 'required' }] },
+			],
+			visibleElements: [], settings: { canSign: true, isApprover: false,
+				signatureMethods: { emailToken: { label: 'Email', identifyMethod: 'email' as const, needCode: true, hasConfirmCode: true, blurredEmail: 'g***@example.org', hashOfEmail: 'test-hash' } } },
+		}
+		signMethodsStore.settings = { emailToken: { label: 'Email', identifyMethod: 'email' as const, needCode: true, hasConfirmCode: true, blurredEmail: 'g***@example.org', hashOfEmail: 'test-hash' } }
+		currentRoute.name = 'SignPDF'
+		currentRoute.params.uuid = uuid
+		currentRoute.query = {}
+		currentRoute.path = `/f/sign/${uuid}/pdf`
+		wrapper = mount(Sign, { global: { stubs: { ExternalSigning: true, CreatePassword: true, UploadCertificate: true } } })
+		await flushPromises()
+		expect(wrapper.find('section.external-signing, external-signing-stub').exists()).toBe(true)
+		expect(wrapper.find('input[name="signing-path"]').exists()).toBe(false)
+		expect(wrapper.findAll('button').some(button => button.text().trim() === 'Sign')).toBe(false)
+	})
+
+	it.each([
+		{ approval: false, available: true, requirement: 'signer_choice', boundIdentity: true },
+		{ approval: false, available: false, requirement: undefined, boundIdentity: true },
+		{ approval: true, available: false, requirement: 'signer_choice', boundIdentity: true },
+		{ approval: false, available: false, requirement: 'signer_choice', boundIdentity: false },
+	] as const)('requires an explicit sender choice and signer identity (approval: $approval, requirement: $requirement, bound: $boundIdentity)', async ({ approval, available, requirement, boundIdentity }) => {
+		setActivePinia(createPinia())
+		const signStore = useSignStore()
+		const signMethodsStore = useSignMethodsStore()
+		const uuid = 'bound-sign-request'
+		const methods = { emailToken: { label: 'Email', identifyMethod: 'email' as const, needCode: true, hasConfirmCode: true, blurredEmail: 'g***@example.org', hashOfEmail: 'test-hash' } }
+		signStore.document = {
+			id: 75,
+			name: 'Document.pdf',
+			description: '',
+			status: FILE_STATUS.ABLE_TO_SIGN,
+			statusText: 'Ready to sign',
+			url: '/apps/libresign/p/pdf/example',
+			nodeId: 75,
+			nodeType: 'file',
+			uuid: 'file-uuid',
+			signers: [{ me: true, signRequestId: 51, status: SIGN_REQUEST_STATUS.ABLE_TO_SIGN, sign_request_uuid: uuid,
+				...(requirement ? { metadata: { signingMethodRequirement: requirement } } : {}),
+				identifyMethods: boundIdentity ? [{ method: 'email', value: 'guest@example.org', requirement: 'required' }] : [],
+			}],
+			visibleElements: [],
+			settings: { canSign: true, isApprover: approval, signatureMethods: methods },
+		}
+		signMethodsStore.settings = methods
+		currentRoute.name = approval ? 'IdDocsApprove' : 'SignPDF'
+		currentRoute.params.uuid = uuid
+		currentRoute.query = approval ? { idDocApproval: 'true' } : {}
+		currentRoute.path = approval ? `/f/id-docs/approve/${uuid}` : `/f/sign/${uuid}/pdf`
+		wrapper = mount(Sign, {
+			global: { stubs: {
+				Draw: true,
+				Documents: true,
+				Signatures: true,
+				ManagePassword: true,
+				CreatePassword: true,
+				UploadCertificate: true,
+				ExternalSigning: true,
+			} },
+		})
+		await flushPromises()
+		const signingPathOptions = wrapper.findAll('input[type="radio"][name="signing-path"]')
+		expect(signingPathOptions).toHaveLength(available ? 2 : 0)
+		if (available) {
+			expect(wrapper.find('section.external-signing, external-signing-stub').exists()).toBe(false)
+			await wrapper.find('input[value="external"][name="signing-path"]').setValue()
+			expect(wrapper.find('section.external-signing, external-signing-stub').exists()).toBe(true)
+			await wrapper.find('input[value="libresign"][name="signing-path"]').setValue()
+			expect(wrapper.find('section.external-signing, external-signing-stub').exists()).toBe(false)
+		}
+	})
 })

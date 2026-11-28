@@ -31,10 +31,12 @@ final class ExternalIntegrationAdministration {
 		string $name,
 		#[\SensitiveParameter] array $configuration,
 		#[\SensitiveParameter] array $secrets = [],
+		string $scopeType = 'system',
+		string $scopeId = '',
 	): ExternalIntegrationRecord {
 		[$driverId, $fields] = $this->metadata($driver);
 		$this->validator->validateCreate($fields, $configuration, $secrets);
-		return $this->store->create($driverId, $name, $configuration, $secrets);
+		return $this->store->create($driverId, $name, $configuration, $secrets, $scopeType, $scopeId);
 	}
 
 	/**
@@ -87,7 +89,7 @@ final class ExternalIntegrationAdministration {
 
 	/**
 	 * Enabling is administrative state only; it never overrides the global
-	 * experimental gate or makes an unavailable driver operational.
+	 * feature gate or makes an unavailable driver operational.
 	 *
 	 * @param array<string, mixed> $driver Trusted declarative catalog entry.
 	 */
@@ -114,8 +116,8 @@ final class ExternalIntegrationAdministration {
 	}
 
 	/** @return array{items: list<ExternalIntegrationRecord>, nextCursor: ?int} */
-	public function listPage(int $afterId = 0, int $pageSize = 50): array {
-		return $this->store->listPage($afterId, $pageSize);
+	public function listPage(int $afterId = 0, int $pageSize = 50, ?string $scopeType = null, string $scopeId = ''): array {
+		return $this->store->listPage($afterId, $pageSize, $scopeType, $scopeId);
 	}
 
 	/**

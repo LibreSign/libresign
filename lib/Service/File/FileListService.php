@@ -32,6 +32,7 @@ use OCA\Libresign\Service\SignatureRejection\RejectionViewer;
 use OCA\Libresign\Service\SignatureRejection\SignatureRejectionVisibilityService;
 use OCA\Libresign\Service\SignerGeolocation\SignerGeolocationMetadataValidator;
 use OCA\Libresign\Service\SignerGeolocation\SignerGeolocationPolicyService;
+use OCA\Libresign\Service\Signing\RequestedSigningMethod;
 use OCP\AppFramework\Db\DoesNotExistException;
 use OCP\AppFramework\Db\Entity;
 use OCP\Files\File as NodeFile;
@@ -500,13 +501,12 @@ class FileListService {
 		$canViewSensitiveSignerMetadata = $data['me']
 			|| ($requesterUserId !== '' && $user?->getUID() === $requesterUserId);
 
-		$geolocationMetadata = $this->extractGeolocationMetadataFromSignRequest(
+		$signerMetadata = $this->extractGeolocationMetadataFromSignRequest(
 			$signer,
 			$canViewSensitiveSignerMetadata,
 		);
-		if ($geolocationMetadata !== []) {
-			$data['metadata'] = $geolocationMetadata;
-		}
+		$signerMetadata[RequestedSigningMethod::METADATA_KEY] = RequestedSigningMethod::forRequest($signer)->value;
+		$data['metadata'] = $signerMetadata;
 
 		/** @var LibresignSignerDetail $data */
 		$data = $this->signatureRejectionVisibilityService->presentSigner(
@@ -749,6 +749,7 @@ class FileListService {
 
 		/** @var LibresignSignerDetail $data */
 		$data = $this->signatureRejectionVisibilityService->presentSigner($signer, $fileEntity, $rejectionViewer ?? new RejectionViewer(false, []), $hiddenRejection)->applyTo($data);
+		$data['metadata'] = [RequestedSigningMethod::METADATA_KEY => RequestedSigningMethod::forRequest($signer)->value];
 
 		ksort($data);
 		return $data;

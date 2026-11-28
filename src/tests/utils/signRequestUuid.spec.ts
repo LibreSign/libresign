@@ -58,6 +58,16 @@ describe('signRequestUuid utils', () => {
 		})).toBe('sign-request-uuid')
 	})
 
+	it('uses the matching sign request when multiple signers have a current-user flag', () => {
+		expect(getSigningRouteUuid({
+			uuid: 'file-uuid',
+			signers: [
+				{ me: true, sign_request_uuid: 'another-request' },
+				{ me: true, sign_request_uuid: 'requested-recipient' },
+			],
+		}, null, 'requested-recipient')).toBe('requested-recipient')
+	})
+
 	it('falls back to the route uuid for internal sign navigation before signer context loads', () => {
 		expect(getSigningRouteUuid({ uuid: 'file-uuid', signers: [] }, null, 'route-signer-uuid')).toBe('route-signer-uuid')
 	})

@@ -66,88 +66,118 @@
 					{{ t('libresign', 'Your digital signature will still be added to the PDF and can be validated after signing.') }}
 				</p>
 			</NcNoteCard>
-			<div v-if="needCreateSignature" class="no-signature-warning">
-				<p>
-					<!-- TRANSLATORS Warning shown when the signer has not created any reusable signature yet. -->
-					{{ t('libresign', 'You do not have any signature defined.') }}
-				</p>
+			<template v-if="!externalSigningActive && requestedSigningMode !== 'external_certificate'">
+				<div v-if="needCreateSignature" class="no-signature-warning">
+					<p>
+						<!-- TRANSLATORS Warning shown when the signer has not created any reusable signature yet. -->
+						{{ t('libresign', 'You do not have any signature defined.') }}
+					</p>
+					<NcButton
+						v-if="canUseSavedSignature"
+						:wide="true"
+						:disabled="loading"
+						variant="primary"
+						@click="useSavedSignature">
+						<!-- TRANSLATORS Button label for a signer identified by email to reuse the signature saved while signing an earlier document. -->
+						{{ t('libresign', 'Use my saved signature') }}
+					</NcButton>
+					<NcButton
+						:wide="true"
+						:disabled="loading"
+						variant="primary"
+						@click="openModal('createSignature')">
+						<!-- TRANSLATORS Button label that opens the signature creation flow. -->
+						{{ t('libresign', 'Define your signature.') }}
+					</NcButton>
+				</div>
+				<div v-else-if="signMethodsStore.needCertificate()">
+					<p>
+						<!-- TRANSLATORS Warning shown when the signer must upload a certificate before signing the document. -->
+						{{ t('libresign', 'You need to upload your certificate to sign the document.') }}
+					</p>
+					<NcButton
+						:wide="true"
+						:disabled="loading"
+						variant="primary"
+						@click="openModal('uploadCertificate')">
+						<!-- TRANSLATORS Button label that opens certificate upload for signing. -->
+						{{ t('libresign', 'Upload certificate') }}
+					</NcButton>
+				</div>
+				<div v-else-if="signMethodsStore.needCreatePassword()">
+					<p>
+						{{ passwordSetupInstructionText }}
+					</p>
+					<NcButton
+						:wide="true"
+						:disabled="loading"
+						variant="primary"
+						@click="openModal('createPassword')">
+						{{ passwordSetupActionLabel }}
+					</NcButton>
+				</div>
+				<div v-else-if="needIdentificationDocuments" class="no-identification-warning">
+					<Documents :sign-request-uuid="signRequestUuid" />
+				</div>
+				<div v-else-if="hasBlockingSignError" class="sign-blocked-warning">
+					<p>
+						<!-- TRANSLATORS Shown after a non-retriable certificate validation failure. "Signing is blocked" means the signer cannot continue now and must resolve the certificate issue first. -->
+						{{ t('libresign', 'Signing is blocked until the certificate validation issue is resolved.') }}
+					</p>
+					<NcButton
+						:wide="true"
+						:disabled="loading"
+						@click="clearBlockingSignError">
+						<!-- TRANSLATORS Button label that retries the signing flow after clearing a blocking certificate-validation error. -->
+						{{ t('libresign', 'Try signing again') }}
+					</NcButton>
+				</div>
 				<NcButton
-					v-if="canUseSavedSignature"
+					v-else-if="ableToSign"
 					:wide="true"
 					:disabled="loading"
 					variant="primary"
-					@click="useSavedSignature">
-					<!-- TRANSLATORS Button label for a signer identified by email to reuse the signature saved while signing an earlier document. -->
-					{{ t('libresign', 'Use my saved signature') }}
+					@click="confirmSignDocument">
+					<template #icon>
+						<NcLoadingIcon v-if="loading" :size="20" />
+					</template>
+					{{ signActionLabel }}
 				</NcButton>
-				<NcButton
-					:wide="true"
-					:disabled="loading"
-					variant="primary"
-					@click="openModal('createSignature')">
-					<!-- TRANSLATORS Button label that opens the signature creation flow. -->
-					{{ t('libresign', 'Define your signature.') }}
-				</NcButton>
-			</div>
-			<div v-else-if="signMethodsStore.needCertificate()">
-				<p>
-					<!-- TRANSLATORS Warning shown when the signer must upload a certificate before signing the document. -->
-					{{ t('libresign', 'You need to upload your certificate to sign the document.') }}
-				</p>
-				<NcButton
-					:wide="true"
-					:disabled="loading"
-					variant="primary"
-					@click="openModal('uploadCertificate')">
-					<!-- TRANSLATORS Button label that opens certificate upload for signing. -->
-					{{ t('libresign', 'Upload certificate') }}
-				</NcButton>
-			</div>
-			<div v-else-if="signMethodsStore.needCreatePassword()">
-				<p>
-					{{ passwordSetupInstructionText }}
-				</p>
-				<NcButton
-					:wide="true"
-					:disabled="loading"
-					variant="primary"
-					@click="openModal('createPassword')">
-					{{ passwordSetupActionLabel }}
-				</NcButton>
-			</div>
-			<div v-else-if="needIdentificationDocuments" class="no-identification-warning">
-				<Documents :sign-request-uuid="signRequestUuid" />
-			</div>
-			<div v-else-if="hasBlockingSignError" class="sign-blocked-warning">
-				<p>
-					<!-- TRANSLATORS Shown after a non-retriable certificate validation failure. "Signing is blocked" means the signer cannot continue now and must resolve the certificate issue first. -->
-					{{ t('libresign', 'Signing is blocked until the certificate validation issue is resolved.') }}
-				</p>
-				<NcButton
-					:wide="true"
-					:disabled="loading"
-					@click="clearBlockingSignError">
-					<!-- TRANSLATORS Button label that retries the signing flow after clearing a blocking certificate-validation error. -->
-					{{ t('libresign', 'Try signing again') }}
-				</NcButton>
-			</div>
-			<NcButton
-				v-else-if="ableToSign"
-				:wide="true"
-				:disabled="loading"
-				variant="primary"
-				@click="confirmSignDocument">
-				<template #icon>
-					<NcLoadingIcon v-if="loading" :size="20" />
-				</template>
-				{{ signActionLabel }}
-			</NcButton>
-			<div v-else>
-				<p>
-					<!-- TRANSLATORS Fallback message shown when the current signer cannot sign the document. -->
-					{{ t('libresign', 'Unable to sign.') }}
-				</p>
-			</div>
+				<div v-else>
+					<p>
+						<!-- TRANSLATORS Fallback message shown when the current signer cannot sign the document. -->
+						{{ t('libresign', 'Unable to sign.') }}
+					</p>
+				</div>
+			</template>
+			<NcRadioGroup
+				v-if="externalSigningUiAllowed && requestedSigningMode === 'signer_choice'"
+				:model-value="showExternalSigning ? 'external' : 'libresign'"
+				:label="t('libresign', 'Choose how to sign this document')"
+				class="external-signing-option"
+				@update:modelValue="showExternalSigning = $event === 'external'">
+				<NcCheckboxRadioSwitch name="signing-path" value="libresign">
+					<!-- TRANSLATORS This option uses the existing LibreSign signing process and one final signature. -->
+					{{ t('libresign', 'Sign with LibreSign') }}
+				</NcCheckboxRadioSwitch>
+				<NcCheckboxRadioSwitch name="signing-path" value="external">
+					<!-- TRANSLATORS Alternative signing path using a certificate provided by a separate signing service. -->
+					{{ t('libresign', 'Use a certificate from a signing service') }}
+				</NcCheckboxRadioSwitch>
+			</NcRadioGroup>
+			<NcNoteCard v-if="requestedSigningMode === 'external_certificate' && !externalSigningUiAllowed" type="warning">
+				<!-- TRANSLATORS The recipient must not fall back to an unapproved local signature if remote signing is unavailable. -->
+				{{ t('libresign', 'This request requires a digital certificate from a signing service. Signing is not available here right now. Contact the sender.') }}
+			</NcNoteCard>
+			<ExternalSigning
+				v-if="externalSigningActive"
+				:sign-request-uuid="signRequestUuid"
+				:email-method="signMethodsStore.settings.emailToken?.identifyMethod || ''"
+				:bound-email-hash="String(signMethodsStore.settings.emailToken?.hashOfEmail ?? '')"
+				:bound-masked-email="signMethodsStore.blurredEmail()"
+				:existing-email-code="String(signMethodsStore.settings.emailToken?.token ?? '')"
+				:bound-identities="boundSignerIdentities"
+				@signed="onExternalSigned" />
 		</div>
 		<NcDialog
 			v-if="signMethodsStore.modal.clickToSign"
@@ -317,9 +347,11 @@ import NcCheckboxRadioSwitch from '@nextcloud/vue/components/NcCheckboxRadioSwit
 import NcDialog from '@nextcloud/vue/components/NcDialog'
 import NcLoadingIcon from '@nextcloud/vue/components/NcLoadingIcon'
 import NcNoteCard from '@nextcloud/vue/components/NcNoteCard'
+import NcRadioGroup from '@nextcloud/vue/components/NcRadioGroup'
 import NcPasswordField from '@nextcloud/vue/components/NcPasswordField'
 import NcRichText from '@nextcloud/vue/components/NcRichText'
 
+import ExternalSigning from './ExternalSigning.vue'
 import ModalVerificationCode from './ModalVerificationCode.vue'
 import { NON_RETRIABLE_SIGN_ERROR_CODE, shouldCloseCurrentModalOnSignError } from './signErrorUtils'
 import Draw from '../../../components/Draw/Draw.vue'
@@ -335,6 +367,7 @@ import { useSignatureElementsStore } from '../../../store/signatureElements.js'
 import { useSignMethodsStore } from '../../../store/signMethods.js'
 import { useIdentificationDocumentStore } from '../../../store/identificationDocument.js'
 import { getSigningRouteUuid } from '../../../utils/signRequestUuid.ts'
+import { requestedSigningMethod } from '../../../utils/requestedSigningMethod.ts'
 import type { operations } from '../../../types/openapi/openapi'
 import type {
 	LibresignCapabilities,
@@ -491,6 +524,7 @@ type SignatureMethodSetting = {
 	hasSignatureFile?: boolean
 	label?: string
 	hashOfIdentifier?: string
+	hashOfEmail?: string
 	blurredEmail?: string
 	hasConfirmCode?: boolean
 }
@@ -723,6 +757,37 @@ const hasVisibleSignatureField = computed(() => hasVisibleElementsForCurrentUser
 const needIdentificationDocuments = computed(() => identificationDocumentStore.showDocumentsComponent())
 const ableToSign = computed(() => signStore.ableToSign)
 const hasBlockingSignError = computed(() => signStore.errors.some((error) => Number(error?.code) === NON_RETRIABLE_SIGN_ERROR_CODE))
+const showExternalSigning = ref(false)
+const currentSigningRecipient = computed(() => {
+	const signers = signStore.document?.signers ?? []
+	return signers.find(candidate => candidate.sign_request_uuid === signRequestUuid.value)
+		?? signers.find(candidate => candidate.me === true)
+})
+const boundSignerIdentities = computed(() => currentSigningRecipient.value?.identifyMethods ?? [])
+const supportedExternalIdentityMethods = new Set(['email', 'sms', 'whatsapp', 'whatsappbusiness', 'signal', 'telegram', 'xmpp'])
+const hasBoundSigningIdentity = computed(() => {
+	const currentUid = getCurrentUser()?.uid ?? ''
+	return boundSignerIdentities.value.some(candidate => candidate.method === 'account'
+		? Boolean(currentUid) && candidate.value === currentUid
+		: supportedExternalIdentityMethods.has(candidate.method))
+})
+const requestedSigningMode = computed(() => requestedSigningMethod(currentSigningRecipient.value?.metadata?.signingMethodRequirement))
+const externalSigningUiAllowed = computed(() => !isApprovalRoute.value
+	&& ableToSign.value && Boolean(signRequestUuid.value)
+	&& !requiresDeviceGeolocation.value
+	&& !needIdentificationDocuments.value
+	&& !hasVisibleSignatureField.value
+	&& !hasBlockingSignError.value
+	&& requestedSigningMode.value !== 'libresign'
+	&& hasBoundSigningIdentity.value)
+const externalSigningActive = computed(() => externalSigningUiAllowed.value
+	&& (requestedSigningMode.value === 'external_certificate' || showExternalSigning.value))
+
+function onExternalSigned(payload: { signRequestUuid: string }) {
+	showExternalSigning.value = false
+	sidebarStore.hideSidebar()
+	emit('signed', payload)
+}
 
 function openModal(modalCode: string) {
 	ensureServices()
@@ -1111,6 +1176,7 @@ watch(signRequestUuid, (newUuid, oldUuid) => {
 		signStore.clearSigningErrors()
 		showManagePassword.value = false
 		signPassword.value = ''
+		showExternalSigning.value = false
 	}
 })
 
@@ -1215,7 +1281,7 @@ defineExpose({
 }
 
 .button-wrapper {
-	padding: calc(var(--default-grid-baseline, 4px)*2);
+	padding: calc(var(--default-grid-baseline, 4px) * 2);
 }
 
 .sign-elements {

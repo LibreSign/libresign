@@ -32,6 +32,8 @@ use OCA\Libresign\Service\RequestSignatureService;
 use OCA\Libresign\Service\SessionService;
 use OCA\Libresign\Service\SignerElementsService;
 use OCA\Libresign\Service\SignFileService;
+use OCA\Libresign\Service\Signing\PublicSigningIdentityPresenter;
+use OCA\Libresign\Service\Signing\RequestedSigningMethod;
 use OCA\Libresign\Service\Validation\SigningRequestValidator;
 use OCA\Viewer\Event\LoadViewer;
 use OCP\AppFramework\Db\DoesNotExistException;
@@ -409,7 +411,9 @@ class PageController extends AEnvironmentPageAwareController {
 		$this->initialState->provideInitialState('identificationDocumentsWaitingApproval', $file['settings']['identificationDocumentsWaitingApproval'] ?? false);
 		$this->initialState->provideInitialState('status', $file['status']);
 		$this->initialState->provideInitialState('statusText', $file['statusText']);
-		$this->initialState->provideInitialState('signers', $file['signers']);
+		$signRequest = $this->getSignRequestEntity();
+		$requestedMethod = $signRequest === null ? RequestedSigningMethod::LIBRESIGN : RequestedSigningMethod::forRequest($signRequest);
+		$this->initialState->provideInitialState('signers', PublicSigningIdentityPresenter::redactSigners($file['signers'], $requestedMethod));
 		$this->initialState->provideInitialState('canSign', $file['settings']['canSign'] ?? false);
 		$this->initialState->provideInitialState('visibleElements', $file['visibleElements'] ?? []);
 		$this->initialState->provideInitialState('sign_request_uuid', $uuid);
@@ -418,7 +422,7 @@ class PageController extends AEnvironmentPageAwareController {
 		$this->initialState->provideInitialState('description', $this->getSignRequestEntity()->getDescription() ?? '');
 		if ($this->getFileEntity()->getNodeType() === 'envelope') {
 			$this->initialState->provideInitialState('pdfs', []);
-			$this->initialState->provideInitialState('envelopeFiles', $this->getEnvelopeChildFiles());
+			$this->initialState->provideInitialState('envelopeFiles', PublicSigningIdentityPresenter::redactEnvelopeFiles($this->getEnvelopeChildFiles(), $requestedMethod));
 		} else {
 			$this->initialState->provideInitialState('pdfs', $this->getPdfUrls());
 			$this->initialState->provideInitialState('envelopeFiles', []);

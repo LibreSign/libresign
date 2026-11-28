@@ -1,0 +1,234 @@
+<?php
+
+declare(strict_types=1);
+/**
+ * SPDX-FileCopyrightText: 2026 LibreCode coop and contributors
+ * SPDX-License-Identifier: AGPL-3.0-or-later
+ */
+
+namespace OCA\Libresign\Service\Signing\External;
+
+use OCA\Libresign\Service\IdentifyMethodService;
+use OCA\Libresign\Service\Signing\ExternalIntegrationRecord;
+use OCA\Libresign\Service\Signing\Provider\Drivers\Csc\CscIntegration;
+use OCA\Libresign\Service\Signing\SyntheticCscSigningOperation;
+use OCA\Libresign\Vendor\SignerPHP\PdfSigner\RemoteSigning\DTO\RemoteCertificate;
+
+/**
+ * Provider-neutral execution surface for the explicitly pinned synthetic
+ * CSC v1 laboratory. Production CSC personal signing is not exposed here.
+ *
+ * All actor/request/revision/certificate/PDF data originates from trusted
+ * LibreSign storage or its pinned laboratory factory, never from a client.
+ * A fresh authorization check precedes remote discovery, start, continuation
+ * or status lookup. A session ID is not an access token.
+ */
+final class Workflow {
+	public function __construct(
+		private Authorization $authorization,
+		private LaboratoryFactory $laboratories,
+		private CredentialSelection $selection,
+		private SessionStore $sessions,
+		private SyntheticCscSigningOperation $crypto,
+		private Publication $publisher,
+		private DocumentSource $documents,
+		private IntegrationScopeAccess $scopeAccess,
+	) {
+	}
+
+	/**
+	 * Discover allowed synthetic signing methods for one authorized signer;
+	 * never enumerate every remote credential merely from a guest URL.
+	 *
+	 * @return array<string, mixed>
+	 */
+	public function availability(
+		string $signRequestUuid,
+		string $method,
+		string $identity,
+		#[\SensitiveParameter] string $token,
+		string $integrationId = '',
+	): array {
+		$actor = $this->authorization->authorize($signRequestUuid, $method, $identity, $token);
+		$session = $this->sessions->findForSignRequest($actor->signRequest->getId(), $actor->actorId);
+		if ($integrationId === '') {
+			return [
+				'integrations' => $this->laboratories->listEligible(fn (ExternalIntegrationRecord $record): bool => $this->canUseIntegration($record, $actor, $method, $identity)),
+				'integration' => null,
+				'credentials' => [],
+				'syntheticOnly' => true,
+				'personalSignerAuthorization' => false,
+				'session' => $session,
+			];
+		}
+		$lab = $this->laboratories->resolve($integrationId);
+		$this->assertCanUseIntegration($lab['record'], $actor, $method, $identity);
+		$selection = $this->selection->discoverSynthetic($signRequestUuid, $method, $identity,
+			$token, $integrationId, $lab['laboratory']);
+		$selection['integrations'] = [$selection['integration']];
+		$selection['session'] = $session;
+		return $selection;
+	}
+
+	/**
+	 * Prepare an eligible pinned credential and persist the exact server-owned
+	 * source revision; never accept prepared state or X.509 bytes from a UI.
+	 *
+	 * @return array<string, int|string>
+	 */
+	public function start(
+		string $signRequestUuid,
+		string $method,
+		string $identity,
+		#[\SensitiveParameter] string $token,
+		string $integrationId,
+		string $credentialId,
+		string $attemptId,
+		string $profile,
+	): array {
+		$actor = $this->authorization->authorize($signRequestUuid, $method, $identity, $token);
+		$lab = $this->laboratories->resolve($integrationId);
+		$this->assertCanUseIntegration($lab['record'], $actor, $method, $identity);
+		$selection = $this->selection->discoverSynthetic($signRequestUuid, $method, $identity,
+			$token, $integrationId, $lab['laboratory']);
+		$chosen = CredentialSelection::requireEligibleCredential(
+			$selection['credentials'], $credentialId, $profile,
+		);
+		$certificate = $this->certificate($lab['laboratory'], $credentialId,
+			(string)$chosen['certificateSha256']);
+		$source = $this->documents->get($actor->file);
+		$context = ContextFactory::create($source->pdf, (string)$actor->signRequest->getDisplayName(),
+			$profile, $certificate->certificate->certificatePem);
+		// The signing helper and the persisted session both independently
+		// check certificate, integration revision and exact PDF input.
+		return $this->crypto->prepare($lab['laboratory'], $lab['record'], $credentialId, $context,
+			$actor->actorId, $actor->signRequest->getId(), $attemptId, $source->revision,
+			new \DateTimeImmutable('+15 minutes'));
+	}
+
+	/**
+	 * Continue one authorized operation. A SIGNING_PENDING or UNCERTAIN
+	 * submission is reported without ever calling the private key again.
+	 * A COMPLETING session can only reconcile stored validated bytes and
+	 * the native SignRequest publication, not reserve a new operation.
+	 *
+	 * @return array<string, mixed>
+	 */
+	public function continue(
+		string $signRequestUuid,
+		string $method,
+		string $identity,
+		#[\SensitiveParameter] string $token,
+		string $sessionId,
+	): array {
+		$actor = $this->authorization->authorize($signRequestUuid, $method, $identity, $token);
+		$session = $this->sessions->getForSignRequest($sessionId, $actor->signRequest->getId(), $actor->actorId);
+		// Recheck policy scope before returning even a pending or uncertain
+		// state; revocation must not leave a status-only access path open.
+		$lab = $this->laboratories->resolve((string)$session['integrationId']);
+		$this->assertCanUseIntegration($lab['record'], $actor, $method, $identity);
+		if (in_array($session['status'], [
+			SessionState::SIGNING_PENDING->value,
+			SessionState::UNCERTAIN->value,
+			SessionState::REJECTED->value,
+			SessionState::EXPIRED->value,
+			SessionState::FAILED->value,
+		], true)) {
+			return ['session' => $session, 'retryAllowed' => false, 'publication' => null];
+		}
+		if ($lab['record']->revision !== (int)$session['integrationRevision']) {
+			throw new \DomainException('External signing integration changed during signing');
+		}
+		$signaturePem = in_array($session['status'], [
+			SessionState::SIGNATURE_RECEIVED->value,
+			SessionState::COMPLETING->value,
+		], true)
+			? $this->sessions->certificateForCompletion($sessionId, $actor->signRequest->getId(), $actor->actorId)
+			: null;
+		if ($signaturePem === null) {
+			// Only legacy sessions and pre-submission operations need live CSC discovery.
+			$certificate = $this->certificate($lab['laboratory'], (string)$session['credentialId'],
+				(string)$session['certificateSha256']);
+			$signaturePem = $certificate->certificate->certificatePem;
+		}
+		$source = $this->documents->get($actor->file);
+		if (in_array($session['status'], [
+			SessionState::PREPARING->value,
+			SessionState::READY_TO_SIGN->value,
+		], true)) {
+			try {
+				$this->crypto->sign($lab['laboratory'], $lab['record'], $sessionId,
+					$actor->signRequest->getId(), $actor->actorId, $source->revision, $source->pdf);
+			} catch (\DomainException $e) {
+				// Any operation whose remote result is indeterminate stays
+				// non-retryable. Surface its stored state, not an HTTP retry.
+				$fresh = $this->sessions->getForSignRequest($sessionId,
+					$actor->signRequest->getId(), $actor->actorId);
+				if (in_array($fresh['status'], ['uncertain', 'signing_pending'], true)) {
+					return ['session' => $fresh, 'retryAllowed' => false, 'publication' => null];
+				}
+				throw $e;
+			}
+		} elseif ($session['status'] === SessionState::SIGNATURE_RECEIVED->value) {
+			$this->crypto->completeAndReserve($sessionId, $actor->signRequest->getId(),
+				$actor->actorId, $source->revision, $source->pdf, $signaturePem);
+		} elseif ($session['status'] !== SessionState::COMPLETING->value) {
+			throw new \DomainException('External signing session has no continuation operation');
+		}
+		// Revalidate the current signer identity/approval immediately before
+		// making the visible File/SignRequest publication transition.
+		$authorizedAgain = $this->authorization->authorize($signRequestUuid, $method, $identity, $token);
+		$publication = $this->publisher->publish($authorizedAgain, $sessionId, $signaturePem);
+		return ['session' => ['id' => $sessionId, 'status' => 'completed'],
+			'retryAllowed' => false, 'publication' => $publication];
+	}
+
+	/** @return array<string, int|string>|null */
+	public function status(
+		string $signRequestUuid,
+		string $method,
+		string $identity,
+		#[\SensitiveParameter] string $token,
+	): ?array {
+		$actor = $this->authorization->authorize($signRequestUuid, $method, $identity, $token);
+		$session = $this->sessions->findForSignRequest($actor->signRequest->getId(), $actor->actorId);
+		if ($session !== null) {
+			$lab = $this->laboratories->resolve((string)$session['integrationId']);
+			$this->assertCanUseIntegration($lab['record'], $actor, $method, $identity);
+		}
+		return $session;
+	}
+
+	private function canUseIntegration(
+		ExternalIntegrationRecord $record,
+		AuthorizedRequest $actor,
+		string $method,
+		string $identity,
+	): bool {
+		$signerUid = $method === IdentifyMethodService::IDENTIFY_ACCOUNT ? $identity : null;
+		return $this->scopeAccess->canUse($record, $actor->file->getUserId(), $signerUid);
+	}
+
+	private function assertCanUseIntegration(
+		ExternalIntegrationRecord $record,
+		AuthorizedRequest $actor,
+		string $method,
+		string $identity,
+	): void {
+		if (!$this->canUseIntegration($record, $actor, $method, $identity)) {
+			throw new \DomainException('External signing integration is not permitted for this policy scope');
+		}
+	}
+
+	private function certificate(CscIntegration $lab, string $credentialId, string $fingerprint): RemoteCertificate {
+		$matches = $lab->certificates($credentialId);
+		if (count($matches) !== 1 || !hash_equals($credentialId, $matches[0]->identifier)) {
+			throw new \DomainException('CSC signing credential is not available for this request');
+		}
+		$actual = @openssl_x509_fingerprint($matches[0]->certificate->certificatePem, 'sha256');
+		if (!is_string($actual) || !hash_equals($fingerprint, strtolower($actual))) {
+			throw new \DomainException('CSC signing credential certificate has changed');
+		}
+		return $matches[0];
+	}
+}

@@ -10,18 +10,25 @@ namespace OCA\Libresign\Tests\Unit\Controller;
 
 use OCA\Libresign\Controller\ExternalSigningIntegrationsController;
 use OCA\Libresign\Service\ExperimentalFeaturesService;
+use OCA\Libresign\Service\Policy\PolicyService;
+use OCA\Libresign\Service\Signing\External\IntegrationScopeAccess;
 use OCA\Libresign\Service\Signing\ExternalIntegrationAdministration;
 use OCA\Libresign\Service\Signing\ExternalIntegrationFieldValidator;
 use OCA\Libresign\Service\Signing\ExternalIntegrationSecrets;
 use OCA\Libresign\Service\Signing\ExternalIntegrationStore;
 use OCA\Libresign\Service\Signing\Provider\Drivers\Csc\CscDriver;
+use OCA\Libresign\Service\Signing\Provider\Drivers\Csc\CscProviderProbe;
 use OCA\Libresign\Service\Signing\Provider\ExternalSigningDriverCatalog;
 use OCP\AppFramework\Http;
+use OCP\Group\ISubAdmin;
+use OCP\Http\Client\IClientService;
+use OCP\IConfig;
 use OCP\IDBConnection;
 use OCP\IGroupManager;
 use OCP\IL10N;
 use OCP\IRequest;
 use OCP\IUser;
+use OCP\IUserManager;
 use OCP\IUserSession;
 use OCP\Security\ICrypto;
 use PHPUnit\Framework\Attributes\DataProvider;
@@ -58,6 +65,12 @@ final class ExternalSigningIntegrationsControllerTest extends TestCase {
 			$this->features,
 			new ExternalSigningDriverCatalog($this->features, new CscDriver($l10n)),
 			new ExternalIntegrationAdministration($store, new ExternalIntegrationFieldValidator()),
+			new IntegrationScopeAccess(
+				$this->createMock(PolicyService::class),
+				$this->groups, $this->createMock(IUserManager::class),
+				$this->session, $this->createMock(ISubAdmin::class),
+			),
+			new CscProviderProbe($this->createMock(IClientService::class), $this->createMock(IConfig::class)),
 			$this->logger,
 		);
 	}
@@ -68,6 +81,7 @@ final class ExternalSigningIntegrationsControllerTest extends TestCase {
 			'list' => ['index'],
 			'create' => ['create'],
 			'read' => ['show'],
+			'probe' => ['probe'],
 			'update' => ['update'],
 			'enable' => ['enable'],
 			'disable' => ['disable'],
@@ -151,7 +165,7 @@ final class ExternalSigningIntegrationsControllerTest extends TestCase {
 		$user = $this->createMock(IUser::class);
 		$user->method('getUID')->willReturn('test-actor');
 		$this->session->method('getUser')->willReturn($user);
-		$this->groups->expects($this->once())->method('isAdmin')->with('test-actor')->willReturn($admin);
+		$this->groups->expects($this->atLeastOnce())->method('isAdmin')->with('test-actor')->willReturn($admin);
 	}
 
 	private function invokeRoute(string $method): \OCP\AppFramework\Http\DataResponse {
@@ -159,6 +173,7 @@ final class ExternalSigningIntegrationsControllerTest extends TestCase {
 			'index' => $this->controller->index(),
 			'create' => $this->controller->create('csc-v1', 'Test', ['baseUrl' => 'https://example.org']),
 			'show' => $this->controller->show('unknown'),
+			'probe' => $this->controller->probe('unknown'),
 			'update' => $this->controller->update('unknown', 1),
 			'enable' => $this->controller->enable('unknown', 1),
 			'disable' => $this->controller->disable('unknown', 1),

@@ -118,6 +118,8 @@ namespace OCA\Libresign;
  *     id: string,
  *     driverId: string,
  *     name: string,
+ *     scopeType: string,
+ *     scopeId: string,
  *     configuration: object,
  *     enabled: bool,
  *     hasSecrets: bool,
@@ -274,6 +276,7 @@ namespace OCA\Libresign;
  *     remote-address?: string,
  *     user-agent?: string,
  *     deviceGeolocationRequirement?: LibresignGeolocationRequirement,
+ *     signingMethodRequirement?: 'libresign'|'external_certificate'|'signer_choice',
  *     geolocation?: LibresignSignerGeolocation,
  *     notify?: list<LibresignNotify>,
  *     certificate_info?: LibresignSignerCertificateInfo,
@@ -1010,6 +1013,59 @@ namespace OCA\Libresign;
  *         },
  *     },
  *     version: string,
+ * }
+ *
+ * @psalm-type LibresignExternalIntegrationProbeResponse = array{
+ *     reachable: bool,
+ *     serviceName: string,
+ *     apiVersion: string,
+ *     protocol: string,
+ *     protocolCompatible: bool,
+ *     personalSigningReady: bool,
+ *     result: string,
+ * }
+ *
+ * Provider-neutral external signing contracts
+ *
+ * @psalm-type LibresignExternalSigningSession = array{
+ *     id: string,
+ *     status: string,
+ *     revision: int,
+ *     integrationId: string,
+ *     credentialId: string,
+ *     certificateSha256: string,
+ *     expiresAt: string,
+ * }
+ * @psalm-type LibresignExternalSigningCredential = array{
+ *     id: string,
+ *     certificateSha256: string,
+ *     subject: string,
+ *     validTo: string,
+ *     signatureAlgorithm: string,
+ *     digestAlgorithm: string,
+ *     profiles: list<string>,
+ * }
+ * @psalm-type LibresignExternalSigningAvailabilityResponse = array{
+ *     integrations: list<array{id:string,name:string,driverId:string}>,
+ *     integration: ?array{id:string,name:string,driverId:string},
+ *     credentials: list<LibresignExternalSigningCredential>,
+ *     syntheticOnly: bool,
+ *     personalSignerAuthorization: bool,
+ *     session: ?LibresignExternalSigningSession,
+ * }
+ * @psalm-type LibresignExternalSigningSessionResponse = array{
+ *     session: ?LibresignExternalSigningSession,
+ * }
+ * @psalm-type LibresignExternalSigningPublication = array{
+ *     status: string,
+ *     sessionId: string,
+ *     signedNodeId: int,
+ *     signedHash: string,
+ * }
+ * @psalm-type LibresignExternalSigningContinueResponse = array{
+ *     session: LibresignExternalSigningSession,
+ *     retryAllowed: bool,
+ *     publication: ?LibresignExternalSigningPublication,
  * }
  */
 class ResponseDefinitions {

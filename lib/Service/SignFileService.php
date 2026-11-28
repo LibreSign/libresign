@@ -51,6 +51,7 @@ use OCA\Libresign\Service\Policy\Provider\CollectMetadata\CollectMetadataPolicy;
 use OCA\Libresign\Service\Policy\Provider\DocMdp\DocMdpPolicy;
 use OCA\Libresign\Service\Policy\Provider\Footer\FooterPolicy;
 use OCA\Libresign\Service\Policy\Provider\Footer\FooterPolicyValue;
+use OCA\Libresign\Service\Signing\RequestedSigningMethod;
 use OCA\Libresign\Service\SignRequest\SignRequestService;
 use OCA\Libresign\Service\SignRequest\StatusService;
 use OCA\Libresign\Service\Validation\IdentityDocumentValidator;
@@ -452,6 +453,12 @@ class SignFileService {
 			throw new LibresignException('No sign requests found to process');
 		}
 
+		foreach ($signRequests as $item) {
+			if (!RequestedSigningMethod::forRequest($item['signRequest'])->allowsLibreSign()) {
+				throw new LibresignException('This signer must use an external digital certificate');
+			}
+		}
+
 		$this->executeSigningStrategy($signRequests);
 	}
 
@@ -484,6 +491,9 @@ class SignFileService {
 	}
 
 	public function signSingleFile(FileEntity $libreSignFile, SignRequestEntity $signRequest): void {
+		if (!RequestedSigningMethod::forRequest($signRequest)->allowsLibreSign()) {
+			throw new LibresignException('This signer must use an external digital certificate');
+		}
 		$previousState = $this->saveCachedState();
 		$this->resetCachedState();
 
