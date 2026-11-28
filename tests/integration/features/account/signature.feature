@@ -102,6 +102,11 @@ Feature: account/signature
       | (jq).ocs.data.extensions                  | (jq).subjectKeyIdentifier != ""                                                          |
       | (jq).ocs.data.crl_urls\|length              | 1                                                                                        |
       | (jq).ocs.data.extensions.crlDistributionPoints \|test("URI:http") | true                                                                 |
+    And run the bash command "folder=$(php <nextcloudRootDir>/console.php user:setting signer1 libresign folder) && php <nextcloudRootDir>/console.php files:get \"signer1/files$folder/signature.pfx\" - | php -r '$c=[];$o=openssl_pkcs12_read(stream_get_contents(STDIN),$c,\"password\");$x=$o?openssl_x509_parse($c[\"cert\"]):[];$k=$o?openssl_pkey_get_details(openssl_pkey_get_public($c[\"cert\"])):[];$r=[\"pkcs12\"=>$o,\"type\"=>match($k[\"type\"]??null){OPENSSL_KEYTYPE_RSA=>\"RSA\",OPENSSL_KEYTYPE_EC=>\"EC\",default=>\"other\"},\"bits\"=>$k[\"bits\"]??0,\"basicConstraints\"=>$x[\"extensions\"][\"basicConstraints\"]??\"\",\"CN\"=>$x[\"subject\"][\"CN\"]??\"\",\"keyMatch\"=>$o&&openssl_x509_check_private_key($c[\"cert\"],$c[\"pkey\"])];$ok=$r===[\"pkcs12\"=>true,\"type\"=>\"RSA\",\"bits\"=>2048,\"basicConstraints\"=>\"CA:FALSE\",\"CN\"=>\"account:signer1, signer1-displayname\",\"keyMatch\"=>true];echo $ok?\"leaf certificate is RSA-2048\":\"unexpected leaf certificate: \".json_encode($r);exit($ok?0:1);'" with result code 0
+    And the output of the last command should contain the following text:
+      """
+      leaf certificate is RSA-2048
+      """
 
   Scenario: Create pfx with success using OpenSSL
     Given user "signer1" exists
