@@ -40,10 +40,6 @@
 							<a :href="contactSettingsUrl">{{ t('libresign', 'Edit contact information') }}</a>
 						</p>
 					</div>
-					<div class="user-password">
-						<h3>{{ t('libresign', 'Certificate') }}</h3>
-						<ManagePassword />
-					</div>
 				</div>
 			</div>
 
@@ -66,7 +62,6 @@ import { generateOcsUrl, generateUrl } from '@nextcloud/router'
 import NcAppContent from '@nextcloud/vue/components/NcAppContent'
 
 import Documents from './partials/Documents.vue'
-import ManagePassword from './partials/ManagePassword.vue'
 import Signatures from './partials/Signatures.vue'
 import UserImage from './partials/UserImage.vue'
 import type { components } from '../../types/openapi/openapi'
@@ -197,11 +192,6 @@ defineExpose({
 				.user-contact-edit{
 					margin: 0 12px;
 				}
-			}
-
-			.user-password{
-				display: flex;
-				flex-direction: column;
 			}
 		}
 

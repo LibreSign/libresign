@@ -353,30 +353,54 @@ describe('Settings', () => {
 			expect(adminItem).toBeUndefined()
 		})
 
-		it('shows 2 navigation items for unauthenticated user', () => {
+		it('shows 3 navigation items for unauthenticated user', () => {
 			wrapper = createUnauthenticatedWrapper()
 			const items = getItems()
 
-			// Account + Preferences + Rate = 3
-			expect(items.length).toBe(2)
+			// Account + My certificates + Rate = 3
+			expect(items.length).toBe(3)
 		})
 	})
 
 	describe('RULE: navigation items count depends on admin status', () => {
-		it('shows 2 items for non-admin', () => {
+		it('shows 4 items for non-admin', () => {
 			wrapper = createWrapper(false)
 			const items = getItems()
 
-			// Account + Preferences + Rate = 3
-			expect(items.length).toBe(3)
+			// Account + My certificates + Preferences + Rate = 4
+			expect(items.length).toBe(4)
 		})
 
-		it('shows 3 items for admin', () => {
+		it('shows 6 items for admin', () => {
 			wrapper = createWrapper(true)
 			const items = getItems()
 
-			// Account + Preferences + Policies + Administration + Rate = 5
-			expect(items.length).toBe(5)
+			// Account + My certificates + Preferences + Policies + Administration + Rate = 6
+			expect(items.length).toBe(6)
+		})
+	})
+
+	describe('RULE: My certificates item always displays for authenticated settings', () => {
+		it('shows My certificates item for non-admin user', () => {
+			wrapper = createWrapper(false)
+			const items = getItems()
+			const certificatesItem = expectItem(findItemByName(items, 'My certificates'))
+
+			expect(certificatesItem.props('to')).toEqual({ name: 'MyCertificates' })
+		})
+
+		it('shows My certificates item for admin user', () => {
+			wrapper = createWrapper(true)
+			const items = getItems()
+			const certificatesItem = expectItem(findItemByName(items, 'My certificates'))
+
+			expect(certificatesItem.props('to')).toEqual({ name: 'MyCertificates' })
+		})
+
+		it('renders the certificates icon', () => {
+			wrapper = createWrapper(false)
+
+			expect(getWrapper().find('.certificates-icon').exists()).toBe(true)
 		})
 	})
 
@@ -798,22 +822,24 @@ describe('Settings', () => {
 			expect(firstItem.props('name')).toContain('Account')
 		})
 
-		it('renders Administration second for admin (if present)', () => {
+		it('renders My certificates second', () => {
 			wrapper = createWrapper(true)
 			const items = getItems()
 			const secondItem = expectItemAt(items, 1)
 
-			expect(secondItem.props('name')).toContain('Preferences')
+			expect(secondItem.props('name')).toContain('My certificates')
 		})
 
-		it('renders Policies before Administration for admin users', () => {
+		it('renders Preferences, Policies and Administration in order for admin users', () => {
 			wrapper = createWrapper(true)
 			const items = getItems()
 			const thirdItem = expectItemAt(items, 2)
 			const fourthItem = expectItemAt(items, 3)
+			const fifthItem = expectItemAt(items, 4)
 
-			expect(thirdItem.props('name')).toContain('Policies')
-			expect(fourthItem.props('name')).toContain('Administration')
+			expect(thirdItem.props('name')).toContain('Preferences')
+			expect(fourthItem.props('name')).toContain('Policies')
+			expect(fifthItem.props('name')).toContain('Administration')
 		})
 
 		it('renders Rate last', async () => {
@@ -846,14 +872,16 @@ describe('Settings', () => {
 			wrapper = createWrapper(false)
 			const items = getItems()
 
-			expect(items).toHaveLength(3)
+			expect(items).toHaveLength(4)
 
 			const hasAccount = items.some(i => i.props('name')?.includes('Account'))
+			const hasCertificates = items.some(i => i.props('name')?.includes('My certificates'))
 			const hasPreferences = items.some(i => i.props('name')?.includes('Preferences'))
 			const hasRate = items.some(i => i.props('name')?.includes('Rate'))
 			const hasAdmin = items.some(i => i.props('name')?.includes('Administration'))
 
 			expect(hasAccount).toBe(true)
+			expect(hasCertificates).toBe(true)
 			expect(hasPreferences).toBe(true)
 			expect(hasRate).toBe(true)
 			expect(hasAdmin).toBe(false)
@@ -863,7 +891,7 @@ describe('Settings', () => {
 			wrapper = createWrapper(true)
 			const items = getItems()
 
-			expect(items).toHaveLength(5)
+			expect(items).toHaveLength(6)
 
 			const hasAccount = items.some(i => i.props('name')?.includes('Account'))
 			const hasPreferences = items.some(i => i.props('name')?.includes('Preferences'))
@@ -888,7 +916,7 @@ describe('Settings', () => {
 			})
 			const items = getItems()
 
-			expect(items).toHaveLength(2)
+			expect(items).toHaveLength(3)
 
 			const hasAccount = items.some(i => i.props('name')?.includes('Account'))
 			const hasPreferences = items.some(i => i.props('name')?.includes('Preferences'))
@@ -912,7 +940,7 @@ describe('Settings', () => {
 			})
 			const items = getItems()
 
-			expect(items).toHaveLength(2)
+			expect(items).toHaveLength(3)
 
 			const hasPreferences = items.some(i => i.props('name')?.includes('Preferences'))
 			const hasPolicies = items.some(i => i.props('name')?.includes('Policies'))
@@ -933,7 +961,7 @@ describe('Settings', () => {
 			})
 			const items = getItems()
 
-			expect(items).toHaveLength(3)
+			expect(items).toHaveLength(4)
 
 			const hasPolicies = items.some(i => i.props('name')?.includes('Policies'))
 			const hasAdmin = items.some(i => i.props('name')?.includes('Administration'))

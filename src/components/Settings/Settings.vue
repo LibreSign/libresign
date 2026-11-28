@@ -14,6 +14,13 @@
 			</template>
 		</NcAppNavigationItem>
 		<NcAppNavigationItem
+			:name="t('libresign', 'My certificates')"
+			:to="{name: 'MyCertificates'}">
+			<template #icon>
+				<NcIconSvgWrapper class="certificates-icon" :path="mdiCertificate" :size="20" />
+			</template>
+		</NcAppNavigationItem>
+		<NcAppNavigationItem
 			v-if="canManagePreferences"
 			:name="t('libresign', 'Preferences')"
 			:to="{name: 'Preferences'}">
@@ -69,6 +76,7 @@ import NcAppNavigationItem from '@nextcloud/vue/components/NcAppNavigationItem'
 import NcIconSvgWrapper from '@nextcloud/vue/components/NcIconSvgWrapper'
 import {
 	mdiAccount,
+	mdiCertificate,
 	mdiCogOutline,
 	mdiStar,
 	mdiShieldCheckOutline,
